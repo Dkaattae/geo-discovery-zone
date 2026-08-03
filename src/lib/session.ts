@@ -37,7 +37,7 @@ export function pickQuestion({ profile, topic, askedIds, index, forceReview }: P
 }
 
 function sample<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
 export function masteredEntityIds(profile: Profile) {
