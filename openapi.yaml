@@ -1,0 +1,2071 @@
+openapi: 3.1.0
+
+info:
+  title: Wander the Atlas — Geo Quiz API
+  version: 1.0.0
+  summary: Content, profile and session API for the kids' geography quiz.
+  description: |
+    Contract for the backend behind the `frontend/` app (TanStack Start + React).
+
+    **How this maps to the current frontend.** v1 of the app is local-first: the
+    question bank is bundled at build time (`frontend/src/data/`) and profiles live in
+    `localStorage` (`frontend/src/lib/storage.ts`). This contract describes the same
+    data as an HTTP surface so the bundled data can be replaced by fetched content
+    without reshaping the client, and so profiles/sessions can move server-side later
+    without a schema migration.
+
+    Three groups of operations, deliberately separable:
+
+    - **Content** (`/entities`, `/questions`, `/bundles`, `/geometry`,
+      `/elevation-profiles`, `/superlative-axes`) — read-only, build-time generated,
+      cacheable, no user data. This is the group worth implementing first; a static
+      file host satisfies it.
+    - **Profiles** (`/profiles`) — optional in v1. The app works with `localStorage`
+      alone; these endpoints exist for the v1.5 export/import story and any later
+      server accounts. Implementing them means storing children's data, so treat
+      adoption as a product decision, not a default.
+    - **Sessions** (`/sessions`) — server-side question selection and grading. The
+      client can equally run `pickQuestion()` locally against a fetched bank; this
+      group is what makes item-difficulty telemetry (and eventually Elo) possible.
+
+    **Difficulty.** `level` is the single stored scalar, 0.0–18.0. `grade` and `band`
+    are derived for display and never stored:
+
+    ```
+    grade = floor(level / 2)      // 0 = K, 1 = 1st … 8 = 8th
+    band  = level - 2 * grade     // 0 = easy, 1 = medium, 2 = hard
+    ```
+
+    `rating` and `timesAnswered` are reserved for Elo. Ship `rating: null` and serve on
+    `level`; when volume arrives, backfill `rating = 800 + level * 45` and flip the
+    selector. `ageBand` is appropriateness, not challenge, and is filtered separately.
+
+    **Answer keys.** Content responses include `correctIndex` by default because the
+    v1 client grades locally. Set `includeAnswerKey=false` once grading moves to
+    `POST /sessions/{sessionId}/answers`.
+
+  license:
+    name: UNLICENSED
+  contact:
+    name: Wander the Atlas
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: http://localhost:3000/api/v1
+    description: Local development
+
+tags:
+  - name: Content
+    description: Build-time generated question bank, entities and map assets. Read-only.
+  - name: Profiles
+    description: Player profiles. Optional in v1 — the app is localStorage-first.
+  - name: Sessions
+    description: Question selection, grading and session summaries.
+
+paths:
+  /content/version:
+    get:
+      operationId: getContentVersion
+      tags: [Content]
+      summary: Current content build
+      description: |
+        Lets a client decide whether its cached bundles are stale. `contentVersion`
+        changes whenever `scripts/build-data.ts` regenerates the bank.
+      responses:
+        "200":
+          description: Content build metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentVersion"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /entities:
+    get:
+      operationId: listEntities
+      tags: [Content]
+      summary: List entities
+      description: |
+        Entities are one flat pool — states, countries, cities and physical features
+        alike. Quiz modes are filters over tags, not separate collections.
+      parameters:
+        - $ref: "#/components/parameters/Scope"
+        - name: type
+          in: query
+          description: Restrict to one or more entity types.
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EntityType"
+          style: form
+          explode: false
+        - $ref: "#/components/parameters/Region"
+        - name: ids
+          in: query
+          description: Fetch a specific set of entities by id.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+        - name: q
+          in: query
+          description: Case-insensitive substring match on `name`.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of entities.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Entity"
+                  page:
+                    $ref: "#/components/schemas/PageInfo"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /entities/{entityId}:
+    parameters:
+      - $ref: "#/components/parameters/EntityId"
+    get:
+      operationId: getEntity
+      tags: [Content]
+      summary: Fetch one entity
+      responses:
+        "200":
+          description: The entity.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /questions:
+    get:
+      operationId: listQuestions
+      tags: [Content]
+      summary: List questions
+      description: |
+        Every filter here corresponds to a tag on the question. "US States" is
+        `scope=us&entityType=state`; "World Capitals" is `topic=capital&scope=world`;
+        "Farms & Weather" is `topic=climate,agriculture&minAgeBand=2`.
+
+        `level` + `levelSpan` mirror the client's widening search in
+        `frontend/src/lib/session.ts` — the selector tries a tight span first and
+        widens until the pool is non-empty.
+      parameters:
+        - $ref: "#/components/parameters/Scope"
+        - name: entityType
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EntityType"
+          style: form
+          explode: false
+        - name: entityId
+          in: query
+          description: Only questions about these entities. Used to run the review queue.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+        - name: topic
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Topic"
+          style: form
+          explode: false
+        - name: format
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/QuestionFormat"
+          style: form
+          explode: false
+        - $ref: "#/components/parameters/Region"
+        - name: minAgeBand
+          in: query
+          description: Appropriateness floor. Independent of `level`.
+          schema:
+            $ref: "#/components/schemas/AgeBand"
+        - name: maxAgeBand
+          in: query
+          schema:
+            $ref: "#/components/schemas/AgeBand"
+        - name: level
+          in: query
+          description: Centre of the difficulty window.
+          schema:
+            $ref: "#/components/schemas/Level"
+        - name: levelSpan
+          in: query
+          description: Half-width of the difficulty window around `level`.
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            default: 1.5
+        - name: exclude
+          in: query
+          description: Question ids already served this session.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+        - $ref: "#/components/parameters/IncludeAnswerKey"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: A page of questions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Question"
+                  page:
+                    $ref: "#/components/schemas/PageInfo"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /questions/{questionId}:
+    parameters:
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+        example: q-co-loc-1
+    get:
+      operationId: getQuestion
+      tags: [Content]
+      summary: Fetch one question
+      parameters:
+        - $ref: "#/components/parameters/IncludeAnswerKey"
+      responses:
+        "200":
+          description: The question.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /bundles:
+    get:
+      operationId: listBundles
+      tags: [Content]
+      summary: List lazy-load content bundles
+      description: |
+        Delivery-layer view of the same flat pool: one bundle per region so a client
+        can fetch `us` without paying for `africa`. Bundle boundaries are a shipping
+        decision — keep the loader region-agnostic.
+      responses:
+        "200":
+          description: Available bundles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BundleSummary"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /bundles/{bundleId}:
+    parameters:
+      - name: bundleId
+        in: path
+        required: true
+        schema:
+          type: string
+        examples:
+          us:
+            value: us
+          europe:
+            value: europe
+    get:
+      operationId: getBundle
+      tags: [Content]
+      summary: Fetch a content bundle
+      description: |
+        Entities and questions for one region in a single response. Supports
+        `ETag`/`If-None-Match`; bundles are immutable per `contentVersion`.
+      parameters:
+        - $ref: "#/components/parameters/IncludeAnswerKey"
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The bundle.
+          headers:
+            ETag:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+              example: public, max-age=31536000, immutable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bundle"
+        "304":
+          description: Bundle unchanged.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /geometry/{layer}:
+    parameters:
+      - name: layer
+        in: path
+        required: true
+        description: |
+          Vector layer, not map tiles — the client needs shapes it can fill and click.
+          US layers derive from Census TIGER, world layers from Natural Earth; both
+          are public domain.
+        schema:
+          $ref: "#/components/schemas/GeometryLayer"
+    get:
+      operationId: getGeometry
+      tags: [Content]
+      summary: Fetch a TopoJSON geometry layer
+      description: |
+        Join keys are FIPS for US states (`08` = Colorado) and ISO 3166-1 alpha-3 for
+        countries (`FRA`), matching `Entity.geometryId`. Never join on name strings.
+      parameters:
+        - name: detail
+          in: query
+          description: |
+            Natural Earth scale. `110m` (~100KB) for the world view, `50m` when
+            zoomed to a continent, `10m` only where it is genuinely needed (~4MB).
+          schema:
+            type: string
+            enum: ["110m", "50m", "10m"]
+            default: "110m"
+      responses:
+        "200":
+          description: TopoJSON topology.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                description: A TopoJSON topology consumable by `topojson-client`.
+                additionalProperties: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /elevation-profiles:
+    get:
+      operationId: listElevationProfiles
+      tags: [Content]
+      summary: List precomputed elevation cross-sections
+      description: |
+        Sampled at build time and shipped as flat arrays, so no elevation API key
+        reaches the client and rate limits never apply at play time.
+      parameters:
+        - $ref: "#/components/parameters/Scope"
+      responses:
+        "200":
+          description: Available profiles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ElevationProfile"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /elevation-profiles/{profileKey}:
+    parameters:
+      - name: profileKey
+        in: path
+        required: true
+        schema:
+          type: string
+        example: profile-us-39n
+    get:
+      operationId: getElevationProfile
+      tags: [Content]
+      summary: Fetch one elevation cross-section
+      responses:
+        "200":
+          description: The profile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevationProfile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /superlative-axes:
+    get:
+      operationId: listSuperlativeAxes
+      tags: [Content]
+      summary: List superlative axes
+      description: |
+        Axes, not questions — the generator emits per-scope questions from each axis
+        and draws distractors from the next-ranked entities. Exposed so a client can
+        show "longest river" as a browsable category with a map reveal.
+      parameters:
+        - name: entityType
+          in: query
+          schema:
+            $ref: "#/components/schemas/EntityType"
+      responses:
+        "200":
+          description: Available axes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SuperlativeAxis"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles:
+    get:
+      operationId: listProfiles
+      tags: [Profiles]
+      summary: List profiles on this device
+      responses:
+        "200":
+          description: Profiles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Profile"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createProfile
+      tags: [Profiles]
+      summary: Create a profile
+      description: |
+        A profile is a name and an avatar — tap your face, you're in. `grade` seeds
+        `level = grade * 2`; all three level fields start there. A PIN is optional and
+        only offered from grade 4 up; it guards against a sibling overwriting
+        progress, not against an attacker.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfileRequest"
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles/{profileId}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: getProfile
+      tags: [Profiles]
+      summary: Fetch a profile
+      responses:
+        "200":
+          description: The profile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateProfile
+      tags: [Profiles]
+      summary: Update a profile
+      description: |
+        Partial update. `stats`, `mastery` and `reviewQueue` are normally advanced by
+        the session endpoints; write them here only when reconciling a client that
+        played offline.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: The updated profile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      operationId: deleteProfile
+      tags: [Profiles]
+      summary: Delete a profile and its history
+      responses:
+        "204":
+          description: Deleted.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles/{profileId}/progress:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: getProfileProgress
+      tags: [Profiles]
+      summary: Mastery and map progress
+      description: |
+        Everything needed to paint the progress map. `masteredGeometryIds` is the
+        join-key set the map component fills in — the map itself is the progress bar.
+      responses:
+        "200":
+          description: Progress.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileProgress"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles/{profileId}/review-queue:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: getReviewQueue
+      tags: [Profiles]
+      summary: Entities queued for review
+      description: |
+        Entity ids, not question ids — a missed entity comes back from a different
+        angle, so a kid who missed "which state is this?" for Vermont is next asked
+        for Vermont's capital. Capped at 20 so it never reads as punishment.
+      responses:
+        "200":
+          description: The queue, oldest first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewQueue"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles/{profileId}/review-queue/{entityId}:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+      - $ref: "#/components/parameters/EntityId"
+    delete:
+      operationId: removeFromReviewQueue
+      tags: [Profiles]
+      summary: Drop an entity from the review queue
+      description: Normally automatic after two clean passes; exposed for manual clearing.
+      responses:
+        "204":
+          description: Removed.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles/{profileId}/export:
+    parameters:
+      - $ref: "#/components/parameters/ProfileId"
+    get:
+      operationId: exportProfile
+      tags: [Profiles]
+      summary: Export a profile as JSON
+      description: |
+        The v1.5 recovery story: a grown-up-facing backup file. There is no recovery
+        code, because a recovery code implies a server to recover from.
+      responses:
+        "200":
+          description: Portable profile document.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileExport"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /profiles/import:
+    post:
+      operationId: importProfile
+      tags: [Profiles]
+      summary: Import a previously exported profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileExport"
+      responses:
+        "201":
+          description: Imported. A fresh `id` is assigned if the original collides.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions:
+    post:
+      operationId: startSession
+      tags: [Sessions]
+      summary: Start a session
+      description: |
+        A session is whatever was played since Start — there is no fixed length and no
+        target. `level` defaults to the profile's `lastSessionEndLevel`, so the common
+        case is: open app, tap topic, tap Start.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartSessionRequest"
+      responses:
+        "201":
+          description: Session started, with the first question served.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [session]
+                properties:
+                  session:
+                    $ref: "#/components/schemas/Session"
+                  served:
+                    $ref: "#/components/schemas/ServedQuestion"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions/{sessionId}:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    get:
+      operationId: getSession
+      tags: [Sessions]
+      summary: Fetch session state
+      responses:
+        "200":
+          description: The session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions/{sessionId}/next-question:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    post:
+      operationId: serveNextQuestion
+      tags: [Sessions]
+      summary: Serve the next question
+      description: |
+        Mirrors `pickQuestion()` in `frontend/src/lib/session.ts`: every seventh
+        question is pulled from the review queue when one is waiting; otherwise the
+        selector widens its difficulty window until it finds a fresh question, then
+        falls back to repeats while avoiding the last few asked.
+
+        `POST` rather than `GET` because serving mutates the session's asked list.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                forceReview:
+                  type: boolean
+                  default: false
+                  description: Pull from the review queue regardless of position.
+                includeAnswerKey:
+                  type: boolean
+                  default: true
+      responses:
+        "200":
+          description: The question to present.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServedQuestion"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Session already ended.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions/{sessionId}/answers:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    post:
+      operationId: submitAnswer
+      tags: [Sessions]
+      summary: Submit an answer and get the reveal
+      description: |
+        Grading, profile advancement and the reveal payload in one round trip.
+
+        Reveals are asymmetric on purpose: a correct answer earns a *reward* (the
+        entity's fun fact, dismissible immediately), a wrong one earns a *reason* (why
+        the right answer is right, with the answer highlighted on the map). Collapsing
+        both into one modal teaches kids to tap through the content the app exists to
+        deliver.
+
+        Side effects on the profile: mastery moves, a wrong answer pushes the entity
+        onto the review queue, four correct in a row nudges `level` up by 0.5 and
+        three wrong in a row drops it by 0.5 — quietly, with no message, since kids
+        read "difficulty lowered" as failure.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerRequest"
+      responses:
+        "200":
+          description: Grading result and reveal content.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Question already answered, or session ended.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions/{sessionId}/answers/{answerId}:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+      - name: answerId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      operationId: undoAnswer
+      tags: [Sessions]
+      summary: Undo an accidental answer
+      description: |
+        Backs out the most recent answer and its profile effects. Multiple choice
+        commits on tap — a Submit button would double the taps on every question in
+        the app — so a short undo window covers the mis-tap instead.
+      responses:
+        "204":
+          description: Undone. The question returns to `PRESENTING`.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Undo window has closed, or a later answer exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions/{sessionId}/review-round:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    post:
+      operationId: startReviewRound
+      tags: [Sessions]
+      summary: Accept the review offer
+      description: |
+        Runs the queue as a short set (5 max). Offered — never forced — after five
+        cumulative wrong answers, and never immediately after a wrong answer, which
+        would read as being corrected. Three wrong in a row is a *different* signal:
+        that drops the level silently and does not trigger an offer.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                length:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  default: 5
+      responses:
+        "200":
+          description: Review round started, first review question served.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [served, remaining]
+                properties:
+                  served:
+                    $ref: "#/components/schemas/ServedQuestion"
+                  remaining:
+                    type: integer
+                    description: Review questions left after this one.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Review queue is empty.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /sessions/{sessionId}/end:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    post:
+      operationId: endSession
+      tags: [Sessions]
+      summary: End the session and get the summary
+      description: |
+        Writes `lastSessionEndLevel` to the profile and returns the summary. The
+        summary reports places learned, not a percentage — "You learned 3 new states!"
+        and "60%" carry the same information and opposite messages about whether to
+        come back.
+      responses:
+        "200":
+          description: Session summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionSummary"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Problem"
+
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque cursor from `page.nextCursor`.
+      schema:
+        type: string
+    Scope:
+      name: scope
+      in: query
+      schema:
+        $ref: "#/components/schemas/Scope"
+    Region:
+      name: region
+      in: query
+      description: Region slug, e.g. `mountain-west`, `europe`, `southeast-asia`.
+      schema:
+        type: string
+    EntityId:
+      name: entityId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: us-state-co
+    ProfileId:
+      name: profileId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: p-1754236800000-a7f3k
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+    IncludeAnswerKey:
+      name: includeAnswerKey
+      in: query
+      description: |
+        When `true` (the v1 default) responses carry `correctIndex` and the client
+        grades locally. Set `false` once grading runs through
+        `POST /sessions/{sessionId}/answers`.
+      schema:
+        type: boolean
+        default: true
+
+  responses:
+    Problem:
+      description: Unexpected error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: No such resource.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    ValidationFailed:
+      description: The request body failed validation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      required: [title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          default: about:blank
+        title:
+          type: string
+          example: Profile not found
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        errors:
+          type: array
+          description: Field-level validation failures.
+          items:
+            type: object
+            required: [path, message]
+            properties:
+              path:
+                type: string
+                example: /name
+              message:
+                type: string
+
+    PageInfo:
+      type: object
+      required: [hasMore]
+      properties:
+        hasMore:
+          type: boolean
+        nextCursor:
+          type: [string, "null"]
+        total:
+          type: integer
+          description: Total matching records, when cheap to compute.
+
+    ContentVersion:
+      type: object
+      required: [contentVersion, generatedAt]
+      properties:
+        contentVersion:
+          type: string
+          description: Changes whenever the bank is regenerated.
+          example: 2026-08-03T09:14:22Z-3f1c9a
+        generatedAt:
+          type: string
+          format: date-time
+        counts:
+          type: object
+          properties:
+            entities:
+              type: integer
+            questions:
+              type: integer
+            bundles:
+              type: integer
+        sources:
+          type: array
+          description: Attribution for the datasets this build drew on.
+          items:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+                example: Wikidata
+              license:
+                type: string
+                example: CC0
+              url:
+                type: string
+                format: uri
+
+    Scope:
+      type: string
+      enum: [us, world]
+
+    EntityType:
+      type: string
+      description: |
+        Physical features are a separate family, not a subtype of country — a river
+        crosses ten borders and a range sits in five countries, so they link
+        many-to-many rather than nesting.
+      enum:
+        - state
+        - country
+        - city
+        - landmark
+        - river
+        - mountain
+        - mountain_range
+        - lake
+        - ocean
+        - continent
+        - region
+
+    Topic:
+      type: string
+      enum:
+        - location
+        - capital
+        - climate
+        - agriculture
+        - wildlife
+        - landmark
+        - size
+        - physical
+        - superlative
+        - elevation
+
+    QuestionFormat:
+      type: string
+      description: |
+        The v1 client emits `map-identify` and `text-mc`; those map to `map_identify`
+        and `multiple_choice` respectively.
+      enum:
+        - map_identify
+        - map_click
+        - multiple_choice
+        - image
+        - ab_compare
+        - pin_pick
+        - pin_drop
+        - drag_order
+        - click_profile
+
+    AgeBand:
+      type: integer
+      description: "Appropriateness, not difficulty: 1 = 6–8, 2 = 9–11, 3 = 12+."
+      enum: [1, 2, 3]
+
+    Level:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 18
+      description: |
+        The only stored difficulty value. `grade = floor(level / 2)`,
+        `band = level - 2 * grade`. Grade and difficulty are one axis — 3rd-hard and
+        4th-easy are the same number by design.
+      example: 7
+
+    LevelLabel:
+      type: object
+      description: Display-only rendering of a `level`. Never stored as a pair.
+      required: [level, grade, band, gradeLabel, bandLabel, display]
+      properties:
+        level:
+          $ref: "#/components/schemas/Level"
+        grade:
+          type: integer
+          minimum: 0
+          maximum: 8
+        band:
+          type: number
+          format: float
+        gradeLabel:
+          type: string
+          example: 3rd grade
+        bandLabel:
+          type: string
+          enum: [Easy, Medium, Hard]
+        display:
+          type: string
+          example: 3rd grade · Medium
+
+    LonLat:
+      type: array
+      description: "[longitude, latitude] in WGS 84."
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+      example: [-105.55, 39]
+
+    FunFact:
+      type: object
+      required: [text, reviewed]
+      properties:
+        text:
+          type: string
+          description: "Rewritten in kid language. Only reviewed facts ship."
+        sourceUrl:
+          type: [string, "null"]
+          format: uri
+          description: Kept on every fact so "Read more" works and CC BY-SA attribution is satisfied.
+        reviewed:
+          type: boolean
+
+    GeometryRef:
+      type: object
+      description: |
+        Pointer into a vector layer for features that aren't keyed by FIPS or ISO —
+        rivers in particular are multi-segment and must be grouped by name at build
+        time, or highlighting lights up a third of the river.
+      required: [layer]
+      properties:
+        layer:
+          $ref: "#/components/schemas/GeometryLayer"
+        featureName:
+          type: string
+          example: Nile
+        featureIds:
+          type: array
+          items:
+            type: string
+
+    GeometryLayer:
+      type: string
+      enum:
+        - us-states
+        - us-counties
+        - world-countries
+        - world-land
+        - rivers
+        - lakes
+        - marine
+        - elevation-points
+        - region-polys
+
+    Entity:
+      type: object
+      description: |
+        One row per place. Fields beyond `id`/`type`/`name` are populated per family —
+        a river has `lengthKm` and `flowsThrough`, a state has `capital` and
+        `topCrops`. Absent means "not applicable or not yet sourced"; generators must
+        gate on presence rather than assume.
+      required: [id, type, name]
+      properties:
+        id:
+          type: string
+          example: us-state-co
+        type:
+          $ref: "#/components/schemas/EntityType"
+        scope:
+          $ref: "#/components/schemas/Scope"
+        name:
+          type: string
+          example: Colorado
+        capital:
+          type: string
+          example: Denver
+        region:
+          type: string
+          example: Mountain West
+        continent:
+          type: string
+        geometryId:
+          type: string
+          description: FIPS for US states (`08`), ISO 3166-1 alpha-3 for countries (`FRA`).
+          example: "08"
+        geometryRef:
+          $ref: "#/components/schemas/GeometryRef"
+        centroid:
+          $ref: "#/components/schemas/LonLat"
+        population:
+          type: integer
+        populationRank:
+          type: integer
+        areaRank:
+          type: integer
+        areaKm2:
+          type: number
+        borders:
+          type: array
+          description: Entity ids, not names.
+          items:
+            type: string
+        climateKoppen:
+          type: array
+          items:
+            type: string
+          example: ["BSk", "Dfb", "ET"]
+        climateKid:
+          type: string
+          example: dry and cold in the mountains, drier plains to the east
+        topCrops:
+          type: array
+          items:
+            type: string
+        animals:
+          type: array
+          description: Hand-curated — Wikidata coverage here is genuinely poor.
+          items:
+            type: string
+        landmark:
+          type: string
+        elevationM:
+          type: number
+          description: Peak elevation for mountains, city elevation for cities.
+        lengthKm:
+          type: number
+        lengthRank:
+          type: integer
+        flowsThrough:
+          type: array
+          description: Entity ids or ISO alpha-3 codes of countries a river passes through.
+          items:
+            type: string
+        mouth:
+          type: string
+        kidHook:
+          type: string
+          example: Ancient Egypt was built along its banks.
+        tiny:
+          type: boolean
+          default: false
+          description: |
+            Too small to tap at world zoom (Monaco, Malta, Cape Verde). Routes the
+            generator to pin formats and away from click-the-shape.
+        contested:
+          type: boolean
+          default: false
+          description: |
+            Ranking or classification is genuinely disputed (Nile vs. Amazon length,
+            Caspian as lake or sea). Either exclude from superlatives or turn the
+            dispute into the fun fact — a wrong red X here would be misleading.
+        funFact:
+          type: string
+          description: Short reward text shown on a correct answer. One or two sentences.
+        funFactDetail:
+          type: string
+          description: Longer blurb behind "Tell me more →".
+        funFacts:
+          type: array
+          description: Reviewed fact pool, when more than the single pair is authored.
+          items:
+            $ref: "#/components/schemas/FunFact"
+
+    Question:
+      type: object
+      required: [id, entityId, format, prompt, level]
+      properties:
+        id:
+          type: string
+          example: q-co-loc-1
+        entityId:
+          type: string
+          example: us-state-co
+        templateId:
+          type: string
+          description: The template this was generated from.
+          example: tpl-capital-of
+        format:
+          $ref: "#/components/schemas/QuestionFormat"
+        prompt:
+          type: string
+          example: What is the capital of Colorado?
+        choices:
+          type: array
+          description: |
+            Present for choice formats. Distractors come from siblings in the same
+            region — Ohio / Indiana / Illinois / Iowa is a real question, Ohio /
+            Hawaii / Texas / Alaska is free.
+          items:
+            type: string
+        correctIndex:
+          type: integer
+          minimum: 0
+          description: Omitted when `includeAnswerKey=false`.
+        level:
+          $ref: "#/components/schemas/Level"
+        rating:
+          type: [number, "null"]
+          default: null
+          description: |
+            Reserved for Elo. Ship `null` and serve on `level`; backfill later with
+            `rating = 800 + level * 45` — `level = (rating - 800) / 45` keeps every
+            display label working, so no migration and no reseeding.
+        timesAnswered:
+          type: integer
+          default: 0
+          description: |
+            An item's rating should not move until this passes ~30; before that it is
+            noise wearing a number.
+        topic:
+          $ref: "#/components/schemas/Topic"
+        scope:
+          $ref: "#/components/schemas/Scope"
+        entityType:
+          $ref: "#/components/schemas/EntityType"
+        region:
+          type: string
+        ageBand:
+          $ref: "#/components/schemas/AgeBand"
+        highlightGeometryId:
+          type: string
+          description: |
+            Join key of the shape to highlight while presenting — `highlightFips` in
+            the v1 client.
+          example: "08"
+        imageUrl:
+          type: string
+          format: uri
+          description: Flag or landmark image for `image` format questions.
+        pinTarget:
+          $ref: "#/components/schemas/PinTarget"
+        elevationProfileKey:
+          type: string
+          description: Cross-section to render for `click_profile` questions.
+        timeLimitS:
+          type: [number, "null"]
+          default: null
+          description: |
+            Null in v1 — there is no countdown on any question. A timer works against
+            letting explanations land, penalises slow readers and punishes the child
+            thinking hardest. The field exists so a future opt-in Speed Round over
+            simple recall doesn't need a schema change.
+        reveal:
+          type: string
+          enum: [none, map_highlight, profile_highlight, image]
+          default: none
+          description: |
+            `map_highlight` is the default for every superlative. A superlative
+            answered as text is a memorised fact; answered with the Nile lighting up
+            across northeast Africa it is geography.
+        shortExplanation:
+          type: string
+          description: |
+            Shown on a wrong answer. Must answer *why*, not restate the answer —
+            "Denver grew up as the railroad hub" teaches; "Denver is the capital, not
+            Colorado Springs" does not.
+        detailExplanation:
+          type: string
+          description: Deeper reasoning behind "Why? →".
+        contested:
+          type: boolean
+          default: false
+
+    PinTarget:
+      type: object
+      description: |
+        Grading spec for pin formats. A fixed radius fails at both ends — 200km is
+        generous for Cape Verde and about three pixels at world zoom — so grade by
+        point-in-polygon first and fall back to nearest centroid only when the tap
+        hits no shape. Rivers grade by distance to the line, since a river's centroid
+        can sit in a country the river never touches.
+      required: [strategy]
+      properties:
+        strategy:
+          type: string
+          enum: [polygon_then_centroid, distance_to_line, nearest_centroid]
+        geometryRef:
+          $ref: "#/components/schemas/GeometryRef"
+        centroid:
+          $ref: "#/components/schemas/LonLat"
+        maxDistanceKm:
+          type: number
+          description: Cap so a tap mid-Atlantic cannot accidentally win.
+          example: 600
+        autoZoomBounds:
+          type: array
+          description: |
+            "[[west, south], [east, north]]" to frame before asking. Framing the
+            Atlantic before posing Cape Verde dissolves the tiny-territory problem
+            and teaches the neighbourhood before the country.
+          items:
+            $ref: "#/components/schemas/LonLat"
+          minItems: 2
+          maxItems: 2
+
+    SuperlativeAxis:
+      type: object
+      required: [id, axis, entityType, promptMost]
+      properties:
+        id:
+          type: string
+          example: sup-river-length
+        axis:
+          type: string
+          description: Entity field to rank on.
+          example: lengthKm
+        entityType:
+          $ref: "#/components/schemas/EntityType"
+        promptMost:
+          type: string
+          example: Which is the longest river in the world?
+        promptLeast:
+          type: [string, "null"]
+          default: null
+          description: |
+            Emitted only where explicitly authored. Smallest country is a fine
+            question; shortest river is a trivia-book curiosity with contested
+            answers.
+        scopeVariants:
+          type: array
+          description: |
+            Scoping multiplies volume and improves the pedagogy — a kid who knows the
+            longest river in South America knows more than one who memorised a single
+            global fact.
+          items:
+            type: string
+          example: ["world", "continent:africa", "scope:us"]
+        reveal:
+          type: string
+          enum: [map_highlight, none]
+          default: map_highlight
+
+    ElevationProfile:
+      type: object
+      description: |
+        A top-down map cannot convey height; a cross-section turns altitude into a
+        shape, and shapes are what kids remember.
+      required: [key, label, from, to, samples]
+      properties:
+        key:
+          type: string
+          example: profile-us-39n
+        label:
+          type: string
+          example: Across the USA at Denver's latitude
+        scope:
+          $ref: "#/components/schemas/Scope"
+        from:
+          $ref: "#/components/schemas/LonLat"
+        to:
+          $ref: "#/components/schemas/LonLat"
+        samples:
+          type: array
+          description: Elevation in metres at evenly spaced points along the cut line (~200).
+          items:
+            type: number
+        markers:
+          type: array
+          items:
+            type: object
+            required: [atKm, label]
+            properties:
+              atKm:
+                type: number
+              label:
+                type: string
+                example: Denver
+              elevationM:
+                type: number
+        verticalExaggeration:
+          type: number
+          description: |
+            Mandatory — at true scale Everest across Asia is an invisible bump. Label
+            it honestly in the UI; cartographers have always done this and saying so
+            is itself a lesson.
+          example: 50
+        populationOverlay:
+          type: boolean
+          default: false
+          description: |
+            Pairs the profile with population dots so "why does almost nobody live
+            along this stretch?" asks itself. Score these gently, or not at all.
+
+    BundleSummary:
+      type: object
+      required: [id, label]
+      properties:
+        id:
+          type: string
+          example: us
+        label:
+          type: string
+          example: United States
+        scope:
+          $ref: "#/components/schemas/Scope"
+        entityCount:
+          type: integer
+        questionCount:
+          type: integer
+        bytes:
+          type: integer
+        etag:
+          type: string
+
+    Bundle:
+      allOf:
+        - $ref: "#/components/schemas/BundleSummary"
+        - type: object
+          required: [entities, questions]
+          properties:
+            contentVersion:
+              type: string
+            entities:
+              type: array
+              items:
+                $ref: "#/components/schemas/Entity"
+            questions:
+              type: array
+              items:
+                $ref: "#/components/schemas/Question"
+
+    Profile:
+      type: object
+      required: [id, name, avatar, level, lastSessionEndLevel, bestSustainedLevel, stats, mastery, reviewQueue]
+      properties:
+        id:
+          type: string
+          example: p-1754236800000-a7f3k
+        name:
+          type: string
+          example: Maya
+        avatar:
+          type: string
+          description: Emoji key from the picker.
+          example: 🦊
+        pinHash:
+          type: [string, "null"]
+          default: null
+          description: |
+            Optional, offered from grade 4 up. What it protects against is a sibling
+            overwriting progress on the family tablet — a kindergartener cannot manage
+            a PIN, and the profile picker is the real answer for younger kids.
+        createdAt:
+          type: string
+          format: date-time
+        level:
+          $ref: "#/components/schemas/Level"
+        bestSustainedLevel:
+          allOf:
+            - $ref: "#/components/schemas/Level"
+          description: |
+            Sustained, not peak — 2–3 consecutive correct at that level. Peak-based
+            reporting inflates the next session's start, the kid opens to something
+            too hard, and that is the classic quit moment.
+        lastSessionEndLevel:
+          allOf:
+            - $ref: "#/components/schemas/Level"
+          description: Default for the next session's level picker.
+        stats:
+          type: object
+          required: [answered, correct]
+          properties:
+            answered:
+              type: integer
+            correct:
+              type: integer
+            streakDays:
+              type: integer
+        mastery:
+          type: object
+          description: Entity id → mastery 0–1. Above 0.7 fills the entity in on the progress map.
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+          example:
+            us-state-co: 0.8
+            country-per: 0.2
+        reviewQueue:
+          type: array
+          description: Entity ids awaiting review, oldest first, capped at 20.
+          items:
+            type: string
+          maxItems: 20
+
+    CreateProfileRequest:
+      type: object
+      required: [name, avatar, grade]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 24
+        avatar:
+          type: string
+        grade:
+          type: integer
+          minimum: 0
+          maximum: 8
+          description: Seeds `level = grade * 2`.
+        pin:
+          type: [string, "null"]
+          pattern: "^[0-9]{4}$"
+          description: Optional, grade 4+. Hashed server-side; never returned.
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 24
+        avatar:
+          type: string
+        level:
+          $ref: "#/components/schemas/Level"
+        lastSessionEndLevel:
+          $ref: "#/components/schemas/Level"
+        bestSustainedLevel:
+          $ref: "#/components/schemas/Level"
+        pin:
+          type: [string, "null"]
+          pattern: "^[0-9]{4}$"
+        mastery:
+          type: object
+          additionalProperties:
+            type: number
+        reviewQueue:
+          type: array
+          items:
+            type: string
+
+    ProfileProgress:
+      type: object
+      required: [profileId, mastery]
+      properties:
+        profileId:
+          type: string
+        mastery:
+          type: object
+          additionalProperties:
+            type: number
+        masteredEntityIds:
+          type: array
+          items:
+            type: string
+        masteredGeometryIds:
+          type: array
+          description: Join keys to fill in on the map (FIPS for states, ISO-3 for countries).
+          items:
+            type: string
+        entitiesSeen:
+          type: integer
+        mapProgress:
+          type: object
+          description: |
+            Backs the "N of M places filled in" line under the progress map. Counted
+            over one entity family at a time, since the US map fills in states and a
+            world map fills in countries.
+          properties:
+            entityType:
+              $ref: "#/components/schemas/EntityType"
+            scope:
+              $ref: "#/components/schemas/Scope"
+            filled:
+              type: integer
+            total:
+              type: integer
+        suggestedLevels:
+          type: array
+          description: |
+            The three or four choices to show in the level picker, centred on
+            `lastSessionEndLevel`. A K–2 child should never scroll past 7th grade.
+          items:
+            $ref: "#/components/schemas/Level"
+        reviewQueue:
+          type: array
+          items:
+            type: string
+
+    ReviewQueue:
+      type: object
+      required: [profileId, entities]
+      properties:
+        profileId:
+          type: string
+        entities:
+          type: array
+          items:
+            type: object
+            required: [entityId]
+            properties:
+              entityId:
+                type: string
+              name:
+                type: string
+              cleanPasses:
+                type: integer
+                description: Removed after two.
+              addedAt:
+                type: string
+                format: date-time
+
+    ProfileExport:
+      type: object
+      description: |
+        Portable backup written by the grown-up-facing export button. Responsibility
+        sits with the adult, which is where it belongs.
+      required: [exportVersion, profile]
+      properties:
+        exportVersion:
+          type: integer
+          example: 1
+        exportedAt:
+          type: string
+          format: date-time
+        profile:
+          $ref: "#/components/schemas/Profile"
+
+    StartSessionRequest:
+      type: object
+      required: [profileId]
+      properties:
+        profileId:
+          type: string
+        topic:
+          type: string
+          description: |
+            `mixed` draws across topics. Grade is not asked per session — it lives on
+            the profile.
+          oneOf:
+            - $ref: "#/components/schemas/Topic"
+            - type: string
+              enum: [mixed]
+          default: mixed
+        level:
+          allOf:
+            - $ref: "#/components/schemas/Level"
+          description: |
+            Defaults to the profile's `lastSessionEndLevel`. The picker should show
+            three or four choices around the current level, not all nineteen.
+        serveFirstQuestion:
+          type: boolean
+          default: true
+
+    Session:
+      type: object
+      required: [id, profileId, topic, level, state, startedAt, counts]
+      properties:
+        id:
+          type: string
+        profileId:
+          type: string
+        topic:
+          type: string
+          example: location
+        level:
+          $ref: "#/components/schemas/Level"
+        levelLabel:
+          $ref: "#/components/schemas/LevelLabel"
+        state:
+          type: string
+          enum: [active, ended]
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: [string, "null"]
+          format: date-time
+        counts:
+          type: object
+          required: [answered, correct, wrong]
+          properties:
+            answered:
+              type: integer
+            correct:
+              type: integer
+            wrong:
+              type: integer
+            correctStreak:
+              type: integer
+            wrongStreak:
+              type: integer
+        askedQuestionIds:
+          type: array
+          items:
+            type: string
+        seenEntityIds:
+          type: array
+          items:
+            type: string
+        learnedEntityIds:
+          type: array
+          description: Entities whose mastery crossed 0.7 during this session.
+          items:
+            type: string
+        reviewRoundRemaining:
+          type: integer
+          default: 0
+
+    ServedQuestion:
+      type: object
+      required: [question, isReview, index]
+      properties:
+        question:
+          $ref: "#/components/schemas/Question"
+        entity:
+          allOf:
+            - $ref: "#/components/schemas/Entity"
+          description: Inlined so the client can render the map and reveal without a second call.
+        isReview:
+          type: boolean
+          description: True when pulled from the review queue. Never surfaced as a label to the kid.
+        index:
+          type: integer
+          description: 0-based position within the session.
+        phase:
+          type: string
+          description: |
+            Lifecycle the client renders. Commit friction scales with the input:
+            multiple choice commits on tap, pin-drop needs a Submit because a
+            fingertip covers the exact spot it is aiming at.
+          enum: [PRESENTING, SELECTED, COMMITTED, REVEALING]
+          default: PRESENTING
+
+    AnswerRequest:
+      type: object
+      required: [questionId]
+      properties:
+        questionId:
+          type: string
+        choiceIndex:
+          type: [integer, "null"]
+          description: For choice formats.
+        pin:
+          allOf:
+            - $ref: "#/components/schemas/LonLat"
+          description: For pin formats — the inverse-projected tap.
+        order:
+          type: array
+          description: For `drag_order`, entity ids in the order the kid arranged them.
+          items:
+            type: string
+        elapsedMs:
+          type: integer
+          description: Telemetry only. No question is timed in v1.
+        clientAnsweredAt:
+          type: string
+          format: date-time
+
+    AnswerResult:
+      type: object
+      required: [answerId, correct, reveal, session]
+      properties:
+        answerId:
+          type: string
+          description: Pass to `DELETE /sessions/{sessionId}/answers/{answerId}` to undo a mis-tap.
+        correct:
+          type: boolean
+        correctIndex:
+          type: integer
+        correctAnswer:
+          type: string
+        distanceKm:
+          type: number
+          description: |
+            For pin formats. Show the distance rather than a red X — "You were 340 km
+            off!" reads as progress, where a red X reads as failure. Keep the
+            underlying pass/fail binary for item difficulty, or the stats get muddy.
+        reveal:
+          $ref: "#/components/schemas/Reveal"
+        profile:
+          allOf:
+            - $ref: "#/components/schemas/Profile"
+          description: The profile after mastery, level and review-queue effects.
+        levelChange:
+          type: [number, "null"]
+          description: |
+            Non-null when the streak rules moved the level. Apply it silently — do not
+            announce a drop.
+        session:
+          $ref: "#/components/schemas/Session"
+        prompts:
+          $ref: "#/components/schemas/SessionPrompts"
+
+    Reveal:
+      type: object
+      description: |
+        Two tiers, and the content differs by outcome: a correct answer gets a fun
+        fact (no re-teaching — they got it), a wrong one gets a reason plus the answer
+        highlighted on the map.
+      required: [tone, headline]
+      properties:
+        tone:
+          type: string
+          enum: [reward, reason]
+        headline:
+          type: string
+          description: One or two sentences. If it needs three, it belongs in `detail`.
+        detail:
+          type: string
+          description: Behind "Tell me more →" (correct) or "Why? →" (wrong).
+        answerLabel:
+          type: string
+          example: Denver
+        mapHighlightGeometryId:
+          type: string
+        sourceUrl:
+          type: [string, "null"]
+          format: uri
+        nextEnabledAfterMs:
+          type: integer
+          description: 0 when correct; a short beat on a wrong answer so the reason is seen.
+          example: 1100
+
+    SessionPrompts:
+      type: object
+      description: |
+        What the client should offer next. Milestones give permission to stop, which
+        is the thing open-ended play usually lacks.
+      properties:
+        milestone:
+          type: [integer, "null"]
+          description: Set at 5, 10 and 20 answered — "Great stopping point! Keep going?"
+        offerReview:
+          type: boolean
+          default: false
+          description: |
+            Five cumulative wrong this session. An invitation, not an interruption,
+            and never raised immediately after a wrong answer.
+        levelDroppedQuietly:
+          type: boolean
+          default: false
+          description: |
+            Three wrong in a row. Drop the level, show nothing, and do not offer
+            review — they are already struggling.
+
+    SessionSummary:
+      type: object
+      required: [sessionId, answered, learnedCount, headline]
+      properties:
+        sessionId:
+          type: string
+        answered:
+          type: integer
+        correct:
+          type: integer
+        placesSeen:
+          type: integer
+        learnedCount:
+          type: integer
+        learnedEntityIds:
+          type: array
+          items:
+            type: string
+        headline:
+          type: string
+          description: |
+            Places learned, never a percentage. "You learned 3 new states!" and "60%"
+            are the same information and opposite messages about coming back.
+          example: You learned 3 new places!
+        endLevel:
+          $ref: "#/components/schemas/Level"
+        endLevelLabel:
+          $ref: "#/components/schemas/LevelLabel"
