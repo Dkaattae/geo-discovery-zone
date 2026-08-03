@@ -9,7 +9,7 @@ export interface PickArgs {
   topic: Topic | "mixed";
   askedIds: string[];
   index: number; // 0-based count of questions served this session
-  forceReview?: boolean;
+  forceReview?: boolean | undefined;
 }
 
 /** Picks the next question. Returns null only when the bank is empty. */

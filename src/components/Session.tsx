@@ -383,7 +383,7 @@ interface RevealProps {
   onToggleDetail: () => void;
   nextReady: boolean;
   onNext: () => void;
-  onUndo?: () => void;
+  onUndo?: (() => void) | undefined;
 }
 
 function Reveal({

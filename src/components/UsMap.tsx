@@ -5,11 +5,10 @@ import statesTopo from "us-atlas/states-10m.json";
 export type MapMode = "quiz" | "progress";
 
 interface UsMapProps {
-  highlightFips?: string;
-  correctFips?: string;
-  masteredFips?: Set<string>;
-  labelledFips?: string;
-  className?: string;
+  highlightFips?: string | undefined;
+  correctFips?: string | undefined;
+  masteredFips?: Set<string> | undefined;
+  className?: string | undefined;
 }
 
 /** Geometry is bundled at build time — the app never makes a network request. */
