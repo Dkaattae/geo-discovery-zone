@@ -1,0 +1,15 @@
+{
+  "name": "question-bank",
+  "private": true,
+  "type": "module",
+  "description": "Build-time pipeline that turns structured facts into the geo quiz entity + question bank.",
+  "scripts": {
+    "build": "bun run src/build.ts",
+    "build:sample": "bun run src/build.ts --offline --states CO --out sample-data",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "typescript": "^7.0.2"
+  }
+}

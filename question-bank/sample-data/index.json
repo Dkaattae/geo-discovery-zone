@@ -1,0 +1,12 @@
+{
+  "count": 1,
+  "entities": [
+    {
+      "id": "us-state-co",
+      "name": "Colorado",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "08"
+    }
+  ]
+}

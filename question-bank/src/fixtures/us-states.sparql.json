@@ -1,0 +1,68 @@
+{
+  "_fixture": {
+    "status": "HAND-AUTHORED — not a live capture",
+    "why": "query.wikidata.org is blocked by this environment's egress policy (403 on CONNECT), so no real response could be recorded here.",
+    "values_taken_from": [
+      "frontend/src/data/entities.ts (Colorado record already in the app)",
+      "geoquizdataplan.md §1.2 (worked example of a US state entity)"
+    ],
+    "regenerate_with": "bun run build -- --states CO  # then save the raw SPARQL JSON over this file",
+    "known_gaps": [
+      "borderQids is empty on purpose: state QIDs were not invented. A live capture carries both QIDs and labels; the normalizer's label fallback is what resolves neighbours here.",
+      "Field values are illustrative. Treat a live run as the source of truth."
+    ]
+  },
+  "head": {
+    "vars": [
+      "state",
+      "stateLabel",
+      "capitalLabel",
+      "fips",
+      "population",
+      "area",
+      "coord",
+      "article",
+      "highestPoint",
+      "elevation",
+      "borderQids",
+      "borderNames"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "state": { "type": "uri", "value": "http://www.wikidata.org/entity/Q1261" },
+        "stateLabel": { "type": "literal", "xml:lang": "en", "value": "Colorado" },
+        "capitalLabel": { "type": "literal", "xml:lang": "en", "value": "Denver" },
+        "fips": { "type": "literal", "value": "08" },
+        "population": {
+          "type": "literal",
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "value": "5877610"
+        },
+        "area": {
+          "type": "literal",
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "value": "269601"
+        },
+        "coord": {
+          "type": "literal",
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "value": "Point(-105.55 39.0)"
+        },
+        "article": { "type": "uri", "value": "https://en.wikipedia.org/wiki/Colorado" },
+        "highestPoint": { "type": "literal", "xml:lang": "en", "value": "Mount Elbert" },
+        "elevation": {
+          "type": "literal",
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "value": "4401"
+        },
+        "borderQids": { "type": "literal", "value": "" },
+        "borderNames": {
+          "type": "literal",
+          "value": "Wyoming|Nebraska|Kansas|Oklahoma|New Mexico|Arizona|Utah"
+        }
+      }
+    ]
+  }
+}
