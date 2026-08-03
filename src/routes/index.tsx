@@ -1,24 +1,132 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import type { Profile } from "@/data";
+import { Splash, ProfilePicker, CreateProfile, Home, Setup } from "@/components/screens";
+import { Session } from "@/components/Session";
+import {
+  loadProfiles,
+  saveProfiles,
+  loadLastProfileId,
+  saveLastProfileId,
+  newProfile,
+} from "@/lib/storage";
+import { clampLevel } from "@/lib/level";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Wander the Atlas — Geography Quiz for Kids" },
+      {
+        name: "description",
+        content:
+          "A calm, timer-free map game for kids in K–8. Find states, learn their stories, and color in the map as you go.",
+      },
+      { property: "og:title", content: "Wander the Atlas — Geography Quiz for Kids" },
+      {
+        property: "og:description",
+        content:
+          "A calm, timer-free map game for kids in K–8. Find states, learn their stories, and color in the map as you go.",
+      },
+    ],
+  }),
+  component: App,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
+type Screen = "splash" | "picker" | "create" | "home" | "setup" | "session";
+
+function App() {
+  const [ready, setReady] = useState(false);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [screen, setScreen] = useState<Screen>("splash");
+  const [topic, setTopic] = useState<"location" | "capital" | "mixed">("location");
+
+  useEffect(() => {
+    setProfiles(loadProfiles());
+    setActiveId(loadLastProfileId());
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (ready) saveProfiles(profiles);
+  }, [profiles, ready]);
+
+  const active = profiles.find((p) => p.id === activeId) ?? null;
+
+  function updateActive(update: (p: Profile) => Profile) {
+    setProfiles((prev) => prev.map((p) => (p.id === activeId ? update(p) : p)));
+  }
+
+  if (!ready) return <div className="min-h-screen bg-background" />;
+
+  if (screen === "splash") {
+    return (
+      <Splash
+        onStart={() => setScreen(active ? "home" : profiles.length ? "picker" : "create")}
       />
-    </div>
+    );
+  }
+
+  if (screen === "create") {
+    return (
+      <CreateProfile
+        onCreate={(name, avatar, grade) => {
+          const p = newProfile(name, avatar, grade);
+          setProfiles((prev) => [...prev, p]);
+          setActiveId(p.id);
+          saveLastProfileId(p.id);
+          setScreen("home");
+        }}
+        onCancel={() => setScreen(profiles.length ? "picker" : "splash")}
+      />
+    );
+  }
+
+  if (screen === "picker" || !active) {
+    return (
+      <ProfilePicker
+        profiles={profiles}
+        onPick={(id) => {
+          setActiveId(id);
+          saveLastProfileId(id);
+          setScreen("home");
+        }}
+        onNew={() => setScreen("create")}
+      />
+    );
+  }
+
+  if (screen === "home") {
+    return (
+      <Home
+        profile={active}
+        onStart={() => setScreen("setup")}
+        onSwitch={() => setScreen("picker")}
+      />
+    );
+  }
+
+  if (screen === "setup") {
+    return (
+      <Setup
+        profile={active}
+        onStart={(chosenTopic, level) => {
+          setTopic(chosenTopic);
+          updateActive((p) => ({ ...p, level: clampLevel(level) }));
+          setScreen("session");
+        }}
+        onBack={() => setScreen("home")}
+      />
+    );
+  }
+
+  return (
+    <Session
+      key={active.id + topic}
+      profile={active}
+      topic={topic}
+      onUpdateProfile={updateActive}
+      onHome={() => setScreen("home")}
+    />
   );
 }
