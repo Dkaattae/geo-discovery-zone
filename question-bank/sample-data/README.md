@@ -1,26 +1,28 @@
 # Sample data
 
-Output of one real pipeline run, committed so the entity shape is reviewable
-without running anything:
+Output of one real pipeline run against live Wikidata, committed so the entity
+shape is reviewable without running anything:
 
 ```bash
-bun run build:sample     # --offline --states CO --out sample-data
+bun run build -- --states CO --out sample-data      # what produced these files
+bun run build:sample                                # same output, offline replay
 ```
 
 - `us-state-co.json` — one complete entity record
-- `index.json` — what `JsonFileSink` writes alongside it
+- `fun-facts.review.json` — the draft fact the Wikipedia pass wrote, `reviewed: false`
+- `index.json` — what `JsonFileSink` writes alongside them
 
-**The values came from a hand-authored fixture, not from Wikidata.** The live
-endpoint is blocked in the environment this was built in (see the warning in
-[`../README.md`](../README.md)), so
-[`../src/fixtures/us-states.sparql.json`](../src/fixtures/us-states.sparql.json)
-stands in for a recorded response, with values taken from the Colorado record
-already in `frontend/src/data/entities.ts` and the worked example in
-`geoquizdataplan.md` §1.2.
+Everything here came from `query.wikidata.org` and the Wikipedia REST summary
+endpoint. `population_rank: 21` and `area_rank: 8` are real: `--states CO` still
+fetches all 50 states and ranks across the full field before subsetting, so a
+one-state build reports Colorado's true position rather than "1 of 1".
 
-What the run does exercise for real: SPARQL binding parsing, WKT centroid
-parsing, the curated-table join, FIPS cross-checking, border resolution by label
-fallback, rank suppression on a partial set, and the JSON sink. Re-run against
-live Wikidata and this directory should regenerate with the same shape and
-trustworthy values — `population_rank` and `area_rank` fill in only on a full
-50-state run.
+The fun fact is deliberately raw Wikipedia prose, not shippable text. It is one
+sentence about a "landlocked state in the Mountain West subregion" — accurate,
+and no use to a seven-year-old. Someone rewrites it in kid language and sets
+`reviewed: true`; until then nothing reaches an entity's `funFact` field (§1.6).
+
+`top_crops` is empty because that needs USDA NASS, not Wikidata (§1.9).
+
+Wikidata is edited continuously, so these values are a snapshot — population in
+particular moves with each census revision. Re-run the command above to refresh.

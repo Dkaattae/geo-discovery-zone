@@ -46,12 +46,25 @@ export function normalizeUsStates(
   const builtAt = options.builtAt ?? new Date().toISOString();
 
   const matched: { row: WikidataStateRow; curated: CuratedState }[] = [];
+  const seen = new Set<string>();
   for (const row of rows) {
     const curated = curatedByName.get(row.name.toLowerCase());
     if (!curated) {
       unmatched.push(row.name);
       continue;
     }
+    // A state can arrive twice when a grouped field has two live values — the
+    // query filters the known case (historical capitals), but one duplicate row
+    // would otherwise push the count off 50 and suppress every rank.
+    if (seen.has(curated.postal)) {
+      warnings.push({
+        entity: entityIdFor(curated.postal),
+        field: "*",
+        message: "duplicate row from Wikidata; kept the first",
+      });
+      continue;
+    }
+    seen.add(curated.postal);
     matched.push({ row, curated });
   }
 

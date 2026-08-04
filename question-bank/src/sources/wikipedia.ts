@@ -1,4 +1,4 @@
-import { USER_AGENT } from "../sparql";
+import { httpGet, USER_AGENT } from "../sparql";
 import type { FunFact } from "../types";
 
 const SUMMARY_ENDPOINT = "https://en.wikipedia.org/api/rest_v1/page/summary";
@@ -17,14 +17,18 @@ export type SummaryTransport = (
  * mid-quiz. `source_url` is kept on every fact so the app can link out and
  * satisfy CC BY-SA attribution.
  */
-export function createSummaryTransport(): SummaryTransport {
+export function createSummaryTransport(log?: (message: string) => void): SummaryTransport {
   return async (title: string) => {
-    const response = await fetch(`${SUMMARY_ENDPOINT}/${encodeURIComponent(title)}`, {
-      headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!response.ok) throw new Error(`Wikipedia summary failed (${response.status}) for ${title}`);
-    const payload = (await response.json()) as {
+    const response = await httpGet(
+      `${SUMMARY_ENDPOINT}/${encodeURIComponent(title)}`,
+      { Accept: "application/json", "User-Agent": USER_AGENT },
+      30_000,
+      log,
+    );
+    if (response.status !== 200) {
+      throw new Error(`Wikipedia summary failed (${response.status}) for ${title}`);
+    }
+    const payload = JSON.parse(response.body) as {
       extract?: string;
       content_urls?: { desktop?: { page?: string } };
     };

@@ -23,8 +23,19 @@ SELECT
 WHERE {
   ?state wdt:P31 wd:Q35657 .                      # instance of: U.S. state
 
-  OPTIONAL { ?state wdt:P36 ?capital . }          # capital
-  OPTIONAL { ?state wdt:P5086 ?fipsCode . }       # FIPS 5-2 numeric code
+  # Current capital only. Louisiana carries New Orleans alongside Baton Rouge,
+  # and a truthy wdt:P36 returns both — which, with ?capitalLabel in GROUP BY,
+  # splits the state into two rows. A statement with no end-time qualifier is the
+  # one still in force.
+  OPTIONAL {
+    ?state p:P36 ?capitalStatement .
+    ?capitalStatement ps:P36 ?capital .
+    FILTER NOT EXISTS { ?capitalStatement pq:P582 ?capitalEndTime }
+  }
+
+  # P5087 is the NUMERIC code (08), which is what the map joins on.
+  # P5086 is the alpha code (CO) — an easy and silent mix-up.
+  OPTIONAL { ?state wdt:P5087 ?fipsCode . }       # FIPS 5-2 numeric code
   OPTIONAL { ?state wdt:P1082 ?populationValue . }
   OPTIONAL { ?state wdt:P2046 ?areaValue . }      # area (see unit caveat in normalize.ts)
   OPTIONAL { ?state wdt:P625 ?coordValue . }      # coordinate location

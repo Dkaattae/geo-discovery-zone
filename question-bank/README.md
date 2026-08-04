@@ -28,21 +28,44 @@ bun run typecheck
 | `--fixture <path>` | Use a specific fixture (implies `--offline`) |
 | `--no-fun-facts` | Skip the Wikipedia summary pass |
 
-## ⚠️ The live query has never run
+## What the first live run found
 
-`query.wikidata.org` is blocked by the egress policy of the environment this was
-written in — `403` on CONNECT, from both curl and the SPARQL client. The failure
-path is verified (the client reports `SPARQL request failed (403)` and exits 1);
-**the success path is not**. Nothing here has seen a real Wikidata response.
+The query has now run against `query.wikidata.org` for real: 50 states, every
+core field populated, no warnings. Three things it got wrong first time, all
+fixed here, all worth knowing if you extend the query:
 
-Before trusting a live run, expect to check:
+**`P5086` is the alpha code, not the numeric one.** It returns `CO`; the map
+joins on `08`. The numeric code is **`P5087`**. This is the failure the curated
+FIPS table exists to catch — the build reported 50 mismatch warnings and kept the
+correct codes, rather than emitting a bank whose every state failed to highlight.
 
-- the property IDs in [`src/queries/us-states.ts`](src/queries/us-states.ts), in
-  particular `P5086` (FIPS 5-2 numeric) — the curated table cross-checks it, so a
-  wrong ID shows up as 50 warnings rather than as bad data;
-- the unit on `P2046` (area). `wdt:` drops units, so a square-mile value arrives
-  looking like a plausible number. `normalize.ts` range-checks it and warns;
-- that `GROUP BY` + the label service behave as expected under aggregation.
+**A state can arrive twice.** Louisiana lists New Orleans alongside Baton Rouge,
+and a truthy `wdt:P36` returns both — which, with `?capitalLabel` in `GROUP BY`,
+splits it into two rows and pushes the count to 51. The query now reads the
+capital through its statement and rejects any with a `P582` end-time qualifier.
+`normalize.ts` also de-duplicates defensively, since the next such state would
+otherwise silently suppress every rank.
+
+**`P2046` area units were fine.** Values came back in km² across all 50 (Alaska
+1,717,856; Rhode Island 3,144), so the range check in `normalize.ts` never fired.
+It stays, because `wdt:` still drops the unit and a future edit could change it.
+
+Two smaller notes: Alaska has no `P610` highest point, and WDQS returned one
+transient `502` mid-session — the client's backoff absorbs both.
+
+## Networks that `fetch` cannot reach
+
+Bun's `fetch` cannot negotiate some egress proxies. It fails with `socket
+connection was closed unexpectedly` before a request leaves the process, and
+Claude Code's cloud sandbox is a documented case. `httpGet()` in
+[`src/sparql.ts`](src/sparql.ts) therefore falls back to `curl` on transport
+failure and logs when it does. HTTP error responses are *not* fallback triggers —
+those are the caller's business. Set `QUESTION_BANK_NO_CURL=1` to disable the
+fallback and see the original error.
+
+If the run fails with `403 Host not in allowlist`, that is the sandbox, not
+Wikidata: add `query.wikidata.org` and `en.wikipedia.org` to the environment's
+allowed domains and start a fresh session.
 
 ## How it fits together
 

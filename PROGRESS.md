@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-08-03_
+_Last updated: 2026-08-04_
 
 ## Layout
 
@@ -47,6 +47,9 @@ geoquizdataplan.md
 
 - `question-bank/` builds entity records for the 50 US states from a single
   Wikidata SPARQL query (§1.9), with backoff and a descriptive User-Agent.
+- **Run live against Wikidata**: 50 states, every core field populated, zero
+  warnings. Ranks verified against reality — California first by population,
+  Alaska first by area, Rhode Island fiftieth.
 - Curated override table for the things Wikidata is bad at or has no concept of:
   FIPS join keys, this app's regions, animals, kid-facing climate phrasing
   (§1.7, §1.9). Wikidata's FIPS is still read and cross-checked; mismatches
@@ -57,16 +60,21 @@ geoquizdataplan.md
   unreviewed text never reaches an entity's shippable fields (§1.6).
 - `EntitySink` seam: JSON files today, `DbSink` stubbed and wired so the backend
   step is one class rather than a refactor.
-- One committed sample run in `question-bank/sample-data/`.
+- One committed sample run in `question-bank/sample-data/`, containing real
+  downloaded data plus the unreviewed Wikipedia draft fact.
+- Recorded fixture of a real 50-row response, so `--offline` reproduces a full
+  build with no network.
 
 ## Known gaps in what is done
 
-- **The live Wikidata query has never run.** `query.wikidata.org` is blocked by
-  the egress policy of the environment this was written in. The failure path is
-  verified; the success path is not. Property IDs — `P5086` especially — and the
-  unit on `P2046` need checking on a first real run.
-- The committed sample was produced from a hand-authored fixture, not a recorded
-  live response.
+- The 50-state output is **not committed** — `question-bank/data/` is gitignored
+  and regenerated from Wikidata. Only the one-state sample is in git.
+- Fun facts are drafted but **not reviewed**. Nothing ships until a human
+  rewrites them (§1.6).
+- `top_crops` and `state_animal` are still empty; they need USDA NASS and hand
+  curation respectively (§1.9).
+- Bun's `fetch` cannot traverse some egress proxies, so the client falls back to
+  `curl`. Fine where curl exists; a runtime without it needs another path.
 - `bestSustainedLevel` is written as peak (`max(best, level)`) in
   `Session.tsx`, where §1.5 argues for *sustained* — 2–3 consecutive correct.
   `openapi.yaml` specifies the sustained behaviour, so the client needs a fix
@@ -80,8 +88,10 @@ world until the US loop feels good.
 
 ### 1. Finish the US entity table
 
-- [ ] Run the pipeline live and fix whatever the first real response breaks.
-- [ ] Commit the full 50-state output.
+- [x] Run the pipeline live and fix whatever the first real response breaks —
+      `P5086` was the alpha FIPS code, not numeric (`P5087`), and Louisiana's
+      historical capital split it into two rows.
+- [ ] Decide whether the full 50-state output belongs in git or stays generated.
 - [ ] Review the 50 draft fun facts by hand and flip `reviewed: true` (§1.6) —
       an afternoon, and it is what makes the app feel handmade rather than
       scraped.

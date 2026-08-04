@@ -158,7 +158,7 @@ async function main() {
 
   if (args.funFacts) {
     log("Fetching Wikipedia summaries …");
-    const fetchSummary = createSummaryTransport();
+    const fetchSummary = createSummaryTransport((message) => log(`  ${message}`));
     const drafts: { id: string; name: string; fact: FunFact }[] = [];
     for (const entity of entities) {
       const title = entity.sources?.wikipedia_title;

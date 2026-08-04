@@ -7,13 +7,13 @@
   "geometry_id": "08",
   "region": "Mountain West",
   "centroid": [
-    -105.55,
+    -105.5,
     39
   ],
-  "population": 5877610,
-  "population_rank": null,
-  "area_km2": 269601,
-  "area_rank": null,
+  "population": 5773714,
+  "population_rank": 21,
+  "area_km2": 269837,
+  "area_rank": 8,
   "borders": [
     "us-state-az",
     "us-state-ks",
@@ -32,7 +32,7 @@
   "sources": {
     "wikidata_id": "Q1261",
     "wikipedia_title": "Colorado",
-    "built_at": "2026-08-03T21:19:17.272Z",
+    "built_at": "2026-08-04T16:05:05.461Z",
     "builder_version": "0.1.0"
   }
 }
