@@ -625,3 +625,65 @@ Superlatives are the cheapest win on that list — once entities carry rank fiel
 The **shaded-relief basemap is worth adding early** — it's one image tag, and it makes every existing map question look more like an atlas and less like a form. Profiles come later; they need real build tooling.
 
 Do not build the world data until the US loop feels good. The world is 4× the entities and every structural mistake gets 4× more expensive to fix.
+
+---
+
+## 5. Tech stack
+
+Added after the fact — §§1–4 were written before the stack was chosen, and
+describe a client-only v1. This section records what the project is actually
+being built on, and flags where that diverges from what came before.
+
+### 5.1 The pieces
+
+| Layer | Choice | Notes |
+|---|---|---|
+| **Frontend** | React 19 + TanStack Start, TypeScript | Already built. Tailwind v4, shadcn/ui, `react-simple-maps` + `us-atlas`/`world-atlas` (§2.2) |
+| **Backend** | **FastAPI** (Python 3.12+) | Implements `openapi.yaml`. Does not exist yet |
+| **Database** | **PostgreSQL 16** | Entities, questions, and later sessions/profiles |
+| **Migrations** | Alembic | The schema's single source of truth |
+| **Python packaging** | **uv** | `uv add`, `uv run`, `uv sync`. Never bare `pip install` |
+| **JS/TS packaging** | bun | `bun add`, `bun run`. Never npm/yarn/pnpm |
+| **Data pipeline** | TypeScript on bun (`question-bank/`) | Build-time only (§1.9) |
+| **Tests** | pytest (Python), `bun test` (TypeScript) | See `test-guidelines.md` |
+
+`openapi.yaml` at the repo root is the contract between frontend and backend.
+It was written to be implementation-agnostic, so nothing in it changes because
+the server is FastAPI.
+
+### 5.2 Where this departs from §§1–4
+
+**§3.2 argues against a backend for v1**, on the grounds that a server means
+storing children's data and inheriting the whole COPPA surface. That reasoning
+has not stopped being true. Adding FastAPI and Postgres is a deliberate change
+of course, not a clarification, and the way to keep §3.2's benefit is ordering:
+
+1. **Content endpoints first.** Entities and questions are public reference data
+   with no user in them. A read-only content API carries no COPPA surface at all.
+2. **Sessions next.** Anonymous, server-side grading and item telemetry — which
+   is what makes Elo possible later (§1.4).
+3. **Profiles last, and only if wanted.** This is the step that stores children's
+   data. The app works today without it (`localStorage`, §3.2), and it should stay
+   that way until there is a concrete reason and a considered privacy answer.
+
+Nothing forces step 3 to happen because steps 1 and 2 did.
+
+### 5.3 Two languages, one schema
+
+The pipeline is TypeScript and the backend is Python, so it matters who owns the
+database.
+
+**Alembic owns the schema.** The pipeline emits JSON; a Python loader reads that
+JSON and writes Postgres. `DbSink` in `question-bank/src/sinks/db.ts` stays a
+seam for local or standalone use, but it is not the path that defines tables —
+otherwise the schema has two authors and they will disagree.
+
+This keeps each side doing what it is good at: TypeScript for fetching and
+normalising source data, Python for owning the database and serving it.
+
+### 5.4 Deliberately not chosen yet
+
+- **Hosting** — frontend, API and database targets are all open.
+- **ORM style** — SQLAlchemy 2.x is the default assumption, but a thin
+  `asyncpg` layer is reasonable for a read-mostly content API.
+- **Auth** — nothing needs it until profiles exist, and profiles are last.
