@@ -10,9 +10,14 @@ _Last updated: 2026-08-04_
 ```
 frontend/       the TanStack Start app (question loop, map, profiles)
 question-bank/  build-time data pipeline (Wikidata → entity JSON)
+api/            FastAPI backend — planned, not built (plan §5)
 openapi.yaml    API contract for the backend that does not exist yet
-geoquizdataplan.md
 ```
+
+Docs: [`geoquizdataplan.md`](geoquizdataplan.md) is the plan (§5 is the tech
+stack), [`tasks.md`](tasks.md) is the work queue, [`process.md`](process.md) is
+how to work through it, and [`CLAUDE.md`](CLAUDE.md) holds the repo rules. This
+file is the coarse-grained view; `tasks.md` is where the detail lives.
 
 ## Done
 
@@ -39,6 +44,10 @@ geoquizdataplan.md
 ### Repo structure
 
 - App moved under `frontend/` so the root can hold cross-cutting artifacts.
+- Tech stack settled and written into plan §5: React frontend, FastAPI backend,
+  Postgres with Alembic owning the schema, uv for Python and bun for TypeScript.
+- Working docs in place — `CLAUDE.md` (rules), `tasks.md` (queue),
+  `process.md` (loop). `test-guidelines.md` is still to write (T-002).
 - `geoquizdataplan.md` at the root as the reference the work is measured against.
 - `openapi.yaml` at the root — content, profile and session API, validated
   against OpenAPI 3.1. Contract only; no server implements it yet.
@@ -83,8 +92,10 @@ geoquizdataplan.md
 
 ## Next
 
-In rough order. §4 of the plan is the authority on sequencing: do not build the
-world until the US loop feels good.
+Broken into small, independently landable tasks in [`tasks.md`](tasks.md) — that
+is the queue to work from. The summary below stays for orientation. §4 of the
+plan is the authority on sequencing: do not build the world until the US loop
+feels good.
 
 ### 1. Finish the US entity table
 
