@@ -1,0 +1,4 @@
+node_modules
+# Live build output. Only sample-data/ is committed — the full bank is
+# regenerated from Wikidata, not stored in git.
+data/

@@ -1,0 +1,15 @@
+{
+  "note": "Draft facts scraped from Wikipedia. Rewrite in kid language, then set reviewed: true. Only reviewed facts ship.",
+  "generated_at": "2026-08-04T16:05:12.161Z",
+  "drafts": [
+    {
+      "id": "us-state-co",
+      "name": "Colorado",
+      "fact": {
+        "text": "Colorado is a landlocked state in the Mountain West subregion of the Western United States. It is one of the Mountain states, and part of the Southwestern United States, sharing the Four Corners region with Arizona, New Mexico, and Utah.",
+        "source_url": "https://en.wikipedia.org/wiki/Colorado",
+        "reviewed": false
+      }
+    }
+  ]
+}

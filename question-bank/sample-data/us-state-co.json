@@ -1,0 +1,38 @@
+{
+  "id": "us-state-co",
+  "type": "state",
+  "scope": "us",
+  "name": "Colorado",
+  "capital": "Denver",
+  "geometry_id": "08",
+  "region": "Mountain West",
+  "centroid": [
+    -105.5,
+    39
+  ],
+  "population": 5773714,
+  "population_rank": 21,
+  "area_km2": 269837,
+  "area_rank": 8,
+  "borders": [
+    "us-state-az",
+    "us-state-ks",
+    "us-state-ne",
+    "us-state-nm",
+    "us-state-ok",
+    "us-state-ut",
+    "us-state-wy"
+  ],
+  "climate_kid": "dry and cold in the mountains, drier plains to the east",
+  "landmark": "Rocky Mountain National Park",
+  "highest_point": "Mount Elbert",
+  "highest_point_m": 4401,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1261",
+    "wikipedia_title": "Colorado",
+    "built_at": "2026-08-04T16:05:05.461Z",
+    "builder_version": "0.1.0"
+  }
+}

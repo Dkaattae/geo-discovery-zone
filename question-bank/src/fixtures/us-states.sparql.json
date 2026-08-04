@@ -1,0 +1,2877 @@
+{
+  "_fixture": {
+    "status": "RECORDED — a real response from query.wikidata.org",
+    "captured_at": "2026-08-04T16:05:35Z",
+    "endpoint": "https://query.wikidata.org/sparql",
+    "query": "src/queries/us-states.ts (US_STATES_QUERY)",
+    "rows": 50,
+    "why_committed": "Lets --offline reproduce a full 50-state build with no network, which is what makes population_rank and area_rank meaningful in a subset run.",
+    "regenerate_with": "bun run build   # then save the raw SPARQL JSON over this file, keeping this _fixture block",
+    "note": "Wikidata is edited continuously, so these values are a snapshot. A live run is the source of truth."
+  },
+  "head": {
+    "vars": [
+      "state",
+      "stateLabel",
+      "capitalLabel",
+      "fips",
+      "population",
+      "area",
+      "coord",
+      "article",
+      "highestPoint",
+      "elevation",
+      "borderQids",
+      "borderNames"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q173"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Alabama"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Montgomery"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "01"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5024279"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "135765"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-86.7 32.7)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Alabama"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Cheaha Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "735.5"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1428,Q1509,Q1494,Q812"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Georgia|Tennessee|Mississippi|Florida"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q797"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Alaska"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Juneau"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "02"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "733391"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1717856"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-150.0 64.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Alaska"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6190"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q2009,Q7984,Q1973"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Yukon|Chukotka Autonomous Okrug|British Columbia"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q816"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Arizona"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Phoenix"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "04"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "7151502"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "295234"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-111.656944444 34.286666666)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Arizona"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Humphreys Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "12622"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q46422,Q58731,Q1522,Q1261,Q1227,Q829,Q99"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Sonora|Baja California|New Mexico|Colorado|Nevada|Utah|California"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1612"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Arkansas"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Little Rock"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "05"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3011524"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "137733"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-92.2 34.8)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Arkansas"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Magazine"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "839"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1588,Q1649,Q1581,Q1494,Q1509,Q1439"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Louisiana|Oklahoma|Missouri|Mississippi|Tennessee|Texas"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q99"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "California"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Sacramento"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "06"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "39538223"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "423970"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-120.0 37.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/California"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Whitney"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4421"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q58731,Q1227,Q824,Q816"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Baja California|Nevada|Oregon|Arizona"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1261"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Colorado"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Denver"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "08"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5773714"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "269837"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-105.5 39.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Colorado"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Elbert"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4401"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1649,Q1553,Q1558,Q1522,Q1214,Q829,Q816"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Oklahoma|Nebraska|Kansas|New Mexico|Wyoming|Utah|Arizona"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q779"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Connecticut"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Hartford"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "09"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3605944"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "14357"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-72.7 41.6)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Connecticut"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Frissell"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "748"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q18438,Q1387,Q1384,Q771"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Long Island|Rhode Island|New York|Massachusetts"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1393"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Delaware"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Dover"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "10"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "989948"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6452"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-75.5 39.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Delaware"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Ebright Azimuth"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "137"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1408,Q1400,Q1391"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "New Jersey|Pennsylvania|Maryland"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q812"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Florida"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Tallahassee"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "12"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "21538187"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "170304"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-81.631666666 28.133333333)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Florida"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Britton Hill"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "105"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1428,Q173"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Georgia|Alabama"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1428"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Georgia"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Atlanta"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "13"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "10711908"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "153909"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-83.5 33.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Georgia_(U.S._state)"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Brasstown Bald"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1458"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1454,Q1509,Q1456,Q812,Q173"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "North Carolina|Tennessee|South Carolina|Florida|Alabama"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q782"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Hawaii"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Honolulu"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "15"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1455271"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "28311"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-158.0 21.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Hawaii"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mauna Kea"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4207.3"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": ""
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": ""
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1221"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Idaho"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Boise"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "16"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1839106"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "216699"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-114.0 45.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Idaho"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Borah Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3857"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1973,Q1227,Q1223,Q1214,Q1212,Q824,Q829"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "British Columbia|Nevada|Washington|Wyoming|Montana|Oregon|Utah"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1204"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Illinois"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Springfield"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "17"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "12812508"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "149998"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-89.250277777 40.000277777)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Illinois"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Charles Mound"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "376"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1603,Q1581,Q1546,Q1537,Q1415,Q1166"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Kentucky|Missouri|Iowa|Wisconsin|Indiana|Michigan"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1415"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Indiana"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Indianapolis"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "18"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6785528"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "94321"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-86.216666666 39.933333333)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Indiana"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Hoosier Hill"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "383"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1603,Q1397,Q1204,Q1166"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Kentucky|Ohio|Illinois|Michigan"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1546"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Iowa"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Des Moines"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "19"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3190369"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "145746"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-93.0 42.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Iowa"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Hawkeye Point"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1670"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1581,Q1527,Q1553,Q1537,Q1211,Q1204"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Missouri|Minnesota|Nebraska|Wisconsin|South Dakota|Illinois"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1558"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Kansas"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Topeka"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "20"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2937880"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "213100"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-98.0 38.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Kansas"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Sunflower"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4039"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1649,Q1581,Q1553,Q1261"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Oklahoma|Missouri|Nebraska|Colorado"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1603"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Kentucky"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Frankfort"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "21"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4505836"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "104659"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-85.0 37.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Kentucky"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Black Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1263"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1581,Q1415,Q1370,Q1509,Q1371,Q1397,Q1204"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Missouri|Indiana|Virginia|Tennessee|West Virginia|Ohio|Illinois"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1588"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Louisiana"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Baton Rouge"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "22"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4657757"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "135382"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-92.0 31.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Louisiana"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Driskill Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "163"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1612,Q1494,Q1439"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Arkansas|Mississippi|Texas"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q724"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Maine"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Augusta"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "23"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1362359"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "91646"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-69.0 45.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Maine"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Katahdin"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1606"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1965,Q759,Q176"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "New Brunswick|New Hampshire|Quebec"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1391"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Maryland"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Annapolis"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "24"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6177224"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "32131"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-76.7 39.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Maryland"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Hoye-Crest"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1020"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q3551781,Q1400,Q1393,Q1371,Q1370"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "District of Columbia|Pennsylvania|Delaware|West Virginia|Virginia"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q771"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Massachusetts"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Boston"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "25"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "7029917"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "27336"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-71.8 42.3)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Massachusetts"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Greylock"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1064"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q16551,Q1387,Q1384,Q759,Q779"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Vermont|Rhode Island|New York|New Hampshire|Connecticut"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1166"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Michigan"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Lansing"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "26"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "10077331"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "250493"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-85.58 44.34)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Michigan"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Arvon"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "603"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1904,Q1527,Q1537,Q1415,Q1397,Q1204"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Ontario|Minnesota|Wisconsin|Indiana|Ohio|Illinois"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1527"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Minnesota"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Saint Paul"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "27"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5706494"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "225163"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-94.0 46.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Minnesota"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Eagle Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "701"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1904,Q1948,Q1537,Q1546,Q1211,Q1207,Q1166"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Ontario|Manitoba|Wisconsin|Iowa|South Dakota|North Dakota|Michigan"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1494"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mississippi"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Jackson"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "28"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2961279"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "125443"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-90.0 33.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Mississippi"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Woodall Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "246"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1588,Q1612,Q1509,Q173"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Louisiana|Arkansas|Tennessee|Alabama"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1581"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Missouri"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Jefferson City"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "29"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6154913"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "180533"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-92.5 38.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Missouri"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Taum Sauk Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "540"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1603,Q1612,Q1649,Q1546,Q1558,Q1553,Q1509,Q1204"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Kentucky|Arkansas|Oklahoma|Iowa|Kansas|Nebraska|Tennessee|Illinois"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1212"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Montana"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Helena"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "30"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1084225"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "381154"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-110.0 47.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Montana"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Granite Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3904"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1989,Q1951,Q1973,Q1221,Q1214,Q1211,Q1207"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Saskatchewan|Alberta|British Columbia|Idaho|Wyoming|South Dakota|North Dakota"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1553"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Nebraska"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Lincoln"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "31"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1961504"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "200520"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-100.0 41.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Nebraska"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Panorama Point"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5429"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1546,Q1581,Q1558,Q1211,Q1214,Q1261"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Iowa|Missouri|Kansas|South Dakota|Wyoming|Colorado"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1227"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Nevada"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Carson City"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "32"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3104614"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "286380"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-117.0 39.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Nevada"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Boundary Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4007"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1221,Q824,Q829,Q816,Q99"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Idaho|Oregon|Utah|Arizona|California"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q759"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "New Hampshire"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Concord"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "33"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1377529"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "24214"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-71.5 44.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/New_Hampshire"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Washington"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1917"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q16551,Q724,Q771,Q176"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Vermont|Maine|Massachusetts|Quebec"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1408"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "New Jersey"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Trenton"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "34"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "9288994"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "22591.4"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-74.5 40.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/New_Jersey"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "High Point"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "550"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1400,Q1393,Q1384"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Pennsylvania|Delaware|New York"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1522"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "New Mexico"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Santa Fe"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "35"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2117522"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "315194"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-106.0 34.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/New_Mexico"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Wheeler Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4011"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q46422,Q1649,Q1439,Q1261,Q829,Q816,Q655"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Sonora|Oklahoma|Texas|Colorado|Utah|Arizona|Chihuahua"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1384"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "New York"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Albany"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "36"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "20201249"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "141300"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-75.0 43.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/New_York_(state)"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Marcy"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1629"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q16551,Q1904,Q1408,Q1400,Q176,Q779,Q771"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Vermont|Ontario|New Jersey|Pennsylvania|Quebec|Connecticut|Massachusetts"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1454"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "North Carolina"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Raleigh"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "37"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "10439388"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "139390"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-80.0 35.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/North_Carolina"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Mitchell"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2037"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1509,Q1456,Q1428,Q1370"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Tennessee|South Carolina|Georgia|Virginia"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1207"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "North Dakota"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Bismarck"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "38"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "779094"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "183108"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-100.5 47.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/North_Dakota"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "White Butte"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1069"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q2007,Q1989,Q1527,Q1948,Q1212,Q1211"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Northwest Territories|Saskatchewan|Minnesota|Manitoba|Montana|South Dakota"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1397"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Ohio"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Columbus"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "39"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11799448"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "116096"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-82.5 40.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Ohio"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Campbell Hill"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "472"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1904,Q1603,Q1415,Q1400,Q1371,Q1166"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Ontario|Kentucky|Indiana|Pennsylvania|West Virginia|Michigan"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1649"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Oklahoma"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Oklahoma City"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "40"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3959353"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "181195"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-98.0 35.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Oklahoma"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Black Mesa"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1737"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1612,Q1581,Q1558,Q1522,Q1439,Q1261"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Arkansas|Missouri|Kansas|New Mexico|Texas|Colorado"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q824"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Oregon"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Salem"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "41"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4237256"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "255026"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-120.575 43.935833333)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Oregon"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Hood"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11237"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1227,Q1223,Q1221,Q99"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Nevada|Washington|Idaho|California"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1400"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Pennsylvania"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Harrisburg"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "42"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "13002700"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "119283"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-77.5 41.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Pennsylvania"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Davis"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "979"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1121436,Q795427,Q251668,Q1904,Q1408,Q1397,Q1393,Q1371,Q1391,Q1384"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Province of Canada|Upper Canada|Province of Quebec|Ontario|New Jersey|Ohio|Delaware|West Virginia|Maryland|New York"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1387"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Rhode Island"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Providence"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "44"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1097379"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3144.245565"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-71.5 41.7)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Rhode_Island"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Jerimoth Hill"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "247"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q779,Q771"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Connecticut|Massachusetts"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1456"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "South Carolina"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Columbia"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "45"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5118425"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "82931"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-81.0 34.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/South_Carolina"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Sassafras Mountain"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1085"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1454,Q1428"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "North Carolina|Georgia"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1211"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "South Dakota"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Pierre"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "46"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "886667"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "199729"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-100.0 44.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/South_Dakota"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Black Elk Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2208"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1527,Q1553,Q1546,Q1214,Q1212,Q1207"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Minnesota|Nebraska|Iowa|Wyoming|Montana|North Dakota"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1509"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Tennessee"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Nashville"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "47"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6910840"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "109247"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-86.0 36.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Tennessee"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Kuwohi"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2025"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1612,Q1581,Q1603,Q1494,Q1454,Q1428,Q1370,Q173"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Arkansas|Missouri|Kentucky|Mississippi|North Carolina|Georgia|Virginia|Alabama"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1439"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Texas"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Austin"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "48"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "29145505"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "696241"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-100.0 31.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Texas"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Guadalupe Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2667"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q80007,Q53079,Q15282,Q1649,Q1588,Q1612,Q1522,Q655"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Tamaulipas|Coahuila|Nuevo León|Oklahoma|Louisiana|Arkansas|New Mexico|Chihuahua"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q829"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Utah"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Salt Lake City"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "49"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3271616"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "219653"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-111.5 39.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Utah"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "King's Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4123"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1522,Q1261,Q1227,Q1221,Q1214,Q816"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "New Mexico|Colorado|Nevada|Idaho|Wyoming|Arizona"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q16551"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Vermont"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Montpelier"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "50"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "643077"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "24923"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-72.7 44.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Vermont"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Mansfield"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1339.69"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1384,Q759,Q771,Q176"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "New York|New Hampshire|Massachusetts|Quebec"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1370"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Virginia"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Richmond"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "51"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "8631393"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "110862"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-79.0 37.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Virginia"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Rogers"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1825"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q3551781,Q1603,Q1454,Q1509,Q1371,Q1391"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "District of Columbia|Kentucky|North Carolina|Tennessee|West Virginia|Maryland"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1223"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Washington"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Olympia"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "53"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "7705281"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "184827"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-120.5 47.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Washington_(state)"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Mount Rainier"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4389"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1973,Q1221,Q824"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "British Columbia|Idaho|Oregon"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1371"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "West Virginia"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Charleston"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "54"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1793716"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "62755"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-80.5 39.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/West_Virginia"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Spruce Knob"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1482"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1603,Q1400,Q1397,Q1391,Q1370"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Kentucky|Pennsylvania|Ohio|Maryland|Virginia"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1537"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Wisconsin"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Madison"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "55"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5893718"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "169640"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-89.5 44.5)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Wisconsin"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Timms Hill"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "594.8"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1904,Q1546,Q1527,Q1166,Q1204"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Ontario|Iowa|Minnesota|Michigan|Illinois"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1214"
+        },
+        "stateLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Wyoming"
+        },
+        "capitalLabel": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Cheyenne"
+        },
+        "fips": {
+          "type": "literal",
+          "value": "56"
+        },
+        "population": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "576851"
+        },
+        "area": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "253348"
+        },
+        "coord": {
+          "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+          "type": "literal",
+          "value": "Point(-107.5 43.0)"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://en.wikipedia.org/wiki/Wyoming"
+        },
+        "highestPoint": {
+          "xml:lang": "en",
+          "type": "literal",
+          "value": "Gannett Peak"
+        },
+        "elevation": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4207"
+        },
+        "borderQids": {
+          "type": "literal",
+          "value": "Q1553,Q1261,Q1221,Q1212,Q1211,Q829"
+        },
+        "borderNames": {
+          "type": "literal",
+          "value": "Nebraska|Colorado|Idaho|Montana|South Dakota|Utah"
+        }
+      }
+    ]
+  }
+}
