@@ -11,8 +11,12 @@ One or two sentences: what this is for and why it is worth doing. Not how.
 ## Acceptance criteria
 
 Numbered, observable, each checkable on its own. These become the tests, and a
-fresh session will read them without any other context — so they have to make
+fresh session reads them without having seen the work — so they have to make
 sense to someone who was not here.
+
+**Frozen once approved.** They change only by going back through `task-expander`
+for a fresh approval, never by an edit during implementation and never by the
+tester.
 
 1. …
 2. …
@@ -49,7 +53,9 @@ Rules the implementation has to respect.
 
 ## Context
 
-Where to look. Save the verifier and your future self the search.
+**Required reading for the worker and the tester**, not background. Link
+precisely — `geoquizdataplan.md` §1.4, not "the plan" — because these links are
+how both of them reach the definition of correct.
 
 - Files: …
 - Plan sections: …

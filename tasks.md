@@ -4,10 +4,10 @@ The work queue. Small, independently landable, roughly in order. See
 [`process.md`](process.md) for how to use this list, and [`PROGRESS.md`](PROGRESS.md)
 for the coarser picture it was derived from.
 
-An entry here is a *placeholder*, not a brief. When a task is picked up it gets
-expanded into `tasks/T-0xx-slug.md` — goal, acceptance criteria, out of scope,
-constraints — and that brief is what gets built and verified against
-(`process.md` step 2).
+An entry here is a *placeholder*, not a brief. When a task is picked up the
+`task-expander` agent turns it into `tasks/T-0xx-slug.md` — goal, acceptance
+criteria, out of scope, constraints — and that brief, once approved, is what the
+`worker` builds and the `tester` verifies against (`process.md`).
 
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
@@ -27,7 +27,9 @@ Cover the logic that is expensive to get silently wrong: rank suppression on a
 partial set, the FIPS cross-check warning, border resolution by QID and by label
 fallback, and WKT centroid parsing. Drive them through the recorded fixture.
 **Done when:** `bun test` passes with tests for all four, and no test touches the
-network.
+network. Because the deliverable here *is* tests, the tester verifies by
+mutation — breaking each behaviour and confirming the matching test goes red —
+rather than by writing more tests (`test-guidelines.md`).
 
 ### T-002 — Revisit `test-guidelines.md` against the first real tests · S · todo
 **Depends on:** T-001

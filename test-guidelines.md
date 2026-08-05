@@ -111,6 +111,23 @@ the repo, and you did not do the work.
   that passes trivially — a green tautology is worse than an admitted gap,
   because it looks like coverage.
 
+## Verifying a task whose deliverable is tests
+
+Some tasks produce tests rather than behaviour. Writing tests to check those
+tests is circular, so the check is different in kind:
+
+1. **Coverage** — does a test exist for every behaviour the criteria name?
+2. **Mutation** — break each behaviour deliberately and confirm the matching test
+   fails. Invert the rank-suppression condition; corrupt a FIPS code in the
+   curated table; delete the label-fallback branch in border resolution. Each
+   should turn exactly one test red. **Revert every mutation afterwards.**
+3. **Honesty** — no network, no fixture edited to make something pass, no
+   assertion that would hold for any input at all.
+
+Mutation is the only reliable way to distinguish a real test from a green
+tautology, and it is worth doing by hand long before anyone installs a mutation
+testing tool. Report which mutations were made and what each one did.
+
 ## Anti-patterns
 
 - **Tautologies.** `expect(result).toBeDefined()` on a function that always

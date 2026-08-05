@@ -52,6 +52,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Development loop defined end to end: pick → expand into a brief with
   acceptance criteria → work → verify in a fresh session that writes tests from
   those criteria alone → PR → sweep the brief and re-evaluate the queue.
+- Three agents in `.claude/agents/` — task-expander, worker, tester — each
+  prevented from doing the job that would let it grade its own work.
 - `geoquizdataplan.md` at the root as the reference the work is measured against.
 - `openapi.yaml` at the root — content, profile and session API, validated
   against OpenAPI 3.1. Contract only; no server implements it yet.
