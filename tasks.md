@@ -4,6 +4,11 @@ The work queue. Small, independently landable, roughly in order. See
 [`process.md`](process.md) for how to use this list, and [`PROGRESS.md`](PROGRESS.md)
 for the coarser picture it was derived from.
 
+An entry here is a *placeholder*, not a brief. When a task is picked up it gets
+expanded into `tasks/T-0xx-slug.md` — goal, acceptance criteria, out of scope,
+constraints — and that brief is what gets built and verified against
+(`process.md` step 2).
+
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
 Sizes are a sanity check, not a commitment: **S** ≈ under an hour, **M** ≈ a
@@ -24,12 +29,13 @@ fallback, and WKT centroid parsing. Drive them through the recorded fixture.
 **Done when:** `bun test` passes with tests for all four, and no test touches the
 network.
 
-### T-002 — Write `test-guidelines.md` · S · todo
+### T-002 — Revisit `test-guidelines.md` against the first real tests · S · todo
 **Depends on:** T-001
-What to test and what not to, how to use the `SparqlTransport` / `SummaryTransport`
-/ `EntitySink` seams, how to capture a fixture, and the no-network rule. Write it
-from what T-001 actually did rather than in the abstract.
-**Done when:** the file exists and `CLAUDE.md` links to it as existing, not planned.
+The file now exists, but it was written before any test in this repo did — so it
+is prescriptive where it should be descriptive. Once T-001 has written real
+tests, check the guidance against them: correct anything that turned out awkward
+in practice, and add the patterns that actually earned their place.
+**Done when:** every example in the file corresponds to a test that exists.
 
 ### T-003 — CI: typecheck, lint, test on every PR · S · todo
 **Depends on:** T-001

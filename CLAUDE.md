@@ -9,21 +9,24 @@ backend, Postgres, and a build-time data pipeline.
 frontend/        React 19 + TanStack Start app (TypeScript, bun)
 question-bank/   Wikidata → entity JSON pipeline (TypeScript, bun)
 api/             FastAPI backend (Python, uv) — not built yet
+tasks/           brief for the task in flight; empty when nothing is
 openapi.yaml     the contract between frontend and backend
 ```
 
 ## Documentation
 
-These four files carry the project's state and process. Read them before
-starting work, and update them as part of finishing it.
+These files carry the project's state and process. Read them before starting
+work, and update them as part of finishing it. [`process.md`](process.md) is the
+one to read first — it says how the others fit together.
 
 | File | What it is | When to touch it |
 |---|---|---|
 | [`geoquizdataplan.md`](geoquizdataplan.md) | The plan. Why the app works the way it does — question generation, difficulty, maps, session flow, and the tech stack (§5) | Rarely. It is the reference, not a scratchpad |
 | [`tasks.md`](tasks.md) | The work queue: small, independent, ordered tasks | Every task. Mark done, add what you discover |
-| [`process.md`](process.md) | How to actually run the loop — pick a task, finish it, re-evaluate the rest | Read first. Change only when the process changes |
+| [`tasks/`](tasks/) | The brief for the task in flight — goal, acceptance criteria, out of scope, constraints | Created when a task starts, deleted when its PR merges |
+| [`process.md`](process.md) | How to actually run the loop — pick, expand, work, verify in a fresh session, ship, sweep | Read first. Change only when the process changes |
 | [`PROGRESS.md`](PROGRESS.md) | What is done, what is known-broken, what is next at a coarser grain | When a group of tasks lands |
-| `test-guidelines.md` | How to write tests here | **Planned, not yet written.** Until it exists, follow the testing rules below |
+| [`test-guidelines.md`](test-guidelines.md) | What to test and how — seams, fixtures, writing tests from acceptance criteria | When a testing practice changes |
 
 `openapi.yaml` is the API contract. Change it deliberately and say so — the
 frontend and backend both read it as truth.
@@ -44,6 +47,8 @@ Dev-only tools go in the dev group: `uv add --dev pytest`, `bun add -d <pkg>`.
 Commit the lockfile in the same change as the dependency.
 
 ## Tests
+
+[`test-guidelines.md`](test-guidelines.md) is the detail. The short version:
 
 **Write tests for behaviour you would be upset to break.** Not every function —
 the ones where being wrong is expensive or silent. In this project that means
