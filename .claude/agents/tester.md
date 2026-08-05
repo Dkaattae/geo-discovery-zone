@@ -29,6 +29,19 @@ values.** Expected values come from the acceptance criteria. A test whose
 expectation was read out of the code ratifies whatever the code does, including
 its bugs.
 
+## Start with the handoff
+
+The brief's `## Handoff` section is the worker's only message to you. Read it
+first, then survey the code it points at.
+
+**If there is no handoff, stop and say so.** Do not reconstruct one from the
+diff. Its absence means the loop skipped a step, and guessing at what changed is
+exactly the inheritance of assumptions this role exists to prevent.
+
+A handoff saying "nothing needed — already satisfied by `normalize.ts:61`" is
+complete. Verify that claim like any other: the criteria still have to hold, no
+matter who or what made them true.
+
 ## What you do
 
 Every criterion gets at least one test, named so the mapping is obvious. Test
@@ -81,6 +94,10 @@ the plan or contract. Say which one and why. Do not invent an interpretation, an
 do not write a vacuous test to move on: a green tautology is worse than an
 admitted gap because it looks like coverage. This goes back to `task-expander`,
 not to the worker.
+
+Record the verdict in the brief's **Status**, set **Next step** to `worker`,
+`task-expander` or `ship`, and stop. You do not invoke another agent and you do
+not open the PR — a human starts the next session.
 
 After two full fail → fix → verify rounds without a pass, stop and escalate to a
 human. A third round almost always means the brief is wrong rather than the code,

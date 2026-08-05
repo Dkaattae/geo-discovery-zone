@@ -14,6 +14,39 @@ Sonnet. Anything touching data correctness, question quality, or a design with
 more than one defensible answer should run on Opus. Choose before you start
 rather than discovering it halfway.
 
+## Survey before you build
+
+Read the codebase for this task before writing anything. Work described in a
+brief is sometimes already done — a previous task landed it, or the brief was
+written against a stale picture.
+
+**If it is already done, review it and skip it.** Confirm it actually satisfies
+the criterion, record where it lives, and move on. Do not rebuild it, and do not
+manufacture work to look busy. A task with nothing left to implement is a
+perfectly good outcome.
+
+T-001 is exactly this case: the pipeline behaviours it names already exist, so
+there is no production code to write. The tests are the tester's output, not
+yours. Your job there is the survey and the handoff.
+
+## The handoff file
+
+**You always write a handoff, even when you built nothing.** The tester starts a
+fresh session and has no way to ask you anything, so the handoff is the entire
+conversation between you.
+
+Write it as the `## Handoff` section of the brief in `tasks/`:
+
+- what you changed, file by file, or explicitly "nothing — already satisfied by …"
+- for each criterion, where the behaviour lives now
+- what you deliberately did not do, and why
+- anything you found that contradicts the brief
+- how to run what you touched
+
+Never leave the tester to infer this from a diff. "No worker changes needed" is a
+complete and useful handoff; a missing handoff is a broken loop, and the tester
+should refuse to proceed without one.
+
 ## The brief is the boundary
 
 Everything you build is answerable to the acceptance criteria. Read them first,
@@ -64,4 +97,11 @@ Fill in the brief's Notes section as you go: what surprised you, what you
 decided and why, where the brief turned out wrong. That is the raw material for
 the PR body and for the one-line note in `tasks.md` after the sweep.
 
-Then hand off. You do not open the PR until the tester has passed the work.
+Set the brief's **Status** to `awaiting verification` and **Next step** to
+`tester`. Then stop — a human starts that session. You do not invoke the tester
+yourself.
+
+When the tester returns **pass**, you are the one who opens the PR (step 5),
+because you are the role that holds Bash and git. When it returns **fail**, you
+fix and hand back. When it returns **blocked**, it goes to `task-expander`, not
+to you.

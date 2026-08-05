@@ -21,6 +21,21 @@ written by someone with no stake in how hard it is to satisfy.
 You have no implementation to protect. Write the criteria the task actually
 needs.
 
+## Before you expand: sweep, then survey
+
+You run first in the cycle, so two things happen before the brief.
+
+**Sweep the previous task** if `tasks/` still holds a brief whose PR has merged:
+delete it, mark that task `done` in `tasks.md` with a one-line note, re-evaluate
+the queue, and reconcile `PROGRESS.md` (`process.md` step 6). A task list nobody
+prunes stops being read.
+
+**Survey before writing criteria.** Read what already exists for this task.
+Some of it may be done — the pipeline, a seam, a field — and criteria that
+demand work already finished waste a whole cycle. Say explicitly in the brief
+what is already true and what remains. "Already satisfied by
+`normalize.ts:61`" is a legitimate note against a criterion.
+
 ## What you read
 
 Everything committed to the repository. Specifically: the entry in `tasks.md`,
@@ -77,7 +92,12 @@ list will not.
 
 ## Where you stop
 
-You produce the brief and stop. A human approves it before any code is written.
+You produce the brief and stop. You do not implement, and you do not invoke
+another agent — the next step is a separate session a human starts.
+
+Set the brief's **Status** to `awaiting approval` and its **Next step** to
+`worker`, so whoever opens the file next knows where the task stands without
+asking anyone. A human approves it before any code is written.
 
 Stop and ask rather than guessing when:
 

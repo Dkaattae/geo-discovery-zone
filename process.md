@@ -30,6 +30,43 @@ would let it grade its own work: the expander has no stake in how hard the
 criteria are to satisfy, the worker cannot move the goalposts, and the tester
 cannot move the code.
 
+### Sequential sessions, no subagents
+
+Each step is its own top-level session, started by a human, running one agent.
+Nothing spawns anything: none of the three has the Task tool, so the constraint
+is enforced by their tool lists rather than by good intentions.
+
+**The brief in `tasks/` is the shared state.** Sessions do not remember each
+other, so everything one needs from the last is in that file — the Status and
+Next step header, the acceptance criteria, the worker's Handoff, the tester's
+Verdict. Opening the brief should tell you where the task stands and which agent
+to start next, without reconstructing anything.
+
+Three steps in the loop have no agent of their own, by design:
+
+- **Pick and sweep** — `task-expander` does both, at the start of its run. It
+  clears the merged brief, updates `tasks.md` and `PROGRESS.md`, then picks the
+  next task. Sweeping at the *start* of the next cycle rather than the end of the
+  last one means it never gets skipped because everyone went home after the merge.
+- **Ship** — `worker` opens the PR, once the tester returns pass. It is the role
+  that holds Bash and git.
+- **Approve and merge** — you.
+
+### Survey first, and skip what is already done
+
+Every agent reads the codebase before acting. Work in a brief is sometimes
+already finished: a previous task landed it, or the brief was written against a
+stale picture.
+
+**Then skip it.** Confirm the criterion genuinely holds, record where the
+behaviour lives, and move on. Rebuilding something that already works burns a
+cycle and risks breaking it.
+
+T-001 is the live example. The pipeline behaviours it names already exist, so
+there is nothing for the worker to implement; its whole contribution is the
+survey and a handoff saying so, and the tester writes the tests. A task with no
+implementation left is a normal outcome, not a failed run.
+
 **Choosing the worker's model.** Mechanical tasks — CI config, a scaffold, a
 migration that follows an existing pattern — run fine on Sonnet. Anything
 touching data correctness, question quality, or a design with more than one
@@ -49,7 +86,8 @@ tasks.md
    │                      goal · acceptance criteria · out of scope · constraints
    │                    ── human approves the brief ──
    │
-   ├─▶ 3. work          implement, inside that scope only
+   ├─▶ 3. work          survey first, skip what is done, implement the rest
+   │                    write ## Handoff — always, even if nothing was built
    │
    ├─▶ 4. verify        FRESH SESSION, no working context:
    │                      writes tests from the acceptance criteria
@@ -59,10 +97,12 @@ tasks.md
    │        ├── criteria wrong or untestable ▶ back to 2
    │        └── pass ─▶
    │
-   ├─▶ 5. ship          commit, push, open a PR — human reviews and merges
+   ├─▶ 5. ship          worker opens the PR — human reviews and merges
    │
-   └─▶ 6. sweep         delete tasks/T-0xx-slug.md, mark done in tasks.md,
-                        re-evaluate the queue, reconcile PROGRESS.md
+   └─▶ 6. sweep         next task-expander run deletes the brief, marks done,
+                        re-evaluates the queue, reconciles PROGRESS.md
+
+   one agent per session · nothing spawns anything · the brief carries the state
 ```
 
 ---
@@ -132,6 +172,11 @@ an extra commit here. A task that outgrows a few hours is two tasks; split it.
 Commit the brief along with the code, so the verifier can fetch the branch and
 read it.
 
+**Write the `## Handoff` section before stopping — always, even when you built
+nothing.** The tester starts cold and cannot ask you anything; the handoff is the
+entire conversation between the two of you. A missing handoff is a broken loop,
+and the tester is told to refuse the run rather than reconstruct one from a diff.
+
 You may write tests as you go — you should, for anything you are unsure of. That
 does not replace step 4: your tests know what you built, and the point of step 4
 is a check that does not.
@@ -195,6 +240,10 @@ any decision could reasonably have gone the other way.
 A human reviews and merges. The loop produces a PR; it does not merge it.
 
 ### 6. Sweep
+
+Done by the **next** `task-expander` run, before it expands anything. Putting it
+at the start of the following cycle rather than the end of this one means it
+survives everyone going home after the merge.
 
 After the merge:
 

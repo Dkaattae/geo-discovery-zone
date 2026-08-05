@@ -1,8 +1,15 @@
 # T-0xx — <title>
 
-**Status:** doing
+**Status:** `expanding` → `awaiting approval` → `working` → `awaiting verification`
+→ `pass` / `fail` / `blocked` → `ship`
+**Next step:** which agent runs next — `task-expander`, `worker`, `tester`, or `ship`
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `claude/t-0xx-slug`
+
+This header is the loop's only shared state. Sessions are sequential and none of
+them remembers the last one, so whoever opens this file must be able to tell
+where the task stands without asking anybody. Every agent updates both lines
+before it stops.
 
 ## Goal
 
@@ -68,6 +75,23 @@ and documentation tasks (see [`process.md`](../process.md)), list what a human
 must check, and record who checked it in the PR.
 
 - [ ] …
+
+## Handoff
+
+Written by `worker` before the tester runs. **Always written, even when nothing
+was built** — the tester starts cold and this is the only message it gets.
+
+- Changed, file by file — or explicitly "nothing; already satisfied by `x.ts:NN`"
+- Where each criterion's behaviour now lives
+- What was deliberately not done, and why
+- Anything found that contradicts the brief
+- How to run what was touched
+
+## Verdict
+
+Written by `tester`: pass, fail or blocked, which criterion, what was observed,
+and — for a task whose deliverable is tests — which mutations were made and what
+each one did.
 
 ## Notes
 
