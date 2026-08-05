@@ -15,20 +15,23 @@ The documents this loop runs on:
 
 ## Who does what
 
-Three agents, defined in [`.claude/agents/`](.claude/agents/), each owning one
+Four agents, defined in [`.claude/agents/`](.claude/agents/), each owning one
 step and deliberately unable to do the others' jobs.
 
 - **`task-expander`** (opus) — turns a queue entry into a brief. Writes only
   `tasks/T-0xx-slug.md`; has no Bash and cannot implement anything.
-- **`worker`** (inherits the session model) — implements the approved brief.
-  Cannot edit the acceptance criteria.
+- **`worker`** (inherits the session model) — implements the approved brief and
+  opens the PR. Cannot edit the acceptance criteria.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
   edit source to make a test pass, and cannot edit the criteria either.
+- **`reviewer`** (opus) — judges quality rather than correctness, merges inside a
+  narrow envelope or escalates, then sweeps and trims the queue. Never reviews
+  work it wrote, because it writes none.
 
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
-criteria are to satisfy, the worker cannot move the goalposts, and the tester
-cannot move the code.
+criteria are to satisfy, the worker cannot move the goalposts, the tester cannot
+move the code, and the reviewer cannot fix what it finds — findings become tasks.
 
 ### Sequential sessions, no subagents
 
@@ -97,10 +100,11 @@ tasks.md
    │        ├── criteria wrong or untestable ▶ back to 2
    │        └── pass ─▶
    │
-   ├─▶ 5. ship          worker opens the PR — human reviews and merges
+   ├─▶ 5. ship          worker opens the PR
    │
-   └─▶ 6. sweep         next task-expander run deletes the brief, marks done,
-                        re-evaluates the queue, reconciles PROGRESS.md
+   └─▶ 6. review        reviewer judges quality, then either
+                          merges — only inside a narrow envelope — or escalates
+                        then sweeps: delete brief, mark done, trim the queue
 
    one agent per session · nothing spawns anything · the brief carries the state
 ```
@@ -239,13 +243,25 @@ any decision could reasonably have gone the other way.
 
 A human reviews and merges. The loop produces a PR; it does not merge it.
 
-### 6. Sweep
+### 6. Review, merge, sweep
 
-Done by the **next** `task-expander` run, before it expands anything. Putting it
-at the start of the following cycle rather than the end of this one means it
-survives everyone going home after the merge.
+Run this as the **`reviewer`** agent. It is the only step that both judges and
+tidies, and it does them in that order.
 
-After the merge:
+**Review** is about quality, not correctness — the tester already settled
+correctness. Does it fit the codebase, is it more than the brief asked for, did
+anything land outside the Constraints, are the docs still true. Findings that do
+not block the merge become new entries in `tasks.md`; the reviewer never fixes
+them itself.
+
+**Merge only inside the envelope**: tester passed, suite green, nothing outside
+the brief's Constraints, no new dependency, nothing touching `openapi.yaml`, a
+migration or the plan, and **no text a child will read**. Anything else escalates
+to you, and escalating is a normal outcome rather than a failure. Content for
+children always comes to a human — a test can confirm its shape, only a person
+can confirm its substance.
+
+**Then sweep**, in the same session as the merge:
 
 1. **Delete `tasks/T-0xx-slug.md`.** The folder holds only live work. Its history
    is in git and its criteria are in the PR.
@@ -262,10 +278,9 @@ After the merge:
    opens or closes — not every task needs an entry. `geoquizdataplan.md` only
    when the plan's *reasoning* is now wrong, not when a detail changed.
 
-> Deleting the brief in a follow-up commit means a second, tiny PR. If that
-> friction gets annoying, delete it in the same PR's final commit instead — the
-> brief still reaches the verifier through the branch, and `main` never carries
-> a task file at all.
+> Sweeping in the merge session is what removed the old friction here: the brief
+> no longer needs a second PR to delete, and there is no window where `main`
+> carries a brief for work that already shipped. See `decisions.md` D-4.
 
 ---
 

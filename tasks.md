@@ -9,6 +9,10 @@ An entry here is a *placeholder*, not a brief. When a task is picked up the
 criteria, out of scope, constraints — and that brief, once approved, is what the
 `worker` builds and the `tester` verifies against (`process.md`).
 
+This list is pruned by the `reviewer` after every merge: finished tasks are
+marked done, tasks the work made unnecessary are deleted with a reason, and
+anything it uncovered is added. A queue nobody prunes stops being read.
+
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
 Sizes are a sanity check, not a commitment: **S** ≈ under an hour, **M** ≈ a

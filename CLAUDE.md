@@ -8,12 +8,13 @@ contract — change it deliberately and say so.
 ## Docs
 
 - `process.md` — the development loop. Read first. `.claude/agents/` defines the
-  three roles it runs on: task-expander, worker, tester.
+  four roles it runs on: task-expander, worker, tester, reviewer.
 - `tasks.md` — the work queue. `tasks/` holds the current brief.
 - `test-guidelines.md` — what to test and how.
 - `geoquizdataplan.md` — the plan and the reasoning. §5 is the tech stack.
 - `PROGRESS.md` — what is done, broken, and next.
 - `conventions.md` — code conventions, commands, and repo layout detail.
+- `decisions.md` — why the process is shaped this way, and what would change it.
 
 ## Packages
 

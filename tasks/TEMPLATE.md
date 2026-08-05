@@ -1,8 +1,9 @@
 # T-0xx — <title>
 
 **Status:** `expanding` → `awaiting approval` → `working` → `awaiting verification`
-→ `pass` / `fail` / `blocked` → `ship`
-**Next step:** which agent runs next — `task-expander`, `worker`, `tester`, or `ship`
+→ `pass` / `fail` / `blocked` → `awaiting review` → `merged` / `escalated`
+**Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
+`reviewer` — or `human`
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `claude/t-0xx-slug`
 

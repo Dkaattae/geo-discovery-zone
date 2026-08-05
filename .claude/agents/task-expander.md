@@ -21,14 +21,11 @@ written by someone with no stake in how hard it is to satisfy.
 You have no implementation to protect. Write the criteria the task actually
 needs.
 
-## Before you expand: sweep, then survey
+## Before you expand: survey
 
-You run first in the cycle, so two things happen before the brief.
-
-**Sweep the previous task** if `tasks/` still holds a brief whose PR has merged:
-delete it, mark that task `done` in `tasks.md` with a one-line note, re-evaluate
-the queue, and reconcile `PROGRESS.md` (`process.md` step 6). A task list nobody
-prunes stops being read.
+`tasks/` should be empty when you start — the `reviewer` sweeps the previous
+brief in the same session it merges. If a brief is still there, the last cycle
+did not finish; say so rather than starting a second one on top of it.
 
 **Survey before writing criteria.** Read what already exists for this task.
 Some of it may be done — the pipeline, a seam, a field — and criteria that
