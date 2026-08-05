@@ -47,7 +47,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Tech stack settled and written into plan §5: React frontend, FastAPI backend,
   Postgres with Alembic owning the schema, uv for Python and bun for TypeScript.
 - Working docs in place — `CLAUDE.md` (rules), `tasks.md` (queue),
-  `process.md` (loop). `test-guidelines.md` is still to write (T-002).
+  `process.md` (loop), `test-guidelines.md` (what and how to test), and
+  `tasks/` for the brief of whatever is in flight.
+- Development loop defined end to end: pick → expand into a brief with
+  acceptance criteria → work → verify in a fresh session that writes tests from
+  those criteria alone → PR → sweep the brief and re-evaluate the queue.
 - `geoquizdataplan.md` at the root as the reference the work is measured against.
 - `openapi.yaml` at the root — content, profile and session API, validated
   against OpenAPI 3.1. Contract only; no server implements it yet.
