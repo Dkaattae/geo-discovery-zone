@@ -11,6 +11,7 @@ The documents this loop runs on:
 - [`tasks/`](tasks/) — the brief for the task currently being worked
 - [`test-guidelines.md`](test-guidelines.md) — how tests get written here
 - [`CLAUDE.md`](CLAUDE.md) — the repo's standing rules
+- [`conventions.md`](conventions.md) — code conventions and commands
 
 ## The loop
 
