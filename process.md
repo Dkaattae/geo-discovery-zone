@@ -261,13 +261,20 @@ to you, and escalating is a normal outcome rather than a failure. Content for
 children always comes to a human — a test can confirm its shape, only a person
 can confirm its substance.
 
-**Then sweep**, in the same session as the merge:
+**Then sweep — before merging, in the PR's own branch.** The bookkeeping ships
+with the work it describes, so `main` never carries a brief for something already
+released and there is no follow-up PR for three line changes.
 
 1. **Delete `tasks/T-0xx-slug.md`.** The folder holds only live work. Its history
    is in git and its criteria are in the PR.
-2. **Mark the task `done` in `tasks.md`**, with a one-line note of what actually
-   happened — especially where reality differed from the brief.
-3. **Re-evaluate the queue.** Read back through `tasks.md`:
+2. **Delete the task's entry from `tasks.md`** — do not mark it done. A queue that
+   accumulates finished entries is one nobody scrolls to the bottom of. Nothing is
+   lost: the criteria are in the PR, the summary goes to `PROGRESS.md`, and git
+   holds the rest.
+3. **Add a line to `PROGRESS.md` under "Completed tasks"** — the id, one sentence
+   on what actually landed, and the PR number. Say where reality differed from
+   the brief; that is the part worth reading later.
+4. **Re-evaluate the queue.** Read back through `tasks.md`:
    - Did this make a later task smaller, larger, or unnecessary? Delete what no
      longer needs doing and say why. A queue nobody prunes stops being read.
    - Did it uncover work not in the queue? Add it, sized small.
@@ -278,9 +285,14 @@ can confirm its substance.
    opens or closes — not every task needs an entry. `geoquizdataplan.md` only
    when the plan's *reasoning* is now wrong, not when a detail changed.
 
-> Sweeping in the merge session is what removed the old friction here: the brief
-> no longer needs a second PR to delete, and there is no window where `main`
-> carries a brief for work that already shipped. See `decisions.md` D-4.
+> Sweeping inside the PR is what removed the old friction: no second PR to delete
+> the brief, and no window where `main` carries a brief for work that already
+> shipped. See `decisions.md` D-4.
+>
+> Note the consequence for the merge envelope: a swept PR **always** touches
+> `tasks.md` and `PROGRESS.md`, which no brief lists in its Constraints. Those two
+> files, plus deleting the brief itself, are expected sweep changes and are not
+> the "changed outside Constraints" signal that blocks a merge.
 
 ---
 
