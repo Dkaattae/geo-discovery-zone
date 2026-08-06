@@ -352,7 +352,8 @@ skipping steps.
 - approval is still required and still recorded — an `Approved:` line in the same
   `tasks.md` entry, next to the criteria it approves, since the PR does not exist
   yet when approval happens;
-- the **handoff becomes a section of the PR body** instead of a file;
+- the **handoff goes inline in the same `tasks.md` entry**, not the PR body — the
+  tester reads it before any PR exists;
 - **the tester still runs in its own session.** This is the one step the light
   path never drops, because it is the only independent signal in the loop.
 

@@ -126,10 +126,16 @@ schema, and two authors will disagree. Recorded in full in plan §5.3.
 in `tasks.md`, **approval recorded inline in the same entry**, handoff in the PR
 body. **The independent tester session is never skipped.**
 
-*Refined on first use (T-002):* approval was originally to be recorded "in the PR
-description", which cannot work — approval happens before any code, and the PR
-does not exist yet. It goes in the `tasks.md` entry, next to the criteria it
-approves, and travels into the PR body from there.
+*Refined on first use (T-002), twice, from the same root cause:* the light path
+assumed the PR exists earlier than it does. **Approval** was to be recorded in the
+PR description, but approval happens before any code. **The handoff** was to be
+the PR body, but the tester reads it before the PR is opened. Both go inline in
+the `tasks.md` entry and travel into the PR body from there.
+
+A third consequence is still open: the light path drops the brief, and with it the
+Sessions table that makes tester independence checkable. D-6 promises the
+independent tester session is never skipped, while removing the only way to
+verify it was not. Needs resolving before the light path is used again.
 
 T-001 spent four sessions, three PRs and a human approval to add 19 tests to code
 that already worked. The catch it produced was real, but that ratio will not

@@ -25,11 +25,12 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-002 — Revisit `test-guidelines.md` against the first real tests · S · doing
+### T-002 — Revisit `test-guidelines.md` against the first real tests · S · awaiting verification
 **Depends on:** — (T-001 landed)
 **Path:** light (D-6) — criteria inline, no brief file. Eligible: docs only, no
 contract, no migration, no plan, no child-facing text, four criteria.
-**Approved:** `pending`
+**Approved:** Dkaattae, 2026-08-06
+**Next step:** `tester` — **must be a fresh session**, see the handoff
 
 The guidance was written before any test in this repo existed, so it is
 prescriptive where it should be descriptive. There are now 19 real tests to check
@@ -68,6 +69,38 @@ corresponds to a test that exists" — is too strict as written. Applied literal
 it would delete the `pickQuestion` randomness guidance and the whole pytest
 section, which are the parts most useful to the next person. Criterion 3 replaces
 it: mark forward-looking guidance as such rather than removing it.
+
+**Handoff** (worker → tester; inline because the light path has no brief file)
+
+Only `test-guidelines.md` changed. Nothing under `question-bank/src/` was
+touched, and `bun test` still reports 19 passing.
+
+- *Criterion 1* — the "Use the seams" section is replaced by "Start below the
+  transport, not at it". It now says what the real tests do: call `parseUsStates`
+  on the recorded fixture and `normalizeUsStates` on the parsed rows, no seam
+  needed. The seams table survives, demoted to "reach for one only when the thing
+  under test spans the network call", and states plainly that no test uses one
+  today. The file-location claim lost its `src/__tests__/` alternative, which
+  nothing uses.
+- *Criterion 2* — new section "Three patterns worth copying", with code lifted
+  verbatim from `normalize.test.ts`: the per-call fixture reader, filtering rows
+  for partial cases, and the spread-with-one-field-corrupted trick.
+- *Criterion 3* — the randomness section and the `api/` pytest section both carry
+  an explicit **Forward-looking** note naming the task that will make them real
+  (T-004, T-030 onward). The `bun test` commands now say which suite has tests
+  and which exits 1.
+- *Criterion 4* — verified: `git diff -- question-bank/src` is empty.
+
+Also corrected without being asked: the intro said tests are written "usually by
+someone who has not seen the implementation". That "usually" was never true of the
+design and is now wrong twice over, since the Sessions table makes it checkable.
+
+**Flagged, owner named:** the light path (D-6) drops the brief file and with it
+the Sessions table — which is the only mechanism enforcing that the tester runs
+in a fresh session. On this task the worker and expander ran in one session, so a
+tester in that same session would be verifying its own work. **Reviewer to decide
+whether the light path needs its own independence check, or defer to a D-6
+revision.**
 
 ### T-003 — CI: typecheck, lint, test on every PR · S · todo
 **Depends on:** — (T-001 landed)
