@@ -38,7 +38,8 @@ implement.
 **You may merge only when every one of these is true:**
 
 - the tester returned **pass**, and the full suite, typecheck and lint are green;
-- no file changed outside the brief's Constraints;
+- no file changed outside the brief's Constraints — **excluding your own sweep**,
+  which necessarily touches `tasks.md`, `PROGRESS.md` and the deleted brief;
 - no dependency was added;
 - no change to `openapi.yaml`, a database migration, or `geoquizdataplan.md`;
 - no text that a child will read — fun facts, prompts, explanations, reveals;
@@ -54,16 +55,20 @@ Content for children always goes to a human. So does anything touching the
 contract or the schema, because both are load-bearing for work that has not been
 written yet.
 
-## 3. Sweep
+## 3. Sweep — before you merge
 
-After the merge, in the same session — this is why sweeping lives here rather
-than at the start of the next cycle, where it survives only if someone comes back.
+Sweep in the PR's own branch, then merge. The bookkeeping ships with the work it
+describes: `main` never carries a brief for something already released, and there
+is no follow-up PR for three line changes.
 
 1. **Delete the brief** from `tasks/`. Its criteria are in the PR body, which is
    the permanent record.
-2. **Mark the task done** in `tasks.md` with a one-line note of what actually
-   happened, especially where reality differed from the brief.
-3. **Trim the queue.** This is the part everyone skips, and the reason the list
+2. **Delete the task's entry from `tasks.md`** — do not mark it done. A queue that
+   accumulates finished entries stops being read to the bottom. Nothing is lost:
+   criteria in the PR, summary in `PROGRESS.md`, history in git.
+3. **Log it in `PROGRESS.md` under "Completed tasks"** — id, one sentence on what
+   actually landed, PR number, and where reality differed from the brief.
+4. **Trim the queue.** This is the part everyone skips, and the reason the list
    stops being read. Go through what remains and ask:
    - Did this task make a later one smaller, larger, or unnecessary? **Delete
      what no longer needs doing**, with a one-line reason. A deleted task is a
@@ -71,9 +76,13 @@ than at the start of the next cycle, where it survives only if someone comes bac
    - Did it uncover work that is not in the queue? Add it, sized small.
    - Did it invalidate an assumption a later task rests on? Rewrite that task now.
    - Did the order change? Something newly cheap may deserve to come first.
-4. **Reconcile `PROGRESS.md`** when a group of tasks lands or a known gap opens
-   or closes. Not every task earns an entry. `geoquizdataplan.md` changes only
-   when the plan's *reasoning* is wrong — record that in `decisions.md` too.
+5. **Reconcile the rest of `PROGRESS.md`** — the thematic sections, when a group
+   of tasks lands or a known gap opens or closes. `geoquizdataplan.md` changes
+   only when the plan's *reasoning* is wrong, and that goes in `decisions.md`.
+
+Re-read the remaining queue against `geoquizdataplan.md` while you trim. A task
+that made sense before this work landed may now be aimed at the wrong thing, and
+the plan is what says which.
 
 ## What you never do
 

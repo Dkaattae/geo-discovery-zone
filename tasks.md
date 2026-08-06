@@ -9,9 +9,10 @@ An entry here is a *placeholder*, not a brief. When a task is picked up the
 criteria, out of scope, constraints — and that brief, once approved, is what the
 `worker` builds and the `tester` verifies against (`process.md`).
 
-This list is pruned by the `reviewer` after every merge: finished tasks are
-marked done, tasks the work made unnecessary are deleted with a reason, and
-anything it uncovered is added. A queue nobody prunes stops being read.
+This list is pruned by the `reviewer` in the same PR as the work: the finished
+task is **deleted** and logged in `PROGRESS.md`, tasks the work made unnecessary
+are deleted with a reason, and anything it uncovered is added. A queue nobody
+prunes stops being read.
 
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
@@ -24,30 +25,35 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-001 — Test setup and first tests for `question-bank` · S · todo
-**Depends on:** —
-`bun test` runs with no config; there are simply no tests yet.
-Cover the logic that is expensive to get silently wrong: rank suppression on a
-partial set, the FIPS cross-check warning, border resolution by QID and by label
-fallback, and WKT centroid parsing. Drive them through the recorded fixture.
-**Done when:** `bun test` passes with tests for all four, and no test touches the
-network. Because the deliverable here *is* tests, the tester verifies by
-mutation — breaking each behaviour and confirming the matching test goes red —
-rather than by writing more tests (`test-guidelines.md`).
-
 ### T-002 — Revisit `test-guidelines.md` against the first real tests · S · todo
-**Depends on:** T-001
-The file now exists, but it was written before any test in this repo did — so it
-is prescriptive where it should be descriptive. Once T-001 has written real
-tests, check the guidance against them: correct anything that turned out awkward
-in practice, and add the patterns that actually earned their place.
+**Depends on:** — (T-001 landed)
+The guidance was written before any test in this repo existed, so it is
+prescriptive where it should be descriptive. There are now 19 real tests to check
+it against. Three patterns earned their place and are not yet written down: the
+`allRows()` fixture-reader that keeps the recording read-only, filtering parsed
+rows to build partial cases, and mutation as the way to verify a test-writing
+task. Anything that turned out awkward should be corrected.
 **Done when:** every example in the file corresponds to a test that exists.
 
 ### T-003 — CI: typecheck, lint, test on every PR · S · todo
-**Depends on:** T-001
+**Depends on:** — (T-001 landed)
 A GitHub Actions workflow running `bun run typecheck`, lint, and `bun test`
 across `frontend/` and `question-bank/`. Add the Python job when `api/` exists.
-**Done when:** the workflow runs on PRs and fails when a test fails.
+Two things found while reviewing T-001: **`bun test` exits 1 in `frontend/`
+because it has no test files**, so a naive matrix job fails on a green tree; and
+`question-bank/package.json` has no `test` script, so CI must call `bun test`
+directly or the script must be added. Decide both here.
+**Done when:** the workflow runs on PRs, fails when a test fails, and passes on a
+tree where `frontend/` still has no tests.
+
+### T-004 — First tests for `frontend` · S · todo
+**Depends on:** — (deferred out of T-001's scope)
+`level.ts` and `session.ts` are pure functions carrying real logic and no tests:
+grade/band derivation and its label boundaries, `levelWindow` clamping at 0 and
+18, and `pickQuestion`'s widening search, review-queue cadence and repeat
+avoidance. `pickQuestion` calls `Math.random()`, so assert invariants that hold
+for every draw rather than which question came back (`test-guidelines.md`).
+**Done when:** `bun test` in `frontend/` passes with tests for both modules.
 
 ---
 

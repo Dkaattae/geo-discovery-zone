@@ -84,6 +84,21 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Recorded fixture of a real 50-row response, so `--offline` reproduces a full
   build with no network.
 
+## Completed tasks
+
+One line per task as it lands, newest first. The queue in `tasks.md` holds only
+what is still ahead; this is where finished work is recorded.
+
+- **T-001 — first tests for `question-bank`** (PR #6, 2026-08-04). 19 tests
+  covering ranks across the full field and their suppression on a partial one,
+  the curated FIPS code winning over Wikidata's, border resolution by QID and by
+  label, and WKT centroid parsing. No production code changed — the behaviours
+  already worked. Verified by mutation rather than by more tests: six deliberate
+  breakages, each killing exactly the right tests. *Differed from the brief:*
+  criterion 6 had to be amended mid-task, because Colorado cannot demonstrate
+  that non-state neighbours are excluded — all seven of its neighbours are
+  states. Montana carries that case instead.
+
 ## Known gaps in what is done
 
 - The 50-state output is **not committed** — `question-bank/data/` is gitignored
