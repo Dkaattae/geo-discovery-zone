@@ -349,8 +349,9 @@ skipping steps.
 
 - the acceptance criteria go **inline in the `tasks.md` entry** as a short
   numbered list — no separate brief file, no `tasks/` entry, no Sessions table;
-- approval is still required, still recorded, but it is one line in the PR
-  description rather than a header field;
+- approval is still required and still recorded — an `Approved:` line in the same
+  `tasks.md` entry, next to the criteria it approves, since the PR does not exist
+  yet when approval happens;
 - the **handoff becomes a section of the PR body** instead of a file;
 - **the tester still runs in its own session.** This is the one step the light
   path never drops, because it is the only independent signal in the loop.

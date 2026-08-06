@@ -25,15 +25,49 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-002 — Revisit `test-guidelines.md` against the first real tests · S · todo
+### T-002 — Revisit `test-guidelines.md` against the first real tests · S · doing
 **Depends on:** — (T-001 landed)
+**Path:** light (D-6) — criteria inline, no brief file. Eligible: docs only, no
+contract, no migration, no plan, no child-facing text, four criteria.
+**Approved:** `pending`
+
 The guidance was written before any test in this repo existed, so it is
 prescriptive where it should be descriptive. There are now 19 real tests to check
-it against. Three patterns earned their place and are not yet written down: the
-`allRows()` fixture-reader that keeps the recording read-only, filtering parsed
-rows to build partial cases, and mutation as the way to verify a test-writing
-task. Anything that turned out awkward should be corrected.
-**Done when:** every example in the file corresponds to a test that exists.
+it against.
+
+**What the survey found.** The seams table is the biggest gap: it tells you to
+test through `SparqlTransport`, `SummaryTransport` and `EntitySink`, and the real
+tests use **none of them**. They call `parseUsStates` on the recorded fixture and
+`normalizeUsStates` on the parsed rows — the seams were never needed, because the
+behaviours worth testing sit downstream of the transport. That is guidance
+pointing at the wrong door.
+
+Three patterns did earn their place and are undocumented: a fixture reader that
+re-reads per call so no test can mutate another's data; filtering parsed rows to
+build partial cases (`slice(0, 49)`, `rowsFor("Colorado")`); and copying a row
+with one field corrupted to force a warning path (`{...row, fips: "99"}`).
+
+**Acceptance criteria**
+
+1. Every claim `test-guidelines.md` makes about `question-bank` testing matches
+   what the 19 tests actually do — in particular the seams table, the "tests live
+   next to what they test or in `src/__tests__/`" claim (only the first is true),
+   and how the fixture is read.
+2. The three patterns above are documented with code taken from the real tests,
+   not invented examples.
+3. Guidance for code that has no tests yet — `pickQuestion`, `level.ts`, the
+   `api/` pytest section — is explicitly marked as forward-looking rather than
+   deleted or left implying it describes existing practice.
+4. No file under `question-bank/src/` changes, and `bun test` still reports 19
+   passing.
+
+**Out of scope:** writing new tests (T-004 covers `frontend`), and CI (T-003).
+
+**Note for the reviewer:** the old `Done when` — "every example in the file
+corresponds to a test that exists" — is too strict as written. Applied literally
+it would delete the `pickQuestion` randomness guidance and the whole pytest
+section, which are the parts most useful to the next person. Criterion 3 replaces
+it: mark forward-looking guidance as such rather than removing it.
 
 ### T-003 — CI: typecheck, lint, test on every PR · S · todo
 **Depends on:** — (T-001 landed)

@@ -123,8 +123,13 @@ schema, and two authors will disagree. Recorded in full in plan §5.3.
 ## D-6 — A light path for S-sized tasks
 
 **Decided:** tasks marked `S` may skip the separate brief file — criteria inline
-in `tasks.md`, handoff in the PR body, approval recorded in the PR description.
-**The independent tester session is never skipped.**
+in `tasks.md`, **approval recorded inline in the same entry**, handoff in the PR
+body. **The independent tester session is never skipped.**
+
+*Refined on first use (T-002):* approval was originally to be recorded "in the PR
+description", which cannot work — approval happens before any code, and the PR
+does not exist yet. It goes in the `tasks.md` entry, next to the criteria it
+approves, and travels into the PR body from there.
 
 T-001 spent four sessions, three PRs and a human approval to add 19 tests to code
 that already worked. The catch it produced was real, but that ratio will not
