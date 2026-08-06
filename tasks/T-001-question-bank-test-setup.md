@@ -1,7 +1,7 @@
 # T-001 — Test setup and first tests for `question-bank`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **From:** [`tasks.md`](../tasks.md) T-001
 **Branch:** `claude/frontend-restructure-openapi-0xp57z` (this repo's designated branch)
 
@@ -111,8 +111,68 @@ deliverable is tests".
 
 ## Handoff
 
-_Written by `worker` before the tester runs. Always written, even when nothing
-was built._
+**Nothing was implemented. No production code was needed, and none was written.**
+
+The brief predicted this and the survey confirmed it: all four behaviours exist
+and work. I verified each one by running it rather than by reading it. Nothing in
+the repository changed — `git status` is clean, and the tests are yours to write.
+
+### Where each criterion's behaviour lives, and what I observed
+
+| # | Behaviour | Lives in | Observed |
+|---|---|---|---|
+| 2 | ranks over the full set | `normalize.ts` `rankBy` | 50 entities, 50 distinct population ranks and 50 distinct area ranks, spanning 1–50 |
+| 3 | rank suppression | `normalize.ts:74-85` | 49 rows → every rank `null`, warning `suppressed: 49/50 states in the result set` on entity `*` |
+| 4 | rank before subset | `normalize.ts`, `only` applied after ranking | all 50 rows with `{only:["CO"]}` → Colorado `population_rank: 21`, `area_rank: 8` |
+| 5 | FIPS cross-check | `normalize.ts:96-102` | forced a row to FIPS `99` → `geometry_id` stayed `08`, warning `Wikidata FIPS 99 disagrees with curated 08; kept curated`. Unmodified rows produce zero `geometry_id` warnings |
+| 6 | border resolution | `normalize.ts` `resolveBorders` | Colorado → the same seven ids by both routes: `us-state-az, ks, ne, nm, ok, ut, wy`. QID route with the full set, label-fallback route with Colorado alone |
+| 7 | WKT parsing | `sparql.ts` `point()` | `Point(-105.5 39.0)` → `[-105.5, 39]`; `POLYGON(1 2)` → `undefined`; `undefined` → `undefined` |
+
+Criterion 10 already holds: `bunx tsc --noEmit` passes on a clean tree.
+
+### One thing the brief did not anticipate
+
+Criterion 6 requires that a non-US-state neighbour does not appear in `borders`.
+**Colorado cannot demonstrate this** — all seven of its neighbours are states, so
+a Colorado-only test proves nothing about exclusion.
+
+The fixture does contain states that can. Pick one of these:
+
+- **Montana** → `Saskatchewan`, `Alberta`, `British Columbia`
+- **Texas** → `Tamaulipas`, `Coahuila`, `Nuevo León`, `Chihuahua`
+- **Michigan** → `Ontario`
+- **Maryland** and **Virginia** → `District of Columbia` — a US federal district,
+  not a state, so correctly excluded by the curated table
+- **Connecticut** → `Long Island`, which is not an administrative division at all
+- **Pennsylvania** → `Province of Canada`, `Upper Canada`, `Province of Quebec` —
+  historical entities Wikidata still asserts
+
+Montana or Texas is the clearest vehicle. This is a gap in the criterion's
+*example*, not in the criterion: the requirement is testable as written, just not
+with the entity the criterion names.
+
+### Judgment call: no `test` script added
+
+`package.json` is untouched. `bun test` runs with no configuration, so a
+`"test": "bun test"` script would only alias the built-in, and the worker brief
+says not to manufacture work. `conventions.md` already documents `bun test` as
+the command, and T-003 will invoke it directly in CI.
+
+Reviewer may disagree — it is one line, and some people expect `bun run test` to
+work. Flagging rather than deciding unilaterally.
+
+### How to run what I checked
+
+```bash
+cd question-bank
+bun test          # no test files yet — this is what you are adding
+bun run typecheck
+bun run build:sample   # offline, exercises the whole pipeline through the fixture
+```
+
+Nothing here needs the network. The fixture at
+`src/fixtures/us-states.sparql.json` is a recorded 50-row response; do not edit
+it — filter `parseUsStates(...)` output in the test instead.
 
 ## Verdict
 
@@ -120,4 +180,13 @@ _Written by `tester`._
 
 ## Notes
 
-_Filled in while working._
+Worker session, no implementation.
+
+- Every claim in the handoff came from running the code, not reading it. That
+  matters here: a handoff asserting "already works" is exactly the kind of claim
+  that gets taken on trust and turns out to be half true.
+- The criterion 6 gap is the first thing this loop has caught that a single
+  session would probably have missed — the expander wrote a plausible example,
+  and only the survey showed Colorado cannot exercise the exclusion half of it.
+- Nothing in the pipeline looked wrong while surveying, so no bug entries were
+  added to `tasks.md`.
