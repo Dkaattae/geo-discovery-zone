@@ -4,8 +4,18 @@
 → `pass` / `fail` / `blocked` → `awaiting review` → `merged` / `escalated`
 **Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
 `reviewer` — or `human`
+**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `claude/t-0xx-slug`
+
+**Sessions:** one line per agent run — role, date, and session id
+(`echo $CLAUDE_CODE_REMOTE_SESSION_ID`). The tester must refuse to run in a
+session already listed as `worker`; that separation is the only thing making
+verification independent, and it is invisible unless it is written down.
+
+| Role | Date | Session |
+|---|---|---|
+| task-expander | | |
 
 This header is the loop's only shared state. Sessions are sequential and none of
 them remembers the last one, so whoever opens this file must be able to tell

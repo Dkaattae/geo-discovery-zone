@@ -149,8 +149,13 @@ correct means, and following those links is required, not optional.
 - **Include what must *not* happen** when that is the real risk — no network in
   tests, no unreviewed text in shippable fields, no dependency added.
 
-> **Get the brief approved before writing code.** This is the first human gate in
-> the loop, and it is deliberately at the front. Everything downstream —
+> **Get the brief approved before writing code, and record it in the brief.** The
+> header carries an `Approved:` line — `pending` until a human replaces it with
+> their name and the date. The worker refuses to start while it says `pending`.
+> Approval that lives only in a chat transcript cannot be checked afterwards by
+> anyone, including the people who gave it.
+>
+> This is the first human gate in the loop, and it is deliberately at the front. Everything downstream —
 > implementation, tests, the merge decision — inherits these criteria. Wrong
 > criteria produce working software that solves the wrong problem, and the tests
 > will happily certify it.
@@ -191,7 +196,15 @@ Hand off to a **new session with no memory of the work**. That isolation is the
 mechanism: a verifier who watched the implementation being written tends to test
 what was built rather than what was asked for.
 
-Run this as the **`tester`** agent.
+Run this as the **`tester`** agent, **in a session that has not already run
+another role on this task.** The brief's Sessions table records which session ran
+what; the tester checks it against `$CLAUDE_CODE_REMOTE_SESSION_ID` and refuses if
+it finds itself already listed as `worker`.
+
+That check exists because the separation is otherwise invisible. A tester running
+in the worker's session produces a verdict that looks exactly like a real one, and
+the failure is silent — which is the same shape as every other bug this project
+worries about.
 
 **What the verifier may read:** anything committed to the repository — the brief,
 the source, existing tests, `geoquizdataplan.md`, `openapi.yaml`, `PROGRESS.md`,
@@ -247,6 +260,11 @@ A human reviews and merges. The loop produces a PR; it does not merge it.
 
 Run this as the **`reviewer`** agent. It is the only step that both judges and
 tidies, and it does them in that order.
+
+**First, check the PR is still open.** If it was merged without waiting for the
+reviewer, the sweep cannot ride inside it: branch from the default branch, open
+the sweep as its own small PR, and say in it that the review happened after the
+merge. Review anyway — findings just become tasks instead of review comments.
 
 **Review** is about quality, not correctness — the tester already settled
 correctness. Does it fit the codebase, is it more than the brief asked for, did
@@ -319,6 +337,31 @@ Others genuinely could overlap: T-010 and T-030 touch nothing in common. If
 throughput starts to matter, the rule is **parallel only when the briefs'
 Constraints sections name disjoint files** — which is another reason to fill that
 section in properly.
+
+## The light path, for S-sized tasks
+
+The full loop costs four sessions, a human approval, and a brief, and T-001 spent
+all of that to add 19 tests to code that already worked. That ratio is wrong for
+small work, and the honest fix is a documented shortcut rather than quietly
+skipping steps.
+
+**A task marked `S` may run light**, which means:
+
+- the acceptance criteria go **inline in the `tasks.md` entry** as a short
+  numbered list — no separate brief file, no `tasks/` entry, no Sessions table;
+- approval is still required, still recorded, but it is one line in the PR
+  description rather than a header field;
+- the **handoff becomes a section of the PR body** instead of a file;
+- **the tester still runs in its own session.** This is the one step the light
+  path never drops, because it is the only independent signal in the loop.
+
+**The light path is not available** when the task touches `openapi.yaml`, a
+database migration, `geoquizdataplan.md`, or any text a child will read — or when
+its criteria run past four. Those are exactly the tasks where the brief's Out of
+scope and Constraints sections earn their cost.
+
+If a light task turns out to need more than four criteria once you start writing
+them, that is the signal to stop and expand it properly.
 
 ## Tasks this loop does not fit
 

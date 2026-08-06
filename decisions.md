@@ -57,8 +57,8 @@ than something visible in git history.
 
 - more than one person or session works the queue concurrently — file-based
   state is single-writer and will bite;
-- the sweep friction actually costs something. Today the reviewer deletes the
-  brief in the same session as the merge (D-4), which removes most of it.
+- the sweep friction actually costs something. Today the reviewer sweeps inside
+  the PR, before merging (D-4), which removes most of it.
 
 The migration is cheap when you want it: the brief template maps one-to-one onto
 an issue body, and `tasks.md` can keep the ordering as a list of issue links.
@@ -89,7 +89,8 @@ an explicit envelope, and escalates otherwise. It also sweeps and trims the queu
 
 Two things drove this. Tests check criteria; **nothing was checking whether the
 code was any good**. And sweeping at the start of the *next* cycle meant it only
-happened if someone came back — now it happens in the same session as the merge.
+happened if someone came back — it now happens inside the PR, before the merge,
+so the bookkeeping is reviewed alongside the work it describes.
 
 The envelope is deliberately narrow, and "confident" is not part of it, because
 an agent's confidence is not evidence. It may merge only when the tester passed,
@@ -119,15 +120,42 @@ schema, and two authors will disagree. Recorded in full in plan §5.3.
 
 ---
 
+## D-6 — A light path for S-sized tasks
+
+**Decided:** tasks marked `S` may skip the separate brief file — criteria inline
+in `tasks.md`, handoff in the PR body, approval recorded in the PR description.
+**The independent tester session is never skipped.**
+
+T-001 spent four sessions, three PRs and a human approval to add 19 tests to code
+that already worked. The catch it produced was real, but that ratio will not
+survive contact with a queue of S-sized tasks, and a process people quietly stop
+following is worse than a lighter one they keep.
+
+The line is drawn at what the brief's Out of scope and Constraints sections are
+actually for. A task that touches `openapi.yaml`, a migration, the plan, or text
+a child reads gets the full treatment regardless of size; so does anything whose
+criteria run past four, because that is a task pretending to be small.
+
+**Revisit when** a light-path task goes wrong in a way the full path would have
+caught. That is the evidence that the line is in the wrong place — and note it
+honestly, because the temptation will be to conclude the light path is fine and
+the task was unlucky.
+
+---
+
+---
+
 ## Known weaknesses
 
 Not decisions — things that are true, that we have chosen to live with, and that
 are worth watching.
 
-**The loop has never run.** Five documents describe it; everything in them is a
-prediction. `T-001` is its first exercise. Expect the expand step to feel heavy
-for a task that small, and treat that as data rather than as a reason to
-abandon it. Do not build more process before running it once.
+**The loop has run once.** `T-001` went through it end to end and produced one
+genuine catch: the expander wrote a criterion whose example — Colorado — could
+not demonstrate what the criterion required, and only the worker's survey exposed
+it. It also cost four sessions and three PRs for 19 tests against working code,
+which is what D-6 exists to address. Everything beyond that first run is still
+prediction.
 
 **`tasks.md` will rot faster than expected.** Thirty tasks written before any of
 them ran; after `T-021` lands, half of section C will be subtly wrong. The
@@ -135,17 +163,23 @@ reviewer's trim step exists for this and is the step most likely to be skipped,
 because it feels like bookkeeping when you would rather start the next task. A
 queue you trust to twelve items beats one you half-believe to thirty.
 
-**The verifier's independence is only as strong as the discipline around it.**
-Nothing technically stops you pasting the worker's reasoning into the tester's
-session when it looks stuck. That will be tempting on the first `blocked`
-verdict, and it quietly converts the whole design into a slower way of having
-one agent do everything.
+**The verifier's independence is only as strong as the discipline around it —
+and it broke on the first run.** T-001's expander, worker and tester were all the
+same session. It produced an honest result, because expected values were taken
+from the brief rather than the code, but "was careful" is not a mechanism.
 
-**Cost per task may not justify the ceremony.** Three or four sessions plus a
-human approval, for something like `T-012` — fifty lines of curated data. If the
-ratio feels wrong after a few runs, the fix is not abandoning the process but
-adding a documented light path for S-sized tasks: expand inline in `tasks.md`,
-skip the separate brief, keep the independent verification.
+The brief now carries a Sessions table and the tester checks
+`$CLAUDE_CODE_REMOTE_SESSION_ID` against it, refusing to run in a session already
+listed as `worker`. That makes the violation visible rather than impossible,
+which is the most a file-based process can do. The remaining hole is the same one
+as before: nothing stops a human pasting the worker's reasoning into the tester's
+session, and it will be tempting on the first `blocked` verdict.
+
+**A merge can outrun the loop.** PR #6 was merged before the reviewer ran, so the
+sweep could not ship inside it and needed its own PR. Nothing was violated — the
+brief still said `Next step: reviewer` — but the intended state became
+unreachable. The reviewer now checks whether the PR is already merged and sweeps
+separately when it is. The loop has no way to *prevent* this, only to notice.
 
 **No content reviewer exists.** `T-011` and `T-014` produce writing for children,
 where the real question is "is this right for a nine-year-old" and no test

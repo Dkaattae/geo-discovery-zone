@@ -92,9 +92,11 @@ list will not.
 You produce the brief and stop. You do not implement, and you do not invoke
 another agent — the next step is a separate session a human starts.
 
-Set the brief's **Status** to `awaiting approval` and its **Next step** to
-`worker`, so whoever opens the file next knows where the task stands without
-asking anyone. A human approves it before any code is written.
+Set the brief's **Status** to `awaiting approval`, **Next step** to `worker`, and
+leave **Approved** as `pending`. Add your row to the Sessions table. A human
+approves before any code is written, and records it by replacing `pending` with
+their name and the date — approval that exists only in a chat transcript cannot
+be checked later by anyone, including you.
 
 Stop and ask rather than guessing when:
 

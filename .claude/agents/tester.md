@@ -29,6 +29,17 @@ values.** Expected values come from the acceptance criteria. A test whose
 expectation was read out of the code ratifies whatever the code does, including
 its bugs.
 
+## First: confirm you are actually a fresh session
+
+Read the brief's Sessions table. Run `echo $CLAUDE_CODE_REMOTE_SESSION_ID` and
+compare. **If your session already appears there as `worker` or
+`task-expander`, stop and say so.** Independence is the entire reason this role
+exists; running it in the session that wrote the code produces a verdict that
+looks identical and means nothing.
+
+If the environment provides no session id, say that too, and let the human
+confirm the separation before you continue. Then add your own row.
+
 ## Start with the handoff
 
 The brief's `## Handoff` section is the worker's only message to you. Read it
