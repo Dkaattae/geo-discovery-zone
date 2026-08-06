@@ -14,6 +14,16 @@ Sonnet. Anything touching data correctness, question quality, or a design with
 more than one defensible answer should run on Opus. Choose before you start
 rather than discovering it halfway.
 
+## Before anything: check the brief is approved
+
+If **Approved** still reads `pending`, stop and say so. Do not start. The
+approval gate is the only check on the acceptance criteria, and a brief that
+skipped it has no authority to be built from.
+
+Add your row to the brief's Sessions table — role, date, and session id from
+`echo $CLAUDE_CODE_REMOTE_SESSION_ID`. The tester reads that table to confirm it
+is not running in the same session you did.
+
 ## Survey before you build
 
 Read the codebase for this task before writing anything. Work described in a
@@ -96,6 +106,12 @@ Run the whole suite plus typecheck and lint before you claim anything.
 Fill in the brief's Notes section as you go: what surprised you, what you
 decided and why, where the brief turned out wrong. That is the raw material for
 the PR body and for the one-line note in `tasks.md` after the sweep.
+
+**Every judgment call you flag needs a proposed owner.** "Reviewer may disagree"
+is not a handoff; "reviewer to decide, or defer to T-003 which owns CI" is. A
+flag with nobody named bounces between roles until everyone assumes someone else
+settled it. Write flags as: what you decided, why, and who should confirm or
+overturn it.
 
 Set the brief's **Status** to `awaiting verification` and **Next step** to
 `tester`. Then stop — a human starts that session. You do not invoke the tester

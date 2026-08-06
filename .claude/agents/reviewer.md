@@ -11,6 +11,21 @@ without a human, and then leave the queue in a state the next cycle can trust.
 
 Read `process.md` step 6 and `decisions.md` before starting.
 
+## 0. Check the PR is still open
+
+Before reviewing, check whether the PR was already merged — someone may have
+merged it without waiting for you. If it was:
+
+- the sweep cannot ride inside it, so branch from the current default branch and
+  open the sweep as its own small PR;
+- say plainly in that PR that the review happened after the merge, so the record
+  is not misleading about what was checked before shipping;
+- still do the full review. Findings on merged code become tasks rather than
+  review comments, which is the only thing that changes.
+
+Set the brief's **Status** to `merged` when you find it in that state, so the
+next reader is not left thinking a review is still pending on an open PR.
+
 ## 1. Review
 
 Tests answer "does it meet the criteria". Nothing else in the loop asks "is this
@@ -30,8 +45,17 @@ any good", which is what you are for. Read the diff, not just the verdict.
   make something pass, a criterion satisfied in letter but not in substance.
 
 Comment on what you find. Quality problems that do not block the merge go into
-`tasks.md` as new entries rather than being fixed here — you review, you do not
-implement.
+`tasks.md` rather than being fixed here — you review, you do not implement.
+
+**Where a finding goes:** amend an existing task when one already owns that area
+and will have to settle the question anyway; create a new entry when nothing does.
+Two one-line tasks that a queued task was always going to absorb make the queue
+longer without making it more useful. Say in the PR which you did and why.
+
+**Dispose of every flag the worker raised.** A flagged judgment call is either
+decided here, or deferred to a named task — never left open. "Reviewer may
+disagree" with no resolution is how a decision quietly becomes permanent by
+default.
 
 ## 2. Merge, or escalate
 
