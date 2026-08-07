@@ -61,9 +61,7 @@ function App() {
 
   if (screen === "splash") {
     return (
-      <Splash
-        onStart={() => setScreen(active ? "home" : profiles.length ? "picker" : "create")}
-      />
+      <Splash onStart={() => setScreen(active ? "home" : profiles.length ? "picker" : "create")} />
     );
   }
 

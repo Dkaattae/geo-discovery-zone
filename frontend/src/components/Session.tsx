@@ -96,14 +96,14 @@ export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProp
       wrong: stats.wrong + (isCorrect ? 0 : 1),
     };
     setStats(newStats);
-    setSeenPlaces((prev) => (prev.includes(question.entityId) ? prev : [...prev, question.entityId]));
+    setSeenPlaces((prev) =>
+      prev.includes(question.entityId) ? prev : [...prev, question.entityId],
+    );
 
     const wasReview = isReview;
     onUpdateProfile((p) => {
       const prevMastery = p.mastery[question.entityId] ?? 0;
-      const mastery = isCorrect
-        ? Math.min(1, prevMastery + 0.35)
-        : Math.max(0, prevMastery - 0.15);
+      const mastery = isCorrect ? Math.min(1, prevMastery + 0.35) : Math.max(0, prevMastery - 0.15);
 
       let queue = [...p.reviewQueue];
       if (!isCorrect) {
@@ -120,7 +120,9 @@ export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProp
       if (nextWrongStreak > 0 && nextWrongStreak % 3 === 0) level = clampLevel(level - 0.5);
 
       if (isCorrect && prevMastery <= 0.7 && mastery > 0.7) {
-        setLearned((prev) => (prev.includes(question.entityId) ? prev : [...prev, question.entityId]));
+        setLearned((prev) =>
+          prev.includes(question.entityId) ? prev : [...prev, question.entityId],
+        );
       }
 
       return {
@@ -280,7 +282,11 @@ export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProp
         <Sheet>
           <h2 className="text-3xl">Great stopping point!</h2>
           <p className="mt-2 text-lg text-muted-foreground">
-            You have answered {milestone} questions{masteredCount > 0 ? ` and learned ${masteredCount} new ${masteredCount === 1 ? "place" : "places"}` : ""}.
+            You have answered {milestone} questions
+            {masteredCount > 0
+              ? ` and learned ${masteredCount} new ${masteredCount === 1 ? "place" : "places"}`
+              : ""}
+            .
           </p>
           <div className="mt-6 flex flex-col gap-3">
             <Button
@@ -402,9 +408,7 @@ function Reveal({
       aria-live="polite"
       className={cn(
         "animate-pop mt-6 rounded-3xl border-2 p-5 sm:p-6",
-        correct
-          ? "border-correct bg-correct-soft"
-          : "border-learn bg-learn-soft",
+        correct ? "border-correct bg-correct-soft" : "border-learn bg-learn-soft",
       )}
     >
       <p className="font-display text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
@@ -455,7 +459,8 @@ function SummaryScreen({
 }) {
   const line = useMemo(() => {
     if (learned > 0) return `You learned ${learned} new ${learned === 1 ? "place" : "places"}!`;
-    if (answered > 0) return `You explored ${placesSeen} ${placesSeen === 1 ? "place" : "places"} on the map.`;
+    if (answered > 0)
+      return `You explored ${placesSeen} ${placesSeen === 1 ? "place" : "places"} on the map.`;
     return "The map is waiting whenever you are.";
   }, [answered, learned, placesSeen]);
 

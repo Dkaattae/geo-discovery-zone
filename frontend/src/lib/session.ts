@@ -13,7 +13,13 @@ export interface PickArgs {
 }
 
 /** Picks the next question. Returns null only when the bank is empty. */
-export function pickQuestion({ profile, topic, askedIds, index, forceReview }: PickArgs): Question | null {
+export function pickQuestion({
+  profile,
+  topic,
+  askedIds,
+  index,
+  forceReview,
+}: PickArgs): Question | null {
   const topicOk = (q: Question) => topic === "mixed" || q.topic === topic;
   const fresh = (q: Question) => !askedIds.includes(q.id);
   const recentlyAsked = askedIds.slice(-6);
