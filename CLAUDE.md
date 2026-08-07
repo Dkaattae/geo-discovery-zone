@@ -30,8 +30,11 @@ Run them before saying something is done — "it typechecks" is not "it works",
 and that means the whole suite, not just the new tests. A bug fix gets a test
 that fails without the fix.
 
-Test the seams (`SparqlTransport`, `SummaryTransport`, `EntitySink`) rather than
-mocking `fetch`. No network in tests. Details in `test-guidelines.md`.
+Start below the transport: the behaviours worth testing are pure functions, and
+calling them directly beats injecting anything. Reach for a seam
+(`SparqlTransport`, `SummaryTransport`, `EntitySink`) only when the thing under
+test spans the network call — and never mock `fetch`. No network in tests.
+Details in `test-guidelines.md`.
 
 ## Content rules
 

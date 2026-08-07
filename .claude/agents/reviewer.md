@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Reviews a passed PR for quality rather than correctness, marks it ready, merges it when it falls inside strict limits or escalates when it does not, then sweeps the brief and trims the task queue. Use at process.md step 6, after the tester returns pass. Never reviews work it wrote.
-tools: Read, Grep, Glob, Write, Edit, Bash, mcp__github__pull_request_read, mcp__github__update_pull_request, mcp__github__merge_pull_request, mcp__github__add_issue_comment
+tools: Read, Grep, Glob, Write, Edit, Bash, mcp__github__pull_request_read, mcp__github__update_pull_request, mcp__github__merge_pull_request, mcp__github__create_pull_request, mcp__github__add_issue_comment
 model: opus
 ---
 
@@ -28,7 +28,8 @@ Check first whether it was already merged — someone may have merged it without
 waiting for you. If it was:
 
 - the sweep cannot ride inside it, so branch from the current default branch and
-  open the sweep as its own small PR;
+  open the sweep as its own small PR — `mcp__github__create_pull_request`, by the
+  same three routes as "Opening and merging the PR" in `process.md`;
 - say plainly in that PR that the review happened after the merge, so the record
   is not misleading about what was checked before shipping;
 - still do the full review. Findings on merged code become tasks rather than

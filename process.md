@@ -19,8 +19,8 @@ Four agents, defined in [`.claude/agents/`](.claude/agents/), each owning one
 step and deliberately unable to do the others' jobs.
 
 - **`task-expander`** (opus) — turns a queue entry into a brief, opens the branch
-  and the draft PR. Writes only `tasks/T-0xx-slug.md` and `tasks.md`; never
-  source, tests or configuration.
+  and the draft PR. Writes only `tasks/T-0xx-slug.md`, `tasks.md` and
+  `PROGRESS.md`; never source, tests or configuration.
 - **`worker`** (inherits the session model) — implements the approved brief on
   that branch. Cannot edit the acceptance criteria.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
@@ -47,7 +47,7 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `task-expander` | Read, Grep, Glob, Write, Edit, Bash, PR-open | `tasks/`, `tasks.md`, `PROGRESS.md` | source, tests, config |
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, tests, the brief's Handoff | acceptance criteria |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict | source, acceptance criteria |
-| `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-merge | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests |
+| `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-merge, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests |
 
 **No row has the Task tool** — see "Sequential sessions, no subagents" below.
 
@@ -77,6 +77,9 @@ tool — how you get them depends on where the session runs:
 
 Whichever route, the branch is pushed first. A PR needs a branch on the remote.
 
+The reviewer holds "PR-open" as well, for one case only: a PR merged before it
+ran, where the sweep cannot ride inside the merge and needs its own small PR.
+
 ### Sequential sessions, no subagents
 
 Each step is its own top-level session, started by a human, running one agent.
@@ -98,8 +101,10 @@ All three roles also update the header's `Status` and `Next step` and add a row
 to the Sessions table. Opening the brief should tell you where the task stands
 and which agent to start next, without reconstructing anything.
 
-Two steps in the loop have no agent of their own, by design:
+Three steps in the loop have no agent of their own, by design — two fold into a
+neighbouring role's session, and one is yours:
 
+- **Ship** — `reviewer` marks the PR ready at the start of its run, then reviews.
 - **Pick and sweep** — `task-expander` does both, at the start of its run. It
   clears the merged brief, updates `tasks.md` and `PROGRESS.md`, then picks the
   next task. Sweeping at the *start* of the next cycle rather than the end of the
@@ -179,7 +184,8 @@ tasks.md
    │        ├── criteria wrong or untestable ▶ back to 2
    │        └── pass ─▶
    │
-   ├─▶ 5. ship          mark the PR ready for review
+   ├─▶ 5. ship          reviewer marks the PR ready for review
+   │                    (same session as step 6, not its own)
    │
    └─▶ 6. review        reviewer judges quality, then either
                           merges — only inside a narrow envelope — or escalates
@@ -343,6 +349,11 @@ Passing includes the whole suite plus typecheck and lint — not only the new te
 
 ### 5. Ship
 
+Run this as the **`reviewer`** agent — it is the first thing that agent does, in
+the same session that goes on to step 6. Step 5 has no session of its own:
+marking a PR ready is one tool call, and the role that decides whether the work
+ships is the right one to make it.
+
 The PR already exists — it was opened draft at step 2 and has been collecting
 commits since. Shipping means **marking it ready for review** and bringing its
 body up to date.
@@ -395,7 +406,7 @@ released and there is no follow-up PR for three line changes.
    - Did it invalidate an assumption a later task rests on? Rewrite that task now,
      while you still remember why.
    - Did the order change? Something newly cheap may deserve to come first.
-4. **Reconcile upward.** `PROGRESS.md` when a group of tasks lands or a known gap
+5. **Reconcile upward.** `PROGRESS.md` when a group of tasks lands or a known gap
    opens or closes — not every task needs an entry. `geoquizdataplan.md` only
    when the plan's *reasoning* is now wrong, not when a detail changed.
 
