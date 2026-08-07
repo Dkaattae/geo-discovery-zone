@@ -122,9 +122,34 @@ schema, and two authors will disagree. Recorded in full in plan §5.3.
 
 ## D-6 — A light path for S-sized tasks
 
-**Decided:** tasks marked `S` may skip the separate brief file — criteria inline
-in `tasks.md`, handoff in the PR body, approval recorded in the PR description.
-**The independent tester session is never skipped.**
+**Decided:** tasks marked `S` get a **shorter brief, not no brief**.
+`tasks/T-0xx-slug.md` still exists and still carries the acceptance criteria, the
+`Approved:` line, the Sessions table, the Handoff and the Verdict. Goal, Out of
+scope, Constraints and Context are dropped. **The independent tester session is
+never skipped.**
+
+*Amended after T-002, its first and only use.* As originally decided, the light
+path dropped the brief file entirely and scattered its contents — criteria into
+`tasks.md`, approval into the PR description, handoff into the PR body. That
+produced three defects inside one task:
+
+1. **Approval** had nowhere to live, because it happens before any code.
+2. **The handoff** had nowhere to live, because the tester reads it before the
+   reviewer touches the PR.
+3. **The Sessions table went with the brief**, so the light path promised an
+   independent tester session while deleting the only evidence that one happened
+   — and T-002's tester was in fact not independent.
+
+Each was patched separately, into `tasks.md`, and the T-002 entry grew to ninety
+lines: longer than the brief it was avoiding, in the file that is supposed to be
+a scannable queue. The patches were treating a symptom. **The root cause is that
+five roles across four sessions need one place to read and write, and `tasks.md`
+is not it** — it is shared by every task, so a light task's state ends up
+interleaved with the queue.
+
+Keeping the file and shortening its contents gets the saving that was actually
+wanted. The expensive part of a brief was never the file; it was writing Out of
+scope and Constraints for work that touches one file.
 
 T-001 spent four sessions, three PRs and a human approval to add 19 tests to code
 that already worked. The catch it produced was real, but that ratio will not
@@ -140,6 +165,44 @@ criteria run past four, because that is a task pretending to be small.
 caught. That is the evidence that the line is in the wrong place — and note it
 honestly, because the temptation will be to conclude the light path is fine and
 the task was unlucky.
+
+---
+
+## D-7 — Every role holds Bash; separation moves to the diff
+
+**Decided:** all four agents get `Bash`. What keeps them from doing each other's
+jobs is **what each is allowed to write**, checked against the commit diff by the
+reviewer at step 6 — not the absence of a tool.
+
+The old arrangement gave the `task-expander` no Bash, which enforced "the
+expander cannot implement anything" for free. That guarantee was real and it is
+worth naming what replaces it, because the replacement is weaker.
+
+It had to change because the flow changed. The PR now opens at expand time, so
+approval has a durable home instead of living in a chat log — and opening a PR
+means creating a branch, committing and pushing. The first version of that change
+(PR #9) instructed the expander to do all four while leaving its tool list
+untouched, so every task would have stalled at step 2. The instruction and the
+tool list have to move together; that is now stated at the top of `process.md`'s
+"What each role needs to do its job".
+
+**Why not keep Bash away from the expander and have the human open the PR?** It
+works, and it was the alternative. It was rejected because it puts a manual step
+between "brief written" and "brief approvable" — exactly where a loop that
+already costs four sessions can least afford friction, and exactly the kind of
+step that gets skipped, which is how approval ended up in a chat log the first
+time.
+
+**The compensating check:** the expander's commit must touch only `tasks/`,
+`tasks.md` and `PROGRESS.md`. That is mechanically checkable from the diff, the
+reviewer is told to check it, and the commit-message convention
+(`T-0xx expander: …`) makes the commits attributable. A written rule with a check
+is not as strong as a missing tool, but it is much stronger than a written rule
+alone.
+
+**Revisit when** an expander commits something outside those three paths. One
+occurrence means the check is load-bearing and working; a second means the rule
+is not holding and the tool should come back off.
 
 ---
 

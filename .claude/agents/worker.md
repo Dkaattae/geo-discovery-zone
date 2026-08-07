@@ -117,7 +117,13 @@ Set the brief's **Status** to `awaiting verification` and **Next step** to
 `tester`. Then stop — a human starts that session. You do not invoke the tester
 yourself.
 
-When the tester returns **pass**, you are the one who opens the PR (step 5),
-because you are the role that holds Bash and git. When it returns **fail**, you
-fix and hand back. When it returns **blocked**, it goes to `task-expander`, not
-to you.
+**Commit and push to the task branch the expander created** —
+`task/T-0xx-slug`, already on the remote with a draft PR pointing at it. Check
+you are on it before you start (`git branch --show-current`); if it does not
+exist, the expander did not finish and this task is not ready for you. Label your
+commits `T-0xx worker: …` so the reviewer can tell the roles apart. Never open a
+second PR for the same task, and never open a second branch.
+
+When the tester returns **fail**, you fix on the same branch and hand back. When
+it returns **blocked**, it goes to `task-expander`, not to you. On **pass**, the
+reviewer takes it.

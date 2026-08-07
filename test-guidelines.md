@@ -4,8 +4,8 @@ How to write tests in this repo. The rules in [`CLAUDE.md`](CLAUDE.md) say *that
 you write tests; this says *what* and *how*.
 
 Tests here have a specific job. Under the loop in [`process.md`](process.md) they
-are written from a task's **acceptance criteria**, usually by someone who has not
-seen the implementation. A test is the executable form of "we agreed this is what
+are written from a task's **acceptance criteria**, by someone who has not seen the
+implementation — a separate session, checked against the brief's Sessions table. A test is the executable form of "we agreed this is what
 done means" — not a description of what the code happens to do.
 
 ## What to test
@@ -37,27 +37,69 @@ Not worth a test:
 - Exact copy. Asserting on a fun fact's wording makes the test fail when a human
   improves the prose, which trains people to ignore tests.
 
-## Use the seams, don't mock the world
+## Start below the transport, not at it
 
-The code already has the injection points you need. Use them:
+The first real test suite here needed **no seam at all**. Every behaviour worth
+testing in `question-bank` sits downstream of the network: `parseUsStates` turns a
+recorded response into rows, and `normalizeUsStates` turns rows into entities.
+Both are pure functions, and calling them directly is simpler than injecting
+anything.
+
+```ts
+function allRows(): WikidataStateRow[] {
+  return parseUsStates(JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults);
+}
+
+const { entities } = normalizeUsStates(allRows(), { only: ["CO"] });
+```
+
+Reach for a seam only when the thing under test genuinely spans the network call.
+Three exist for that:
 
 | Seam | Lets you test | Where |
 |---|---|---|
-| `SparqlTransport` | the whole pipeline without Wikidata | `question-bank/src/sparql.ts` |
+| `SparqlTransport` | the whole build without Wikidata | `question-bank/src/sparql.ts` |
 | `SummaryTransport` | the fun-fact pass without Wikipedia | `question-bank/src/sources/wikipedia.ts` |
 | `EntitySink` | build output without a database or filesystem | `question-bank/src/types.ts` |
 
-```ts
-const rows = parseUsStates(JSON.parse(await readFile(FIXTURE, "utf8")));
-const { entities, warnings } = normalizeUsStates(rows, { only: ["CO"] });
-```
+None is used by any test today. That is the right outcome, not a gap — a seam you
+inject to test a pure function is ceremony.
 
 **Do not mock `fetch`.** A test that stubs `fetch` asserts on the shape of an
 HTTP call, which is the thing least likely to break and most likely to change.
 Inject a transport instead — it is one function.
 
 **No network in tests, ever.** Not "usually offline"; never. A test that reaches
-Wikidata fails when Wikidata is slow, when a value is edited, and in CI.
+Wikidata fails when Wikidata is slow, when a value is edited, and in CI. Verify
+it rather than assuming: re-run with `HTTPS_PROXY` and `HTTP_PROXY` pointed at a
+dead port and the suite should not notice.
+
+## Three patterns worth copying
+
+All three come from `question-bank/src/normalize.test.ts`.
+
+**Re-read the fixture per call.** Returning a fresh parse means no test can
+mutate another's data, and there is no shared setup to reason about.
+
+```ts
+function allRows(): WikidataStateRow[] {
+  return parseUsStates(JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults);
+}
+const rowsFor = (name: string) => allRows().filter((row) => row.name === name);
+```
+
+**Filter parsed rows to build partial cases.** The recording stays whole; the
+test narrows it. `allRows().slice(0, 49)` produces the 49-state case that proves
+ranks are suppressed, and `rowsFor("Colorado")` isolates one state so border
+resolution has to fall back from QIDs to labels.
+
+**Copy a row with one field corrupted to force a warning path.** Spreading rather
+than editing keeps the fixture honest and the intent obvious:
+
+```ts
+const withWrongFips = (rows: WikidataStateRow[]) =>
+  rows.map((row) => (row.name === "Colorado" ? { ...row, fips: "99" } : row));
+```
 
 ## Fixtures are recordings, not inventions
 
@@ -76,6 +118,10 @@ Trim a fixture to the rows you need only if the trimming does not change meaning
 The 50-row capture stays whole because rank tests need the full field.
 
 ## Randomness and time
+
+> **Forward-looking.** `pickQuestion` lives in `frontend/`, which has no tests
+> yet — T-004 writes them. This section is the intended approach, not a
+> description of existing practice.
 
 `pickQuestion()` calls `Math.random()`. Do not assert which question comes back.
 Assert the properties that must hold for **every** possible result:
@@ -146,15 +192,19 @@ testing tool. Report which mutations were made and what each one did.
 ### `question-bank/` and `frontend/` — `bun test`
 
 ```bash
-cd question-bank && bun test
-cd frontend      && bun test
+cd question-bank && bun test    # 19 tests today
+cd frontend      && bun test    # no test files yet — exits 1 until T-004
 ```
 
-Tests live next to what they test (`normalize.test.ts`) or in `src/__tests__/`.
-Pure functions — `level.ts`, `normalize.ts`, distractor selection — are the
-highest value per line of test and need no setup at all.
+Tests live next to what they test: `src/normalize.test.ts` beside
+`src/normalize.ts`. Pure functions are the highest value per line of test and
+need no setup at all.
 
 ### `api/` — pytest
+
+> **Forward-looking.** `api/` does not exist yet (plan §5, tasks T-030 onward).
+> Nothing below has been exercised; treat it as the intended shape and correct it
+> against the first real endpoint tests.
 
 ```bash
 cd api && uv run pytest
