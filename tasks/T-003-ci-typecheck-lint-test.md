@@ -1,9 +1,15 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — but read the **blocker** at the top of the Handoff
-first: criterion 5 cannot pass on this tree, for a reason that predates this task
-and that criterion 8 forbids the worker from fixing.
+**Status:** `blocked`
+**Next step:** `human` — one git operation, then `tester`. **This commit is not
+in PR #11.** It sits on `claude/worker-t003-i1kbih` while the PR is built from
+`claude/t002-sweep-t003-expand-ibrpor`, so the workflow the Handoff describes is
+not in the PR and no CI run exists to observe. Criteria 1–6 are verified by
+watching runs, so the tester cannot start until this moves. See "Update" at the
+top of the Handoff.
+
+*The lint blocker that previously stood here is resolved — PR #12. The Handoff's
+original blocker analysis is kept below as the record of why.*
 **Approved:** Dkaattae, 2026-08-07 — criteria frozen from here. They change only
 by coming back through `task-expander` for a fresh approval.
 **From:** [`tasks.md`](../tasks.md) T-003
@@ -22,6 +28,7 @@ draft at expand time. It **stays draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-08-07 | `cse_01SHSwr9eZT5x1N2iLMZVKJR` — also ran T-002's deferred sweep in the same commit |
 | worker | 2026-08-07 | `cse_01VPwNNDJbsuRw8Ag6yTBhqd` — on `claude/worker-t003-i1kbih`, not the branch named above; see Handoff |
+| — (out of band) | 2026-08-07 | `cse_01PT6etPpidd8PU8cZgY1jCV` — not a loop role. Reviewed this task at the human's request, landed PR #12 (the lint fix) and PR #13 (the process fix), and appended the Handoff's "Update" block. Wrote no source for this task. **The tester must not run here either** |
 
 > **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR`.** That session
 > wrote these criteria; a verifier inside it is not independent.
@@ -173,7 +180,74 @@ no mutation needed.
 
 Written by `worker` before the tester runs.
 
+### Update — 2026-08-07, out of band
+
+*Appended in session `cse_01PT6etPpidd8PU8cZgY1jCV`, which is not a `worker`
+run. The worker's text below is unchanged; this block records what happened
+after it stopped. Two of its statements have since become false and are
+corrected here rather than edited in place.*
+
+**1. The lint blocker is resolved.** PR #12 formats `frontend/src` to the repo's
+own `.prettierrc`, which takes `bun run lint` from exit 1 (20 `prettier/prettier`
+errors, 7 files) to exit 0. It landed as its own PR precisely so this task would
+not have to touch `frontend/src/`, so **criterion 8 stays true as written and the
+frozen criteria need no re-approval.** Criteria 3, 5 and 8 are no longer mutually
+unsatisfiable. The worker was right to refuse to resolve it here.
+
+Verified independently before that PR was opened: `bun run lint` exit 1 → 0,
+`tsc --noEmit` exit 0 → 0, `question-bank` 19 pass throughout. The reformat was
+also checked for behaviour change by compiling both trees with `--jsx react-jsx`
+and diffing the emitted JavaScript — only line wrapping, trailing commas and
+redundant parentheses differ, and the one JSX text reflow leaves the transformed
+children array identical.
+
+**2. This commit is not in PR #11, and that is now the blocker.** The Handoff's
+"Branch and push" section below says the commits are "local to this branch only"
+and that the worker "was instructed not to push". Both are out of date: the
+branch **is** on the remote as `claude/worker-t003-i1kbih`. What is true is that
+PR #11 is built from `claude/t002-sweep-t003-expand-ibrpor` and cannot see this
+commit — `git merge-base --is-ancestor 3c0e6cc origin/claude/t002-sweep-t003-expand-ibrpor`
+returns false.
+
+So the PR carries a brief describing a `.github/workflows/ci.yml` that the PR
+does not contain. Nothing errored; the two branches simply disagree about which
+one is the task branch.
+
+**The fix, for whoever picks this up:**
+
+```bash
+git fetch origin
+git checkout -B claude/t002-sweep-t003-expand-ibrpor \
+  origin/claude/t002-sweep-t003-expand-ibrpor
+git cherry-pick 3c0e6cc          # this commit: ci.yml, package.json, this brief
+git merge origin/main            # picks up PR #12's reformat and PR #13's docs
+git push origin claude/t002-sweep-t003-expand-ibrpor
+```
+
+The `git merge origin/main` matters: without it the branch predates PR #12 and
+the frontend job still goes red at Lint for the old reason.
+
+**3. The process gap this exposed is fixed.** PR #13 makes the brief's `Branch:`
+header the authority on where each role pushes, adds the mismatch check to
+`worker.md` and `tester.md` that would have caught this, and gives the reviewer a
+commits-vs-Sessions-table check as the backstop. Recorded as `decisions.md` D-8.
+This task is the worked example in all of them.
+
+**4. Still unverified, and unchanged by any of the above:** whether a GitHub
+runner can read the 23 packages `frontend/bun.lock` pins to
+`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`. The 403 seen from
+the sandbox is this environment's egress policy denying CONNECT, **not** the
+registry's own answer, so it says nothing either way. The first real CI run
+answers it. If Install goes red there, it is not a defect in this task — the fix
+is re-resolving `frontend/bun.lock` against `registry.npmjs.org`, which criterion
+8 forbids here. Proposed owner: `task-expander`, as its own task.
+
 ### Blocker — read before running anything
+
+> **Superseded** — resolved by PR #12, see the Update above. Kept because it is
+> the record of why the reformat had to land as a separate PR, and because the
+> reasoning applies again the next time criteria freeze around a pre-existing
+> failure.
 
 **`bun run lint` already fails on this tree, and has since before this task.**
 `frontend/`'s committed source is not formatted to `frontend/.prettierrc`, and
