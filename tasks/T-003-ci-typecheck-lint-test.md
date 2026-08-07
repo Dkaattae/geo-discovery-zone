@@ -9,7 +9,8 @@ This session runs under a harness that designates the branch name and forbids
 pushing anywhere else, which overrides `process.md`'s `task/T-0xx-slug` rule for
 this task only. Everything else about "one task, one branch, one PR" holds: the
 worker and tester push here, and the reviewer merges this branch.
-**PR:** opened draft at expand time — see the Sessions table's expander row.
+**PR:** [#11](https://github.com/Dkaattae/geo-discovery-zone/pull/11), opened
+draft at expand time. It **stays draft** until the reviewer approves it.
 **Base:** `8773ed3` (origin/main at expand time)
 
 **Sessions**
