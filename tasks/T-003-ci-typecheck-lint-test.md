@@ -1,7 +1,9 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `working`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester` — but read the **blocker** at the top of the Handoff
+first: criterion 5 cannot pass on this tree, for a reason that predates this task
+and that criterion 8 forbids the worker from fixing.
 **Approved:** Dkaattae, 2026-08-07 — criteria frozen from here. They change only
 by coming back through `task-expander` for a fresh approval.
 **From:** [`tasks.md`](../tasks.md) T-003
@@ -19,6 +21,7 @@ draft at expand time. It **stays draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-08-07 | `cse_01SHSwr9eZT5x1N2iLMZVKJR` — also ran T-002's deferred sweep in the same commit |
+| worker | 2026-08-07 | `cse_01VPwNNDJbsuRw8Ag6yTBhqd` — on `claude/worker-t003-i1kbih`, not the branch named above; see Handoff |
 
 > **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR`.** That session
 > wrote these criteria; a verifier inside it is not independent.
@@ -168,8 +171,220 @@ no mutation needed.
 
 ## Handoff
 
-Written by `worker` before the tester runs. Always written, even if nothing was
-built.
+Written by `worker` before the tester runs.
+
+### Blocker — read before running anything
+
+**`bun run lint` already fails on this tree, and has since before this task.**
+`frontend/`'s committed source is not formatted to `frontend/.prettierrc`, and
+`frontend/eslint.config.js` runs prettier as an eslint rule, so `eslint .` reports
+**20 `prettier/prettier` errors across 7 files** on an untouched checkout. There
+was no CI, so nobody had run it.
+
+Measured here, on the tree as committed, with each package installed from its
+own `bun.lock`:
+
+| Command | Exit code on the untouched tree |
+|---|---|
+| `cd frontend && bun run typecheck` | `0` |
+| `cd frontend && bun run lint` | **`1`** |
+| `cd question-bank && bun run typecheck` | `0` |
+| `cd question-bank && bun test` | `0` (19 pass) |
+
+That makes criteria **3, 5 and 8 mutually unsatisfiable as written**:
+
+- criterion 3 requires the workflow to run frontend lint and go red on a violation;
+- criterion 5 requires the run to conclude `success` on this branch as it stands;
+- criterion 8 forbids modifying any file under `frontend/src/`.
+
+The only ways out all change something a criterion freezes, so **the worker did
+none of them** and the workflow runs the real `bun run lint`. Weakening the lint
+step to buy criterion 5 is exactly the failure criterion 6 exists to prevent, one
+step over.
+
+**Decision needed, and it is not the worker's.** Proposed owner: **the human, via
+`task-expander`** (criteria are frozen; only a re-expansion and a fresh approval
+can move them). Two options, both cheap:
+
+1. **Reformat** — `cd frontend && bun run format`. Measured: 7 files, +48/−29,
+   whitespace only (line wrapping of arguments and ternaries; a representative
+   hunk is `pickQuestion`'s parameter list in `src/lib/session.ts` going
+   one-line → multi-line). It makes the repo obey its own documented convention.
+   Needs criterion 8 amended to permit a formatting-only commit under
+   `frontend/src/`, or a separate task landed first.
+2. **Descope frontend lint from T-003** — drop criterion 3, ship typecheck + test
+   now, and queue "make `frontend` lint-clean, then add the lint step" as its own
+   task. Weaker, but honest, and does not touch `frontend/src/` here.
+
+Option 1 is the recommendation: it is a one-command change with no behavioural
+risk, and a CI task that ships without a lint gate leaves the gap it was written
+to close.
+
+**What the tester should expect.** Everything except criterion 5 (and the "green
+tree" half of criterion 6) is observable now; the frontend job will conclude
+`failure` at the Lint step on any run of this branch, for the pre-existing reason
+above. Under `process.md` step 4 that is the **blocked** row — a criterion that is
+wrong as written — not **fail**, because no change the worker is permitted to
+make can turn it green. Note also that criterion 3's mutation is untestable in
+the ordinary sense while lint is red: injecting an eslint violation changes
+nothing observable, since the step already fails.
+
+### What changed, file by file
+
+**`.github/workflows/ci.yml` (new).** One workflow, `CI`, two jobs, `frontend`
+and `question-bank`. Triggers: `pull_request` and `push`, both filtered to
+`branches: [main]` (criterion 1; `main` is the default branch — `Base: 8773ed3`
+is `origin/main`). `permissions: contents: read`. Each job checks out
+(`actions/checkout@v5`), installs bun (`oven-sh/setup-bun@v2`, `bun-version`
+pinned to `1.3.11`, the version used locally), then:
+
+| Job | Steps after install |
+|---|---|
+| `frontend` | `Lockfile unchanged` → `Typecheck` (`bun run typecheck`) → `Lint` (`bun run lint`) → `Test` (guarded `bun test`) |
+| `question-bank` | `Lockfile unchanged` → `Typecheck` (`bun run typecheck`) → `Test` (`bun test`) |
+
+**`frontend/package.json`.** One line added: `"typecheck": "tsc --noEmit"`,
+between `preview` and `lint`. The name is the one `conventions.md` "Commands" and
+`test-guidelines.md` "Before you say it passes" already promise, so no doc became
+false. `tsconfig.json` already sets `noEmit`; the flag is explicit so the script
+reads the same as `question-bank`'s. No dependency added — `typescript@^5.8.3` was
+already a devDependency. Verified that adding a *script* does not invalidate
+`--frozen-lockfile`: with a throwaway script added to `question-bank/package.json`,
+`bun install --frozen-lockfile` succeeded and `bun.lock` stayed byte-identical.
+
+**`tasks/T-003-ci-typecheck-lint-test.md`.** Status, Next step, Sessions row,
+this Handoff, and Notes. The acceptance criteria are untouched.
+
+Nothing else changed. `git status` on this branch shows exactly `.github/`,
+`frontend/package.json` and this brief. No file under `frontend/src/` or
+`question-bank/src/`, no `dependencies`/`devDependencies` entry, neither
+`bun.lock` (criterion 8).
+
+### Where each criterion lives
+
+| # | Where | Verified locally? |
+|---|---|---|
+| 1 | `ci.yml` `on:` block — `pull_request` and `push`, `branches: [main]` | File read; YAML parses. **A workflow run cannot be observed from this session** |
+| 2 | `frontend` job → `Typecheck`; `question-bank` job → `Typecheck` | Yes, by mutation — see below |
+| 3 | `frontend` job → `Lint` (`bun run lint` → `eslint .`) | Step exits 1 — but so does the unmutated tree; see the blocker |
+| 4 | `question-bank` job → `Test` (`bun test`) | Yes, by mutation |
+| 5 | Whole workflow | **No — fails at frontend Lint, see the blocker.** Every other step is green |
+| 6 | `frontend` job → `Test`, the `find`-based guard | Yes, all three states — see below |
+| 7 | `bun install --frozen-lockfile` in both jobs, plus a `Lockfile unchanged` step (`git diff --exit-code -- bun.lock`) that puts the evidence in the run's own log | Yes for `question-bank`; partially for `frontend` (see "What could not be verified") |
+| 8 | The diff | Yes — `git status` |
+
+### The four script gaps, and how each was closed
+
+| Package | Gap | Decision |
+|---|---|---|
+| `frontend` | no `typecheck` script | **Added** `"typecheck": "tsc --noEmit"`. Named to match what the docs already promise, so `conventions.md` and `test-guidelines.md` stay true |
+| `frontend` | no test files, `bun test` exits 1 | **Guard in the workflow, not a script.** The `Test` step runs `find` over `frontend/` (pruning `node_modules`, `dist`, `.output`, `.vinxi`, `.git`) for `*.{test,spec}.{js,jsx,ts,tsx}` and `*_{test,spec}.*`; if there are none it prints why and exits 0, otherwise `bun test`'s own exit code decides. No `continue-on-error`, no `\|\| true`, nothing at job or workflow level that could mask a failure. It self-disables the moment T-004 lands a test file |
+| `question-bank` | no `test` script | **CI calls `bun test` directly; no script added.** `bun test` is a builtin runner, and a `"test": "bun test"` script would only add a second name for the command every doc already spells `bun test`. `package.json` stays minimal |
+| `question-bank` | no `lint` script, no eslint config outside `frontend/` | **Deliberately left unlinted.** eslint is not a dependency of `question-bank`, and neither is prettier; adding either — or reaching across to `frontend/eslint.config.js`, which is React-flavoured (`react-hooks`, `react-refresh`, `globals.browser`) and would need a new config to be useful here — is a dependency decision, and `CLAUDE.md` says the worker stops and asks rather than making it. Criterion 3 deliberately asks only about `frontend`, so nothing is skipped that the brief promised. There is a comment saying so in `ci.yml` |
+
+### Deliberately not done
+
+- **`bun run format` on `frontend/src/`** — the fix for the blocker. Forbidden by
+  criterion 8; see above.
+- **Any Python job** for `api/` — out of scope; `api/` does not exist.
+- **Any test file** — out of scope. Criterion 6 was exercised with a throwaway
+  `frontend/src/throwaway.test.ts` that was deleted; nothing is committed.
+- **Caching, build, coverage, badges, concurrency/cancel-in-progress.** The first
+  four are out of scope. Concurrency is not named, but a cancelled run concludes
+  `cancelled` rather than `success`/`failure`, which would make the tester's
+  observations ambiguous for no benefit at this size.
+- **A dead-proxy env for the test step** — out of scope, and already queued as
+  T-005.
+- **Adding `bun run typecheck` to `conventions.md`'s frontend command block.** It
+  is now true of `frontend` and the block does not mention it. Nothing there
+  became *false*, and the Constraints list the files this task may change; one
+  line, proposed owner **reviewer, during the step-6 sweep**.
+- **Linting or formatting `question-bank`** — see the table. If it should be
+  linted, that is a task with a dependency decision in it. Proposed owner:
+  **reviewer**, to add to `tasks.md` at the sweep, sized `S`.
+- **SHA-pinning the two third-party actions.** `actions/checkout@v5` and
+  `oven-sh/setup-bun@v2` are pinned by major tag, not commit. For a repo that
+  runs a 24h `minimumReleaseAge` guard on npm this is arguably too loose; against
+  that, there is no dependabot here and an unbumped SHA pin rots quietly. Flagged
+  rather than decided — proposed owner: **reviewer**.
+
+### What could not be verified from this session, and why
+
+Say it plainly: **no GitHub Actions run was observed.** This session cannot start
+one or read one. Everything below the workflow-runner level was run locally; the
+YAML was parsed with `js-yaml` and its trigger/job/step structure printed, but
+whether GitHub schedules and passes the job is unverified by definition.
+
+**`frontend`'s install could not be completed here.** `frontend/bun.lock` pins 23
+packages (`react-simple-maps`, the `d3-*` chain, `us-atlas`, `topojson-client`,
+`commander`, `internmap` and their `@types`) to
+`https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/…` instead
+of `registry.npmjs.org`. This sandbox's egress proxy denies that host (403 on
+CONNECT), so `bun install --frozen-lockfile` in `frontend/` fails here. To get a
+usable `node_modules` I fetched those 23 tarballs from `registry.npmjs.org` at
+their locked versions and checked each against the `sha512` in `bun.lock`: **all
+23 matched**, so the mirror is a transparent cache and the lockfile's contents are
+sound. That install was local-only, into gitignored `node_modules`; no tracked
+file was touched.
+
+**The risk this leaves for CI:** if that Artifact Registry repo is not readable
+anonymously, `bun install --frozen-lockfile` will fail on a GitHub runner and the
+`frontend` job will go red at Install. Whether it is public cannot be determined
+from here. If the tester sees that, the fix is *not* in this task's scope — it
+means re-resolving `frontend/bun.lock` against `registry.npmjs.org`, which
+criterion 8 forbids. Proposed owner: **`task-expander`**, as its own task; the
+integrity check above says such a re-resolve would produce identical package
+contents.
+
+### Evidence: mutations run locally, all reverted
+
+Not workflow runs — the underlying commands, run in the package directory, exit
+code captured. `git status` after each block confirmed the revert.
+
+| Mutation | Command | Exit |
+|---|---|---|
+| *(none — baseline)* | `frontend`: `bun run typecheck` | `0` |
+| *(none — baseline)* | `frontend`: `bun run lint` | **`1`** (pre-existing, see blocker) |
+| *(none — baseline)* | `question-bank`: `bun run typecheck` / `bun test` | `0` / `0` (19 pass) |
+| `const typeErrorProbe: number = "not a number";` appended to `frontend/src/lib/session.ts` | `bun run typecheck` | `2` |
+| same, appended to `question-bank/src/normalize.ts` | `bun run typecheck` | `1` |
+| `const lintProbe = 1; lintProbe = 2;` appended to `frontend/src/lib/session.ts` | `bun run lint` | `1` |
+| a `expect(1).toBe(2)` test appended to `question-bank/src/sparql.test.ts` | `bun test` | `1` (19 pass, 1 fail) |
+
+The frontend `Test` step's shell body was run verbatim in all three states it has
+to handle:
+
+| State of `frontend/src/` | Step output | Exit |
+|---|---|---|
+| no test files (as committed) | "No test files in frontend/ yet — skipping bun test" | `0` |
+| one passing throwaway test | "Test files found … — running bun test", 1 pass | `0` |
+| one failing throwaway test | "Test files found … — running bun test", 1 fail | `1` |
+
+The throwaway file was deleted; `git status` is clean of it.
+
+### How to run what I touched
+
+```bash
+cd frontend      && bun install --frozen-lockfile && bun run typecheck && bun run lint
+cd question-bank && bun install --frozen-lockfile && bun run typecheck && bun test
+```
+
+The frontend `Test` step is the `run:` block of the step named `Test` in
+`.github/workflows/ci.yml`; paste it into `bash` from inside `frontend/` to
+exercise it. To see the whole thing for real, the branch has to reach GitHub —
+see the branch note below.
+
+### Branch and push
+
+This session ran on **`claude/worker-t003-i1kbih`**, fast-forwarded to the
+expander's commits, because the harness designates the branch name. The brief's
+header names `claude/t002-sweep-t003-expand-ibrpor`, which carries draft PR #11.
+**The worker was instructed not to push**: the push target is unresolved between
+the harness and the brief, and a human is deciding it. So the commits are local
+to this branch only, and **no PR yet contains them** — which is also why no
+workflow run exists to observe. Resolving that is a prerequisite for the tester,
+since criteria 1–6 are verified by watching runs. Proposed owner: **the human**,
+before the tester session starts.
 
 ## Verdict
 
@@ -190,6 +405,41 @@ Splitting was considered and rejected. A workflow that typechecks but does not
 test is not independently landable — it would ship a green check that means less
 than it appears to, which is the specific failure this task exists to prevent —
 and the four script gaps are entangled across both packages.
+
+### Worker's notes
+
+**The first thing CI found was that the tree was already red.** `frontend`'s
+committed source has never been run through the repo's own prettier config, and
+because `eslint.config.js` runs prettier as a rule, `bun run lint` has been
+failing since `721efeb` — the commit that added both the code and the config.
+This was not a version drift: prettier `3.9.6` (what `bun.lock` pins) and
+`3.7.3` (the floor of the `^3.7.3` range in `package.json`) flag the same 7
+files, so it is the source that never matched the config, not the config that
+moved. That is the whole argument for this task in one observation, and it is
+also what makes criteria 3, 5 and 8 unsatisfiable together. See the Handoff's
+blocker; the decision is the expander's and the human's, not the worker's.
+
+**The `if:` conditions on the check steps are not an escape hatch.** Each check
+after Install carries `if: ${{ !cancelled() && steps.install.outcome ==
+'success' }}`, which makes the three checks independent of *each other* rather
+than fail-fast. A failing step still fails its job and the run — nothing is
+softened. Two reasons: one red check should not hide the results of the others,
+and more concretely, with lint red today a fail-fast job would never reach the
+`Test` step, so criterion 6 could not be demonstrated at all.
+
+**The lockfile guard is doubled on purpose.** `--frozen-lockfile` prevents the
+drift; the `Lockfile unchanged` step (`git diff --exit-code -- bun.lock`) puts
+the proof in the run's log, which is where the brief says criterion 7 gets read
+off. It costs a second and turns an assumption into an observation.
+
+**`frontend/bun.lock` points 23 packages at a sandbox npm mirror**
+(`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`), a leftover from
+whatever environment first resolved it. Their tarballs are byte-identical to
+`registry.npmjs.org` (all 23 sha512s checked), so nothing is wrong with the
+*contents* — but if that registry is not anonymously readable, `frontend`'s
+Install step will fail on a GitHub runner for reasons that have nothing to do
+with this workflow. Unverifiable from the sandbox, which denies that host.
+Flagged in the Handoff with `task-expander` as the proposed owner.
 
 **On criterion 6.** The obvious way to satisfy criterion 5 is to make the
 frontend test step tolerate a non-zero exit, and the obvious way to do *that* is
