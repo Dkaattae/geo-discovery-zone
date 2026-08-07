@@ -18,42 +18,93 @@ The documents this loop runs on:
 Four agents, defined in [`.claude/agents/`](.claude/agents/), each owning one
 step and deliberately unable to do the others' jobs.
 
-- **`task-expander`** (opus) — turns a queue entry into a brief. Writes only
-  `tasks/T-0xx-slug.md`; has no Bash and cannot implement anything.
-- **`worker`** (inherits the session model) — implements the approved brief and
-  opens the PR. Cannot edit the acceptance criteria.
+- **`task-expander`** (opus) — turns a queue entry into a brief, opens the branch
+  and the draft PR. Writes only `tasks/T-0xx-slug.md` and `tasks.md`; never
+  source, tests or configuration.
+- **`worker`** (inherits the session model) — implements the approved brief on
+  that branch. Cannot edit the acceptance criteria.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
   edit source to make a test pass, and cannot edit the criteria either.
-- **`reviewer`** (opus) — judges quality rather than correctness, merges inside a
-  narrow envelope or escalates, then sweeps and trims the queue. Never reviews
-  work it wrote, because it writes none.
+- **`reviewer`** (opus) — judges quality rather than correctness, marks the PR
+  ready, merges inside a narrow envelope or escalates, then sweeps and trims the
+  queue. Never reviews work it wrote, because it writes none.
 
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
 criteria are to satisfy, the worker cannot move the goalposts, the tester cannot
 move the code, and the reviewer cannot fix what it finds — findings become tasks.
 
+### What each role needs to do its job
+
+Every role in this loop commits and pushes, so every role holds `Bash`. The
+separation is enforced by **what each one is allowed to write**, checked against
+the diff at step 6, rather than by withholding git from three of the four. Keep
+these tool lists and the table in sync — a role told to do something its tool
+list forbids stalls silently, which is how the first version of this flow broke.
+
+| Role | Tools | May write | Must never write |
+|---|---|---|---|
+| `task-expander` | Read, Grep, Glob, Write, Edit, Bash, PR-open | `tasks/`, `tasks.md`, `PROGRESS.md` | source, tests, config |
+| `worker` | Read, Grep, Glob, Write, Edit, Bash | source, tests, the brief's Handoff | acceptance criteria |
+| `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict | source, acceptance criteria |
+| `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-merge | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests |
+
+**No row has the Task tool** — see "Sequential sessions, no subagents" below.
+
+**The expander's Bash is for git only** — `checkout -b`, `add`, `commit`, `push`,
+and the PR call. It never runs the build, the test suite or the pipeline. It has
+nothing to learn from them: it is writing the definition of done, and knowing
+whether the current code passes is exactly the influence the role exists to
+exclude. This is a written rule where it used to be a missing tool, so it comes
+with a check: **the expander's commit touches only `tasks/`, `tasks.md` and
+`PROGRESS.md`**, and the reviewer verifies that at step 6 against the diff. See
+`decisions.md` D-7.
+
+### Opening and merging the PR
+
+"PR-open", "PR-ready" and "PR-merge" above are capabilities, not one specific
+tool — how you get them depends on where the session runs:
+
+1. **GitHub MCP tools** (`mcp__github__create_pull_request`,
+   `mcp__github__update_pull_request`, `mcp__github__merge_pull_request`) when the
+   GitHub MCP server is configured. This is the case in Claude Code on the web.
+2. **`gh` via Bash** — `gh pr create --draft`, `gh pr ready`, `gh pr merge` — on a
+   local machine with the CLI authenticated. `gh` does **not** exist in web
+   sessions; do not assume it.
+3. **Neither.** Push the branch, print the exact PR title and body, and stop with
+   `Next step: human opens the draft PR`. Do not silently skip the PR and do not
+   carry on as if it exists — a missing PR is a visible stop, not a shrug.
+
+Whichever route, the branch is pushed first. A PR needs a branch on the remote.
+
 ### Sequential sessions, no subagents
 
 Each step is its own top-level session, started by a human, running one agent.
-Nothing spawns anything: none of the three has the Task tool, so the constraint
+Nothing spawns anything: none of the four has the Task tool, so the constraint
 is enforced by their tool lists rather than by good intentions.
 
-**The brief in `tasks/` is the shared state.** Sessions do not remember each
-other, so everything one needs from the last is in that file — the Status and
-Next step header, the acceptance criteria, the worker's Handoff, the tester's
-Verdict. Opening the brief should tell you where the task stands and which agent
-to start next, without reconstructing anything.
+**The brief in `tasks/` is the shared state, and there is no second handoff
+file.** Sessions do not remember each other, so everything one needs from the
+last is in that one file, named for its task — `tasks/T-0xx-slug.md`. Each role
+appends its own section and none of them rewrites another's:
 
-Three steps in the loop have no agent of their own, by design:
+| Role | Writes into the brief | Which the next role reads as its handoff |
+|---|---|---|
+| `task-expander` | Goal, Acceptance criteria, Out of scope, Constraints, Context | the whole brief **is** the handoff to the worker |
+| `worker` | `## Handoff` | the tester's only account of what was built |
+| `tester` | `## Verdict` | what the reviewer judges, and why |
+
+All three roles also update the header's `Status` and `Next step` and add a row
+to the Sessions table. Opening the brief should tell you where the task stands
+and which agent to start next, without reconstructing anything.
+
+Two steps in the loop have no agent of their own, by design:
 
 - **Pick and sweep** — `task-expander` does both, at the start of its run. It
   clears the merged brief, updates `tasks.md` and `PROGRESS.md`, then picks the
   next task. Sweeping at the *start* of the next cycle rather than the end of the
   last one means it never gets skipped because everyone went home after the merge.
-- **Ship** — `worker` opens the PR, once the tester returns pass. It is the role
-  that holds Bash and git.
-- **Approve and merge** — you.
+- **Approve** — you, on the draft PR, before any code is written.
 
 ### Survey first, and skip what is already done
 
@@ -95,6 +146,16 @@ stop.** No agent opens a second PR, and no agent starts the next role.
 time and stays draft until the tester passes, so every role's work lands in the
 same reviewable place and the history shows who did what. A task never produces a
 second PR — if you find yourself opening one, a step ran out of order.
+
+**The branch is named for the task: `task/T-0xx-slug`**, matching the brief's
+filename. A branch that outlives its task is how T-001 and T-002 ended up sharing
+`claude/frontend-restructure-openapi-0xp57z` across four PRs, which is the thing
+this rule exists to stop. When the task merges, the branch is done — the next
+task branches from the default branch, never from the last task's branch.
+
+Each role's commit message says which role wrote it: `T-002 worker: …`. The
+history is then a readable record of the loop, and the reviewer can check at a
+glance that four roles actually ran.
 
 ## The loop
 
@@ -140,13 +201,24 @@ One task at a time. Two half-finished tasks are worth less than one finished one
 
 ### 2. Expand
 
-Run this as the **`task-expander`** agent. Create the task branch, write
-`tasks/T-0xx-slug.md` from [`tasks/TEMPLATE.md`](tasks/TEMPLATE.md), commit,
-push, and **open a draft PR** with the criteria as its body.
+Run this as the **`task-expander`** agent, in this order:
+
+1. Sweep the last cycle if the reviewer did not — `tasks/` should be empty.
+2. Branch from the current default branch: `git checkout -b task/T-0xx-slug`.
+3. Write `tasks/T-0xx-slug.md` from [`tasks/TEMPLATE.md`](tasks/TEMPLATE.md).
+4. Commit and push: `git push -u origin task/T-0xx-slug`.
+5. **Open a draft PR** with the acceptance criteria as its body, by whichever
+   route from "Opening and merging the PR" above is available.
+6. Set `Status: awaiting approval`, `Next step: worker`, `Approved: pending`, add
+   the Sessions row, and stop.
 
 Opening the PR here rather than at the end gives approval somewhere durable to
 live — a PR review or comment, rather than a line in a chat log — and gives the
 worker and tester one place to push to.
+
+The expander's commit contains the brief and nothing else. If its diff touches
+source, tests or configuration, the role has overstepped and the reviewer will
+say so at step 6.
 
 The brief has to stand on its own — the worker and the tester start from it, not
 from this conversation. It does not have to *contain* everything: its **Context**
@@ -342,14 +414,16 @@ released and there is no follow-up PR for three line changes.
 
 Four moments, and only four. Everything else runs to completion.
 
-1. **Brief approval**, before any code — the highest-leverage minute you will
-   spend on the task.
+1. **Brief approval** on the draft PR, before any code — the highest-leverage
+   minute you will spend on the task.
 2. **A dependency request.** No agent adds one on its own initiative.
 3. **A product decision** an agent may not settle: whether to store children's
    data, whether to commit generated output.
-4. **Either the PR, or an escalation** after two failed verify rounds.
+4. **An escalation** — from the reviewer when the merge falls outside its
+   envelope, or from the tester after two failed verify rounds.
 
-A run that reaches none of these between the brief and the PR is the normal case.
+A run that reaches only the first is the normal case: approve at step 2, and the
+next thing you hear is that it merged.
 
 ## One task at a time
 
@@ -369,19 +443,26 @@ all of that to add 19 tests to code that already worked. That ratio is wrong for
 small work, and the honest fix is a documented shortcut rather than quietly
 skipping steps.
 
-**A task marked `S` may run light**, which means:
+**A task marked `S` may run light**, which means a **shorter brief, not no
+brief**. `tasks/T-0xx-slug.md` still exists and is still named for its task —
+that file is where every role after the expander looks, and T-002 showed what
+happens when it is missing: approval, handoff and the Sessions log each had to be
+re-homed mid-task, and the guarantee that the tester ran in a fresh session
+quietly lost its only evidence.
 
-- the acceptance criteria go **inline in the `tasks.md` entry** as a short
-  numbered list — no separate brief file and no `tasks/` entry, but **keep the
-  Sessions log**: it is three columns, and it is the only thing that makes the
-  independent tester session checkable;
-- approval is still required and still recorded — an `Approved:` line in the same
-  `tasks.md` entry, next to the criteria it approves, since the PR does not exist
-  yet when approval happens;
-- the **handoff goes inline in the same `tasks.md` entry**, not the PR body — the
-  tester reads it before any PR exists;
-- **the tester still runs in its own session.** This is the one step the light
-  path never drops, because it is the only independent signal in the loop.
+A light brief keeps four things and drops the rest:
+
+- **Acceptance criteria** — a short numbered list, four at most.
+- **Approved** — the header line, `pending` until a human replaces it.
+- **Sessions** — three columns. This is what makes the independent tester session
+  checkable, and it was never the expensive part of a brief.
+- **Handoff** and **Verdict** — appended by the worker and tester as usual.
+
+Dropped: Goal, Out of scope, Constraints, Context. For work that fits in an hour
+and touches one file, those sections restate the title.
+
+**The tester still runs in its own session.** This is the one step the light path
+never drops, because it is the only independent signal in the loop.
 
 **The light path is not available** when the task touches `openapi.yaml`, a
 database migration, `geoquizdataplan.md`, or any text a child will read — or when

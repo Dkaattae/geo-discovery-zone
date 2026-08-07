@@ -29,6 +29,13 @@ Nothing here is glamorous and all of it makes the rest cheaper.
 **Depends on:** — (T-001 landed)
 **Path:** light (D-6) — criteria inline, no brief file. Eligible: docs only, no
 contract, no migration, no plan, no child-facing text, four criteria.
+
+> **This entry is the old light path, kept as the record of how T-002 ran.** It
+> is not the pattern to copy: running without a brief file is what forced approval,
+> handoff and the Sessions log to be re-homed here mid-task, and it is why this
+> entry is longer than the brief it was avoiding. D-6 has since been amended — a
+> light task gets a **shorter brief in `tasks/`**, not none. See `decisions.md`
+> D-6 and `process.md` "The light path, for S-sized tasks".
 **Approved:** Dkaattae, 2026-08-06
 **Next step:** `reviewer`
 

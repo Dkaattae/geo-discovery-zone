@@ -46,8 +46,11 @@ Both are pure functions, and calling them directly is simpler than injecting
 anything.
 
 ```ts
-const rows = parseUsStates(JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults);
-const { entities, warnings } = normalizeUsStates(rows, { only: ["CO"] });
+function allRows(): WikidataStateRow[] {
+  return parseUsStates(JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults);
+}
+
+const { entities } = normalizeUsStates(allRows(), { only: ["CO"] });
 ```
 
 Reach for a seam only when the thing under test genuinely spans the network call.

@@ -1,7 +1,7 @@
 ---
 name: reviewer
-description: Reviews a passed PR for quality rather than correctness, merges it when it falls inside strict limits or escalates when it does not, then sweeps the brief and trims the task queue. Use at process.md step 6, after the tester returns pass. Never reviews work it wrote.
-tools: Read, Grep, Glob, Write, Edit, Bash
+description: Reviews a passed PR for quality rather than correctness, marks it ready, merges it when it falls inside strict limits or escalates when it does not, then sweeps the brief and trims the task queue. Use at process.md step 6, after the tester returns pass. Never reviews work it wrote.
+tools: Read, Grep, Glob, Write, Edit, Bash, mcp__github__pull_request_read, mcp__github__update_pull_request, mcp__github__merge_pull_request, mcp__github__add_issue_comment
 model: opus
 ---
 
@@ -16,6 +16,13 @@ Read `process.md` step 6 and `decisions.md` before starting.
 The PR was opened draft at expand time and has been collecting the expander's,
 worker's and tester's commits since. Your job is to bring its body up to date,
 mark it **ready for review**, sweep, and merge or escalate.
+
+Marking ready and merging use `mcp__github__update_pull_request` (`draft: false`)
+and `mcp__github__merge_pull_request` where the GitHub tools are available, or
+`gh pr ready` / `gh pr merge` on a local machine with `gh` authenticated. If
+neither is available, do the review and the sweep, push them, and stop with the
+verdict written in the PR body for a human to action — never report a merge you
+could not perform.
 
 Check first whether it was already merged — someone may have merged it without
 waiting for you. If it was:
@@ -43,6 +50,12 @@ any good", which is what you are for. Read the diff, not just the verdict.
   the test.
 - **Did anything land outside the brief's Constraints?** Files that were not
   supposed to change are the clearest signal that the task drifted.
+- **Did each role stay in its lane?** The commits are labelled by role, so check
+  them: the expander's commit must touch only `tasks/`, `tasks.md` and
+  `PROGRESS.md`, and the tester's must not touch source. The expander holds Bash
+  on the understanding that this check happens — if you skip it, nothing else
+  catches an expander that quietly implemented its own brief. See `decisions.md`
+  D-7.
 - **Are the docs true?** A README that describes the old behaviour is a defect,
   not a nitpick — `process.md` treats it as part of done.
 - **Is the honesty intact?** Warnings that were downgraded, a fixture edited to

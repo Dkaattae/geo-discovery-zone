@@ -6,7 +6,8 @@
 `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **From:** [`tasks.md`](../tasks.md) T-0xx
-**Branch:** `claude/t-0xx-slug`
+**Branch:** `task/T-0xx-slug` — created by `task-expander`, shared by every role
+**PR:** #NN, opened draft at expand time; the reviewer marks it ready and merges
 
 **Sessions:** one line per agent run — role, date, and session id
 (`echo $CLAUDE_CODE_REMOTE_SESSION_ID`). The tester must refuse to run in a
@@ -21,6 +22,11 @@ This header is the loop's only shared state. Sessions are sequential and none of
 them remembers the last one, so whoever opens this file must be able to tell
 where the task stands without asking anybody. Every agent updates both lines
 before it stops.
+
+> **Light brief for an `S` task** (`process.md`, D-6): keep this header, the
+> Sessions table, **Acceptance criteria**, **Handoff** and **Verdict**. Delete
+> Goal, Out of scope, Constraints and Context. The file itself is never dropped —
+> it is where four sessions find each other.
 
 ## Goal
 
