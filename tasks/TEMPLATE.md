@@ -1,13 +1,15 @@
 # T-0xx — <title>
 
 **Status:** `expanding` → `awaiting approval` → `working` → `awaiting verification`
-→ `pass` / `fail` / `blocked` → `awaiting review` → `merged` / `escalated`
+→ `pass` / `fail` / `blocked` → `awaiting review` → `changes requested` →
+`merged` / `escalated`
 **Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
 `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `task/T-0xx-slug` — created by `task-expander`, shared by every role
-**PR:** #NN, opened draft at expand time; the reviewer marks it ready and merges
+**PR:** #NN, opened draft at expand time. It **stays draft** until the reviewer
+approves it; `changes requested` sends it back to the agent named in Next step
 
 **Sessions:** one line per agent run — role, date, and session id
 (`echo $CLAUDE_CODE_REMOTE_SESSION_ID`). The tester must refuse to run in a
@@ -109,6 +111,13 @@ was built** — the tester starts cold and this is the only message it gets.
 Written by `tester`: pass, fail or blocked, which criterion, what was observed,
 and — for a task whose deliverable is tests — which mutations were made and what
 each one did.
+
+## Review
+
+Written by `reviewer`, and **only when it sends the PR back**. The same findings
+as its PR comment, each with file, line, and what would make it acceptable, plus
+which agent owns which. On approve there is no Review section — the PR body is
+the record and this file is about to be swept.
 
 ## Notes
 

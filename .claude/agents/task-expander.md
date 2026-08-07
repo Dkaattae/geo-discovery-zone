@@ -121,7 +121,7 @@ Before stopping, in this order:
    there.
 
 One task, one branch, one PR. The worker and tester commit to this same branch,
-and the reviewer marks it ready and merges it. Opening it now gives approval a
+and the reviewer marks it ready and merges it once it approves. Opening it now gives approval a
 durable home on the PR instead of a chat log.
 
 Set the brief's **Status** to `awaiting approval`, **Next step** to `worker`, and

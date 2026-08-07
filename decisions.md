@@ -200,11 +200,18 @@ reviewer is told to check it, and the commit-message convention
 is not as strong as a missing tool, but it is much stronger than a written rule
 alone.
 
+**The drift recurred once inside this same PR.** The second review of #9 found
+`reviewer.md` telling the reviewer to open a sweep PR on the merged-early path
+while its tool list carried no `create_pull_request` — the identical shape as the
+expander defect, in the role that is supposed to catch it, introduced by the very
+commit that fixed the first one. Both are now fixed, and the lesson is narrower
+than "be careful": **an instruction that names a git or PR action has to be read
+against the agent's `tools:` line in the same pass**, which is what the table in
+`process.md` exists to make cheap.
+
 **Revisit when** an expander commits something outside those three paths. One
 occurrence means the check is load-bearing and working; a second means the rule
 is not holding and the tool should come back off.
-
----
 
 ---
 
