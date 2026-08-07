@@ -226,14 +226,35 @@ header the authority on where each role pushes, adds the mismatch check to
 commits-vs-Sessions-table check as the backstop. Recorded as `decisions.md` D-8.
 This task is the worked example in all of them.
 
-**4. Still unverified, and unchanged by any of the above:** whether a GitHub
-runner can read the 23 packages `frontend/bun.lock` pins to
-`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`. The 403 seen from
-the sandbox is this environment's egress policy denying CONNECT, **not** the
-registry's own answer, so it says nothing either way. The first real CI run
-answers it. If Install goes red there, it is not a defect in this task — the fix
-is re-resolving `frontend/bun.lock` against `registry.npmjs.org`, which criterion
-8 forbids here. Proposed owner: `task-expander`, as its own task.
+**4. The npm-mirror question is answered: the registry is readable from a GitHub
+runner.** The open worry was whether the 23 packages `frontend/bun.lock` pins to
+`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache` could be fetched
+outside the sandbox. The 403 seen locally was this environment's egress policy
+denying CONNECT, not the registry's own answer, so it settled nothing either way.
+
+The first real run settles it: `bun install --frozen-lockfile` **succeeded** in
+the `frontend` job. No task is needed for it, and the contingency named here
+before — re-resolving the lockfile against `registry.npmjs.org` — is not
+required.
+
+**First observed run** — [run
+31224955232](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31224955232),
+on `c468e76`:
+
+| Job | Conclusion |
+|---|---|
+| `question-bank (typecheck, test)` | **success** |
+| `frontend (typecheck, lint, test)` | **success** |
+
+The frontend `Test` step printed `No test files in frontend/ yet — skipping bun
+test (T-004 adds the first).` and exited 0, which is the no-test-files half of
+criterion 6 behaving as designed on a real runner rather than in a local shell.
+
+**This is an observation, not a verdict.** It is the green-tree half of criterion
+5 and one third of criterion 6. Criteria 2, 3, 4 and the two *test-file* halves
+of criterion 6 are mutations and remain entirely the tester's work — nothing here
+substitutes for breaking each thing on purpose and confirming the run goes red.
+Criterion 7 can now be read off this run's `Lockfile unchanged` steps.
 
 ### Blocker — read before running anything
 
