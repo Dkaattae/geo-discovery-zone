@@ -96,7 +96,8 @@ export const entities: Entity[] = [
     capital: "Sacramento",
     fipsCode: "06",
     region: "Pacific West",
-    funFact: "California holds the highest and lowest places in the lower 48 states, and they are close together.",
+    funFact:
+      "California holds the highest and lowest places in the lower 48 states, and they are close together.",
     funFactDetail:
       "Mount Whitney rises to 14,505 feet. Badwater Basin in Death Valley sits 282 feet below sea level. They are only about 85 miles apart. More people live in California than in any other state.",
   },

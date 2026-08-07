@@ -143,7 +143,11 @@ export function CreateProfile({
       <p className="mt-2 text-sm text-muted-foreground">{gradeLabel(grade * 2)}</p>
 
       <div className="mt-10 flex flex-col gap-3">
-        <Button size="lg" disabled={!name.trim()} onClick={() => onCreate(name.trim(), avatar, grade)}>
+        <Button
+          size="lg"
+          disabled={!name.trim()}
+          onClick={() => onCreate(name.trim(), avatar, grade)}
+        >
           Start
         </Button>
         <Button variant="ghost" onClick={onCancel}>

@@ -109,9 +109,21 @@ Before stopping, in this order:
 
 1. `git checkout -b task/T-0xx-slug` from the current default branch — never from
    the last task's branch, which is merged and done.
+
+   **If the environment assigned this session a branch** and forbids pushing
+   anywhere else — Claude Code on the web does — use the branch you were given
+   instead of creating one. Do not fight it, and do not skip the push.
 2. Commit the brief. Message: `T-0xx expander: <slug>`.
-3. `git push -u origin task/T-0xx-slug`.
-4. **Open a draft PR** with the acceptance criteria as its body. Use
+3. `git push -u origin <that branch>`.
+4. **Record the branch you actually used in the brief's `Branch:` header.**
+
+   This matters more than the name does. Every role after you reads that header
+   to find out where to push, so it is the authority and `task/T-0xx-slug` is
+   only the default. Getting it wrong — or leaving the template's placeholder in
+   place — strands the worker's and tester's commits on branches the PR cannot
+   see, which is what happened on T-003. See `process.md`, "When the environment
+   names the branch for you".
+5. **Open a draft PR against that same branch**, with the acceptance criteria as its body. Use
    `mcp__github__create_pull_request` with `draft: true` when the GitHub tools are
    available; `gh pr create --draft` on a local machine with `gh` authenticated
    (it does **not** exist in web sessions); and if neither is available, stop with

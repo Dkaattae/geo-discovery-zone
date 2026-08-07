@@ -73,7 +73,8 @@ export const questions: Question[] = [
     topic: "location",
     ageBand: 1,
     highlightFips: "48",
-    shortExplanation: "This is Texas, the huge state at the bottom of the country with a curved bottom edge.",
+    shortExplanation:
+      "This is Texas, the huge state at the bottom of the country with a curved bottom edge.",
     detailExplanation:
       "The bottom edge of Texas curves because it follows the Rio Grande, the river that forms the border with Mexico. Rivers make wiggly borders, straight lines make neat ones.",
   },
@@ -87,7 +88,8 @@ export const questions: Question[] = [
     level: 6,
     topic: "capital",
     ageBand: 2,
-    shortExplanation: "Austin is the capital, even though Houston, Dallas, and San Antonio are all bigger.",
+    shortExplanation:
+      "Austin is the capital, even though Houston, Dallas, and San Antonio are all bigger.",
     detailExplanation:
       "Capitals are not always the biggest city. Austin was chosen when Texas was still its own country because it sat near the middle, where lawmakers from every direction could reach it.",
   },
@@ -146,7 +148,8 @@ export const questions: Question[] = [
     level: 9,
     topic: "capital",
     ageBand: 3,
-    shortExplanation: "Honolulu is the capital. It sits on Oahu, which is not even the biggest island.",
+    shortExplanation:
+      "Honolulu is the capital. It sits on Oahu, which is not even the biggest island.",
     detailExplanation:
       "Honolulu grew around a deep, protected harbor where ships could safely stop. A good harbor mattered more than island size, so the busiest port became the capital.",
   },
@@ -161,7 +164,8 @@ export const questions: Question[] = [
     topic: "location",
     ageBand: 2,
     highlightFips: "23",
-    shortExplanation: "This is Maine, the state in the far top right corner, farther east than any other.",
+    shortExplanation:
+      "This is Maine, the state in the far top right corner, farther east than any other.",
     detailExplanation:
       "Because Earth spins toward the east, the easternmost land sees the sun first. Maine's rocky point at Quoddy Head gets the very first sunrise in the country.",
   },
@@ -175,7 +179,8 @@ export const questions: Question[] = [
     level: 13,
     topic: "capital",
     ageBand: 3,
-    shortExplanation: "Augusta is the capital. It sits inland on the Kennebec River, away from the open sea.",
+    shortExplanation:
+      "Augusta is the capital. It sits inland on the Kennebec River, away from the open sea.",
     detailExplanation:
       "Coastal towns were easy to attack from the water, so many states put their capitals a little way up a river. Augusta is far enough upstream to be safe but still reachable by boat.",
   },
@@ -204,7 +209,8 @@ export const questions: Question[] = [
     level: 12,
     topic: "capital",
     ageBand: 3,
-    shortExplanation: "Lansing is the capital. Detroit is much bigger, but it sat right on the border.",
+    shortExplanation:
+      "Lansing is the capital. Detroit is much bigger, but it sat right on the border.",
     detailExplanation:
       "Detroit is across a narrow river from Canada, and after a war people worried it was too exposed. Lawmakers moved the capital to Lansing, which at the time was little more than forest in the middle of the state.",
   },
@@ -249,7 +255,8 @@ export const questions: Question[] = [
     level: 8,
     topic: "capital",
     ageBand: 3,
-    shortExplanation: "Sacramento is the capital. It was the gold rush supply town where two rivers meet.",
+    shortExplanation:
+      "Sacramento is the capital. It was the gold rush supply town where two rivers meet.",
     detailExplanation:
       "When gold was found in 1848, boats carried miners up the river as far as Sacramento. Everything and everyone passed through, so it became the natural place to run the new state from.",
   },
@@ -309,7 +316,8 @@ export const questions: Question[] = [
     level: 9,
     topic: "capital",
     ageBand: 3,
-    shortExplanation: "Phoenix is the capital. A city grew in the desert because old canals brought water there.",
+    shortExplanation:
+      "Phoenix is the capital. A city grew in the desert because old canals brought water there.",
     detailExplanation:
       "The Hohokam people dug canals across this valley more than a thousand years ago. Later settlers cleaned them out and used them again, which is why a city rose from the desert and took the name of a bird reborn.",
   },
@@ -366,7 +374,7 @@ export const questions: Question[] = [
     entityId: "us-state-nv",
     type: "map-identify",
     prompt: "Which state is highlighted?",
-    choices: ["Nevada", "Utah", "Idaho", "Oregon",],
+    choices: ["Nevada", "Utah", "Idaho", "Oregon"],
     correctIndex: 0,
     level: 10,
     topic: "location",

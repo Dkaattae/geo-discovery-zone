@@ -21,10 +21,7 @@ function pad(id: string) {
 function UsMapBase({ highlightFips, correctFips, masteredFips, className }: UsMapProps) {
   const highlight = highlightFips ? pad(highlightFips) : undefined;
   const correct = correctFips ? pad(correctFips) : undefined;
-  const mastered = useMemo(
-    () => new Set(Array.from(masteredFips ?? []).map(pad)),
-    [masteredFips],
-  );
+  const mastered = useMemo(() => new Set(Array.from(masteredFips ?? []).map(pad)), [masteredFips]);
 
   return (
     <div className={className}>
