@@ -1,15 +1,11 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `blocked`
-**Next step:** `human` — one git operation, then `tester`. **This commit is not
-in PR #11.** It sits on `claude/worker-t003-i1kbih` while the PR is built from
-`claude/t002-sweep-t003-expand-ibrpor`, so the workflow the Handoff describes is
-not in the PR and no CI run exists to observe. Criteria 1–6 are verified by
-watching runs, so the tester cannot start until this moves. See "Update" at the
-top of the Handoff.
-
-*The lint blocker that previously stood here is resolved — PR #12. The Handoff's
-original blocker analysis is kept below as the record of why.*
+**Status:** `awaiting verification`
+**Next step:** `tester` — in a fresh session. Both blockers are cleared: the
+lint failure by PR #12, and the stranded commit by fast-forwarding this branch
+onto the worker's. PR #11 now contains `.github/workflows/ci.yml`, and `main` is
+merged in, so CI runs on this PR are real and observable. Read the Handoff's
+"Update" block first — it says what changed after the worker stopped.
 **Approved:** Dkaattae, 2026-08-07 — criteria frozen from here. They change only
 by coming back through `task-expander` for a fresh approval.
 **From:** [`tasks.md`](../tasks.md) T-003
@@ -213,19 +209,16 @@ So the PR carries a brief describing a `.github/workflows/ci.yml` that the PR
 does not contain. Nothing errored; the two branches simply disagree about which
 one is the task branch.
 
-**The fix, for whoever picks this up:**
+**Resolved.** `claude/t002-sweep-t003-expand-ibrpor` was fast-forwarded onto the
+worker's branch — no cherry-pick was needed, since the worker branched from this
+one and only added to it — and then `origin/main` was merged in to pick up PR
+#12's reformat and PR #13's process fix. That last part matters: without it the
+branch predates #12 and the frontend job still goes red at Lint for the old
+reason.
 
-```bash
-git fetch origin
-git checkout -B claude/t002-sweep-t003-expand-ibrpor \
-  origin/claude/t002-sweep-t003-expand-ibrpor
-git cherry-pick 3c0e6cc          # this commit: ci.yml, package.json, this brief
-git merge origin/main            # picks up PR #12's reformat and PR #13's docs
-git push origin claude/t002-sweep-t003-expand-ibrpor
-```
-
-The `git merge origin/main` matters: without it the branch predates PR #12 and
-the frontend job still goes red at Lint for the old reason.
+**PR #11 now contains `.github/workflows/ci.yml`**, so criteria 1–6 have real
+runs to be verified against. The two branches no longer disagree about which one
+is the task branch.
 
 **3. The process gap this exposed is fixed.** PR #13 makes the brief's `Branch:`
 header the authority on where each role pushes, adds the mismatch check to
