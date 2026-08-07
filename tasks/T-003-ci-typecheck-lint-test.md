@@ -1,8 +1,9 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `awaiting approval`
+**Status:** `working`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date
+**Approved:** Dkaattae, 2026-08-07 — criteria frozen from here. They change only
+by coming back through `task-expander` for a fresh approval.
 **From:** [`tasks.md`](../tasks.md) T-003
 **Branch:** `claude/t002-sweep-t003-expand-ibrpor` — **not** `task/T-003-ci-typecheck-lint-test`.
 This session runs under a harness that designates the branch name and forbids
