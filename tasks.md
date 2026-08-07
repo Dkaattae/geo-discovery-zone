@@ -25,123 +25,28 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-002 — Revisit `test-guidelines.md` against the first real tests · S · pass
+### T-003 — CI: typecheck, lint, test on every PR · M · doing
 **Depends on:** — (T-001 landed)
-**Path:** light (D-6) — criteria inline, no brief file. Eligible: docs only, no
-contract, no migration, no plan, no child-facing text, four criteria.
+**Brief:** [`tasks/T-003-ci-typecheck-lint-test.md`](tasks/T-003-ci-typecheck-lint-test.md)
+A GitHub Actions workflow running typecheck, lint and tests across `frontend/`
+and `question-bank/`. Add the Python job when `api/` exists.
 
-> **This entry is the old light path, kept as the record of how T-002 ran.** It
-> is not the pattern to copy: running without a brief file is what forced approval,
-> handoff and the Sessions log to be re-homed here mid-task, and it is why this
-> entry is longer than the brief it was avoiding. D-6 has since been amended — a
-> light task gets a **shorter brief in `tasks/`**, not none. See `decisions.md`
-> D-6 and `process.md` "The light path, for S-sized tasks".
-**Approved:** Dkaattae, 2026-08-06
-**Next step:** `reviewer`
+Four script gaps stand between the queue entry and a workflow that runs, all
+confirmed against the tree at 8773ed3 — the first two were found while reviewing
+T-001, the second two while expanding this task:
 
-**Sessions** (kept inline — light path, D-6)
+- **`bun test` exits 1 in `frontend/`** because it has no test files, so a naive
+  matrix job fails on a green tree.
+- **`question-bank/package.json` has no `test` script**, so CI must call
+  `bun test` directly or the script must be added.
+- **`frontend/package.json` has no `typecheck` script** — only `dev`, `build`,
+  `build:dev`, `preview`, `lint`, `format`. The entry above assumed one existed.
+- **`question-bank/package.json` has no `lint` script**, and the repo has no
+  eslint config outside `frontend/`.
 
-| Role | Date | Session |
-|---|---|---|
-| task-expander | 2026-08-06 | session_017sMRTc |
-| worker | 2026-08-06 | session_017sMRTc |
-| tester | 2026-08-06 | session_017sMRTc — **same session, authorised explicitly by Dkaattae**. Not independent; the verdict below is weaker evidence than a fresh session would give |
-
-The guidance was written before any test in this repo existed, so it is
-prescriptive where it should be descriptive. There are now 19 real tests to check
-it against.
-
-**What the survey found.** The seams table is the biggest gap: it tells you to
-test through `SparqlTransport`, `SummaryTransport` and `EntitySink`, and the real
-tests use **none of them**. They call `parseUsStates` on the recorded fixture and
-`normalizeUsStates` on the parsed rows — the seams were never needed, because the
-behaviours worth testing sit downstream of the transport. That is guidance
-pointing at the wrong door.
-
-Three patterns did earn their place and are undocumented: a fixture reader that
-re-reads per call so no test can mutate another's data; filtering parsed rows to
-build partial cases (`slice(0, 49)`, `rowsFor("Colorado")`); and copying a row
-with one field corrupted to force a warning path (`{...row, fips: "99"}`).
-
-**Acceptance criteria**
-
-1. Every claim `test-guidelines.md` makes about `question-bank` testing matches
-   what the 19 tests actually do — in particular the seams table, the "tests live
-   next to what they test or in `src/__tests__/`" claim (only the first is true),
-   and how the fixture is read.
-2. The three patterns above are documented with code taken from the real tests,
-   not invented examples.
-3. Guidance for code that has no tests yet — `pickQuestion`, `level.ts`, the
-   `api/` pytest section — is explicitly marked as forward-looking rather than
-   deleted or left implying it describes existing practice.
-4. No file under `question-bank/src/` changes, and `bun test` still reports 19
-   passing.
-
-**Out of scope:** writing new tests (T-004 covers `frontend`), and CI (T-003).
-
-**Note for the reviewer:** the old `Done when` — "every example in the file
-corresponds to a test that exists" — is too strict as written. Applied literally
-it would delete the `pickQuestion` randomness guidance and the whole pytest
-section, which are the parts most useful to the next person. Criterion 3 replaces
-it: mark forward-looking guidance as such rather than removing it.
-
-**Handoff** (worker → tester; inline because the light path has no brief file)
-
-Only `test-guidelines.md` changed. Nothing under `question-bank/src/` was
-touched, and `bun test` still reports 19 passing.
-
-- *Criterion 1* — the "Use the seams" section is replaced by "Start below the
-  transport, not at it". It now says what the real tests do: call `parseUsStates`
-  on the recorded fixture and `normalizeUsStates` on the parsed rows, no seam
-  needed. The seams table survives, demoted to "reach for one only when the thing
-  under test spans the network call", and states plainly that no test uses one
-  today. The file-location claim lost its `src/__tests__/` alternative, which
-  nothing uses.
-- *Criterion 2* — new section "Three patterns worth copying", with code lifted
-  verbatim from `normalize.test.ts`: the per-call fixture reader, filtering rows
-  for partial cases, and the spread-with-one-field-corrupted trick.
-- *Criterion 3* — the randomness section and the `api/` pytest section both carry
-  an explicit **Forward-looking** note naming the task that will make them real
-  (T-004, T-030 onward). The `bun test` commands now say which suite has tests
-  and which exits 1.
-- *Criterion 4* — verified: `git diff -- question-bank/src` is empty.
-
-Also corrected without being asked: the intro said tests are written "usually by
-someone who has not seen the implementation". That "usually" was never true of the
-design and is now wrong twice over, since the Sessions table makes it checkable.
-
-**Flagged, owner named:** the light path (D-6) drops the brief file and with it
-the Sessions table — which is the only mechanism enforcing that the tester runs
-in a fresh session. **Resolved in this task's own commits:** light tasks now keep
-the Sessions log inline, as above. The table was never the expensive part of a
-brief.
-
-**Verdict — PASS.** Three of four criteria checked mechanically rather than by
-reading:
-
-1. *Claims match reality* — `src/__tests__/` reference gone, "the code already has
-   the injection points you need" gone, and the file now states outright that no
-   test uses a seam today.
-2. *Patterns lifted verbatim* — each of the three documented snippets was matched
-   as an exact substring of `question-bank/src/normalize.test.ts`. A doc example
-   that does not appear in a real test file fails this check, which is the point.
-3. *Forward-looking marked* — two markers, on the `pickQuestion` randomness
-   section and the `api/` pytest section.
-4. *No source changed* — `git diff origin/main...HEAD` touches four markdown files
-   and nothing under `question-bank/src/`. 19 tests still pass, typecheck clean.
-
-Caveat recorded above: the tester was not an independent session.
-
-### T-003 — CI: typecheck, lint, test on every PR · S · todo
-**Depends on:** — (T-001 landed)
-A GitHub Actions workflow running `bun run typecheck`, lint, and `bun test`
-across `frontend/` and `question-bank/`. Add the Python job when `api/` exists.
-Two things found while reviewing T-001: **`bun test` exits 1 in `frontend/`
-because it has no test files**, so a naive matrix job fails on a green tree; and
-`question-bank/package.json` has no `test` script, so CI must call `bun test`
-directly or the script must be added. Decide both here.
-**Done when:** the workflow runs on PRs, fails when a test fails, and passes on a
-tree where `frontend/` still has no tests.
+Decide all four here. The brief carries the criteria; this entry is the
+placeholder. **Re-sized `S` → `M` at expand time**: the criteria came out at
+eight, past D-6's four-criteria ceiling, so this runs the full path.
 
 ### T-004 — First tests for `frontend` · S · todo
 **Depends on:** — (deferred out of T-001's scope)
@@ -150,7 +55,19 @@ grade/band derivation and its label boundaries, `levelWindow` clamping at 0 and
 18, and `pickQuestion`'s widening search, review-queue cadence and repeat
 avoidance. `pickQuestion` calls `Math.random()`, so assert invariants that hold
 for every draw rather than which question came back (`test-guidelines.md`).
-**Done when:** `bun test` in `frontend/` passes with tests for both modules.
+T-002 left the "Randomness and time" section marked **Forward-looking** and named
+this task as the one that makes it real — drop that marker when the tests land.
+**Done when:** `bun test` in `frontend/` passes with tests for both modules, and
+`test-guidelines.md` no longer calls that section forward-looking.
+
+### T-005 — Prove "no network in tests" in CI · S · todo
+**Depends on:** T-003
+`test-guidelines.md` says "no network in tests, ever" and names the check: point
+`HTTPS_PROXY` and `HTTP_PROXY` at a dead port and the suite should not notice.
+Nothing enforces it. Split out of T-003 because the env has to be scoped to the
+test step alone — set it job-wide and `bun install` breaks.
+**Done when:** the test step runs with a dead proxy, the suite still passes, and
+a test that reaches the network fails the run.
 
 ---
 
@@ -262,7 +179,9 @@ data at all. Profiles last, deliberately (plan §5.2).
 ### T-030 — Scaffold `api/` with uv and FastAPI · S · todo
 **Depends on:** —
 `uv init`, FastAPI, uvicorn, pytest, ruff. One health endpoint and one passing
-test, nothing more.
+test, nothing more. Two follow-ons this unblocks: `test-guidelines.md`'s `api/`
+pytest section is marked **Forward-looking** pending the first real endpoint test
+(T-002), and T-003's CI workflow adds its Python job once this exists.
 **Done when:** `uv run fastapi dev` serves and `uv run pytest` passes.
 
 ### T-031 — Postgres and Alembic baseline · S · todo

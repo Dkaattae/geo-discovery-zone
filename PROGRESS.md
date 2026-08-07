@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-08-04_
+_Last updated: 2026-08-07_
 
 ## Layout
 
@@ -89,6 +89,24 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 One line per task as it lands, newest first. The queue in `tasks.md` holds only
 what is still ahead; this is where finished work is recorded.
 
+- **T-002 — `test-guidelines.md` corrected against the first real tests** (PR #9,
+  2026-08-06). The seams table was pointing at the wrong door: it told you to test
+  through `SparqlTransport`, `SummaryTransport` and `EntitySink`, and none of the
+  19 tests uses any of them — they call `parseUsStates` and `normalizeUsStates`
+  directly, because the behaviours worth testing sit downstream of the network.
+  That section is now "Start below the transport, not at it", the seams table
+  survives demoted, and three patterns the real tests invented are documented with
+  code lifted verbatim from `normalize.test.ts`. Guidance for code that has no
+  tests yet — `pickQuestion`, the `api/` pytest section — is marked
+  **Forward-looking** rather than deleted. No source changed.
+  *Differed from the brief:* the task ran on the light path as originally decided,
+  with no brief file, and that produced three defects inside one task — approval,
+  handoff and the Sessions log each had to be re-homed into `tasks.md` mid-task,
+  growing the queue entry to ninety lines. D-6 was amended in the same PR: a light
+  task now gets a **shorter brief in `tasks/`**, not none. *Also weaker than it
+  looks:* the tester ran in the worker's session, authorised explicitly by
+  Dkaattae, so T-002's verdict is not independent evidence. Follow-up process
+  fixes landed in PR #10.
 - **T-001 — first tests for `question-bank`** (PR #6, 2026-08-04). 19 tests
   covering ranks across the full field and their suppression on a partial one,
   the curated FIPS code winning over Wikidata's, border resolution by QID and by
