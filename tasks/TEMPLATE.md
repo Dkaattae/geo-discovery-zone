@@ -7,9 +7,16 @@
 `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **From:** [`tasks.md`](../tasks.md) T-0xx
-**Branch:** `task/T-0xx-slug` — created by `task-expander`, shared by every role
-**PR:** #NN, opened draft at expand time. It **stays draft** until the reviewer
-approves it; `changes requested` sends it back to the agent named in Next step
+**Branch:** `task/T-0xx-slug` — **replace this with the branch actually used.**
+Created by `task-expander`, shared by every role, and this line is what they read
+to find it. `task/T-0xx-slug` is the default when the session may name its own
+branch; where the environment assigns one per session, write that name here
+instead (`process.md`, "When the environment names the branch for you"). Every
+role after the expander checks `git branch --show-current` against this line and
+stops if they differ — a placeholder left unreplaced strands their commits.
+**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+draft** until the reviewer approves it; `changes requested` sends it back to the
+agent named in Next step
 
 **Sessions:** one line per agent run — role, date, and session id
 (`echo $CLAUDE_CODE_REMOTE_SESSION_ID`). The tester must refuse to run in a

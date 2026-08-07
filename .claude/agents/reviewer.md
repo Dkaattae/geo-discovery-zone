@@ -39,6 +39,21 @@ waiting for you. If it was:
 Set the brief's **Status** to `merged` when you find it in that state, so the
 next reader is not left thinking a review is still pending on an open PR.
 
+**Then check the PR contains every role's work.** Read the brief's Sessions
+table, then the PR's commits (`mcp__github__pull_request_read` with
+`get_commits`, or `git log origin/main..origin/<brief-branch>`). Every role with
+a row should have a commit. A role that ran but left no commit in this PR has its
+work stranded on another branch, and reviewing what is in front of you would mean
+approving an incomplete task.
+
+You are the last role that can catch this before a half-task merges. Send it back
+to that role, and name the branch its commit is actually on so the next session
+does not have to go looking. T-003 is the case: the worker's CI workflow was
+pushed to `claude/worker-t003-i1kbih` while PR #11 was built from
+`claude/t002-sweep-t003-expand-ibrpor`, so the PR contained a brief describing a
+workflow file it did not have. See `process.md`, "When the environment names the
+branch for you".
+
 ## 1. Review
 
 Tests answer "does it meet the criteria". Nothing else in the loop asks "is this

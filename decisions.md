@@ -215,6 +215,57 @@ is not holding and the tool should come back off.
 
 ---
 
+## D-8 — The brief's `Branch:` header is the authority, not the branch name
+
+**Decided:** the task branch is whatever the expander pushed and pointed the PR
+at, recorded in the brief's `Branch:` header. `task/T-0xx-slug` is the default
+when a session may name its own branch, not a requirement.
+
+The loop was written assuming each agent checks out the branch it wants. Claude
+Code on the web does not work that way: it **assigns a branch per session** and
+forbids pushing anywhere else. Four sequential sessions therefore get four
+different branches, and "the worker and tester push to the expander's branch"
+becomes impossible rather than merely inconvenient.
+
+**T-003 is what that costs.** The expander ran on
+`claude/t002-sweep-t003-expand-ibrpor` and opened PR #11 there. The worker ran on
+`claude/worker-t003-i1kbih` and pushed a complete, working CI workflow to it. PR
+#11 never saw the commit. Nothing errored and no rule was broken — `worker.md`
+told it to check whether the task branch existed, and the branch it was standing
+on did exist. The task stalled with its implementation one branch from its own
+PR, and since T-003's criteria are verified by watching workflow runs, the tester
+could not have run even if someone had started it.
+
+**Why not require the `task/` name and have the human create the branch?** It
+works, and it was the alternative. It was rejected for the same reason D-7
+rejected a human-opened PR: it puts a manual step in the middle of a loop that
+already costs four sessions, and manual steps in the middle are the ones that get
+skipped. It would also not have helped here — the harness forbids the *push*, not
+just the name.
+
+**The compensating checks**, since a header field is weaker than a convention
+everyone can derive:
+
+- every role after the expander compares `git branch --show-current` against the
+  header and **stops** on a mismatch rather than pushing where it stands;
+- the tester additionally opens the files the handoff names, so work that is
+  missing from the branch surfaces as `blocked` rather than as a mysterious
+  empty diff;
+- the reviewer checks the PR's commits against the Sessions table, which is the
+  last point where a half-task can be caught before it merges.
+
+Three checks for one failure is deliberate. The failure is silent at every layer
+— no error, no red test, just a PR quietly missing a commit — and the earlier two
+only fire if an agent is paying attention to something it has no other reason to
+look at.
+
+**Revisit when** a task runs end to end with all four roles on the same branch.
+If the harness stops assigning branches, the header becomes redundant with the
+convention and the checks are pure overhead. Until then they are the only thing
+standing between a stranded commit and a merged half-task.
+
+---
+
 ## Known weaknesses
 
 Not decisions — things that are true, that we have chosen to live with, and that
