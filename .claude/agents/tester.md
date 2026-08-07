@@ -53,6 +53,15 @@ A handoff saying "nothing needed — already satisfied by `normalize.ts:61`" is
 complete. Verify that claim like any other: the criteria still have to hold, no
 matter who or what made them true.
 
+**Confirm the work described is actually on the branch.** The handoff lists what
+changed, file by file — open those files. If the handoff describes something that
+is not there, the worker's commit went somewhere else and you are about to test
+an empty diff. That is `blocked`, not `fail`: the code may be perfectly good and
+simply stranded on another branch. Say which files the handoff names, that they
+are absent, and set **Next step** to `human`. T-003 is the case this is written
+from — a complete CI workflow sat on `claude/worker-t003-i1kbih` while the PR
+built from `claude/t002-sweep-t003-expand-ibrpor` had no `.github/` at all.
+
 ## What you do
 
 Every criterion gets at least one test, named so the mapping is obvious. Test
@@ -106,12 +115,20 @@ do not write a vacuous test to move on: a green tautology is worse than an
 admitted gap because it looks like coverage. This goes back to `task-expander`,
 not to the worker.
 
-**Commit your tests to the same branch and push** — `task/T-0xx-slug`, where the
-draft PR opened at expand time is already pointing. Label your commits
-`T-0xx tester: …` so the reviewer can tell the roles apart. Never open a second
-PR or a second branch for the task. Your commits contain test files and the
-brief's Verdict; if you find yourself editing source, you have crossed into the
-worker's job — record a **fail** instead.
+**Commit your tests to the branch named in the brief's `Branch:` header and
+push** — the one the draft PR opened at expand time is already pointing at. That
+header is the authority, not the `task/T-0xx-slug` convention; some environments
+assign each session its own branch, and then the name will be something else.
+
+Check `git branch --show-current` against it before you commit. **If they differ,
+stop** — say which two branches disagree, set **Status** to `blocked` and **Next
+step** to `human`, and do not push tests onto the branch you happen to be
+standing on. See `process.md`, "When the environment names the branch for you".
+
+Label your commits `T-0xx tester: …` so the reviewer can tell the roles apart.
+Never open a second PR or a second branch for the task. Your commits contain test
+files and the brief's Verdict; if you find yourself editing source, you have
+crossed into the worker's job — record a **fail** instead.
 
 Record the verdict in the brief's **Status**, set **Next step** to `worker`,
 `task-expander` or `reviewer`, and stop. You do not invoke another agent — a

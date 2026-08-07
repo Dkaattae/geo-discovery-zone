@@ -142,6 +142,12 @@ Every agent ends its session the same way, and this is the part that was wrong
 until T-002: **commit, push to the task branch, update `Status` and `Next step`,
 stop.** No agent opens a second PR, and no agent starts the next role.
 
+**Pushing is not the last step — confirming the push landed is.** The branch you
+pushed to has to be the one in the brief's `Branch:` header, which is the one the
+PR is built from. Check it (`git log origin/<brief-branch> -1`, or read the PR's
+file list) and say so when you stop. "Committed and pushed" was true of T-003's
+worker and still left the work invisible to everyone downstream.
+
 | When this finishes | It leaves behind | You start |
 |---|---|---|
 | `task-expander` | branch created, brief committed, **draft PR opened**, `Status: awaiting approval` | approve on the PR, then `worker` |
@@ -160,6 +166,45 @@ filename. A branch that outlives its task is how T-001 and T-002 ended up sharin
 `claude/frontend-restructure-openapi-0xp57z` across four PRs, which is the thing
 this rule exists to stop. When the task merges, the branch is done — the next
 task branches from the default branch, never from the last task's branch.
+
+### When the environment names the branch for you
+
+Some sessions run under a harness that **assigns a branch per session** and
+forbids pushing anywhere else — Claude Code on the web does exactly this. Then
+`task/T-0xx-slug` is not available, and the harder problem is that **each role
+gets a different branch**, so "the worker and tester push to the expander's
+branch" quietly stops being possible.
+
+**The brief's `Branch:` header is the authority — not the naming convention.**
+Whatever branch the expander actually pushed and pointed the PR at *is* the task
+branch, whatever it happens to be called. The `task/T-0xx-slug` name is the
+default when the session is free to choose one, not a requirement.
+
+So, in order:
+
+1. **The expander records the real branch.** Whatever it ended up on, that name
+   goes in the brief's `Branch:` header, and the PR is opened against it.
+2. **Every later role checks before it starts.** Compare
+   `git branch --show-current` against that header. Matching is the normal case
+   and needs no comment.
+3. **If they differ, stop.** Say which two branches disagree, set
+   `Status: blocked` and `Next step: human`, and do not push. Committing work to
+   a session branch and hoping somebody finds it is the failure mode this rule
+   exists to prevent — see below.
+
+**T-003 is the worked example.** The expander ran on
+`claude/t002-sweep-t003-expand-ibrpor` and opened PR #11 against it. The worker
+ran on `claude/worker-t003-i1kbih`, a different branch, and pushed a complete,
+working CI workflow there. PR #11 never saw it. Nothing errored: the worker's own
+check was "does the task branch exist?", and the branch it was standing on did
+exist — just not the right one. The task stalled with its code one branch away
+from its own PR, and because criteria 1–6 are verified by observing workflow
+runs, the tester could not run at all.
+
+Recovery is cheap the moment it is noticed — cherry-pick onto the brief's branch
+and force the PR to catch up. It is expensive when it is not, because every
+downstream role reads a PR that is missing the work and draws conclusions from
+the gap.
 
 Each role's commit message says which role wrote it: `T-002 worker: …`. The
 history is then a readable record of the loop, and the reviewer can check at a
@@ -217,11 +262,15 @@ One task at a time. Two half-finished tasks are worth less than one finished one
 Run this as the **`task-expander`** agent, in this order:
 
 1. Sweep the last cycle if the reviewer did not — `tasks/` should be empty.
-2. Branch from the current default branch: `git checkout -b task/T-0xx-slug`.
-3. Write `tasks/T-0xx-slug.md` from [`tasks/TEMPLATE.md`](tasks/TEMPLATE.md).
-4. Commit and push: `git push -u origin task/T-0xx-slug`.
-5. **Open a draft PR** with the acceptance criteria as its body, by whichever
-   route from "Opening and merging the PR" above is available.
+2. Branch from the current default branch: `git checkout -b task/T-0xx-slug` —
+   or use the branch this session was assigned, where the environment assigns
+   one. See "When the environment names the branch for you" above.
+3. Write `tasks/T-0xx-slug.md` from [`tasks/TEMPLATE.md`](tasks/TEMPLATE.md), and
+   **put the branch you actually used in its `Branch:` header**. That line is how
+   every later role finds where to push.
+4. Commit and push: `git push -u origin <that branch>`.
+5. **Open a draft PR against that branch**, with the acceptance criteria as its
+   body, by whichever route from "Opening and merging the PR" above is available.
 6. Set `Status: awaiting approval`, `Next step: worker`, `Approved: pending`, add
    the Sessions row, and stop.
 
@@ -380,6 +429,13 @@ reviewer, the sweep cannot ride inside it: branch from the default branch, open
 the sweep as its own small PR, and say in it that the review happened after the
 merge. Review anyway — findings just become tasks instead of review comments.
 
+**Second, check the PR actually contains every role's work.** Read the brief's
+Sessions table, then the PR's commits: a role that has a row but no commit means
+its work is stranded somewhere else, and reviewing the PR in front of you would
+be reviewing an incomplete task. This is the backstop for the branch mismatch
+above — the reviewer is the last role that can catch it before a half-task
+merges. Send it back to that role, naming the branch its commit is actually on.
+
 **Review** is about quality, not correctness — the tester already settled
 correctness. Does it fit the codebase, is it more than the brief asked for, did
 anything land outside the Constraints, are the docs still true. The reviewer
@@ -487,7 +543,10 @@ quietly lost its only evidence.
 A light brief keeps four things and drops the rest:
 
 - **Acceptance criteria** — a short numbered list, four at most.
-- **Approved** — the header line, `pending` until a human replaces it.
+- **The header**, whole — `Status`, `Next step`, `Approved` (`pending` until a
+  human replaces it), `Branch` and `PR`. None of it is prose and all of it is
+  load-bearing: `Branch` is where the next role pushes, and getting it wrong
+  strands a commit (D-8).
 - **Sessions** — three columns. This is what makes the independent tester session
   checkable, and it was never the expensive part of a brief.
 - **Handoff** and **Verdict** — appended by the worker and tester as usual.

@@ -117,12 +117,42 @@ Set the brief's **Status** to `awaiting verification` and **Next step** to
 `tester`. Then stop — a human starts that session. You do not invoke the tester
 yourself.
 
-**Commit and push to the task branch the expander created** —
-`task/T-0xx-slug`, already on the remote with a draft PR pointing at it. Check
-you are on it before you start (`git branch --show-current`); if it does not
-exist, the expander did not finish and this task is not ready for you. Label your
-commits `T-0xx worker: …` so the reviewer can tell the roles apart. Never open a
-second PR for the same task, and never open a second branch.
+**Commit and push to the branch named in the brief's `Branch:` header** — the one
+already on the remote with the draft PR pointing at it. That header is the
+authority, not the `task/T-0xx-slug` convention: some environments assign each
+session its own branch, and then the name will be something else entirely.
+
+**Check before you start, and check for both failures:**
+
+```bash
+git branch --show-current      # where you are
+grep -m1 '^\*\*Branch:\*\*' tasks/T-0xx-slug.md   # where the brief says to be
+```
+
+- **The brief's branch does not exist on the remote** — the expander did not
+  finish, and this task is not ready for you. Stop.
+- **You are on a different branch that does exist** — you are in a session the
+  environment pinned somewhere else. **Stop before you commit.** Do not push
+  your work to the branch you happen to be standing on.
+
+That second case is the one that bit T-003, and it is why the check is worded
+this way. The old wording only asked whether the task branch existed; the worker
+was standing on `claude/worker-t003-i1kbih` while the brief named
+`claude/t002-sweep-t003-expand-ibrpor`, both existed, nothing errored, and a
+complete CI workflow was pushed somewhere the PR could not see it. The task
+stalled and the tester could not run.
+
+When you have to stop for this, say which two branches disagree, set
+**Status** to `blocked` and **Next step** to `human`, and name the fix — usually
+cherry-picking your commit onto the brief's branch, which someone with push
+rights to it can do in one command. A stranded commit is recoverable; an
+unrecorded stranded commit is what costs a cycle.
+
+**After pushing, confirm it landed where you meant.** `git log
+origin/<brief-branch> -1` should show your commit. Say so when you stop.
+
+Label your commits `T-0xx worker: …` so the reviewer can tell the roles apart.
+Never open a second PR for the same task, and never open a second branch.
 
 When the tester returns **fail**, you fix on the same branch and hand back. When
 it returns **blocked**, it goes to `task-expander`, not to you. On **pass**, the
