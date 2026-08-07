@@ -25,9 +25,10 @@ step and deliberately unable to do the others' jobs.
   that branch. Cannot edit the acceptance criteria.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
   edit source to make a test pass, and cannot edit the criteria either.
-- **`reviewer`** (opus) — judges quality rather than correctness, marks the PR
-  ready, merges inside a narrow envelope or escalates, then sweeps and trims the
-  queue. Never reviews work it wrote, because it writes none.
+- **`reviewer`** (opus) — judges quality rather than correctness. On approve it
+  marks the PR ready, sweeps, then merges inside a narrow envelope or escalates;
+  otherwise it leaves the PR draft and names the agent that has to come back.
+  Never reviews work it wrote, because it writes none.
 
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
@@ -104,7 +105,8 @@ and which agent to start next, without reconstructing anything.
 Three steps in the loop have no agent of their own, by design — two fold into a
 neighbouring role's session, and one is yours:
 
-- **Ship** — `reviewer` marks the PR ready at the start of its run, then reviews.
+- **Ship** — `reviewer` marks the PR ready, but only on approve, at the end of
+  its run rather than the start.
 - **Pick and sweep** — `task-expander` does both, at the start of its run. It
   clears the merged brief, updates `tasks.md` and `PROGRESS.md`, then picks the
   next task. Sweeping at the *start* of the next cycle rather than the end of the
@@ -145,10 +147,11 @@ stop.** No agent opens a second PR, and no agent starts the next role.
 | `task-expander` | branch created, brief committed, **draft PR opened**, `Status: awaiting approval` | approve on the PR, then `worker` |
 | `worker` | implementation committed to the same branch, Handoff written, `Status: awaiting verification` | `tester` — a **fresh** session |
 | `tester` | tests committed to the same branch, Verdict written, `Status: pass` / `fail` / `blocked` | `reviewer` on pass · `worker` on fail · `task-expander` on blocked |
-| `reviewer` | sweep committed, PR marked ready, merged or escalated | the next task |
+| `reviewer` — approve | PR marked ready, sweep committed, merged or escalated | the next task |
+| `reviewer` — changes needed | PR left draft, findings commented, `Status: changes requested` and `Next step:` naming the agent | that agent, on the same branch |
 
 **One task, one branch, one PR, several commits.** The PR is opened at expand
-time and stays draft until the tester passes, so every role's work lands in the
+time and stays draft until the reviewer approves it, so every role's work lands in the
 same reviewable place and the history shows who did what. A task never produces a
 second PR — if you find yourself opening one, a step ran out of order.
 
@@ -184,12 +187,16 @@ tasks.md
    │        ├── criteria wrong or untestable ▶ back to 2
    │        └── pass ─▶
    │
-   ├─▶ 5. ship          reviewer marks the PR ready for review
-   │                    (same session as step 6, not its own)
+   ├─▶ 5. ship          on approve, reviewer marks the PR ready
+   │                    (same session as step 6 — its outcome, not its start)
    │
    └─▶ 6. review        reviewer judges quality, then either
-                          merges — only inside a narrow envelope — or escalates
-                        then sweeps: delete brief, mark done, trim the queue
+                          changes needed ─▶ PR stays DRAFT, comment,
+                          │                 brief names the agent to fix it
+                          │                 ──▶ back to 3, 4 or 2
+                          └ approve ──────▶ PR ready, sweep, then
+                                            merge inside a narrow envelope,
+                                            or escalate to a human
 
    one agent per session · nothing spawns anything · the brief carries the state
    every agent ends the same way: commit, push, update Status, stop
@@ -349,14 +356,14 @@ Passing includes the whole suite plus typecheck and lint — not only the new te
 
 ### 5. Ship
 
-Run this as the **`reviewer`** agent — it is the first thing that agent does, in
-the same session that goes on to step 6. Step 5 has no session of its own:
-marking a PR ready is one tool call, and the role that decides whether the work
-ships is the right one to make it.
+Run this as the **`reviewer`** agent, in the same session that does step 6. Step
+5 has no session of its own, and it is **not** the first thing that session does:
+the PR stays draft through the review and is marked ready only if the review
+approves it. Draft is how the loop shows, at a glance, that a PR still owes
+somebody work.
 
-The PR already exists — it was opened draft at step 2 and has been collecting
-commits since. Shipping means **marking it ready for review** and bringing its
-body up to date.
+Shipping is therefore the *outcome* of step 6's judgement, not a precondition
+for it: **approve → mark ready for review** and bring the body up to date.
 
 The body carries the acceptance criteria **verbatim**, with what verified each.
 This is deliberate: step 6 deletes the brief, and the PR then becomes the
@@ -375,9 +382,25 @@ merge. Review anyway — findings just become tasks instead of review comments.
 
 **Review** is about quality, not correctness — the tester already settled
 correctness. Does it fit the codebase, is it more than the brief asked for, did
-anything land outside the Constraints, are the docs still true. Findings that do
-not block the merge become new entries in `tasks.md`; the reviewer never fixes
-them itself.
+anything land outside the Constraints, are the docs still true. The reviewer
+never fixes what it finds.
+
+**Then the review ends one of two ways**, and the PR's draft flag says which:
+
+| Verdict | The PR | The record | The brief |
+|---|---|---|---|
+| **Approve** | marked **ready for review** | body updated with the criteria and what verified each | swept, then merge or escalate below |
+| **Changes needed** | **stays draft** | a comment listing the findings, each with file, line, and what would make it acceptable | `Status: changes requested`, `Next step:` the agent that must fix it, findings in a `## Review` section |
+
+Sending it back names an agent — `worker` for the implementation, `tester` for
+the tests, `task-expander` for the criteria — because the next session starts
+cold and the brief is the only thing it reads. **Do not sweep a PR you sent
+back**: the task is not done, and deleting the brief would take the findings with
+it. Findings that do *not* block become entries in `tasks.md` instead.
+
+Sending back is not the same as escalating. Sent back means an agent still owes
+the work; escalated means the work is fine but the merge is not the reviewer's to
+make. Escalation happens on an approved, ready PR.
 
 **Merge only inside the envelope**: tester passed, suite green, nothing outside
 the brief's Constraints, no new dependency, nothing touching `openapi.yaml`, a
