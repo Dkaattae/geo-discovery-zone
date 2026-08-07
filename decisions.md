@@ -132,10 +132,11 @@ PR description, but approval happens before any code. **The handoff** was to be
 the PR body, but the tester reads it before the PR is opened. Both go inline in
 the `tasks.md` entry and travel into the PR body from there.
 
-A third consequence is still open: the light path drops the brief, and with it the
-Sessions table that makes tester independence checkable. D-6 promises the
-independent tester session is never skipped, while removing the only way to
-verify it was not. Needs resolving before the light path is used again.
+*Third defect, resolved:* the light path dropped the brief and with it the
+Sessions table, so it promised an independent tester session while removing the
+only way to check one happened. **Light tasks now keep a Sessions log inline in
+the `tasks.md` entry** — the same three columns, no separate file. The table was
+never the expensive part of the brief.
 
 T-001 spent four sessions, three PRs and a human approval to add 19 tests to code
 that already worked. The catch it produced was real, but that ratio will not

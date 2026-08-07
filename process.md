@@ -78,6 +78,24 @@ because its output constrains everything downstream and costs few tokens, the
 second because weak adversarial reasoning produces tests that pass no matter
 what.
 
+## After an agent finishes
+
+Every agent ends its session the same way, and this is the part that was wrong
+until T-002: **commit, push to the task branch, update `Status` and `Next step`,
+stop.** No agent opens a second PR, and no agent starts the next role.
+
+| When this finishes | It leaves behind | You start |
+|---|---|---|
+| `task-expander` | branch created, brief committed, **draft PR opened**, `Status: awaiting approval` | approve on the PR, then `worker` |
+| `worker` | implementation committed to the same branch, Handoff written, `Status: awaiting verification` | `tester` — a **fresh** session |
+| `tester` | tests committed to the same branch, Verdict written, `Status: pass` / `fail` / `blocked` | `reviewer` on pass · `worker` on fail · `task-expander` on blocked |
+| `reviewer` | sweep committed, PR marked ready, merged or escalated | the next task |
+
+**One task, one branch, one PR, several commits.** The PR is opened at expand
+time and stays draft until the tester passes, so every role's work lands in the
+same reviewable place and the history shows who did what. A task never produces a
+second PR — if you find yourself opening one, a step ran out of order.
+
 ## The loop
 
 ```
@@ -85,9 +103,9 @@ tasks.md
    │
    ├─▶ 1. pick          first task whose dependencies are done
    │
-   ├─▶ 2. expand        write tasks/T-0xx-slug.md:
-   │                      goal · acceptance criteria · out of scope · constraints
-   │                    ── human approves the brief ──
+   ├─▶ 2. expand        branch, write the brief, commit, push,
+   │                    open a DRAFT PR — one task, one branch, one PR
+   │                    ── human approves on the PR ──
    │
    ├─▶ 3. work          survey first, skip what is done, implement the rest
    │                    write ## Handoff — always, even if nothing was built
@@ -100,13 +118,14 @@ tasks.md
    │        ├── criteria wrong or untestable ▶ back to 2
    │        └── pass ─▶
    │
-   ├─▶ 5. ship          worker opens the PR
+   ├─▶ 5. ship          mark the PR ready for review
    │
    └─▶ 6. review        reviewer judges quality, then either
                           merges — only inside a narrow envelope — or escalates
                         then sweeps: delete brief, mark done, trim the queue
 
    one agent per session · nothing spawns anything · the brief carries the state
+   every agent ends the same way: commit, push, update Status, stop
 ```
 
 ---
@@ -121,8 +140,13 @@ One task at a time. Two half-finished tasks are worth less than one finished one
 
 ### 2. Expand
 
-Write `tasks/T-0xx-slug.md` from [`tasks/TEMPLATE.md`](tasks/TEMPLATE.md). Run
-this as the **`task-expander`** agent.
+Run this as the **`task-expander`** agent. Create the task branch, write
+`tasks/T-0xx-slug.md` from [`tasks/TEMPLATE.md`](tasks/TEMPLATE.md), commit,
+push, and **open a draft PR** with the criteria as its body.
+
+Opening the PR here rather than at the end gives approval somewhere durable to
+live — a PR review or comment, rather than a line in a chat log — and gives the
+worker and tester one place to push to.
 
 The brief has to stand on its own — the worker and the tester start from it, not
 from this conversation. It does not have to *contain* everything: its **Context**
@@ -247,14 +271,14 @@ Passing includes the whole suite plus typecheck and lint — not only the new te
 
 ### 5. Ship
 
-Commit, push, open one PR for the task.
+The PR already exists — it was opened draft at step 2 and has been collecting
+commits since. Shipping means **marking it ready for review** and bringing its
+body up to date.
 
-The PR body carries the acceptance criteria **verbatim**, with what verified
-each. This is deliberate: step 6 deletes the brief, and the PR then becomes the
+The body carries the acceptance criteria **verbatim**, with what verified each.
+This is deliberate: step 6 deletes the brief, and the PR then becomes the
 permanent record of what "done" meant. Also say what you chose not to do, and why
 any decision could reasonably have gone the other way.
-
-A human reviews and merges. The loop produces a PR; it does not merge it.
 
 ### 6. Review, merge, sweep
 
@@ -348,7 +372,9 @@ skipping steps.
 **A task marked `S` may run light**, which means:
 
 - the acceptance criteria go **inline in the `tasks.md` entry** as a short
-  numbered list — no separate brief file, no `tasks/` entry, no Sessions table;
+  numbered list — no separate brief file and no `tasks/` entry, but **keep the
+  Sessions log**: it is three columns, and it is the only thing that makes the
+  independent tester session checkable;
 - approval is still required and still recorded — an `Approved:` line in the same
   `tasks.md` entry, next to the criteria it approves, since the PR does not exist
   yet when approval happens;

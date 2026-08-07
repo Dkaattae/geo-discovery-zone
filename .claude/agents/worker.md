@@ -117,7 +117,9 @@ Set the brief's **Status** to `awaiting verification` and **Next step** to
 `tester`. Then stop — a human starts that session. You do not invoke the tester
 yourself.
 
-When the tester returns **pass**, you are the one who opens the PR (step 5),
-because you are the role that holds Bash and git. When it returns **fail**, you
-fix and hand back. When it returns **blocked**, it goes to `task-expander`, not
-to you.
+**Commit and push to the task branch the expander created.** The draft PR is
+already open; your commits join it. Never open a second PR for the same task.
+
+When the tester returns **fail**, you fix on the same branch and hand back. When
+it returns **blocked**, it goes to `task-expander`, not to you. On **pass**, the
+reviewer takes it.

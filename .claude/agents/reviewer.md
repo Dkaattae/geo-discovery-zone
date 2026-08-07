@@ -13,8 +13,12 @@ Read `process.md` step 6 and `decisions.md` before starting.
 
 ## 0. Check the PR is still open
 
-Before reviewing, check whether the PR was already merged — someone may have
-merged it without waiting for you. If it was:
+The PR was opened draft at expand time and has been collecting the expander's,
+worker's and tester's commits since. Your job is to bring its body up to date,
+mark it **ready for review**, sweep, and merge or escalate.
+
+Check first whether it was already merged — someone may have merged it without
+waiting for you. If it was:
 
 - the sweep cannot ride inside it, so branch from the current default branch and
   open the sweep as its own small PR;

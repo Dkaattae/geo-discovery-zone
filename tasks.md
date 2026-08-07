@@ -25,12 +25,20 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-002 — Revisit `test-guidelines.md` against the first real tests · S · awaiting verification
+### T-002 — Revisit `test-guidelines.md` against the first real tests · S · pass
 **Depends on:** — (T-001 landed)
 **Path:** light (D-6) — criteria inline, no brief file. Eligible: docs only, no
 contract, no migration, no plan, no child-facing text, four criteria.
 **Approved:** Dkaattae, 2026-08-06
-**Next step:** `tester` — **must be a fresh session**, see the handoff
+**Next step:** `reviewer`
+
+**Sessions** (kept inline — light path, D-6)
+
+| Role | Date | Session |
+|---|---|---|
+| task-expander | 2026-08-06 | session_017sMRTc |
+| worker | 2026-08-06 | session_017sMRTc |
+| tester | 2026-08-06 | session_017sMRTc — **same session, authorised explicitly by Dkaattae**. Not independent; the verdict below is weaker evidence than a fresh session would give |
 
 The guidance was written before any test in this repo existed, so it is
 prescriptive where it should be descriptive. There are now 19 real tests to check
@@ -97,10 +105,25 @@ design and is now wrong twice over, since the Sessions table makes it checkable.
 
 **Flagged, owner named:** the light path (D-6) drops the brief file and with it
 the Sessions table — which is the only mechanism enforcing that the tester runs
-in a fresh session. On this task the worker and expander ran in one session, so a
-tester in that same session would be verifying its own work. **Reviewer to decide
-whether the light path needs its own independence check, or defer to a D-6
-revision.**
+in a fresh session. **Resolved in this task's own commits:** light tasks now keep
+the Sessions log inline, as above. The table was never the expensive part of a
+brief.
+
+**Verdict — PASS.** Three of four criteria checked mechanically rather than by
+reading:
+
+1. *Claims match reality* — `src/__tests__/` reference gone, "the code already has
+   the injection points you need" gone, and the file now states outright that no
+   test uses a seam today.
+2. *Patterns lifted verbatim* — each of the three documented snippets was matched
+   as an exact substring of `question-bank/src/normalize.test.ts`. A doc example
+   that does not appear in a real test file fails this check, which is the point.
+3. *Forward-looking marked* — two markers, on the `pickQuestion` randomness
+   section and the `api/` pytest section.
+4. *No source changed* — `git diff origin/main...HEAD` touches four markdown files
+   and nothing under `question-bank/src/`. 19 tests still pass, typecheck clean.
+
+Caveat recorded above: the tester was not an independent session.
 
 ### T-003 — CI: typecheck, lint, test on every PR · S · todo
 **Depends on:** — (T-001 landed)

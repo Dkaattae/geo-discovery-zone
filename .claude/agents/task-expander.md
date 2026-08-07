@@ -92,6 +92,11 @@ list will not.
 You produce the brief and stop. You do not implement, and you do not invoke
 another agent — the next step is a separate session a human starts.
 
+Before stopping: create the task branch, commit the brief, push, and **open a
+draft PR** with the criteria as its body. One task, one branch, one PR — the
+worker and tester push to the same branch, and the reviewer merges it. Opening it
+now gives approval a durable home on the PR instead of a chat log.
+
 Set the brief's **Status** to `awaiting approval`, **Next step** to `worker`, and
 leave **Approved** as `pending`. Add your row to the Sessions table. A human
 approves before any code is written, and records it by replacing `pending` with

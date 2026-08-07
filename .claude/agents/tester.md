@@ -106,9 +106,12 @@ do not write a vacuous test to move on: a green tautology is worse than an
 admitted gap because it looks like coverage. This goes back to `task-expander`,
 not to the worker.
 
+**Commit your tests to the same branch and push.** The draft PR opened at expand
+time is where they belong; never open a second PR for the task.
+
 Record the verdict in the brief's **Status**, set **Next step** to `worker`,
-`task-expander` or `ship`, and stop. You do not invoke another agent and you do
-not open the PR — a human starts the next session.
+`task-expander` or `reviewer`, and stop. You do not invoke another agent — a
+human starts the next session.
 
 After two full fail → fix → verify rounds without a pass, stop and escalate to a
 human. A third round almost always means the brief is wrong rather than the code,
