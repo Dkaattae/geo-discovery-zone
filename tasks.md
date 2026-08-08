@@ -48,6 +48,12 @@ Decide all four here. The brief carries the criteria; this entry is the
 placeholder. **Re-sized `S` → `M` at expand time**: the criteria came out at
 eight, past D-6's four-criteria ceiling, so this runs the full path.
 
+**Criterion 6 was amended on 2026-08-08** after a `blocked` verdict, and is back
+with the human for re-approval. It named a file path (`frontend/src/`) where it
+meant a behaviour (the frontend test-skip guard switching itself off), which
+dragged in `frontend`'s type configuration — see T-004 below. Seven of eight
+criteria are already verified against real workflow runs on PR #11.
+
 ### T-004 — First tests for `frontend` · S · todo
 **Depends on:** — (deferred out of T-001's scope)
 `level.ts` and `session.ts` are pure functions carrying real logic and no tests:
@@ -57,7 +63,35 @@ avoidance. `pickQuestion` calls `Math.random()`, so assert invariants that hold
 for every draw rather than which question came back (`test-guidelines.md`).
 T-002 left the "Randomness and time" section marked **Forward-looking** and named
 this task as the one that makes it real — drop that marker when the tests land.
-**Done when:** `bun test` in `frontend/` passes with tests for both modules, and
+**`frontend` cannot typecheck *any* test file today — fix that first.** Found by
+T-003's tester on 2026-08-08 and recorded here so this task does not rediscover
+it. A file containing `import { … } from "bun:test"` placed under `frontend/src/`
+fails `bun run typecheck` with:
+
+```
+src/<name>.test.ts(1,30): error TS2307: Cannot find module 'bun:test' or its
+corresponding type declarations.
+```
+
+Two causes, both in `frontend`: there is no `@types/bun` in its devDependencies,
+and `frontend/tsconfig.json` sets `"types": ["vite/client"]` — which replaces the
+default "all of `node_modules/@types`" — while its `include` covers
+`src/**/*.ts`. Dropping the import does not help; the bare globals are equally
+unknown to `tsc`. Observed on run
+[31235019281](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235019281);
+the same test outside the `include` typechecks and passes
+([31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550)).
+
+So this task's **first commit** has to make `frontend` typecheck test files —
+adding `@types/bun` (**a dependency, which means asking a human first**, per
+`CLAUDE.md`) and adjusting `tsconfig.json`'s `types`, or whatever equivalent it
+decides on. Until then T-003's CI goes red at the frontend `Typecheck` step the
+moment a test lands under `src/`. T-003 deliberately left this alone rather than
+guess the shape of a decision that belongs with real tests; see its criterion 6.
+Re-size from `S` if the type-configuration decision turns out to be contested.
+
+**Done when:** `bun test` in `frontend/` passes with tests for both modules,
+`bun run typecheck` passes with those tests in the tree, and
 `test-guidelines.md` no longer calls that section forward-looking.
 
 ### T-005 — Prove "no network in tests" in CI · S · todo
@@ -68,6 +102,19 @@ Nothing enforces it. Split out of T-003 because the env has to be scoped to the
 test step alone — set it job-wide and `bun install` breaks.
 **Done when:** the test step runs with a dead proxy, the suite still passes, and
 a test that reaches the network fails the run.
+
+### T-006 — The lint gate ignores warnings, and there are already seven · S · todo
+**Depends on:** T-003
+Found by T-003's tester, non-blocking. `frontend`'s `lint` script is `eslint .`,
+which exits 0 on warnings, so every green CI run logs
+`✖ 7 problems (0 errors, 7 warnings)` and passes. All seven are
+`react-refresh/only-export-components`. Error-level rules do fail the run — T-003
+criterion 3 is genuinely satisfied — but the gate is weaker than it reads, and
+warnings now accumulate invisibly behind a green check. `--max-warnings 0` closes
+it, which means first deciding each of the seven: fix, or downgrade the rule
+deliberately with a reason. Do not silence them wholesale to get the flag in.
+**Done when:** `bun run lint` fails on any warning, the seven are each fixed or
+explicitly allowed with a recorded reason, and CI is green.
 
 ---
 

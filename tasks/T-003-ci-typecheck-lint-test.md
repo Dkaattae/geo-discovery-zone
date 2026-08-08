@@ -1,24 +1,50 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `blocked`
-**Next step:** `task-expander` — seven of eight criteria pass on observed
-workflow runs. **Criterion 6 cannot be discharged as written**: `frontend` has no
-`@types/bun` and its `tsconfig.json` includes `src/**/*.ts`, so any bun test file
-under `frontend/src/` fails `tsc` with TS2307 before the test step is reached.
-Every fix needs either criterion 8 relaxed (add the dependency) or the
-Constraints' file list widened (touch `tsconfig.json`) — both frozen, so neither
-is the worker's to make. The guard the criterion exists to police is **sound**
-and proven so. See the Verdict for the decision the expander has to take.
-**Approved:** Dkaattae, 2026-08-07 — criteria frozen from here. They change only
-by coming back through `task-expander` for a fresh approval.
+**Status:** `awaiting approval` — **criterion 6 was amended on 2026-08-08 and the
+whole criteria set is therefore unfrozen until a human re-approves it.** Nothing
+else in the brief's criteria changed; 1–5, 7 and 8 stand exactly as they were
+approved on 2026-08-07 and the Verdict's PASS findings against them still hold.
+**Next step:** `tester`, once approved — **not `worker`.** No implementation work
+is outstanding. The amended criterion 6 is discharged by workflow runs that
+already exist on PR #11 ([31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550)
+and [31235108008](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235108008)),
+plus one new read of `.github/workflows/ci.yml` for 6c. See "What the next tester
+has to do" below.
+**Approved:** `pending` — a criteria change resets approval (`process.md` step 2).
+The previous approval was `Dkaattae, 2026-08-07`; it does not carry over to the
+amended criterion 6. The criteria re-freeze the moment this line is replaced with
+a name and a date.
 **From:** [`tasks.md`](../tasks.md) T-003
-**Branch:** `claude/t002-sweep-t003-expand-ibrpor` — **not** `task/T-003-ci-typecheck-lint-test`.
-This session runs under a harness that designates the branch name and forbids
-pushing anywhere else, which overrides `process.md`'s `task/T-0xx-slug` rule for
-this task only. Everything else about "one task, one branch, one PR" holds: the
-worker and tester push here, and the reviewer merges this branch.
+**Branch:** `claude/t002-sweep-t003-expand-ibrpor` — **still the task branch, and
+still the authority for the worker, the tester and the reviewer.** That is where
+PR #11 is built from and where every role's commits must land.
+
+> **This amendment could not be pushed there.** The harness pinned the
+> `task-expander` session that wrote it to
+> `claude/t003-criterion-6-expander-0qifna` and forbade pushing anywhere else, so
+> the amendment sits on that branch, based on `4a3f75a` (PR #11's head at the
+> time) and containing nothing but this brief and `tasks.md`. It reaches PR #11
+> through PR #14, which targets `claude/t002-sweep-t003-expand-ibrpor` rather
+> than `main` — one task, one PR to `main`, still true. **Once PR #14 merges,
+> this note is history and `claude/t002-sweep-t003-expand-ibrpor` is the only
+> branch anyone needs.** If it has not merged, do not start the tester: the
+> criteria it would verify against are not yet on the branch it will read.
+
 **PR:** [#11](https://github.com/Dkaattae/geo-discovery-zone/pull/11), opened
-draft at expand time. It **stays draft** until the reviewer approves it.
+draft at expand time. It **stays draft** until the reviewer approves it. The
+criterion-6 amendment arrives via
+[#14](https://github.com/Dkaattae/geo-discovery-zone/pull/14) → PR #11's branch.
+
+> **PR #11's *body* still quotes the pre-amendment criterion 6**, and was left
+> that way deliberately. This session has no way to read that body — no `gh`, and
+> no read-PR tool — so replacing it would have meant retyping the expander's
+> original text from memory and risking a silent loss. **This file is the
+> authority on the criteria** (`process.md`: the brief is the loop's shared
+> state), and PR #11's body is brought up to date at step 5, where the reviewer
+> writes the criteria into it verbatim on approve. Anyone reading PR #11 before
+> then should read criterion 6 here, not there. PR #14's body carries the amended
+> wording in full in the meantime.
+
 **Base:** `8773ed3` (origin/main at expand time)
 
 **Sessions**
@@ -29,9 +55,15 @@ draft at expand time. It **stays draft** until the reviewer approves it.
 | worker | 2026-08-07 | `cse_01VPwNNDJbsuRw8Ag6yTBhqd` — on `claude/worker-t003-i1kbih`, not the branch named above; see Handoff |
 | — (out of band) | 2026-08-07 | `cse_01PT6etPpidd8PU8cZgY1jCV` — not a loop role. Reviewed this task at the human's request, landed PR #12 (the lint fix) and PR #13 (the process fix), and appended the Handoff's "Update" block. Wrote no source for this task. **The tester must not run here either** |
 | tester | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — fresh session, none of the three above. Ran on the harness-assigned `claude/t003-tester-startup-gi675x`, which differs from the `Branch:` header; pushing here instead was authorised explicitly by Dkaattae before any commit. See the Verdict's "On the branch mismatch" |
+| task-expander | 2026-08-08 | `cse_01HMQ72V73ADbUkKu29EAgjP` — second expander run, on the `blocked` return path. Amended criterion 6 only; wrote no source, ran no build, test or pipeline. Pinned to `claude/t003-criterion-6-expander-0qifna`; see the `Branch:` note |
 
-> **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR`.** That session
-> wrote these criteria; a verifier inside it is not independent.
+> **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR` or
+> `cse_01HMQ72V73ADbUkKu29EAgjP`.** Both wrote criteria for this task; a verifier
+> inside either is not independent. `cse_01GJgQEymzAYi8Nx1vDW4gU3` — the first
+> tester — is *not* disqualified: it wrote no criteria and no source. But a fresh
+> session is preferred, because the amended criterion 6 was written in response to
+> that session's own verdict and re-reading one's own diagnosis is the weakest
+> form of the check this loop is built on.
 
 **Path:** full, not light — see Notes for why an `S` task ended up with eight
 criteria and got re-sized to `M`.
@@ -47,6 +79,12 @@ after merge.
 ## Acceptance criteria
 
 Frozen once approved. They change only by coming back through `task-expander`.
+
+> **Amended 2026-08-08, criterion 6 only.** Criteria 1–5, 7 and 8 are byte-for-byte
+> what was approved on 2026-08-07 and are untouched. Criterion 6 is replaced; the
+> wording it replaces, and why, are recorded under "Amendment history" below.
+> Approval is reset to `pending` for the whole set, because a set with one
+> unapproved member is not an approved set.
 
 1. A GitHub Actions workflow exists under `.github/workflows/` whose triggers
    cause it to run on every pull request targeting the default branch, and on
@@ -68,10 +106,44 @@ Frozen once approved. They change only by coming back through `task-expander`.
    `bun test` exit code of 1 in a package with no tests must not be what decides
    the run.
 
-6. **Criterion 5 is not bought by skipping frontend tests.** Adding a passing
-   test file under `frontend/src/` still yields `success`, and adding a *failing*
-   one yields `failure`. Whatever handles the no-test-files case must stop
-   applying the moment T-004 lands real tests.
+6. **Criterion 5 is not bought by skipping frontend tests.** The `frontend` job's
+   `Test` step may skip `bun test` in exactly one state — when `frontend/` holds
+   no test file at all, which is criterion 5's state — and the moment one test
+   file exists it must run `bun test` and let `bun test`'s own exit code decide
+   the step. Both sides of that boundary are observed, plus the artefact itself:
+
+   **6a — one test file, passing → the step runs and the run is green.** With
+   exactly one *passing* test file present anywhere under `frontend/` that
+   `frontend`'s own `bun run typecheck` accepts, the `Test` step's log says it is
+   running `bun test` rather than skipping, `bun test` reports `1 pass / 0 fail`,
+   the `Test` step concludes `success`, and the whole run concludes `success`.
+
+   **6b — one test file, failing → the step goes red.** With one test file
+   present under `frontend/` that asserts something false, the **`Test` step
+   itself** concludes `failure` and the run concludes `failure`. Where the file
+   sits does not matter for 6b: what is being observed is that a non-zero
+   `bun test` exit reaches the step's conclusion instead of being swallowed.
+
+   **6c — nothing in the workflow can swallow a test failure.**
+   `.github/workflows/ci.yml` contains no `continue-on-error`, no `|| true`, and
+   no other construct at step, job or workflow level that would let a non-zero
+   `bun test` exit leave a step or job green. The one `exit 0` that bypasses
+   `bun test` is reachable only when the no-test-files condition holds, so the
+   skip disables itself when T-004 commits `frontend`'s first test — without
+   anyone editing `ci.yml`.
+
+   **What 6 deliberately does not require.** It does not require that a test file
+   under `frontend/src/` typechecks. It cannot today: `frontend` has no
+   `@types/bun` and `frontend/tsconfig.json` sets `"types": ["vite/client"]` with
+   `include: ["src/**/*.ts", …]`, so any `bun:test` import under `src/` fails
+   `tsc` with TS2307 — a property of the package's type configuration, not of
+   this workflow. Fixing it means a new dependency or a `tsconfig.json` change,
+   both of which criterion 8 and the Constraints forbid here, and both of which
+   T-004 has to settle anyway when it writes real tests. It is recorded against
+   T-004 in `tasks.md`. **The consequence is stated plainly rather than hidden:
+   T-004's first commit will turn this workflow red at the frontend `Typecheck`
+   step until it adds bun's types**, which is CI reporting a real gap in the
+   package on the first task that hits it, and is the correct place to fix it.
 
 7. **The run does not rewrite either lockfile.** After a workflow run,
    `frontend/bun.lock` and `question-bank/bun.lock` are byte-identical to what is
@@ -86,6 +158,69 @@ Frozen once approved. They change only by coming back through `task-expander`.
    is changed. Adding *scripts* to `package.json` is expected and allowed — see
    Constraints.
 
+### Amendment history
+
+**2026-08-08 — criterion 6 replaced.** The approved wording was:
+
+> 6. **Criterion 5 is not bought by skipping frontend tests.** Adding a passing
+>    test file under `frontend/src/` still yields `success`, and adding a
+>    *failing* one yields `failure`. Whatever handles the no-test-files case must
+>    stop applying the moment T-004 lands real tests.
+
+The tester's verdict established that its second half holds and its first half
+cannot, for a reason outside this task's diff: the criterion named a **file
+path** (`frontend/src/`) where what it meant was a **behaviour** (the skip guard
+switching itself off). A file under `frontend/src/` is inside
+`frontend/tsconfig.json`'s `include`, so the mutation it prescribes fails
+`Typecheck` before `Test` runs, and the criterion ends up testing the package's
+type configuration rather than the workflow. Run
+[31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550)
+proved the point: the identical passing test, moved to `frontend/`'s root, gave a
+fully green run with `bun test` reporting `1 pass`.
+
+**The route taken, and the one rejected.** Two were available (the Verdict lists
+both). This amendment takes the first — reword criterion 6 to name the guard —
+and rejects the second, widening the brief to permit `@types/bun` plus a lockfile
+change or a `frontend/tsconfig.json` edit. The rejection has three reasons and
+they are worth having on the record:
+
+1. **It is a dependency decision, and `CLAUDE.md` sends those to a human** — not
+   into a CI task as a side effect of a mutation the tester needed.
+2. **It is T-004's decision on the merits, not just by scope.** How `frontend`
+   typechecks tests is entangled with where its tests live, whether
+   `"types": ["vite/client"]` survives, and whether a second `tsconfig` is
+   wanted. Settling that here, with no real test to validate it against, freezes
+   a choice T-004 needs to make with tests in hand.
+3. **It enlarges a task already re-sized `S` → `M`.** T-003 exists to put a gate
+   on every PR; it does not need to also configure another package's type system.
+
+**What the new wording still forbids.** The whole point of criterion 6 is that
+criterion 5 must not be bought by making the frontend test step incapable of
+failing. 6b keeps that observable — a failing test must turn the `Test` step red
+— and 6c forbids the two shortcuts by name (`continue-on-error`, `|| true`) plus
+anything else with the same effect, at any level. The one permitted `exit 0` is
+pinned to the zero-test-files condition, so the guard's lifetime is bounded by
+`frontend/` having no tests, which is exactly the condition T-004 ends. Nothing
+that would have failed criterion 6 as approved passes criterion 6 as amended.
+
+### What the next tester has to do
+
+Recorded here because the amendment changes the work, not just the words. The
+mutations criterion 6 needs have **already been run and pushed to PR #11, and
+reverted**; the branch tip is byte-identical to `8adc7b3`. Re-running them is not
+required and re-pushing them is not wanted.
+
+| Sub-criterion | Discharged by | What to read |
+|---|---|---|
+| 6a | run [31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550) (`4e1d7b5`) — passing test at `frontend/` root | `Test` step log says "running bun test", `1 pass`, step `success`, run `success` |
+| 6b | run [31235108008](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235108008) (`12917d0`) — failing test | `Test` step conclusion `failure`, run `failure` |
+| 6c | **not yet verified** — read `.github/workflows/ci.yml` at the branch tip | no `continue-on-error`, no `\|\| true`, the single `exit 0` guarded by the empty-`test_files` branch |
+
+Only 6c is new work, and it is a file read. If the tester judges the archived
+runs insufficient evidence — for example because it cannot open them — it may
+re-run the two mutations on PR #11's branch under the same rules the first tester
+followed: one at a time, each reverted, the tree byte-identical at the end.
+
 ## Out of scope
 
 - **The Python job.** `api/` does not exist (T-030 builds it). Do not add a job,
@@ -94,6 +229,12 @@ Frozen once approved. They change only by coming back through `task-expander`.
 - **Writing any test.** `frontend/` gets its first tests in T-004. If criterion 6
   needs a test file to demonstrate, it is a throwaway the tester adds and removes
   — not a committed one.
+- **Making `frontend` able to typecheck a test file.** Added 2026-08-08 with the
+  criterion 6 amendment. `@types/bun` (or any equivalent), and any change to
+  `frontend/tsconfig.json`'s `types` or `include`, are **out of scope here and
+  belong to T-004**, whose queue entry now carries the diagnosis. Criterion 8 and
+  the Constraints already forbid both; this bullet says so where someone reading
+  criterion 6 will see it.
 - **Enforcing "no network in tests" in CI.** `test-guidelines.md` prescribes the
   check (point `HTTPS_PROXY`/`HTTP_PROXY` at a dead port and confirm the suite
   does not notice), and it is worth having, but it has to be scoped to the test
