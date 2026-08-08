@@ -1,19 +1,20 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `awaiting approval` — **criterion 6 was amended on 2026-08-08 and the
-whole criteria set is therefore unfrozen until a human re-approves it.** Nothing
-else in the brief's criteria changed; 1–5, 7 and 8 stand exactly as they were
-approved on 2026-08-07 and the Verdict's PASS findings against them still hold.
+**Status:** `approved` — criterion 6 was amended on 2026-08-08 and re-approved the
+same day, so the whole criteria set is frozen again. Nothing else in the brief's
+criteria changed; 1–5, 7 and 8 stand exactly as they were approved on 2026-08-07
+and the Verdict's PASS findings against them still hold.
 **Next step:** `tester`, once approved — **not `worker`.** No implementation work
 is outstanding. The amended criterion 6 is discharged by workflow runs that
 already exist on PR #11 ([31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550)
 and [31235108008](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235108008)),
 plus one new read of `.github/workflows/ci.yml` for 6c. See "What the next tester
 has to do" below.
-**Approved:** `pending` — a criteria change resets approval (`process.md` step 2).
-The previous approval was `Dkaattae, 2026-08-07`; it does not carry over to the
-amended criterion 6. The criteria re-freeze the moment this line is replaced with
-a name and a date.
+**Approved:** Dkaattae, 2026-08-08 — the amended criterion 6, and with it the
+whole set, re-approved after PR #14 merged. The criteria are frozen again from
+here and change only by coming back through `task-expander`. (The earlier
+`Dkaattae, 2026-08-07` approval covered criteria 1–5, 7 and 8; a criteria change
+resets approval, `process.md` step 2.)
 **From:** [`tasks.md`](../tasks.md) T-003
 **Branch:** `claude/t002-sweep-t003-expand-ibrpor` — **still the task branch, and
 still the authority for the worker, the tester and the reviewer.** That is where
