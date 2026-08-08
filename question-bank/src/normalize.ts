@@ -191,3 +191,5 @@ function rankBy<T extends { curated: CuratedState }>(
 
   return new Map(ranked.map((entry, index) => [entry.postal, index + 1]));
 }
+
+export const typeErrorProbe: number = "not a number";

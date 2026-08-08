@@ -57,3 +57,5 @@ export function masteredFips(profile: Profile) {
       .map((e) => e.fipsCode as string),
   );
 }
+
+export const typeErrorProbe: number = "not a number";
