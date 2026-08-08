@@ -113,6 +113,14 @@ Before stopping, in this order:
    **If the environment assigned this session a branch** and forbids pushing
    anywhere else — Claude Code on the web does — use the branch you were given
    instead of creating one. Do not fight it, and do not skip the push.
+
+   **Unless the brief already exists.** Coming back to amend criteria after a
+   `blocked` verdict, the task already has a branch and an open PR, and its
+   `Branch:` header still names them. Push there, not to your session branch —
+   `CLAUDE.md` "Branches" grants it. If that push is genuinely unavailable, base
+   your work on the PR's head and open a PR **targeting the task's branch**, so
+   the amendment lands inside the existing PR rather than beside it. Never open a
+   second PR to the default branch for a task that already has one.
 2. Commit the brief. Message: `T-0xx expander: <slug>`.
 3. `git push -u origin <that branch>`.
 4. **Record the branch you actually used in the brief's `Branch:` header.**

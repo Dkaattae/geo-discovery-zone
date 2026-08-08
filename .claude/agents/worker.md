@@ -132,8 +132,10 @@ grep -m1 '^\*\*Branch:\*\*' tasks/T-0xx-slug.md   # where the brief says to be
 - **The brief's branch does not exist on the remote** — the expander did not
   finish, and this task is not ready for you. Stop.
 - **You are on a different branch that does exist** — you are in a session the
-  environment pinned somewhere else. **Stop before you commit.** Do not push
-  your work to the branch you happen to be standing on.
+  environment pinned somewhere else. **Push to the header's branch anyway.**
+  `CLAUDE.md` "Branches" carries Dkaattae's standing permission to do exactly
+  this, so it is not something to stop and ask for. What you must never do is
+  push your work to the branch you happen to be standing on.
 
 That second case is the one that bit T-003, and it is why the check is worded
 this way. The old wording only asked whether the task branch existed; the worker
@@ -142,11 +144,12 @@ was standing on `claude/worker-t003-i1kbih` while the brief named
 complete CI workflow was pushed somewhere the PR could not see it. The task
 stalled and the tester could not run.
 
-When you have to stop for this, say which two branches disagree, set
-**Status** to `blocked` and **Next step** to `human`, and name the fix — usually
-cherry-picking your commit onto the brief's branch, which someone with push
-rights to it can do in one command. A stranded commit is recoverable; an
-unrecorded stranded commit is what costs a cycle.
+If the push to the header's branch is actually refused, or the header is missing
+or ambiguous, then stop: say which two branches disagree, set **Status** to
+`blocked` and **Next step** to `human`, and name the fix — usually cherry-picking
+your commit onto the brief's branch, which someone with push rights can do in one
+command. A stranded commit is recoverable; an unrecorded stranded commit is what
+costs a cycle.
 
 **After pushing, confirm it landed where you meant.** `git log
 origin/<brief-branch> -1` should show your commit. Say so when you stop.
