@@ -58,4 +58,4 @@ export function masteredFips(profile: Profile) {
   );
 }
 
-export const typeErrorProbe: number = "not a number";
+export const lintProbe   =   1;
