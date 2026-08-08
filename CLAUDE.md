@@ -16,6 +16,25 @@ contract — change it deliberately and say so.
 - `conventions.md` — code conventions, commands, and repo layout detail.
 - `decisions.md` — why the process is shaped this way, and what would change it.
 
+## Branches
+
+**One task, one branch, one PR.** The branch is the one named in the brief's
+`Branch:` header — that header is the authority, not any naming convention — and
+every role on the task commits to it.
+
+**Standing permission, from Dkaattae:** when a harness assigns your session its
+own branch and tells you not to push elsewhere (Claude Code on the web does
+this), you may push to the brief's `Branch:` header instead. **This paragraph is
+the explicit permission such harnesses ask for.** It is written down so nobody
+has to retype it at the start of every session. It grants exactly one thing: the
+branch that brief names, for that task.
+
+Still stop and ask when the grant plainly does not cover you — the header's
+branch is not on the remote, the brief has no header, or two sources disagree
+about which branch it is. Pushing to whatever branch you are standing on is never
+the fallback: the PR cannot see it, nothing errors, and the task stalls
+invisibly. That is what cost T-003 a cycle (`decisions.md` D-8).
+
 ## Packages
 
 `uv add` / `uv run` in `api/`. `bun add` / `bun run` in `frontend/` and
@@ -50,3 +69,17 @@ This is an app for children:
 
 Say what actually happened. If a test fails, show it. If something was skipped,
 name it. If a value came from a fixture rather than a live source, say which.
+
+**Lead with the answer.** Every report — a chat reply, a `## Handoff`, a
+`## Verdict`, a PR body — opens with a TL;DR the reader gets in one glance:
+
+- **Two or three lines up top**: what happened, what it means, what is needed
+  next. Someone who reads only this must not come away misled.
+- **Bullets, not paragraphs**, for anything that is a list — findings, criteria,
+  files changed, what a human has to do. One idea each, the point in the first
+  few words, bolded when it is a label.
+- **A table** when the shape repeats: criterion → verdict → evidence.
+- **Detail below, not instead.** Being short at the top is not licence to drop
+  the evidence — it moves underneath, where whoever wants it will look.
+- **No throat-clearing.** Don't restate the request, don't narrate what you are
+  about to do, don't summarise the summary.
