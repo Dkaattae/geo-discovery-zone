@@ -1,15 +1,16 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `approved` — criterion 6 was amended on 2026-08-08 and re-approved the
-same day, so the whole criteria set is frozen again. Nothing else in the brief's
-criteria changed; 1–5, 7 and 8 stand exactly as they were approved on 2026-08-07
-and the Verdict's PASS findings against them still hold.
-**Next step:** `tester`, once approved — **not `worker`.** No implementation work
-is outstanding. The amended criterion 6 is discharged by workflow runs that
-already exist on PR #11 ([31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550)
-and [31235108008](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235108008)),
-plus one new read of `.github/workflows/ci.yml` for 6c. See "What the next tester
-has to do" below.
+**Status:** `fail` — on criterion **6c** only. Seven and a half of eight criteria
+pass; 6a and 6b are discharged by the archived runs exactly as the amendment
+predicted. 6c is not met: the `Test` step's `exit 0` **is** reachable while test
+files exist, because the guard's `find` pattern is narrower than `bun test`'s own
+discovery. Observed, not argued — run
+[31270170161](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31270170161)
+concluded **`success`** with a failing test sitting in `frontend/`.
+**Next step:** `worker` — **not `task-expander`.** The criteria are fine this
+time. The fix is one regex in `.github/workflows/ci.yml`, which the Constraints
+already list as a file this task may change: no dependency, no criteria change,
+no re-approval. See the Verdict.
 **Approved:** Dkaattae, 2026-08-08 — the amended criterion 6, and with it the
 whole set, re-approved after PR #14 merged. The criteria are frozen again from
 here and change only by coming back through `task-expander`. (The earlier
@@ -57,6 +58,7 @@ criterion-6 amendment arrives via
 | — (out of band) | 2026-08-07 | `cse_01PT6etPpidd8PU8cZgY1jCV` — not a loop role. Reviewed this task at the human's request, landed PR #12 (the lint fix) and PR #13 (the process fix), and appended the Handoff's "Update" block. Wrote no source for this task. **The tester must not run here either** |
 | tester | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — fresh session, none of the three above. Ran on the harness-assigned `claude/t003-tester-startup-gi675x`, which differs from the `Branch:` header; pushing here instead was authorised explicitly by Dkaattae before any commit. See the Verdict's "On the branch mismatch" |
 | task-expander | 2026-08-08 | `cse_01HMQ72V73ADbUkKu29EAgjP` — second expander run, on the `blocked` return path. Amended criterion 6 only; wrote no source, ran no build, test or pipeline. Pinned to `claude/t003-criterion-6-expander-0qifna`; see the `Branch:` note |
+| tester (2nd round) | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — **the same session as the first tester run**, which the note below marks as permitted but not preferred. It wrote no criteria and no source. Pushed to the `Branch:` header under `CLAUDE.md` "Branches", the standing grant that landed in PR #15; no per-session permission was needed this time. Independence caveat in the Verdict |
 
 > **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR` or
 > `cse_01HMQ72V73ADbUkKu29EAgjP`.** Both wrote criteria for this task; a verifier
@@ -622,9 +624,184 @@ before the tester session starts.
 
 ## Verdict
 
-Written by `tester`, session `cse_01GJgQEymzAYi8Nx1vDW4gU3`, 2026-08-08.
+> Two rounds have run. **Round 2 is the live one** and is written first; round 1
+> is kept below it unedited, because the amendment that produced criterion 6a–6c
+> was written against it and stops making sense without it.
 
-# **BLOCKED** — on criterion 6 only. Seven of eight criteria pass.
+---
+
+# Round 2 — **FAIL**, on criterion 6c only
+
+Written by `tester`, session `cse_01GJgQEymzAYi8Nx1vDW4gU3`, 2026-08-08, against
+the amended criteria re-approved at `4c2806d`.
+
+**TL;DR**
+
+- **The amendment worked.** 6a and 6b are discharged exactly as it predicted, off
+  the archived runs. Criteria 1–5, 7 and 8 still pass, re-checked at the new tip.
+- **6c does not hold.** The `Test` step's `exit 0` is reachable *while test files
+  exist*: the guard's `find` matches only `js|jsx|ts|tsx`, but `bun test` also
+  runs `.mts`, `.cts`, `.mjs` and `.cjs`. Run
+  [31270170161](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31270170161)
+  concluded **`success`** with a failing test in `frontend/`.
+- **Next: `worker`, not `task-expander`.** One regex in `ci.yml` — a file the
+  Constraints already permit. No dependency, no criteria change, no re-approval.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 triggers | **PASS** | `on:` block; every run on PR #11 fired as `pull_request` |
+| 2 type error | **PASS** | run 31234909634 — Typecheck `failure` in both jobs |
+| 3 lint error | **PASS** | run 31234970937 — fe Lint `failure`, Typecheck `success` |
+| 4 failing test | **PASS** | run 31234970937 — qb Test `failure`, Typecheck `success` |
+| 5 green tree | **PASS** | run 31235261531 / final revert run — both jobs green |
+| **6a** passing test runs | **PASS** | run 31235143550 — "running bun test", `1 pass / 0 fail`, step + run `success` |
+| **6b** failing test reddens | **PASS** | run 31235108008 — **`Test` step** `failure`, run `failure` |
+| **6c** nothing swallows a failure | **FAIL** | run 31270170161 — `success` with a failing test present |
+| 7 lockfiles intact | **PASS** | `Lockfile unchanged` green in every job of every run |
+| 8 nothing outside CI | **PASS** | re-checked at `4c2806d`: no `src/`, no `bun.lock`, no dependency |
+
+### 6c — what was checked, and what failed
+
+The criterion has two halves. The **enumerated half passes**: `ci.yml` contains
+no `continue-on-error`, no `|| true`, no `set +e`, no `always()`, no job- or
+workflow-level equivalent. The only occurrence of those strings anywhere in the
+file is a comment at line 64 saying they were deliberately avoided, and the two
+`--exit-code` uses are the lockfile check, which fails loudly by design.
+
+The **reachability half fails**:
+
+> "The one `exit 0` that bypasses `bun test` is reachable only when the
+> no-test-files condition holds, so the skip disables itself when T-004 commits
+> `frontend`'s first test — without anyone editing `ci.yml`."
+
+That is false. The guard decides "no test files" with
+
+```
+-type f -regex '.*[._](test|spec)\.(js|jsx|ts|tsx)$'
+```
+
+while `bun test` discovers a wider set. Measured on a scratch tree of ten
+candidate filenames, one deliberately failing test each — **bun ran all ten,
+`find` matched six**:
+
+| Filename | `bun test` runs it | workflow `find` sees it |
+|---|---|---|
+| `a.test.ts`, `b_test.ts`, `c.spec.ts`, `d.spec.tsx`, `i.test.js` | yes | yes |
+| `nested/__tests__/j.test.ts` | yes | yes |
+| **`e.test.mts`** | **yes** | **no** |
+| **`f.test.cts`** | **yes** | **no** |
+| **`g.test.mjs`** | **yes** | **no** |
+| **`h.test.cjs`** | **yes** | **no** |
+
+So a `frontend/` holding only `.mts`/`.cts`/`.mjs`/`.cjs` tests satisfies
+`[ -z "$test_files" ]`, takes the `exit 0`, and reports the tree as having no
+tests. The skip does **not** disable itself on `frontend`'s first test — it
+disables itself on `frontend`'s first test *with one of four extensions*.
+
+**Demonstrated on a real run rather than argued from the regex.** Mutation 6 put
+`frontend/probe.test.mts` — asserting `1 + 1 === 3` — at `frontend/`'s root, so
+`tsconfig`'s `include` (`src/**/*.ts`) and eslint's `files` (`**/*.{ts,tsx}`)
+both miss it and the `Test` step is the only thing under observation. Run
+[31270170161](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31270170161)
+on `db919ff`:
+
+| Job | Conclusion |
+|---|---|
+| `frontend (typecheck, lint, test)` | **success** |
+| `question-bank (typecheck, test)` | success |
+| **Run** | **success** |
+
+with the `Test` step logging
+
+```
+No test files in frontend/ yet — skipping bun test (T-004 adds the first).
+```
+
+Locally, `bun test` in `frontend/` on that same tree reports `0 pass / 1 fail`.
+**CI was green with a failing test in the repository** — the precise outcome
+criterion 6 exists to prevent, arrived at through the skip rather than through
+`continue-on-error`.
+
+### Why this is `fail` and not `blocked`
+
+Unlike round 1, nothing is frozen against the fix:
+
+- The change is to `.github/workflows/ci.yml`, first item in the Constraints'
+  "Files expected to change".
+- No dependency, no lockfile, nothing under `frontend/src/` or
+  `question-bank/src/` — criterion 8 is untouched.
+- No criterion needs rewording. 6c is *correct as written*; the workflow does not
+  satisfy it.
+
+So it goes back to the `worker` on the same branch, per `process.md` step 4.
+
+**Not prescribing the implementation** — but the shape is small: the extension
+alternation needs the four missing extensions, and whatever it becomes should be
+checked against `bun test`'s discovery rather than against a list written by
+hand. A regression test is awkward here (the subject is a workflow), so the
+worker re-running mutation 6 and seeing the run go **red** is the check.
+
+### Second-order observation, not a criterion
+
+`find` prunes `dist`, `.output` and `.vinxi`; `bun test` does not. A built tree
+containing a compiled `*.test.js` would be run by bun and unseen by the guard —
+the same class of divergence in the opposite direction. **Not reachable in CI
+today**: no job builds, so those directories never exist on the runner. Recording
+it because it shares a root cause with the 6c failure — the guard reimplements
+bun's file discovery instead of asking bun — and a fix that only adds four
+extensions leaves that root cause in place.
+
+### Findings carried forward from round 1
+
+Still true, still not criteria, still for the `reviewer`:
+
+- **`eslint .` has no `--max-warnings`.** Every green run logs
+  `✖ 7 problems (0 errors, 7 warnings)` and exits 0. Criterion 3 passes because
+  error-level rules do fail the step, but warnings accumulate invisibly forever.
+- **`frontend` cannot typecheck any test file** (`TS2307` on `bun:test`). Now
+  explicitly out of scope here and recorded against T-004, which is right — but
+  T-004's first commit will turn the frontend `Typecheck` step red until it adds
+  bun's types. The amendment states this plainly; worth the reviewer confirming
+  T-004's entry still carries it.
+
+### Honesty notes on this round
+
+- **Same session as round 1.** The brief permits it and prefers otherwise, and
+  the preference is sound: I re-read my own diagnosis. Mitigation is that 6c was
+  new work I had not looked at before, and its failure was found by testing
+  `bun test`'s actual behaviour rather than by re-reading anything I wrote. 6a
+  and 6b I re-derived from the runs' own step conclusions and logs rather than
+  from my previous verdict.
+- **`frontend`'s suite still cannot run in this session.** `bun install` fails
+  here with 403s on the 23 packages pinned to the Lovable npm mirror, so every
+  frontend claim is read off runner logs. `question-bank` ran locally: 19 pass,
+  typecheck clean.
+- **Branch.** Pushed to `claude/t002-sweep-t003-expand-ibrpor`, the `Branch:`
+  header, under the standing grant in `CLAUDE.md` "Branches" (PR #15). No
+  per-session permission was needed this round — the grant did exactly the job
+  D-8 says it was written for.
+- **Cycle bound.** Round 1 returned `blocked`, round 2 returns `fail`. If round 3
+  does not pass, `process.md` step 4's two-round bound is reached and it goes to
+  a human rather than round 4.
+
+### Mutation 6, and confirmation it was reverted
+
+| # | What was changed | Reverted in |
+|---|---|---|
+| M6 | `frontend/probe.test.mts`, a failing test with an extension the guard cannot see | this commit |
+
+**Confirmed clean**: `git diff 4c2806d` is empty at this commit, no file matching
+`probe` exists under `frontend/` or `question-bank/`, and `question-bank` reports
+19 pass. **No source file was edited to make anything pass**; this round leaves
+behind only this Verdict, the header and the Sessions row.
+
+---
+
+# Round 1 — **BLOCKED** — on criterion 6 only. Seven of eight criteria pass.
+
+> Superseded by round 2 above, and by the criterion 6 amendment it triggered.
+> Kept unedited: the amendment's reasoning, and its 6a/6b evidence table, are
+> written against this text.
 
 Back to `task-expander`, not to the `worker`: the code is not wrong, the
 criterion cannot be satisfied without unfreezing something. Details below.
