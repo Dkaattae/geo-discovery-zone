@@ -57,5 +57,3 @@ export function masteredFips(profile: Profile) {
       .map((e) => e.fipsCode as string),
   );
 }
-
-export const lintProbe   =   1;

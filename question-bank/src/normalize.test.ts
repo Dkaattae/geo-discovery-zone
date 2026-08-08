@@ -24,7 +24,7 @@ describe("criterion 2 — ranks across the full field", () => {
   test("every entity gets a population_rank and area_rank in 1-50", () => {
     const { entities } = normalizeUsStates(allRows());
 
-    expect(entities).toHaveLength(49);
+    expect(entities).toHaveLength(50);
     for (const entity of entities) {
       expect(entity.population_rank).toBeGreaterThanOrEqual(1);
       expect(entity.population_rank).toBeLessThanOrEqual(50);
