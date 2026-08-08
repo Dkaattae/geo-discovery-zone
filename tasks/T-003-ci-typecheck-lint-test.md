@@ -1,11 +1,14 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — in a fresh session. Both blockers are cleared: the
-lint failure by PR #12, and the stranded commit by fast-forwarding this branch
-onto the worker's. PR #11 now contains `.github/workflows/ci.yml`, and `main` is
-merged in, so CI runs on this PR are real and observable. Read the Handoff's
-"Update" block first — it says what changed after the worker stopped.
+**Status:** `blocked`
+**Next step:** `task-expander` — seven of eight criteria pass on observed
+workflow runs. **Criterion 6 cannot be discharged as written**: `frontend` has no
+`@types/bun` and its `tsconfig.json` includes `src/**/*.ts`, so any bun test file
+under `frontend/src/` fails `tsc` with TS2307 before the test step is reached.
+Every fix needs either criterion 8 relaxed (add the dependency) or the
+Constraints' file list widened (touch `tsconfig.json`) — both frozen, so neither
+is the worker's to make. The guard the criterion exists to police is **sound**
+and proven so. See the Verdict for the decision the expander has to take.
 **Approved:** Dkaattae, 2026-08-07 — criteria frozen from here. They change only
 by coming back through `task-expander` for a fresh approval.
 **From:** [`tasks.md`](../tasks.md) T-003
@@ -25,6 +28,7 @@ draft at expand time. It **stays draft** until the reviewer approves it.
 | task-expander | 2026-08-07 | `cse_01SHSwr9eZT5x1N2iLMZVKJR` — also ran T-002's deferred sweep in the same commit |
 | worker | 2026-08-07 | `cse_01VPwNNDJbsuRw8Ag6yTBhqd` — on `claude/worker-t003-i1kbih`, not the branch named above; see Handoff |
 | — (out of band) | 2026-08-07 | `cse_01PT6etPpidd8PU8cZgY1jCV` — not a loop role. Reviewed this task at the human's request, landed PR #12 (the lint fix) and PR #13 (the process fix), and appended the Handoff's "Update" block. Wrote no source for this task. **The tester must not run here either** |
+| tester | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — fresh session, none of the three above. Ran on the harness-assigned `claude/t003-tester-startup-gi675x`, which differs from the `Branch:` header; pushing here instead was authorised explicitly by Dkaattae before any commit. See the Verdict's "On the branch mismatch" |
 
 > **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR`.** That session
 > wrote these criteria; a verifier inside it is not independent.
@@ -476,7 +480,233 @@ before the tester session starts.
 
 ## Verdict
 
-Written by `tester`.
+Written by `tester`, session `cse_01GJgQEymzAYi8Nx1vDW4gU3`, 2026-08-08.
+
+# **BLOCKED** — on criterion 6 only. Seven of eight criteria pass.
+
+Back to `task-expander`, not to the `worker`: the code is not wrong, the
+criterion cannot be satisfied without unfreezing something. Details below.
+
+### The runs this verdict is read off
+
+Every mutation was pushed to this branch, observed on PR #11, and reverted. The
+final commit restores the tree byte-for-byte to `8adc7b3` (`git diff 8adc7b3`
+empty).
+
+| Run | SHA | Tree | Conclusion |
+|---|---|---|---|
+| [31225020656](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31225020656) | `8adc7b3` | unmutated baseline | **success** |
+| [31234909634](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31234909634) | `e86be44` | M1 — type error in *both* packages | **failure** |
+| [31234970937](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31234970937) | `59b6680` | M2 — lint error (frontend) + false assertion (question-bank) | **failure** |
+| [31235019281](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235019281) | `f2ef5b2` | M3 — **passing** test at `frontend/src/` | **failure** ← criterion 6 |
+| [31235108008](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235108008) | `12917d0` | M4 — **failing** test at `frontend/src/` | **failure** |
+| [31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550) | `4e1d7b5` | M5 — passing test at `frontend/` root, outside `tsconfig` include | **success** |
+
+Step-level conclusions, which are what make each criterion independently
+readable:
+
+| Run | fe Typecheck | fe Lint | fe Test | qb Typecheck | qb Test |
+|---|---|---|---|---|---|
+| `8adc7b3` | success | success | success (skipped) | success | success |
+| M1 | **failure** | success | success | **failure** | success |
+| M2 | success | **failure** | success | success | **failure** |
+| M3 | **failure** | success | success (1 pass) | success | success |
+| M4 | **failure** | success | **failure** | success | success |
+| M5 | success | success | success (1 pass) | success | success |
+
+### Criterion by criterion
+
+**1 — Triggers. PASS.** `on:` is `pull_request: branches: [main]` and
+`push: branches: [main]`; `main` is the default branch (it is the base of PR #11).
+All six runs above fired as `event: pull_request` against PR #11, so the
+pull-request half is observed, not merely read. The push-to-`main` half is read
+off the trigger block only — it cannot be observed until this branch merges. The
+brief anticipates this ("read off the committed files").
+
+**2 — A type error fails the run. PASS.** M1 appended
+`export const typeErrorProbe: number = "not a number";` to
+`frontend/src/lib/session.ts` *and* `question-bank/src/normalize.ts` in one
+commit. Run `31234909634` concluded `failure` with the **Typecheck step failing
+in both jobs independently** — so both packages are covered, which is what the
+criterion's second sentence asks. Note the `question-bank` Test step still ran
+and passed: a failing step does not stop the others, and the job still fails.
+
+**3 — A lint error fails the run. PASS.** M2 appended
+`export const lintProbe   =   1;` to `frontend/src/lib/session.ts` — a
+`prettier/prettier` violation, which `eslint-plugin-prettier/recommended` sets to
+**error**. Deliberately type-valid, so the failure is isolated: frontend
+Typecheck `success`, Lint **`failure`**, run `failure`.
+
+**4 — A failing test fails the run. PASS.** M2 also changed
+`question-bank/src/normalize.test.ts:27` from `toHaveLength(50)` to
+`toHaveLength(49)` against the 50-row fixture — an *existing* test made to assert
+something false, as the criterion words it. Isolated the same way: question-bank
+Typecheck `success`, Test **`failure`** (18 pass / 1 fail), run `failure`.
+
+**5 — A green tree passes. PASS.** Run `31225020656` on the unmutated tip:
+both jobs `success`. The frontend Test step logged `No test files in frontend/
+yet — skipping bun test (T-004 adds the first).` and exited 0, so the bare
+`bun test` exit code of 1 is demonstrably not what decided the run.
+
+**6 — Criterion 5 is not bought by skipping frontend tests. FAILS AS WRITTEN.**
+
+The criterion has two halves. The second holds; the first does not.
+
+- *Adding a failing test file under `frontend/src/` yields `failure`* — **holds**
+  (M4). The Test step itself concluded `failure`, so bun's exit code really does
+  decide once a file exists.
+- *Adding a **passing** test file under `frontend/src/` still yields `success`* —
+  **does not hold**. M3 concluded **`failure`**.
+
+**The guard is not what failed.** M3's Test step behaved exactly as designed: it
+found the file, stopped skipping, ran `bun test`, and passed —
+`Test files found (first match: ./src/t003-probe.test.ts) — running bun test.` /
+`1 pass  0 fail`. The job died one step earlier:
+
+```
+$ tsc --noEmit
+src/t003-probe.test.ts(1,30): error TS2307: Cannot find module 'bun:test' or its
+corresponding type declarations.
+##[error]Process completed with exit code 2.
+```
+
+`frontend` has no `@types/bun` in its devDependencies, and `tsconfig.json` sets
+`"types": ["vite/client"]` while `include` covers `src/**/*.ts`. So **any** bun
+test file under `frontend/src/` fails `tsc` before its assertions matter. Writing
+the test without the import does not help — the globals are equally unknown to
+`tsc`.
+
+M5 nails the diagnosis down. The same passing test, moved to `frontend/`'s root
+so `tsconfig`'s `include` misses it while the workflow's `find` still sees it,
+concluded **`success`** with every step green and `bun test` reporting `1 pass`.
+So: the workflow's handling of frontend tests is correct, and the sole obstacle
+to criterion 6 is the package's own type configuration.
+
+**Why this is `blocked` and not `fail`.** Nothing the worker is permitted to do
+turns it green:
+
+| Fix | Blocked by |
+|---|---|
+| Add `@types/bun` to `frontend` devDependencies | Criterion 8 — "no dependency is added to either `package.json`'s `dependencies` or `devDependencies`", and it would change `frontend/bun.lock`, also criterion 8. `CLAUDE.md` also sends dependencies to a human |
+| Exclude test files in `frontend/tsconfig.json` | Permitted by criterion 8 (not under `src/`, not a dep, not a lockfile) but forbidden by Constraints — "Files expected to change: … Nothing else" |
+| Point the `typecheck` script at a test-free project | `tsc` has no exclude-files flag; needs a second `tsconfig`, again a new file outside Constraints |
+
+That is the same shape the worker hit with the lint blocker, and the brief itself
+classified that shape as **blocked** — "a criterion that is wrong as written …
+because no change the worker is permitted to make can turn it green". So this
+goes back through `task-expander` for a fresh approval, per `process.md` step 4.
+
+**What the expander should decide.** Two honest routes, both cheap:
+
+1. **Reword criterion 6 to name the guard**, which is what it was always about —
+   e.g. "adding a test file under `frontend/` makes the Test step run `bun test`
+   rather than skip, and the test's own result decides the step". Run
+   `31235143550` (pass → `success`) and run `31235108008` (fail → Test step
+   `failure`) already discharge that wording; no further work. Recommended.
+2. **Widen the brief** to permit `@types/bun` plus the lockfile change, or to
+   permit `frontend/tsconfig.json`, and keep criterion 6 literal. This is really
+   T-004's problem arriving early — `frontend` cannot hold *any* typechecked test
+   until it is solved, so it has to be solved by T-004 regardless.
+
+Either way it is a criteria decision with a human approval attached, which is
+exactly why this is not the worker's to take.
+
+**7 — The run does not rewrite either lockfile. PASS.** Both jobs run
+`bun install --frozen-lockfile` and then a `Lockfile unchanged` step
+(`git diff --exit-code -- bun.lock`). That step concluded `success` in **every
+job of every run above**, including frontend installs that resolved 436 packages.
+Neither `bun.lock` is in this branch's diff against `origin/main` either.
+
+**8 — Nothing outside CI changes. PASS.** `git diff origin/main...` at the
+reverted tip touches five files: `.github/workflows/ci.yml` (new), one script
+line in `frontend/package.json`, this brief, and `tasks.md` / `PROGRESS.md` from
+the expander's T-002 sweep. Checked individually:
+
+- `git diff origin/main... -- frontend/src question-bank/src` — **empty**.
+- `git diff origin/main... -- frontend/bun.lock question-bank/bun.lock` — **empty**.
+- `frontend/package.json` gains only `"typecheck": "tsc --noEmit"`; no
+  `dependencies` or `devDependencies` entry. `question-bank/package.json` is
+  untouched.
+
+### The pre-existing suite
+
+`question-bank`: `bun run typecheck` exit 0, `bun test` **19 pass / 0 fail**,
+both locally and in run `31235143550`. `frontend` has no tests by design until
+T-004; its typecheck and lint are green on the runner.
+
+**`frontend`'s suite could not be run in this session, and that is worth
+stating.** `bun install --frozen-lockfile` fails here with 403s on the 23
+packages `frontend/bun.lock` pins to
+`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache` — this sandbox's
+egress policy, the same wall the worker hit. So every frontend claim in this
+verdict is read off GitHub runner logs rather than local execution. The runner
+installs those packages without trouble, so this is a limitation of the verifying
+session, not of the workflow.
+
+### Findings that are not criteria
+
+Recorded for the `reviewer` rather than blocking anything.
+
+1. **`eslint .` never fails on warnings, and the tree already has seven.** Every
+   green run logs `✖ 7 problems (0 errors, 7 warnings)` and exits 0 — all
+   `react-refresh/only-export-components`. Criterion 3 is satisfied because
+   error-level rules do fail the step, but the Lint gate is weaker than it looks:
+   warnings accumulate invisibly forever. `eslint . --max-warnings 0` would close
+   it, and the seven existing warnings would have to be fixed or explicitly
+   allowed first. Not in this task's scope; worth a queue entry.
+2. **Criterion 6's real subject is untested by criterion 6's wording.** The
+   guard's job is to self-disable when T-004 lands. M5 proves it does. The
+   criterion's literal wording tested the package's tsconfig instead, which is
+   how a green-looking task ends up blocked on something unrelated to its own
+   diff. Worth remembering the next time a criterion is written against a file
+   path rather than a behaviour.
+3. **`frontend` cannot typecheck any test file today.** Whatever T-004 does, its
+   first commit has to add `@types/bun` (or equivalent) and adjust
+   `tsconfig.json`'s `types`. Worth adding to T-004's entry now, while the
+   TS2307 is in front of us, so that task does not rediscover it.
+
+### On the branch mismatch
+
+`process.md` and `tester.md` both say a tester whose session branch differs from
+the brief's `Branch:` header must stop. It did differ: this session was assigned
+`claude/t003-tester-startup-gi675x`, the header names
+`claude/t002-sweep-t003-expand-ibrpor`.
+
+I stopped and asked before committing anything, and **Dkaattae authorised pushing
+to the header's branch** — which is the branch PR #11 is built from, so the
+commits are where every downstream role will look. This is the D-8 rule working
+as intended rather than an exception to it: the header stayed the authority, and
+the harness's default branch was the one overridden.
+
+It also could not have gone the other way. Criteria 2, 3, 4 and 6 are verified by
+observing run conclusions, the workflow triggers only on `pull_request` → `main`
+and `push` → `main`, and PR #11 is the task's only PR. Tests pushed to the
+session branch would have produced no runs at all — the T-003 stranding failure a
+second time, in the role whose whole output is observations.
+
+### Mutations, and confirmation that every one was reverted
+
+Six commits: five mutations and the revert. Each mutation commit records the
+previous run's result, so the branch history reads as the experiment log.
+
+| # | What was changed | Reverted in |
+|---|---|---|
+| M1 | `typeErrorProbe` appended to `frontend/src/lib/session.ts` and `question-bank/src/normalize.ts` | `59b6680` |
+| M2 | `lintProbe` appended to `frontend/src/lib/session.ts`; `normalize.test.ts:27` → `toHaveLength(49)` | `f2ef5b2` |
+| M3 | `frontend/src/t003-probe.test.ts`, passing | `12917d0` |
+| M4 | `frontend/src/t003-probe.test.ts`, failing | `4e1d7b5` |
+| M5 | `frontend/t003-probe.test.ts`, passing, outside `tsconfig` include | this commit |
+
+**Confirmed clean**: at this commit `git diff 8adc7b3` is empty — the tree is
+byte-identical to the pristine pre-tester state — and no file matching
+`t003-probe`, `typeErrorProbe` or `lintProbe` exists anywhere under `frontend/`
+or `question-bank/`. One correction worth recording: M1's first revert attempt
+used `git checkout --` against `HEAD`, which had already *committed* the
+mutation, so it restored the mutated file. Caught locally before the push by
+re-running `bun run typecheck`; the revert now restores from `8adc7b3` explicitly.
+
+**No source file was edited to make anything pass.** The only changes this
+session leaves behind are this Verdict, the header, and the Sessions row.
 
 ## Notes
 
