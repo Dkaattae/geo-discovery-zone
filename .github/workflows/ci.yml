@@ -59,22 +59,24 @@ jobs:
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         # `bun test` exits 1 when a package contains no test files at all, and
-        # frontend/ has none until T-004 adds them. Skip only that exact case:
-        # the moment any test file exists, bun's own exit code decides this
-        # step. Deliberately not `continue-on-error` or `|| true`, either of
-        # which would still be here when T-004 lands and would quietly ignore
-        # real failures.
-        run: |
-          set -euo pipefail
-          test_files=$(find . -regextype posix-extended \
-            -type d \( -name node_modules -o -name dist -o -name .output -o -name .vinxi -o -name .git \) -prune -o \
-            -type f -regex '.*[._](test|spec)\.(js|jsx|ts|tsx)$' -print -quit)
-          if [ -z "$test_files" ]; then
-            echo "No test files in frontend/ yet — skipping bun test (T-004 adds the first)."
-            exit 0
-          fi
-          echo "Test files found (first match: $test_files) — running bun test."
-          bun test
+        # frontend/ has none until T-004 adds them. `--pass-with-no-tests` makes
+        # bun exit 0 for that one case and nothing else: a test that exists and
+        # fails still exits non-zero and still fails this step.
+        #
+        # This step deliberately contains no shell logic. The previous version
+        # decided "are there test files?" itself, with a `find` regex over
+        # `js|jsx|ts|tsx` — but bun also runs `.mts`, `.cts`, `.mjs` and `.cjs`,
+        # and bun does not prune `dist`/`.output`/`.vinxi` the way that `find`
+        # did. Any hand-written copy of bun's discovery can disagree with bun,
+        # and when it does the step reports "no tests" while real tests fail.
+        # That happened: run 31270170161 was green with a failing
+        # `frontend/probe.test.mts` in the tree. So the question is now put to
+        # bun instead of re-implemented, and there is no `exit 0` here at all —
+        # bun's exit code is the step's exit code in every state.
+        #
+        # Not `continue-on-error`, not `|| true`, not `set +e`, not `always()`:
+        # none of those distinguish "no tests" from "tests failed".
+        run: bun test --pass-with-no-tests
 
   question-bank:
     name: question-bank (typecheck, test)

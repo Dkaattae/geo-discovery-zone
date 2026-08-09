@@ -1,16 +1,20 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `fail` — on criterion **6c** only. Seven and a half of eight criteria
-pass; 6a and 6b are discharged by the archived runs exactly as the amendment
-predicted. 6c is not met: the `Test` step's `exit 0` **is** reachable while test
-files exist, because the guard's `find` pattern is narrower than `bun test`'s own
-discovery. Observed, not argued — run
-[31270170161](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31270170161)
-concluded **`success`** with a failing test sitting in `frontend/`.
-**Next step:** `worker` — **not `task-expander`.** The criteria are fine this
-time. The fix is one regex in `.github/workflows/ci.yml`, which the Constraints
-already list as a file this task may change: no dependency, no criteria change,
-no re-approval. See the Verdict.
+**Status:** `awaiting verification` — round 3. The 6c failure is fixed in
+`.github/workflows/ci.yml` and nothing else changed. The frontend `Test` step no
+longer decides for itself whether test files exist: it is now the single command
+`bun test --pass-with-no-tests`, so bun answers the question it is the authority
+on and its exit code is the step's exit code in every state. There is no `exit 0`
+in the step at all, and no `find`, so neither the extension gap nor the
+`dist`/`.output`/`.vinxi` prune gap can exist. Criteria 1–5, 7 and 8 are
+untouched by the change.
+**Next step:** `tester` — a fresh session, and one that is **not**
+`cse_01YWmburx8y7tk1ing3hDVVx` (this round's worker). Round 3 of a two-round
+bound: `process.md` step 4 says a third non-pass escalates to a human rather than
+starting round 4. **No GitHub Actions run was observed this round** — this
+session has no `gh` and no GitHub MCP tools — so re-running mutation 6
+(`frontend/probe.test.mts`, failing) and confirming the run goes **red** is
+genuinely outstanding work, not a formality. See the round-3 Handoff.
 **Approved:** Dkaattae, 2026-08-08 — the amended criterion 6, and with it the
 whole set, re-approved after PR #14 merged. The criteria are frozen again from
 here and change only by coming back through `task-expander`. (The earlier
@@ -59,6 +63,7 @@ criterion-6 amendment arrives via
 | tester | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — fresh session, none of the three above. Ran on the harness-assigned `claude/t003-tester-startup-gi675x`, which differs from the `Branch:` header; pushing here instead was authorised explicitly by Dkaattae before any commit. See the Verdict's "On the branch mismatch" |
 | task-expander | 2026-08-08 | `cse_01HMQ72V73ADbUkKu29EAgjP` — second expander run, on the `blocked` return path. Amended criterion 6 only; wrote no source, ran no build, test or pipeline. Pinned to `claude/t003-criterion-6-expander-0qifna`; see the `Branch:` note |
 | tester (2nd round) | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — **the same session as the first tester run**, which the note below marks as permitted but not preferred. It wrote no criteria and no source. Pushed to the `Branch:` header under `CLAUDE.md` "Branches", the standing grant that landed in PR #15; no per-session permission was needed this time. Independence caveat in the Verdict |
+| worker (3rd round) | 2026-08-09 | `cse_01YWmburx8y7tk1ing3hDVVx` — fixed criterion 6c in `.github/workflows/ci.yml`. **This session wrote source for this task and is therefore disqualified as a tester session.** The harness pinned it to `claude/worker-t003-26yf6n`; it pushed to the `Branch:` header under `CLAUDE.md` "Branches" |
 
 > **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR` or
 > `cse_01HMQ72V73ADbUkKu29EAgjP`.** Both wrote criteria for this task; a verifier
@@ -67,6 +72,12 @@ criterion-6 amendment arrives via
 > session is preferred, because the amended criterion 6 was written in response to
 > that session's own verdict and re-reading one's own diagnosis is the weakest
 > form of the check this loop is built on.
+
+> **Added for round 3: the tester must not run in `cse_01YWmburx8y7tk1ing3hDVVx`
+> either.** That session is the round-3 worker; it wrote the `ci.yml` change that
+> criterion 6c now judges. `cse_01GJgQEymzAYi8Nx1vDW4gU3` remains permitted, and
+> is a stronger choice this round than last: what it would verify is code it did
+> not write, responding to a diagnosis that has been fixed rather than reworded.
 
 **Path:** full, not light — see Notes for why an `S` task ended up with eight
 criteria and got re-sized to `M`.
@@ -323,6 +334,303 @@ no mutation needed.
 ## Handoff
 
 Written by `worker` before the tester runs.
+
+> **Two rounds of Handoff, newest first**, matching the Verdict's layout. Round 3
+> is the live one and is written immediately below. Everything from "Round 1 —
+> the original handoff" down is the first worker's text and the out-of-band
+> update, unedited: both Verdicts are written against it and it stops making
+> sense if it moves.
+
+---
+
+# Round 3 — criterion 6c fixed
+
+Written by `worker`, session `cse_01YWmburx8y7tk1ing3hDVVx`, 2026-08-09, against
+the criteria approved at `4c2806d`, on the round-2 `fail` return path.
+
+**TL;DR**
+
+- **One file changed: `.github/workflows/ci.yml`, frontend `Test` step only.**
+  Nothing else in the repo is touched — no `package.json`, no lockfile, no
+  `src/`, no dependency, no test file committed.
+- **The guard is gone rather than widened.** The step is now the single command
+  `bun test --pass-with-no-tests`. There is no `find`, no `if`, no `exit 0` and
+  no shell logic of any kind, so the step cannot disagree with bun about what a
+  test file is. Bun's exit code is the step's exit code in every state.
+- **No workflow run was observed.** This session has no `gh` and no GitHub MCP
+  tools. Everything below is measured locally with **bun 1.3.11 — the exact
+  version `ci.yml` pins** — so re-running mutation 6 and seeing the run go red is
+  still real outstanding work for the tester.
+
+### What changed, file by file
+
+**`.github/workflows/ci.yml`** — the `frontend` job's `Test` step, and only that
+step. Before (lines 67–77 at `848e988`):
+
+```yaml
+run: |
+  set -euo pipefail
+  test_files=$(find . -regextype posix-extended \
+    -type d \( -name node_modules -o -name dist -o -name .output -o -name .vinxi -o -name .git \) -prune -o \
+    -type f -regex '.*[._](test|spec)\.(js|jsx|ts|tsx)$' -print -quit)
+  if [ -z "$test_files" ]; then
+    echo "No test files in frontend/ yet — skipping bun test (T-004 adds the first)."
+    exit 0
+  fi
+  echo "Test files found (first match: $test_files) — running bun test."
+  bun test
+```
+
+After:
+
+```yaml
+run: bun test --pass-with-no-tests
+```
+
+The comment above it grew to record why, including the run number of the green
+build that had a failing test in it. The step's `name`, its `if:` condition and
+every other step in both jobs are byte-identical.
+
+**`tasks/T-003-ci-typecheck-lint-test.md`** — this Handoff, the Sessions row, the
+tester-disqualification note, `Status` and `Next step`. **The acceptance criteria
+are untouched**, as are both Verdicts and the round-1 Handoff.
+
+Nothing else. `git status` shows exactly those two paths.
+
+### Why the guard was deleted rather than patched
+
+The round-2 Verdict left this open ("not prescribing the implementation") and its
+"second-order observation" argued that adding four extensions leaves the root
+cause in place. It is right, and the root cause is cheap to remove outright.
+
+**`--pass-with-no-tests` is a flag `bun test` already has** — it is in
+`bun test --help` on 1.3.11, the version this workflow pins. It exits 0 when no
+tests are found **and nothing else**: a test that exists and fails still exits 1.
+That is precisely, and only, the case the old guard existed to special-case. No
+dependency, no script, no shell.
+
+Three things the old shape got wrong that this one cannot get wrong:
+
+| Divergence | Old guard | Now |
+|---|---|---|
+| Extensions bun runs that `find` did not match (`.mts`, `.cts`, `.mjs`, `.cjs`) | skipped, green with failing tests — the 6c failure | impossible; bun decides |
+| Directories `find` pruned that bun does not (`dist`, `.output`, `.vinxi`) | would run tests the guard could not see | impossible; bun decides |
+| Any future change to bun's discovery | silently reintroduces the same class of bug | follows bun automatically |
+
+**The strongest single piece of evidence for the shape.** Bun's own no-tests
+message names its glob as
+
+```
+error: 0 test files matching **{.test,.spec,_test_,_spec_}.{js,ts,jsx,tsx} in --cwd="…"
+```
+
+— which omits `.mts`, while bun demonstrably *runs* `.mts` (measured below).
+Bun's self-reported pattern understates its own behaviour, so a hand-written
+`find` equivalent is not merely fiddly to keep in sync; it has no correct source
+to copy from. Asking bun is the only version of this that is right by
+construction.
+
+**Judgement call, flagged with an owner.** `--pass-with-no-tests` does not remove
+itself once T-004 lands, whereas criterion 6c describes a skip that "disables
+itself". Two things about that:
+
+1. **It is not a regression.** The old guard did not remove itself either — it
+   re-armed the moment `frontend/` had no matching test file, forever. The
+   behaviour in "T-004 lands, then someone deletes every frontend test" is
+   identical under both: CI stays green. What differs is only that bun now
+   decides what counts as a test file.
+2. **6c is satisfied more strongly, not more weakly.** The criterion pins "the
+   one `exit 0` that bypasses `bun test`" to the no-test-files condition; there
+   is now **no `exit 0`, and nothing bypasses `bun test`** — it runs
+   unconditionally in every state.
+
+If the reviewer wants CI to positively *require* frontend tests once T-004 lands
+— i.e. drop the flag then, so an empty `frontend/` goes red — that is a one-line
+queue entry, not a change here. **Proposed owner: `reviewer`, at the step-6
+sweep, as a note on T-004's entry** (T-004 will be editing this area anyway). I
+did not add it to `tasks.md` myself because the Constraints name the three files
+this task may change and `tasks.md` is not one of them.
+
+**`question-bank`'s `Test` step deliberately does not get the flag.** It has 19
+tests; if they ever vanish, that job *should* go red. The flag belongs only where
+the empty state is expected and temporary.
+
+### Where each criterion lives now
+
+Only 6 moved. The rest are exactly where the round-2 Verdict found them.
+
+| # | Where it lives | Changed this round? |
+|---|---|---|
+| 1 | `ci.yml` `on:` — `pull_request` / `push`, `branches: [main]` | no |
+| 2 | `Typecheck` step in both jobs (`bun run typecheck`) | no |
+| 3 | `frontend` → `Lint` (`bun run lint` → `eslint .`) | no |
+| 4 | `question-bank` → `Test` (bare `bun test`, no flag) | no |
+| 5 | Whole workflow; the empty state is now handled by `--pass-with-no-tests` | **yes** — different mechanism, same outcome |
+| 6a | `frontend` → `Test`; log reads `Run bun test --pass-with-no-tests` then bun's `1 pass / 0 fail` | **yes** — see the note below |
+| 6b | `frontend` → `Test`; a failing test exits 1 and the step is that exit code | **yes** — mechanism simplified, outcome unchanged |
+| 6c | `frontend` → `Test`; no `exit 0`, no `find`, no shell | **yes — this is the fix** |
+| 7 | `--frozen-lockfile` + the `Lockfile unchanged` steps | no |
+| 8 | The diff: only `ci.yml` and this brief | no |
+
+**A note for whoever re-reads 6a.** It asks that "the `Test` step's log says it
+is running `bun test` rather than skipping". With a one-line `run:`, that
+sentence is carried by GitHub's own step header — the log group reads
+`Run bun test --pass-with-no-tests` — followed by bun's banner and its
+`1 pass / 0 fail` summary. There is no longer a bespoke `echo` saying so, because
+there is no longer a branch it could distinguish. If the tester reads 6a
+strictly as "an explicit line of our own text", say so in the Verdict and it is a
+one-line `echo` to add; **proposed owner: `tester` to call, `worker` to add.** My
+reading is that a step which never skips satisfies "rather than skipping" a
+fortiori, and that adding shell back to make the log more chatty is the wrong
+direction for a step whose whole defect was having shell in it.
+
+### Evidence — measured locally, bun 1.3.11, all outside the repo
+
+Scratch trees under the session scratchpad; **no test file was created anywhere
+under `/home/user/geo-discovery-zone`** and none is committed.
+
+**1. The new command, in all three states criterion 6 names:**
+
+| Tree | Command | Output | Exit |
+|---|---|---|---|
+| empty directory | `bun test --pass-with-no-tests` | `error: 0 test files matching …` | **0** |
+| one **passing** `probe.test.mts` | same | `1 pass  0 fail` | **0** |
+| one **failing** `probe.test.mts` | same | `0 pass  1 fail` | **1** |
+
+The middle and last rows are the point: `.mts` is an extension the old guard's
+regex could not see, and the new step both runs it and fails on it.
+
+**2. The old guard reproduced, so the 6c failure is confirmed rather than taken
+on trust.** A scratch tree with a failing `probe.test.mts` at the root *and* a
+failing `dist/built.test.js`:
+
+| Run against that tree | Result |
+|---|---|
+| the committed guard's shell body, verbatim from `848e988` | prints `No test files in frontend/ yet — skipping bun test`, **exit 0** |
+| `bun test` on the same tree | `0 pass  2 fail`, **exit 1** |
+
+Both of the Verdict's findings in one experiment: the extension gap (6c, the
+criterion) and the `dist` prune gap (the second-order observation, not a
+criterion). Both are now unreachable, because neither `find` nor the prune list
+exists any more.
+
+**3. The real `frontend/` tree, as committed** — `bun test --pass-with-no-tests`
+in `/home/user/geo-discovery-zone/frontend`: `error: 0 test files matching …`,
+**exit 0**. That is criterion 5's state going green through the new mechanism, on
+the actual tree, not a scratch one.
+
+**4. `question-bank`, the pre-existing suite:**
+
+| Command | Result |
+|---|---|
+| `bun install --frozen-lockfile` | success, 6 packages |
+| `bun run typecheck` | exit **0** |
+| `bun test` | **19 pass / 0 fail** |
+| `git diff --exit-code -- question-bank/bun.lock` | clean |
+
+*(First attempt at `bun run typecheck` failed with `TS2688: Cannot find type
+definition file for 'bun'` — that was only because `question-bank/node_modules`
+did not exist in this fresh session. It is clean after the install. Recorded
+because a half-read scrollback of this session would otherwise look alarming.)*
+
+### What could not be verified from this session, and why
+
+Plainly: **no GitHub Actions run was observed, and none was pushed.** This
+session has no `gh` and no GitHub MCP tools, so it can neither start a run nor
+read one's conclusion.
+
+I deliberately did **not** push a mutation commit to produce a run I could not
+read. Two reasons: the brief's Out of scope assigns the throwaway demonstration
+file to the tester ("a throwaway the tester adds and removes"), and pushing a
+deliberately failing test to PR #11 that I cannot then confirm went red — and
+cannot confirm was reverted-and-green afterwards — is exactly the shape of risk
+that has already cost this task a cycle. The local evidence above is decisive at
+the level it can reach; the runner-level check is the tester's.
+
+**`frontend`'s typecheck and lint could not be run here.** `bun install
+--frozen-lockfile` in `frontend/` still fails with 403s on the 23 packages
+`bun.lock` pins to `europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`
+— the same sandbox egress wall both previous rounds hit, unchanged and unrelated
+to this diff. Those two steps are untouched by this change and were green on the
+runner in every previous run.
+
+### What the tester should do
+
+The check the round-2 Verdict named, unchanged:
+
+1. **Mutation 6.** Put a failing test at `frontend/`'s root with an extension the
+   old guard could not see — `frontend/probe.test.mts` asserting something false.
+   Root, not `src/`, so `tsconfig`'s `include` and eslint's `files` both miss it
+   and the `Test` step is the only thing under observation. Expect the frontend
+   `Test` **step** to conclude `failure` and the run to conclude `failure`.
+   Under the old code this exact mutation gave a green run (31270170161).
+2. **Revert it**, and confirm the run on the reverted tip is green — that is
+   criterion 5 re-checked through the new mechanism.
+3. **Read `ci.yml`** for 6c's enumerated half: `continue-on-error`, `|| true`,
+   `set +e`, `always()` and `exit 0` now appear **only inside the comment that
+   says they were avoided**. The two `--exit-code` uses are still the lockfile
+   check, which fails loudly by design.
+
+Worth knowing while reading logs: in the no-tests state bun prints a line
+beginning `error: 0 test files matching …` **and exits 0**. The word "error" in a
+green step is bun's wording, not a swallowed failure — `--pass-with-no-tests`
+converts the exit code, not the message.
+
+### Deliberately not done
+
+- **Widening the `find` regex to eight extensions.** It fixes the observed
+  symptom and leaves the mechanism that produced it. See above.
+- **Any `package.json` change**, including a `frontend` `test` script wrapping
+  the flag. `conventions.md` and `test-guidelines.md` promise plain `bun test`
+  per package; a script whose behaviour differs from the command the docs name
+  would make them quietly misleading. The no-tests tolerance is a CI concern and
+  lives in CI, where its lifetime is visible in one file.
+- **Touching `question-bank`'s `Test` step** — see above.
+- **A `tasks.md` entry** for dropping the flag after T-004, and for the round-2
+  Verdict's carried-forward findings (`eslint .` has no `--max-warnings`;
+  `frontend` cannot typecheck a test file). All three are outside this task's
+  Constraints. **Proposed owner: `reviewer`, at the step-6 sweep.**
+- **Everything the round-1 Handoff lists under "Deliberately not done"** — still
+  not done, still for the reasons given there. The SHA-pinning flag for
+  `actions/checkout@v5` / `oven-sh/setup-bun@v2` is still open, still the
+  reviewer's.
+
+### How to run what I touched
+
+The whole `Test` step is now one command, so it is runnable directly:
+
+```bash
+cd /home/user/geo-discovery-zone/frontend      && bun test --pass-with-no-tests   # exit 0, no tests yet
+cd /home/user/geo-discovery-zone/question-bank && bun install --frozen-lockfile && bun run typecheck && bun test
+```
+
+To reproduce the fix's whole claim in one go, in a scratch directory outside the
+repo:
+
+```bash
+mkdir -p /tmp/probe && cd /tmp/probe
+bun test --pass-with-no-tests; echo "no tests -> $?"                    # 0
+printf 'import{test,expect}from"bun:test";test("p",()=>expect(1).toBe(1));\n' > p.test.mts
+bun test --pass-with-no-tests; echo "passing .mts -> $?"                # 0
+printf 'import{test,expect}from"bun:test";test("f",()=>expect(1).toBe(2));\n' > p.test.mts
+bun test --pass-with-no-tests; echo "failing .mts -> $?"                # 1
+```
+
+`frontend`'s `Typecheck` and `Lint` need `bun install --frozen-lockfile`, which
+fails in this sandbox for the mirror reason above; they are unchanged by this
+round.
+
+### Branch
+
+The harness pinned this session to `claude/worker-t003-26yf6n`, but the working
+tree was already checked out on `claude/t002-sweep-t003-expand-ibrpor` — the
+`Branch:` header, and the branch PR #11 is built from. Pushed there under
+`CLAUDE.md` "Branches", the standing grant; no per-session permission was needed.
+Confirmed after pushing with `git log origin/claude/t002-sweep-t003-expand-ibrpor -1`.
+
+---
+
+# Round 1 — the original handoff, unedited
 
 ### Update — 2026-08-07, out of band
 
@@ -1084,3 +1392,32 @@ frontend test step tolerate a non-zero exit, and the obvious way to do *that* is
 at which point `frontend`'s tests would be running and being ignored — a green
 check certifying nothing. Criterion 6 is there to make that outcome fail
 verification rather than fail silently two tasks later.
+
+### Worker's notes — round 3
+
+**The bug was not the regex, and the surprise is that the regex was never
+fixable.** The obvious reading of the round-2 Verdict is "four extensions are
+missing, add them". But bun's own error message in the no-tests case reports its
+glob as `**{.test,.spec,_test_,_spec_}.{js,ts,jsx,tsx}` — and bun then goes and
+runs `.mts` files anyway. So there was no authoritative list to copy: the guard
+would have been synchronised against a string bun itself does not honour. That
+turned "which extensions did we miss" into "why is this step guessing at all",
+and the answer was a flag bun already ships. Net effect on the file is
+eleven lines of shell deleted and one command left.
+
+**The fix is smaller than the comment explaining it, deliberately.** A future
+reader's most likely instinct on seeing `--pass-with-no-tests` is to wonder
+whether it is a softener like `continue-on-error`, and their second is to
+reintroduce a "smarter" guard. The comment answers both, and names the green run
+that had a failing test in it so the history is attached to the line that fixes
+it.
+
+**What the two rounds have in common.** Round 1's blocker was a criterion written
+against a *file path* when it meant a *behaviour*. Round 2's failure was a step
+written against a *file pattern* when it meant *whatever bun runs*. Same mistake
+in two different artefacts: naming a proxy for the thing instead of the thing.
+Worth keeping in mind the next time either a criterion or a step needs to
+identify "the tests".
+
+**Cycle position.** This is round 3 of `process.md` step 4's two-round bound. If
+the tester does not pass it, the next stop is a human, not round 4.
