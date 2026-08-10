@@ -1,20 +1,19 @@
 # T-003 — CI: typecheck, lint, test on every PR
 
-**Status:** `awaiting verification` — round 3. The 6c failure is fixed in
-`.github/workflows/ci.yml` and nothing else changed. The frontend `Test` step no
-longer decides for itself whether test files exist: it is now the single command
-`bun test --pass-with-no-tests`, so bun answers the question it is the authority
-on and its exit code is the step's exit code in every state. There is no `exit 0`
-in the step at all, and no `find`, so neither the extension gap nor the
-`dist`/`.output`/`.vinxi` prune gap can exist. Criteria 1–5, 7 and 8 are
-untouched by the change.
-**Next step:** `tester` — a fresh session, and one that is **not**
-`cse_01YWmburx8y7tk1ing3hDVVx` (this round's worker). Round 3 of a two-round
-bound: `process.md` step 4 says a third non-pass escalates to a human rather than
-starting round 4. **No GitHub Actions run was observed this round** — this
-session has no `gh` and no GitHub MCP tools — so re-running mutation 6
-(`frontend/probe.test.mts`, failing) and confirming the run goes **red** is
-genuinely outstanding work, not a formality. See the round-3 Handoff.
+**Status:** `pass` — round 3. All eight criteria verified against workflow runs of
+the **shipped** workflow. The outstanding work the worker named is done: the
+regression re-run happened and **went red**. The identical failing
+`frontend/probe.test.mts` that made run
+[31270170161](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31270170161)
+green under the old `find` guard now fails run
+[31400723404](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31400723404)
+at the `Test` step. The tree is reverted to the worker's tip and green.
+**Next step:** `reviewer` — `process.md` steps 5 and 6. Tester passed, whole
+suite green, nothing outside the Constraints, no dependency added, `openapi.yaml`
+untouched, no migration, no text a child reads. Five non-blocking findings close
+the round-3 Verdict, three naming the reviewer as owner. **The branch is 2
+commits behind `origin/main`** (PR #15, process docs only) — worth merging before
+the merge decision.
 **Approved:** Dkaattae, 2026-08-08 — the amended criterion 6, and with it the
 whole set, re-approved after PR #14 merged. The criteria are frozen again from
 here and change only by coming back through `task-expander`. (The earlier
@@ -64,6 +63,7 @@ criterion-6 amendment arrives via
 | task-expander | 2026-08-08 | `cse_01HMQ72V73ADbUkKu29EAgjP` — second expander run, on the `blocked` return path. Amended criterion 6 only; wrote no source, ran no build, test or pipeline. Pinned to `claude/t003-criterion-6-expander-0qifna`; see the `Branch:` note |
 | tester (2nd round) | 2026-08-08 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — **the same session as the first tester run**, which the note below marks as permitted but not preferred. It wrote no criteria and no source. Pushed to the `Branch:` header under `CLAUDE.md` "Branches", the standing grant that landed in PR #15; no per-session permission was needed this time. Independence caveat in the Verdict |
 | worker (3rd round) | 2026-08-09 | `cse_01YWmburx8y7tk1ing3hDVVx` — fixed criterion 6c in `.github/workflows/ci.yml`. **This session wrote source for this task and is therefore disqualified as a tester session.** The harness pinned it to `claude/worker-t003-26yf6n`; it pushed to the `Branch:` header under `CLAUDE.md` "Branches" |
+| tester (3rd round) | 2026-08-10 | `cse_01GJgQEymzAYi8Nx1vDW4gU3` — again the session that ran testers 1 and 2, and **not** `cse_01YWmburx8y7tk1ing3hDVVx`, so the one disqualification that matters holds: it did not write the code it is judging. Wrote no criteria and no source in any round. Re-verified 6a and 6b from scratch against the shipped workflow rather than reusing the archived runs. Pushed to the `Branch:` header under the standing grant |
 
 > **The tester must not run in `cse_01SHSwr9eZT5x1N2iLMZVKJR` or
 > `cse_01HMQ72V73ADbUkKu29EAgjP`.** Both wrote criteria for this task; a verifier
@@ -932,9 +932,188 @@ before the tester session starts.
 
 ## Verdict
 
-> Two rounds have run. **Round 2 is the live one** and is written first; round 1
-> is kept below it unedited, because the amendment that produced criterion 6a–6c
-> was written against it and stops making sense without it.
+> Three rounds have run, **newest first**. Round 3 is the live one. Rounds 2 and
+> 1 are kept unedited below it: the criterion 6 amendment was written against
+> round 1, and the worker's round-3 fix was written against round 2, so both stop
+> making sense if they move.
+
+---
+
+# Round 3 — **PASS**
+
+Written by `tester`, session `cse_01GJgQEymzAYi8Nx1vDW4gU3`, 2026-08-10, against
+the criteria approved at `4c2806d` and the workflow at `130be38`.
+
+**TL;DR**
+
+- **All eight criteria pass**, every one verified against a run of the **shipped**
+  workflow.
+- **The round-2 regression is closed.** The byte-identical failing
+  `frontend/probe.test.mts` that made run 31270170161 green now fails run
+  [31400723404](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31400723404)
+  at the `Test` step — Typecheck and Lint green, so the failure is isolated to
+  the thing under test.
+- **Next: `reviewer`.** Suite green, tree reverted, nothing outside the
+  Constraints. Five non-blocking findings below; the branch is 2 commits behind
+  `origin/main`.
+
+| # | Verdict | Run | Evidence |
+|---|---|---|---|
+| 1 triggers | **PASS** | all | `on:` block; every run fired as `pull_request` on PR #11 |
+| 2 type error | **PASS** | 31234909634 | Typecheck `failure` in both jobs |
+| 3 lint error | **PASS** | 31234970937 | fe Lint `failure`, Typecheck `success` |
+| 4 failing test | **PASS** | 31234970937 | qb Test `failure`; step still a bare `bun test`, unchanged this round |
+| 5 green tree | **PASS** | **31291185554** | no frontend tests → both jobs `success` on the new step |
+| 6a passing test runs | **PASS** | **31400609172** | `bun test --pass-with-no-tests` → `probe.test.ts (pass)`, `1 pass / 0 fail`, run `success` |
+| 6b failing test reddens | **PASS** | **31400723404** | `0 pass / 1 fail`, `Process completed with exit code 1`, **Test step** `failure` |
+| 6c nothing swallows a failure | **PASS** | file read + 31400723404 | no `exit 0`, no `find`, no shell; regression caught |
+| 7 lockfiles intact | **PASS** | all | `Lockfile unchanged` green in every job of every run |
+| 8 nothing outside CI | **PASS** | — | diff vs `origin/main`: `ci.yml`, one script line, brief |
+
+### Why round 3 re-ran 6a and 6b instead of reusing the archived runs
+
+The brief's "What the next tester has to do" table points 6a and 6b at runs
+31235143550 and 31235108008. **Those are no longer valid evidence.** They were
+produced by the *old* `Test` step — the `find`-and-`exit 0` guard the worker has
+since deleted. A criterion discharged against a step that no longer exists
+certifies nothing about the workflow being merged, which is the same class of
+mistake as a green check certifying nothing.
+
+So both were re-run against the shipped step: mutation 7 for 6a, mutation 8 for
+6b. Both new runs are in the table above. This is the one place where following
+the brief's instructions literally would have weakened the verification, and
+`process.md` is explicit that the criteria, not the convenience, are the
+authority.
+
+### The fix, checked on its merits
+
+The step is now one command with no shell logic:
+
+```yaml
+run: bun test --pass-with-no-tests
+```
+
+**`--pass-with-no-tests` is a real flag on the pinned version**, not an
+invention — `bun test --help` on bun 1.3.11, the version `ci.yml` pins and the
+version in this session, documents it as "Exit with code 0 when no tests are
+found". Measured directly, exit codes captured, on that version:
+
+| Tree state | Exit |
+|---|---|
+| no test files at all | `0` |
+| one passing `.ts` test | `0` |
+| one failing `.ts` test | **`1`** |
+| one failing `.mts` test — the round-2 regression | **`1`** |
+| one passing `.ts` **and** one failing `.mts` | **`1`** |
+
+The flag changes bun's exit code in exactly one state and leaves every failing
+state alone. That is the whole of criterion 6c's requirement, and it is now true
+by construction rather than by a hand-maintained regex.
+
+**The worker's reasoning for deleting rather than widening the guard is
+correct, and the round-2 Verdict's second-order observation is what it closes.**
+Both divergences are gone at once — the four missing extensions and the
+`dist`/`.output`/`.vinxi` prune — because there is no longer a second opinion
+about what a test file is. Its supporting point is also verifiable and true:
+bun's own no-tests message advertises
+`**{.test,.spec,_test_,_spec_}.{js,ts,jsx,tsx}`, which omits `.mts` even though
+bun runs `.mts`. A `find` equivalent has no correct source to copy from.
+
+### 6c, read off the file
+
+`ci.yml` at `130be38`, ignoring comments: **no** `continue-on-error`, **no**
+`|| true`, **no** `set +e`, **no** `always()`, **no** `fail-fast`, **no**
+`exit 0`, at step, job or workflow level. The only occurrences of any of those
+strings are inside the step's explanatory comment, which records why they were
+rejected. Both `--exit-code` uses are the lockfile check, which fails loudly by
+design.
+
+The criterion's second sentence pins "the one `exit 0` that bypasses `bun test`"
+to the no-test-files condition. There is now **no `exit 0` and nothing bypasses
+`bun test`** — it runs unconditionally in every state — so the clause is
+satisfied a fortiori. The behavioural requirement behind it, that the
+special-casing stops applying once a test exists, is what run 31400723404
+demonstrates.
+
+**On the worker's flagged judgement call.** It is right that
+`--pass-with-no-tests` does not remove itself when T-004 lands, and right that
+this is not a regression — the old guard re-armed on an empty `frontend/` too.
+Under both shapes, "T-004 lands and then every frontend test is deleted" leaves
+CI green. No criterion asks for more. Whether CI should *positively require*
+frontend tests after T-004 is a product-ish call, correctly routed to the
+reviewer as a queue entry rather than settled here.
+
+### Criterion 4 is unaffected, and was checked rather than assumed
+
+`--pass-with-no-tests` was added to the `frontend` job only. `question-bank`'s
+`Test` step is still a bare `bun test`, byte-identical to what round 2 verified —
+confirmed by reading the file, not inferred from the worker's handoff. If
+`question-bank`'s 19 tests ever vanish that job goes red, which is the right
+behaviour for a package that has tests.
+
+### The pre-existing suite
+
+`question-bank`: `bun run typecheck` exit 0, `bun test` **19 pass / 0 fail**,
+locally and in every run above. `frontend` has no tests by design until T-004;
+its typecheck and lint are green on the runner in all three round-3 runs.
+
+**`frontend`'s install still cannot run in this session** — 403s on the 23
+packages pinned to the Lovable npm mirror, this sandbox's egress policy. Every
+frontend claim here is read off runner logs. Unchanged from rounds 1 and 2, and
+not a property of the workflow.
+
+### Findings for the reviewer — none blocking
+
+1. **`eslint .` has no `--max-warnings`.** Every green run logs
+   `✖ 7 problems (0 errors, 7 warnings)`, all `react-refresh/only-export-components`,
+   and exits 0. Criterion 3 passes because error-level rules do fail the step, but
+   new warnings will accumulate invisibly. A queue entry, sized `S`; the seven
+   existing warnings must be fixed or explicitly allowed first.
+2. **T-004 will turn the frontend `Typecheck` step red on its first commit**
+   (`TS2307` on `bun:test`). Correctly out of scope here and recorded against
+   T-004; worth the reviewer confirming that entry still carries the diagnosis,
+   because it is now the only place it lives.
+3. **Whether CI should require frontend tests once T-004 lands** — the worker's
+   flagged call, proposed owner reviewer, as a note on T-004's entry. Endorsed.
+4. **`conventions.md`'s frontend command block still does not mention
+   `bun run typecheck`**, which now exists. Flagged by the round-1 worker as a
+   one-line sweep fix; still true.
+5. **`actions/checkout@v5` and `oven-sh/setup-bun@v2` are pinned by major tag,
+   not SHA.** Raised by the round-1 worker and never decided. Worth a decision
+   either way in a repo that runs a 24h `minimumReleaseAge` guard on npm.
+
+Also mechanical, not a finding: **the branch is 2 commits behind `origin/main`**
+(PR #15, process docs only — no code). Merging `main` before the merge decision
+keeps the final run honest.
+
+### Honesty notes
+
+- **Session independence.** This is the same session as testers 1 and 2, and the
+  brief permits that while preferring otherwise. The disqualification that
+  matters holds: it is not `cse_01YWmburx8y7tk1ing3hDVVx`, so it did not write
+  the code it is judging, and it has written no criteria in any round. The
+  specific risk of a repeat tester — re-reading its own diagnosis — is lowest
+  this round, because the subject changed: the step under test was rewritten, the
+  archived runs were discarded as stale, and 6a/6b were re-derived from new runs.
+- **Cycle bound respected.** Rounds 1 (`blocked`) and 2 (`fail`) exhausted
+  `process.md` step 4's allowance. Round 3 passes, so no escalation is due — had
+  it not, this would have gone to a human rather than to round 4.
+- **What was verified locally vs on a runner.** Flag semantics and the
+  bun-vs-`find` discovery comparison: locally, on bun 1.3.11. Every criterion:
+  runner. Nothing in the criteria table rests on a local exit code.
+
+### Mutations, and confirmation both were reverted
+
+| # | What was changed | Reverted in |
+|---|---|---|
+| M7 | `frontend/probe.test.ts`, passing — criterion 6a | `282909d` |
+| M8 | `frontend/probe.test.mts`, failing — criterion 6b and the round-2 regression | this commit |
+
+**Confirmed clean**: `git diff 130be38` is empty at this commit — byte-identical
+to the worker's tip — no file matching `probe` exists under `frontend/` or
+`question-bank/`, and `question-bank` reports 19 pass. **No source file was edited
+to make anything pass.** This round leaves behind only this Verdict, the header
+and the Sessions row.
 
 ---
 
