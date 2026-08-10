@@ -25,35 +25,6 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-003 — CI: typecheck, lint, test on every PR · M · doing
-**Depends on:** — (T-001 landed)
-**Brief:** [`tasks/T-003-ci-typecheck-lint-test.md`](tasks/T-003-ci-typecheck-lint-test.md)
-A GitHub Actions workflow running typecheck, lint and tests across `frontend/`
-and `question-bank/`. Add the Python job when `api/` exists.
-
-Four script gaps stand between the queue entry and a workflow that runs, all
-confirmed against the tree at 8773ed3 — the first two were found while reviewing
-T-001, the second two while expanding this task:
-
-- **`bun test` exits 1 in `frontend/`** because it has no test files, so a naive
-  matrix job fails on a green tree.
-- **`question-bank/package.json` has no `test` script**, so CI must call
-  `bun test` directly or the script must be added.
-- **`frontend/package.json` has no `typecheck` script** — only `dev`, `build`,
-  `build:dev`, `preview`, `lint`, `format`. The entry above assumed one existed.
-- **`question-bank/package.json` has no `lint` script**, and the repo has no
-  eslint config outside `frontend/`.
-
-Decide all four here. The brief carries the criteria; this entry is the
-placeholder. **Re-sized `S` → `M` at expand time**: the criteria came out at
-eight, past D-6's four-criteria ceiling, so this runs the full path.
-
-**Criterion 6 was amended on 2026-08-08** after a `blocked` verdict, and is back
-with the human for re-approval. It named a file path (`frontend/src/`) where it
-meant a behaviour (the frontend test-skip guard switching itself off), which
-dragged in `frontend`'s type configuration — see T-004 below. Seven of eight
-criteria are already verified against real workflow runs on PR #11.
-
 ### T-004 — First tests for `frontend` · S · todo
 **Depends on:** — (deferred out of T-001's scope)
 `level.ts` and `session.ts` are pure functions carrying real logic and no tests:
@@ -90,12 +61,21 @@ moment a test lands under `src/`. T-003 deliberately left this alone rather than
 guess the shape of a decision that belongs with real tests; see its criterion 6.
 Re-size from `S` if the type-configuration decision turns out to be contested.
 
+**Also decide while you are here:** whether CI should *positively require*
+frontend tests once this lands. Today the `frontend` job runs
+`bun test --pass-with-no-tests`, which stays in place after T-004 — so deleting
+every frontend test would leave CI green rather than red. That is not a
+regression (the guard T-003 replaced re-armed on an empty `frontend/` too) and no
+T-003 criterion asked for more, but it is a real choice and this is the task that
+puts tests there. Raised by T-003's worker and endorsed by its tester and
+reviewer; deliberately not settled in T-003.
 **Done when:** `bun test` in `frontend/` passes with tests for both modules,
-`bun run typecheck` passes with those tests in the tree, and
-`test-guidelines.md` no longer calls that section forward-looking.
+`bun run typecheck` passes with those tests in the tree,
+`test-guidelines.md` no longer calls that section forward-looking, and the
+`--pass-with-no-tests` question above is answered one way or the other.
 
 ### T-005 — Prove "no network in tests" in CI · S · todo
-**Depends on:** T-003
+**Depends on:** — (T-003 landed)
 `test-guidelines.md` says "no network in tests, ever" and names the check: point
 `HTTPS_PROXY` and `HTTP_PROXY` at a dead port and the suite should not notice.
 Nothing enforces it. Split out of T-003 because the env has to be scoped to the
@@ -104,7 +84,7 @@ test step alone — set it job-wide and `bun install` breaks.
 a test that reaches the network fails the run.
 
 ### T-006 — The lint gate ignores warnings, and there are already seven · S · todo
-**Depends on:** T-003
+**Depends on:** — (T-003 landed)
 Found by T-003's tester, non-blocking. `frontend`'s `lint` script is `eslint .`,
 which exits 0 on warnings, so every green CI run logs
 `✖ 7 problems (0 errors, 7 warnings)` and passes. All seven are
@@ -115,6 +95,30 @@ it, which means first deciding each of the seven: fix, or downgrade the rule
 deliberately with a reason. Do not silence them wholesale to get the flag in.
 **Done when:** `bun run lint` fails on any warning, the seven are each fixed or
 explicitly allowed with a recorded reason, and CI is green.
+
+### T-007 — `conventions.md` still describes a repo with no CI · S · todo
+**Depends on:** — (T-003 landed)
+Two one-line gaps, both opened by T-003 and both outside what its reviewer may
+write. The frontend block in `conventions.md` "Commands" lists `dev`, `lint` and
+`format` but not `bun run typecheck`, which now exists — the question-bank block
+already lists it. And nothing in `conventions.md` says the repo has CI at all,
+so someone reading it still learns the checks are run by whoever remembers to.
+`test-guidelines.md` needs no change: its "per TS package" line was aspirational
+before T-003 and is true now.
+**Done when:** `conventions.md`'s frontend commands include `typecheck` and the
+file says what runs on a PR.
+
+### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · todo
+**Depends on:** — (T-003 landed)
+`ci.yml` uses `actions/checkout@v5` and `oven-sh/setup-bun@v2` — mutable major
+tags, so a compromised or merely changed action reaches the runner without a
+diff here. Raised by T-003's worker and never decided; its tester raised it again
+and pointed at the reason it is not academic in this repo: `frontend/bunfig.toml`
+runs a 24h `minimumReleaseAge` guard against exactly this class of risk on the
+npm side, and CI's own supply chain is unguarded. Pinning by SHA costs a
+dependabot-shaped chore nobody has set up yet, which is the argument for the
+other side. Decide, act, and record the reason.
+**Done when:** the decision is in `decisions.md` and `ci.yml` matches it.
 
 ---
 
