@@ -25,124 +25,6 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
 Nothing here is glamorous and all of it makes the rest cheaper.
 
-### T-002 — Revisit `test-guidelines.md` against the first real tests · S · pass
-**Depends on:** — (T-001 landed)
-**Path:** light (D-6) — criteria inline, no brief file. Eligible: docs only, no
-contract, no migration, no plan, no child-facing text, four criteria.
-
-> **This entry is the old light path, kept as the record of how T-002 ran.** It
-> is not the pattern to copy: running without a brief file is what forced approval,
-> handoff and the Sessions log to be re-homed here mid-task, and it is why this
-> entry is longer than the brief it was avoiding. D-6 has since been amended — a
-> light task gets a **shorter brief in `tasks/`**, not none. See `decisions.md`
-> D-6 and `process.md` "The light path, for S-sized tasks".
-**Approved:** Dkaattae, 2026-08-06
-**Next step:** `reviewer`
-
-**Sessions** (kept inline — light path, D-6)
-
-| Role | Date | Session |
-|---|---|---|
-| task-expander | 2026-08-06 | session_017sMRTc |
-| worker | 2026-08-06 | session_017sMRTc |
-| tester | 2026-08-06 | session_017sMRTc — **same session, authorised explicitly by Dkaattae**. Not independent; the verdict below is weaker evidence than a fresh session would give |
-
-The guidance was written before any test in this repo existed, so it is
-prescriptive where it should be descriptive. There are now 19 real tests to check
-it against.
-
-**What the survey found.** The seams table is the biggest gap: it tells you to
-test through `SparqlTransport`, `SummaryTransport` and `EntitySink`, and the real
-tests use **none of them**. They call `parseUsStates` on the recorded fixture and
-`normalizeUsStates` on the parsed rows — the seams were never needed, because the
-behaviours worth testing sit downstream of the transport. That is guidance
-pointing at the wrong door.
-
-Three patterns did earn their place and are undocumented: a fixture reader that
-re-reads per call so no test can mutate another's data; filtering parsed rows to
-build partial cases (`slice(0, 49)`, `rowsFor("Colorado")`); and copying a row
-with one field corrupted to force a warning path (`{...row, fips: "99"}`).
-
-**Acceptance criteria**
-
-1. Every claim `test-guidelines.md` makes about `question-bank` testing matches
-   what the 19 tests actually do — in particular the seams table, the "tests live
-   next to what they test or in `src/__tests__/`" claim (only the first is true),
-   and how the fixture is read.
-2. The three patterns above are documented with code taken from the real tests,
-   not invented examples.
-3. Guidance for code that has no tests yet — `pickQuestion`, `level.ts`, the
-   `api/` pytest section — is explicitly marked as forward-looking rather than
-   deleted or left implying it describes existing practice.
-4. No file under `question-bank/src/` changes, and `bun test` still reports 19
-   passing.
-
-**Out of scope:** writing new tests (T-004 covers `frontend`), and CI (T-003).
-
-**Note for the reviewer:** the old `Done when` — "every example in the file
-corresponds to a test that exists" — is too strict as written. Applied literally
-it would delete the `pickQuestion` randomness guidance and the whole pytest
-section, which are the parts most useful to the next person. Criterion 3 replaces
-it: mark forward-looking guidance as such rather than removing it.
-
-**Handoff** (worker → tester; inline because the light path has no brief file)
-
-Only `test-guidelines.md` changed. Nothing under `question-bank/src/` was
-touched, and `bun test` still reports 19 passing.
-
-- *Criterion 1* — the "Use the seams" section is replaced by "Start below the
-  transport, not at it". It now says what the real tests do: call `parseUsStates`
-  on the recorded fixture and `normalizeUsStates` on the parsed rows, no seam
-  needed. The seams table survives, demoted to "reach for one only when the thing
-  under test spans the network call", and states plainly that no test uses one
-  today. The file-location claim lost its `src/__tests__/` alternative, which
-  nothing uses.
-- *Criterion 2* — new section "Three patterns worth copying", with code lifted
-  verbatim from `normalize.test.ts`: the per-call fixture reader, filtering rows
-  for partial cases, and the spread-with-one-field-corrupted trick.
-- *Criterion 3* — the randomness section and the `api/` pytest section both carry
-  an explicit **Forward-looking** note naming the task that will make them real
-  (T-004, T-030 onward). The `bun test` commands now say which suite has tests
-  and which exits 1.
-- *Criterion 4* — verified: `git diff -- question-bank/src` is empty.
-
-Also corrected without being asked: the intro said tests are written "usually by
-someone who has not seen the implementation". That "usually" was never true of the
-design and is now wrong twice over, since the Sessions table makes it checkable.
-
-**Flagged, owner named:** the light path (D-6) drops the brief file and with it
-the Sessions table — which is the only mechanism enforcing that the tester runs
-in a fresh session. **Resolved in this task's own commits:** light tasks now keep
-the Sessions log inline, as above. The table was never the expensive part of a
-brief.
-
-**Verdict — PASS.** Three of four criteria checked mechanically rather than by
-reading:
-
-1. *Claims match reality* — `src/__tests__/` reference gone, "the code already has
-   the injection points you need" gone, and the file now states outright that no
-   test uses a seam today.
-2. *Patterns lifted verbatim* — each of the three documented snippets was matched
-   as an exact substring of `question-bank/src/normalize.test.ts`. A doc example
-   that does not appear in a real test file fails this check, which is the point.
-3. *Forward-looking marked* — two markers, on the `pickQuestion` randomness
-   section and the `api/` pytest section.
-4. *No source changed* — `git diff origin/main...HEAD` touches four markdown files
-   and nothing under `question-bank/src/`. 19 tests still pass, typecheck clean.
-
-Caveat recorded above: the tester was not an independent session.
-
-### T-003 — CI: typecheck, lint, test on every PR · S · todo
-**Depends on:** — (T-001 landed)
-A GitHub Actions workflow running `bun run typecheck`, lint, and `bun test`
-across `frontend/` and `question-bank/`. Add the Python job when `api/` exists.
-Two things found while reviewing T-001: **`bun test` exits 1 in `frontend/`
-because it has no test files**, so a naive matrix job fails on a green tree; and
-`question-bank/package.json` has no `test` script, so CI must call `bun test`
-directly or the script must be added. Decide both here.
-**Done when:** the workflow runs on PRs, fails when a test fails, and passes on a
-tree where `frontend/` still has no tests.
-
 ### T-004 — First tests for `frontend` · S · todo
 **Depends on:** — (deferred out of T-001's scope)
 `level.ts` and `session.ts` are pure functions carrying real logic and no tests:
@@ -150,7 +32,93 @@ grade/band derivation and its label boundaries, `levelWindow` clamping at 0 and
 18, and `pickQuestion`'s widening search, review-queue cadence and repeat
 avoidance. `pickQuestion` calls `Math.random()`, so assert invariants that hold
 for every draw rather than which question came back (`test-guidelines.md`).
-**Done when:** `bun test` in `frontend/` passes with tests for both modules.
+T-002 left the "Randomness and time" section marked **Forward-looking** and named
+this task as the one that makes it real — drop that marker when the tests land.
+**`frontend` cannot typecheck *any* test file today — fix that first.** Found by
+T-003's tester on 2026-08-08 and recorded here so this task does not rediscover
+it. A file containing `import { … } from "bun:test"` placed under `frontend/src/`
+fails `bun run typecheck` with:
+
+```
+src/<name>.test.ts(1,30): error TS2307: Cannot find module 'bun:test' or its
+corresponding type declarations.
+```
+
+Two causes, both in `frontend`: there is no `@types/bun` in its devDependencies,
+and `frontend/tsconfig.json` sets `"types": ["vite/client"]` — which replaces the
+default "all of `node_modules/@types`" — while its `include` covers
+`src/**/*.ts`. Dropping the import does not help; the bare globals are equally
+unknown to `tsc`. Observed on run
+[31235019281](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235019281);
+the same test outside the `include` typechecks and passes
+([31235143550](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/31235143550)).
+
+So this task's **first commit** has to make `frontend` typecheck test files —
+adding `@types/bun` (**a dependency, which means asking a human first**, per
+`CLAUDE.md`) and adjusting `tsconfig.json`'s `types`, or whatever equivalent it
+decides on. Until then T-003's CI goes red at the frontend `Typecheck` step the
+moment a test lands under `src/`. T-003 deliberately left this alone rather than
+guess the shape of a decision that belongs with real tests; see its criterion 6.
+Re-size from `S` if the type-configuration decision turns out to be contested.
+
+**Also decide while you are here:** whether CI should *positively require*
+frontend tests once this lands. Today the `frontend` job runs
+`bun test --pass-with-no-tests`, which stays in place after T-004 — so deleting
+every frontend test would leave CI green rather than red. That is not a
+regression (the guard T-003 replaced re-armed on an empty `frontend/` too) and no
+T-003 criterion asked for more, but it is a real choice and this is the task that
+puts tests there. Raised by T-003's worker and endorsed by its tester and
+reviewer; deliberately not settled in T-003.
+**Done when:** `bun test` in `frontend/` passes with tests for both modules,
+`bun run typecheck` passes with those tests in the tree,
+`test-guidelines.md` no longer calls that section forward-looking, and the
+`--pass-with-no-tests` question above is answered one way or the other.
+
+### T-005 — Prove "no network in tests" in CI · S · todo
+**Depends on:** — (T-003 landed)
+`test-guidelines.md` says "no network in tests, ever" and names the check: point
+`HTTPS_PROXY` and `HTTP_PROXY` at a dead port and the suite should not notice.
+Nothing enforces it. Split out of T-003 because the env has to be scoped to the
+test step alone — set it job-wide and `bun install` breaks.
+**Done when:** the test step runs with a dead proxy, the suite still passes, and
+a test that reaches the network fails the run.
+
+### T-006 — The lint gate ignores warnings, and there are already seven · S · todo
+**Depends on:** — (T-003 landed)
+Found by T-003's tester, non-blocking. `frontend`'s `lint` script is `eslint .`,
+which exits 0 on warnings, so every green CI run logs
+`✖ 7 problems (0 errors, 7 warnings)` and passes. All seven are
+`react-refresh/only-export-components`. Error-level rules do fail the run — T-003
+criterion 3 is genuinely satisfied — but the gate is weaker than it reads, and
+warnings now accumulate invisibly behind a green check. `--max-warnings 0` closes
+it, which means first deciding each of the seven: fix, or downgrade the rule
+deliberately with a reason. Do not silence them wholesale to get the flag in.
+**Done when:** `bun run lint` fails on any warning, the seven are each fixed or
+explicitly allowed with a recorded reason, and CI is green.
+
+### T-007 — `conventions.md` still describes a repo with no CI · S · todo
+**Depends on:** — (T-003 landed)
+Two one-line gaps, both opened by T-003 and both outside what its reviewer may
+write. The frontend block in `conventions.md` "Commands" lists `dev`, `lint` and
+`format` but not `bun run typecheck`, which now exists — the question-bank block
+already lists it. And nothing in `conventions.md` says the repo has CI at all,
+so someone reading it still learns the checks are run by whoever remembers to.
+`test-guidelines.md` needs no change: its "per TS package" line was aspirational
+before T-003 and is true now.
+**Done when:** `conventions.md`'s frontend commands include `typecheck` and the
+file says what runs on a PR.
+
+### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · todo
+**Depends on:** — (T-003 landed)
+`ci.yml` uses `actions/checkout@v5` and `oven-sh/setup-bun@v2` — mutable major
+tags, so a compromised or merely changed action reaches the runner without a
+diff here. Raised by T-003's worker and never decided; its tester raised it again
+and pointed at the reason it is not academic in this repo: `frontend/bunfig.toml`
+runs a 24h `minimumReleaseAge` guard against exactly this class of risk on the
+npm side, and CI's own supply chain is unguarded. Pinning by SHA costs a
+dependabot-shaped chore nobody has set up yet, which is the argument for the
+other side. Decide, act, and record the reason.
+**Done when:** the decision is in `decisions.md` and `ci.yml` matches it.
 
 ---
 
@@ -262,7 +230,9 @@ data at all. Profiles last, deliberately (plan §5.2).
 ### T-030 — Scaffold `api/` with uv and FastAPI · S · todo
 **Depends on:** —
 `uv init`, FastAPI, uvicorn, pytest, ruff. One health endpoint and one passing
-test, nothing more.
+test, nothing more. Two follow-ons this unblocks: `test-guidelines.md`'s `api/`
+pytest section is marked **Forward-looking** pending the first real endpoint test
+(T-002), and T-003's CI workflow adds its Python job once this exists.
 **Done when:** `uv run fastapi dev` serves and `uv run pytest` passes.
 
 ### T-031 — Postgres and Alembic baseline · S · todo

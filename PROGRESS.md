@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-08-04_
+_Last updated: 2026-08-10_
 
 ## Layout
 
@@ -58,6 +58,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - `decisions.md` records why the process is shaped this way — no orchestrator,
   markdown queue rather than an issue tracker, sequential sessions — with the
   trigger that would make each worth revisiting.
+- CI on every PR and every push to `main` (`.github/workflows/ci.yml`): one job
+  per TS package, each running typecheck, lint where a config exists, and the
+  test suite off a frozen lockfile. Before T-003 those checks were run by
+  whoever remembered to.
 - `geoquizdataplan.md` at the root as the reference the work is measured against.
 - `openapi.yaml` at the root — content, profile and session API, validated
   against OpenAPI 3.1. Contract only; no server implements it yet.
@@ -89,6 +93,47 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 One line per task as it lands, newest first. The queue in `tasks.md` holds only
 what is still ahead; this is where finished work is recorded.
 
+- **T-003 — CI: typecheck, lint and test on every PR** (PR #11, 2026-08-10). One
+  job per package in `.github/workflows/ci.yml`, on `pull_request` and `push` to
+  `main`: `bun install --frozen-lockfile`, a lockfile-drift check, then
+  typecheck, lint (`frontend` only — `question-bank` has no eslint config, and
+  adding one is a dependency decision) and tests. `frontend` gained a `typecheck`
+  script; `question-bank` did not gain a `test` script, so CI calls `bun test`
+  directly. No dependency added, no lockfile touched.
+  *Differed from the brief:* it took three verify rounds and cost a criterion.
+  Criterion 6 as approved named a **file path** where it meant a **behaviour**,
+  and the path it named (`frontend/src/`) is inside `frontend/tsconfig.json`'s
+  `include` — so the mutation it prescribed died at `Typecheck` before reaching
+  the step under test, and the first verdict was `blocked`. Rewording it to name
+  the guard exposed a second, worse problem: the guard was a hand-written `find`
+  deciding what counts as a test file, and it disagreed with bun about `.mts`,
+  `.cts`, `.mjs`, `.cjs` and about pruning `dist`. Run 31270170161 was **green
+  with a failing test in the tree** — a green check certifying nothing, which is
+  the exact failure this task exists to prevent. The fix deleted the guard and
+  asked bun instead (`bun test --pass-with-no-tests`); the byte-identical failing
+  test now reddens the run.
+  *Known consequence, deliberate:* `--pass-with-no-tests` does not remove itself
+  when T-004 lands, and T-004's first commit will turn the frontend `Typecheck`
+  step red until it settles how `frontend` typechecks a test file. Both are
+  recorded on T-004's queue entry.
+- **T-002 — `test-guidelines.md` corrected against the first real tests** (PR #9,
+  2026-08-06). The seams table was pointing at the wrong door: it told you to test
+  through `SparqlTransport`, `SummaryTransport` and `EntitySink`, and none of the
+  19 tests uses any of them — they call `parseUsStates` and `normalizeUsStates`
+  directly, because the behaviours worth testing sit downstream of the network.
+  That section is now "Start below the transport, not at it", the seams table
+  survives demoted, and three patterns the real tests invented are documented with
+  code lifted verbatim from `normalize.test.ts`. Guidance for code that has no
+  tests yet — `pickQuestion`, the `api/` pytest section — is marked
+  **Forward-looking** rather than deleted. No source changed.
+  *Differed from the brief:* the task ran on the light path as originally decided,
+  with no brief file, and that produced three defects inside one task — approval,
+  handoff and the Sessions log each had to be re-homed into `tasks.md` mid-task,
+  growing the queue entry to ninety lines. D-6 was amended in the same PR: a light
+  task now gets a **shorter brief in `tasks/`**, not none. *Also weaker than it
+  looks:* the tester ran in the worker's session, authorised explicitly by
+  Dkaattae, so T-002's verdict is not independent evidence. Follow-up process
+  fixes landed in PR #10.
 - **T-001 — first tests for `question-bank`** (PR #6, 2026-08-04). 19 tests
   covering ranks across the full field and their suppression on a partial one,
   the curated FIPS code winning over Wikidata's, border resolution by QID and by
