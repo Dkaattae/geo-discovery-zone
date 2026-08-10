@@ -121,9 +121,15 @@ header is the authority, not the `task/T-0xx-slug` convention; some environments
 assign each session its own branch, and then the name will be something else.
 
 Check `git branch --show-current` against it before you commit. **If they differ,
-stop** — say which two branches disagree, set **Status** to `blocked` and **Next
-step** to `human`, and do not push tests onto the branch you happen to be
-standing on. See `process.md`, "When the environment names the branch for you".
+push to the header's branch anyway** — `CLAUDE.md` "Branches" carries Dkaattae's
+standing permission for precisely the case where a harness pinned you elsewhere,
+so it is not something to stop and ask for. Never push tests onto the branch you
+happen to be standing on: this task's criteria may only be observable on the PR,
+and T-003's were.
+
+Stop only if that push is refused, or the header is missing or ambiguous — then
+say which two branches disagree, set **Status** to `blocked` and **Next step** to
+`human`. See `process.md`, "When the environment names the branch for you".
 
 Label your commits `T-0xx tester: …` so the reviewer can tell the roles apart.
 Never open a second PR or a second branch for the task. Your commits contain test

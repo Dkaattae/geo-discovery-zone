@@ -166,6 +166,11 @@ Sweep in the PR's own branch, then merge. The bookkeeping ships with the work it
 describes: `main` never carries a brief for something already released, and there
 is no follow-up PR for three line changes.
 
+The PR's branch is the one in the brief's `Branch:` header, which may not be the
+branch this session was assigned. Push the sweep there — `CLAUDE.md` "Branches"
+carries Dkaattae's standing permission for that case. A sweep pushed to your own
+session branch leaves the merge carrying a brief for work it just released.
+
 1. **Delete the brief** from `tasks/`. Its criteria are in the PR body, which is
    the permanent record.
 2. **Delete the task's entry from `tasks.md`** — do not mark it done. A queue that
