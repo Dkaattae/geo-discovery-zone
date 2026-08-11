@@ -44,6 +44,19 @@ info:
     v1 client grades locally. Set `includeAnswerKey=false` once grading moves to
     `POST /sessions/{sessionId}/answers`.
 
+    **Authentication.** Content is public — it is build-time generated and carries no
+    user data, so it stays cacheable and needs no token. Profiles and Sessions hold
+    children's data and require a bearer token from `POST /auth/token`, obtained with
+    a grown-up's password. Passwords are stored only as PBKDF2-HMAC-SHA256 hashes and
+    tokens are opaque and revocable; neither is ever returned in a response. A profile
+    belongs to the account that created it, and a profile belonging to another account
+    answers `404`, not `403`, so an account cannot probe for which ids exist. Missing
+    or expired credentials produce a `401` problem document under each operation's
+    `default` response.
+
+    `Profile.pinHash` is accepted in an import but never returned: a four-digit PIN's
+    hash is a four-digit PIN.
+
   license:
     name: UNLICENSED
   contact:
@@ -56,6 +69,10 @@ servers:
     description: Local development
 
 tags:
+  - name: Auth
+    description: |
+      Grown-up accounts and bearer tokens. Guards the Profiles and Sessions groups;
+      Content needs none of it.
   - name: Content
     description: Build-time generated question bank, entities and map assets. Read-only.
   - name: Profiles
@@ -480,10 +497,105 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /auth/register:
+    post:
+      operationId: register
+      tags: [Auth]
+      summary: Create a grown-up account
+      description: |
+        One account per grown-up; profiles hang off it. The password is hashed with
+        PBKDF2-HMAC-SHA256 and a per-account salt before it is stored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Account created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "409":
+          description: That username is already registered.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /auth/token:
+    post:
+      operationId: issueToken
+      tags: [Auth]
+      summary: Exchange credentials for a bearer token
+      description: |
+        An unknown username and a wrong password fail identically — which half was
+        wrong is not the caller's business.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: A bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /auth/me:
+    get:
+      operationId: getCurrentAccount
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      summary: The signed-in account
+      responses:
+        "200":
+          description: The account the token belongs to.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      summary: Revoke the presented token
+      description: Tokens are opaque and server-side, so signing out really revokes.
+      responses:
+        "204":
+          description: Token revoked.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Problem"
+
   /profiles:
     get:
       operationId: listProfiles
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: List profiles on this device
       responses:
         "200":
@@ -503,6 +615,8 @@ paths:
     post:
       operationId: createProfile
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Create a profile
       description: |
         A profile is a name and an avatar — tap your face, you're in. `grade` seeds
@@ -538,6 +652,8 @@ paths:
     get:
       operationId: getProfile
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Fetch a profile
       responses:
         "200":
@@ -553,6 +669,8 @@ paths:
     patch:
       operationId: updateProfile
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Update a profile
       description: |
         Partial update. `stats`, `mastery` and `reviewQueue` are normally advanced by
@@ -580,6 +698,8 @@ paths:
     delete:
       operationId: deleteProfile
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Delete a profile and its history
       responses:
         "204":
@@ -595,6 +715,8 @@ paths:
     get:
       operationId: getProfileProgress
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Mastery and map progress
       description: |
         Everything needed to paint the progress map. `masteredGeometryIds` is the
@@ -617,6 +739,8 @@ paths:
     get:
       operationId: getReviewQueue
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Entities queued for review
       description: |
         Entity ids, not question ids — a missed entity comes back from a different
@@ -641,6 +765,8 @@ paths:
     delete:
       operationId: removeFromReviewQueue
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Drop an entity from the review queue
       description: Normally automatic after two clean passes; exposed for manual clearing.
       responses:
@@ -657,6 +783,8 @@ paths:
     get:
       operationId: exportProfile
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Export a profile as JSON
       description: |
         The v1.5 recovery story: a grown-up-facing backup file. There is no recovery
@@ -677,6 +805,8 @@ paths:
     post:
       operationId: importProfile
       tags: [Profiles]
+      security:
+        - bearerAuth: []
       summary: Import a previously exported profile
       requestBody:
         required: true
@@ -700,6 +830,8 @@ paths:
     post:
       operationId: startSession
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: Start a session
       description: |
         A session is whatever was played since Start — there is no fixed length and no
@@ -742,6 +874,8 @@ paths:
     get:
       operationId: getSession
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: Fetch session state
       responses:
         "200":
@@ -761,6 +895,8 @@ paths:
     post:
       operationId: serveNextQuestion
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: Serve the next question
       description: |
         Mirrors `pickQuestion()` in `frontend/src/lib/session.ts`: every seventh
@@ -807,6 +943,8 @@ paths:
     post:
       operationId: submitAnswer
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: Submit an answer and get the reveal
       description: |
         Grading, profile advancement and the reveal payload in one round trip.
@@ -858,6 +996,8 @@ paths:
     delete:
       operationId: undoAnswer
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: Undo an accidental answer
       description: |
         Backs out the most recent answer and its profile effects. Multiple choice
@@ -883,6 +1023,8 @@ paths:
     post:
       operationId: startReviewRound
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: Accept the review offer
       description: |
         Runs the queue as a short set (5 max). Offered — never forced — after five
@@ -932,6 +1074,8 @@ paths:
     post:
       operationId: endSession
       tags: [Sessions]
+      security:
+        - bearerAuth: []
       summary: End the session and get the summary
       description: |
         Writes `lastSessionEndLevel` to the profile and returns the summary. The
@@ -951,6 +1095,15 @@ paths:
           $ref: "#/components/responses/Problem"
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        The opaque token from `POST /auth/token`, sent as
+        `Authorization: Bearer <token>`. Not a JWT: nothing here needs a token a
+        third party can verify offline, and an opaque token can be revoked.
+
   parameters:
     Limit:
       name: limit
@@ -1011,6 +1164,12 @@ components:
   responses:
     Problem:
       description: Unexpected error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: Missing, malformed or expired bearer token.
       content:
         application/problem+json:
           schema:
@@ -2069,3 +2228,58 @@ components:
           $ref: "#/components/schemas/Level"
         endLevelLabel:
           $ref: "#/components/schemas/LevelLabel"
+
+    RegisterRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 254
+          example: grownup@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          format: password
+          description: Hashed server-side; never returned.
+
+    TokenRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    TokenResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn]
+      properties:
+        accessToken:
+          type: string
+          description: Opaque. Only its digest is stored server-side.
+        tokenType:
+          type: string
+          enum: [bearer]
+        expiresIn:
+          type: integer
+          description: Seconds until the token stops resolving.
+          example: 43200
+
+    Account:
+      type: object
+      description: A grown-up's account. Profiles belong to exactly one.
+      required: [id, username, createdAt]
+      properties:
+        id:
+          type: string
+          example: acct-demo
+        username:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
