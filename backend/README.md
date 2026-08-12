@@ -5,12 +5,25 @@ the contract is served; state lives in memory and is seeded at startup, so the
 frontend has a real bank to render against without a database.
 
 ```bash
-cd backend && uv sync
-uv run fastapi dev app/main.py      # http://127.0.0.1:8000/api/v1/...
-uv run pytest && uv run ruff check  # 178 tests
+make -C backend dev     # http://127.0.0.1:8000/api/v1/... — docs at /docs
+make -C backend test    # 178 tests
+make -C backend check   # lint + format check + tests, what CI should run
+make -C backend help    # every target
 ```
 
-Interactive docs at `/docs`, health at `/health`.
+`make` is a thin wrapper over `uv`; the underlying commands still work from
+inside `backend/`:
+
+```bash
+uv sync
+uv run fastapi dev app/main.py
+uv run pytest && uv run ruff check .
+```
+
+Override the port with `make dev PORT=8080`. With a server running,
+`make -C backend token` prints a bearer token for the demo account and
+`make -C backend smoke` hits health, content version and an authenticated
+profile list. Interactive docs at `/docs`, health at `/health`.
 
 ## What is real and what is not
 
