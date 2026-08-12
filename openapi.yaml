@@ -7,12 +7,16 @@ info:
   description: |
     Contract for the backend behind the `frontend/` app (TanStack Start + React).
 
-    **How this maps to the current frontend.** v1 of the app is local-first: the
-    question bank is bundled at build time (`frontend/src/data/`) and profiles live in
-    `localStorage` (`frontend/src/lib/storage.ts`). This contract describes the same
-    data as an HTTP surface so the bundled data can be replaced by fetched content
-    without reshaping the client, and so profiles/sessions can move server-side later
-    without a schema migration.
+    **How this maps to the current frontend.** The app now calls this contract for
+    everything it describes. The question bank, profiles, selection, grading, mastery,
+    level drift and the review queue are all served by `backend/`; the client keeps a
+    bearer token and a last-used profile id on the device and nothing else. Map
+    geometry is the exception — it is bundled at build time (`us-atlas`), so drawing a
+    map never needs the network.
+
+    It was not always so: v1 was local-first, with the bank bundled in
+    `frontend/src/data/` and profiles in `localStorage`. That the move needed no
+    reshaping of the client is what this contract was for.
 
     Three groups of operations, deliberately separable:
 

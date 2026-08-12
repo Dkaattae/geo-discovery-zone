@@ -1,254 +1,241 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Profile, Question } from "@/data";
-import { entityById } from "@/data";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { api, ApiError, type AnswerResult, type Profile } from "@/lib/api";
+import type { ServedQuestion, Session as SessionState, SessionSummary } from "@/lib/api";
 import { Button } from "@/components/Button";
 import { UsMap } from "@/components/UsMap";
-import { pickQuestion, type Topic } from "@/lib/session";
-import { clampLevel, levelLabel } from "@/lib/level";
+import { levelLabel } from "@/lib/level";
 import { cn } from "@/lib/utils";
 
 interface SessionProps {
   profile: Profile;
-  topic: Topic | "mixed";
-  onUpdateProfile: (update: (p: Profile) => Profile) => void;
+  session: SessionState;
+  firstQuestion: ServedQuestion;
+  /** Called when the session ends, so the caller can refresh the profile. */
+  onFinished: () => void;
+  /** Starts a fresh session on the same topic — an ended one cannot serve more. */
+  onPlayAgain: () => void;
   onHome: () => void;
 }
 
-type Phase = "presenting" | "revealing";
+type Sheet = "milestone" | "review" | "quit" | null;
 
-export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProps) {
-  const profileRef = useRef(profile);
-  profileRef.current = profile;
-
-  const [asked, setAsked] = useState<string[]>([]);
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [isReview, setIsReview] = useState(false);
-  const [phase, setPhase] = useState<Phase>("presenting");
-  const [chosen, setChosen] = useState<number | null>(null);
+/**
+ * The play loop, driven entirely by the API.
+ *
+ * Every rule that used to live here — which question comes next, whether an
+ * answer is right, where mastery and the level move, when review is offered —
+ * is now the server's answer to a request. What is left is presentation and
+ * one piece of genuinely local state: whether the reveal has been on screen
+ * long enough for Next to light up.
+ */
+export function Session({
+  profile,
+  session,
+  firstQuestion,
+  onFinished,
+  onPlayAgain,
+  onHome,
+}: SessionProps) {
+  const [served, setServed] = useState<ServedQuestion>(firstQuestion);
+  const [result, setResult] = useState<AnswerResult | null>(null);
+  const [pickedIndex, setPickedIndex] = useState<number | null>(null);
+  const [counts, setCounts] = useState(session.counts);
+  const [current, setCurrent] = useState<Profile>(profile);
+  const [reviewRemaining, setReviewRemaining] = useState(session.reviewRoundRemaining ?? 0);
   const [detailOpen, setDetailOpen] = useState(false);
   const [nextReady, setNextReady] = useState(true);
-  const [correctStreak, setCorrectStreak] = useState(0);
-  const [wrongStreak, setWrongStreak] = useState(0);
-  const [stats, setStats] = useState({ answered: 0, correct: 0, wrong: 0 });
-  const [learned, setLearned] = useState<string[]>([]);
-  const [seenPlaces, setSeenPlaces] = useState<string[]>([]);
-  const [milestone, setMilestone] = useState<number | null>(null);
-  const [reviewOffer, setReviewOffer] = useState(false);
-  const [reviewOffered, setReviewOffered] = useState(false);
-  const [reviewRoundLeft, setReviewRoundLeft] = useState(0);
-  const [quitOpen, setQuitOpen] = useState(false);
-  const [summary, setSummary] = useState(false);
-  const reviewCorrect = useRef<Record<string, number>>({});
+  const [sheet, setSheet] = useState<Sheet>(null);
+  const [summary, setSummary] = useState<SessionSummary | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const serve = useCallback(
-    (opts?: { forceReview?: boolean }) => {
-      const p = profileRef.current;
-      setAsked((prevAsked) => {
-        const q = pickQuestion({
-          profile: p,
-          topic,
-          askedIds: prevAsked,
-          index: prevAsked.length,
-          forceReview: opts?.forceReview,
-        });
-        if (q) {
-          setQuestion(q);
-          setIsReview(p.reviewQueue.includes(q.entityId));
-          setChosen(null);
-          setDetailOpen(false);
-          setNextReady(true);
-          setPhase("presenting");
-          return [...prevAsked, q.id];
-        }
-        return prevAsked;
-      });
-    },
-    [topic],
-  );
+  /** The profile as it was before the answer in play, for a local undo. */
+  const profileBeforeAnswer = useRef<Profile>(profile);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    serve();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (revealTimer.current) clearTimeout(revealTimer.current);
+    };
   }, []);
 
-  const entity = question ? entityById(question.entityId) : undefined;
-  const correct = question && chosen !== null && chosen === question.correctIndex;
-
-  function commit(index: number) {
-    if (!question || phase !== "presenting") return;
-    const isCorrect = index === question.correctIndex;
-    setChosen(index);
-    setPhase("revealing");
-    setNextReady(isCorrect);
-    if (!isCorrect) {
-      const t = setTimeout(() => setNextReady(true), 1100);
-      void t;
+  const run = useCallback(async <T,>(action: () => Promise<T>): Promise<T | null> => {
+    setBusy(true);
+    setError(null);
+    try {
+      return await action();
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.displayMessage
+          : "The map is not answering right now. Try again in a moment.",
+      );
+      return null;
+    } finally {
+      setBusy(false);
     }
+  }, []);
 
-    const nextCorrectStreak = isCorrect ? correctStreak + 1 : 0;
-    const nextWrongStreak = isCorrect ? 0 : wrongStreak + 1;
-    setCorrectStreak(nextCorrectStreak);
-    setWrongStreak(nextWrongStreak);
+  const present = useCallback((next: ServedQuestion) => {
+    setServed(next);
+    setResult(null);
+    setPickedIndex(null);
+    setDetailOpen(false);
+    setNextReady(true);
+  }, []);
 
-    const newStats = {
-      answered: stats.answered + 1,
-      correct: stats.correct + (isCorrect ? 1 : 0),
-      wrong: stats.wrong + (isCorrect ? 0 : 1),
-    };
-    setStats(newStats);
-    setSeenPlaces((prev) =>
-      prev.includes(question.entityId) ? prev : [...prev, question.entityId],
+  async function serveNext(forceReview = false) {
+    const next = await run(() => api.nextQuestion(session.id, { forceReview }));
+    if (next) present(next);
+  }
+
+  async function commit(choiceIndex: number) {
+    if (result || busy) return;
+    profileBeforeAnswer.current = current;
+
+    const answered = await run(() =>
+      api.submitAnswer(session.id, { questionId: served.question.id, choiceIndex }),
     );
+    if (!answered) return;
 
-    const wasReview = isReview;
-    onUpdateProfile((p) => {
-      const prevMastery = p.mastery[question.entityId] ?? 0;
-      const mastery = isCorrect ? Math.min(1, prevMastery + 0.35) : Math.max(0, prevMastery - 0.15);
+    setPickedIndex(choiceIndex);
+    setResult(answered);
+    setCounts(answered.session.counts);
+    if (answered.profile) setCurrent(answered.profile);
+    setReviewRemaining(answered.session.reviewRoundRemaining ?? 0);
 
-      let queue = [...p.reviewQueue];
-      if (!isCorrect) {
-        if (!queue.includes(question.entityId)) queue.push(question.entityId);
-        if (queue.length > 20) queue = queue.slice(queue.length - 20);
-      } else if (wasReview) {
-        const count = (reviewCorrect.current[question.entityId] ?? 0) + 1;
-        reviewCorrect.current[question.entityId] = count;
-        if (count >= 2) queue = queue.filter((id) => id !== question.entityId);
-      }
+    // A wrong answer holds Next for a beat so the reason is seen.
+    const wait = answered.reveal.nextEnabledAfterMs ?? 0;
+    setNextReady(wait === 0);
+    if (wait > 0) {
+      if (revealTimer.current) clearTimeout(revealTimer.current);
+      revealTimer.current = setTimeout(() => setNextReady(true), wait);
+    }
+  }
 
-      let level = p.level;
-      if (nextCorrectStreak > 0 && nextCorrectStreak % 4 === 0) level = clampLevel(level + 0.5);
-      if (nextWrongStreak > 0 && nextWrongStreak % 3 === 0) level = clampLevel(level - 0.5);
-
-      if (isCorrect && prevMastery <= 0.7 && mastery > 0.7) {
-        setLearned((prev) =>
-          prev.includes(question.entityId) ? prev : [...prev, question.entityId],
-        );
-      }
-
-      return {
-        ...p,
-        level,
-        bestSustainedLevel: Math.max(p.bestSustainedLevel, level),
-        stats: {
-          answered: p.stats.answered + 1,
-          correct: p.stats.correct + (isCorrect ? 1 : 0),
-        },
-        mastery: { ...p.mastery, [question.entityId]: mastery },
-        reviewQueue: queue,
-      };
+  async function undo() {
+    if (!result) return;
+    const undone = await run(async () => {
+      await api.undoAnswer(session.id, result.answerId);
+      return true;
     });
+    if (!undone) return;
+    // The server rolled its own state back; this restores what is on screen.
+    setCurrent(profileBeforeAnswer.current);
+    setResult(null);
+    setPickedIndex(null);
+    setDetailOpen(false);
+    setNextReady(true);
   }
 
   function next() {
-    const answered = stats.answered;
-    if (reviewRoundLeft > 0) {
-      const left = reviewRoundLeft - 1;
-      setReviewRoundLeft(left);
-      serve({ forceReview: left > 0 });
+    const prompts = result?.prompts;
+    if (reviewRemaining > 0) {
+      void serveNext(true);
       return;
     }
-    if (!reviewOffered && stats.wrong >= 5 && correct) {
-      setReviewOffer(true);
+    if (prompts?.offerReview) {
+      setSheet("review");
       return;
     }
-    if ([5, 10, 20].includes(answered)) {
-      setMilestone(answered);
+    if (prompts?.milestone) {
+      setSheet("milestone");
       return;
     }
-    serve();
+    void serveNext();
   }
 
-  function endSession() {
-    onUpdateProfile((p) => ({ ...p, lastSessionEndLevel: p.level }));
-    setSummary(true);
+  async function acceptReview() {
+    setSheet(null);
+    const round = await run(() => api.startReviewRound(session.id));
+    if (!round) return;
+    present(round.served);
+    setReviewRemaining(round.remaining);
   }
 
-  const masteredCount = learned.length;
+  async function end() {
+    const ended = await run(() => api.endSession(session.id));
+    if (!ended) return;
+    setSummary(ended);
+    onFinished();
+  }
 
   if (summary) {
     return (
       <SummaryScreen
-        profile={profile}
-        answered={stats.answered}
-        learned={masteredCount}
-        placesSeen={seenPlaces.length}
-        onKeepPlaying={() => {
-          setSummary(false);
-          serve();
-        }}
+        name={current.name}
+        summary={summary}
+        onKeepPlaying={onPlayAgain}
         onHome={onHome}
       />
     );
   }
 
-  if (!question || !entity) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-lg">No questions here yet. Try another topic.</p>
-        <Button className="mt-6" onClick={onHome}>
-          Back home
-        </Button>
-      </div>
-    );
-  }
+  const { question, entity } = served;
+  const choices = question.choices ?? [];
+  const revealing = result !== null;
+  const highlight = revealing
+    ? (result.reveal.mapHighlightGeometryId ?? entity?.geometryId)
+    : question.highlightGeometryId;
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-10 pt-4 sm:px-6">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="text-xl" aria-hidden>
-            {profile.avatar}
+            {current.avatar}
           </span>
-          <span className="font-semibold">{levelLabel(profile.level)}</span>
+          <span className="font-semibold">{levelLabel(current.level)}</span>
         </div>
-        <Button variant="ghost" onClick={() => setQuitOpen(true)}>
+        <Button variant="ghost" onClick={() => setSheet("quit")}>
           Quit
         </Button>
       </header>
 
       <div className="mt-3 flex items-center gap-2" aria-hidden>
-        {Array.from({ length: Math.min(stats.answered, 20) }).map((_, i) => (
-          <span key={i} className="h-2 w-2 rounded-full bg-accent" />
+        {Array.from({ length: Math.min(counts.answered, 20) }).map((_, index) => (
+          <span key={index} className="h-2 w-2 rounded-full bg-accent" />
         ))}
       </div>
 
       <h1 className="mt-5 text-3xl leading-tight sm:text-4xl">{question.prompt}</h1>
 
-      {question.type === "map-identify" && (
+      {question.format === "map_identify" && (
         <div className="mt-4 overflow-hidden rounded-2xl border-2 border-border bg-card p-2 atlas-grid">
           <UsMap
-            highlightFips={phase === "presenting" || correct ? question.highlightFips : undefined}
-            correctFips={phase === "revealing" ? entity.fipsCode : undefined}
+            highlightFips={revealing ? undefined : highlight}
+            correctFips={revealing ? highlight : undefined}
           />
         </div>
       )}
 
-      {question.type === "text-mc" && (
+      {question.format === "multiple_choice" && entity && (
         <div className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-border bg-card p-4">
           <div className="w-32 shrink-0">
-            <UsMap highlightFips={entity.fipsCode} />
+            <UsMap highlightFips={entity.geometryId} />
           </div>
           <p className="font-display text-2xl">{entity.name}</p>
         </div>
       )}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {question.choices.map((choice, i) => {
-          const isPicked = chosen === i;
-          const isAnswer = i === question.correctIndex;
-          const revealed = phase === "revealing";
+        {choices.map((choice, index) => {
+          // Nothing is marked until the server has graded: the answer key is
+          // not sent with the question any more.
+          const isAnswer = revealing && index === result.correctIndex;
+          const isPicked = revealing && !isAnswer && index === pickedIndex;
           return (
             <Button
               key={choice}
               variant="choice"
               size="lg"
-              disabled={revealed}
-              onClick={() => commit(i)}
+              disabled={revealing || busy}
+              onClick={() => void commit(index)}
               className={cn(
                 "text-lg",
-                revealed && isAnswer && "border-correct bg-correct-soft text-foreground",
-                revealed && isPicked && !isAnswer && "border-accent bg-secondary",
-                revealed && !isAnswer && !isPicked && "opacity-55",
+                isAnswer && "border-correct bg-correct-soft text-foreground",
+                isPicked && "border-accent bg-secondary",
+                revealing && !isAnswer && !isPicked && "opacity-55",
               )}
             >
               {choice}
@@ -257,43 +244,41 @@ export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProp
         })}
       </div>
 
-      {phase === "revealing" && (
+      {error && (
+        <p
+          className="mt-5 rounded-2xl border-2 border-learn bg-learn-soft p-4 text-lg"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+
+      {result && (
         <Reveal
-          correct={!!correct}
-          headline={correct ? entity.funFact : question.shortExplanation}
-          detail={correct ? entity.funFactDetail : question.detailExplanation}
-          answerName={question.choices[question.correctIndex] ?? entity.name}
+          correct={result.correct}
+          headline={result.reveal.headline}
+          detail={result.reveal.detail}
+          answerName={result.correctAnswer ?? result.reveal.answerLabel ?? ""}
           detailOpen={detailOpen}
-          onToggleDetail={() => setDetailOpen((v) => !v)}
-          nextReady={nextReady}
+          onToggleDetail={() => setDetailOpen((open) => !open)}
+          nextReady={nextReady && !busy}
           onNext={next}
-          onUndo={
-            correct
-              ? undefined
-              : () => {
-                  setPhase("presenting");
-                  setChosen(null);
-                }
-          }
+          onUndo={result.correct ? undefined : () => void undo()}
         />
       )}
 
-      {milestone !== null && (
+      {sheet === "milestone" && (
         <Sheet>
           <h2 className="text-3xl">Great stopping point!</h2>
           <p className="mt-2 text-lg text-muted-foreground">
-            You have answered {milestone} questions
-            {masteredCount > 0
-              ? ` and learned ${masteredCount} new ${masteredCount === 1 ? "place" : "places"}`
-              : ""}
-            .
+            You have answered {result?.prompts?.milestone ?? counts.answered} questions.
           </p>
           <div className="mt-6 flex flex-col gap-3">
             <Button
               size="lg"
               onClick={() => {
-                setMilestone(null);
-                serve();
+                setSheet(null);
+                void serveNext();
               }}
             >
               Keep going
@@ -301,37 +286,28 @@ export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProp
             <Button
               variant="quiet"
               onClick={() => {
-                setMilestone(null);
-                endSession();
+                setSheet(null);
+                void end();
               }}
             >
-              I'm done for now
+              I&apos;m done for now
             </Button>
           </div>
         </Sheet>
       )}
 
-      {reviewOffer && (
+      {sheet === "review" && (
         <Sheet>
           <h2 className="text-3xl">Want to try those tricky ones again?</h2>
           <div className="mt-6 flex flex-col gap-3">
-            <Button
-              size="lg"
-              onClick={() => {
-                setReviewOffer(false);
-                setReviewOffered(true);
-                setReviewRoundLeft(5);
-                serve({ forceReview: true });
-              }}
-            >
-              Let's do it
+            <Button size="lg" onClick={() => void acceptReview()}>
+              Let&apos;s do it
             </Button>
             <Button
               variant="quiet"
               onClick={() => {
-                setReviewOffer(false);
-                setReviewOffered(true);
-                serve();
+                setSheet(null);
+                void serveNext();
               }}
             >
               Keep going
@@ -340,21 +316,21 @@ export function Session({ profile, topic, onUpdateProfile, onHome }: SessionProp
         </Sheet>
       )}
 
-      {quitOpen && (
+      {sheet === "quit" && (
         <Sheet>
           <h2 className="text-3xl">Done for now?</h2>
           <p className="mt-2 text-lg text-muted-foreground">
             You can come back to the map any time.
           </p>
           <div className="mt-6 flex flex-col gap-3">
-            <Button size="lg" onClick={() => setQuitOpen(false)}>
+            <Button size="lg" onClick={() => setSheet(null)}>
               Keep playing
             </Button>
             <Button
               variant="quiet"
               onClick={() => {
-                setQuitOpen(false);
-                endSession();
+                setSheet(null);
+                void end();
               }}
             >
               Finish up
@@ -383,7 +359,7 @@ function Sheet({ children }: { children: React.ReactNode }) {
 interface RevealProps {
   correct: boolean;
   headline: string;
-  detail: string;
+  detail?: string | undefined;
   answerName: string;
   detailOpen: boolean;
   onToggleDetail: () => void;
@@ -416,20 +392,15 @@ function Reveal({
       </p>
       <p className="mt-2 font-display text-2xl leading-snug sm:text-3xl">{headline}</p>
 
-      {detailOpen && <p className="mt-4 text-lg leading-relaxed">{detail}</p>}
+      {detailOpen && detail && <p className="mt-4 text-lg leading-relaxed">{detail}</p>}
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button size="lg" disabled={!nextReady} onClick={onNext} className="grow sm:grow-0">
           Next
         </Button>
-        {!detailOpen && (
+        {detail && (
           <Button variant="reveal" onClick={onToggleDetail}>
-            {correct ? "Tell me more →" : "Why? →"}
-          </Button>
-        )}
-        {detailOpen && (
-          <Button variant="reveal" onClick={onToggleDetail}>
-            Close
+            {detailOpen ? "Close" : correct ? "Tell me more →" : "Why? →"}
           </Button>
         )}
         {onUndo && (
@@ -443,35 +414,25 @@ function Reveal({
 }
 
 function SummaryScreen({
-  profile,
-  answered,
-  learned,
-  placesSeen,
+  name,
+  summary,
   onKeepPlaying,
   onHome,
 }: {
-  profile: Profile;
-  answered: number;
-  learned: number;
-  placesSeen: number;
+  name: string;
+  summary: SessionSummary;
   onKeepPlaying: () => void;
   onHome: () => void;
 }) {
-  const line = useMemo(() => {
-    if (learned > 0) return `You learned ${learned} new ${learned === 1 ? "place" : "places"}!`;
-    if (answered > 0)
-      return `You explored ${placesSeen} ${placesSeen === 1 ? "place" : "places"} on the map.`;
-    return "The map is waiting whenever you are.";
-  }, [answered, learned, placesSeen]);
-
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-10">
       <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
-        Nice work, {profile.name}
+        Nice work, {name}
       </p>
-      <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{line}</h1>
+      {/* The headline comes from the server: places learned, never a percentage. */}
+      <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{summary.headline}</h1>
       <p className="mt-4 text-lg text-muted-foreground">
-        You answered {answered} {answered === 1 ? "question" : "questions"} today.
+        You answered {summary.answered} {summary.answered === 1 ? "question" : "questions"} today.
       </p>
       <div className="contour-rule my-8" />
       <div className="flex flex-col gap-3">
