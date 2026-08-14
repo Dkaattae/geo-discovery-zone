@@ -14,6 +14,11 @@
 > bun test && bun run typecheck && bun run lint
 > ```
 >
+> `bun run build` is unchanged — it still produces the nitro/Cloudflare bundle.
+> `bun run build:static` is the new one: it builds through
+> `vite.static.config.ts` in SPA mode and writes `dist/client/`, the static
+> bundle the backend serves in [the Docker image](../Dockerfile).
+>
 > The dev server proxies `/api` (see `vite.config.ts`); `GEO_API_URL` moves the
 > backend, `VITE_API_BASE_URL` points a built app at another origin. Sections 5
 > (question loop), 6 (review queue) and the level model describe behaviour that

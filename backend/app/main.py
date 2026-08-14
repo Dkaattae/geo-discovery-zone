@@ -29,6 +29,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app import store
 from app.auth import ensure_demo_account
 from app.db import database_url, session_scope
+from app.frontend import mount_frontend
 from app.problems import ProblemException, problem_body, problem_response
 from app.routers import auth as auth_router
 from app.routers import content, profiles, sessions
@@ -146,3 +147,8 @@ def _redacted(url: str) -> str:
     scheme, _, rest = url.partition("://")
     _, _, host = rest.rpartition("@")
     return f"{scheme}://***@{host}"
+
+
+# Last, so every API route is matched first and the catch-all only sees what is
+# left. Absent in development, where Vite serves the app and proxies here.
+SERVING_FRONTEND = mount_frontend(app, api_prefix=API_PREFIX)
