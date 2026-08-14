@@ -5,19 +5,32 @@ the contract is served; state lives in memory and is seeded at startup, so the
 frontend has a real bank to render against without a database.
 
 ```bash
-cd backend && uv sync
-uv run fastapi dev app/main.py      # http://127.0.0.1:8000/api/v1/...
-uv run pytest && uv run ruff check  # 178 tests
+make -C backend dev     # http://127.0.0.1:8000/api/v1/... — docs at /docs
+make -C backend test    # 196 tests
+make -C backend check   # lint + format check + tests, what CI should run
+make -C backend help    # every target
 ```
 
-Interactive docs at `/docs`, health at `/health`.
+`make` is a thin wrapper over `uv`; the underlying commands still work from
+inside `backend/`:
+
+```bash
+uv sync
+uv run fastapi dev app/main.py
+uv run pytest && uv run ruff check .
+```
+
+Override the port with `make dev PORT=8080`. With a server running,
+`make -C backend token` prints a bearer token for the demo account and
+`make -C backend smoke` hits health, content version and an authenticated
+profile list. Interactive docs at `/docs`, health at `/health`.
 
 ## What is real and what is not
 
 | Group | State |
 |---|---|
-| **Content** — entities, questions, bundles, version | Seeded from the shipped v1 bank: 15 states, 26 questions |
-| **Profiles / Sessions** | Fully implemented, in memory, lost on restart |
+| **Content** — entities, questions, bundles, version | Loaded into the database from the shipped v1 bank: 15 states, 26 questions |
+| **Profiles / Sessions** | Fully implemented and persisted; a restart is not a reset |
 | **Geometry, elevation profiles, superlative axes** | Endpoints implemented, **no data seeded** — see below |
 
 Vector geometry, elevation cross-sections and superlative rankings need sampled
@@ -32,6 +45,54 @@ The content seed in `app/data/content.json` is `frontend/src/data/` remapped to
 the contract's field names (`type` → `format`, `fipsCode` → `geometryId`,
 `highlightFips` → `highlightGeometryId`). The prose is the same human-written,
 reviewed text the client already ships — nothing here was generated.
+
+## The database
+
+One environment variable chooses it, and nothing else in the app names a
+dialect:
+
+```bash
+GEO_DATABASE_URL=sqlite:///./geoquiz.db                     # the default
+GEO_DATABASE_URL=postgresql+psycopg://user@host/geoquiz     # later: uv add psycopg
+```
+
+**Alembic owns the schema** (`conventions.md`); nothing calls `create_all`.
+`make migrate` runs `alembic upgrade head`, and the app also runs it on startup
+so a fresh clone works — set `GEO_MIGRATE_ON_STARTUP=0` where the deploy
+pipeline migrates instead. `make revision m="..."` writes the next migration
+from the models, and a test asserts the migrations and the models still agree,
+so drift fails the suite rather than a deployment.
+
+**Staying portable.** Only column types every backend has: `String`, `Integer`,
+`Float`, `Boolean`, `JSON`, and a `DateTime` wrapped so it always returns
+UTC-aware values. No `JSONB`, no arrays, no server defaults, no dialect
+functions — a test walks the metadata and fails if one appears. The two SQLite
+accommodations live in `db.py` and exist to *match* other backends, not to
+diverge from them: foreign keys are switched on (SQLite has them off by
+default), and the driver's implicit transaction handling is replaced with
+explicit `BEGIN`, without which a rollback does not reliably roll back.
+
+**What is a column and what is JSON.** Anything filtered or joined on is a
+column — ids, ownership, topic, level, counts — so `/questions?topic=capital`
+is a query rather than a scan. Collections always read and written whole are
+JSON: a profile's mastery map, a session's asked/seen/learned lists, and the
+undo snapshots. The review queue is its own table because it carries per-entity
+state and an order.
+
+**Transactions.** One session per request, committed when the handler returns
+and rolled back if it raises, so the answer that moves a level, queues an
+entity and writes a row either lands whole or not at all. Undo restores
+snapshots taken before the answer rather than computing an inverse.
+
+**Seeding** is idempotent: content reloads only when the bank's version
+changes, and the demo account and profile are created only if absent, so
+restarting a server with real data in it changes nothing.
+
+```bash
+make migrate     # alembic upgrade head
+make revision m="add streaks"
+make db-reset    # delete the local SQLite file (refuses anything else)
+```
 
 ## Authentication
 
@@ -54,14 +115,15 @@ per-operation `security` on every Profiles and Sessions operation).
   PIN.
 
 Both hashing and tokens are standard library — no new dependency was taken for
-them.
+them. Tokens now live in the database, so a restart no longer signs everyone
+out; `purge_expired_tokens` clears the rows that have aged out.
 
 ### Seeded credentials
 
 `grownup@example.com` / `atlas-demo-password`, owning one demo profile
 (`p-demo-maya`). It exists so the frontend has something to log in as in local
-development. **It is a fixture, not a credential to deploy** — the store is
-in-memory, so there is nothing to migrate when it goes.
+development. **It is a fixture, not a credential to deploy** — it is created
+only when absent, so deleting the row is enough to be rid of it.
 
 ```bash
 curl -s localhost:8000/api/v1/auth/token \
@@ -73,9 +135,11 @@ curl -s localhost:8000/api/v1/auth/token \
 
 ```
 app/
-  main.py         app wiring, problem+json error handlers, CORS
+  main.py         app wiring, migrations on startup, problem+json handlers, CORS
   models.py       pydantic models mirroring openapi.yaml (snake_case ↔ camelCase)
-  store.py        in-memory content bank, profiles, sessions, seed
+  db.py           engine, session-per-request, GEO_DATABASE_URL
+  orm.py          the mapped tables
+  store.py        queries: content, profiles, sessions, seeding
   auth.py         accounts, password hashing, bearer tokens, the auth dependency
   problems.py     RFC 9457 problem details
   levels.py       level → grade/band/labels (mirrors frontend/src/lib/level.ts)
@@ -83,8 +147,11 @@ app/
   grading.py      grading, mastery, level drift, prompts, reveal
   serializers.py  record → contract payload
   routers/        content.py, auth.py, profiles.py, sessions.py
-  data/           content.json — the seeded bank
+  data/           content.json — the bank loaded into the database
+migrations/       Alembic; the schema is defined here, not by create_all
 tests/            pytest; endpoint tests go through the app with httpx.AsyncClient
+                  against a migrated SQLite file, each test in a rolled-back
+                  transaction
 ```
 
 The rules the contract states in prose live in `grading.py` and `selection.py`
@@ -121,6 +188,10 @@ as pure functions, so they can be tested without a request:
   seeded bank; submitting one returns 422 rather than a guess. Pin grading is
   implemented as nearest-centroid with a distance cap — the contract's
   polygon-then-centroid strategy needs the geometry layers.
-- The store is in memory. Postgres, Alembic and the `api/` layout in
-  `conventions.md` §Layout are a separate task; nothing here creates tables.
-- Tokens and profiles vanish on restart.
+- Only SQLite is exercised. The code is dialect-neutral and the tests assert
+  that, but "runs on Postgres" is unproven until someone points
+  `GEO_DATABASE_URL` at one and runs the suite; that also needs `uv add psycopg`.
+- The directory is `backend/`, where `conventions.md` §Layout says `api/`.
+- Question selection loads its topic's pool and picks in Python. Past a few
+  thousand questions per topic the difficulty window should move into SQL —
+  `store.candidate_questions` says where.

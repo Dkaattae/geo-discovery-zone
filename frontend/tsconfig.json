@@ -1,5 +1,8 @@
 {
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "eslint.config.js"],
+  // Tests run under `bun test`, which supplies its own globals and `bun:test`
+  // module. Type-checking them here would need @types/bun as a dependency.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

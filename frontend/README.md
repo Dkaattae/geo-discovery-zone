@@ -1,5 +1,25 @@
 # World Explorer Kids
 
+> **Status: the "no backend" instruction below is superseded.** Everything the
+> design brief asks for still holds — it is the best statement of the product's
+> intent — but the app is no longer local-first. The question bank, profiles,
+> question selection, grading, mastery, level drift and the review queue all now
+> live behind the API in [`backend/`](../backend), which implements
+> [`openapi.yaml`](../openapi.yaml). The client keeps two strings on the device:
+> a bearer token and which profile was last chosen.
+>
+> ```bash
+> make -C backend dev        # the API on :8000
+> bun run dev                # the app on :3000, proxying /api to the backend
+> bun test && bun run typecheck && bun run lint
+> ```
+>
+> The dev server proxies `/api` (see `vite.config.ts`); `GEO_API_URL` moves the
+> backend, `VITE_API_BASE_URL` points a built app at another origin. Sections 5
+> (question loop), 6 (review queue) and the level model describe behaviour that
+> is now implemented server-side — read them as the specification the backend
+> was written to, not as work still to do in the client.
+
 Frontend Brief — Geography Quiz for Kids
 
 You are building the complete frontend for a children's geography learning app. There is no backend. All data is mocked locally. Do not write API clients, auth flows, or server calls of any kind.

@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "FastAPI backend implementing openapi.yaml for the Wander the Atlas geo quiz."
 requires-python = ">=3.11"
 dependencies = [
+    "alembic>=1.13",
     "fastapi[standard]>=0.115",
+    "sqlalchemy>=2.0",
 ]
 
 [dependency-groups]

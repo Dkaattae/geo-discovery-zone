@@ -8,14 +8,16 @@ when a review round is running).
 
 from __future__ import annotations
 
-import copy
 import secrets
 from datetime import timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Request, Response, status
+from sqlalchemy.orm import Session as DbSession
 
+from app import store
 from app.auth import Account, current_account
+from app.db import get_db
 from app.grading import (
     UngradableAnswer,
     apply_answer,
@@ -36,30 +38,34 @@ from app.models import (
     StartSessionRequest,
     StartSessionResponse,
 )
+from app.orm import AnswerRecord, ProfileRecord, ServedRecord, SessionRecord
 from app.problems import not_found, problem_exception
 from app.selection import pick_question
 from app.serializers import profile_payload, served_payload, session_payload
-from app.store import (
-    AnswerRecord,
-    ProfileRecord,
-    ServedRecord,
-    SessionRecord,
-    store,
-    utc_now,
-)
+from app.store import utc_now
 
 router = APIRouter(tags=["Sessions"])
 
 CurrentAccount = Annotated[Account, Depends(current_account)]
+Db = Annotated[DbSession, Depends(get_db)]
 
 UNDO_WINDOW = timedelta(seconds=30)
 
 
-def _require_session(session_id: str, account: Account, request: Request) -> SessionRecord:
-    session = store.session_for(session_id, account.id)
+def _require_session(
+    db: DbSession, session_id: str, account: Account, request: Request
+) -> SessionRecord:
+    session = store.session_for(db, session_id, account.id)
     if session is None:
         raise not_found("Session", session_id, request.url.path)
     return session
+
+
+def _require_profile(db: DbSession, session: SessionRecord, request: Request) -> ProfileRecord:
+    profile = store.profile_by_id(db, session.profile_id)
+    if profile is None:
+        raise not_found("Profile", session.profile_id, request.url.path)
+    return profile
 
 
 def _require_active(session: SessionRecord, request: Request) -> None:
@@ -73,9 +79,9 @@ def _require_active(session: SessionRecord, request: Request) -> None:
 
 
 def _serve_next(
+    db: DbSession,
     session: SessionRecord,
     profile: ProfileRecord,
-    request: Request,
     *,
     force_review: bool = False,
     include_answer_key: bool = True,
@@ -86,21 +92,22 @@ def _serve_next(
     rather than burning a new one — a client retrying a request should not skip
     a child past a question they never saw.
     """
-    if session.pending is not None:
-        question = store.question(session.pending.question_id)
+    pending = session.pending
+    if pending is not None:
+        question = store.question(db, pending.question_id)
         if question is not None:
             return served_payload(
-                session.pending,
+                pending,
                 question,
-                store.entity(question["entityId"]),
+                store.entity(db, question["entityId"]),
                 include_answer_key=include_answer_key,
             )
 
     question, is_review = pick_question(
-        list(store.questions.values()),
+        store.candidate_questions(db, session.topic),
         level=session.level,
         topic=session.topic,
-        asked_ids=session.asked_question_ids,
+        asked_ids=list(session.asked_question_ids),
         index=len(session.asked_question_ids),
         review_entity_ids=profile.review_entity_ids(),
         force_review=force_review or session.review_round_remaining > 0,
@@ -118,7 +125,7 @@ def _serve_next(
     return served_payload(
         served,
         question,
-        store.entity(question["entityId"]),
+        store.entity(db, question["entityId"]),
         include_answer_key=include_answer_key,
     )
 
@@ -131,19 +138,23 @@ def _serve_next(
     summary="Start a session",
 )
 def start_session(
-    request: Request, response: Response, account: CurrentAccount, body: StartSessionRequest
+    request: Request,
+    response: Response,
+    db: Db,
+    account: CurrentAccount,
+    body: StartSessionRequest,
 ) -> dict[str, Any]:
-    profile = store.profile_for(body.profile_id, account.id)
+    profile = store.profile_for(db, body.profile_id, account.id)
     if profile is None:
         raise not_found("Profile", body.profile_id, request.url.path)
 
     level = clamp_level(body.level if body.level is not None else profile.last_session_end_level)
-    session = store.create_session(profile, topic=body.topic, level=level)
+    session = store.create_session(db, profile, topic=body.topic, level=level)
     response.headers["Location"] = f"{request.url.path.rstrip('/')}/{session.id}"
 
     payload: dict[str, Any] = {"session": session_payload(session)}
     if body.serve_first_question:
-        served = _serve_next(session, profile, request)
+        served = _serve_next(db, session, profile)
         if served is not None:
             payload["served"] = served
             payload["session"] = session_payload(session)
@@ -152,9 +163,9 @@ def start_session(
 
 @router.get("/sessions/{sessionId}", response_model=Session, summary="Fetch session state")
 def get_session(
-    request: Request, account: CurrentAccount, sessionId: str = Path()
+    request: Request, db: Db, account: CurrentAccount, sessionId: str = Path()
 ) -> dict[str, Any]:
-    return session_payload(_require_session(sessionId, account, request))
+    return session_payload(_require_session(db, sessionId, account, request))
 
 
 @router.post(
@@ -165,21 +176,20 @@ def get_session(
 )
 def serve_next_question(
     request: Request,
+    db: Db,
     account: CurrentAccount,
     sessionId: str = Path(),
     body: NextQuestionRequest | None = None,
 ) -> dict[str, Any]:
-    session = _require_session(sessionId, account, request)
+    session = _require_session(db, sessionId, account, request)
     _require_active(session, request)
-    profile = store.profiles.get(session.profile_id)
-    if profile is None:
-        raise not_found("Profile", session.profile_id, request.url.path)
+    profile = _require_profile(db, session, request)
 
     body = body or NextQuestionRequest()
     served = _serve_next(
+        db,
         session,
         profile,
-        request,
         force_review=body.force_review,
         include_answer_key=body.include_answer_key,
     )
@@ -201,21 +211,21 @@ def serve_next_question(
 )
 def submit_answer(
     request: Request,
+    db: Db,
     account: CurrentAccount,
     body: AnswerRequest,
     sessionId: str = Path(),
 ) -> dict[str, Any]:
-    session = _require_session(sessionId, account, request)
+    session = _require_session(db, sessionId, account, request)
     _require_active(session, request)
-    profile = store.profiles.get(session.profile_id)
-    if profile is None:
-        raise not_found("Profile", session.profile_id, request.url.path)
+    profile = _require_profile(db, session, request)
 
-    question = store.question(body.question_id)
+    question = store.question(db, body.question_id)
     if question is None:
         raise not_found("Question", body.question_id, request.url.path)
 
-    if session.pending is None or session.pending.question_id != body.question_id:
+    pending = session.pending
+    if pending is None or pending.question_id != body.question_id:
         raise problem_exception(
             409,
             "Question is not in play",
@@ -235,9 +245,11 @@ def submit_answer(
         ) from exc
 
     now = utc_now()
-    profile_before = copy.deepcopy(profile)
-    session_before = session.mutable_state()
-    is_review = session.pending.is_review
+    # Snapshots are taken before the answer lands, so an undo restores exactly
+    # what was there rather than trying to compute an inverse.
+    profile_before = profile.snapshot()
+    session_before = session.snapshot()
+    is_review = pending.is_review
 
     effects = apply_answer(
         profile, session, question, correct=correct, is_review=is_review, now=now
@@ -245,6 +257,7 @@ def submit_answer(
 
     answer = AnswerRecord(
         id=f"a-{secrets.token_hex(6)}",
+        session_id=session.id,
         question_id=question["id"],
         entity_id=question["entityId"],
         correct=correct,
@@ -254,8 +267,9 @@ def submit_answer(
         session_before=session_before,
     )
     session.answers.append(answer)
+    db.flush()
 
-    entity = store.entity(question["entityId"])
+    entity = store.entity(db, question["entityId"])
     result: dict[str, Any] = {
         "answerId": answer.id,
         "correct": correct,
@@ -282,11 +296,12 @@ def submit_answer(
 )
 def undo_answer(
     request: Request,
+    db: Db,
     account: CurrentAccount,
     sessionId: str = Path(),
     answerId: str = Path(),
 ) -> Response:
-    session = _require_session(sessionId, account, request)
+    session = _require_session(db, sessionId, account, request)
     _require_active(session, request)
 
     match = next((answer for answer in session.answers if answer.id == answerId), None)
@@ -307,17 +322,12 @@ def undo_answer(
             instance=request.url.path,
         )
 
-    profile = store.profiles.get(session.profile_id)
+    profile = store.profile_by_id(db, session.profile_id)
     if profile is not None:
-        store.profiles[profile.id] = copy.deepcopy(match.profile_before)
+        profile.restore(match.profile_before)
     session.restore(match.session_before)
-    session.answers.pop()
-    # The question goes back to PRESENTING rather than being reselected.
-    session.pending = ServedRecord(
-        question_id=match.question_id,
-        index=session.asked_question_ids.index(match.question_id),
-        is_review=match.is_review,
-    )
+    session.answers.remove(match)
+    db.flush()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -329,15 +339,14 @@ def undo_answer(
 )
 def start_review_round(
     request: Request,
+    db: Db,
     account: CurrentAccount,
     sessionId: str = Path(),
     body: ReviewRoundRequest | None = None,
 ) -> dict[str, Any]:
-    session = _require_session(sessionId, account, request)
+    session = _require_session(db, sessionId, account, request)
     _require_active(session, request)
-    profile = store.profiles.get(session.profile_id)
-    if profile is None:
-        raise not_found("Profile", session.profile_id, request.url.path)
+    profile = _require_profile(db, session, request)
     if not profile.review_queue:
         raise problem_exception(
             409,
@@ -350,7 +359,7 @@ def start_review_round(
     session.review_round_remaining = min(body.length, len(profile.review_queue))
     # Whatever was in play is replaced by the review question the child accepted.
     session.pending = None
-    served = _serve_next(session, profile, request, force_review=True)
+    served = _serve_next(db, session, profile, force_review=True)
     if served is None:
         raise problem_exception(
             409,
@@ -367,16 +376,17 @@ def start_review_round(
     summary="End the session and get the summary",
 )
 def end_session(
-    request: Request, account: CurrentAccount, sessionId: str = Path()
+    request: Request, db: Db, account: CurrentAccount, sessionId: str = Path()
 ) -> dict[str, Any]:
-    session = _require_session(sessionId, account, request)
+    session = _require_session(db, sessionId, account, request)
     if session.state == "active":
         session.state = "ended"
         session.ended_at = utc_now()
         session.pending = None
-        profile = store.profiles.get(session.profile_id)
+        profile = store.profile_by_id(db, session.profile_id)
         if profile is not None:
             profile.last_session_end_level = session.level
+        db.flush()
 
     return {
         "sessionId": session.id,

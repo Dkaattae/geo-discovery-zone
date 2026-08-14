@@ -11,8 +11,11 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Request, Response, status
+from sqlalchemy.orm import Session
 
+from app import store
 from app.auth import Account, current_account, hash_password
+from app.db import get_db
 from app.models import (
     CreateProfileRequest,
     Profile,
@@ -22,27 +25,36 @@ from app.models import (
     ReviewQueue,
     UpdateProfileRequest,
 )
+from app.orm import REVIEW_QUEUE_MAX, ProfileRecord, ReviewItem
 from app.problems import not_found, problem_exception
-from app.serializers import profile_payload, progress_payload, review_queue_payload
-from app.store import REVIEW_QUEUE_MAX, ProfileRecord, ReviewItem, iso, store, utc_now
+from app.serializers import (
+    mastered_entity_ids,
+    profile_payload,
+    progress_payload,
+    review_queue_payload,
+)
+from app.store import iso, utc_now
 
 router = APIRouter(tags=["Profiles"])
 
 CurrentAccount = Annotated[Account, Depends(current_account)]
+Db = Annotated[Session, Depends(get_db)]
 
 PIN_MIN_GRADE = 4
 
 
-def _require_profile(profile_id: str, account: Account, request: Request) -> ProfileRecord:
-    profile = store.profile_for(profile_id, account.id)
+def _require_profile(
+    db: Session, profile_id: str, account: Account, request: Request
+) -> ProfileRecord:
+    profile = store.profile_for(db, profile_id, account.id)
     if profile is None:
         raise not_found("Profile", profile_id, request.url.path)
     return profile
 
 
 @router.get("/profiles", response_model=ProfileListResponse, summary="List profiles")
-def list_profiles(account: CurrentAccount) -> dict[str, Any]:
-    profiles = sorted(store.profiles_for(account.id), key=lambda p: p.created_at)
+def list_profiles(db: Db, account: CurrentAccount) -> dict[str, Any]:
+    profiles = store.profiles_for(db, account.id)
     return {"data": [profile_payload(profile) for profile in profiles]}
 
 
@@ -53,7 +65,11 @@ def list_profiles(account: CurrentAccount) -> dict[str, Any]:
     summary="Create a profile",
 )
 def create_profile(
-    request: Request, response: Response, account: CurrentAccount, body: CreateProfileRequest
+    request: Request,
+    response: Response,
+    db: Db,
+    account: CurrentAccount,
+    body: CreateProfileRequest,
 ) -> dict[str, Any]:
     if body.pin is not None and body.grade < PIN_MIN_GRADE:
         # A kindergartener cannot manage a PIN; the profile picker is the answer
@@ -66,6 +82,7 @@ def create_profile(
             errors=[{"path": "/pin", "message": "only offered from grade 4 up"}],
         )
     profile = store.create_profile(
+        db,
         account_id=account.id,
         name=body.name,
         avatar=body.avatar,
@@ -78,19 +95,20 @@ def create_profile(
 
 @router.get("/profiles/{profileId}", response_model=Profile, summary="Fetch a profile")
 def get_profile(
-    request: Request, account: CurrentAccount, profileId: str = Path()
+    request: Request, db: Db, account: CurrentAccount, profileId: str = Path()
 ) -> dict[str, Any]:
-    return profile_payload(_require_profile(profileId, account, request))
+    return profile_payload(_require_profile(db, profileId, account, request))
 
 
 @router.patch("/profiles/{profileId}", response_model=Profile, summary="Update a profile")
 def update_profile(
     request: Request,
+    db: Db,
     account: CurrentAccount,
     body: UpdateProfileRequest,
     profileId: str = Path(),
 ) -> dict[str, Any]:
-    profile = _require_profile(profileId, account, request)
+    profile = _require_profile(db, profileId, account, request)
     fields = body.model_dump(exclude_unset=True, by_alias=False)
 
     if "name" in fields and fields["name"] is not None:
@@ -149,8 +167,10 @@ def _replace_review_queue(profile: ProfileRecord, entity_ids: list[str], request
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a profile and its history",
 )
-def delete_profile(request: Request, account: CurrentAccount, profileId: str = Path()) -> Response:
-    store.delete_profile(_require_profile(profileId, account, request))
+def delete_profile(
+    request: Request, db: Db, account: CurrentAccount, profileId: str = Path()
+) -> Response:
+    store.delete_profile(db, _require_profile(db, profileId, account, request))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -160,10 +180,17 @@ def delete_profile(request: Request, account: CurrentAccount, profileId: str = P
     summary="Mastery and map progress",
 )
 def get_progress(
-    request: Request, account: CurrentAccount, profileId: str = Path()
+    request: Request, db: Db, account: CurrentAccount, profileId: str = Path()
 ) -> dict[str, Any]:
-    profile = _require_profile(profileId, account, request)
-    return progress_payload(profile, store.entities)
+    profile = _require_profile(db, profileId, account, request)
+    family = store.dominant_family(db)
+    return progress_payload(
+        profile,
+        mastered=store.entities_summary(db, mastered_entity_ids(profile)),
+        family=family,
+        family_total=store.family_total(db, family),
+        entities_seen=store.count_known_entities(db, list(profile.mastery)),
+    )
 
 
 @router.get(
@@ -172,10 +199,10 @@ def get_progress(
     summary="Entities queued for review",
 )
 def get_review_queue(
-    request: Request, account: CurrentAccount, profileId: str = Path()
+    request: Request, db: Db, account: CurrentAccount, profileId: str = Path()
 ) -> dict[str, Any]:
-    profile = _require_profile(profileId, account, request)
-    return review_queue_payload(profile, store.entities)
+    profile = _require_profile(db, profileId, account, request)
+    return review_queue_payload(profile, store.entity_names(db, profile.review_entity_ids()))
 
 
 @router.delete(
@@ -185,11 +212,12 @@ def get_review_queue(
 )
 def remove_from_review_queue(
     request: Request,
+    db: Db,
     account: CurrentAccount,
     profileId: str = Path(),
     entityId: str = Path(),
 ) -> Response:
-    profile = _require_profile(profileId, account, request)
+    profile = _require_profile(db, profileId, account, request)
     remaining = [item for item in profile.review_queue if item.entity_id != entityId]
     if len(remaining) == len(profile.review_queue):
         raise not_found("Review queue entry", entityId, request.url.path)
@@ -203,9 +231,9 @@ def remove_from_review_queue(
     summary="Export a profile as JSON",
 )
 def export_profile(
-    request: Request, account: CurrentAccount, profileId: str = Path()
+    request: Request, db: Db, account: CurrentAccount, profileId: str = Path()
 ) -> dict[str, Any]:
-    profile = _require_profile(profileId, account, request)
+    profile = _require_profile(db, profileId, account, request)
     return {
         "exportVersion": 1,
         "exportedAt": iso(utc_now()),
@@ -220,10 +248,15 @@ def export_profile(
     summary="Import a previously exported profile",
 )
 def import_profile(
-    request: Request, response: Response, account: CurrentAccount, body: ProfileExport
+    request: Request,
+    response: Response,
+    db: Db,
+    account: CurrentAccount,
+    body: ProfileExport,
 ) -> dict[str, Any]:
     incoming = body.profile
     profile = store.create_profile(
+        db,
         account_id=account.id,
         name=incoming.name,
         avatar=incoming.avatar,

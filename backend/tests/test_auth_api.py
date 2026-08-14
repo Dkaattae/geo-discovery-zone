@@ -5,8 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import httpx
+from sqlalchemy.orm import Session
 
-from app.auth import DEMO_PASSWORD, DEMO_USERNAME, auth_store, hash_password, verify_password
+from app import auth
+from app.auth import DEMO_PASSWORD, DEMO_USERNAME, hash_password, verify_password
+from app.orm import TokenRecord
 from tests.conftest import assert_problem
 
 REGISTRATION = {"username": "parent@example.com", "password": "correct-horse-battery"}
@@ -39,17 +42,33 @@ def test_verify_rejects_a_corrupt_or_missing_hash() -> None:
     assert verify_password("anything", "md5$1$aa$bb") is False
 
 
-def test_only_the_token_digest_is_kept() -> None:
-    token, _ = auth_store.issue_token("acct-demo")
-    assert token not in auth_store.tokens
-    assert auth_store.resolve_token(token) is not None
+def test_only_the_token_digest_is_kept(db_session: Session) -> None:
+    token, _ = auth.issue_token(db_session, "acct-demo")
+    stored = [row.digest for row in db_session.query(TokenRecord).all()]
+    assert token not in stored
+    assert auth.resolve_token(db_session, token) is not None
 
 
-def test_an_expired_token_resolves_to_nobody() -> None:
-    token, expires_in = auth_store.issue_token("acct-demo")
+def test_an_expired_token_resolves_to_nobody(db_session: Session) -> None:
+    token, expires_in = auth.issue_token(db_session, "acct-demo")
     assert expires_in > 0
     later = datetime.now(UTC) + timedelta(seconds=expires_in + 1)
-    assert auth_store.resolve_token(token, now=later) is None
+    assert auth.resolve_token(db_session, token, now=later) is None
+
+
+def test_an_expired_token_is_cleared_rather_than_left_to_pile_up(db_session: Session) -> None:
+    token, expires_in = auth.issue_token(db_session, "acct-demo")
+    later = datetime.now(UTC) + timedelta(seconds=expires_in + 1)
+    assert auth.purge_expired_tokens(db_session, now=later) == 1
+    assert auth.resolve_token(db_session, token) is None
+
+
+def test_a_username_is_stored_folded_so_case_cannot_split_an_account(
+    db_session: Session,
+) -> None:
+    account = auth.create_account(db_session, "Grown-Up@Example.COM", "password-long-enough")
+    assert account.username == "grown-up@example.com"
+    assert auth.find_by_username(db_session, "GROWN-UP@example.com") is not None
 
 
 # -- endpoints --------------------------------------------------------------
@@ -78,7 +97,8 @@ async def test_a_username_is_claimed_once(client: httpx.AsyncClient) -> None:
 
 async def test_a_short_password_is_refused(client: httpx.AsyncClient) -> None:
     body = assert_problem(
-        await client.post("/auth/register", json={"username": "a@b.com", "password": "short"}), 422
+        await client.post("/auth/register", json={"username": "a@b.com", "password": "short"}),
+        422,
     )
     assert body["errors"][0]["path"] == "/password"
 
@@ -125,7 +145,7 @@ async def test_a_non_bearer_scheme_is_401(client: httpx.AsyncClient) -> None:
 
 
 async def test_logout_revokes_the_token_it_was_called_with(
-    client: httpx.AsyncClient, auth: dict[str, str]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
-    assert (await client.post("/auth/logout", headers=auth)).status_code == 204
-    assert_problem(await client.get("/profiles", headers=auth), 401)
+    assert (await client.post("/auth/logout", headers=auth_headers)).status_code == 204
+    assert_problem(await client.get("/profiles", headers=auth_headers), 401)
