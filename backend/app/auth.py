@@ -10,8 +10,8 @@ raised later without invalidating stored hashes) and opaque random bearer
 tokens. No JWT, because nothing here needs a token a third party can verify
 offline, and an opaque token can be revoked.
 
-The token table lives in memory alongside the store: restarting the process
-logs everyone out. That is the same trade as the in-memory store itself.
+Accounts and tokens live in the database with everything else, so a restart no
+longer signs everybody out.
 """
 
 from __future__ import annotations
@@ -19,13 +19,16 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
-from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
+from app.db import get_db
+from app.orm import Account, TokenRecord
 from app.problems import problem_exception
 
 PBKDF2_ITERATIONS = 210_000
@@ -59,99 +62,97 @@ def verify_password(password: str, encoded: str | None) -> bool:
     return hmac.compare_digest(candidate.hex(), digest_hex)
 
 
-@dataclass
-class Account:
-    id: str
-    username: str
-    password_hash: str
-    created_at: datetime
-
-
-@dataclass
-class TokenRecord:
-    account_id: str
-    expires_at: datetime
-
-
-@dataclass
-class AuthStore:
-    accounts: dict[str, Account] = field(default_factory=dict)
-    accounts_by_username: dict[str, str] = field(default_factory=dict)
-    tokens: dict[str, TokenRecord] = field(default_factory=dict)
-
-    def reset(self) -> None:
-        self.accounts.clear()
-        self.accounts_by_username.clear()
-        self.tokens.clear()
-
-    # -- accounts ---------------------------------------------------------
-
-    def create_account(
-        self, username: str, password: str, account_id: str | None = None
-    ) -> Account:
-        account = Account(
-            id=account_id or f"acct-{secrets.token_hex(8)}",
-            username=username,
-            password_hash=hash_password(password),
-            created_at=datetime.now(UTC),
-        )
-        self.accounts[account.id] = account
-        self.accounts_by_username[username.lower()] = account.id
-        return account
-
-    def find_by_username(self, username: str) -> Account | None:
-        account_id = self.accounts_by_username.get(username.lower())
-        return self.accounts.get(account_id) if account_id else None
-
-    def authenticate(self, username: str, password: str) -> Account | None:
-        account = self.find_by_username(username)
-        if account is None:
-            # Hash anyway so a missing username and a wrong password cost the same.
-            verify_password(password, hash_password("timing-equaliser"))
-            return None
-        return account if verify_password(password, account.password_hash) else None
-
-    # -- tokens -----------------------------------------------------------
-
-    def issue_token(self, account_id: str, now: datetime | None = None) -> tuple[str, int]:
-        """Returns `(token, expires_in_seconds)`. Only the digest is stored."""
-        now = now or datetime.now(UTC)
-        token = secrets.token_urlsafe(32)
-        self.tokens[_digest(token)] = TokenRecord(account_id=account_id, expires_at=now + TOKEN_TTL)
-        return token, int(TOKEN_TTL.total_seconds())
-
-    def resolve_token(self, token: str, now: datetime | None = None) -> Account | None:
-        now = now or datetime.now(UTC)
-        record = self.tokens.get(_digest(token))
-        if record is None:
-            return None
-        if record.expires_at <= now:
-            self.tokens.pop(_digest(token), None)
-            return None
-        return self.accounts.get(record.account_id)
-
-    def revoke_token(self, token: str) -> None:
-        self.tokens.pop(_digest(token), None)
-
-    def seed(self) -> None:
-        """A demo grown-up account so the frontend has something to log in as."""
-        self.reset()
-        self.create_account(DEMO_USERNAME, DEMO_PASSWORD, account_id=DEMO_ACCOUNT_ID)
-
-
-def _digest(token: str) -> str:
+def token_digest(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-auth_store = AuthStore()
+# -- accounts ---------------------------------------------------------------
+
+
+def create_account(
+    db: Session, username: str, password: str, account_id: str | None = None
+) -> Account:
+    account = Account(
+        id=account_id or f"acct-{secrets.token_hex(8)}",
+        # Stored folded, so "Maya@Example.com" and "maya@example.com" are one
+        # account rather than two that cannot both sign in.
+        username=username.strip().lower(),
+        password_hash=hash_password(password),
+        created_at=datetime.now(UTC),
+    )
+    db.add(account)
+    db.flush()
+    return account
+
+
+def find_by_username(db: Session, username: str) -> Account | None:
+    return db.scalar(select(Account).where(Account.username == username.strip().lower()))
+
+
+def authenticate(db: Session, username: str, password: str) -> Account | None:
+    account = find_by_username(db, username)
+    if account is None:
+        # Hash anyway so a missing username and a wrong password cost the same.
+        verify_password(password, hash_password("timing-equaliser"))
+        return None
+    return account if verify_password(password, account.password_hash) else None
+
+
+# -- tokens -----------------------------------------------------------------
+
+
+def issue_token(db: Session, account_id: str, now: datetime | None = None) -> tuple[str, int]:
+    """Returns `(token, expires_in_seconds)`. Only the digest is stored."""
+    now = now or datetime.now(UTC)
+    token = secrets.token_urlsafe(32)
+    db.add(
+        TokenRecord(digest=token_digest(token), account_id=account_id, expires_at=now + TOKEN_TTL)
+    )
+    db.flush()
+    return token, int(TOKEN_TTL.total_seconds())
+
+
+def resolve_token(db: Session, token: str, now: datetime | None = None) -> Account | None:
+    now = now or datetime.now(UTC)
+    record = db.get(TokenRecord, token_digest(token))
+    if record is None:
+        return None
+    if record.expires_at <= now:
+        db.delete(record)
+        db.flush()
+        return None
+    return db.get(Account, record.account_id)
+
+
+def revoke_token(db: Session, token: str) -> None:
+    db.execute(delete(TokenRecord).where(TokenRecord.digest == token_digest(token)))
+
+
+def purge_expired_tokens(db: Session, now: datetime | None = None) -> int:
+    """Housekeeping: expired rows resolve to nobody, but they still accumulate."""
+    result = db.execute(
+        delete(TokenRecord).where(TokenRecord.expires_at <= (now or datetime.now(UTC)))
+    )
+    return result.rowcount or 0
+
+
+def ensure_demo_account(db: Session) -> Account:
+    """A demo grown-up account so the frontend has something to sign in as."""
+    existing = db.get(Account, DEMO_ACCOUNT_ID)
+    if existing is not None:
+        return existing
+    return create_account(db, DEMO_USERNAME, DEMO_PASSWORD, account_id=DEMO_ACCOUNT_ID)
+
+
+# -- the dependency ---------------------------------------------------------
 
 _bearer = HTTPBearer(auto_error=False, description="Bearer token from `POST /auth/token`.")
 
-
 _BearerCredentials = Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)]
+_Db = Annotated[Session, Depends(get_db)]
 
 
-def current_account(request: Request, credentials: _BearerCredentials) -> Account:
+def current_account(request: Request, credentials: _BearerCredentials, db: _Db) -> Account:
     """Resolves the bearer token, or raises a 401 problem response."""
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise problem_exception(
@@ -161,7 +162,7 @@ def current_account(request: Request, credentials: _BearerCredentials) -> Accoun
             instance=request.url.path,
             headers={"WWW-Authenticate": "Bearer"},
         )
-    account = auth_store.resolve_token(credentials.credentials)
+    account = resolve_token(db, credentials.credentials)
     if account is None:
         raise problem_exception(
             401,

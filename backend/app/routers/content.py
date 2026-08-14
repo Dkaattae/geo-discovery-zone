@@ -4,7 +4,8 @@ This is the group the contract calls "worth implementing first": a static file
 host satisfies it, so nothing here touches profiles, sessions or tokens.
 
 Array query parameters are comma-separated (`style: form, explode: false` in
-the contract), so `?type=state,country` is one parameter, not two.
+the contract), so `?type=state,country` is one parameter, not two. Filtering
+runs as SQL; these handlers translate query strings into store calls.
 """
 
 from __future__ import annotations
@@ -13,8 +14,11 @@ import base64
 import binascii
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Header, Path, Query, Request, Response
+from sqlalchemy.orm import Session
 
+from app import store
+from app.db import get_db
 from app.models import (
     Bundle,
     BundleListResponse,
@@ -30,11 +34,19 @@ from app.models import (
 )
 from app.problems import not_found, problem_exception
 from app.serializers import question_payload
-from app.store import store
 
 router = APIRouter(tags=["Content"])
 
+Db = Annotated[Session, Depends(get_db)]
+
 DEFAULT_LEVEL_SPAN = 1.5
+
+# Elevation profiles, superlative axes and vector geometry need sampled or
+# licensed source data this repo does not carry yet. Serving invented numbers to
+# children is worse than serving none, so these stay empty and say so.
+ELEVATION_PROFILES: list[dict[str, Any]] = []
+SUPERLATIVE_AXES: list[dict[str, Any]] = []
+GEOMETRY_LAYERS: dict[str, dict[str, Any]] = {}
 
 
 def _csv(value: str | None) -> list[str] | None:
@@ -67,27 +79,28 @@ def _decode_cursor(cursor: str | None, request: Request) -> int:
         ) from exc
 
 
-def _paginate(rows: list[Any], offset: int, limit: int) -> tuple[list[Any], dict[str, Any]]:
-    page = rows[offset : offset + limit]
-    has_more = offset + limit < len(rows)
-    return page, {
+def _page_info(offset: int, limit: int, total: int) -> dict[str, Any]:
+    has_more = offset + limit < total
+    return {
         "hasMore": has_more,
         "nextCursor": _encode_cursor(offset + limit) if has_more else None,
-        "total": len(rows),
+        "total": total,
     }
 
 
 @router.get("/content/version", response_model=ContentVersion, summary="Current content build")
-def get_content_version() -> dict[str, Any]:
+def get_content_version(db: Db) -> dict[str, Any]:
+    meta = store.content_meta(db)
+    entities, questions = store.content_counts(db)
     return {
-        "contentVersion": store.content_version,
-        "generatedAt": store.generated_at,
+        "contentVersion": meta.content_version if meta else "unseeded",
+        "generatedAt": meta.generated_at if meta else "1970-01-01T00:00:00Z",
         "counts": {
-            "entities": len(store.entities),
-            "questions": len(store.questions),
-            "bundles": len(store.bundle_ids()),
+            "entities": entities,
+            "questions": questions,
+            "bundles": len(store.bundle_ids(db)),
         },
-        "sources": store.sources,
+        "sources": meta.sources if meta else [],
     }
 
 
@@ -99,6 +112,7 @@ def get_content_version() -> dict[str, Any]:
 )
 def list_entities(
     request: Request,
+    db: Db,
     scope: str | None = None,
     type: str | None = None,
     region: str | None = None,
@@ -107,25 +121,18 @@ def list_entities(
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
     cursor: str | None = None,
 ) -> dict[str, Any]:
-    types = _csv(type)
-    wanted_ids = _csv(ids)
-    rows = list(store.entities.values())
-
-    if scope:
-        rows = [e for e in rows if e.get("scope") == scope]
-    if types:
-        rows = [e for e in rows if e.get("type") in types]
-    if region:
-        rows = [e for e in rows if _slug(e.get("region")) == _slug(region)]
-    if wanted_ids is not None:
-        rows = [e for e in rows if e["id"] in set(wanted_ids)]
-    if q:
-        needle = q.casefold()
-        rows = [e for e in rows if needle in e["name"].casefold()]
-
-    rows.sort(key=lambda entity: entity["id"])
-    page, page_info = _paginate(rows, _decode_cursor(cursor, request), limit)
-    return {"data": page, "page": page_info}
+    offset = _decode_cursor(cursor, request)
+    rows, total = store.list_entities(
+        db,
+        scope=scope,
+        types=_csv(type),
+        region_slug=store.slug(region),
+        ids=_csv(ids),
+        query=q,
+        offset=offset,
+        limit=limit,
+    )
+    return {"data": rows, "page": _page_info(offset, limit, total)}
 
 
 @router.get(
@@ -134,8 +141,8 @@ def list_entities(
     response_model_exclude_unset=True,
     summary="Fetch one entity",
 )
-def get_entity(request: Request, entityId: str = Path()) -> dict[str, Any]:
-    entity = store.entity(entityId)
+def get_entity(request: Request, db: Db, entityId: str = Path()) -> dict[str, Any]:
+    entity = store.entity(db, entityId)
     if entity is None:
         raise not_found("Entity", entityId, request.url.path)
     return entity
@@ -149,6 +156,7 @@ def get_entity(request: Request, entityId: str = Path()) -> dict[str, Any]:
 )
 def list_questions(
     request: Request,
+    db: Db,
     scope: str | None = None,
     entityType: str | None = None,
     entityId: str | None = None,
@@ -164,39 +172,26 @@ def list_questions(
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
     cursor: str | None = None,
 ) -> dict[str, Any]:
-    rows = list(store.questions.values())
-    entity_types = _csv(entityType)
-    entity_ids = _csv(entityId)
-    topics = _csv(topic)
-    formats = _csv(format)
-    excluded = set(_csv(exclude) or [])
-
-    if scope:
-        rows = [q for q in rows if q.get("scope") == scope]
-    if entity_types:
-        rows = [q for q in rows if q.get("entityType") in entity_types]
-    if entity_ids:
-        rows = [q for q in rows if q["entityId"] in set(entity_ids)]
-    if topics:
-        rows = [q for q in rows if q.get("topic") in topics]
-    if formats:
-        rows = [q for q in rows if q.get("format") in formats]
-    if region:
-        rows = [q for q in rows if _slug(q.get("region")) == _slug(region)]
-    if minAgeBand is not None:
-        rows = [q for q in rows if (q.get("ageBand") or 1) >= minAgeBand]
-    if maxAgeBand is not None:
-        rows = [q for q in rows if (q.get("ageBand") or 3) <= maxAgeBand]
-    if level is not None:
-        rows = [q for q in rows if abs(q["level"] - level) <= levelSpan]
-    if excluded:
-        rows = [q for q in rows if q["id"] not in excluded]
-
-    rows.sort(key=lambda question: question["id"])
-    page, page_info = _paginate(rows, _decode_cursor(cursor, request), limit)
+    offset = _decode_cursor(cursor, request)
+    rows, total = store.list_questions(
+        db,
+        scope=scope,
+        entity_types=_csv(entityType),
+        entity_ids=_csv(entityId),
+        topics=_csv(topic),
+        formats=_csv(format),
+        region_slug=store.slug(region),
+        min_age_band=minAgeBand,
+        max_age_band=maxAgeBand,
+        level=level,
+        level_span=levelSpan,
+        exclude=_csv(exclude) or [],
+        offset=offset,
+        limit=limit,
+    )
     return {
-        "data": [question_payload(q, include_answer_key=includeAnswerKey) for q in page],
-        "page": page_info,
+        "data": [question_payload(row, include_answer_key=includeAnswerKey) for row in rows],
+        "page": _page_info(offset, limit, total),
     }
 
 
@@ -207,12 +202,15 @@ def list_questions(
     summary="Fetch one question",
 )
 def get_question(
-    request: Request, questionId: str = Path(), includeAnswerKey: bool = True
+    request: Request, db: Db, questionId: str = Path(), includeAnswerKey: bool = True
 ) -> dict[str, Any]:
-    question = store.question(questionId)
+    question = store.question(db, questionId)
     if question is None:
         raise not_found("Question", questionId, request.url.path)
     return question_payload(question, include_answer_key=includeAnswerKey)
+
+
+BUNDLE_SUMMARY_KEYS = ("id", "label", "scope", "entityCount", "questionCount", "bytes", "etag")
 
 
 @router.get(
@@ -221,17 +219,14 @@ def get_question(
     response_model_exclude_unset=True,
     summary="List lazy-load content bundles",
 )
-def list_bundles() -> dict[str, Any]:
+def list_bundles(db: Db) -> dict[str, Any]:
     summaries = []
-    for bundle_id in store.bundle_ids():
-        bundle = store.bundle(bundle_id)
+    for bundle_id in store.bundle_ids(db):
+        bundle = store.bundle(db, bundle_id)
         if bundle is None:
             continue
         summaries.append({key: bundle[key] for key in BUNDLE_SUMMARY_KEYS if key in bundle})
     return {"data": summaries}
-
-
-BUNDLE_SUMMARY_KEYS = ("id", "label", "scope", "entityCount", "questionCount", "bytes", "etag")
 
 
 @router.get(
@@ -243,20 +238,21 @@ BUNDLE_SUMMARY_KEYS = ("id", "label", "scope", "entityCount", "questionCount", "
 def get_bundle(
     request: Request,
     response: Response,
+    db: Db,
     bundleId: str = Path(),
     includeAnswerKey: bool = True,
     if_none_match: Annotated[str | None, Header(alias="If-None-Match")] = None,
 ) -> Any:
-    bundle = store.bundle(bundleId)
-    if bundle is None:
-        raise not_found("Bundle", bundleId, request.url.path)
-
-    etag = bundle["etag"]
+    etag = store.bundle_etag(db, bundleId)
     # Bundles are immutable per contentVersion, so a matching etag is always fresh.
     if if_none_match and etag in {tag.strip() for tag in if_none_match.split(",")}:
         return Response(status_code=304, headers={"ETag": etag})
 
-    response.headers["ETag"] = etag
+    bundle = store.bundle(db, bundleId)
+    if bundle is None:
+        raise not_found("Bundle", bundleId, request.url.path)
+
+    response.headers["ETag"] = bundle["etag"]
     response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     bundle = dict(bundle)
     bundle["questions"] = [
@@ -271,7 +267,7 @@ def get_geometry(
     layer: GeometryLayer,
     detail: str = Query(default="110m", pattern="^(110m|50m|10m)$"),
 ) -> dict[str, Any]:
-    topology = store.geometry.get(f"{layer.value}:{detail}") or store.geometry.get(layer.value)
+    topology = GEOMETRY_LAYERS.get(f"{layer.value}:{detail}") or GEOMETRY_LAYERS.get(layer.value)
     if topology is None:
         raise problem_exception(
             404,
@@ -293,7 +289,7 @@ def get_geometry(
     summary="List precomputed elevation cross-sections",
 )
 def list_elevation_profiles(scope: str | None = None) -> dict[str, Any]:
-    rows = list(store.elevation_profiles.values())
+    rows = ELEVATION_PROFILES
     if scope:
         rows = [profile for profile in rows if profile.get("scope") == scope]
     return {"data": rows}
@@ -306,7 +302,7 @@ def list_elevation_profiles(scope: str | None = None) -> dict[str, Any]:
     summary="Fetch one elevation cross-section",
 )
 def get_elevation_profile(request: Request, profileKey: str = Path()) -> dict[str, Any]:
-    profile = store.elevation_profiles.get(profileKey)
+    profile = next((row for row in ELEVATION_PROFILES if row.get("key") == profileKey), None)
     if profile is None:
         raise not_found("Elevation profile", profileKey, request.url.path)
     return profile
@@ -319,14 +315,7 @@ def get_elevation_profile(request: Request, profileKey: str = Path()) -> dict[st
     summary="List superlative axes",
 )
 def list_superlative_axes(entityType: str | None = None) -> dict[str, Any]:
-    rows = list(store.superlative_axes)
+    rows = SUPERLATIVE_AXES
     if entityType:
         rows = [axis for axis in rows if axis.get("entityType") == entityType]
     return {"data": rows}
-
-
-def _slug(value: str | None) -> str | None:
-    """`Mountain West` and `mountain-west` are the same region."""
-    if value is None:
-        return None
-    return value.strip().casefold().replace(" ", "-")

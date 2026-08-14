@@ -1,16 +1,21 @@
 """Record → contract payload conversion.
 
 Kept out of the routers so the wire shape is defined in one place, and out of
-the store so the store stays about state. Everything here returns plain dicts
-in the contract's camelCase; the routers hand them to the response models.
+the store so the store stays about queries. Everything here returns plain dicts
+in the contract's camelCase and does no I/O: callers hand in what they have
+already fetched.
 """
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from app.levels import level_label, level_window
-from app.store import ProfileRecord, ServedRecord, SessionRecord, iso
+from app.orm import ProfileRecord, ServedRecord, SessionRecord
+from app.store import EntitySummary, iso
+
+MASTERY_MASTERED = 0.7
 
 
 def question_payload(
@@ -85,15 +90,14 @@ def served_payload(
     return payload
 
 
-def review_queue_payload(
-    profile: ProfileRecord, entities: dict[str, dict[str, Any]]
-) -> dict[str, Any]:
+def review_queue_payload(profile: ProfileRecord, names: dict[str, str]) -> dict[str, Any]:
+    """`names` comes from one query over the queued entities, not a full load."""
     return {
         "profileId": profile.id,
         "entities": [
             {
                 "entityId": item.entity_id,
-                "name": entities.get(item.entity_id, {}).get("name"),
+                "name": names.get(item.entity_id),
                 "cleanPasses": item.clean_passes,
                 "addedAt": iso(item.added_at),
             }
@@ -102,54 +106,40 @@ def review_queue_payload(
     }
 
 
+def mastered_entity_ids(profile: ProfileRecord) -> list[str]:
+    """Above 0.7 fills the entity in on the progress map."""
+    return [entity_id for entity_id, value in profile.mastery.items() if value > MASTERY_MASTERED]
+
+
 def progress_payload(
     profile: ProfileRecord,
-    entities: dict[str, dict[str, Any]],
     *,
-    mastered_threshold: float = 0.7,
+    mastered: Sequence[EntitySummary],
+    family: tuple[str, str],
+    family_total: int,
+    entities_seen: int,
 ) -> dict[str, Any]:
     """`mapProgress` is counted over one entity family at a time — a US map fills
     in states, a world map fills in countries, and mixing them makes the
-    denominator meaningless."""
-    mastered_ids = [
-        entity_id
-        for entity_id, value in profile.mastery.items()
-        if value > mastered_threshold and entity_id in entities
-    ]
-    mastered_geometry_ids = [
-        entities[entity_id]["geometryId"]
-        for entity_id in mastered_ids
-        if entities[entity_id].get("geometryId")
-    ]
-    family = _dominant_family(entities)
-    family_ids = {
-        entity_id
-        for entity_id, entity in entities.items()
-        if (entity.get("type"), entity.get("scope", "us")) == family
-    }
+    denominator meaningless.
+
+    The caller resolves `mastered` and the family counts with queries, so
+    painting the map never loads the whole bank.
+    """
     return {
         "profileId": profile.id,
         "mastery": dict(profile.mastery),
-        "masteredEntityIds": sorted(mastered_ids),
-        "masteredGeometryIds": sorted(mastered_geometry_ids),
-        "entitiesSeen": len([e for e in profile.mastery if e in entities]),
+        "masteredEntityIds": sorted(entity.id for entity in mastered),
+        "masteredGeometryIds": sorted(
+            entity.geometry_id for entity in mastered if entity.geometry_id
+        ),
+        "entitiesSeen": entities_seen,
         "mapProgress": {
             "entityType": family[0],
             "scope": family[1],
-            "filled": len([e for e in mastered_ids if e in family_ids]),
-            "total": len(family_ids),
+            "filled": len([entity for entity in mastered if (entity.type, entity.scope) == family]),
+            "total": family_total,
         },
         "suggestedLevels": level_window(profile.last_session_end_level),
         "reviewQueue": profile.review_entity_ids(),
     }
-
-
-def _dominant_family(entities: dict[str, dict[str, Any]]) -> tuple[str, str]:
-    """The (type, scope) pair the map is drawn over — the largest family present."""
-    counts: dict[tuple[str, str], int] = {}
-    for entity in entities.values():
-        key = (str(entity.get("type", "state")), str(entity.get("scope", "us")))
-        counts[key] = counts.get(key, 0) + 1
-    if not counts:
-        return ("state", "us")
-    return max(counts.items(), key=lambda item: item[1])[0]

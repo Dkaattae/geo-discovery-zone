@@ -3,26 +3,37 @@
 Routes mount under `/api/v1` to match the contract's local development server
 (`http://localhost:3000/api/v1`); `GEO_API_PREFIX` overrides it.
 
+On startup the app brings the schema up to date and makes sure the content bank
+and the demo account are present. All three steps are idempotent, so restarting
+a server with real data in it changes nothing.
+
 Every error leaves as `application/problem+json`, including FastAPI's own
 validation failures — the contract has no other error shape.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.auth import auth_store
+from app import store
+from app.auth import ensure_demo_account
+from app.db import database_url, session_scope
 from app.problems import ProblemException, problem_body, problem_response
 from app.routers import auth as auth_router
 from app.routers import content, profiles, sessions
-from app.store import store
+
+log = logging.getLogger("geoquiz")
 
 API_PREFIX = os.environ.get("GEO_API_PREFIX", "/api/v1")
 CORS_ORIGINS = [
@@ -30,12 +41,31 @@ CORS_ORIGINS = [
     for origin in os.environ.get("GEO_API_CORS_ORIGINS", "http://localhost:3000").split(",")
     if origin.strip()
 ]
+# Set GEO_MIGRATE_ON_STARTUP=0 where a deploy runs `alembic upgrade head` itself.
+MIGRATE_ON_STARTUP = os.environ.get("GEO_MIGRATE_ON_STARTUP", "1") != "0"
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+
+
+def run_migrations() -> None:
+    """`alembic upgrade head`, in-process."""
+    config = Config(str(BACKEND_DIR / "alembic.ini"))
+    config.set_main_option("script_location", str(BACKEND_DIR / "migrations"))
+    command.upgrade(config, "head")
+
+
+def prepare_database() -> None:
+    if MIGRATE_ON_STARTUP:
+        run_migrations()
+    with session_scope() as db:
+        meta = store.ensure_content_loaded(db)
+        ensure_demo_account(db)
+        store.ensure_demo_profile(db)
+    log.info("database ready at %s, content %s", database_url(), meta.content_version)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    store.seed()
-    auth_store.seed()
+    prepare_database()
     yield
 
 
@@ -96,9 +126,23 @@ def _field_error(error: dict[str, Any]) -> dict[str, str]:
 
 @app.get("/health", include_in_schema=False)
 async def health() -> dict[str, Any]:
+    """Reports the database it is actually talking to, not the one configured."""
+    with session_scope() as db:
+        meta = store.content_meta(db)
+        entities, questions = store.content_counts(db)
     return {
         "status": "ok",
-        "contentVersion": store.content_version,
-        "entities": len(store.entities),
-        "questions": len(store.questions),
+        "database": _redacted(database_url()),
+        "contentVersion": meta.content_version if meta else "unseeded",
+        "entities": entities,
+        "questions": questions,
     }
+
+
+def _redacted(url: str) -> str:
+    """A Postgres URL can carry a password; health output should not."""
+    if "@" not in url:
+        return url
+    scheme, _, rest = url.partition("://")
+    _, _, host = rest.rpartition("@")
+    return f"{scheme}://***@{host}"
