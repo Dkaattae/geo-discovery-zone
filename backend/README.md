@@ -46,6 +46,38 @@ the contract's field names (`type` → `format`, `fipsCode` → `geometryId`,
 `highlightFips` → `highlightGeometryId`). The prose is the same human-written,
 reviewed text the client already ships — nothing here was generated.
 
+## Docker: one image, both halves
+
+[`Dockerfile`](../Dockerfile) at the repo root builds the frontend with Node and
+hands the static files to a Python image, which serves them alongside the API:
+
+```bash
+docker build -t wander-the-atlas .
+docker run -p 8000:8000 -v atlas-data:/data wander-the-atlas
+# the app on http://localhost:8000, the API under /api/v1, docs at /docs
+```
+
+Same origin for both, which is what removes CORS from the picture — the client
+asks for a relative `/api/v1`. The database lives on the `/data` volume so a
+`docker rm` does not take a child's progress with it, and migrations and seeding
+run on startup.
+
+`app/frontend.py` does the serving: hashed assets under `/assets` cached
+forever, `index.html` never cached, and anything that is not a real file falls
+back to the shell so client-side routes work. Paths under `/api/v1` are
+excluded from that fallback — a mistyped endpoint returns the contract's problem
+document rather than a page with a 200, which is how "the API returned HTML"
+starts.
+
+Without a bundle the app runs as a bare API; that is the normal state in
+development, where Vite serves the frontend and proxies here. Point
+`GEO_FRONTEND_DIR` at a bundle to serve one from a checkout:
+
+```bash
+cd frontend && bun run build:static     # → frontend/dist/client
+GEO_FRONTEND_DIR=../frontend/dist/client make -C backend run
+```
+
 ## The database
 
 One environment variable chooses it, and nothing else in the app names a
