@@ -17,3 +17,5 @@ question-bank
 tasks
 *.md
 !backend/README.md
+# The file that builds this image is not part of it.
+docker-compose.yml
