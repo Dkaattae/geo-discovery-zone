@@ -2,16 +2,26 @@
 
 One environment variable decides the database: `GEO_DATABASE_URL`, any URL
 SQLAlchemy understands. It defaults to a SQLite file beside the app, so a fresh
-clone runs with no setup.
+clone runs with no setup, and Postgres is the same code with a different URL.
 
-    GEO_DATABASE_URL=sqlite:///./geoquiz.db                  # the default
-    GEO_DATABASE_URL=postgresql+psycopg://user@host/geoquiz  # later, unchanged code
+    GEO_DATABASE_URL=sqlite:///./geoquiz.db                       # the default
+    GEO_DATABASE_URL=postgresql+psycopg://user:pw@host/geoquiz    # Postgres
+
+Both are supported and both are tested: the whole suite runs against either,
+chosen with `GEO_TEST_DATABASE_URL`.
 
 Nothing outside this module names a dialect. The models use portable column
-types, the queries are ORM queries, and the only SQLite-specific line here is
-turning on foreign keys — SQLite's are off by default, which would silently
-stop enforcing the very constraints Postgres enforces, and finding that out
-after a migration is the wrong time.
+types and the queries are ORM queries; what lives here is the per-dialect
+connection settings, and they exist to make the two behave the same rather than
+to let them differ:
+
+- **SQLite** gets foreign keys switched on (off by default, which would
+  silently stop enforcing the constraints Postgres enforces) and the driver's
+  implicit transaction handling replaced with explicit `BEGIN`, without which a
+  rollback does not reliably roll back.
+- **Postgres** gets `pool_pre_ping`, because a pooled connection that a
+  restart, a failover or an idle timeout has closed underneath us looks fine
+  until the query fails. SQLite has no such thing to lose.
 """
 
 from __future__ import annotations
@@ -21,12 +31,16 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, make_url
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 DEFAULT_DATABASE_URL = "sqlite:///./geoquiz.db"
 ENV_VAR = "GEO_DATABASE_URL"
+
+# Recycle before the hour most managed Postgres services idle a connection out.
+POOL_RECYCLE_SECONDS = 1800
+CONNECT_TIMEOUT_SECONDS = 10
 
 
 def database_url() -> str:
@@ -36,28 +50,47 @@ def database_url() -> str:
 def engine_options(url: str) -> dict[str, Any]:
     """Per-dialect connection settings, kept in one place.
 
-    SQLite needs two accommodations and no other dialect needs either:
-    `check_same_thread` because FastAPI serves requests on a thread pool, and a
-    single shared connection for in-memory databases, which otherwise give each
-    connection its own empty database.
+    SQLite needs two accommodations no other dialect wants: `check_same_thread`
+    because FastAPI serves requests on a thread pool, and a single shared
+    connection for in-memory databases, which otherwise give each connection its
+    own empty database.
+
+    A networked database needs the opposite kind of care — the connection can
+    die while it sits in the pool — so Postgres gets `pool_pre_ping` and a
+    connect timeout rather than hanging when the server is unreachable.
     """
-    if not url.startswith("sqlite"):
-        return {}
-    options: dict[str, Any] = {"connect_args": {"check_same_thread": False}}
-    if ":memory:" in url or url.endswith("sqlite://"):
-        options["poolclass"] = StaticPool
-    return options
+    backend = make_url(url).get_backend_name()
+
+    if backend == "sqlite":
+        options: dict[str, Any] = {"connect_args": {"check_same_thread": False}}
+        if ":memory:" in url or url.endswith("sqlite://"):
+            options["poolclass"] = StaticPool
+        return options
+
+    if backend == "postgresql":
+        return {
+            "pool_pre_ping": True,
+            "pool_recycle": POOL_RECYCLE_SECONDS,
+            "connect_args": {
+                "connect_timeout": CONNECT_TIMEOUT_SECONDS,
+                # Names the app in pg_stat_activity, so "what is holding this
+                # lock?" has an answer.
+                "application_name": "geoquiz-api",
+            },
+        }
+
+    return {}
 
 
 def create_db_engine(url: str | None = None, *, echo: bool = False) -> Engine:
     resolved = url or database_url()
     created = create_engine(resolved, echo=echo, future=True, **engine_options(resolved))
     if created.dialect.name == "sqlite":
-        _enable_sqlite_foreign_keys(created)
+        _configure_sqlite(created)
     return created
 
 
-def _enable_sqlite_foreign_keys(target: Engine) -> None:
+def _configure_sqlite(target: Engine) -> None:
     """Two SQLite-only corrections, both about matching what other backends do.
 
     Foreign keys are off by default in SQLite, so without the pragma the

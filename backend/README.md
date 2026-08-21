@@ -1,14 +1,16 @@
 # `backend/` — Geo Quiz API
 
 FastAPI implementation of [`openapi.yaml`](../openapi.yaml). Every operation in
-the contract is served; state lives in memory and is seeded at startup, so the
-frontend has a real bank to render against without a database.
+the contract is served; state lives in a database — SQLite or Postgres — that is
+migrated and seeded at startup, so a fresh clone has a real bank to render
+against and a restart is not a reset.
 
 ```bash
-make -C backend dev     # http://127.0.0.1:8000/api/v1/... — docs at /docs
-make -C backend test    # 196 tests
-make -C backend check   # lint + format check + tests, what CI should run
-make -C backend help    # every target
+make -C backend dev            # http://127.0.0.1:8000/api/v1/... — docs at /docs
+make -C backend test           # 221 tests on SQLite (9 Postgres-only ones skip)
+make -C backend test-postgres  # the same suite against a real Postgres server
+make -C backend check          # lint + format check + tests, what CI should run
+make -C backend help           # every target
 ```
 
 `make` is a thin wrapper over `uv`; the underlying commands still work from
@@ -80,13 +82,26 @@ GEO_FRONTEND_DIR=../frontend/dist/client make -C backend run
 
 ## The database
 
-One environment variable chooses it, and nothing else in the app names a
-dialect:
+**Two backends are supported: SQLite and Postgres.** One environment variable
+chooses between them, and nothing else in the app names a dialect:
 
 ```bash
-GEO_DATABASE_URL=sqlite:///./geoquiz.db                     # the default
-GEO_DATABASE_URL=postgresql+psycopg://user@host/geoquiz     # later: uv add psycopg
+GEO_DATABASE_URL=sqlite:///./geoquiz.db                          # the default
+GEO_DATABASE_URL=postgresql+psycopg://user:pw@host:5432/geoquiz  # Postgres
 ```
+
+The `psycopg` driver ships with the app, so moving to Postgres is the variable
+and a migration run — no install, no code change. Both backends run the same
+migrations and the same tests:
+
+```bash
+make test           # the suite on SQLite
+make test-postgres  # the same suite on a real Postgres server
+                    # GEO_TEST_DATABASE_URL=postgresql+psycopg://... make test-postgres
+```
+
+`docker compose up --build` from the repo root runs the app against a Postgres
+container if you would rather not install one.
 
 **Alembic owns the schema** (`conventions.md`); nothing calls `create_all`.
 `make migrate` runs `alembic upgrade head`, and the app also runs it on startup
@@ -95,14 +110,22 @@ pipeline migrates instead. `make revision m="..."` writes the next migration
 from the models, and a test asserts the migrations and the models still agree,
 so drift fails the suite rather than a deployment.
 
-**Staying portable.** Only column types every backend has: `String`, `Integer`,
-`Float`, `Boolean`, `JSON`, and a `DateTime` wrapped so it always returns
-UTC-aware values. No `JSONB`, no arrays, no server defaults, no dialect
-functions — a test walks the metadata and fails if one appears. The two SQLite
-accommodations live in `db.py` and exist to *match* other backends, not to
-diverge from them: foreign keys are switched on (SQLite has them off by
-default), and the driver's implicit transaction handling is replaced with
-explicit `BEGIN`, without which a rollback does not reliably roll back.
+**Staying portable.** Only column types both backends have: `String`,
+`Integer`, `Float`, `Boolean`, `JSON`, and a `DateTime` wrapped so it always
+returns UTC-aware values. No `JSONB`, no arrays, no server defaults, no dialect
+functions — a test walks the metadata and fails if one appears, and a Postgres
+test reads `information_schema` to confirm what actually landed (`json`,
+`timestamptz`, `double precision`).
+
+The per-dialect settings in `db.py` exist to make the two behave the *same*:
+
+- **SQLite** gets foreign keys switched on (off by default there) and the
+  driver's implicit transaction handling replaced with explicit `BEGIN`,
+  without which a rollback does not reliably roll back.
+- **Postgres** gets `pool_pre_ping` and a `pool_recycle`, because a pooled
+  connection that a restart, a failover or an idle timeout closed underneath us
+  looks fine until the query fails, plus a connect timeout and an
+  `application_name` so `pg_stat_activity` can name the app holding a lock.
 
 **What is a column and what is JSON.** Anything filtered or joined on is a
 column — ids, ownership, topic, level, counts — so `/questions?topic=capital`
@@ -182,8 +205,8 @@ app/
   data/           content.json — the bank loaded into the database
 migrations/       Alembic; the schema is defined here, not by create_all
 tests/            pytest; endpoint tests go through the app with httpx.AsyncClient
-                  against a migrated SQLite file, each test in a rolled-back
-                  transaction
+                  against a migrated database, each test in a rolled-back
+                  transaction. GEO_TEST_DATABASE_URL points the suite at Postgres
 ```
 
 The rules the contract states in prose live in `grading.py` and `selection.py`
@@ -220,9 +243,9 @@ as pure functions, so they can be tested without a request:
   seeded bank; submitting one returns 422 rather than a guess. Pin grading is
   implemented as nearest-centroid with a distance cap — the contract's
   polygon-then-centroid strategy needs the geometry layers.
-- Only SQLite is exercised. The code is dialect-neutral and the tests assert
-  that, but "runs on Postgres" is unproven until someone points
-  `GEO_DATABASE_URL` at one and runs the suite; that also needs `uv add psycopg`.
+- CI only runs the SQLite path. The suite passes against a real Postgres 16
+  locally (`make test-postgres`), but nothing runs it automatically, so a
+  Postgres-only regression would not fail a pull request.
 - The directory is `backend/`, where `conventions.md` §Layout says `api/`.
 - Question selection loads its topic's pool and picks in Python. Past a few
   thousand questions per topic the difficulty window should move into SQL —

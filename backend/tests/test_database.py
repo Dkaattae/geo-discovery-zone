@@ -68,11 +68,9 @@ def test_an_empty_variable_falls_back_rather_than_connecting_to_nothing(
     assert database_url() == DEFAULT_DATABASE_URL
 
 
-def test_connection_settings_are_dialect_specific_and_sqlite_only() -> None:
-    """Everything portable stays portable: no other backend gets special-cased."""
-    assert engine_options("postgresql+psycopg://user@host/db") == {}
-    assert engine_options("mysql+pymysql://user@host/db") == {}
-
+def test_each_supported_backend_gets_the_settings_it_needs() -> None:
+    """The per-dialect settings exist to make the two behave the same, so each
+    one is asserted rather than assumed."""
     file_options = engine_options("sqlite:///./geoquiz.db")
     assert file_options["connect_args"] == {"check_same_thread": False}
     assert "poolclass" not in file_options  # a file is shared between connections
@@ -80,15 +78,37 @@ def test_connection_settings_are_dialect_specific_and_sqlite_only() -> None:
     memory_options = engine_options("sqlite://")
     assert memory_options["poolclass"] is StaticPool
 
+    # A networked database can have a pooled connection die under it.
+    postgres_options = engine_options("postgresql+psycopg://user@host/db")
+    assert postgres_options["pool_pre_ping"] is True
+    assert postgres_options["pool_recycle"] > 0
+    assert postgres_options["connect_args"]["connect_timeout"] > 0
 
-def test_a_postgres_url_is_understood_and_needs_only_its_driver() -> None:
-    """Nothing in this app parses the URL; SQLAlchemy does. Pointing at Postgres
-    is the variable plus `uv add psycopg`, which is the one thing this sandbox
-    cannot install, so the assertion stops at the URL."""
+    # Anything else is left alone rather than guessed at.
+    assert engine_options("mysql+pymysql://user@host/db") == {}
+
+
+def test_a_postgres_engine_builds_from_a_url_alone() -> None:
+    """The driver ships with the app, so pointing at Postgres is the variable
+    and nothing else. Building the engine does not connect."""
     url = make_url("postgresql+psycopg://user:pw@db.example/geoquiz")
     assert url.get_backend_name() == "postgresql"
     assert url.database == "geoquiz"
-    assert engine_options(str(url)) == {}
+
+    engine = create_db_engine(str(url))
+    assert engine.dialect.name == "postgresql"
+    assert engine.dialect.driver == "psycopg"
+    engine.dispose()
+
+
+def test_a_password_never_reaches_the_health_output() -> None:
+    """Postgres URLs carry credentials in a way SQLite paths never did."""
+    from app.main import _redacted
+
+    redacted = _redacted("postgresql+psycopg://user:hunter2@db.example/geoquiz")
+    assert "hunter2" not in redacted
+    assert "db.example/geoquiz" in redacted
+    assert _redacted("sqlite:////data/geoquiz.db") == "sqlite:////data/geoquiz.db"
 
 
 def test_every_column_type_is_one_all_backends_have() -> None:
