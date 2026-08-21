@@ -27,7 +27,7 @@ back later from a different angle.
 |---|---|
 | `frontend/` | React 19, TanStack Start + Router + Query, Vite 8, Tailwind 4, `react-simple-maps` with `us-atlas` for the map. Package manager: **bun** |
 | `backend/` | FastAPI, SQLAlchemy 2, Alembic, Python 3.11+. Package manager: **uv** |
-| Database | SQLite by default; the code is dialect-neutral, so Postgres is a URL change and its driver |
+| Database | SQLite by default, Postgres supported. One URL chooses; both run the same migrations and the same test suite |
 | `question-bank/` | Wikidata → JSON pipeline (TypeScript, bun) that generates the question bank |
 | `openapi.yaml` | The contract between the frontend and the backend. Both sides are tested against it |
 
@@ -94,6 +94,32 @@ already has data changes nothing.
 > **Deleting the volume deletes the profiles.** `docker volume rm atlas-data`
 > is the one command that throws a child's progress away.
 
+### Postgres instead of SQLite
+
+SQLite is the default because one file and one container is the whole setup.
+Postgres is the other supported backend, for when more than one process needs
+the same data or the deploy already has a database. It is a URL — the `psycopg`
+driver ships in the image, and the same migrations run on startup either way:
+
+```bash
+docker run -d --name atlas -p 8000:8000 \
+  -e GEO_DATABASE_URL=postgresql+psycopg://user:pw@host:5432/geoquiz \
+  wander-the-atlas
+```
+
+No volume is needed then; the data lives in Postgres. To get both halves at
+once, [`compose.yaml`](compose.yaml) runs the app against a Postgres container:
+
+```bash
+docker compose up --build     # the app on http://localhost:8000, as before
+docker compose down           # stop, keep the data
+docker compose down -v        # stop and delete the data
+```
+
+Same port, so the bookmark does not change. The database lives in the
+`atlas-postgres` named volume, and the app waits for Postgres to answer
+`pg_isready` before it migrates.
+
 ### Signing in
 
 Profiles are behind a grown-up's account: a username and a password, and
@@ -116,7 +142,7 @@ Everything is an environment variable, all optional:
 
 | Variable | Default in the image | What it does |
 |---|---|---|
-| `GEO_DATABASE_URL` | `sqlite:////data/geoquiz.db` | Any SQLAlchemy URL. Point it at Postgres to move off SQLite (needs `psycopg` installed) |
+| `GEO_DATABASE_URL` | `sqlite:////data/geoquiz.db` | SQLite or Postgres (`postgresql+psycopg://…`). The driver for both ships in the image |
 | `GEO_FRONTEND_DIR` | `/app/frontend-dist` | Where the built app is. Unset it and the container serves only the API |
 | `GEO_API_PREFIX` | `/api/v1` | Where the API is mounted |
 | `GEO_MIGRATE_ON_STARTUP` | `1` | Set `0` when a deploy pipeline runs `alembic upgrade head` itself |
@@ -153,10 +179,16 @@ start rebuilds and reseeds.
 ## Checks
 
 ```bash
-make -C backend check       # ruff + 211 tests, against a migrated SQLite file
+make -C backend check           # ruff + 221 tests, against a migrated SQLite file
+make -C backend test-postgres   # the same suite against a real Postgres server
 cd frontend && bun test && bun run typecheck && bun run lint
 cd question-bank && bun test && bun run typecheck
 ```
+
+`test-postgres` needs a server to point at; override the default with
+`GEO_TEST_DATABASE_URL=postgresql+psycopg://… make -C backend test-postgres`.
+The nine Postgres-only tests skip on SQLite, so nobody needs a database
+installed to run `make -C backend check`.
 
 CI runs the frontend and question-bank jobs on every pull request. **It does
 not run the backend tests yet** — a Python job is the obvious next addition.
@@ -169,6 +201,7 @@ backend/         the API and the server that serves the app (FastAPI, uv)
 question-bank/   Wikidata → JSON pipeline that generates questions (bun)
 openapi.yaml     the contract between frontend and backend
 Dockerfile       Node build stage → Python runtime, one image
+compose.yaml     the same image plus a Postgres, for the Postgres path
 ```
 
 More detail, and the reasoning behind it:
@@ -185,8 +218,9 @@ More detail, and the reasoning behind it:
 - **A React hydration warning on first load of the Docker build.** The app
   recovers and every screen works, but the prerendered shell and the first
   client render disagree about something. It does not happen in development.
-- **Only SQLite has been exercised.** The code avoids anything dialect-specific
-  and there are tests for that, but nobody has run the suite against Postgres.
+- **CI only runs the SQLite path.** The suite passes against a real Postgres 16
+  locally, but nothing runs `make -C backend test-postgres` automatically, so a
+  Postgres-only regression would not fail a pull request.
 - Geometry, elevation profiles and superlative endpoints exist but serve no
   data: they need sampled or licensed sources this repo does not carry, and a
   guessed number in an app that teaches children is worse than none.

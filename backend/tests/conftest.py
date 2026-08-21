@@ -4,15 +4,26 @@ Endpoint tests go through the app with `httpx.AsyncClient`, not by calling the
 handler — routing, validation and serialisation are part of what the contract
 promises.
 
-The database is real: a temporary SQLite file with the schema built by the same
-Alembic migrations production runs, so a migration that does not match the
-models fails the suite rather than a deployment. Each test runs inside a
-transaction that is rolled back afterwards, so tests cannot see each other's
-rows and none of them has to clean up.
+The database is real, and which one is a choice: by default a temporary SQLite
+file, or any URL in `GEO_TEST_DATABASE_URL`. Both are supported backends, so
+both can be run:
+
+    uv run pytest                                                    # SQLite
+    GEO_TEST_DATABASE_URL=postgresql+psycopg://postgres@localhost/geoquiz_test \
+      uv run pytest                                                  # Postgres
+
+The schema is built by the same Alembic migrations production runs, so a
+migration that does not match the models fails the suite rather than a
+deployment. Each test runs inside a transaction that is rolled back afterwards,
+so tests cannot see each other's rows and none of them has to clean up.
+
+A Postgres run starts from a clean schema — it drops and recreates `public`
+first, because a database left over from a previous run is not a fixture.
 """
 
 from __future__ import annotations
 
+import os
 import tempfile
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
@@ -23,7 +34,7 @@ import pytest
 import yaml
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import Engine
+from sqlalchemy import Engine, text
 from sqlalchemy.orm import Session
 
 from app import auth, db, store
@@ -36,6 +47,8 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 DEMO_PROFILE_ID = "p-demo-maya"
 
+TEST_URL_ENV = "GEO_TEST_DATABASE_URL"
+
 
 def _migrate(engine: Engine) -> None:
     """`alembic upgrade head` against this engine, not whatever is configured."""
@@ -46,11 +59,22 @@ def _migrate(engine: Engine) -> None:
         command.upgrade(config, "head")
 
 
+def _reset_schema(engine: Engine) -> None:
+    """Start a non-SQLite run from nothing, rather than from last time."""
+    with engine.begin() as connection:
+        connection.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        connection.execute(text("CREATE SCHEMA public"))
+
+
 @pytest.fixture(scope="session")
 def engine() -> Iterator[Engine]:
     """One migrated database for the suite, with the content bank loaded once."""
+    configured = os.environ.get(TEST_URL_ENV)
     with tempfile.TemporaryDirectory() as directory:
-        created = db.configure(f"sqlite:///{Path(directory) / 'test.db'}")
+        url = configured or f"sqlite:///{Path(directory) / 'test.db'}"
+        created = db.configure(url)
+        if created.dialect.name != "sqlite":
+            _reset_schema(created)
         _migrate(created)
         with Session(bind=created) as setup:
             store.ensure_content_loaded(setup)

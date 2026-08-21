@@ -1,0 +1,43 @@
+# The app and a Postgres, for running the Postgres path locally.
+#
+#   docker compose up --build          # http://localhost:8000
+#   docker compose down                # stop, keep the data
+#   docker compose down -v             # stop and delete the data
+#
+# Plain `docker run` with SQLite is still the simplest way to run this — see the
+# README. This file is for when you want the Postgres path, or a second service
+# to point at the same database.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: geoquiz
+      POSTGRES_PASSWORD: geoquiz
+      POSTGRES_DB: geoquiz
+    volumes:
+      # Named, so `docker compose down` keeps the data and only `-v` deletes it.
+      - atlas-postgres:/var/lib/postgresql/data
+    healthcheck:
+      # The app migrates on startup, so it must not start before this answers.
+      test: ["CMD-SHELL", "pg_isready -U geoquiz -d geoquiz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # Uncomment to reach the database from the host with psql.
+    # ports:
+    #   - "5432:5432"
+
+  app:
+    build: .
+    ports:
+      # The same 8000 as the plain `docker run`, so bookmarks keep working.
+      - "8000:8000"
+    environment:
+      GEO_DATABASE_URL: postgresql+psycopg://geoquiz:geoquiz@db:5432/geoquiz
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  atlas-postgres:

@@ -12,7 +12,7 @@ BASE := http://$(HOST):$(PORT)/api/v1
 UV   := uv
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev run test test-watch lint format format-check check token smoke clean \
+.PHONY: help install dev run test test-postgres test-watch lint format format-check check token smoke clean \
 	migrate revision db-reset
 
 help: ## Show this help
@@ -43,8 +43,14 @@ dev: install ## Run the API with auto-reload; docs at /docs
 run: install ## Run the API without auto-reload
 	$(UV) run fastapi run app/main.py --host $(HOST) --port $(PORT)
 
-test: install ## Run the whole test suite
+test: install ## Run the whole test suite (SQLite)
 	$(UV) run pytest
+
+# Same suite, against a real server. Postgres is a supported backend, so it is
+# tested rather than assumed; the Postgres-only tests skip on SQLite.
+GEO_TEST_DATABASE_URL ?= postgresql+psycopg://postgres@127.0.0.1:5432/geoquiz_test
+test-postgres: install ## Run the suite against Postgres (GEO_TEST_DATABASE_URL)
+	GEO_TEST_DATABASE_URL="$(GEO_TEST_DATABASE_URL)" $(UV) run pytest
 
 test-watch: install ## Re-run the tests that failed last, first
 	$(UV) run pytest -q --last-failed --last-failed-no-failures all
@@ -61,7 +67,7 @@ format-check: install ## Fail if anything is unformatted
 check: lint format-check test ## Everything CI should run before merging
 
 # The seeded demo login. A fixture for local development, not a credential:
-# the store is in memory, so it exists only as long as the process does.
+# it is created only when absent, so deleting the row is enough to be rid of it.
 GET_TOKEN = curl -sS $(BASE)/auth/token \
 		-H 'content-type: application/json' \
 		-d '{"username":"grownup@example.com","password":"atlas-demo-password"}' \
