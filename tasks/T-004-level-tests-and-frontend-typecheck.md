@@ -1,8 +1,8 @@
 # T-004 — Tests for `level.ts`, and settle how `frontend` typechecks a test file
 
-**Status:** `awaiting approval`
+**Status:** `in progress`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date
+**Approved:** Dkaattae — 2026-08-24
 **From:** [`tasks.md`](../tasks.md) T-004
 **Branch:** `claude/t004-uqxhky` — the branch this session was assigned by the
 harness, used instead of `task/T-004-...` under `CLAUDE.md` "Branches" and
