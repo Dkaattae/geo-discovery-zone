@@ -28,7 +28,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app import store
 from app.auth import ensure_demo_account
-from app.db import database_url, session_scope
+from app.db import DbSessionMiddleware, database_url, session_scope
 from app.frontend import mount_frontend
 from app.problems import ProblemException, problem_body, problem_response
 from app.routers import auth as auth_router
@@ -85,6 +85,10 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["ETag", "Location"],
 )
+
+# Added last, so it runs innermost: the session commits before the response
+# leaves, not after it has already reached the client. See `db.get_db`.
+app.add_middleware(DbSessionMiddleware)
 
 app.include_router(content.router, prefix=API_PREFIX)
 app.include_router(auth_router.router, prefix=API_PREFIX)

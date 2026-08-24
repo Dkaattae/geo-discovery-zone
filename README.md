@@ -180,8 +180,9 @@ start rebuilds and reseeds.
 ## Checks
 
 ```bash
-make -C backend check           # ruff + 221 tests, against a migrated SQLite file
-make -C backend test-postgres   # the same suite against a real Postgres server
+make -C backend check            # ruff + 221 tests, against a migrated SQLite file
+make -C backend test-postgres    # the same suite against a real Postgres server
+make -C backend test-integration # 28 tests against a real docker compose stack
 cd frontend && bun test && bun run typecheck && bun run lint
 cd question-bank && bun test && bun run typecheck
 ```
@@ -191,8 +192,15 @@ cd question-bank && bun test && bun run typecheck
 The nine Postgres-only tests skip on SQLite, so nobody needs a database
 installed to run `make -C backend check`.
 
-CI runs the frontend and question-bank jobs on every pull request. **It does
-not run the backend tests yet** — a Python job is the obvious next addition.
+`test-integration` builds the image, brings the stack up, runs against it over
+HTTP and tears it down — the only tests that touch the `Dockerfile`, the compose
+file and the built frontend. It needs a Docker daemon and skips without one.
+Point it at a stack you already have with
+`make -C backend test-integration-against URL=http://localhost:8000`.
+Details in [`backend/integration/README.md`](backend/integration/README.md).
+
+**CI runs all five jobs on every pull request**: `frontend`, `question-bank`,
+`backend`, `backend-postgres` and `integration`.
 
 ## Layout
 

@@ -12,12 +12,12 @@ BASE := http://$(HOST):$(PORT)/api/v1
 UV   := uv
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev run test test-postgres test-watch lint format format-check check token smoke clean \
-	migrate revision db-reset
+.PHONY: help install dev run test test-postgres test-integration test-integration-against \
+	test-watch lint format format-check check token smoke clean migrate revision db-reset
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-24s\033[0m %s\n", $$1, $$2}'
 	@echo
 	@echo "  PORT=$(PORT) HOST=$(HOST) — override like: make dev PORT=8080"
 	@echo "  GEO_DATABASE_URL=$(GEO_DATABASE_URL)"
@@ -51,6 +51,15 @@ test: install ## Run the whole test suite (SQLite)
 GEO_TEST_DATABASE_URL ?= postgresql+psycopg://postgres@127.0.0.1:5432/geoquiz_test
 test-postgres: install ## Run the suite against Postgres (GEO_TEST_DATABASE_URL)
 	GEO_TEST_DATABASE_URL="$(GEO_TEST_DATABASE_URL)" $(UV) run pytest
+
+# The only tests that touch the image, the compose file and a real container.
+# Not part of `check`: they need a Docker daemon, and a machine without one
+# should still be able to run everything else.
+test-integration: install ## Run the integration suite against docker compose
+	$(UV) run pytest integration -v
+
+test-integration-against: install ## Same suite, against a stack you are already running: make test-integration-against URL=http://localhost:8000
+	GEO_E2E_BASE_URL="$(URL)" $(UV) run pytest integration -v
 
 test-watch: install ## Re-run the tests that failed last, first
 	$(UV) run pytest -q --last-failed --last-failed-no-failures all

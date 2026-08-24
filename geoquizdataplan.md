@@ -668,6 +668,24 @@ of course, not a clarification, and the way to keep §3.2's benefit is ordering:
 
 Nothing forces step 3 to happen because steps 1 and 2 did.
 
+> **Amended 2026-08-24 — step 3 happened, and here is the answer it was waiting
+> for.** All three steps are built (`PROGRESS.md`). Profiles were not reached by
+> momentum; the concrete reason was that a child's progress vanished with the
+> browser's `localStorage`, and Dkaattae set the privacy answer on 2026-08-11:
+>
+> **the server stores a username, a password or PIN, and nothing else
+> identifying.** No email, no real name, no age, no contact details. A child's
+> profile is a **nickname and an animal**, chosen by them. The grown-up's
+> username is the only free-text field an adult supplies, and the app never asks
+> what it should contain.
+>
+> That is what keeps §3.2's benefit while giving up its mechanism: there is a
+> server, and it holds almost nothing. The COPPA surface §3.2 warns about is a
+> function of *what* is stored, not *whether* a database exists — and the answer
+> to "what" is a nickname, an animal, a level, and which states have been
+> learned. The rest of §3.2's reasoning stands and should be re-read before any
+> field is added to that list.
+
 ### 5.3 Two languages, one schema
 
 The pipeline is TypeScript and the backend is Python, so it matters who owns the
@@ -683,7 +701,22 @@ normalising source data, Python for owning the database and serving it.
 
 ### 5.4 Deliberately not chosen yet
 
-- **Hosting** — frontend, API and database targets are all open.
-- **ORM style** — SQLAlchemy 2.x is the default assumption, but a thin
-  `asyncpg` layer is reasonable for a read-mostly content API.
-- **Auth** — nothing needs it until profiles exist, and profiles are last.
+- **Hosting** — frontend, API and database targets are all open. One Docker image
+  now serves the app and the API on a single origin, so the target needs to run a
+  container and reach a database, and nothing more.
+
+Two entries here have since been settled, kept with their answers rather than
+deleted — what was open, and what it became:
+
+- **ORM style** — *was:* SQLAlchemy 2.x assumed, with a thin `asyncpg` layer
+  reasonable for a read-mostly content API. **Settled: SQLAlchemy 2.x**, once
+  sessions and profiles made it not read-mostly. Models are
+  `MappedAsDataclass`; only column types both SQLite and Postgres have, so the
+  dialect stays a URL.
+- **Auth** — *was:* nothing needs it until profiles exist, and profiles are last.
+  **Settled** when profiles landed (§5.2): PBKDF2-SHA256 passwords and opaque
+  bearer tokens, both from the standard library, no dependency taken. Content
+  stays public — it is build-time data with no user in it and a token on it would
+  buy nothing. `openapi.yaml` was updated to carry the security scheme, which is
+  the one place this project's contract has changed to match its implementation
+  rather than the other way round.

@@ -1,0 +1,5 @@
+node_modules
+# Playwright's own output: traces, videos and screenshots from failed runs.
+test-results/
+playwright-report/
+blob-report/

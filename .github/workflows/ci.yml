@@ -110,3 +110,164 @@ jobs:
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun test
+
+  # The backend's 221 tests ran nowhere until this job existed. Same shape as the
+  # TS jobs above: install from a frozen lockfile, prove the lockfile did not
+  # move, then run the checks independently so one red step does not hide another.
+  backend:
+    name: backend (lint, format, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          # Pinned for the same reason bun is: a release should not turn this
+          # workflow red on a branch nobody touched.
+          version: "0.8.17"
+          python-version: "3.11"
+
+      - name: Install
+        id: install
+        # --frozen resolves nothing: it installs exactly what uv.lock pins and
+        # fails if the lockfile and pyproject.toml disagree.
+        run: uv sync --frozen
+
+      - name: Lockfile unchanged
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: git diff --exit-code -- uv.lock
+
+      - name: Lint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: uv run ruff check .
+
+      - name: Format
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: uv run ruff format --check .
+
+      - name: Test
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        # SQLite, the default. The 9 Postgres-only tests skip here and run in
+        # the job below.
+        run: uv run pytest
+
+  # Postgres is a supported backend, so it is tested rather than assumed. Same
+  # suite, different URL — a dialect-specific regression fails a PR instead of a
+  # deployment.
+  backend-postgres:
+    name: backend (postgres)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: geoquiz_test
+        ports:
+          - 5432:5432
+        # Without this the job races the database on a cold runner.
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          python-version: "3.11"
+
+      - name: Install
+        run: uv sync --frozen
+
+      - name: Test against Postgres
+        env:
+          GEO_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/geoquiz_test
+        run: uv run pytest
+
+  # The only job that builds the image and brings the stack up. Everything else
+  # tests the code; this tests the Dockerfile, the compose file, the frontend
+  # build and the container's Postgres — the parts a unit test cannot reach.
+  #
+  # Slow by nature (a full frontend build plus an image build), so it runs last
+  # and on its own. If it is ever the reason PRs feel slow, move it to a
+  # schedule rather than deleting it: nothing else covers this ground.
+  integration:
+    name: integration (docker compose)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        working-directory: backend
+        run: uv sync --frozen
+
+      - name: Run the suite against a real stack
+        working-directory: backend
+        # The fixture builds the image, waits for /health, runs, and tears the
+        # stack down — including its volume — however the run ends.
+        run: uv run pytest integration -v
+
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose -p atlas-integration -f docker-compose.yml logs --no-color --tail 200
+
+  # The only job that opens a browser. Slow — a frontend build, an image build
+  # and thirteen full user journeys — so it runs on its own and last.
+  e2e:
+    name: e2e (playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - name: Install
+        id: install
+        run: bun install --frozen-lockfile
+
+      - name: Lockfile unchanged
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: git diff --exit-code -- bun.lock
+
+      - name: Typecheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run typecheck
+
+      - name: Install Chromium
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        # Only the one engine the suite uses; --with-deps because a bare runner
+        # has none of the shared libraries Chromium needs.
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run against docker compose
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        # The config brings the stack up (webServer) and tears it down after.
+        run: bun run test
+
+      - name: Report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

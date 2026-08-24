@@ -31,7 +31,9 @@ services:
     build: .
     ports:
       # The same 8000 as the plain `docker run`, so bookmarks keep working.
-      - "8000:8000"
+      # ATLAS_PORT moves it, which is how the integration suite brings up its
+      # own stack without colliding with one you are already running.
+      - "${ATLAS_PORT:-8000}:8000"
     environment:
       GEO_DATABASE_URL: postgresql+psycopg://geoquiz:geoquiz@db:5432/geoquiz
     depends_on:

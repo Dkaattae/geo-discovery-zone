@@ -28,6 +28,10 @@ export function Button({ variant = "primary", size = "md", className, ...rest }:
   return (
     <button
       {...rest}
+      // A stable handle for the end-to-end tests. Selecting the answer buttons
+      // by their Tailwind classes would break on any restyle; this says what the
+      // button *is*, which is the thing a test actually means.
+      data-variant={variant}
       className={cn(
         base,
         variants[variant],
