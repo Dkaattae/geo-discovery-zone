@@ -108,7 +108,8 @@ docker run -d --name atlas -p 8000:8000 \
 ```
 
 No volume is needed then; the data lives in Postgres. To get both halves at
-once, [`compose.yaml`](compose.yaml) runs the app against a Postgres container:
+once, [`docker-compose.yml`](docker-compose.yml) runs the app against a Postgres
+container:
 
 ```bash
 docker compose up --build     # the app on http://localhost:8000, as before
@@ -196,12 +197,12 @@ not run the backend tests yet** — a Python job is the obvious next addition.
 ## Layout
 
 ```
-frontend/        the app (React, bun)
-backend/         the API and the server that serves the app (FastAPI, uv)
-question-bank/   Wikidata → JSON pipeline that generates questions (bun)
-openapi.yaml     the contract between frontend and backend
-Dockerfile       Node build stage → Python runtime, one image
-compose.yaml     the same image plus a Postgres, for the Postgres path
+frontend/           the app (React, bun)
+backend/            the API and the server that serves the app (FastAPI, uv)
+question-bank/      Wikidata → JSON pipeline that generates questions (bun)
+openapi.yaml        the contract between frontend and backend
+Dockerfile          Node build stage → Python runtime, one image
+docker-compose.yml  the same image plus a Postgres, for the Postgres path
 ```
 
 More detail, and the reasoning behind it:
