@@ -1,7 +1,7 @@
 # T-004 — Tests for `level.ts`, and settle how `frontend` typechecks a test file
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-08-24
 **From:** [`tasks.md`](../tasks.md) T-004
 **Branch:** `claude/t004-uqxhky` — the branch this session was assigned by the
@@ -18,6 +18,7 @@ draft until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-08-24 | cse_01N1UY1A2KmxuQaP2Cj4QB7V |
 | worker | 2026-08-24 | cse_01Qd2mh1xNQCm3wTJjd3f455 |
+| tester | 2026-08-24 | cse_01XMSt9jZ4pn9QCqpqQ1W1bx |
 
 ## Goal
 
@@ -356,7 +357,145 @@ and confirmed clean in `git status`.
 
 ## Verdict
 
-Written by `tester`.
+**Pass.** Written by `tester`, session `cse_01XMSt9jZ4pn9QCqpqQ1W1bx`, 2026-08-24
+— not the expander's session and not the worker's, per the Sessions table above.
+
+**All ten criteria hold.** Every suite is green (80 frontend, 19 question-bank,
+233 passed + 9 skipped backend), lint and both `ruff` checks are clean, and all
+three suites still pass with `HTTPS_PROXY`/`HTTP_PROXY` pointed at a dead port.
+**Twenty-one deliberate mutations, every one killed**, and every one reverted —
+`git status` carries no source change.
+
+**The one thing that is not green is not this task's:** `bun run typecheck` in
+`frontend/` exits 2 in the agent sandbox with four `UsMap.tsx` errors. **I
+established that baseline independently** rather than taking the Handoff's word
+for it: a scratch worktree at `bf7c0f4`, the commit *before* the worker's,
+produces those same four errors and no others. This branch adds zero. See
+"The sandbox baseline, established independently" below.
+
+### Criterion by criterion
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | all five exports exercised | **pass** | Replacing each of `gradeOf`, `bandOf`, `gradeLabel`, `bandLabel`, `levelLabel` with a constant killed 33 / 26 / 26 / 22 / 32 tests respectively (M1–M5) |
+| 2 | `bandLabel` edges, both sides | **pass** | `0.74`→Easy, `0.75`→Medium, `1.49`→Medium, `1.5`→Hard asserted literally in both test files. Moving either edge by 0.01 in **either** direction turns tests red (M8, M9, M12, M13). Making `bandLabel` compare the raw level instead of `bandOf(level)` killed 19 (M10), so the criterion's "the band, not the raw level" clause is genuinely pinned |
+| 3 | `gradeLabel` clamps at both ends | **pass** | `gradeLabel(0)`→`"Kindergarten"`, `gradeLabel(18)`→`"8th grade"` with `gradeOf(18) === 9` asserted alongside, `gradeLabel(-2)`→`"Kindergarten"`. Dropping the upper clamp killed 3 tests (M6), the lower clamp 2 (M7). My own file additionally asserts no label anywhere on or past the scale contains `"undefined"`, which is the failure the criterion names |
+| 4 | one table, asserted by both suites | **pass** | `fixtures/level-labels.json`, 30 rows spanning 0–18, read at `frontend/src/lib/level.test.ts:18` and `backend/tests/test_levels.py:32`; neither restates the table inline. **Changing one row turned both suites red at exactly that row** (M20, M21). Changing `levels.py` alone reddened only the backend (M14–M19); changing `level.ts` alone only the frontend (M1–M13) — which is the drift the criterion exists to catch |
+| 5 | typecheck covers test files | **pass** | `exclude` gone, `"types": ["vite/client", "bun"]`. A deliberate type error in `level.test.ts` produced `src/lib/level.test.ts(163,7): error TS2322` and exit 2; the same probe in `client.test.ts` produced `client.test.ts(217,7): error TS2322`. The old `exclude` at `bf7c0f4` would have hidden both. `bun test` still passes with the exclusion gone |
+| 6 | `--pass-with-no-tests` gone | **pass** | `.github/workflows/ci.yml` frontend `Test` step is bare `bun test`, and the old comment block is replaced rather than left orphaned. **Moving both `*.test.ts` files out of `frontend/src/` made `bun test` exit 1** (`error: 0 test files matching …`); both were moved back and `git status` is clean. `grep -r pass-with-no-tests` finds it in no workflow file |
+| 7 | "Randomness and time" true as written | **pass** | The `Forward-looking` blockquote is gone. Every claim the section now makes was checked against the code: `backend/app/selection.py:44` defines `pick_question(questions, *, level, topic, …, rng)` returning `tuple[question, bool]`, draws via `chooser.choice` at lines 63/72/79/80, and `backend/tests/test_selection.py` exists. `grep -rn pickQuestion frontend/` returns nothing, so the section no longer points anywhere false. Line 197's `# no test files yet — exits 1 until T-004` is also corrected |
+| 8 | both decisions written down | **pass** | `decisions.md` D-9 (typechecking frontend tests, `@types/bun`, the two rejected alternatives) and D-10 (CI requires frontend tests), each closing with a `**Revisit when**` in the house shape. `PROGRESS.md`'s "Frontend test files are excluded from `tsc`" line is **deleted**, not reworded — `grep` finds no trace |
+| 9 | no dependency beyond `@types/bun` | **pass** | One line in `frontend/package.json` `devDependencies`, `^1.3.14`, byte-identical to `question-bank/package.json:12`. `dependencies` untouched. `bun.lock` landed in the same commit (`1c55fbf`). **Independently confirmed the hand-written lockfile is what bun accepts:** `bun install --frozen-lockfile` in my session passed resolution (it reached the downloads before failing on the unrelated 403s), pulled `@types/bun@1.4.0` and `bun-types@1.4.0` from npm, and left `bun.lock` unmodified — the same pair of checks CI's `Install` and `Lockfile unchanged` steps make. No other `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` changed on this branch |
+| 10 | no network, whole suite green | **pass** | 80 frontend / 19 question-bank / 233 passed + 9 skipped backend. Re-run with `HTTPS_PROXY`, `HTTP_PROXY`, their lowercase twins set to `http://127.0.0.1:1` and `NO_PROXY` emptied: identical results, no suite noticed. The new tests touch only a local JSON file; no `fetch`, no transport, no seam |
+
+### The mutations I ran
+
+Twenty-one, each applied to a clean tree and reverted with `git checkout --`
+immediately after the suite ran. `git status` was clean of source changes before
+this Verdict was written.
+
+**`frontend/src/lib/level.ts` — thirteen** (numbers are frontend tests failing):
+
+| | Mutation | Killed |
+|---|---|---|
+| M1 | `gradeOf` → `0` | 33 |
+| M2 | `bandOf` → `0` | 26 |
+| M3 | `gradeLabel` body → `"Kindergarten"` | 26 |
+| M4 | `bandLabel` body → `"Easy"` | 22 |
+| M5 | `levelLabel` body → `"x"` | 32 |
+| M6 | upper clamp `Math.min(8, …)` dropped | 3 |
+| M7 | lower clamp `Math.max(0, …)` dropped | 2 |
+| M8 | Easy/Medium edge `0.75` → `0.76` | 4 |
+| M9 | Medium/Hard edge `1.5` → `1.51` | 10 |
+| M10 | `bandLabel` compares the raw `level` | 19 |
+| M11 | `·` separator → `-` | 32 |
+| M12 | Easy/Medium edge `0.75` → `0.74` (the other side) | 2 |
+| M13 | Medium/Hard edge `1.5` → `1.49` (the other side) | 3 |
+
+**`backend/app/levels.py` — six** (numbers are backend tests failing):
+
+| | Mutation | Killed |
+|---|---|---|
+| M14 | `grade_of` → `0` | 27 |
+| M15 | `band_of` → `level` | 25 |
+| M16 | `grade_label` upper clamp dropped | 2 |
+| M17 | band edge `0.75` → `0.76` | 2 |
+| M18 | band edge `1.5` → `1.49` | 1 |
+| M19 | `·` separator → `-` | 33 |
+
+M17 run against `test_levels.py` alone fails exactly
+`test_labels_match_the_table_the_client_also_asserts[level-0.75]` and
+`[level-12.75]` — the two rows on that edge, named rather than numbered, which
+is what the shared table is for.
+
+**`fixtures/level-labels.json` — two, and these are criterion 4's whole point:**
+
+| | Mutation | Killed |
+|---|---|---|
+| M20 | row `12.75` `bandLabel` Medium → Easy | **1 frontend *and* 1 backend** |
+| M21 | row `18` `gradeLabel` 8th → 9th grade | **1 frontend *and* 1 backend** |
+
+**Two more that are not source mutations** — the deliberate breakages criteria 5
+and 6 name in their own wording: a type error appended to each of the two
+frontend test files (both surfaced, exit 2), and both frontend test files moved
+out of the tree (`bun test` exit 1). All four states reverted.
+
+### What I added
+
+`frontend/src/lib/level.criteria.test.ts` — 15 tests, one `describe` per
+criterion 1–4, every expected value taken from this brief's wording rather than
+from `level.ts`, `levels.py` or the shared table.
+
+It is deliberately **not** folded into `level.test.ts`. That file and
+`backend/tests/test_levels.py` both read `fixtures/level-labels.json`, which is
+exactly what criterion 4 asks for — but it also means an edit that changes the
+table *and* an implementation together could stay green in both. This file holds
+the criteria's literals independently and then checks the table against them, so
+the pin cannot be quietly moved to wherever the code happens to be.
+
+It is not a tautology: run alone it is 15 pass / 0 fail clean, and 13 pass /
+2 fail under M6, under M8, and under a fixture-only edit of the `16.74` row.
+
+### The sandbox baseline, established independently
+
+The Handoff's account is accurate, and I checked it rather than accepting it.
+23 packages in `frontend/bun.lock` are pinned to `europe-west1-npm.pkg.dev`,
+which this session's egress policy answers with 403 (`/root/.ccr/README.md` says
+report it, not route around it, so I did not). The `react-simple-maps` /
+`us-atlas` / d3 tree is therefore absent from `node_modules`.
+
+- **Baseline:** a scratch `git worktree` at **`bf7c0f4`** — the merge commit
+  before any T-004 work — installed the same way and typechecked produces
+  **exactly** these four errors and no others: `UsMap.tsx(2,55)` TS2307,
+  `(3,24)` TS2307, `(36,15)` TS7031, `(37,30)` TS7006.
+- **This branch:** the same four, and nothing else. **Zero errors added, and no
+  error in any `*.test.ts` file** — which is the whole of criterion 5.
+- With that tree filtered out, `tsc` is otherwise silent, and the two deliberate
+  type-error probes prove it is genuinely reading the test files rather than
+  skipping them.
+
+I could not query the CI run the Handoff cites (`gh` is not installed in this
+session and no GitHub tool is exposed to it), so run 32773146803 is the one
+claim here I am relaying rather than reproducing. Nothing rests on it: the
+baseline comparison and the frozen-lockfile check above establish criteria 5 and
+9 locally without it.
+
+### For the reviewer, not criteria
+
+- **`tasks.md` changed and no Constraint lists it.** The worker added a **T-057**
+  entry for the missing `levelWindow` and corrected the summary table's test
+  counts, and named the reviewer to confirm or revert. Confirmed present and
+  accurate; flagging it, not judging it — that call is yours.
+- **My test file makes three test counts stale.** `frontend` is now **80**, not
+  65. `test-guidelines.md:197`, `tasks.md`'s summary table and `PROGRESS.md`'s
+  "65 tests" line all say 65. Two of those three are yours to sweep; the
+  `test-guidelines.md` line is in neither of our lists.
+- **`PROGRESS.md:195` still mentions `bun test --pass-with-no-tests`.** It is a
+  past-tense record of what T-003 did, under Completed tasks, so it is not
+  false — but a reader skimming for the current CI command could take it that
+  way now that D-10 has removed the flag. Not a criterion; worth a sweep line.
+- **Seven eslint warnings** (T-006) and the four `UsMap.tsx` sandbox errors are
+  both pre-existing and both out of scope, unchanged by this branch.
 
 ## Review
 
