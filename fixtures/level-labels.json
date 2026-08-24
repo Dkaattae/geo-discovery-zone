@@ -1,0 +1,54 @@
+{
+  "_fixture": {
+    "status": "HAND-WRITTEN — the agreed expectations, not a recording",
+    "written_at": "2026-08-24",
+    "task": "T-004",
+    "why_committed": "level is the only stored difficulty scalar; grade and band are derived for display by two implementations that must agree. frontend/src/lib/level.ts and backend/app/levels.py are hand-copies of one another, so nothing catches a change made to one and not the other. This table is the single agreed answer both are checked against: frontend/src/lib/level.test.ts and backend/tests/test_levels.py both read this file, and changing either implementation alone turns one of those suites red.",
+    "read_by": [
+      "frontend/src/lib/level.test.ts",
+      "backend/tests/test_levels.py"
+    ],
+    "fields": {
+      "level": "the input — the only value that is ever stored (0.0–18.0)",
+      "grade": "gradeOf(level) / grade_of(level) — the raw derived grade, before the 0–8 clamp, so level 18 is grade 9",
+      "band": "bandOf(level) / band_of(level) — a float; compare with a tolerance, because level - 2 * grade is not exact for a level that is not a multiple of 0.5",
+      "gradeLabel": "gradeLabel(level) / grade_label(level) — clamped to the 0–8 scale, so grade 9 reads as \"8th grade\" and a negative grade reads as \"Kindergarten\"",
+      "bandLabel": "bandLabel(level) / band_label(level) — Easy below 0.75, Medium below 1.5, Hard at or above 1.5",
+      "display": "levelLabel(level) / level_display(level) — \"<gradeLabel> · <bandLabel>\", U+00B7 with a space either side"
+    },
+    "coverage": "Levels spanning the whole 0–18 scale. Both band edges are pinned on each side (0.74/0.75 and 1.49/1.5) and again in a higher grade (16.74 and 12.75, 9.74) so the boundary is not only checked where band happens to equal level. Level 18 is the top of the scale and derives grade 9, which the label has to clamp.",
+    "note": "Levels below 0 and above 18 are deliberately absent: this table is the in-scale agreement. Out-of-scale clamping is asserted directly in the two suites."
+  },
+  "rows": [
+    { "level": 0, "grade": 0, "band": 0.0, "gradeLabel": "Kindergarten", "bandLabel": "Easy", "display": "Kindergarten · Easy" },
+    { "level": 0.5, "grade": 0, "band": 0.5, "gradeLabel": "Kindergarten", "bandLabel": "Easy", "display": "Kindergarten · Easy" },
+    { "level": 0.74, "grade": 0, "band": 0.74, "gradeLabel": "Kindergarten", "bandLabel": "Easy", "display": "Kindergarten · Easy" },
+    { "level": 0.75, "grade": 0, "band": 0.75, "gradeLabel": "Kindergarten", "bandLabel": "Medium", "display": "Kindergarten · Medium" },
+    { "level": 1, "grade": 0, "band": 1.0, "gradeLabel": "Kindergarten", "bandLabel": "Medium", "display": "Kindergarten · Medium" },
+    { "level": 1.49, "grade": 0, "band": 1.49, "gradeLabel": "Kindergarten", "bandLabel": "Medium", "display": "Kindergarten · Medium" },
+    { "level": 1.5, "grade": 0, "band": 1.5, "gradeLabel": "Kindergarten", "bandLabel": "Hard", "display": "Kindergarten · Hard" },
+    { "level": 1.99, "grade": 0, "band": 1.99, "gradeLabel": "Kindergarten", "bandLabel": "Hard", "display": "Kindergarten · Hard" },
+    { "level": 2, "grade": 1, "band": 0.0, "gradeLabel": "1st grade", "bandLabel": "Easy", "display": "1st grade · Easy" },
+    { "level": 3.25, "grade": 1, "band": 1.25, "gradeLabel": "1st grade", "bandLabel": "Medium", "display": "1st grade · Medium" },
+    { "level": 3.5, "grade": 1, "band": 1.5, "gradeLabel": "1st grade", "bandLabel": "Hard", "display": "1st grade · Hard" },
+    { "level": 4, "grade": 2, "band": 0.0, "gradeLabel": "2nd grade", "bandLabel": "Easy", "display": "2nd grade · Easy" },
+    { "level": 5.75, "grade": 2, "band": 1.75, "gradeLabel": "2nd grade", "bandLabel": "Hard", "display": "2nd grade · Hard" },
+    { "level": 6, "grade": 3, "band": 0.0, "gradeLabel": "3rd grade", "bandLabel": "Easy", "display": "3rd grade · Easy" },
+    { "level": 7, "grade": 3, "band": 1.0, "gradeLabel": "3rd grade", "bandLabel": "Medium", "display": "3rd grade · Medium" },
+    { "level": 7.5, "grade": 3, "band": 1.5, "gradeLabel": "3rd grade", "bandLabel": "Hard", "display": "3rd grade · Hard" },
+    { "level": 8, "grade": 4, "band": 0.0, "gradeLabel": "4th grade", "bandLabel": "Easy", "display": "4th grade · Easy" },
+    { "level": 9.74, "grade": 4, "band": 1.74, "gradeLabel": "4th grade", "bandLabel": "Hard", "display": "4th grade · Hard" },
+    { "level": 10, "grade": 5, "band": 0.0, "gradeLabel": "5th grade", "bandLabel": "Easy", "display": "5th grade · Easy" },
+    { "level": 11.25, "grade": 5, "band": 1.25, "gradeLabel": "5th grade", "bandLabel": "Medium", "display": "5th grade · Medium" },
+    { "level": 12, "grade": 6, "band": 0.0, "gradeLabel": "6th grade", "bandLabel": "Easy", "display": "6th grade · Easy" },
+    { "level": 12.75, "grade": 6, "band": 0.75, "gradeLabel": "6th grade", "bandLabel": "Medium", "display": "6th grade · Medium" },
+    { "level": 13.5, "grade": 6, "band": 1.5, "gradeLabel": "6th grade", "bandLabel": "Hard", "display": "6th grade · Hard" },
+    { "level": 14, "grade": 7, "band": 0.0, "gradeLabel": "7th grade", "bandLabel": "Easy", "display": "7th grade · Easy" },
+    { "level": 15.5, "grade": 7, "band": 1.5, "gradeLabel": "7th grade", "bandLabel": "Hard", "display": "7th grade · Hard" },
+    { "level": 16, "grade": 8, "band": 0.0, "gradeLabel": "8th grade", "bandLabel": "Easy", "display": "8th grade · Easy" },
+    { "level": 16.74, "grade": 8, "band": 0.74, "gradeLabel": "8th grade", "bandLabel": "Easy", "display": "8th grade · Easy" },
+    { "level": 17, "grade": 8, "band": 1.0, "gradeLabel": "8th grade", "bandLabel": "Medium", "display": "8th grade · Medium" },
+    { "level": 17.5, "grade": 8, "band": 1.5, "gradeLabel": "8th grade", "bandLabel": "Hard", "display": "8th grade · Hard" },
+    { "level": 18, "grade": 9, "band": 0.0, "gradeLabel": "8th grade", "bandLabel": "Easy", "display": "8th grade · Easy" }
+  ]
+}
