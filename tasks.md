@@ -89,7 +89,7 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-004 — Tests for `level.ts`, and settle how `frontend` typechecks a test file · S · todo
+### T-004 — Tests for `level.ts`, and settle how `frontend` typechecks a test file · S · doing
 **Depends on:** —
 **Rewritten 2026-08-24.** Two thirds of this task were overtaken by the backend
 work, and what is left is smaller and sharper than the original entry:
@@ -121,6 +121,13 @@ test would leave CI green. There are 19 real tests there now
 **Done when:** `level.ts` has tests, the typecheck question is decided and
 recorded, `test-guidelines.md` line 122 is true, and the `--pass-with-no-tests`
 question is answered one way or the other.
+
+**Expanded 2026-08-24** into [`tasks/T-004-level-tests-and-frontend-typecheck.md`](tasks/T-004-level-tests-and-frontend-typecheck.md).
+Both open questions were put to Dkaattae and answered before the criteria were
+written: **add `@types/bun`** and typecheck frontend tests, and **drop
+`--pass-with-no-tests`** so CI positively requires them. The brief also picked up
+a third finding from the survey — `backend/app/levels.py:60` says it mirrors a
+`levelWindow()` in the client, and no such function exists there.
 
 ### T-005 — Prove "no network in tests" in CI · S · todo
 **Depends on:** —
