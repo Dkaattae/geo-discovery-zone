@@ -171,11 +171,17 @@ question-bank, 233 passed + 9 skipped backend — and all three still pass with
 `HTTPS_PROXY`/`HTTP_PROXY` pointed at a dead port.** Nothing was already done;
 this task had real work in every criterion.
 
+**All six CI jobs are green on this commit** — run
+[32773146803](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/32773146803)
+on `1c55fbf`: frontend, question-bank, backend, backend-postgres, integration,
+e2e.
+
 **One thing you must know before you run anything: `bun install` cannot complete
-in this sandbox, and `bun run typecheck` in `frontend/` therefore reports 4
-errors that have nothing to do with this task.** Details and the exact expected
-output are under "The sandbox cannot install `frontend/`" below. Read that
-section first or you will read a clean run as a failure.
+in the agent sandbox, and `bun run typecheck` in `frontend/` therefore reports 4
+errors there that have nothing to do with this task.** CI, which installs
+cleanly, reports none. Details and the exact expected output are under "The
+sandbox cannot install `frontend/`" below. Read that section first or you will
+read a clean run as a failure.
 
 ### What changed, file by file
 
@@ -253,12 +259,15 @@ Two consequences, both environmental:
   `@types/node: *`, which the existing `@types/node@22.20.1` satisfies (no
   second copy is pinned).
 
-  **This is the one thing I could not fully verify, and it is the likeliest
-  place for this branch to be wrong.** If CI's `Install` or `Lockfile unchanged`
-  step fails on `frontend/`, that is this, not the tests. **Owner: whoever can
-  run `bun install` with normal registry access** — re-run `bun add -d
-  @types/bun@^1.3.14` in `frontend/` and commit whatever it writes. Failing
-  that, reviewer to decide whether to hold the merge until a CI run is green.
+  **CI has now settled this.** Run 32773146803 on `1c55fbf`: the `frontend` job
+  passed `Install` (`bun install --frozen-lockfile`), `Lockfile unchanged`
+  (`git diff --exit-code -- bun.lock`), `Typecheck`, `Lint` and `Test`. So the
+  hand-written lockfile is byte-for-byte what bun accepts, bun did not rewrite
+  it, and `tsc` is silent once the 21 packages are actually present. Nothing is
+  left open here. **If it ever reopens** — a later `bun install` rewrites those
+  two entries — the fix is to re-run `bun add -d @types/bun@^1.3.14` in
+  `frontend/` on a machine with normal registry access and commit what it
+  writes.
 
 ### What I deliberately did not do
 
@@ -326,6 +335,17 @@ Actual results in this session, in full:
 - **No network:** all three suites re-run with `HTTPS_PROXY`, `HTTP_PROXY` and
   their lowercase twins set to `http://127.0.0.1:1` and `NO_PROXY` emptied.
   Identical results.
+
+And on GitHub, run 32773146803 on `1c55fbf` — every job green:
+
+| Job | Result |
+|---|---|
+| frontend (typecheck, lint, test) | success — including `Typecheck` and `Lockfile unchanged` |
+| question-bank (typecheck, test) | success |
+| backend (lint, format, test) | success |
+| backend (postgres) | success |
+| integration (docker compose) | success |
+| e2e (playwright) | success |
 
 My own mutation pass, for what it is worth — the tester should do its own:
 sixteen deliberate breakages (each of the five TS exports replaced with a
