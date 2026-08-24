@@ -80,7 +80,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 221 backend, 19 frontend, 19 question-bank |
+| **Unit and endpoint tests** | 242 backend, 65 frontend, 19 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -128,6 +128,21 @@ written: **add `@types/bun`** and typecheck frontend tests, and **drop
 `--pass-with-no-tests`** so CI positively requires them. The brief also picked up
 a third finding from the survey — `backend/app/levels.py:60` says it mirrors a
 `levelWindow()` in the client, and no such function exists there.
+
+### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
+**Depends on:** —
+Found by T-004's worker while pinning the two level implementations together.
+`backend/app/levels.py:60` documents `level_window()` as mirroring
+`levelWindow()` in the client — there is no such function anywhere in
+`frontend/`, and `grep levelWindow frontend/` returns nothing. So either the
+client lost a level picker that the server still describes, or the docstring is
+describing a function that never existed. Either way the comment is false, and
+`fixtures/level-labels.json` deliberately covers only the functions both sides
+actually have.
+**Done when:** it is settled which of the two is true — the docstring is
+corrected, or the client grows the picker the server is sizing windows for — and
+`level_window`'s three-or-four-choices rule is documented wherever it really
+lives.
 
 ### T-005 — Prove "no network in tests" in CI · S · todo
 **Depends on:** —

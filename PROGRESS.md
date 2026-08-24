@@ -88,7 +88,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   two consecutive correct.
 - Soft milestones at 5/10/20, a quit flow reporting places learned rather than a
   percentage (§3.6, §3.8), and no timers anywhere (§3.4).
-- 19 tests over the API client.
+- 65 tests — 19 over the API client, 46 over level→grade/band display. Test
+  files are typechecked rather than excluded (`decisions.md` D-9) and CI fails
+  if they stop existing (D-10).
+- **The client's level labels and the server's are pinned to one another.**
+  `frontend/src/lib/level.ts` and `backend/app/levels.py` are hand-copies; both
+  suites now assert against the same committed table, `fixtures/level-labels.json`,
+  so changing one alone turns a suite red instead of showing a child a different
+  grade on each screen.
 
 ### Question bank — the pipeline
 
@@ -230,8 +237,7 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   when the client graded locally (T-053).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and
   `conventions.md` describes a repo with no backend and no CI (T-007).
-- Frontend test files are excluded from `tsc` rather than typechecked (T-004),
-  and `eslint .` still passes on 7 warnings (T-006).
+- `eslint .` still passes on 7 warnings (T-006).
 
 **Behaviour.**
 
