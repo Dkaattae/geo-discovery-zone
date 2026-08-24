@@ -6,11 +6,12 @@ migrated and seeded at startup, so a fresh clone has a real bank to render
 against and a restart is not a reset.
 
 ```bash
-make -C backend dev            # http://127.0.0.1:8000/api/v1/... — docs at /docs
-make -C backend test           # 221 tests on SQLite (9 Postgres-only ones skip)
-make -C backend test-postgres  # the same suite against a real Postgres server
-make -C backend check          # lint + format check + tests, what CI should run
-make -C backend help           # every target
+make -C backend dev              # http://127.0.0.1:8000/api/v1/... — docs at /docs
+make -C backend test             # 221 tests on SQLite (9 Postgres-only ones skip)
+make -C backend test-postgres    # the same suite against a real Postgres server
+make -C backend test-integration # 28 tests against a real docker compose stack
+make -C backend check            # lint + format check + tests, what CI runs
+make -C backend help             # every target
 ```
 
 `make` is a thin wrapper over `uv`; the underlying commands still work from
@@ -207,6 +208,8 @@ migrations/       Alembic; the schema is defined here, not by create_all
 tests/            pytest; endpoint tests go through the app with httpx.AsyncClient
                   against a migrated database, each test in a rolled-back
                   transaction. GEO_TEST_DATABASE_URL points the suite at Postgres
+integration/      the tests that need a real stack — over HTTP, importing nothing
+                  from app. See integration/README.md
 ```
 
 The rules the contract states in prose live in `grading.py` and `selection.py`

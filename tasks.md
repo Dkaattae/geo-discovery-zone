@@ -19,7 +19,9 @@ prunes stops being read.
 Sizes are a sanity check, not a commitment: **S** ≈ under an hour, **M** ≈ a
 few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
-_Last swept: 2026-08-24, after PRs #16–#20 landed the backend off-queue._
+_Last swept: 2026-08-24, twice — once after PRs #16–#20 landed the backend
+off-queue, and again after T-009 and T-052 put the backend and a real stack
+under CI._
 
 ---
 
@@ -145,20 +147,15 @@ unguarded. Pinning by SHA costs a dependabot-shaped chore nobody has set up yet,
 which is the argument for the other side. Decide, act, and record the reason.
 **Done when:** the decision is in `decisions.md` and `ci.yml` matches it.
 
-### T-009 — CI does not run the backend tests · S · todo
-**Depends on:** —
-**New 2026-08-24.** `.github/workflows/ci.yml` has a `frontend` job and a
-`question-bank` job and no Python job at all, so **221 backend tests never run on
-a pull request**. Everything they cover — grading, selection, auth, the contract
-tests against `openapi.yaml` — is unguarded on merge. This was named as T-030's
-follow-on before T-030 existed; the backend landed without it.
-
-Two decisions inside a small task: which Python and uv versions to pin (the
-other jobs pin `bun-version: 1.3.11` deliberately), and whether to run the
-Postgres path too — `make -C backend test-postgres` needs a service container,
-and today a Postgres-only regression would not fail a PR.
-**Done when:** `make -C backend check` runs on every PR, a deliberately broken
-backend test reddens the run, and the Postgres question is answered either way.
+### T-009 — CI does not run the backend tests · S · **done** (2026-08-24)
+Three jobs added to `.github/workflows/ci.yml`: `backend` (ruff check, ruff
+format, 221 tests on SQLite), `backend-postgres` (the same suite against a
+`postgres:16-alpine` service container), and `integration` (T-052). uv and
+Python are pinned — `0.8.17` and `3.11`, the versions the suite is verified
+against — matching how the bun jobs pin.
+**Left for T-005:** the dead-proxy check now has a Python suite to cover too.
+**Not yet observed:** no CI run has happened on these jobs; they were validated
+by running each step locally.
 
 ---
 
@@ -409,6 +406,31 @@ case they need keys and T-039's geometry) or whether the contract should mark
 them as not yet gradeable.
 **Done when:** the gap is closed or written into `openapi.yaml` as deliberate.
 
+### T-053 — The public bank hands out the answer key by default · S · todo
+**Depends on:** —
+**New 2026-08-24, found while writing T-052.** `GET /questions` and
+`GET /questions/{id}` take `includeAnswerKey`, and `openapi.yaml` sets its
+**default to `true`** (line 1166). The contract explains why: "the v1 client
+grades locally. Set `false` once grading runs through
+`POST /sessions/{sessionId}/answers`."
+
+**Grading moved to the server.** The client already passes `includeAnswerKey=false`
+on every call. What is left is the default on a public, unauthenticated endpoint:
+`curl /api/v1/questions` returns `correctIndex` for all 26 questions, so a child
+who opens the network tab can read every answer.
+
+Not a security hole — the bank is public reference data by design, and nothing
+stops someone reading the questions either. It is a **product** problem: the app
+is built so a wrong answer is not a failure, and an answer key one tap away
+undercuts that more than it enables cheating.
+
+Flipping the default is a contract change (`CLAUDE.md`: change `openapi.yaml`
+deliberately and say so). An integration test asserts the current behaviour on
+purpose, and it is the test to update when this is decided.
+**Done when:** the default is decided, `openapi.yaml` and the implementation
+agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
+whichever way it went.
+
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
 **New 2026-08-24.** `conventions.md` §Layout and `PROGRESS.md` both say the
@@ -470,8 +492,22 @@ it is acceptable.
 
 Not features — claims this repo makes that nothing here has checked.
 
+### T-052 — Integration tests against the compose stack · M · **done** (2026-08-24)
+28 tests in `backend/integration/`, black-box over HTTP, importing nothing from
+`app`: the stack comes up and migrates, the single origin holds (shell at `/`,
+immutable assets, SPA fallback, `/api/v1/*` returning problem documents rather
+than HTML), content is public, a child's whole sitting works end to end, one
+account cannot see another's profile, and a restart is not a reset. `make -C
+backend test-integration` brings the stack up and tears it down; the
+`integration` CI job runs it on every PR. See `backend/integration/README.md`.
+**Verified how:** 23 pass against a hand-built stack of the same shape (real
+Postgres, the real frontend bundle); the 5 restart tests skip there and their
+assertions were reproduced manually against a real process restart and a real
+Postgres bounce. **The compose path itself is still unrun** — that is T-049,
+below, which these tests now do the work of, once something executes them.
+
 ### T-049 — Nobody has ever run `docker build` or `docker compose up` · S · todo
-**Depends on:** —
+**Depends on:** T-052 (done)
 **New 2026-08-24.** The `Dockerfile` and `docker-compose.yml` were written,
 reviewed and merged (PRs #18, #20, #21) in an environment with **no Docker
 daemon**. `docker compose config` validates the compose file's shape, and the
@@ -480,8 +516,13 @@ against the real backend directly — but the image has never been built and the
 stack has never been brought up. The root `README.md` tells a new user to start
 with `docker build`, so this is the first thing a stranger does and the one thing
 nobody has done.
-**Done when:** both `docker build` and `docker compose up` are run on a machine
-with a daemon, the app answers on :8000 in each, and whatever breaks is fixed.
+
+**Mostly automated now.** T-052 wrote the tests; what is missing is an execution
+on a machine with a daemon. The first green `integration` CI run closes this, and
+a red one is the point — it is the first honest signal about the image.
+**Done when:** `make -C backend test-integration` has passed somewhere real, or
+whatever it turns up is fixed. `docker build` on its own is worth one manual run
+too, since the README leads with it.
 
 ---
 

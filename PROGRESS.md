@@ -59,7 +59,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   image serves those files next to the API — same origin, no CORS, hashed assets
   cached forever, SPA fallback that excludes `/api/v1` so a mistyped endpoint
   returns a problem document rather than an HTML page with a 200.
-- 221 tests, including contract tests that walk `openapi.yaml` in both directions.
+- 221 unit and endpoint tests, including contract tests that walk `openapi.yaml`
+  in both directions, plus 28 integration tests against a real stack.
 
 ### Frontend — the v1 loop, now on the API
 
@@ -109,8 +110,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   brief in flight.
 - Four agents in `.claude/agents/` — task-expander, worker, tester, reviewer —
   each prevented from grading its own work.
-- CI on every PR and push to `main`: one job per **TypeScript** package. The
-  backend has no job (T-009).
+- CI on every PR and push to `main`, five jobs: `frontend` and `question-bank`
+  (typecheck, lint, test), `backend` (ruff + 221 tests on SQLite),
+  `backend-postgres` (the same suite against a Postgres service container), and
+  `integration` (the compose stack).
+- **Integration tests** in `backend/integration/` — 28 black-box tests over HTTP
+  that import nothing from `app`: the image serves the frontend and the API on
+  one origin, content is public, a child's sitting works end to end, accounts
+  cannot see each other's profiles, and a restart is not a reset.
 - A root `README.md` covering what the app is, the stack, and how to run it.
 
 ## Completed tasks
@@ -203,9 +210,14 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- **CI runs no backend tests** — 221 of them, unguarded on merge (T-009).
 - **Nobody has run `docker build` or `docker compose up`** — no daemon in the
-  environment they were written in (T-049).
+  environment they were written in. The integration suite now tests that path,
+  but nothing has executed it against a real daemon yet, so the first
+  `integration` CI run is the first honest signal (T-049).
+- **No CI run has exercised the three new jobs.** Each step was run locally;
+  that is not the same as GitHub running it.
+- The public question bank hands out `correctIndex` by default — a leftover from
+  when the client graded locally (T-053).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and
   `conventions.md` describes a repo with no backend and no CI (T-007).
 - Frontend test files are excluded from `tsc` rather than typechecked (T-004),
@@ -237,8 +249,9 @@ The shortest path to an app that is worth playing for an hour:
 3. **T-050** — 50 states in the app, and a map that can actually fill.
 4. **T-026 starting with superlatives** — a third topic for free, since the rank
    fields are already populated.
-5. **T-009** — put the backend tests in CI before any of the above lands on top
-   of them.
+
+CI now guards all of it: the backend, the Postgres path and the compose stack
+run on every pull request (T-009, T-052).
 
 Then, in plan order: countries → world cities → rivers/mountains/oceans (§1.7),
 pin formats (§2.5), elevation profiles (§2.6), and Elo once there is real play
