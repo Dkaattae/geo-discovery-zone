@@ -19,9 +19,10 @@ prunes stops being read.
 Sizes are a sanity check, not a commitment: **S** ≈ under an hour, **M** ≈ a
 few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
-_Last swept: 2026-08-24, three times — after PRs #16–#20 landed the backend
-off-queue; after T-009 and T-052 put the backend and a real stack under CI; and
-after T-054's browser suite found the write-durability bug._
+_Last swept: 2026-08-24, four times — after PRs #16–#20 landed the backend
+off-queue; after T-009 and T-052 put the backend and a real stack under CI;
+after T-054's browser suite found the write-durability bug; and after T-004
+pinned the client's level labels to the server's (PR #23)._
 
 ## How this list is ordered
 
@@ -80,7 +81,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 65 frontend, 19 question-bank |
+| **Unit and endpoint tests** | 242 backend, 80 frontend, 19 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -89,68 +90,13 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-004 — Tests for `level.ts`, and settle how `frontend` typechecks a test file · S · doing
-**Depends on:** —
-**Rewritten 2026-08-24.** Two thirds of this task were overtaken by the backend
-work, and what is left is smaller and sharper than the original entry:
-
-- **`session.ts` is gone.** `pickQuestion` moved to the server as
-  `backend/app/selection.py` and has 19 tests there (`tests/test_selection.py`),
-  so the widening search, review cadence and repeat avoidance are covered. The
-  `test-guidelines.md` "Randomness and time" section is still marked
-  **Forward-looking** (line 122) and still names `pickQuestion` in `frontend/`;
-  it should point at the Python tests or be rewritten.
-- **The typecheck blocker was worked around, not decided.**
-  `frontend/tsconfig.json` now carries
-  `"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]` — so tests run under
-  `bun test` and `tsc` never sees them. That was the cheap way past it during
-  PR #17 and it means **frontend test files are not typechecked at all**. The
-  original choice stands unmade: add `@types/bun` (a dependency, so
-  **ask a human first** per `CLAUDE.md`) and typecheck tests, or keep the
-  exclusion deliberately and write down why.
-- **`level.ts` is the only untested frontend logic left** — `gradeOf`, `bandOf`,
-  `gradeLabel`, `bandLabel`, `levelLabel`, 29 lines, with label boundaries and
-  clamping at 0 and 18. `backend/app/levels.py` mirrors it and *is* tested
-  (`tests/test_levels.py`, 21 tests), so a good test here also pins the two
-  implementations together — they drift silently otherwise.
-
-**Also still unanswered:** whether CI should *positively require* frontend tests.
-`bun test --pass-with-no-tests` is still in `ci.yml`, so deleting every frontend
-test would leave CI green. There are 19 real tests there now
-(`src/lib/api/client.test.ts`), which is what makes the flag worth revisiting.
-**Done when:** `level.ts` has tests, the typecheck question is decided and
-recorded, `test-guidelines.md` line 122 is true, and the `--pass-with-no-tests`
-question is answered one way or the other.
-
-**Expanded 2026-08-24** into [`tasks/T-004-level-tests-and-frontend-typecheck.md`](tasks/T-004-level-tests-and-frontend-typecheck.md).
-Both open questions were put to Dkaattae and answered before the criteria were
-written: **add `@types/bun`** and typecheck frontend tests, and **drop
-`--pass-with-no-tests`** so CI positively requires them. The brief also picked up
-a third finding from the survey — `backend/app/levels.py:60` says it mirrors a
-`levelWindow()` in the client, and no such function exists there.
-
-### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
-**Depends on:** —
-Found by T-004's worker while pinning the two level implementations together.
-`backend/app/levels.py:60` documents `level_window()` as mirroring
-`levelWindow()` in the client — there is no such function anywhere in
-`frontend/`, and `grep levelWindow frontend/` returns nothing. So either the
-client lost a level picker that the server still describes, or the docstring is
-describing a function that never existed. Either way the comment is false, and
-`fixtures/level-labels.json` deliberately covers only the functions both sides
-actually have.
-**Done when:** it is settled which of the two is true — the docstring is
-corrected, or the client grows the picker the server is sizing windows for — and
-`level_window`'s three-or-four-choices rule is documented wherever it really
-lives.
-
 ### T-005 — Prove "no network in tests" in CI · S · todo
 **Depends on:** —
 `test-guidelines.md` says "no network in tests, ever" and names the check: point
 `HTTPS_PROXY` and `HTTP_PROXY` at a dead port and the suite should not notice.
 Nothing enforces it. Split out of T-003 because the env has to be scoped to the
 test step alone — set it job-wide and `bun install` breaks. Now applies to the
-Python suite too (T-009): 221 backend tests, none of which should reach out.
+Python suite too: 242 backend tests, none of which should reach out.
 **Done when:** the test steps run with a dead proxy, the suites still pass, and
 a test that reaches the network fails the run.
 
@@ -182,6 +128,9 @@ seven are each fixed or explicitly allowed with a recorded reason, and CI is gre
   whoever remembers to.
 - Nothing mentions the database, `GEO_DATABASE_URL`, Alembic-in-practice, the
   `Dockerfile` or `docker-compose.yml`.
+- The layout block lists neither `e2e/` nor the repo-root `fixtures/` that T-004
+  added — one committed table two suites in different languages both assert
+  against, which is a pattern a reader will otherwise not know exists.
 
 **Done when:** `conventions.md` matches the repo — layout, commands, CI, and how
 to run the thing.
@@ -197,15 +146,25 @@ unguarded. Pinning by SHA costs a dependabot-shaped chore nobody has set up yet,
 which is the argument for the other side. Decide, act, and record the reason.
 **Done when:** the decision is in `decisions.md` and `ci.yml` matches it.
 
-### T-009 — CI does not run the backend tests · S · **done** (2026-08-24)
-Three jobs added to `.github/workflows/ci.yml`: `backend` (ruff check, ruff
-format, 221 tests on SQLite), `backend-postgres` (the same suite against a
-`postgres:16-alpine` service container), and `integration` (T-052). uv and
-Python are pinned — `0.8.17` and `3.11`, the versions the suite is verified
-against — matching how the bun jobs pin.
-**Left for T-005:** the dead-proxy check now has a Python suite to cover too.
-**Not yet observed:** no CI run has happened on these jobs; they were validated
-by running each step locally.
+### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
+**Depends on:** —
+Found by T-004's worker while pinning the two level implementations together.
+`backend/app/levels.py:60` documents `level_window()` as mirroring
+`levelWindow()` in the client — there is no such function anywhere in
+`frontend/`, and `grep levelWindow frontend/` returns nothing. So either the
+client lost a level picker that the server still describes, or the docstring is
+describing a function that never existed. Either way the comment is false, and
+`fixtures/level-labels.json` deliberately covers only the functions both sides
+actually have.
+T-004 left a second, larger question in the same place and deliberately did not
+answer it: the session endpoints already return a `levelLabel` object, so the
+client may not need its own copy of the arithmetic at all. `fixtures/level-labels.json`
+now makes drift loud, which buys the time to decide it properly rather than
+forcing it.
+**Done when:** it is settled which of the two is true — the docstring is
+corrected, or the client grows the picker the server is sizing windows for — and
+`level_window`'s three-or-four-choices rule is documented wherever it really
+lives. Say in the same breath whether `frontend/src/lib/level.ts` keeps existing.
 
 ---
 
@@ -531,7 +490,11 @@ per-test isolation, `httpx.ASGITransport` for endpoint tests with no socket,
 contract tests that walk `openapi.yaml` in both directions, and mutation testing
 used to check the tests rather than the code. This is the same job T-002 did for
 `question-bank`: correct the guidance against the tests that actually got written.
-**Done when:** the section describes the real suite and the marker is gone.
+While there: line 198's `cd frontend && bun test # 65 tests today` went stale
+inside the very PR that wrote it (T-004 finished at 80). A count that is wrong
+after every task is worth dropping rather than maintaining.
+**Done when:** the section describes the real suite, the marker is gone, and the
+frontend line either carries a true number or no number.
 
 ---
 
