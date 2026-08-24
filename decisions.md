@@ -9,23 +9,52 @@ decision with no trigger for revisiting is a habit, not a decision.
 
 ---
 
-## D-1 — No orchestrator agent
+## D-1 — An orchestrator agent, for one task at a time
 
-**Decided:** the human starts each session; the brief in `tasks/` holds the state.
+**Superseded 2026-08-24.** This entry used to read "No orchestrator agent". The
+original reasoning is below, because most of it still holds and it is what the
+new shape has to answer for.
 
-An orchestrator would either spawn subagents — ruled out, see D-3 — or read the
-brief and announce which agent runs next, which is one line of a file you can
-read yourself. It would add a session, a model call, and somewhere for state to
-go stale.
+**Decided:** an optional fifth agent, `orchestrator`, drives a single task
+through the other four — spawning each in turn, judging its output, sending a
+role back when its work is short, and writing `runs/T-0xx-slug.md`. It holds the
+approvals that were a human's at steps 2 and 6. It runs **one** task and stops.
 
-The brief's **Status** and **Next step** header is the state machine. A file
-beats an agent's memory here for the same reason a queue beats a conversation:
-it survives a crashed session.
+**What the original entry argued**, and what changed:
 
-**Revisit when** you want the loop running unattended. The answer then is not an
-agent — it is a shell script that reads `Next step` and invokes
-`claude --agent <name>`. Fifteen lines, no model, no drift. Worth building only
-after the loop has run manually enough times that the handoffs are trusted.
+- *"It would either spawn subagents — ruled out, see D-3."* D-3 has been
+  rewritten. The load-bearing part of it — the tester's independence — turns out
+  to survive spawning, because a spawned agent gets a fresh context window and
+  inherits only what its prompt says. What it does not survive is an orchestrator
+  that summarises the implementation into that prompt, so the agent definition
+  forbids exactly that, at length.
+- *"Or read the brief and announce which agent runs next, which is one line of a
+  file you can read yourself."* True, and this orchestrator does more than that:
+  it reads the criteria and refuses a brief that is unobservable, reads the diff
+  and refuses a worker that left the Constraints. That is judgement, not
+  dispatch, and it is the part a shell script cannot do.
+- *"Somewhere for state to go stale."* Answered by making the run log **not
+  state**. The brief's `Status` and `Next step` header remains the state machine
+  and the only thing any role reads to decide what happens next; `runs/` is a
+  narrative record, written after the fact, that nothing branches on.
+- *"It would add a session and a model call."* It does. That is the price, and it
+  buys removing two waits for a human rather than removing work.
+
+**The gates that did not move.** A dependency request and a product decision stay
+with a person no matter who is driving — `CLAUDE.md` outranks the orchestrator.
+The reviewer's merge envelope (D-4) is unchanged: the orchestrator approves
+*work*, it does not widen what may merge unattended.
+
+**Why one task.** An orchestrator that loops the queue has no human checkpoint
+anywhere in it. The failure that costs real money is not a bad task — it is nine
+tasks built on a misread of the first one, none of which anybody looked at. The
+one-task limit is the whole safety argument and it is not a preference.
+
+**Revisit when** `runs/` has enough entries to answer the question this entry
+cannot: how often does the orchestrator's approval differ from what a human would
+have said? If it never sends a role back, it is a dispatcher and the shell script
+the original entry recommended is the cheaper answer. If it sends roles back on
+work a human would have approved, the criteria are the problem, not the reviewer.
 
 ---
 
@@ -66,19 +95,46 @@ Do not pay for it before the loop has run.
 
 ---
 
-## D-3 — Sequential sessions, no subagents
+## D-3 — One agent per step; only the orchestrator spawns
 
-**Decided:** one agent per top-level session, started by a human. Nothing spawns
-anything, enforced by tool lists — none of the four agents has the Task tool.
+**Amended 2026-08-24.** This entry used to read "Sequential sessions, no
+subagents" and forbade the Task tool outright.
 
-Subagents would collapse the isolation the loop depends on: a tester spawned by
-the worker inherits its framing, which is the exact failure the separation
-exists to prevent. Sequential sessions cost wall-clock time and buy a verifier
-whose independence is structural rather than promised.
+**Decided:** the four step roles still spawn nothing — none of them has the Task
+tool, so a worker can never call a tester. The `orchestrator` (D-1) has it, and
+is the only role that does.
 
-**Revisit when** independence can be preserved some other way, or when the
-wall-clock cost outweighs it — for example, running independent tasks in
-parallel, which is safe only when their briefs' Constraints name disjoint files.
+**What the original entry got right and kept:** "a tester spawned by the worker
+inherits its framing, which is the exact failure the separation exists to
+prevent." That is still true and still forbidden.
+
+**What it missed:** *who* spawns changes the analysis. A spawned agent gets a
+**fresh context window** — the tester does not see the worker's transcript. What
+it inherits is exactly and only the text of its prompt. Worker-spawns-tester
+leaks because the worker's framing is the only thing it can write; an
+orchestrator can write a prompt that leaks nothing, because it has the brief and
+the branch to point at instead.
+
+So the rule moved from *do not spawn* to **do not carry**:
+
+- The tester's prompt gets the task ID, the brief path, the branch, and the
+  instruction to verify. Nothing else.
+- No summary of the implementation, in anyone's words. No Handoff text quoted or
+  paraphrased. No "watch out for criterion 4". No file counts, no diff size.
+- The tester reads the Handoff **from the brief**, which is what the brief is
+  for.
+- Fresh agent every round, including a re-verify after `fail`. Never continued.
+
+**This is discipline, not mechanism, and that is a real downgrade.** Tool lists
+made the old rule impossible to break; a paragraph in `orchestrator.md` makes
+this one merely forbidden. The Sessions table and the tester's own refusal to run
+in a session listed as `worker` still catch the crude version. Nothing catches a
+careful orchestrator that means well and writes one sentence too many. See "Known
+weaknesses".
+
+**Revisit when** a verdict comes back that looks like it tested the
+implementation rather than the criteria. That is the symptom, and the fix is the
+prompt, not the tester.
 
 ---
 
@@ -101,6 +157,11 @@ will read** is involved. Everything else goes to a human.
 That last one is the point. `T-011` is fifty fun facts for seven-year-olds:
 exactly the work where a test can confirm the shape and only a person can
 confirm the substance.
+
+**The `orchestrator` (D-1) does not widen this.** It holds the *approval* gates,
+not the merge envelope: the reviewer still applies these limits itself, and what
+falls outside them still reaches a person. An orchestrated run and a manual one
+merge exactly the same set of changes without a human.
 
 **Revisit when** you have enough merged tasks to see whether the envelope is too
 tight — if the reviewer escalates almost everything, it is doing no work and the
@@ -170,7 +231,8 @@ the task was unlucky.
 
 ## D-7 — Every role holds Bash; separation moves to the diff
 
-**Decided:** all four agents get `Bash`. What keeps them from doing each other's
+**Decided:** every agent gets `Bash` — the four step roles, and the
+orchestrator. What keeps them from doing each other's
 jobs is **what each is allowed to write**, checked against the commit diff by the
 reviewer at step 6 — not the absence of a tool.
 
@@ -316,6 +378,23 @@ sweep could not ship inside it and needed its own PR. Nothing was violated — t
 brief still said `Next step: reviewer` — but the intended state became
 unreachable. The reviewer now checks whether the PR is already merged and sweeps
 separately when it is. The loop has no way to *prevent* this, only to notice.
+
+**The orchestrator's restraint is the only thing protecting the tester.** D-3
+used to be enforced by tool lists: no role had the Task tool, so the leak was
+impossible rather than forbidden. Now one role has it, and the rule that keeps
+the tester independent — put nothing about the implementation in its prompt —
+lives in a paragraph of `.claude/agents/orchestrator.md`. Nothing checks it. A
+Verdict that reads like it tested what was built rather than what was asked for
+is the symptom to watch, and by the time it shows up the run is already spent.
+
+**Nobody sees the brief before it is built, under the orchestrator.** The
+approval gate at step 2 was described here as "the highest-leverage minute you
+will spend on the task", and an orchestrated run spends it on a model instead.
+The compensation is `runs/T-0xx-slug.md` and its "What a human still needs to
+look at" section — which is a record after the fact, not a gate before it, and
+only works if somebody reads it. On the evidence so far, the thing most likely to
+go wrong is the thing D-1's revisit clause asks about: an orchestrator that
+approves everything and is therefore buying nothing.
 
 **No content reviewer exists.** `T-011` and `T-014` produce writing for children,
 where the real question is "is this right for a nine-year-old" and no test

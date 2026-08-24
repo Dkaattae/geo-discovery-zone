@@ -12,11 +12,12 @@ The documents this loop runs on:
 - [`test-guidelines.md`](test-guidelines.md) — how tests get written here
 - [`CLAUDE.md`](CLAUDE.md) — the repo's standing rules
 - [`conventions.md`](conventions.md) — code conventions and commands
+- [`runs/`](runs/) — the run log for each orchestrated task
 
 ## Who does what
 
-Four agents, defined in [`.claude/agents/`](.claude/agents/), each owning one
-step and deliberately unable to do the others' jobs.
+Five agents, defined in [`.claude/agents/`](.claude/agents/). Four own one step
+each and are deliberately unable to do the others' jobs; the fifth drives them.
 
 - **`task-expander`** (opus) — turns a queue entry into a brief, opens the branch
   and the draft PR. Writes only `tasks/T-0xx-slug.md`, `tasks.md` and
@@ -29,6 +30,11 @@ step and deliberately unable to do the others' jobs.
   marks the PR ready, sweeps, then merges inside a narrow envelope or escalates;
   otherwise it leaves the PR draft and names the agent that has to come back.
   Never reviews work it wrote, because it writes none.
+- **`orchestrator`** (opus) — optional. Runs **one** task end to end: spawns the
+  four above in order, judges each one's output, sends a role back when its work
+  is short, and writes `runs/T-0xx-slug.md`. It holds the approvals that were a
+  human's at steps 2 and 6. It writes no source, no tests and no criteria, and it
+  never picks the next task. See `decisions.md` D-1.
 
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
@@ -49,8 +55,11 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, tests, the brief's Handoff | acceptance criteria |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict | source, acceptance criteria |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-merge, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests |
+| `orchestrator` | Read, Grep, Glob, Write, Edit, Bash, **Task**, PR-read, PR-comment | `runs/`, the brief's `Approved:` line | source, tests, criteria, any role's signed section |
 
-**No row has the Task tool** — see "Sequential sessions, no subagents" below.
+**Only the orchestrator has the Task tool**, and only so it can spawn the
+other four — see "Spawning, and the isolation it must not cost" below. The four
+step roles still cannot spawn anything, so a worker can never call a tester.
 
 **The expander's Bash is for git only** — `checkout -b`, `add`, `commit`, `push`,
 and the PR call. It never runs the build, the test suite or the pipeline. It has
@@ -81,15 +90,37 @@ Whichever route, the branch is pushed first. A PR needs a branch on the remote.
 The reviewer holds "PR-open" as well, for one case only: a PR merged before it
 ran, where the sweep cannot ride inside the merge and needs its own small PR.
 
-### Sequential sessions, no subagents
+### Spawning, and the isolation it must not cost
 
-Each step is its own top-level session, started by a human, running one agent.
-Nothing spawns anything: none of the four has the Task tool, so the constraint
-is enforced by their tool lists rather than by good intentions.
+**Two ways to run the loop, and the brief is the shared state in both.**
+
+**Manually** — each step is its own top-level session, started by a human,
+running one agent. None of the four step roles has the Task tool, so a worker
+cannot call a tester and the constraint is enforced by tool lists rather than by
+good intentions. This is still the default, and it is the only way that keeps a
+person at the approval gates.
+
+**Orchestrated** — one `orchestrator` session spawns the four in order and holds
+the approvals itself. It is the only role with the Task tool.
+
+The thing that survives both is the **tester's independence**, and it survives
+for a different reason in each. Run manually, the tester is a separate top-level
+session and cannot inherit anything. Spawned, it gets a **fresh context window**
+— it does not see the worker's transcript — so what it inherits is exactly and
+only what the orchestrator puts in its prompt.
+
+**That is the whole risk, and it is a discipline rather than a mechanism.** The
+orchestrator is forbidden from putting a summary of the implementation, the
+worker's Handoff, or its own view of which criteria are risky into the tester's
+prompt; the tester reads the Handoff from the brief, which is the channel the
+brief was designed to be. Nothing enforces this but the agent definition, which
+is why `decisions.md` "Known weaknesses" now names it.
 
 **The brief in `tasks/` is the shared state, and there is no second handoff
-file.** Sessions do not remember each other, so everything one needs from the
-last is in that one file, named for its task — `tasks/T-0xx-slug.md`. Each role
+file.** The orchestrator's `runs/T-0xx-slug.md` is a record of what happened, not
+state: nothing reads it to decide what runs next. Sessions do not remember each
+other, so everything one needs from the last is in that one file, named for its
+task — `tasks/T-0xx-slug.md`. Each role
 appends its own section and none of them rewrites another's:
 
 | Role | Writes into the brief | Which the next role reads as its handoff |
@@ -111,7 +142,8 @@ neighbouring role's session, and one is yours:
   clears the merged brief, updates `tasks.md` and `PROGRESS.md`, then picks the
   next task. Sweeping at the *start* of the next cycle rather than the end of the
   last one means it never gets skipped because everyone went home after the merge.
-- **Approve** — you, on the draft PR, before any code is written.
+- **Approve** — you, on the draft PR, before any code is written; or the
+  `orchestrator`, when one is driving, which is the one gate it takes over.
 
 ### Survey first, and skip what is already done
 
@@ -155,6 +187,12 @@ worker and still left the work invisible to everyone downstream.
 | `tester` | tests committed to the same branch, Verdict written, `Status: pass` / `fail` / `blocked` | `reviewer` on pass · `worker` on fail · `task-expander` on blocked |
 | `reviewer` — approve | PR marked ready, sweep committed, merged or escalated | the next task |
 | `reviewer` — changes needed | PR left draft, findings commented, `Status: changes requested` and `Next step:` naming the agent | that agent, on the same branch |
+| `orchestrator` | run log committed, whichever of the above it last drove | nothing — it stops. The next task is a new run |
+
+**Under the orchestrator, "you start" in the table above means it spawns that
+role**, with one exception it may not take: the `tester` is spawned fresh every
+time, with the brief and the branch and nothing else. Never continued, never
+briefed on what the worker built.
 
 **One task, one branch, one PR, several commits.** The PR is opened at expand
 time and stays draft until the reviewer approves it, so every role's work lands in the
@@ -248,8 +286,10 @@ tasks.md
                                             merge inside a narrow envelope,
                                             or escalate to a human
 
-   one agent per session · nothing spawns anything · the brief carries the state
-   every agent ends the same way: commit, push, update Status, stop
+   the brief carries the state · every agent ends the same way:
+   commit, push, update Status, stop
+   run manually, one agent per session — or under the orchestrator,
+   which spawns the four, holds the approvals, and runs ONE task
 ```
 
 ---
@@ -509,6 +549,14 @@ released and there is no follow-up PR for three line changes.
 
 Four moments, and only four. Everything else runs to completion.
 
+**Under the `orchestrator`, moments 1 and 4's first half move to the agent** — it
+approves the brief and it approves the review. Moments 2 and 3 do not move and
+cannot: a dependency and a product call are a person's, whoever is driving. Nor
+does the reviewer's merge envelope widen — D-4's limits are unchanged and what it
+escalates still reaches you. What you give up is the checkpoint *before* the work,
+in exchange for `runs/T-0xx-slug.md` telling you afterwards what got waved
+through.
+
 1. **Brief approval** on the draft PR, before any code — the highest-leverage
    minute you will spend on the task.
 2. **A dependency request.** No agent adds one on its own initiative.
@@ -521,6 +569,11 @@ A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that it merged.
 
 ## One task at a time
+
+**The `orchestrator` runs exactly one task and stops** — it never picks the next
+one, however obvious the queue looks. Unattended, the loop has no human
+checkpoint anywhere in it, and nothing here is built to catch what that gets
+wrong on the ninth task.
 
 The loop is serial by default. Some tasks have no choice — T-012, T-013 and
 T-014 all edit `question-bank/src/curated/us-states.ts`, so running them together
