@@ -60,7 +60,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   cached forever, SPA fallback that excludes `/api/v1` so a mistyped endpoint
   returns a problem document rather than an HTML page with a 200.
 - 221 unit and endpoint tests, including contract tests that walk `openapi.yaml`
-  in both directions, plus 28 integration tests against a real stack.
+  in both directions, plus 30 integration tests and 13 browser tests against a
+  real stack.
+- **The session commits before the response is sent** (`DbSessionMiddleware`).
+  It used to commit after, which FastAPI runs *after the response has reached the
+  client* — so `register` could answer 201 before the row existed and the very
+  next request would reject the brand-new password. Found by the browser suite.
 
 ### Frontend — the v1 loop, now on the API
 
@@ -110,14 +115,18 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   brief in flight.
 - Four agents in `.claude/agents/` — task-expander, worker, tester, reviewer —
   each prevented from grading its own work.
-- CI on every PR and push to `main`, five jobs: `frontend` and `question-bank`
+- CI on every PR and push to `main`, six jobs: `frontend` and `question-bank`
   (typecheck, lint, test), `backend` (ruff + 221 tests on SQLite),
-  `backend-postgres` (the same suite against a Postgres service container), and
-  `integration` (the compose stack).
-- **Integration tests** in `backend/integration/` — 28 black-box tests over HTTP
+  `backend-postgres` (the same suite against a Postgres service container),
+  `integration` (the compose stack over HTTP) and `e2e` (a browser).
+- **Integration tests** in `backend/integration/` — 30 black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
   one origin, content is public, a child's sitting works end to end, accounts
-  cannot see each other's profiles, and a restart is not a reset.
+  cannot see each other's profiles, a restart is not a reset, and a write is
+  durable by the time its response says so.
+- **End-to-end tests** in `e2e/` — 13 Playwright tests driving Chromium against
+  docker compose: sign in, make an explorer, play every quiz type the app
+  offers, and come back to find the progress still there.
 - A root `README.md` covering what the app is, the stack, and how to run it.
 
 ## Completed tasks
@@ -142,7 +151,11 @@ one entry because it did not land as separate tasks.
 - **#19** — the root `README.md`.
 - **#20** — Postgres: `psycopg` in the production deps, per-dialect engine
   settings, the suite runnable against either backend, `docker-compose.yml`.
-- **#21** — renamed the compose file (open at the time of writing).
+- **#21** — renamed the compose file.
+- **Then, on the queue:** T-009 and T-052 put the backend, the Postgres path and
+  the compose stack under CI; T-054 added the browser suite, which found T-055
+  on its first run — a write that was not durable when its response said it was.
+  T-049 is closed: Dkaattae ran `docker compose up` and the stack works.
 
 **What that costs, stated plainly:** every verdict on this work came from the
 session that wrote it. The tests are real and they pass — 221 backend, 19
@@ -210,12 +223,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- **Nobody has run `docker build` or `docker compose up`** — no daemon in the
-  environment they were written in. The integration suite now tests that path,
-  but nothing has executed it against a real daemon yet, so the first
-  `integration` CI run is the first honest signal (T-049).
-- **No CI run has exercised the three new jobs.** Each step was run locally;
-  that is not the same as GitHub running it.
+- **No CI run has exercised the four new jobs** (`backend`, `backend-postgres`,
+  `integration`, `e2e`). Each step was run locally; that is not the same as
+  GitHub running it.
 - The public question bank hands out `correctIndex` by default — a leftover from
   when the client graded locally (T-053).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and
@@ -225,6 +235,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Behaviour.**
 
+- **The map cannot fill in during a child's first session.** A state needs four
+  right answers; the bank has at most two questions per state. A perfect first
+  sitting colours in nothing, and it takes a second visit (T-056).
 - A **React hydration warning** (#418) on first load of the production build. The
   app recovers; the cause is unfound (T-048).
 - `/geometry`, `/elevation-profiles` and `/superlative-axes` are implemented and

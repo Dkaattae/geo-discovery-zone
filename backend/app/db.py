@@ -34,6 +34,10 @@ from typing import Any
 from sqlalchemy import Engine, create_engine, event, make_url
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+from starlette.concurrency import run_in_threadpool
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 DEFAULT_DATABASE_URL = "sqlite:///./geoquiz.db"
 ENV_VAR = "GEO_DATABASE_URL"
@@ -128,21 +132,68 @@ def configure(url: str) -> Engine:
     return engine
 
 
-def get_db() -> Iterator[Session]:
-    """FastAPI dependency: one session per request, committed or rolled back.
+def get_db(request: Request) -> Session:
+    """FastAPI dependency: one session per request.
 
-    A handler that raises leaves nothing half-written — the answer that moved a
-    level and queued an entity either lands whole or not at all.
+    The session is created on first use and **committed by `DbSessionMiddleware`
+    before the response is sent**. It deliberately does not commit here.
+
+    This used to be a dependency with `yield` that committed after the yield,
+    which reads correctly and is wrong: on a real server FastAPI runs that exit
+    code *after the response has already gone to the client*. A caller that
+    writes and immediately reads — which is exactly what the app does when it
+    registers an account and then asks for a token — could be told "201 Created"
+    and then find the row is not there yet. Measured on uvicorn: the client had
+    the response 400ms before the commit ran. Under load it showed up as a
+    grown-up creating an account and being told their brand-new password was
+    wrong, roughly one sign-up in eight.
+
+    No in-process test could have caught it: `httpx.ASGITransport` and the
+    test suite's overridden session never exercise this ordering. It took a
+    browser, a real server and two of them at once (`e2e/`).
     """
-    session = SessionFactory()
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+    session: Session | None = getattr(request.state, "db", None)
+    if session is None:
+        session = SessionFactory()
+        request.state.db = session
+    return session
+
+
+class DbSessionMiddleware(BaseHTTPMiddleware):
+    """Commits the request's session before its response is sent.
+
+    A handler that raises, or answers 4xx/5xx, leaves nothing half-written — the
+    answer that moved a level, queued an entity and wrote a row either lands
+    whole or not at all.
+
+    The session is only touched if a handler actually asked for one, so requests
+    that need no database (the frontend, `/docs`) never open a connection, and
+    tests that override `get_db` are unaffected.
+    """
+
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
+        request.state.db = None
+        try:
+            response = await call_next(request)
+        except Exception:
+            await self._finish(request, commit=False)
+            raise
+        # A problem document is still a response: 4xx and 5xx roll back, so a
+        # handler that validates halfway through writing cannot leave the half.
+        await self._finish(request, commit=response.status_code < 400)
+        return response
+
+    @staticmethod
+    async def _finish(request: Request, *, commit: bool) -> None:
+        session: Session | None = getattr(request.state, "db", None)
+        if session is None:
+            return
+        request.state.db = None
+        # Blocking calls, so off the event loop — this is the one place the
+        # commit's round trip is on the request's critical path, which is the
+        # entire point.
+        await run_in_threadpool(session.commit if commit else session.rollback)
+        await run_in_threadpool(session.close)
 
 
 @contextmanager

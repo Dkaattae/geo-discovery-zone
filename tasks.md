@@ -19,9 +19,24 @@ prunes stops being read.
 Sizes are a sanity check, not a commitment: **S** ≈ under an hour, **M** ≈ a
 few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 
-_Last swept: 2026-08-24, twice — once after PRs #16–#20 landed the backend
-off-queue, and again after T-009 and T-052 put the backend and a real stack
-under CI._
+_Last swept: 2026-08-24, three times — after PRs #16–#20 landed the backend
+off-queue; after T-009 and T-052 put the backend and a real stack under CI; and
+after T-054's browser suite found the write-durability bug._
+
+## How this list is ordered
+
+**Structural work first, features after.** The loop in `process.md` is built for
+adding things — pick a task, build it, verify it, ship it — and it only works if
+the ground under it holds. A test suite, a CI job, a decision that two halves of
+the repo disagree about: none of those are features, all of them make every
+feature after them cheaper, and each one skipped is paid for with interest by
+whatever lands on top of it.
+
+So §A is the ground and it comes first. It is not a backlog to get to eventually
+— it is what the feature sections depend on. **Prefer an unfinished §A task to a
+started §C one**, and when they conflict, §A wins.
+
+Everything below §A is ordered by what it unblocks, not by size or appeal.
 
 ---
 
@@ -57,9 +72,22 @@ The one exception is the endpoints that exist and serve nothing —
 
 ---
 
-## A. Foundations
+## A. Foundations — the ground everything else stands on
 
-Nothing here is glamorous and all of it makes the rest cheaper.
+Nothing here is glamorous and all of it makes the rest cheaper. **This section
+comes first on purpose** (see "How this list is ordered"). What is already in
+place, so nobody rebuilds it:
+
+| | |
+|---|---|
+| **Unit and endpoint tests** | 221 backend, 19 frontend, 19 question-bank |
+| **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
+| **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
+| **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
+| **Databases** | SQLite and Postgres, same migrations, same suite |
+| **Docker** | one image serves the app and the API; compose adds Postgres |
+
+What is missing from that picture is below.
 
 ### T-004 — Tests for `level.ts`, and settle how `frontend` typechecks a test file · S · todo
 **Depends on:** —
@@ -341,6 +369,35 @@ that shape. Plan §5.3 is explicit that this is the Python loader's job and not
 running it twice changes nothing, and the app serves states that were never
 hand-written.
 
+### T-056 — The map cannot fill in on a child's first day · M · todo
+**Depends on:** T-050 (or T-021, whichever gets there first)
+**New 2026-08-24, found by the browser suite.** "The map is the progress bar" is
+one of the four things that shape every decision in this repo. Today the progress
+bar **cannot move on day one**, however well a child does.
+
+The arithmetic, measured against a running server rather than reasoned about:
+
+- Mastery moves **+0.25** per right answer and a state fills in above **0.7** —
+  so a state needs **four** right answers about it.
+- The shipped bank has **at most two questions per state** (26 questions over 15
+  states; 11 states have two, 4 have one).
+- A session never repeats a question.
+
+So the most any state can reach in one sitting is **0.5**. A perfect first
+session — all 26 answered correctly — colours in **0 of 15**. Mastery is stored
+on the profile, so a *second* full sitting takes those states to 1.0: 52 right
+answers fills in 11 of 15. A child's first session ends with the same empty map
+it started with, and nothing on screen explains why.
+
+This is a content gap and it dissolves on its own once there are four or more
+questions per state (T-050, T-021). It is filed separately because it is the
+thing to check *after* the bank grows — and because if the bank is going to stay
+small for a while, the alternative is to revisit the 0.7 threshold or show
+partial mastery on the map, which is a design decision rather than more data.
+`e2e/tests/progress.spec.ts` has a test that documents the current behaviour and
+fails when the premise stops being true.
+**Done when:** a good first session visibly colours something in.
+
 ### T-050 — Grow the served bank from 15 states to 50 · M · todo
 **Depends on:** T-040, T-011
 **New 2026-08-24.** The bank is Alaska, Arizona, California, Colorado, Florida,
@@ -506,23 +563,39 @@ assertions were reproduced manually against a real process restart and a real
 Postgres bounce. **The compose path itself is still unrun** — that is T-049,
 below, which these tests now do the work of, once something executes them.
 
-### T-049 — Nobody has ever run `docker build` or `docker compose up` · S · todo
-**Depends on:** T-052 (done)
-**New 2026-08-24.** The `Dockerfile` and `docker-compose.yml` were written,
-reviewed and merged (PRs #18, #20, #21) in an environment with **no Docker
-daemon**. `docker compose config` validates the compose file's shape, and the
-single-origin serving path was verified by running the built static bundle
-against the real backend directly — but the image has never been built and the
-stack has never been brought up. The root `README.md` tells a new user to start
-with `docker build`, so this is the first thing a stranger does and the one thing
-nobody has done.
+### T-054 — End-to-end tests in a browser · M · **done** (2026-08-24)
+13 Playwright tests in `e2e/`, driving Chromium against the compose stack: sign
+in, make an explorer, play **every quiz type the Setup screen offers** (read from
+the app, so a new topic is covered without editing the tests), answer at random
+so both reveal paths run, and check progress survives a full sign-out. An `e2e`
+CI job runs them on every PR. See `e2e/README.md`.
+**It found a real bug on its first run** — see T-055, fixed — and one product
+finding, T-056.
 
-**Mostly automated now.** T-052 wrote the tests; what is missing is an execution
-on a machine with a daemon. The first green `integration` CI run closes this, and
-a red one is the point — it is the first honest signal about the image.
-**Done when:** `make -C backend test-integration` has passed somewhere real, or
-whatever it turns up is fixed. `docker build` on its own is worth one manual run
-too, since the README leads with it.
+### T-055 — A write was not durable when its response said so · S · **done** (2026-08-24)
+`get_db` was a dependency with `yield` that committed **after** the yield, and on
+a real server FastAPI runs that exit code after the response has already gone to
+the client. Measured on uvicorn: the client had the response **400ms before the
+commit ran**.
+
+So `POST /auth/register` answered `201 Created` before the account row existed,
+and the app's very next call — exchanging those credentials for a token — could
+be told the brand-new password was wrong. Roughly **one sign-up in eight** under
+load. Every write endpoint had it: create a profile and immediately read it,
+submit an answer and immediately read the session.
+
+Fixed with `DbSessionMiddleware` (`app/db.py`), which owns the session and
+commits before the response is sent; 4xx and 5xx roll back as before. Regression
+tests in `backend/integration/test_write_durability.py`, all of which fail
+without the fix.
+**Worth remembering:** no in-process test could have caught this.
+`httpx.ASGITransport` and the suite's overridden session never exercise that
+ordering. It took a browser, a real server, and two callers at once.
+
+### T-049 — Nobody has ever run `docker build` or `docker compose up` · S · **done** (2026-08-24)
+Confirmed working by Dkaattae. `docker compose up` builds the image and serves
+the app on :8000. The `integration` and `e2e` CI jobs now exercise that path on
+every PR, so it cannot rot back to unverified.
 
 ---
 

@@ -159,7 +159,10 @@ def unique_username(prefix: str) -> str:
     return f"{prefix}-{time.time_ns()}@example.test"
 
 
-def register(api: httpx.Client, username: str, password: str = "correct-horse-battery") -> str:
+PASSWORD = "correct-horse-battery"
+
+
+def register(api: httpx.Client, username: str, password: str = PASSWORD) -> str:
     """A fresh account and its bearer token.
 
     Every test that needs an account makes its own. The stack is shared across
