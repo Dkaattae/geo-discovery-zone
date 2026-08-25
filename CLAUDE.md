@@ -8,7 +8,13 @@ contract — change it deliberately and say so.
 ## Docs
 
 - `process.md` — the development loop. Read first. `.claude/agents/` defines the
-  four roles it runs on: task-expander, worker, tester, reviewer.
+  five roles it runs on: task-expander, worker, tester, reviewer, and
+  `orchestrator`, which relays one task between the other four without reading
+  their work. `.claude/agents/README.md` charts how they are isolated and what the
+  orchestrator does and does not close.
+- `.claude/loop/` — `run-loop.sh` drives the same loop from a local shell, with no
+  model in it. Preferred over the orchestrator agent wherever a shell can run.
+- `runs/` — what each unattended run cost and where its cycles went.
 - `tasks.md` — the work queue. `tasks/` holds the current brief.
 - `test-guidelines.md` — what to test and how.
 - `geoquizdataplan.md` — the plan and the reasoning. §5 is the tech stack.

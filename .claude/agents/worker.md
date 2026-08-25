@@ -20,6 +20,13 @@ If **Approved** still reads `pending`, stop and say so. Do not start. The
 approval gate is the only check on the acceptance criteria, and a brief that
 skipped it has no authority to be built from.
 
+**`Approved: orchestrator — <date>, unattended run` is a valid line and you may
+start.** It does not mean the criteria were checked — the orchestrator is blind
+to them by design. It means this run had no human at the gate, and the brief is
+recording that honestly instead of forging a name. Treat the criteria with the
+suspicion that deserves: if one is unobservable or self-contradictory, say so in
+the Handoff rather than building something that satisfies your reading of it.
+
 Add your row to the brief's Sessions table — role, date, and session id from
 `echo $CLAUDE_CODE_REMOTE_SESSION_ID`. The tester reads that table to confirm it
 is not running in the same session you did.

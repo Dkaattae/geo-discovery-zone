@@ -9,23 +9,75 @@ decision with no trigger for revisiting is a habit, not a decision.
 
 ---
 
-## D-1 — No orchestrator agent
+## D-1 — An orchestrator, and it is a relay rather than a manager
 
-**Decided:** the human starts each session; the brief in `tasks/` holds the state.
+**Superseded 2026-08-24.** This entry used to read "No orchestrator agent".
 
-An orchestrator would either spawn subagents — ruled out, see D-3 — or read the
-brief and announce which agent runs next, which is one line of a file you can
-read yourself. It would add a session, a model call, and somewhere for state to
-go stale.
+**Decided:** a fifth agent, `orchestrator`, relays a single task between the
+other four. It reads the brief's header, spawns the role that `Next step` names,
+copies what that role returned into `runs/T-0xx-slug.md` verbatim, and repeats.
 
-The brief's **Status** and **Next step** header is the state machine. A file
-beats an agent's memory here for the same reason a queue beats a conversation:
-it survives a crashed session.
+**It judges nothing and reads no work.** Not the diff, not the `## Handoff`, not
+the acceptance criteria. Its entire input is the first twenty lines of the brief.
 
-**Revisit when** you want the loop running unattended. The answer then is not an
-agent — it is a shell script that reads `Next step` and invokes
-`claude --agent <name>`. Fifteen lines, no model, no drift. Worth building only
-after the loop has run manually enough times that the handoffs are trusted.
+**What the original entry argued**, and what changed:
+
+- *"It would either spawn subagents — ruled out, see D-3."* D-3 is rewritten.
+  The isolation it protected survives, and for a sharper reason than expected —
+  see there.
+- *"It would be a shell script that reads `Next step` and invokes
+  `claude --agent <name>`. Fifteen lines, no model, no drift."* **That script was
+  written, and it is kept** — `.claude/loop/run-loop.sh`. It came out at 500
+  lines because the gates turned out to be the whole value, but the prediction
+  was right about the important part: there is no model in it, so there is
+  nothing in it to drift. **It is the preferred way to run the loop.** The agent
+  exists for the environment the script cannot run in — Claude Code on the web,
+  where there is no shell to leave running.
+- *"Or read the brief and announce which agent runs next, which is one line of a
+  file you can read yourself."* **This is exactly what it does, and the entry was
+  right that it is one line.** What it missed is that reading that line is not the
+  cost — *being present to act on it* is. The gap being closed is a human waiting
+  to type the next command, four times a task, which is neither judgement nor
+  work.
+- *"Somewhere for state to go stale."* Answered by making `runs/` a record that
+  nothing reads back. The brief header stays the only state.
+- *"It would add a session and a model call."* It does, and it buys removing
+  three waits for a person.
+
+**A first draft of this role judged each agent's output** — read the diff, decided
+whether the work was good enough, sent roles back. That was scrapped before it
+ran. It was redundant, because the tester already judges the worker and the
+reviewer judges everything; a third opinion formed from the same diff is a
+correlated one, not an extra check. And it was dangerous, for the reason in D-3.
+The role got thinner rather than smarter, which is the direction to keep pushing
+it.
+
+**What is genuinely given up:** the human approval gate at step 2. The
+orchestrator writes `Approved: orchestrator — <date>, unattended run`, which is
+not a certification — it has not read the criteria — but a record that nobody
+checked them. That is the honest version of the trade and it is written into the
+brief where a reader will find it. See "Known weaknesses".
+
+**What is not given up:** a dependency request and a product decision still stop
+for a person. The reviewer's merge envelope (D-4) is unchanged.
+
+**Why one task.** Unattended, the loop has no human checkpoint anywhere in it.
+The expensive failure is not one bad task; it is nine built on a misread of the
+first, none of which anybody looked at.
+
+**Two implementations, one loop, and that is not duplication.** Both enforce the
+same six gates and write the same `runs/` format; they differ in what can enforce
+them. The script's gates are `case` statements and cannot be reasoned around; the
+agent's are instructions it must apply to itself. Where both can run, run the
+script. The place to watch for drift is the pair going out of sync — a gate added
+to one and not the other — which is why they are listed side by side in
+`.claude/loop/README.md` rather than described separately.
+
+**Revisit when** `runs/` shows how often a run halts for a human. If it halts
+constantly, the gate was load-bearing and belongs back at step 2. If it never
+halts, check that the roles are actually raising questions rather than guessing
+past them — a run that never needs anyone is the outcome to be most suspicious
+of, not the one to celebrate.
 
 ---
 
@@ -66,46 +118,137 @@ Do not pay for it before the loop has run.
 
 ---
 
-## D-3 — Sequential sessions, no subagents
+## D-3 — One agent per step; only the orchestrator spawns, and it spawns blind
 
-**Decided:** one agent per top-level session, started by a human. Nothing spawns
-anything, enforced by tool lists — none of the four agents has the Task tool.
+**Amended 2026-08-24.** This entry used to read "Sequential sessions, no
+subagents" and forbade the spawn tool outright.
 
-Subagents would collapse the isolation the loop depends on: a tester spawned by
-the worker inherits its framing, which is the exact failure the separation
-exists to prevent. Sequential sessions cost wall-clock time and buy a verifier
-whose independence is structural rather than promised.
+**Decided:** the four step roles still spawn nothing. The `orchestrator` (D-1)
+has the `Agent` tool and is the only role that does.
 
-**Revisit when** independence can be preserved some other way, or when the
-wall-clock cost outweighs it — for example, running independent tasks in
-parallel, which is safe only when their briefs' Constraints name disjoint files.
+**What the original entry got right and kept:** "a tester spawned by the worker
+inherits its framing, which is the exact failure the separation exists to
+prevent." Still true, still forbidden.
+
+**Verified 2026-08-25, and it constrains how the orchestrator can be launched.**
+Spawning was probed directly rather than assumed:
+
+| The orchestrator is… | Spawn tool it receives | Result |
+|---|---|---|
+| **spawned as a subagent** by another session | **none — stripped** | cannot run at all |
+| **the top-level session** (`claude -p --agent orchestrator`) | `Agent` | a real `worker` spawn returned |
+
+So **the orchestrator has to be the session, not something a session spawns.**
+Nesting is one level deep in this harness: a top-level agent may spawn, and what
+it spawns may not. That is the same limit that stops a worker calling a tester,
+arriving from the harness rather than from our rules — convenient here, but not
+ours to rely on staying.
+
+The tool is named **`Agent`**, not `Task`; the frontmatter accepted `Task` and
+granted `Agent` anyway, which is the kind of quiet mismatch worth writing down
+rather than leaving for whoever reads the file next.
+
+**Still unverified:** whether a Claude Code *web* session can be started as the
+orchestrator at all. If it cannot, the agent is unusable in the one environment
+it was written for, and `run-loop.sh` is not merely preferred but the only path.
+Test that before relying on an unattended web run.
+
+**What the original entry missed:** a spawned agent gets a **fresh context
+window**. The tester does not see the worker's transcript; it inherits exactly
+and only the text of its prompt. Worker-spawns-tester leaks because the worker's framing is the only
+thing it can write. An orchestrator that has never read the work has nothing to
+leak.
+
+So the protection is not a rule about what the orchestrator may pass on — rules
+like that are obeyed until the one time a sentence seems genuinely helpful.
+It is **structural ignorance plus a fixed template**:
+
+- The orchestrator reads the brief's header and nothing else. It never loads the
+  diff, the Handoff, or the criteria.
+- Its spawn prompt has **four substitution slots** — role, task id, brief path,
+  branch — and no free-text field. There is nowhere for a helpful sentence to go.
+- What a role returns is copied into `runs/` verbatim and never quoted into a
+  prompt. One-way valve.
+- Fresh agent every round, including a re-verify after `fail`.
+
+**What this costs, and it is not nothing.** The Sessions-table check stops
+working. Every role in an orchestrated run shares one `$CLAUDE_CODE_REMOTE_SESSION_ID`,
+so the tester finds its own id listed as `worker`. It is told not to refuse on
+that and not to claim the check passed — instead to say in the Verdict that its
+independence came from being a freshly spawned agent rather than a separate
+session. That is real independence and weaker evidence, and conflating the two
+would be the actual danger.
+
+**Revisit when** a Verdict comes back that reads as though it tested the
+implementation rather than the criteria. The fix would be the prompt or the
+spawn, not the tester.
 
 ---
 
-## D-4 — The reviewer may merge, within strict limits
+## D-4 — The reviewer marks ready; a person merges
 
-**Decided:** a fourth agent reviews quality, merges when the change falls inside
-an explicit envelope, and escalates otherwise. It also sweeps and trims the queue.
+**Amended 2026-08-25.** This entry used to read "The reviewer may merge, within
+strict limits", and the reviewer held `mcp__github__merge_pull_request`.
 
-Two things drove this. Tests check criteria; **nothing was checking whether the
-code was any good**. And sweeping at the start of the *next* cycle meant it only
-happened if someone came back — it now happens inside the PR, before the merge,
-so the bookkeeping is reviewed alongside the work it describes.
+**Decided:** a fourth agent reviews quality, sweeps, trims the queue, and marks
+the PR **ready for a person to merge**. It never merges. The tool is gone from its
+frontmatter, which is the version of the rule that does not depend on an agent
+remembering it.
+
+**Why the change, from Dkaattae:** there is no ops dashboard, and the test
+coverage is not yet complete enough that a green suite means what a green suite
+should mean. Automatic merge assumes you can see the consequences of a bad one
+quickly. Until that is true, the last step before `main` is a person.
+
+**The envelope did not go away — it changed what it decides.** It used to gate
+*merge*; it now gates *escalation*. Inside it, the PR is marked ready with no
+note: routine, merge when you get to it. Outside it — a dependency,
+`openapi.yaml`, a migration, the plan, a product decision, or any text a child
+will read — the PR is still marked ready, but the body says at the top that it
+must not be merged without a decision. Both outcomes end at a person; what
+differs is what they are being told.
+
+**What this costs:** the loop no longer closes without you, so an unattended run
+now ends at a finished PR rather than at a merged `main`. That is the intended
+trade, not a regression. **What it does not cost** is the sweep: the reviewer
+still sweeps *before* marking ready, in the PR's own branch, so what reaches you
+is complete — work, tests, brief deleted, queue trimmed, `PROGRESS.md` written.
+One click, no follow-up.
+
+**Revisit when** there is somewhere to watch a bad merge from, and the suite
+covers enough that green is load-bearing. This is the entry to reopen first once
+both are true; the machinery to merge automatically is one tool grant away and
+the envelope is already written.
+
+---
+
+## D-4a — The original envelope, kept for reference
+
+Two things drove the reviewer role. Tests check criteria; **nothing was checking
+whether the code was any good**. And sweeping at the start of the *next* cycle
+meant it only happened if someone came back — it now happens inside the PR,
+before the hand-off, so the bookkeeping is reviewed alongside the work it
+describes.
 
 The envelope is deliberately narrow, and "confident" is not part of it, because
-an agent's confidence is not evidence. It may merge only when the tester passed,
-nothing changed outside the brief's Constraints, no dependency was added,
+an agent's confidence is not evidence. A change passes it only when the tester
+passed, nothing changed outside the brief's Constraints, no dependency was added,
 nothing touched `openapi.yaml`, a migration, or the plan, and **no text a child
-will read** is involved. Everything else goes to a human.
+will read** is involved. Everything else is flagged for a person explicitly.
 
 That last one is the point. `T-011` is fifty fun facts for seven-year-olds:
 exactly the work where a test can confirm the shape and only a person can
 confirm the substance.
 
-**Revisit when** you have enough merged tasks to see whether the envelope is too
-tight — if the reviewer escalates almost everything, it is doing no work and the
-limits should widen; if you find yourself rubber-stamping its escalations, they
-should widen too.
+**The `orchestrator` (D-1) does not widen this.** It holds the *approval* gates,
+not this envelope: the reviewer still applies these limits itself. Since the
+amendment above, an unattended run and a manual one merge exactly the same set of
+changes without a human, which is now none.
+
+**Revisit when** you have enough finished tasks to see whether the envelope is too
+tight — if the reviewer flags almost everything, it is doing no work and the
+limits should widen; if you find yourself waving its flags through, they should
+widen too.
 
 ---
 
@@ -170,7 +313,8 @@ the task was unlucky.
 
 ## D-7 — Every role holds Bash; separation moves to the diff
 
-**Decided:** all four agents get `Bash`. What keeps them from doing each other's
+**Decided:** every agent gets `Bash` — the four step roles, and the
+orchestrator. What keeps them from doing each other's
 jobs is **what each is allowed to write**, checked against the commit diff by the
 reviewer at step 6 — not the absence of a tool.
 
@@ -274,10 +418,33 @@ Three checks for one failure is deliberate. The failure is silent at every layer
 only fire if an agent is paying attention to something it has no other reason to
 look at.
 
-**Revisit when** a task runs end to end with all four roles on the same branch.
-If the harness stops assigning branches, the header becomes redundant with the
-convention and the checks are pure overhead. Until then they are the only thing
-standing between a stranded commit and a merged half-task.
+**Amended 2026-08-25.** Both unattended drivers put all four roles on one branch,
+which is what this entry was waiting for — though neither has yet run a task end
+to end, so the condition is *addressed*, not *met*.
+
+- `run-loop.sh` owns the checkout and **checks out the header's branch itself**
+  (G4). There is no per-session branch to diverge from.
+- The `orchestrator` spawns subagents, which share its working tree. Four
+  roles, one branch, one PR, with the header's value passed in the spawn prompt.
+
+**The harness still assigns the driving session its own branch**, so exactly one
+mismatch survives — the orchestrator's assigned branch versus the header's — and
+the standing grant in `CLAUDE.md` "Branches" is what covers it. One mismatch
+handled by an existing permission, instead of four silent ones.
+
+**What this rules out: encoding lineage in the branch name.** A scheme like
+`T-003-<parent>-worker-<child>` was considered and rejected. It creates a second
+place the parent branch is recorded, which can disagree with the `Branch:` header
+— and when they disagree there is no rule for which wins. It also cannot be
+derived from a harness-assigned name: `claude/worker-t003-i1kbih` looks composed
+but is not, the slug coming from the session's prompt and the suffix being
+random. **The fix for a branch that cannot be found is not a better name; it is
+not making a second branch.**
+
+**Revisit when** a task actually runs end to end under either driver, or if the
+harness stops assigning branches — at which point the header becomes redundant
+with the convention and the checks are pure overhead. Until then they are the
+only thing standing between a stranded commit and a merged half-task.
 
 ---
 
@@ -385,6 +552,47 @@ sweep could not ship inside it and needed its own PR. Nothing was violated — t
 brief still said `Next step: reviewer` — but the intended state became
 unreachable. The reviewer now checks whether the PR is already merged and sweeps
 separately when it is. The loop has no way to *prevent* this, only to notice.
+
+**The verifier's independence is no longer *checkable* in an orchestrated run.**
+It is still real — the tester is a freshly spawned agent that never saw the work
+— but the mechanism that made it auditable was the Sessions table, and every role
+in an orchestrated run shares one session id. The tester now says in its Verdict
+which kind of independence it had. That is a downgrade from evidence to
+attestation, and it is the honest name for it.
+
+This is the sharpest reason to prefer `run-loop.sh` where a shell is available:
+it mints a `--session-id` per step, so the Sessions table fills with distinct ids
+and the check goes back to being evidence. **The weakness is the orchestrator
+agent's, not the loop's** — and it is a property of the environment that forced
+the agent, not a decision anyone made.
+
+**The two drivers can drift apart.** `run-loop.sh` and `orchestrator.md` enforce
+the same six gates, one in `bash` and one in prose, and nothing checks that they
+still match. A gate tightened in one and forgotten in the other produces two
+loops that behave differently while both claiming to be the loop — and the
+failure is silent in the familiar way, since neither errors. They are documented
+side by side in `.claude/loop/README.md` to make a divergence visible on read;
+that is weaker than a test, and there is no test to be had for prose.
+
+**Nobody sees the brief before it is built, in an orchestrated run.** The step-2
+gate was described here as "the highest-leverage minute you will spend on the
+task", and an unattended run spends it on nothing at all: the orchestrator writes
+`Approved: orchestrator — <date>, unattended run` without having read the
+criteria, because reading them is what D-3 forbids. The brief says so plainly
+rather than forging a name, and `runs/T-0xx-slug.md` is where you catch it
+afterwards — but afterwards is after the work. **This is the whole cost of the
+orchestrator and it should be re-examined the first time a run produces something
+that satisfies its criteria and is not what anyone wanted.**
+
+**A spawned role cannot ask a question.** Run manually, an agent that needs a
+human decision simply asks the session it is running in. Spawned, it has no way
+to reach anybody: it can only return text. So the orchestrator's template tells
+every role to write the question into the brief, set `Status: blocked`, and stop
+— and tells the orchestrator to halt rather than answer on the human's behalf.
+The behaviour is preserved; the latency is not. A question that would have taken
+a human ten seconds to answer mid-session now costs a full stop and a restart,
+which creates real pressure on a role to guess instead of asking. Watch for a
+Handoff that resolves an ambiguity confidently and does not say who decided.
 
 **No content reviewer exists.** `T-011` and `T-014` produce writing for children,
 where the real question is "is this right for a nine-year-old" and no test

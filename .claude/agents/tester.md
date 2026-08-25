@@ -40,6 +40,20 @@ looks identical and means nothing.
 If the environment provides no session id, say that too, and let the human
 confirm the separation before you continue. Then add your own row.
 
+**Under an orchestrated run this check does not work, and you must not treat it
+as if it did.** Every role spawned by the `orchestrator` shares one session id,
+so you will find your own id listed as `worker` — and that is not evidence of
+anything. You can tell an orchestrated run by `runs/T-0xx-slug.md` existing for
+this task.
+
+Then: **do not refuse on the id alone, and do not claim the check passed.** Your
+independence rests on being a freshly spawned agent with its own context window —
+you did not watch the work happen and cannot see the worker's reasoning. That is
+real, but it is weaker evidence than a separate session, because it rests on the
+orchestrator having spawned you correctly rather than on anything you can verify
+yourself. **Say exactly that in the Verdict.** A reader deciding how much to trust
+a `pass` needs to know which of the two kinds of independence produced it.
+
 ## Start with the handoff
 
 The brief's `## Handoff` section is the worker's only message to you. Read it

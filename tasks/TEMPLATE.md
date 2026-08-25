@@ -17,6 +17,11 @@ stops if they differ — a placeholder left unreplaced strands their commits.
 **PR:** #NN, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it; `changes requested` sends it back to the
 agent named in Next step
+**Fault:** one sentence, written by whichever role set a non-`pass` `Status`, and
+cleared when the task next reaches `pass`. What was wrong and who owns it — *"criterion 6
+named a file path where it meant a behaviour"* — not what to do about it. Leave it
+empty on a clean run. Both drivers read this line into `runs/`, so it is written
+once here rather than restated in the log.
 
 **Sessions:** one line per agent run — role, date, and session id
 (`echo $CLAUDE_CODE_REMOTE_SESSION_ID`). The tester must refuse to run in a
