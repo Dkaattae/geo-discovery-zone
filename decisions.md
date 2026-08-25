@@ -121,18 +121,41 @@ Do not pay for it before the loop has run.
 ## D-3 — One agent per step; only the orchestrator spawns, and it spawns blind
 
 **Amended 2026-08-24.** This entry used to read "Sequential sessions, no
-subagents" and forbade the Task tool outright.
+subagents" and forbade the spawn tool outright.
 
 **Decided:** the four step roles still spawn nothing. The `orchestrator` (D-1)
-has the Task tool and is the only role that does.
+has the `Agent` tool and is the only role that does.
 
 **What the original entry got right and kept:** "a tester spawned by the worker
 inherits its framing, which is the exact failure the separation exists to
 prevent." Still true, still forbidden.
 
-**What it missed:** a spawned agent gets a **fresh context window**. The tester
-does not see the worker's transcript; it inherits exactly and only the text of
-its prompt. Worker-spawns-tester leaks because the worker's framing is the only
+**Verified 2026-08-25, and it constrains how the orchestrator can be launched.**
+Spawning was probed directly rather than assumed:
+
+| The orchestrator is… | Spawn tool it receives | Result |
+|---|---|---|
+| **spawned as a subagent** by another session | **none — stripped** | cannot run at all |
+| **the top-level session** (`claude -p --agent orchestrator`) | `Agent` | a real `worker` spawn returned |
+
+So **the orchestrator has to be the session, not something a session spawns.**
+Nesting is one level deep in this harness: a top-level agent may spawn, and what
+it spawns may not. That is the same limit that stops a worker calling a tester,
+arriving from the harness rather than from our rules — convenient here, but not
+ours to rely on staying.
+
+The tool is named **`Agent`**, not `Task`; the frontmatter accepted `Task` and
+granted `Agent` anyway, which is the kind of quiet mismatch worth writing down
+rather than leaving for whoever reads the file next.
+
+**Still unverified:** whether a Claude Code *web* session can be started as the
+orchestrator at all. If it cannot, the agent is unusable in the one environment
+it was written for, and `run-loop.sh` is not merely preferred but the only path.
+Test that before relying on an unattended web run.
+
+**What the original entry missed:** a spawned agent gets a **fresh context
+window**. The tester does not see the worker's transcript; it inherits exactly
+and only the text of its prompt. Worker-spawns-tester leaks because the worker's framing is the only
 thing it can write. An orchestrator that has never read the work has nothing to
 leak.
 
@@ -162,35 +185,70 @@ spawn, not the tester.
 
 ---
 
-## D-4 — The reviewer may merge, within strict limits
+## D-4 — The reviewer marks ready; a person merges
 
-**Decided:** a fourth agent reviews quality, merges when the change falls inside
-an explicit envelope, and escalates otherwise. It also sweeps and trims the queue.
+**Amended 2026-08-25.** This entry used to read "The reviewer may merge, within
+strict limits", and the reviewer held `mcp__github__merge_pull_request`.
 
-Two things drove this. Tests check criteria; **nothing was checking whether the
-code was any good**. And sweeping at the start of the *next* cycle meant it only
-happened if someone came back — it now happens inside the PR, before the merge,
-so the bookkeeping is reviewed alongside the work it describes.
+**Decided:** a fourth agent reviews quality, sweeps, trims the queue, and marks
+the PR **ready for a person to merge**. It never merges. The tool is gone from its
+frontmatter, which is the version of the rule that does not depend on an agent
+remembering it.
+
+**Why the change, from Dkaattae:** there is no ops dashboard, and the test
+coverage is not yet complete enough that a green suite means what a green suite
+should mean. Automatic merge assumes you can see the consequences of a bad one
+quickly. Until that is true, the last step before `main` is a person.
+
+**The envelope did not go away — it changed what it decides.** It used to gate
+*merge*; it now gates *escalation*. Inside it, the PR is marked ready with no
+note: routine, merge when you get to it. Outside it — a dependency,
+`openapi.yaml`, a migration, the plan, a product decision, or any text a child
+will read — the PR is still marked ready, but the body says at the top that it
+must not be merged without a decision. Both outcomes end at a person; what
+differs is what they are being told.
+
+**What this costs:** the loop no longer closes without you, so an unattended run
+now ends at a finished PR rather than at a merged `main`. That is the intended
+trade, not a regression. **What it does not cost** is the sweep: the reviewer
+still sweeps *before* marking ready, in the PR's own branch, so what reaches you
+is complete — work, tests, brief deleted, queue trimmed, `PROGRESS.md` written.
+One click, no follow-up.
+
+**Revisit when** there is somewhere to watch a bad merge from, and the suite
+covers enough that green is load-bearing. This is the entry to reopen first once
+both are true; the machinery to merge automatically is one tool grant away and
+the envelope is already written.
+
+---
+
+## D-4a — The original envelope, kept for reference
+
+Two things drove the reviewer role. Tests check criteria; **nothing was checking
+whether the code was any good**. And sweeping at the start of the *next* cycle
+meant it only happened if someone came back — it now happens inside the PR,
+before the hand-off, so the bookkeeping is reviewed alongside the work it
+describes.
 
 The envelope is deliberately narrow, and "confident" is not part of it, because
-an agent's confidence is not evidence. It may merge only when the tester passed,
-nothing changed outside the brief's Constraints, no dependency was added,
+an agent's confidence is not evidence. A change passes it only when the tester
+passed, nothing changed outside the brief's Constraints, no dependency was added,
 nothing touched `openapi.yaml`, a migration, or the plan, and **no text a child
-will read** is involved. Everything else goes to a human.
+will read** is involved. Everything else is flagged for a person explicitly.
 
 That last one is the point. `T-011` is fifty fun facts for seven-year-olds:
 exactly the work where a test can confirm the shape and only a person can
 confirm the substance.
 
 **The `orchestrator` (D-1) does not widen this.** It holds the *approval* gates,
-not the merge envelope: the reviewer still applies these limits itself, and what
-falls outside them still reaches a person. An orchestrated run and a manual one
-merge exactly the same set of changes without a human.
+not this envelope: the reviewer still applies these limits itself. Since the
+amendment above, an unattended run and a manual one merge exactly the same set of
+changes without a human, which is now none.
 
-**Revisit when** you have enough merged tasks to see whether the envelope is too
-tight — if the reviewer escalates almost everything, it is doing no work and the
-limits should widen; if you find yourself rubber-stamping its escalations, they
-should widen too.
+**Revisit when** you have enough finished tasks to see whether the envelope is too
+tight — if the reviewer flags almost everything, it is doing no work and the
+limits should widen; if you find yourself waving its flags through, they should
+widen too.
 
 ---
 
@@ -366,7 +424,7 @@ to end, so the condition is *addressed*, not *met*.
 
 - `run-loop.sh` owns the checkout and **checks out the header's branch itself**
   (G4). There is no per-session branch to diverge from.
-- The `orchestrator` spawns `Task` subagents, which share its working tree. Four
+- The `orchestrator` spawns subagents, which share its working tree. Four
   roles, one branch, one PR, with the header's value passed in the spawn prompt.
 
 **The harness still assigns the driving session its own branch**, so exactly one

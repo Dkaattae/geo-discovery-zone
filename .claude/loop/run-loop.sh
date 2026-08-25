@@ -58,7 +58,7 @@ LEDGER="runs/ledger.tsv"
 # Paths the loop may never touch unattended. A task that changes how the loop
 # works does not get to run through the loop.
 GATED_PATHS='^(process\.md|decisions\.md|CLAUDE\.md|\.claude/)'
-# Paths that put a merge outside the reviewer's envelope (D-4) and therefore
+# Paths that fall outside the reviewer's envelope (D-4) and therefore
 # outside auto-approval too.
 GATED_CONTENT='^(openapi\.yaml|geoquizdataplan\.md)'
 

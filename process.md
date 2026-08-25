@@ -1,7 +1,8 @@
 # Process
 
 How work moves through this repo. One task at a time, expanded into a brief,
-built, verified by someone who did not build it, then merged and swept up.
+built, verified by someone who did not build it, swept up, and handed to a
+person to merge.
 
 The documents this loop runs on:
 
@@ -27,7 +28,8 @@ each and are deliberately unable to do the others' jobs; the fifth drives them.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
   edit source to make a test pass, and cannot edit the criteria either.
 - **`reviewer`** (opus) — judges quality rather than correctness. On approve it
-  marks the PR ready, sweeps, then merges inside a narrow envelope or escalates;
+  sweeps, then marks the PR ready for a person to merge, flagging it when the
+  change falls outside a narrow envelope;
   otherwise it leaves the PR draft and names the agent that has to come back.
   Never reviews work it wrote, because it writes none.
 - **`orchestrator`** (inherits) — optional, and a **relay rather than a
@@ -54,10 +56,10 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `task-expander` | Read, Grep, Glob, Write, Edit, Bash, PR-open | `tasks/`, `tasks.md`, `PROGRESS.md` | source, tests, config |
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, tests, the brief's Handoff | acceptance criteria |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict | source, acceptance criteria |
-| `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-merge, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests |
+| `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
 | `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line | source, tests, criteria, any role's signed section |
 
-**Only the orchestrator has the Task tool**, and only so it can spawn the other
+**Only the orchestrator has the `Agent` tool**, and only so it can spawn the other
 four — see "Spawning, and the isolation it must not cost" below. The four step
 roles still cannot spawn anything, so a worker can never call a tester.
 
@@ -76,13 +78,13 @@ with a check: **the expander's commit touches only `tasks/`, `tasks.md` and
 
 ### Opening and merging the PR
 
-"PR-open", "PR-ready" and "PR-merge" above are capabilities, not one specific
+"PR-open" and "PR-ready" above are capabilities, not one specific
 tool — how you get them depends on where the session runs:
 
 1. **GitHub MCP tools** (`mcp__github__create_pull_request`,
-   `mcp__github__update_pull_request`, `mcp__github__merge_pull_request`) when the
+   `mcp__github__update_pull_request`) when the
    GitHub MCP server is configured. This is the case in Claude Code on the web.
-2. **`gh` via Bash** — `gh pr create --draft`, `gh pr ready`, `gh pr merge` — on a
+2. **`gh` via Bash** — `gh pr create --draft`, `gh pr ready` — on a
    local machine with the CLI authenticated. `gh` does **not** exist in web
    sessions; do not assume it.
 3. **Neither.** Push the branch, print the exact PR title and body, and stop with
@@ -94,12 +96,16 @@ Whichever route, the branch is pushed first. A PR needs a branch on the remote.
 The reviewer holds "PR-open" as well, for one case only: a PR merged before it
 ran, where the sweep cannot ride inside the merge and needs its own small PR.
 
+**No role holds PR-merge.** Merging is Dkaattae's — `decisions.md` D-4.
+
 ### Spawning, and the isolation it must not cost
 
 **Three ways to run the loop, and the brief is the shared state in all of them.**
+[`.claude/agents/README.md`](.claude/agents/README.md) charts all three side by
+side, along with what a subagent does and does not isolate.
 
 **Manually** — each step is its own top-level session, started by a human,
-running one agent. None of the four step roles has the Task tool, so a worker
+running one agent. None of the four step roles has the `Agent` tool, so a worker
 cannot call a tester. This is the default, and the only way that keeps a person
 at the step-2 gate.
 
@@ -170,7 +176,7 @@ neighbouring role's session, and one is yours:
 - **Ship** — `reviewer` marks the PR ready, but only on approve, at the end of
   its run rather than the start.
 - **Pick and sweep** — `task-expander` does both, at the start of its run. It
-  clears the merged brief, updates `tasks.md` and `PROGRESS.md`, then picks the
+  clears the swept brief, updates `tasks.md` and `PROGRESS.md`, then picks the
   next task. Sweeping at the *start* of the next cycle rather than the end of the
   last one means it never gets skipped because everyone went home after the merge.
 - **Approve** — you, on the draft PR, before any code is written. Under the
@@ -216,7 +222,7 @@ worker and still left the work invisible to everyone downstream.
 | `task-expander` | branch created, brief committed, **draft PR opened**, `Status: awaiting approval` | approve on the PR, then `worker` |
 | `worker` | implementation committed to the same branch, Handoff written, `Status: awaiting verification` | `tester` — a **fresh** session |
 | `tester` | tests committed to the same branch, Verdict written, `Status: pass` / `fail` / `blocked` | `reviewer` on pass · `worker` on fail · `task-expander` on blocked |
-| `reviewer` — approve | PR marked ready, sweep committed, merged or escalated | the next task |
+| `reviewer` — approve | PR marked ready, sweep committed, flagged if outside the envelope | a person merges |
 | `reviewer` — changes needed | PR left draft, findings commented, `Status: changes requested` and `Next step:` naming the agent | that agent, on the same branch |
 | `orchestrator` | run log committed, whichever of the above it last relayed | nothing — it stops. The next task is a new run |
 
@@ -313,9 +319,9 @@ tasks.md
                           changes needed ─▶ PR stays DRAFT, comment,
                           │                 brief names the agent to fix it
                           │                 ──▶ back to 3, 4 or 2
-                          └ approve ──────▶ PR ready, sweep, then
-                                            merge inside a narrow envelope,
-                                            or escalate to a human
+                          └ approve ──────▶ sweep, PR marked READY,
+                                            flagged if outside the envelope
+                                            ──▶ a person merges
 
    the brief carries the state · every agent ends the same way:
    commit, push, update Status, stop
@@ -495,7 +501,7 @@ This is deliberate: step 6 deletes the brief, and the PR then becomes the
 permanent record of what "done" meant. Also say what you chose not to do, and why
 any decision could reasonably have gone the other way.
 
-### 6. Review, merge, sweep
+### 6. Review, sweep, hand over
 
 Run this as the **`reviewer`** agent. It is the only step that both judges and
 tidies, and it does them in that order.
@@ -521,7 +527,7 @@ never fixes what it finds.
 
 | Verdict | The PR | The record | The brief |
 |---|---|---|---|
-| **Approve** | marked **ready for review** | body updated with the criteria and what verified each | swept, then merge or escalate below |
+| **Approve** | marked **ready for review** | body updated with the criteria and what verified each | swept, then handed to a person |
 | **Changes needed** | **stays draft** | a comment listing the findings, each with file, line, and what would make it acceptable | `Status: changes requested`, `Next step:` the agent that must fix it, findings in a `## Review` section |
 
 Sending it back names an agent — `worker` for the implementation, `tester` for
@@ -534,7 +540,8 @@ Sending back is not the same as escalating. Sent back means an agent still owes
 the work; escalated means the work is fine but the merge is not the reviewer's to
 make. Escalation happens on an approved, ready PR.
 
-**Merge only inside the envelope**: tester passed, suite green, nothing outside
+**Flag for a decision outside the envelope**; inside it, mark ready with no note.
+The envelope: tester passed, suite green, nothing outside
 the brief's Constraints, no new dependency, nothing touching `openapi.yaml`, a
 migration or the plan, and **no text a child will read**. Anything else escalates
 to you, and escalating is a normal outcome rather than a failure. Content for
@@ -569,10 +576,10 @@ released and there is no follow-up PR for three line changes.
 > the brief, and no window where `main` carries a brief for work that already
 > shipped. See `decisions.md` D-4.
 >
-> Note the consequence for the merge envelope: a swept PR **always** touches
+> Note the consequence for the envelope: a swept PR **always** touches
 > `tasks.md` and `PROGRESS.md`, which no brief lists in its Constraints. Those two
 > files, plus deleting the brief itself, are expected sweep changes and are not
-> the "changed outside Constraints" signal that blocks a merge.
+> the "changed outside Constraints" signal that flags a PR for a decision.
 
 ---
 
@@ -589,20 +596,20 @@ written into the brief rather than disguised.
 **Moments 2, 3 and 4 are unchanged**, but they arrive differently: a spawned role
 cannot ask you anything, so instead of a question it writes the question into the
 brief, sets `Status: blocked`, and stops. The orchestrator halts and quotes it.
-You answer, and restart the run. The reviewer's merge envelope (D-4) does not
-widen — a relayed run merges exactly the same set of changes unattended as a
-manual one.
+You answer, and restart the run. The reviewer's envelope (D-4) does not widen — a
+relayed run merges exactly the same set of changes unattended as a manual one,
+which since D-4's amendment is none: **every run ends at a PR waiting for you.**
 
 1. **Brief approval** on the draft PR, before any code — the highest-leverage
    minute you will spend on the task.
 2. **A dependency request.** No agent adds one on its own initiative.
 3. **A product decision** an agent may not settle: whether to store children's
    data, whether to commit generated output.
-4. **An escalation** — from the reviewer when the merge falls outside its
+4. **An escalation** — from the reviewer when the change falls outside its
    envelope, or from the tester after two failed verify rounds.
 
 A run that reaches only the first is the normal case: approve at step 2, and the
-next thing you hear is that it merged.
+next thing you hear is that a PR is ready for you.
 
 ## One task at a time
 
@@ -693,4 +700,4 @@ than open contradictions.
 ## Definition of done, in one line
 
 **Brief approved, criteria met, independently verified, whole suite green, docs
-true, PR merged, brief swept, queue re-evaluated.**
+true, PR ready and swept, queue re-evaluated, waiting on your merge.**

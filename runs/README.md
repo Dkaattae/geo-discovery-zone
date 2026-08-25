@@ -4,7 +4,7 @@ What each task actually cost, and where its cycles went. One file per task,
 `T-0xx-slug.md`, plus an append-only `ledger.tsv` behind them.
 
 Unlike [`tasks/`](../tasks/), **this directory is not swept.** The brief is
-deleted when its task merges and the PR inherits the acceptance criteria — but
+deleted at the sweep and the PR inherits the acceptance criteria — but
 neither keeps the story of the run: which role got sent back, what it missed, how
 many rounds it took, and which calls were made unattended that a human would
 otherwise have made.

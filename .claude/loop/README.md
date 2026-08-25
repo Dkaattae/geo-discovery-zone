@@ -27,7 +27,7 @@ both.
 | | `run-loop.sh` | `orchestrator` agent |
 |---|---|---|
 | Runs on | a local machine with the `claude` CLI | anywhere a session runs, including Claude Code on the web |
-| Spawns | a **new session per step**, `--session-id` minted by the driver | `Task` subagents inside one session |
+| Spawns | a **new session per step**, `--session-id` minted by the driver | `Agent` subagents inside one session |
 | Tester's independence | **checkable** — distinct session ids land in the Sessions table | attestation only; every subagent shares one session id |
 | Branch | checks out the brief's `Branch:` header itself | inherits the orchestrator's checkout, passes the header in the prompt |
 | Gates | six, mechanical, in `bash` | the same six, as instructions |
