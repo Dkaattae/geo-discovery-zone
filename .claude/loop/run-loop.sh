@@ -118,10 +118,18 @@ next_now()    { local v; v=$(header_token 'Next step'); [[ -n $v ]] || v=$(heade
 # answer. Zero routes to you. TWO IS THE DANGEROUS CASE: the parser would take
 # the first and route there silently, which is the D-8 failure shape — nothing
 # errors, a wrong path is taken, and the task drifts without a red anything.
+# The `|| true` is load-bearing. Under `set -euo pipefail` a grep that matches
+# nothing fails the whole pipeline, the assignment in gate_next_unambiguous
+# inherits that status, and `set -e` kills the driver where it stands -- with no
+# message at all. Which meant the one input this function exists to catch, a
+# Next step naming no known role, was the one input that produced silence.
 next_role_count() {
-  header_field 'Next step' \
+  local roles
+  roles=$(header_field 'Next step' \
     | grep -oiE '\b(task-expander|expander|worker|tester|reviewer|human)\b' \
-    | sort -u | wc -l | tr -d ' '
+    | sort -u) || true
+  [[ -n $roles ]] || { echo 0; return; }
+  wc -l <<<"$roles" | tr -d ' '
 }
 
 # G0. Route on an unambiguous field or do not route at all.
