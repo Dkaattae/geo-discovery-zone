@@ -58,25 +58,12 @@ jobs:
 
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        # `bun test` exits 1 when a package contains no test files at all, and
-        # frontend/ has none until T-004 adds them. `--pass-with-no-tests` makes
-        # bun exit 0 for that one case and nothing else: a test that exists and
-        # fails still exits non-zero and still fails this step.
-        #
-        # This step deliberately contains no shell logic. The previous version
-        # decided "are there test files?" itself, with a `find` regex over
-        # `js|jsx|ts|tsx` — but bun also runs `.mts`, `.cts`, `.mjs` and `.cjs`,
-        # and bun does not prune `dist`/`.output`/`.vinxi` the way that `find`
-        # did. Any hand-written copy of bun's discovery can disagree with bun,
-        # and when it does the step reports "no tests" while real tests fail.
-        # That happened: run 31270170161 was green with a failing
-        # `frontend/probe.test.mts` in the tree. So the question is now put to
-        # bun instead of re-implemented, and there is no `exit 0` here at all —
-        # bun's exit code is the step's exit code in every state.
-        #
-        # Not `continue-on-error`, not `|| true`, not `set +e`, not `always()`:
-        # none of those distinguish "no tests" from "tests failed".
-        run: bun test --pass-with-no-tests
+        # Same command as question-bank's, and no shell logic: bun's exit code
+        # is the step's exit code in every state, including the state where
+        # frontend/ contains no test files at all — which bun reports as 1 and
+        # this step is meant to fail on. Deleting the frontend tests now breaks
+        # CI, which is the point (decisions.md D-10).
+        run: bun test
 
   question-bank:
     name: question-bank (typecheck, test)

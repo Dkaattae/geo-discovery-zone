@@ -88,7 +88,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   two consecutive correct.
 - Soft milestones at 5/10/20, a quit flow reporting places learned rather than a
   percentage (§3.6, §3.8), and no timers anywhere (§3.4).
-- 19 tests over the API client.
+- 80 tests — 19 over the API client, 61 over level→grade/band display. Test
+  files are typechecked rather than excluded (`decisions.md` D-9) and CI fails
+  if they stop existing (D-10).
+- **The client's level labels and the server's are pinned to one another.**
+  `frontend/src/lib/level.ts` and `backend/app/levels.py` are hand-copies; both
+  suites now assert against the same committed table, `fixtures/level-labels.json`,
+  so changing one alone turns a suite red instead of showing a child a different
+  grade on each screen.
 
 ### Question bank — the pipeline
 
@@ -179,6 +186,25 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-004 — tests for `level.ts`, and frontend test files typechecked** (PR #23,
+  2026-08-24). 61 tests over the five exports of `frontend/src/lib/level.ts`, and
+  one committed table — `fixtures/level-labels.json`, at the repo root beside
+  `openapi.yaml` — that both `frontend/src/lib/level.test.ts` and
+  `backend/tests/test_levels.py` assert against, so the client and server label
+  arithmetic can no longer drift in silence. Two workarounds became decisions:
+  **D-9**, `frontend/tsconfig.json` stops excluding `*.test.ts(x)` and
+  `@types/bun` pays for it; **D-10**, `--pass-with-no-tests` is gone, so deleting
+  the frontend suite now fails CI.
+  *Differed from the brief:* three things. The two implementations turned out
+  **not** to disagree anywhere — 2,301 levels compared, zero mismatches — so the
+  fixture pins a live invariant rather than papering over a bug, which is the
+  cheap moment to install it. `bun add -d` could not run: 23 packages in
+  `frontend/bun.lock` are pinned to a private registry the agent sandbox answers
+  with 403, so the two lockfile entries were taken from a throwaway project and
+  spliced in by hand — CI's `Install` and `Lockfile unchanged` steps are what
+  confirm bun accepts them, and a clean local `bun add` never happened. And the
+  survey found `backend/app/levels.py:60` documenting a `levelWindow()` the
+  client does not have, now **T-057**.
 - **T-003 — CI: typecheck, lint and test on every PR** (PR #11, 2026-08-10). One
   job per package in `.github/workflows/ci.yml`, on `pull_request` and `push` to
   `main`: `bun install --frozen-lockfile`, a lockfile-drift check, then
@@ -190,7 +216,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   counts as a test file, and it disagreed with bun. Run 31270170161 was **green
   with a failing test in the tree** — a green check certifying nothing, the exact
   failure the task existed to prevent. The fix deleted the guard and asked bun
-  instead (`bun test --pass-with-no-tests`).
+  instead (`bun test --pass-with-no-tests`). *That flag is itself now gone* —
+  `frontend/` has tests, so T-004 removed it and recorded why in `decisions.md`
+  D-10. The step is a bare `bun test`.
 - **T-002 — `test-guidelines.md` corrected against the first real tests** (PR #9,
   2026-08-06). The seams table pointed at the wrong door: it said to test through
   `SparqlTransport`, `SummaryTransport` and `EntitySink`, and none of the 19 tests
@@ -228,15 +256,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- **No CI run has exercised the four new jobs** (`backend`, `backend-postgres`,
-  `integration`, `e2e`). Each step was run locally; that is not the same as
-  GitHub running it.
 - The public question bank hands out `correctIndex` by default — a leftover from
   when the client graded locally (T-053).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and
   `conventions.md` describes a repo with no backend and no CI (T-007).
-- Frontend test files are excluded from `tsc` rather than typechecked (T-004),
-  and `eslint .` still passes on 7 warnings (T-006).
+- `eslint .` still passes on 7 warnings (T-006).
 
 **Behaviour.**
 
