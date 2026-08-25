@@ -90,7 +90,7 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-005 — Prove "no network in tests" in CI · S · todo
+### T-005 — Prove "no network in tests" in CI · S · doing
 **Depends on:** —
 `test-guidelines.md` says "no network in tests, ever" and names the check: point
 `HTTPS_PROXY` and `HTTP_PROXY` at a dead port and the suite should not notice.
