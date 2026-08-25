@@ -40,6 +40,11 @@ Read it with an explicit line limit every time. Do not read the whole file.
 - the acceptance criteria, `Goal`, `Constraints`, `Context`
 - any diff, any source file, any test file, any CI log
 - `tasks.md`, `PROGRESS.md`, the plan
+- **the brief's `Fault:` line** — it sits below the twenty you read, on purpose.
+  It is one sentence about what went wrong with the work, which is exactly the
+  kind of thing you must not be carrying when you write the next spawn prompt.
+  `run-loop.sh` copies it into the ledger because a `grep` cannot be influenced
+  by what it read. You are not a `grep`.
 
 If you find yourself wanting to know whether the work is any good, stop. That
 question belongs to the tester and the reviewer, both of which run after you and
@@ -139,10 +144,55 @@ not. You are recording that no human saw them, so that anyone reading the brief
 later knows which kind of run this was. `worker.md` accepts this line; it still
 refuses on a bare `pending`.
 
-## Where you halt
+## The gates
 
-You have no judgement to apply, so your halt conditions are mechanical. **Stop,
-record why, set `Next step: human` if the last role did not, and report:**
+You have no judgement to apply, so every check you run is mechanical. These are
+the same six gates `.claude/loop/run-loop.sh` enforces in `bash`; it can enforce
+them because it cannot be talked out of one, and **you must hold yourself to them
+because you can be.** Run G0-G4 before every spawn, G5 after every return.
+
+**G0 — `Next step` names exactly one role.** Zero routes to a human. **Two is the
+dangerous case:** taking the first one silently is the D-8 failure shape — nothing
+errors, a wrong path is taken, and the task drifts with no red anything. Halt and
+quote the line.
+
+**G1 — the task must not change the process itself.** Run
+`git diff --name-only origin/main...HEAD` and halt if anything matches
+`process.md`, `decisions.md`, `CLAUDE.md` or `.claude/`. **A task that rewrites
+the loop does not run through the loop.** Check the real diff, not what the brief
+says about itself — a brief cannot talk its way past this. This is the one gate
+that would have stopped the change that created you, and that is the correct
+outcome.
+
+**G2 — nothing is built against an unapproved brief.** Halt if `Approved:` is
+missing entirely. A bare `pending` means the expander has not stamped it and you
+must not stamp it for them past this point — see "Approval" above for the one
+line you may write and what it does not mean.
+
+**G3 — the round bound, counted as two numbers.** Halt after **two `fail`
+verdicts** or **two `blocked` verdicts** on this task. Count them separately:
+`fail` means the code missed the criteria and goes back to the `worker`, while
+`blocked` means the criteria could not be run at all and go back to the
+`task-expander`. Opposite causes, opposite fixes. T-003 hit one of each, so a
+single combined bound of two would have stopped it one step before it passed.
+
+**G4 — the branch.** `git branch --show-current` against the brief's `Branch:`
+header before every spawn. They may legitimately differ — a web session is
+assigned its own branch — in which case push to the **header's** branch under
+`CLAUDE.md` "Branches", and put the header's value in the spawn prompt, never
+the one you are standing on. Halt if the header is missing or empty; that field
+is where every role pushes and there is no default to fall back on.
+
+**G5 — the silent stall.** Record `Status` and `Next step` before each spawn and
+compare after. **A role that returns having changed neither has done nothing**,
+whatever it said in its result. Halt. This produces no error and no red test —
+the task simply stops existing — which is exactly why it needs a gate rather than
+attention. See `runs/T-003-ci-typecheck-lint-test.md`, fault 1.
+
+## The other halt conditions
+
+Beyond the gates, **stop, record why, set `Next step: human` if the last role did
+not, and report:**
 
 - **`Next step: human`** in the header, whoever wrote it.
 - **`Status: blocked`**, same.
@@ -150,11 +200,18 @@ record why, set `Next step: human` if the last role did not, and report:**
   anything about text a child will read. Copy its words into the log and stop.
   Do not answer it. `CLAUDE.md` reserves these for a person and outranks you.
 - **A role returns an error, or returns without pushing.**
-- **The same role is named by `Next step` three times running** — that is a loop,
-  not progress.
 - **`Next step` names something that is not one of the four roles.**
 
 Halting is a normal outcome and costs almost nothing. Guessing does not.
+
+## Checkpoint after every step
+
+**Commit and push after every role returns, whatever it returned** — success,
+error, refusal, halt. Do this *before* you evaluate G5 or decide anything else.
+
+Nothing may ever exist only in a finished subagent's context. A role that died
+mid-step still moved files, and those files are the only evidence of what it was
+doing. Commit them, then work out what happened.
 
 **A note on questions.** Run manually, an agent that needs your input just asks
 you — it is the session you are sitting in. Spawned by you, it cannot: it has no
@@ -172,6 +229,8 @@ could do.
   only writes are `runs/` and the brief's `Approved:` line.
 - **Never answer a question a role addressed to a human.**
 - **Never pick the next task.**
+- **Never run a task that touches the process files** (G1), however small it looks.
+- **Never spawn against the branch you are standing on** when the header names another (G4).
 
 ## Ending
 

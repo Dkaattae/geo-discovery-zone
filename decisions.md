@@ -25,6 +25,14 @@ the acceptance criteria. Its entire input is the first twenty lines of the brief
 - *"It would either spawn subagents — ruled out, see D-3."* D-3 is rewritten.
   The isolation it protected survives, and for a sharper reason than expected —
   see there.
+- *"It would be a shell script that reads `Next step` and invokes
+  `claude --agent <name>`. Fifteen lines, no model, no drift."* **That script was
+  written, and it is kept** — `.claude/loop/run-loop.sh`. It came out at 500
+  lines because the gates turned out to be the whole value, but the prediction
+  was right about the important part: there is no model in it, so there is
+  nothing in it to drift. **It is the preferred way to run the loop.** The agent
+  exists for the environment the script cannot run in — Claude Code on the web,
+  where there is no shell to leave running.
 - *"Or read the brief and announce which agent runs next, which is one line of a
   file you can read yourself."* **This is exactly what it does, and the entry was
   right that it is one line.** What it missed is that reading that line is not the
@@ -56,6 +64,14 @@ for a person. The reviewer's merge envelope (D-4) is unchanged.
 **Why one task.** Unattended, the loop has no human checkpoint anywhere in it.
 The expensive failure is not one bad task; it is nine built on a misread of the
 first, none of which anybody looked at.
+
+**Two implementations, one loop, and that is not duplication.** Both enforce the
+same six gates and write the same `runs/` format; they differ in what can enforce
+them. The script's gates are `case` statements and cannot be reasoned around; the
+agent's are instructions it must apply to itself. Where both can run, run the
+script. The place to watch for drift is the pair going out of sync — a gate added
+to one and not the other — which is why they are listed side by side in
+`.claude/loop/README.md` rather than described separately.
 
 **Revisit when** `runs/` shows how often a run halts for a human. If it halts
 constantly, the gate was load-bearing and belongs back at step 2. If it never
@@ -344,10 +360,33 @@ Three checks for one failure is deliberate. The failure is silent at every layer
 only fire if an agent is paying attention to something it has no other reason to
 look at.
 
-**Revisit when** a task runs end to end with all four roles on the same branch.
-If the harness stops assigning branches, the header becomes redundant with the
-convention and the checks are pure overhead. Until then they are the only thing
-standing between a stranded commit and a merged half-task.
+**Amended 2026-08-25.** Both unattended drivers put all four roles on one branch,
+which is what this entry was waiting for — though neither has yet run a task end
+to end, so the condition is *addressed*, not *met*.
+
+- `run-loop.sh` owns the checkout and **checks out the header's branch itself**
+  (G4). There is no per-session branch to diverge from.
+- The `orchestrator` spawns `Task` subagents, which share its working tree. Four
+  roles, one branch, one PR, with the header's value passed in the spawn prompt.
+
+**The harness still assigns the driving session its own branch**, so exactly one
+mismatch survives — the orchestrator's assigned branch versus the header's — and
+the standing grant in `CLAUDE.md` "Branches" is what covers it. One mismatch
+handled by an existing permission, instead of four silent ones.
+
+**What this rules out: encoding lineage in the branch name.** A scheme like
+`T-003-<parent>-worker-<child>` was considered and rejected. It creates a second
+place the parent branch is recorded, which can disagree with the `Branch:` header
+— and when they disagree there is no rule for which wins. It also cannot be
+derived from a harness-assigned name: `claude/worker-t003-i1kbih` looks composed
+but is not, the slug coming from the session's prompt and the suffix being
+random. **The fix for a branch that cannot be found is not a better name; it is
+not making a second branch.**
+
+**Revisit when** a task actually runs end to end under either driver, or if the
+harness stops assigning branches — at which point the header becomes redundant
+with the convention and the checks are pure overhead. Until then they are the
+only thing standing between a stranded commit and a merged half-task.
 
 ---
 
@@ -393,6 +432,20 @@ It is still real — the tester is a freshly spawned agent that never saw the wo
 in an orchestrated run shares one session id. The tester now says in its Verdict
 which kind of independence it had. That is a downgrade from evidence to
 attestation, and it is the honest name for it.
+
+This is the sharpest reason to prefer `run-loop.sh` where a shell is available:
+it mints a `--session-id` per step, so the Sessions table fills with distinct ids
+and the check goes back to being evidence. **The weakness is the orchestrator
+agent's, not the loop's** — and it is a property of the environment that forced
+the agent, not a decision anyone made.
+
+**The two drivers can drift apart.** `run-loop.sh` and `orchestrator.md` enforce
+the same six gates, one in `bash` and one in prose, and nothing checks that they
+still match. A gate tightened in one and forgotten in the other produces two
+loops that behave differently while both claiming to be the loop — and the
+failure is silent in the familiar way, since neither errors. They are documented
+side by side in `.claude/loop/README.md` to make a divergence visible on read;
+that is weaker than a test, and there is no test to be had for prose.
 
 **Nobody sees the brief before it is built, in an orchestrated run.** The step-2
 gate was described here as "the highest-leverage minute you will spend on the

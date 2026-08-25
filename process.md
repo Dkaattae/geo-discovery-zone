@@ -96,20 +96,35 @@ ran, where the sweep cannot ride inside the merge and needs its own small PR.
 
 ### Spawning, and the isolation it must not cost
 
-**Two ways to run the loop, and the brief is the shared state in both.**
+**Three ways to run the loop, and the brief is the shared state in all of them.**
 
 **Manually** — each step is its own top-level session, started by a human,
 running one agent. None of the four step roles has the Task tool, so a worker
 cannot call a tester. This is the default, and the only way that keeps a person
 at the step-2 gate.
 
-**Relayed** — one `orchestrator` session spawns the four in order. It is the only
-role with the Task tool.
+**Driven** — [`.claude/loop/run-loop.sh`](.claude/loop/run-loop.sh) invokes
+`claude -p --agent <role>` once per step, on a local machine. **There is no model
+in the driver**, so there is nothing in it to drift, and it mints a fresh
+`--session-id` per step.
+
+**Relayed** — one `orchestrator` session spawns the four in order with the Task
+tool. It is the only role that has it, and the only option where no shell is
+available to leave running — Claude Code on the web.
+
+**Prefer the driver where you have the choice.** Same six gates, but enforced by
+`bash` rather than by an agent's willingness to enforce them against itself, and
+two things the agent cannot offer: a per-step spend cap the CLI enforces, and the
+independence check below working on evidence rather than on a claim. See
+[`.claude/loop/README.md`](.claude/loop/README.md), "Which one to use".
 
 What has to survive is the **tester's independence**, and it survives differently
-in each. Run manually, the tester is a separate top-level session and can inherit
-nothing. Spawned, it gets a **fresh context window** — it never sees the worker's
-transcript — so it inherits exactly and only the text of its prompt.
+in each. Run manually or under the driver, the tester is a separate session and
+can inherit nothing — and under the driver the session ids differ, so the
+Sessions-table check still *proves* it. Spawned by the orchestrator, it gets a
+**fresh context window** — it never sees the worker's transcript — so it inherits
+exactly and only the text of its prompt, but every subagent shares one session id
+and the check degrades to attestation.
 
 **Which makes the orchestrator's prompt the only attack surface, and the answer
 is to keep it empty.** Not a rule about restraint — rules like that hold until
