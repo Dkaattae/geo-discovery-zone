@@ -116,29 +116,55 @@ asked for. It returns `pass`, nobody lied, and the check is now a guided one.
 ## The gap it closes, and the three it does not
 
 ```mermaid
-flowchart LR
-    H1(["you<br/>start the expander"]) --> O["orchestrator"]
-    O --> E["task-expander"] --> O
-    O --> W["worker"] --> O
-    O --> T["tester"] --> O
-    O --> R["reviewer"] --> O
-    O --> H2(["you<br/>review + merge"])
+flowchart TB
+    H1(["you<br/><b>start the expander</b>"]) --> O
+    O{{"orchestrator<br/>relays · judges nothing"}}
+    O --> E["task-expander"]
+    O --> W["worker"]
+    O --> T["tester"]
+    O --> R["reviewer"]
+    E --> O
+    W --> O
+    T --> O
+    R --> O
+    O --> H2(["you<br/><b>review + merge</b>"])
+
+    E -.-> B
+    W -.-> B
+    T -.-> B
+    R -.-> B
+    B[/"brief · <b>Status: blocked</b><br/>Next step: human<br/>+ the question, written down"/]
+    B ==>|"orchestrator halts —<br/><b>never answers for you</b>"| H3(["you<br/><b>answer, then restart</b>"])
 
     style H1 fill:#bbf7d0,stroke:#15803d,color:#000
     style H2 fill:#bbf7d0,stroke:#15803d,color:#000
+    style H3 fill:#bbf7d0,stroke:#15803d,color:#000
+    style B fill:#fde68a,stroke:#b45309,color:#000
     style O fill:#e0e7ff,stroke:#4338ca,color:#000
 ```
+
+**Every role has that dotted escape, and it is the only one it has.** A spawned
+role cannot reach a person — it can only return text — so "ask a question" is
+implemented as *write it into the brief and stop*. The orchestrator then reads
+`Status: blocked` in the header and halts without reading the question, because
+answering it is not its call: `CLAUDE.md` reserves dependencies, product
+decisions and anything a child will read for a person, and that outranks the
+orchestrator.
+
+**Halting is a normal outcome, not a failure.** It costs a restart. Guessing
+costs a task built on a wrong assumption that nobody looked at.
 
 | | Before | After |
 |---|---|---|
 | **Three waits to type a command** | you, three times | **closed** — the orchestrator relays |
 | Starting the task | you | **you** — by design, D-1 |
 | Merging | you | **you** — by design, D-4 |
+| A role hits something only you can decide | you, in ten seconds, mid-session | **you** — but the run halts and restarts |
 | Approving the criteria | you, at step 2 | **nobody**, and the brief says so |
-| Answering a question mid-run | you, in ten seconds | **halts the run** |
 
-The two green stops are deliberate and stay. The two rows below them are what an
-unattended run actually costs:
+**Only one row actually changed hands, and it is the one that was never
+judgement.** The three green stops in the diagram are deliberate and stay — start,
+decide, merge. What an unattended run costs is the last two rows:
 
 **Nobody reads the criteria before the work is built.** The orchestrator writes
 `Approved: orchestrator — <date>, unattended run` *without having read them* —
