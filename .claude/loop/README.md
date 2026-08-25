@@ -67,13 +67,20 @@ orchestrator agent D-1 originally rejected.
 | **G1** | `gate_process_files` | the diff touches `process.md`, `decisions.md`, `CLAUDE.md` or `.claude/` |
 | **G2** | `gate_approval` | `Approved:` is missing or still `pending` |
 | **G3** | `gate_rounds` | `fail` or `blocked` rounds hit their bound — **counted separately** |
-| **G4** | `gate_branch` | the checkout is not the brief's `Branch:` header (checks it out) |
+| **G4** | `gate_branch` | the header is missing — otherwise it **checks the header's branch out** |
 | **G5** | in `run_role` | a role returned having changed neither `Status` nor `Next step` |
 
 **G1 is the one to understand.** A task that changes how the loop works does not
 get to run through the loop. It is checked against the real diff rather than
 against what the brief claims, so a brief cannot talk its way past it — and it is
 why **this very change** could not have been made by an unattended run.
+
+**G4 does more than gate: it checks the branch out.** That is what you want from
+a driver that owns the checkout, and it is a sharp edge everywhere else — a brief
+whose `Branch:` header names some other branch will move your working tree as a
+side effect of running the loop. `test-gates.sh` names the current branch in
+every fixture for exactly this reason, and restores the checkout on exit if
+something slips past.
 
 **G5 is the one that exists because of T-003.** A role that returns having moved
 nothing produces no error and no red test; the task simply stops existing. See
