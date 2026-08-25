@@ -162,7 +162,11 @@ Review it by hand and merge it yourself."
 gate_approval() {
   local approved; approved=$(header_field Approved)
   [[ -n $approved ]] || stop "the brief has no Approved: line" "process.md step 2: the header is load-bearing."
-  if [[ ${approved,,} == pending* ]]; then
+  # TEMPLATE.md writes the placeholder backticked -- **Approved:** `pending` -- so
+  # compare with the backticks stripped. Globbing the raw field against 'pending*'
+  # never matched, which made this gate pass silently on every unapproved brief.
+  local bare=${approved//\`/}
+  if [[ ${bare,,} == pending* ]]; then
     stop "the brief is awaiting your approval" \
 "Read it, then replace 'pending' in the Approved: header with your name and the
 date:  $BRIEF
