@@ -119,23 +119,25 @@ The 50-row capture stays whole because rank tests need the full field.
 
 ## Randomness and time
 
-> **Forward-looking.** `pickQuestion` lives in `frontend/`, which has no tests
-> yet — T-004 writes them. This section is the intended approach, not a
-> description of existing practice.
+Question selection is the one random thing in the app. It lives in
+`backend/app/selection.py` — `pick_question()`, ported from the client's old
+`pickQuestion()` — and its tests are `backend/tests/test_selection.py`.
 
-`pickQuestion()` calls `Math.random()`. Do not assert which question comes back.
-Assert the properties that must hold for **every** possible result:
+`pick_question()` draws with `random.choice`. Do not assert which question comes
+back. Assert the properties that must hold for **every** possible result:
 
-```ts
-// Good: true for any draw
-expect(pool).toContain(picked.id);
-expect(picked.topic).toBe("capital");
-expect(askedIds).not.toContain(picked.id);
+```python
+# Good: true for any draw
+question, is_review = pick_question(BANK, level=6.0, topic="capital")
+assert question["id"] in NEAR_SIX
+assert question["topic"] == "capital"
+assert question["id"] not in asked_ids
 ```
 
 Run a selection many times and assert the invariant across all draws when you
 need confidence about a distribution. If a behaviour genuinely needs determinism,
-inject the randomness rather than seeding a global.
+inject the randomness rather than seeding a global — `pick_question` takes an
+`rng`, which is what that looks like.
 
 Same for clocks: pass timestamps in rather than reading `Date.now()` inside the
 logic under test. `built_at` is generated data, not asserted data.
@@ -193,12 +195,18 @@ testing tool. Report which mutations were made and what each one did.
 
 ```bash
 cd question-bank && bun test    # 19 tests today
-cd frontend      && bun test    # no test files yet — exits 1 until T-004
+cd frontend      && bun test    # 65 tests today
 ```
 
 Tests live next to what they test: `src/normalize.test.ts` beside
 `src/normalize.ts`. Pure functions are the highest value per line of test and
 need no setup at all.
+
+Test files are **typechecked**, not excluded — `@types/bun` is a devDependency
+of both packages and both tsconfigs carry `"types": ["bun"]`, so `bun run
+typecheck` reads `*.test.ts` like any other source file (`decisions.md` D-9).
+CI also **requires** them: neither `bun test` step passes a package with no test
+files (D-10).
 
 ### `api/` — pytest
 
