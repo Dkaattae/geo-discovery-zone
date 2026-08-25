@@ -611,6 +611,37 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
 A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that a PR is ready for you.
 
+### When a run stops for you
+
+**Nothing is left running, and that is the thing to understand.** A subagent that
+returns has ended and its context is gone; a driver that halts has exited. There
+is no process waiting on your answer, no timer counting how long you took, and
+nothing that will nudge you on its own.
+
+So the notice is raised by the last thing that happens by itself: **the push.**
+[`.github/workflows/blocked-run-notice.yml`](.github/workflows/blocked-run-notice.yml)
+reads the pushed brief's header, and when a task is waiting on a person it labels
+the PR **`waiting on a human`** and comments once. GitHub's normal notifications
+do the rest.
+
+- **The label is the state**, so later pushes while still blocked stay quiet. The
+  comment fires on the transition in, and the label clears itself on the way out.
+- **The comment links to the brief; it does not repeat the question.** One copy,
+  in the file the next agent will read. Two copies is how they come to disagree.
+- **It is a `grep`, not a judge.** It reads `Status`, `Next step` and `Fault:` and
+  never the work — the same rule the orchestrator follows, for the same reason.
+
+**Answering does not resume anything**, because there is nothing to resume. The
+brief is the resume point:
+
+1. Answer in the brief, where the question is.
+2. Set `Next step` back to the role that should carry on.
+3. Commit, and start a run.
+
+A **fresh** agent reads the brief including your answer. It never saw the session
+that asked, which is exactly the property that makes the tester's verdict worth
+something — see [`.claude/agents/README.md`](.claude/agents/README.md).
+
 ## One task at a time
 
 **The `orchestrator` runs exactly one task and stops** — it never picks the next

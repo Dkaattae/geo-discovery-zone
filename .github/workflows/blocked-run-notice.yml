@@ -1,0 +1,169 @@
+name: Blocked run notice
+
+# An unattended run that stops for a human is silent: the role writes its
+# question into the brief, commits, and the process ends. Nothing is left
+# running to tell anybody, because nothing is left running at all -- the
+# subagent's context is gone and the driver has exited.
+#
+# So the notice is raised by the one thing that still happens on its own: the
+# push. This workflow reads the brief's header, and when a task is waiting on a
+# person it labels the PR and comments once. GitHub's existing notifications do
+# the rest. See process.md, "When a run stops for you".
+#
+# It is a grep, not a judge. It reads the header and never the work.
+
+on:
+  push:
+    paths:
+      - 'tasks/T-*.md'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  # Serialise per branch: two pushes in quick succession must not both decide
+  # the label is missing and both comment.
+  group: blocked-notice-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  notice:
+    name: Is a task waiting on a human?
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read the brief header
+        id: brief
+        run: |
+          set -euo pipefail
+
+          brief=$(find tasks -maxdepth 1 -name 'T-*.md' ! -name 'TEMPLATE.md' | sort | head -1)
+          if [[ -z $brief ]]; then
+            echo "no brief in tasks/ — nothing to report"
+            echo "blocked=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Header fields look like:  **Status:** `blocked` — ...
+          # `|| true` matters: under `set -euo pipefail` a grep that matches
+          # nothing fails the pipeline and kills the step with no message. That
+          # exact shape was a live bug in run-loop.sh; it is not repeated here.
+          field() {
+            grep -m1 -E "^\*\*$1:\*\*" "$brief" 2>/dev/null \
+              | sed -E "s/^\*\*$1:\*\*[[:space:]]*//" || true
+          }
+
+          status=$(field Status)
+          next=$(field 'Next step')
+          fault=$(field Fault)
+
+          # Strip backticks before matching. TEMPLATE.md writes these values
+          # backticked, and comparing the raw field is how run-loop.sh's approval
+          # gate silently never fired.
+          bare_status=${status//\`/}
+          bare_next=${next//\`/}
+
+          blocked=false
+          reason=""
+          if [[ ${bare_status,,} == blocked* ]]; then
+            blocked=true; reason="Status: blocked"
+          elif [[ ${bare_next,,} == human* ]]; then
+            blocked=true; reason="Next step: human"
+          fi
+
+          {
+            echo "blocked=$blocked"
+            echo "reason=$reason"
+            echo "brief=$brief"
+            echo "task=$(basename "$brief" .md)"
+            echo "status=${status:0:200}"
+            echo "next=${next:0:200}"
+            echo "fault=${fault:0:400}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "brief=$brief blocked=$blocked ($reason)"
+
+      - name: Label and comment, once
+        if: steps.brief.outputs.blocked == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          TASK: ${{ steps.brief.outputs.task }}
+          BRIEF: ${{ steps.brief.outputs.brief }}
+          STATUS: ${{ steps.brief.outputs.status }}
+          NEXT: ${{ steps.brief.outputs.next }}
+          FAULT: ${{ steps.brief.outputs.fault }}
+          REASON: ${{ steps.brief.outputs.reason }}
+        run: |
+          set -euo pipefail
+
+          pr=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open \
+                 --json number --jq '.[0].number // empty')
+          if [[ -z $pr ]]; then
+            echo "no open PR for $BRANCH — the brief is blocked but there is nowhere to say so"
+            exit 0
+          fi
+
+          # The label is the state, which is what makes this idempotent: every
+          # later push while still blocked finds it present and stays quiet.
+          # Comment only on the transition into blocked.
+          gh label create "waiting on a human" --repo "$REPO" \
+            --color FBCA04 --description "An unattended run stopped for a decision" \
+            2>/dev/null || true
+
+          if gh pr view "$pr" --repo "$REPO" --json labels \
+               --jq '.labels[].name' | grep -qxF "waiting on a human"; then
+            echo "PR #$pr is already labelled — not commenting again"
+            exit 0
+          fi
+
+          gh pr edit "$pr" --repo "$REPO" --add-label "waiting on a human"
+
+          {
+            echo "## This task is waiting on you"
+            echo
+            echo "\`$TASK\` stopped for a decision a person has to make. **Nothing is"
+            echo "running** — the role that raised it has ended, so answering here does not"
+            echo "resume anything by itself."
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| **Status** | $STATUS |"
+            echo "| **Next step** | $NEXT |"
+            [[ -n $FAULT ]] && echo "| **Fault** | $FAULT |"
+            echo "| **Raised by** | \`$REASON\` in the brief |"
+            echo
+            echo "**The question is written in the brief** — [\`$BRIEF\`](https://github.com/$REPO/blob/$SHA/$BRIEF)."
+            echo "It is not repeated here, so there is only ever one copy of it to answer."
+            echo
+            echo "To resume: answer in the brief, set \`Next step\` back to the role that"
+            echo "should continue, commit, and start a run. A **fresh** agent reads the brief"
+            echo "including your answer — see \`.claude/agents/README.md\`."
+            echo
+            echo "<sub>Posted by \`.github/workflows/blocked-run-notice.yml\`. The label is removed automatically when the brief stops being blocked.</sub>"
+          } > /tmp/body.md
+
+          gh pr comment "$pr" --repo "$REPO" --body-file /tmp/body.md
+          echo "commented on #$pr"
+
+      - name: Clear the label once it is unblocked
+        if: steps.brief.outputs.blocked == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          pr=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open \
+                 --json number --jq '.[0].number // empty')
+          [[ -n $pr ]] || exit 0
+          if gh pr view "$pr" --repo "$REPO" --json labels \
+               --jq '.labels[].name' | grep -qxF "waiting on a human"; then
+            gh pr edit "$pr" --repo "$REPO" --remove-label "waiting on a human"
+            echo "cleared the label on #$pr — the run can continue"
+          fi

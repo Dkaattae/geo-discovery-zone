@@ -116,6 +116,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
   task between the other four and reads none of their work.
+- **A blocked run now announces itself.** `.github/workflows/blocked-run-notice.yml`
+  reads a pushed brief's header and labels the PR `waiting on a human` with one
+  comment when a task stops for a decision. Nothing is left running when a run
+  halts, so the push is what raises the notice.
 - Two unattended drivers for the same loop, enforcing the same six gates:
   `.claude/loop/run-loop.sh` locally (no model in it, a spend cap the CLI
   enforces, a fresh session id per step) and the `orchestrator` agent where no
