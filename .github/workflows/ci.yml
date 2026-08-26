@@ -65,6 +65,11 @@ jobs:
         # CI, which is the point (decisions.md D-10).
         run: |
           export HTTP_PROXY=http://127.0.0.1:1
+          export HTTPS_PROXY=http://127.0.0.1:1
+          export ALL_PROXY=http://127.0.0.1:1
+          export http_proxy=http://127.0.0.1:1
+          export https_proxy=http://127.0.0.1:1
+          export all_proxy=http://127.0.0.1:1
           bun test
 
   question-bank:
