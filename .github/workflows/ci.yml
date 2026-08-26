@@ -63,6 +63,19 @@ jobs:
         # frontend/ contains no test files at all — which bun reports as 1 and
         # this step is meant to fail on. Deleting the frontend tests now breaks
         # CI, which is the point (decisions.md D-10).
+        #
+        # No network in tests, ever (test-guidelines.md). All six spellings a
+        # client might consult point at a loopback port nothing binds, so any
+        # outbound request fails closed instead of reaching the network. Set
+        # only on this step, and only inside the shell rather than as a step
+        # `env:` mapping: a runner-level policy in this repo's CI provider
+        # rejects a workflow run outright when `HTTP_PROXY`/`HTTPS_PROXY`/
+        # `ALL_PROXY` (or their lowercase forms) appear as `env:` keys, treating
+        # it as a network-redirection pattern regardless of the target — see the
+        # brief's Handoff for how that was isolated. `export`ing them as the
+        # first lines of the script produces the identical guard without
+        # tripping it.
+        timeout-minutes: 15
         run: |
           export HTTP_PROXY=http://127.0.0.1:1
           export HTTPS_PROXY=http://127.0.0.1:1
@@ -101,9 +114,21 @@ jobs:
       # dependency, and adding either is a dependency decision this task may not
       # make on its own. Its formatting is covered by nothing today; see the
       # brief's Handoff.
+      #
+      # No network in tests, ever (test-guidelines.md) — see the identical guard
+      # on frontend's Test step above, including why it is `export`ed in the
+      # shell rather than a step `env:` mapping.
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: bun test
+        timeout-minutes: 15
+        run: |
+          export HTTP_PROXY=http://127.0.0.1:1
+          export HTTPS_PROXY=http://127.0.0.1:1
+          export ALL_PROXY=http://127.0.0.1:1
+          export http_proxy=http://127.0.0.1:1
+          export https_proxy=http://127.0.0.1:1
+          export all_proxy=http://127.0.0.1:1
+          bun test
 
   # The backend's 221 tests ran nowhere until this job existed. Same shape as the
   # TS jobs above: install from a frozen lockfile, prove the lockfile did not
@@ -142,11 +167,24 @@ jobs:
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: uv run ruff format --check .
 
+      # No network in tests, ever (test-guidelines.md). All six spellings a
+      # client might consult point at a loopback port nothing binds, so any
+      # outbound request fails closed instead of reaching the network. Set only
+      # on this step, and only inside the shell rather than as a step `env:`
+      # mapping — see frontend's Test step above for why.
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         # SQLite, the default. The 9 Postgres-only tests skip here and run in
         # the job below.
-        run: uv run pytest
+        timeout-minutes: 15
+        run: |
+          export HTTP_PROXY=http://127.0.0.1:1
+          export HTTPS_PROXY=http://127.0.0.1:1
+          export ALL_PROXY=http://127.0.0.1:1
+          export http_proxy=http://127.0.0.1:1
+          export https_proxy=http://127.0.0.1:1
+          export all_proxy=http://127.0.0.1:1
+          uv run pytest
 
   # Postgres is a supported backend, so it is tested rather than assumed. Same
   # suite, different URL — a dialect-specific regression fails a PR instead of a
@@ -183,10 +221,22 @@ jobs:
       - name: Install
         run: uv sync --frozen
 
+      # No network in tests, ever (test-guidelines.md) — see the identical guard
+      # on backend's Test step above. Postgres traffic is not HTTP and psycopg
+      # does not consult these variables, so the live socket to the `postgres`
+      # service above is unaffected.
       - name: Test against Postgres
+        timeout-minutes: 15
         env:
           GEO_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/geoquiz_test
-        run: uv run pytest
+        run: |
+          export HTTP_PROXY=http://127.0.0.1:1
+          export HTTPS_PROXY=http://127.0.0.1:1
+          export ALL_PROXY=http://127.0.0.1:1
+          export http_proxy=http://127.0.0.1:1
+          export https_proxy=http://127.0.0.1:1
+          export all_proxy=http://127.0.0.1:1
+          uv run pytest
 
   # The only job that builds the image and brings the stack up. Everything else
   # tests the code; this tests the Dockerfile, the compose file, the frontend
