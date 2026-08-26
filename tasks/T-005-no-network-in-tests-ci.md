@@ -528,4 +528,8 @@ weaknesses") — note it in your Verdict rather than refusing outright, since th
 **Tester's own push (`855d4a3`, 15:34 UTC).** Verdict only — no source, no test,
 no config; `git diff 3e73144 855d4a3` is this file alone. It produced no `CI`
 run within 20 minutes; its `Blocked run notice` run `32985704421` was still
-`queued` at 15:52 UTC. See the Verdict, "State of CI at the tip".
+`queued` at 15:52 UTC — and still `queued`, never started, at 16:06 UTC, 28
+minutes after the push. My second push (`e1896c9`, this note) produced no run
+of any kind. GitHub Actions is not starting work on this repo; that is an
+availability problem for a human, not a T-005 defect. See the Verdict, "State
+of CI at the tip".
