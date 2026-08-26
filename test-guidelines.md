@@ -70,9 +70,21 @@ HTTP call, which is the thing least likely to break and most likely to change.
 Inject a transport instead — it is one function.
 
 **No network in tests, ever.** Not "usually offline"; never. A test that reaches
-Wikidata fails when Wikidata is slow, when a value is edited, and in CI. Verify
-it rather than assuming: re-run with `HTTPS_PROXY` and `HTTP_PROXY` pointed at a
-dead port and the suite should not notice.
+Wikidata fails when Wikidata is slow, when a value is edited, and in CI. CI
+enforces this rather than assuming it: the `Test` step of the `frontend`,
+`question-bank` and `backend` jobs, and the `Test against Postgres` step of
+`backend-postgres`, run with `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and their
+lowercase forms pointed at `http://127.0.0.1:1` — loopback, on a port nothing
+binds — so any outbound request fails closed instead of reaching the network
+(`.github/workflows/ci.yml`). Reproduce it locally for one suite:
+
+```sh
+HTTP_PROXY=http://127.0.0.1:1 HTTPS_PROXY=http://127.0.0.1:1 ALL_PROXY=http://127.0.0.1:1 \
+  http_proxy=http://127.0.0.1:1 https_proxy=http://127.0.0.1:1 all_proxy=http://127.0.0.1:1 \
+  uv run pytest    # from backend/ — bun test from frontend/ or question-bank/ works the same way
+```
+
+The suite should not notice.
 
 ## Three patterns worth copying
 
