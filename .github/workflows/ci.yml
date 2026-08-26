@@ -64,12 +64,12 @@ jobs:
         # this step is meant to fail on. Deleting the frontend tests now breaks
         # CI, which is the point (decisions.md D-10).
         env:
-          HTTP_PROXY: http://127.0.0.1:1
-          HTTPS_PROXY: http://127.0.0.1:1
-          ALL_PROXY: http://127.0.0.1:1
-          http_proxy: http://127.0.0.1:1
-          https_proxy: http://127.0.0.1:1
-          all_proxy: http://127.0.0.1:1
+          NETWORK_GUARD_TEST_1: aaa
+          NETWORK_GUARD_TEST_2: bbb
+          NETWORK_GUARD_TEST_3: ccc
+          NETWORK_GUARD_TEST_4: ddd
+          NETWORK_GUARD_TEST_5: eee
+          NETWORK_GUARD_TEST_6: fff
         run: bun test
 
   question-bank:
