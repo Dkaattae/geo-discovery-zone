@@ -307,3 +307,4 @@ jobs:
           name: playwright-report
           path: e2e/playwright-report/
           retention-days: 7
+# T-005 worker: retry after an anomalous CI run with 0 jobs (see brief Notes).
