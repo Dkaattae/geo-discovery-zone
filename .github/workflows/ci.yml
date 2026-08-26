@@ -63,6 +63,7 @@ jobs:
         # frontend/ contains no test files at all — which bun reports as 1 and
         # this step is meant to fail on. Deleting the frontend tests now breaks
         # CI, which is the point (decisions.md D-10).
+        timeout-minutes: 15
         run: bun test
 
   question-bank:
