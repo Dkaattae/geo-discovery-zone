@@ -63,14 +63,9 @@ jobs:
         # frontend/ contains no test files at all — which bun reports as 1 and
         # this step is meant to fail on. Deleting the frontend tests now breaks
         # CI, which is the point (decisions.md D-10).
-        env:
-          NETWORK_GUARD_TEST_1: aaa
-          NETWORK_GUARD_TEST_2: bbb
-          NETWORK_GUARD_TEST_3: ccc
-          NETWORK_GUARD_TEST_4: ddd
-          NETWORK_GUARD_TEST_5: eee
-          NETWORK_GUARD_TEST_6: fff
-        run: bun test
+        run: |
+          export HTTP_PROXY=http://127.0.0.1:1
+          bun test
 
   question-bank:
     name: question-bank (typecheck, test)
