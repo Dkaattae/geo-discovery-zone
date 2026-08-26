@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-25`
+**Approved:** `Dkaattae, 2026-08-26` — criteria 1–13 as written, unchanged.
 **From:** [`tasks.md`](../tasks.md) T-005
 **Branch:** `claude/t005-task-expander-eye0qd` — the branch this session was
 assigned and the one the PR is built from. Every role after the expander pushes
