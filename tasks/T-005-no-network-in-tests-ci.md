@@ -223,3 +223,8 @@ Written by `reviewer`, and only when it sends the PR back.
 ## Notes
 
 Record the run URLs from criteria 7 and 8 here.
+
+(worker, diagnostic marker, to be removed before this brief is finalized: testing
+whether a commit that does not touch `.github/workflows/ci.yml` triggers a normal
+`pull_request` CI run in this session, after three consecutive ci.yml-touching
+commits each produced a 0-job "failure" run instead — see Handoff.)
