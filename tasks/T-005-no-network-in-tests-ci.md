@@ -385,12 +385,28 @@ guard. Nothing about the final tree depends on either commit.
 
 ### State of CI at the tip
 
-No `CI` run exists for `117fa33` or `3e73144` — I checked the runs API by
-`head_sha`, answering the question the Handoff left for me. Both are covered by
-run `32982420186`, whose tree differs from HEAD only in this brief file, and my
-own push of this Verdict triggers a fresh `pull_request` run at the tip; its
-result is recorded in Notes below. The `startup_failure` the Handoff worried
-about hit `blocked-run-notice.yml` on `117fa33`, not `CI`.
+**No `CI` run exists for `117fa33`, `3e73144` or my own `855d4a3`.** I checked
+the runs API by `head_sha`, which is the question the Handoff left for me, and
+the answer is no — not "not yet", as of ~20 minutes after my push. What did
+appear for my commit is `Blocked run notice` (`32985704421`), and it sat
+`queued` for the whole 20 minutes without a runner. Nothing after `5551cf5`
+(14:46 UTC) has produced a `CI` run on this repo.
+
+**This does not weaken the evidence, and here is why.** Run `32982420186` is a
+`pull_request` run **on this PR**, all six jobs green, at commit `5551cf5` —
+and `git diff 5551cf5 HEAD` touches exactly one file, `tasks/T-005-...md`, this
+brief. Every byte of `ci.yml`, every source file and every test in the shipping
+tree is the tree that ran green. Criteria 5 and 13 rest on that.
+
+**What the reviewer should do:** before marking the PR ready, look for a
+completed `CI` run at the tip. If Actions is still starved, re-run
+`32982420186` or push an empty commit; if it comes back green, nothing here
+changes. If `CI` never starts at all on this repo again, that is an Actions
+availability problem for a human, not a T-005 defect — but it should not be
+mistaken for a green run. The `startup_failure` the Handoff worried about hit
+`blocked-run-notice.yml` on `117fa33`, not `CI`, and my commit's notice run
+reached `queued` rather than `startup_failure`, so whatever it was is not
+sticky.
 
 ### Not caused by this task, for the record
 
@@ -508,3 +524,8 @@ also matches this value, that is the "every spawned role shares one session
 id" case process.md describes for relayed runs (`decisions.md`, "Known
 weaknesses") — note it in your Verdict rather than refusing outright, since the
 `Approved:` line shows a human (not the orchestrator) approved this brief.
+
+**Tester's own push (`855d4a3`, 15:34 UTC).** Verdict only — no source, no test,
+no config; `git diff 3e73144 855d4a3` is this file alone. It produced no `CI`
+run within 20 minutes; its `Blocked run notice` run `32985704421` was still
+`queued` at 15:52 UTC. See the Verdict, "State of CI at the tip".
