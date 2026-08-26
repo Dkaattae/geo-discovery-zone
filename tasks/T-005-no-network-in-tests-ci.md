@@ -391,6 +391,24 @@ Also see the Handoff for: the local sandbox's `bun install` failing on
 task) and the `frontend/eslint.config.js` `bunfig.toml` minimumReleaseAge
 guard, neither of which needed touching for this task.
 
+**The final commit's own CI run (`117fa33`) came back `startup_failure` for
+*both* workflows on this commit** — `CI` and `blocked-run-notice.yml` alike —
+which is a different, repo/account-wide signature from the content-specific
+block above (that one always left `blocked-run-notice.yml` green). I pushed
+eleven commits to this branch in about 25 minutes while isolating the `env:`
+issue, each spawning up to eight jobs; a `startup_failure` hitting both
+workflows on the same commit, right after that, looks like a rate or
+concurrency limit on the account rather than anything in this content —
+`117fa33`'s `ci.yml` is verified byte-identical to `5551cf5`'s, which ran
+clean with all six jobs green on run `32982420186` twelve minutes earlier. I
+did not push a twelfth commit to chase a fresh green run for `117fa33`
+specifically, since that would only add to the same rate limit; **the tester
+should check whether a `pull_request` run has since appeared for this exact
+commit** (`git log` on this branch for the current HEAD, then look it up by
+`head_sha` the way the run URLs above were found) before deciding whether to
+treat this as settled by the earlier identical-content run, or to wait a few
+minutes and re-check.
+
 **For the tester:** `$CLAUDE_CODE_REMOTE_SESSION_ID` for this worker session
 came back identical to the task-expander's row (`cse_01L4kfvBfr1ox5LrcjvqPPiE`)
 — an environment quirk, not a role collision I introduced; I did not touch the
