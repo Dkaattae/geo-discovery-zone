@@ -63,7 +63,13 @@ jobs:
         # frontend/ contains no test files at all — which bun reports as 1 and
         # this step is meant to fail on. Deleting the frontend tests now breaks
         # CI, which is the point (decisions.md D-10).
-        timeout-minutes: 15
+        env:
+          HTTP_PROXY: http://127.0.0.1:1
+          HTTPS_PROXY: http://127.0.0.1:1
+          ALL_PROXY: http://127.0.0.1:1
+          http_proxy: http://127.0.0.1:1
+          https_proxy: http://127.0.0.1:1
+          all_proxy: http://127.0.0.1:1
         run: bun test
 
   question-bank:
