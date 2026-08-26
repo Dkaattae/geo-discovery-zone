@@ -121,14 +121,8 @@ jobs:
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         timeout-minutes: 15
-        run: |
-          export HTTP_PROXY=http://127.0.0.1:1
-          export HTTPS_PROXY=http://127.0.0.1:1
-          export ALL_PROXY=http://127.0.0.1:1
-          export http_proxy=http://127.0.0.1:1
-          export https_proxy=http://127.0.0.1:1
-          export all_proxy=http://127.0.0.1:1
-          bun test
+        # TEMP: guard removed for criterion 8 (see brief Notes) — restored next commit.
+        run: bun test
 
   # The backend's 221 tests ran nowhere until this job existed. Same shape as the
   # TS jobs above: install from a frozen lockfile, prove the lockfile did not
@@ -177,14 +171,8 @@ jobs:
         # SQLite, the default. The 9 Postgres-only tests skip here and run in
         # the job below.
         timeout-minutes: 15
-        run: |
-          export HTTP_PROXY=http://127.0.0.1:1
-          export HTTPS_PROXY=http://127.0.0.1:1
-          export ALL_PROXY=http://127.0.0.1:1
-          export http_proxy=http://127.0.0.1:1
-          export https_proxy=http://127.0.0.1:1
-          export all_proxy=http://127.0.0.1:1
-          uv run pytest
+        # TEMP: guard removed for criterion 8 (see brief Notes) — restored next commit.
+        run: uv run pytest
 
   # Postgres is a supported backend, so it is tested rather than assumed. Same
   # suite, different URL — a dialect-specific regression fails a PR instead of a
