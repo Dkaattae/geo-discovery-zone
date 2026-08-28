@@ -1,8 +1,9 @@
 # T-005 — Prove "no network in tests" in CI
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — round 2. Findings 1 and 2 in `## Review` are fixed; the
-change is comment-only in `.github/workflows/ci.yml` (see Handoff, "Round 2").
+**Status:** `pass`
+**Next step:** `reviewer` — round 2 verified. All thirteen criteria re-checked at
+this commit, the round-2 diff proved comment-only, and CI is green at the tip
+(run `33185703917`, all six jobs). See `## Verdict`, "Round 2".
 **Approved:** `Dkaattae, 2026-08-26` — criteria 1–13 as written, unchanged.
 **From:** [`tasks.md`](../tasks.md) T-005
 **Branch:** `claude/t005-task-expander-eye0qd` — the branch this session was
@@ -21,6 +22,7 @@ here, whatever branch its own session starts on (`CLAUDE.md` "Branches",
 | tester | 2026-08-26 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value as every other row — see Verdict, "How independent this verdict is") |
 | reviewer | 2026-08-28 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value again — the environment hands every role on this task one id; noted, not claimed as a passing check) |
 | worker (round 2) | 2026-08-28 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value a fourth time; the environment gives every role on this task one id) |
+| tester (round 2) | 2026-08-28 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value a fifth time — see Verdict, "Round 2 — how independent this verdict is") |
 
 ## Goal
 
@@ -416,6 +418,10 @@ comments.
 
 Written by `tester`.
 
+**Round 2 (2026-08-28): pass.** A different tester session, cold. The round-2
+verdict is the last subsection of this section, "Round 2 — the comment-only
+change". Round 1's verdict below is left exactly as it was written.
+
 **Pass.** All thirteen criteria hold; I re-derived each from the criterion's own
 wording rather than from the worker's Handoff, and re-ran the runner evidence
 myself against the GitHub API. The guard is real: with only one proxy spelling
@@ -521,6 +527,127 @@ Handoff — which is how I caught the criterion-12 evidence being wrong. That is
 weaker than a genuinely separate session, because it rests on having been spawned
 correctly rather than on anything I can verify from here. Weigh the `pass`
 accordingly.
+
+### Round 2 — the comment-only change, 2026-08-28
+
+**Pass.** The round-2 diff really is comment-only in `ci.yml` — I proved that
+rather than took it — and all thirteen criteria still hold, re-derived from each
+criterion's own wording and re-run at this commit rather than read off the
+Handoff. **CI is green at the branch tip**, which answers the one question the
+worker left open: run
+[`33185703917`](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/33185703917),
+`pull_request`, commit `db47baf`, **all six jobs success**, with each of the four
+guarded steps green.
+
+**Both of round 1's flags are now closed, and neither needs the reviewer:**
+
+- **Criterion 7's recording clause is satisfied.** The criterion-7 and -8 run
+  URLs are in PR #26's body now (a "Runner evidence — criteria 7 and 8" table),
+  as well as in Notes. Round 1 recorded this as outstanding; it is done.
+- **Criterion 12 is met literally, not just in substance.** Against the PR's
+  actual base (`origin/main`, `b820ac0`), `frontend/bun.lock`,
+  `question-bank/bun.lock`, `e2e/bun.lock` and `backend/uv.lock` are
+  **byte-identical by blob hash** — I compared `git rev-parse` on each of the
+  four. Round 1 compared against a stale local `main` and reported a difference
+  that is not there. The Handoff's evidence was right as written.
+
+#### Criterion by criterion, re-checked at `db47baf`
+
+| # | Verdict | How I checked it — not from the Handoff |
+|---|---|---|
+| 1 | **Met** | Loaded `ci.yml` with a YAML parser and printed, per step, its `env:` keys, any proxy assignment inside `run:`, and its `timeout-minutes`. Workflow-level `env` is `None`; every one of the six jobs has job-level `env: None`; the six proxy names appear in exactly four steps — `frontend`→`Test`, `question-bank`→`Test`, `backend`→`Test`, `backend-postgres`→`Test against Postgres`. The only other step-level `env:` key in the whole file is `GEO_TEST_DATABASE_URL`. No `checkout`, `setup-*`, `Install`, `Lockfile unchanged`, `Typecheck`, `Lint` or `Format` step carries any of them. |
+| 2 | **Met** | Every assignment in the file targets `http://127.0.0.1:1` and nothing else (regex over the raw file returned exactly one distinct target). Loopback, port 1. Refusal is immediate, not a timeout: measured 0.02–0.19 s per attempt across httpx, urllib and bun, all `[Errno 111] Connection refused`. |
+| 3 | **Met — probed one spelling family at a time** | With the sandbox's own proxy variables unset, I set **one family at a time** and made a real outbound HTTPS request. Lowercase-only (`http_proxy`/`https_proxy`): httpx refused, urllib refused, bun `fetch` refused. Uppercase-only: same three refused. `ALL_PROXY`-only and `all_proxy`-only: httpx refused. Two controls proved the refusals are the guard and not the sandbox: with the sandbox's proxy and no guard, httpx got `ProxyError: 403 Forbidden`; with no proxy variable at all, httpx and bun both **reached** `example.com`. Worth recording for whoever reads this later: `urllib` does not consult `ALL_PROXY`, and bun's `fetch` consults neither `ALL_PROXY` nor `all_proxy` — which is why setting all six matters and why the criterion is about the variable, not the client. Under all six, every client is blocked. |
+| 4 | **Met** | `NO_PROXY`/`no_proxy` appear nowhere in `ci.yml` (case-insensitive regex over the raw file, plus the YAML parse at step, job and workflow level). Nothing is exempted, so nothing can reach past the machine. |
+| 5 | **Met** | Ran all four at this commit with exactly the six variables `ci.yml` sets, with the sandbox's own `HTTPS_PROXY`/`https_proxy`/`NO_PROXY`/`no_proxy` explicitly `env -u`'d so they could not mask anything: frontend `bun test` **80 pass / 0 fail**, exit 0; question-bank `bun test` **19 pass / 0 fail**, exit 0; backend `uv run pytest` **233 passed, 9 skipped**, exit 0; backend against a local `postgres:16` cluster with `GEO_TEST_DATABASE_URL` set, **242 passed, 0 skipped**, exit 0. The Constraints' Postgres invariant holds — psycopg ignores these variables. Also green on a runner at this exact commit (`33185703917`). |
+| 6 | **Met** | Same commit, guard versus no guard, every number identical: 80/80, 19/19, 233 passed + 9 skipped both ways, 242 passed + 0 skipped both ways. Structurally: `git diff origin/main HEAD` touches **four files** — `ci.yml`, `test-guidelines.md`, `tasks.md`, this brief — and no test file, no `pyproject.toml`, no test config. Both commands are bare (`bun test`, `uv run pytest`): no `-k`, no `-m`, no `--ignore`, no marker deselection. |
+| 7 | **Met, recording clause included** | Read back from the GitHub API, not the Handoff. Run `32982842910`, `CI`, `pull_request`, commit `51fca59`, conclusion `failure`: `question-bank`→`Test` **failure** with `Typecheck` **success** before it; `backend`→`Test` **failure** with `Lint` and `Format` **success** before it; `backend (postgres)`→`Test against Postgres` **failure**. The run genuinely reached the step under test — the T-003 trap avoided. I read the canary source myself: `httpx.get("https://example.com/", timeout=5)` and a bare global `fetch("https://example.com/")`, public host, HTTPS, the runtimes' ordinary clients. The run URLs are in Notes **and** in PR #26's body. |
+| 8 | **Met** | Run `32983516529`, `pull_request`, commit `8a1e5a6`: `question-bank`→`Test` **success** and `backend`→`Test` **success** with the identical canary present — `git diff 51fca59 8a1e5a6` over both canary files is empty, and the only `ci.yml` change between them removes the guard from exactly those two steps. `backend (postgres)` still fails there because its guard was deliberately kept; that is the experiment's third arm, and it means the pair inverts at job level, not run level. A clean controlled pair. |
+| 9 | **Met** | `git ls-files \| grep -i canary` → nothing. `.github/workflows/` holds only `ci.yml` and `blocked-run-notice.yml`. Grepping `frontend/src`, `question-bank/src` and `backend/tests` for `fetch(`, `httpx.get/post/Client/AsyncClient`, `urlopen` and `requests.` turns up only production code (`question-bank/src/sparql.ts`, `frontend/src/lib/api/client.ts`, `frontend/src/server.ts`) and `httpx.AsyncClient` **type annotations** on the ASGI-driven fixture in `backend/tests`. No test reaches the network — which the guarded runs in criterion 5 independently prove. |
+| 10 | **Met** | Ran the documented block **verbatim** out of `test-guidelines.md`, from `backend/`, without opening `ci.yml`: 233 passed, 9 skipped. The paragraph names all four guarded steps by job and step name and gives the exact target. Same non-blocking gap round 1 raised — a cold checkout needs `uv sync` first — already folded into T-047 by the reviewer; nothing owed here. |
+| 11 | **Met** | `timeout-minutes: 15` on exactly the four guarded steps and on no other step in the file, read off the YAML parse. 15 ≤ 15. |
+| 12 | **Met, literally** | `git diff origin/main HEAD -- '*bun.lock' '*uv.lock' '*package.json' '*pyproject.toml'` is empty, and each of the four lockfiles resolves to the same blob hash on `origin/main` and at `HEAD`. No package added anywhere. |
+| 13 | **Met** | The `integration` and `e2e` jobs start at `ci.yml:253` and `:280`; the last hunk in `git diff origin/main HEAD -- .github/workflows/ci.yml` ends at line 248. Neither job is touched at all — not even a `timeout-minutes`. The YAML parse confirms no proxy variable is in effect for either. Both **success** on run `33185703917` at the tip, and on every earlier run in this branch's history. |
+
+#### The round-2 claim, proved rather than accepted
+
+The Handoff asserts the change is comment-only. Two independent checks:
+
+- `git diff 8578cb4 HEAD -- .github/workflows/ci.yml | grep -E '^[+-]' | grep -v
+  '^[+-][[:space:]]*#'` returns only the `---`/`+++` file headers.
+- Stripping every `#` line from `ci.yml` at `8578cb4` and at `HEAD` and diffing
+  the two: **identical**. So no key, value, `run:` line or `timeout-minutes`
+  moved, and the tree criteria 1–13 judge is the tree that passed round 1.
+
+The comment's new pointer also resolves: **PR #26 does carry the bisection**. The
+reviewer's comment on it holds the four-row table with commits `4cddf30`,
+`59e60e3`, `61b11d6` and `af77e15`, and the body carries the criteria 7/8 run
+ids. "Bisection, run ids and the on-runner verification of this form are in PR
+#26" is true, and PR #26 survives the sweep.
+
+#### The mutation check, done locally as well as on the runner
+
+The runner canary is the real demonstration, and I verified it from the API
+above. I also ran the same break-it-on-purpose check **locally, uncommitted**,
+because the criteria-7/8 evidence is 2026-08-26 and the tree has moved since:
+
+- A temporary `backend/tests/` test doing `httpx.get("https://example.com/")` —
+  **1 failed** under the six guard variables, **1 passed** with them absent.
+- A temporary `question-bank/src/*.test.ts` doing a bare global `fetch` —
+  **0 pass / 1 fail** under the guard, **1 pass / 0 fail** without.
+
+Both files were deleted immediately; `git status` is clean and neither is in any
+commit. The assertions were written to succeed on *any* completed response
+rather than on `200`, because in this sandbox `example.com` answers 403 — an
+assertion on the status code would have gone red for the wrong reason.
+
+#### Whole suite, typecheck, lint
+
+Green everywhere on the runner at the tip (run `33185703917`). Locally: backend
+`ruff check .` clean and `ruff format --check .` 39 files formatted;
+question-bank `bun run typecheck` clean; frontend `bun run lint` 0 errors, 7
+pre-existing warnings. **`frontend` `bun run typecheck` fails in this sandbox
+and it is not this task** — `react-simple-maps` and `us-atlas` are declared in
+`frontend/package.json` but absent from `node_modules`, because the sandbox's npm
+mirror 403s them. Confirmed by listing `node_modules` directly. This diff
+contains no TypeScript, and `frontend`→`Typecheck` is **success** on the runner.
+
+#### Why there is still no test file from me
+
+Same reasoning as round 1, reached independently. The deliverable is CI
+configuration; the brief's Constraints name `ci.yml` and `test-guidelines.md` and
+say a diff touching anything else "means the task found something else". A test
+asserting `ci.yml`'s shape needs a YAML parser inside one of the suites —
+`pyyaml` is not a declared dependency of `backend/`, and adding one is a human's
+call (`CLAUDE.md`). So I verified the way these criteria are written to be
+verified: structural parse, local reproduction under the exact six variables,
+per-spelling isolation probes with controls, a local mutation pair, and the
+runner evidence re-read from the GitHub API.
+
+#### Round 2 — how independent this verdict is
+
+`$CLAUDE_CODE_REMOTE_SESSION_ID` returns `cse_01L4kfvBfr1ox5LrcjvqPPiE`, the same
+value as every other row in the Sessions table. **The Sessions-table check did
+not pass — it did not run.** There is no `runs/T-005-*.md` either, so this is not
+a logged orchestrator relay; the environment simply hands every role on this task
+one id.
+
+What this verdict's independence actually rests on: I am a freshly spawned agent
+with my own context window, I never saw the worker's transcript or reasoning, and
+every number above came from re-running or re-querying rather than from the
+Handoff — which is how I found that criterion 12 is met *literally* and that
+criterion 7's recording clause has since been closed, neither of which the
+Handoff says. That is weaker evidence than a genuinely separate session, because
+it rests on the orchestrator or the human having spawned me correctly rather than
+on anything I can verify from here. Weigh the `pass` accordingly.
+
+#### Nothing else found
+
+Nothing outside the Constraints changed. No source file, no test file, no
+lockfile, no `openapi.yaml`, no migration, no plan change, and no text a child
+reads. Two non-blocking items, both already dispositioned by the reviewer and
+neither reopened here: the missing `uv sync` in the reproduce block (T-047), and
+the absence of a permanent self-check against rot (decided against).
 
 ## Review
 
