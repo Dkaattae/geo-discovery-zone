@@ -156,7 +156,28 @@ Stop and ask rather than guessing when:
   children's data, whether to commit generated output;
 - the plan and the current code disagree and the task depends on which is right;
 - the queue entry is really several tasks, in which case propose the split
-  rather than writing one oversized brief.
+  rather than writing one oversized brief;
+- **a template section cannot be filled honestly** — you cannot write a criterion
+  that is observable and bounded without deciding something that is not yours to
+  decide. A vague criterion is worse than a halt: it sends the verifier down the
+  blocked path two roles later, after the code is built.
+
+**When nobody is there to ask.** Under `run-loop.sh` you are a `claude -p`
+invocation and under the `orchestrator` you are a spawned subagent; either way
+you cannot reach a person mid-run, and the orchestrator is forbidden to answer on
+their behalf. So "ask" becomes "halt where the question will be found":
+
+1. **Open the branch and the draft PR first, even though the brief is
+   unfinished.** This is the one case where the PR comes before a complete brief.
+   Write what you have, and put the question in both the brief and the PR body.
+2. Set `Status: blocked` and `Next step: human`, commit, push.
+3. Stop. Do not pick a different task instead, and do not answer the question
+   yourself in order to keep moving.
+
+Step 1 is what makes the halt visible: `blocked-run-notice.yml` reads the brief
+on push and labels and comments on the PR — but it needs a PR to comment on. An
+expander that halts before opening one halts silently, which is the failure this
+sequence exists to prevent (`decisions.md` D-11).
 
 Once the brief is approved, the criteria are frozen. They change only by coming
 back through you, with a fresh approval — never by quiet edit during
