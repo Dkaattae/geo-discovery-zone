@@ -137,3 +137,16 @@ Mechanical steps completed here, no role's work touched:
 `Approved:` is still `pending`. It was not stamped: this run is attended, so the
 orchestrator's unattended-approval line does not apply, and no human has yet said
 the criteria are frozen.
+
+### Approval — 2026-08-28
+
+Dkaattae approved the brief in the relay session. `Approved:` stamped with their
+name, `Status: working`, `Next step: worker`.
+
+### Round 2 — worker — 2026-08-28
+
+Gates before spawn: **G0** `Next step` = `worker`, one role · **G1**
+`git diff --name-only origin/main...HEAD` = `runs/`, `tasks.md`, `tasks/` only,
+no gated path · **G2** approved by name · **G3** 0 `fail`, 0 `blocked` verdicts ·
+**G4** on `claude/t006-orchestrator-startup-bmqpg4`, matches the header · **G5**
+entry state recorded: `working` / `worker`.

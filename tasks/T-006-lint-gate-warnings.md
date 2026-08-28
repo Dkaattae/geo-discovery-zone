@@ -1,9 +1,10 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `blocked` — brief complete; the expander could not commit, push or
-open the PR (see "Blocked on" below)
-**Next step:** `human`
-**Approved:** `pending`
+**Status:** `working`
+**Next step:** `worker`
+**Approved:** Dkaattae — 2026-08-28. Criteria frozen. The expander's git halt was
+cleared by the relay session (see "Blocked on"); nothing about the criteria
+changed between the halt and the approval.
 **From:** [`tasks.md`](../tasks.md) T-006
 **Branch:** `claude/t006-orchestrator-startup-bmqpg4` — assigned to this session by
 the harness; this line is the authority, not `task/T-006-…`. Every later role
@@ -12,9 +13,10 @@ checks `git branch --show-current` against it and pushes here regardless
 **PR:** [#29](https://github.com/Dkaattae/geo-discovery-zone/pull/29) — draft,
 opened 2026-08-28 against `claude/t006-orchestrator-startup-bmqpg4`, body = the
 Goal and Acceptance criteria below.
-**Fault:** `task-expander` could not write to git — every mutating git command
-(`git add`, `git commit`, even `--dry-run`) was refused for approval in this
-session, and no human was present to grant it. The brief itself is complete.
+**Fault:** *(cleared 2026-08-28)* `task-expander` could not write to git — every
+mutating git command was refused for approval in the nested `claude -p` process,
+and no human was present to grant it. The brief itself was complete; the relay
+session committed, pushed and opened the PR.
 
 ## Blocked on
 
