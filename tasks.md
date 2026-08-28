@@ -99,7 +99,7 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-006 — The lint gate ignores warnings, and there are still seven · S · todo
+### T-006 — The lint gate ignores warnings, and there are still seven · S · doing
 **Depends on:** —
 `frontend`'s `lint` script is `eslint .`, which exits 0 on warnings, so every
 green CI run logs `✖ 7 problems (0 errors, 7 warnings)` and passes.
@@ -120,6 +120,7 @@ because nothing else opens that comment.
 **Done when:** `bun run lint` fails on any warning in first-party code, the
 seven are each fixed or explicitly allowed with a recorded reason, that dead
 reference resolves or is gone, and CI is green.
+**Brief:** [`tasks/T-006-lint-gate-warnings.md`](tasks/T-006-lint-gate-warnings.md).
 
 ### T-007 — `conventions.md` describes a repo that no longer exists · S · todo
 **Depends on:** —
