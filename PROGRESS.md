@@ -135,6 +135,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (typecheck, lint, test), `backend` (ruff + 221 tests on SQLite),
   `backend-postgres` (the same suite against a Postgres service container),
   `integration` (the compose stack over HTTP) and `e2e` (a browser).
+- **"No network in tests" is a fact about CI, not a claim in a doc.** The four
+  unit test steps run with every proxy spelling pointed at a dead loopback port
+  and a 15-minute timeout, demonstrated on a runner with a canary that goes red
+  under the guard and green without it (T-005). `integration` and `e2e` are
+  deliberately left unguarded.
 - **Integration tests** in `backend/integration/` — 30 black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
   one origin, content is public, a child's sitting works end to end, accounts
@@ -190,6 +195,32 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-005 — "no network in tests" is enforced rather than asserted** (PR #26,
+  2026-08-28). CI's four unit test steps — `frontend` → `Test`, `question-bank` →
+  `Test`, `backend` → `Test`, `backend-postgres` → `Test against Postgres` — now
+  run with all six proxy spellings (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and
+  the lowercase forms) pointed at `http://127.0.0.1:1`, plus `timeout-minutes: 15`
+  so a hang fails instead of burning the runner's six-hour default. Nothing else
+  in the file is guarded: `Install` still resolves packages, and `integration` and
+  `e2e` still talk HTTP to a real stack, which is what they exist to test. The
+  rule was proved rather than assumed — a temporary canary doing
+  `httpx.get("https://example.com/")` and a bare `fetch` turned
+  [run 32982842910](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/32982842910)
+  red under the guard and
+  [run 32983516529](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/32983516529)
+  green without it, then was deleted. `test-guidelines.md` carries the command to
+  reproduce it locally.
+  *Differed from the brief:* the six variables are `export`ed as the first lines
+  of each step's script instead of declared as a step `env:` mapping. During the
+  work, every push whose `ci.yml` carried those six names as `env:` keys produced
+  a zero-job run marked failed before any job started, while six non-proxy names
+  in the same shape ran clean — isolated across ten pushes, **cause never
+  established**, possibly specific to the sessions that saw it. The two forms are
+  identical at runtime and `ci.yml` says so, so this is a note rather than a rule.
+  *Decided and not built:* no permanent self-check re-proving the canary on every
+  run — it would spend CI minutes on every PR to catch something diff review
+  catches, and its design has more than one defensible answer. Revisit if the
+  guard is ever found silently deleted.
 - **T-004 — tests for `level.ts`, and frontend test files typechecked** (PR #23,
   2026-08-24). 61 tests over the five exports of `frontend/src/lib/level.ts`, and
   one committed table — `fixtures/level-labels.json`, at the repo root beside
