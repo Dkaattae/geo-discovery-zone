@@ -598,3 +598,53 @@ Handoff that resolves an ambiguity confidently and does not say who decided.
 where the real question is "is this right for a nine-year-old" and no test
 answers it. Today that is the human's job by default. It may deserve its own
 role once there is enough of it.
+
+---
+
+## D-11 — A role that cannot ask must halt where the question will be found
+
+**2026-08-28.** D-1 accepted that an unattended run loses the step-2 approval
+gate, and D-3 recorded that a spawned role cannot reach a person. Both are still
+true and neither is being reopened here. What this fixes is narrower and was a
+real hole rather than a known cost: **the halt itself could be silent.**
+
+Three gaps, found while setting T-006 up to run unattended:
+
+1. **`run-loop.sh` never told a role what to do when it needed a human.** The
+   `orchestrator`'s spawn template carries that instruction; the driver's did
+   not, and the driver is the one `process.md` says to prefer. A role running
+   under `claude -p` cannot ask and was not told to halt, which leaves guessing
+   as the path of least resistance.
+2. **The `task-expander` had no unattended blocked path at all.** Its "stop and
+   ask rather than guessing" list is written for a manual session, where asking
+   works.
+3. **A cold-start halt was announced to nobody.** `blocked-run-notice.yml` needs
+   an open PR to label and comment on. The expander opens that PR at the *end*
+   of its run, so an expander that halted while writing the brief had no PR —
+   and the workflow logged "there is nowhere to say so" and exited 0. The task
+   stopped, correctly, and no one was told.
+
+**The fix is not "let the role ask".** It cannot, and the orchestrator answering
+on the human's behalf is the worst available outcome — D-3 already says so.
+Instead the halt is made loud:
+
+- the driver's prompt now carries the same blocked protocol as the orchestrator's
+  template;
+- `task-expander.md` gains an explicit sequence — **open the branch and draft PR
+  first**, even with the brief unfinished, then block — so there is always
+  somewhere for the notice to land;
+- `blocked-run-notice.yml` opens an **issue** when no PR exists, idempotent on
+  title, as the backstop for when it could not.
+
+**What this deliberately does not do.** It does not close the approval gap. Nobody
+still reads the criteria before the code is built in an unattended run, and the
+`reviewer` does not count — it reads them at step 6, after the work. D-1's
+sentence stands: that gap should be re-examined the first time a run produces
+something that satisfies its criteria and is not what anyone wanted. This change
+only means that a run which *knows* it needs a person now says so where a person
+will see it.
+
+**Why it was a hand change.** Gate G1 stops any task touching `process.md`,
+`decisions.md`, `CLAUDE.md` or `.claude/` from running through the loop. A change
+to the loop does not go through the loop, so this one was made directly and
+reviewed as an ordinary PR.

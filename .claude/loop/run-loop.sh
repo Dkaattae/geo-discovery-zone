@@ -380,7 +380,9 @@ run_role() {
       --output-format json \
       --max-budget-usd "$LOOP_BUDGET_USD" \
       --permission-mode "$LOOP_PERMISSION_MODE" \
-      "Run your role on the task brief in tasks/. Follow process.md. Your session id is $sid — record it in the brief's Sessions table. End the way every role ends: commit, push to the brief's Branch: header, update Status and Next step, stop." \
+      "Run your role on the task brief in tasks/. Follow process.md. Your session id is $sid — record it in the brief's Sessions table. End the way every role ends: commit, push to the brief's Branch: header, update Status and Next step, stop.
+
+This run is driven: no human is watching it turn by turn, and you are running under 'claude -p' so you cannot ask one. If you need a human decision — a dependency, a product call, anything CLAUDE.md reserves for a person — do not guess and do not proceed. Write the question into the brief, set Status: blocked and Next step: human, commit, push, and stop. If no brief exists yet, open the branch and the draft PR first and put the question in the PR body, so the halt has somewhere to be seen." \
       > "$out" 2>&1
   rc=$?
   set -e

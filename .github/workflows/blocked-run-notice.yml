@@ -104,8 +104,54 @@ jobs:
 
           pr=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open \
                  --json number --jq '.[0].number // empty')
+
+          # No PR is the cold-start case: the expander halted before it opened
+          # one, so a blocked task would otherwise be announced only to this
+          # log. task-expander.md tells it to open the PR first for exactly this
+          # reason; an issue is the backstop for when it could not. See
+          # decisions.md D-11.
           if [[ -z $pr ]]; then
-            echo "no open PR for $BRANCH — the brief is blocked but there is nowhere to say so"
+            title="Blocked before a PR existed: $TASK on $BRANCH"
+
+            # Idempotent the same way the label is: one open issue per branch,
+            # so later pushes while still blocked stay quiet. Matched by exact
+            # title in jq with the title passed as a variable — no shell quoting
+            # inside a search expression, which is where this kind of check
+            # usually breaks.
+            existing=$(gh issue list --repo "$REPO" --state open --limit 100 \
+                         --json number,title \
+                       | jq -r --arg t "$title" \
+                           'map(select(.title == $t)) | .[0].number // empty')
+            if [[ -n $existing ]]; then
+              echo "issue #$existing already open for $BRANCH — not opening another"
+              exit 0
+            fi
+
+            {
+              echo "A task stopped for a decision **before its pull request existed**, so"
+              echo "there is no PR to raise this on. **Nothing is running** — the role that"
+              echo "raised it has ended."
+              echo
+              echo "| | |"
+              echo "|---|---|"
+              echo "| **Branch** | \`$BRANCH\` |"
+              echo "| **Status** | $STATUS |"
+              echo "| **Next step** | $NEXT |"
+              [[ -n $FAULT ]] && echo "| **Fault** | $FAULT |"
+              echo "| **Raised by** | \`$REASON\` in the brief |"
+              echo
+              echo "**The question is written in the brief** — [\`$BRIEF\`](https://github.com/$REPO/blob/$SHA/$BRIEF)."
+              echo "It is not repeated here, so there is only ever one copy of it to answer."
+              echo
+              echo "To resume: answer in the brief, set \`Next step\` back to the role that"
+              echo "should continue, commit, and start a run. Close this issue once a PR"
+              echo "exists — the PR label takes over from there."
+              echo
+              echo "<sub>Posted by \`.github/workflows/blocked-run-notice.yml\`.</sub>"
+            } > /tmp/issue.md
+
+            gh issue create --repo "$REPO" --title "$title" --body-file /tmp/issue.md
+            echo "opened an issue — no PR exists for $BRANCH"
             exit 0
           fi
 
