@@ -166,3 +166,61 @@ criterion 5 requires the worker to add a `D-12` entry to `decisions.md`. So the
 first thing the worker does to satisfy the brief is the thing that stops every
 later spawn. T-006 as approved cannot complete a driven run. Not resolved here —
 it needs a human.
+
+## Round 2 — worker, by hand — 2026-08-28
+
+Dkaattae: "let the gate win, hand-finish T006". No role was spawned; the changes
+were made directly in the relay session. `Status` `working` → `awaiting review`,
+`Next step` `worker` → `human`.
+
+Result summary is in the brief's `## Handoff`. Two things not to lose:
+
+- **`tasks.md` was wrong about where the seven warnings were.** The seventh was
+  `src/components/screens.tsx:8`, outside `components/ui/`. The brief's
+  Constraints predicted this and said to fix rather than widen; that is what was
+  done. 1 fixed / 6 exempted.
+- **Criterion 9's typecheck half is unverified** — `bun install` 403s against the
+  private registry this lockfile pins, so `tsc` lacks `react-simple-maps` and
+  `us-atlas`. Verified by stash-and-rerun that the 4 errors are identical on the
+  unmodified tree. CI has to confirm it.
+
+**No tester ran and no reviewer ran.** The `## Verdict` section is deliberately
+empty rather than self-signed.
+
+## Halted — over to a human
+
+G1 now holds this branch shut for good: the diff contains `decisions.md`, so no
+driver will spawn another role against it. That is the outcome Dkaattae chose,
+not a fault. PR #29 is a draft awaiting review and merge by a person.
+
+## Round 4 — rebase onto PR #31 — 2026-08-29
+
+Dkaattae: "rebase T006 onto this and move D-12 to E-4", after merging
+[PR #31](https://github.com/Dkaattae/geo-discovery-zone/pull/31) (the
+process/engineering decisions split). `git rebase process/split-decisions` while
+#31 was still an open branch (not yet merged to `main`), replaying all six T-006
+commits.
+
+**One conflict, expected and mechanical:** commit `5588788` (the worker's D-12
+entry) landed on `decisions.md`, which #31 renamed to `process-decisions.md`. Git's
+rename detection surfaced it as a real conflict rather than silently picking a
+side. Resolved by hand:
+
+- `process-decisions.md` keeps only its own D-12 (the file-split decision).
+- The lint-gate decision moved to `engineering-decisions.md` as **E-4**, text
+  unchanged except the date, which the next commit (`6247830`) would otherwise
+  have corrected in place — applied directly to avoid a second identical
+  conflict.
+- The brief's Handoff (two references) and this file updated to point at E-4.
+
+**The paragraph above, "Second obstacle… T-006 as approved cannot complete a
+driven run", is now stale and deliberately left as written** — it was true when
+recorded, against `decisions.md` as a single gated file. After this rebase the
+branch's diff touches `engineering-decisions.md`, not `process-decisions.md`, so
+G1 no longer fires on it. **A driven `tester` can now run against this branch.**
+
+Gate check after the rebase: `.claude/loop/test-gates.sh` still needs a clean
+tree and PR #31 merged to `main` to be meaningful against `origin/main`; not run
+here as part of the rebase itself. Whoever spawns the next role should confirm
+`git diff --name-only origin/main...HEAD` no longer matches `process-decisions.md`
+before relying on that claim.

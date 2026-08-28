@@ -1,7 +1,7 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `working`
-**Next step:** `worker`
+**Status:** `awaiting review` — implemented by hand, outside the loop
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-08-28. Criteria frozen. The expander's git halt was
 cleared by the relay session (see "Blocked on"); nothing about the criteria
 changed between the halt and the approval.
@@ -13,10 +13,11 @@ checks `git branch --show-current` against it and pushes here regardless
 **PR:** [#29](https://github.com/Dkaattae/geo-discovery-zone/pull/29) — draft,
 opened 2026-08-28 against `claude/t006-orchestrator-startup-bmqpg4`, body = the
 Goal and Acceptance criteria below.
-**Fault:** *(cleared 2026-08-28)* `task-expander` could not write to git — every
-mutating git command was refused for approval in the nested `claude -p` process,
-and no human was present to grant it. The brief itself was complete; the relay
-session committed, pushed and opened the PR.
+**Fault:** no role after the expander could be spawned at all — the `Agent` tool
+was disabled and `claude -p` was refused permission for `git commit` (measured).
+Dkaattae elected to let G1 win and hand-finish the task, so the worker's changes
+were made directly in the relay session. **No independent tester ran.** See
+"Independence, and what it cost" below.
 
 ## Blocked on
 
@@ -44,6 +45,7 @@ approval — is the only thing outstanding**, and it is a human's.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-08-28 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
+| worker *(by hand)* | 2026-08-28 | relay session — same session as the orchestrator and as this brief's PR. Not an independent worker session. |
 
 ## Goal
 
@@ -184,10 +186,94 @@ Required reading, not background.
 
 ## Handoff
 
-Written by `worker` before the tester runs.
+**Done by hand in the relay session, not by a spawned `worker`.** Dkaattae chose
+"let the gate win, hand-finish T-006" after all three spawn mechanisms were shown
+closed. Every criterion below was checked by running the command named against it.
+
+### The fix
+
+`bun run lint` is now `eslint . --max-warnings 0`, so **any** rule at `warn`
+severity fails the build — not just this one. The strictness is in
+`frontend/package.json`, so a developer gets the same verdict CI does; `ci.yml`'s
+`Lint` step is still a bare `bun run lint` and already was.
+
+The seven split **1 fixed / 6 exempted**:
+
+- **Fixed:** `frontend/src/components/screens.tsx` — `AVATARS` was exported
+  alongside eight components. Nothing anywhere imports it (`grep -rn AVATARS`
+  over `frontend/` and `e2e/` returns three hits, all inside that file), so it
+  stopped being exported. No call site changed because there were none, and no
+  import path stopped resolving.
+- **Exempted:** the six shadcn-generated files in `frontend/src/components/ui/`,
+  via one path glob in `eslint.config.js`, not via `eslint-disable` comments.
+
+Reasoning is recorded in `decisions.md` **D-12** — moved to `engineering-decisions.md` **E-4** when the process/engineering split (PR #31) landed and this branch was rebased onto it; text unchanged.
+
+### `tasks.md` was wrong, and the brief predicted it
+
+The queue entry said, re-checked 2026-08-24, that all seven warnings were in
+`components/ui/`. **They were not.** The seventh was
+`src/components/screens.tsx:8` — first-party code. The brief's Constraints
+anticipated exactly this and said to fix such a file rather than widen the
+exemption, so that is what happened. Had I trusted `tasks.md`, the glob would have
+been drawn around a file we actually write.
+
+### Criterion by criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | **pass** | `bun run lint` exits 0 with no output at all |
+| 2 | **pass** | temp `.tsx` outside `ui/` exporting a component + a function → `✖ 1 problem (0 errors, 1 warning)`, `ESLint found too many warnings (maximum: 0)`, exit 1. Probe deleted; lint back to exit 0 |
+| 3 | **pass** | `eslint --print-config` gives severity `1` (warn) on `screens.tsx` and `0` (off) on `ui/button.tsx`. Rule not promoted to error, not disabled globally; glob is exactly `src/components/ui/**` |
+| 4 | **pass, with one disclosure** | no rule-specific disable anywhere under `src/`. See caveat below |
+| 5 | **pass** | `engineering-decisions.md` E-4 (originally written as `decisions.md` D-12, moved by the PR #31 rebase) — names the 1/6 split, the six files, why, and what would revisit it |
+| 6 | **pass, already true** | `ci.yml` `Lint` step was already `run: bun run lint`; `max-warnings` appears 0 times in `ci.yml`. No change needed |
+| 7 | **pass** | `brief's Handoff` now appears 0 times in `ci.yml`; clause repointed at PR #11. Rest of the comment stands |
+| 8 | **pass** | `bun.lock` unchanged; `package.json` diff is one line, the `lint` script. No dependency added or removed |
+| 9 | **partial — see below** | `bun test`: **80 pass, 0 fail**. `bun run typecheck`: **could not be verified** |
+| 10 | **pass** | `ci.yml` diff is comment-only; the dead-proxy guard is untouched. Nothing added performs a network request |
+
+### What I could not verify, and why
+
+**Criterion 9's typecheck half is unverified.** `bun install --frozen-lockfile`
+aborts here: `frontend/bun.lock` pins tarballs to a private registry
+(`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`) that returns
+**403** from this environment. 237 of ~600 packages installed — enough for eslint
+and `bun test`, not enough for `tsc`. `bun run typecheck` reports 4 errors, all in
+`UsMap.tsx`, all module-resolution failures for `react-simple-maps` and
+`us-atlas`.
+
+I did not assume those were pre-existing. I stashed the change, re-ran typecheck
+on the unmodified tree, and got **byte-for-byte the same four errors**, then
+restored. So the failure is the incomplete install, not this change — but
+"typecheck passes" remains unproven here and **CI must be the one to confirm it.**
+
+**Criterion 4 caveat.** No `eslint-disable` for `react-refresh/only-export-components`
+exists under `frontend/src/` outside `components/ui/`. But
+`frontend/src/routeTree.gen.ts:1` carries a blanket `/* eslint-disable */`, which
+disables every rule including this one. It is generated by TanStack Router,
+pre-dates this task, and is unchanged by it — regenerating the file would restore
+it. I read criterion 4 as targeting hand-written silencing and left it alone,
+**but that is an interpretation, and it is the reviewer's to overturn, not mine.**
+
+### Independence, and what it cost
+
+`process.md` separates worker from tester so that verification is done by someone
+who has not just built the thing. **That separation does not exist for this task.**
+One session opened the PR, read the criteria, wrote the code, and checked its own
+work. The evidence above is real — every command was run and its output is quoted
+— but it was gathered by the party with an interest in it.
+
+Two specific risks a fresh reader should weigh: the criterion 4 interpretation
+above, and criterion 2's probe, which I designed after writing the fix and could
+have shaped to pass. A tester writing that probe from the criterion alone might
+choose a different rule or a different file.
 
 ## Verdict
 
-Written by `tester`.
+**Not written — no `tester` ran.** Leaving this section empty is deliberate: a
+`pass` here signed by the session that wrote the code would assert an
+independence that does not exist. The table in the Handoff is a worker's
+self-report, not a verdict.
 
 ## Notes
