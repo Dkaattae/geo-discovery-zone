@@ -22,7 +22,9 @@ few hours, **L** ≈ a day. Anything bigger than L is not a task yet.
 _Last swept: 2026-08-24, four times — after PRs #16–#20 landed the backend
 off-queue; after T-009 and T-052 put the backend and a real stack under CI;
 after T-054's browser suite found the write-durability bug; and after T-004
-pinned the client's level labels to the server's (PR #23)._
+pinned the client's level labels to the server's (PR #23). Swept again
+2026-08-28, after T-005 put CI's four unit test steps behind a dead proxy
+(PR #26)._
 
 ## How this list is ordered
 
@@ -85,20 +87,11 @@ place, so nobody rebuilds it:
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
+| **No network in tests** | enforced, not assumed: the four unit test steps run with all six proxy spellings pointed at `http://127.0.0.1:1` and a 15-minute timeout (T-005, PR #26). `integration` and `e2e` are deliberately unguarded |
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
 
 What is missing from that picture is below.
-
-### T-005 — Prove "no network in tests" in CI · S · todo
-**Depends on:** —
-`test-guidelines.md` says "no network in tests, ever" and names the check: point
-`HTTPS_PROXY` and `HTTP_PROXY` at a dead port and the suite should not notice.
-Nothing enforces it. Split out of T-003 because the env has to be scoped to the
-test step alone — set it job-wide and `bun install` breaks. Now applies to the
-Python suite too: 242 backend tests, none of which should reach out.
-**Done when:** the test steps run with a dead proxy, the suites still pass, and
-a test that reaches the network fails the run.
 
 ### T-006 — The lint gate ignores warnings, and there are still seven · S · todo
 **Depends on:** —
@@ -112,8 +105,15 @@ seven" means editing vendored components, so the likely right answer is to scope
 the rule off `components/ui/` in `eslint.config.js` and then turn on
 `--max-warnings 0`, which keeps the gate real for code we actually write. Decide
 it deliberately; do not silence them wholesale just to get the flag in.
+**While you are in `ci.yml`, found by T-005's reviewer (PR #26):** the
+`question-bank` job's "No lint step" comment ends "see the brief's Handoff",
+pointing at T-003's brief, which was swept months ago — a dead reference in the
+file this task edits, and about lint, which is this task's subject. Point it at
+PR #11 or delete the clause. One line; it is here rather than in its own entry
+because nothing else opens that comment.
 **Done when:** `bun run lint` fails on any warning in first-party code, the
-seven are each fixed or explicitly allowed with a recorded reason, and CI is green.
+seven are each fixed or explicitly allowed with a recorded reason, that dead
+reference resolves or is gone, and CI is green.
 
 ### T-007 — `conventions.md` describes a repo that no longer exists · S · todo
 **Depends on:** —
@@ -493,8 +493,15 @@ used to check the tests rather than the code. This is the same job T-002 did for
 While there: line 198's `cd frontend && bun test # 65 tests today` went stale
 inside the very PR that wrote it (T-004 finished at 80). A count that is wrong
 after every task is worth dropping rather than maintaining.
-**Done when:** the section describes the real suite, the marker is gone, and the
-frontend line either carries a true number or no number.
+**Also, found by T-005's reviewer (PR #26):** the "No network in tests, ever"
+paragraph now ships a copy-pasteable block for reproducing CI's dead-proxy guard
+locally, and it omits `uv sync` — on a cold checkout the reader's first `uv run
+pytest` fails for a reason that has nothing to do with the guard. One line, and
+it belongs here rather than in T-005 because T-047 already owns correcting this
+file.
+**Done when:** the section describes the real suite, the marker is gone, the
+frontend line either carries a true number or no number, and the dead-proxy
+reproduction block runs from a cold checkout.
 
 ---
 
