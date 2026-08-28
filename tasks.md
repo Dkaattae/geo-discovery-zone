@@ -493,8 +493,15 @@ used to check the tests rather than the code. This is the same job T-002 did for
 While there: line 198's `cd frontend && bun test # 65 tests today` went stale
 inside the very PR that wrote it (T-004 finished at 80). A count that is wrong
 after every task is worth dropping rather than maintaining.
-**Done when:** the section describes the real suite, the marker is gone, and the
-frontend line either carries a true number or no number.
+**Also, found by T-005's reviewer (PR #26):** the "No network in tests, ever"
+paragraph now ships a copy-pasteable block for reproducing CI's dead-proxy guard
+locally, and it omits `uv sync` — on a cold checkout the reader's first `uv run
+pytest` fails for a reason that has nothing to do with the guard. One line, and
+it belongs here rather than in T-005 because T-047 already owns correcting this
+file.
+**Done when:** the section describes the real suite, the marker is gone, the
+frontend line either carries a true number or no number, and the dead-proxy
+reproduction block runs from a cold checkout.
 
 ---
 

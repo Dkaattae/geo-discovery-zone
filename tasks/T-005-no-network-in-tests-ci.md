@@ -1,7 +1,8 @@
 # T-005 — Prove "no network in tests" in CI
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `worker` — findings 1 and 2 in `## Review`. Both are in the same
+comment block in `.github/workflows/ci.yml`; the guard itself is not in question.
 **Approved:** `Dkaattae, 2026-08-26` — criteria 1–13 as written, unchanged.
 **From:** [`tasks.md`](../tasks.md) T-005
 **Branch:** `claude/t005-task-expander-eye0qd` — the branch this session was
@@ -18,6 +19,7 @@ here, whatever branch its own session starts on (`CLAUDE.md` "Branches",
 | task-expander | 2026-08-25 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` |
 | worker | 2026-08-26 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` |
 | tester | 2026-08-26 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value as every other row — see Verdict, "How independent this verdict is") |
+| reviewer | 2026-08-28 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value again — the environment hands every role on this task one id; noted, not claimed as a passing check) |
 
 ## Goal
 
@@ -439,6 +441,119 @@ accordingly.
 ## Review
 
 Written by `reviewer`, and only when it sends the PR back.
+
+**Changes requested — `worker`.** The guard is right, verified, and green at the
+tip; nothing about the mechanism or the criteria is in dispute. What sends this
+back is the twelve-line comment that ships above it in
+`.github/workflows/ci.yml`, which states an unestablished cause as fact and
+points at a file this PR is about to delete. Three other comments in the same
+file cross-reference it, so both problems propagate to all four guarded steps.
+
+**Two blocking findings, one comment block, both cheap.**
+
+### 1. `.github/workflows/ci.yml:67-77` — the comment asserts a mechanism the evidence does not establish
+
+The frontend `Test` step's comment reads:
+
+> a runner-level policy in this repo's CI provider rejects a workflow run
+> outright when `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` (or their lowercase
+> forms) appear as `env:` keys, treating it as a network-redirection pattern
+> regardless of the target
+
+That is three claims — that it is GitHub rather than this session's push path,
+that it is a "runner-level policy", and that the reason is a network-redirection
+pattern — and the Handoff establishes none of them. The Handoff says so itself:
+"I don't know the exact mechanism doing the blocking (GitHub itself, or a proxy
+specific to this Claude Code session)", and flags it for the reviewer. A comment
+in `ci.yml` is not the place a hypothesis becomes a fact, and this is the file
+T-006 and T-008 both open next.
+
+What the bisection *does* establish, and what I re-derived from the runs API
+rather than from the Handoff, is a clean correlation:
+
+| Commit | `ci.yml` change | Run |
+|---|---|---|
+| `4cddf30` | `timeout-minutes: 15` alone | `CI` ran, `pull_request`, success |
+| `59e60e3` | six proxy-named step `env:` keys | rejected — push-event run named `.github/workflows/ci.yml`, zero jobs, failure |
+| `61b11d6` | identical shape, six non-proxy names | `CI` ran, `pull_request`, success |
+| `af77e15` | same values `export`ed in `run:` | `CI` ran, `pull_request`, success |
+
+One detail worth carrying into the rewrite, because it argues against the stated
+cause: `ci.yml` triggers on `pull_request` and on `push` **to `main` only**, so a
+*push*-event run on this branch should not exist at all. A push-event run named
+by raw file path, with zero jobs, is GitHub's signature for a workflow file it
+could not validate — which is a different thing from a runner-level network
+policy, and is equally consistent with something on this session's push path
+rewriting or rejecting the file. Say what was observed; do not name a culprit.
+
+**Acceptable when:** the comment describes the observation (proxy-named step
+`env:` keys correlate with the workflow being rejected before any job starts;
+`export` in the step script produces the identical guard and runs clean, verified
+on a real runner) and stops asserting who does it or why. Hedged wording is
+fine — "cause not established" is a true sentence and the current one is not.
+
+### 2. `.github/workflows/ci.yml:74-75` — "see the brief's Handoff" points at a file the sweep deletes
+
+The comment ends "see the brief's Handoff for how that was isolated". The brief
+is `tasks/T-005-no-network-in-tests-ci.md`, and deleting it is step 1 of the
+sweep this PR ends with — so the pointer is dangling the moment this merges. It
+does not even name T-005, so a reader cannot find it in git history without
+knowing which task to look for.
+
+This is not a nitpick I could have worked around: I am the one who deletes the
+brief, and I may not edit `ci.yml` to fix the reference.
+
+**The pattern has a precedent, and the precedent is already dead**, which is the
+argument rather than the excuse: `ci.yml:115-116` carries "see the brief's
+Handoff" from T-003, on `main` today, pointing at a brief swept months ago. Do
+not copy it. Fixing that older one is out of scope here — I have not opened a
+task for it, on the grounds that T-006 and T-008 both edit this file and either
+can absorb a one-line reference fix without being told to.
+
+**Acceptable when:** the comment points somewhere that survives the merge — "PR
+#26" is enough, a `decisions.md` entry is better if the `env:`-versus-`export`
+choice is worth recording as a decision. That is your call, not a requirement.
+
+### Not blocking, and already dispositioned — do not fix these here
+
+- **The reproduce block in `test-guidelines.md` omits `uv sync`.** The tester
+  raised it; on a cold checkout the reader's first `uv run pytest` fails for a
+  reason unrelated to the guard. Folded into **T-047**, which already owns
+  correcting this file, rather than opened as its own entry.
+- **No permanent self-check against rot.** The brief put it out of scope and left
+  it to the worker to propose; the worker did not. **Decided here: not adding
+  one.** It would burn CI minutes on every run to re-prove something the diff
+  review catches, and its design has more than one defensible answer. If the
+  guard is ever found silently deleted, that is the moment to revisit it.
+- **The `frontend` typecheck failure and the npm-mirror 403s in the worker's and
+  tester's sandboxes.** Pre-existing, not caused by this task, green on the
+  runner. Nothing owed.
+- **Eleven diagnostic and `TEMP` commits on the branch, several deliberately
+  red.** Honest and clearly labelled; how they land is the merger's choice.
+
+### What I checked and found clean
+
+- **Every role's work is in the PR.** Expander `79e9e7b` (only `tasks.md` and
+  the brief — lane held), worker `ee3a57d`…`3e73144`, tester `855d4a3`…`8578cb4`
+  (only the brief — lane held). No commit stranded on another branch.
+- **CI is green at the tip.** Run `32988393077`, `pull_request`, commit
+  `8578cb4`, all six jobs success. The outage the worker and tester documented
+  has cleared.
+- **Criteria 7 and 8 hold on the API, not just in the Handoff.** `32982842910`
+  failure with the guard, `32983516529` job-level success without it, same
+  canary.
+- **No dependency, no lockfile movement.** `git diff origin/main...HEAD` over
+  `*bun.lock`, `*uv.lock`, `*package.json`, `*pyproject.toml` is empty — which
+  also settles the tester's criterion-12 flag: it compared against a stale local
+  `main`.
+- **Nothing outside Constraints.** Four files: `ci.yml`, `test-guidelines.md`,
+  the brief, and one word in `tasks.md`. No canary survives; `.github/workflows/`
+  holds only `ci.yml` and `blocked-run-notice.yml`. No `NO_PROXY` anywhere.
+- **No `openapi.yaml`, no migration, no plan change, and no text a child reads.**
+
+**Not swept, deliberately.** The brief stays and `tasks.md` keeps its T-005
+entry until this comes back and is approved — deleting them now would take these
+findings with them.
 
 ## Notes
 
