@@ -166,6 +166,46 @@ corrected, or the client grows the picker the server is sizing windows for — a
 `level_window`'s three-or-four-choices rule is documented wherever it really
 lives. Say in the same breath whether `frontend/src/lib/level.ts` keeps existing.
 
+### T-058 — A halted role never says who should resume it · S · todo
+**Depends on:** —
+Found during T-006's orchestrated run, 2026-08-28. When a role halts it writes
+`Status: blocked`, `Next step: human`, a one-sentence `Fault:` and the question
+itself into the brief, then pushes — and `blocked-run-notice.yml` labels the PR.
+All of that works. What is missing is the other half: **which role should pick
+the task back up once the question is answered.** The halting role knew, because
+it was holding the context at that moment; the person reading the brief hours
+later has to infer it from the question. Expander, worker or tester are all
+plausible answers and they are not interchangeable — sending an answered
+criteria question to the worker instead of the expander is the D-8 failure shape,
+where nothing errors and the task drifts.
+
+**The resume protocol is written down exactly once, in the wrong place.**
+`.github/workflows/blocked-run-notice.yml` (lines ~146 and ~190) puts *"To
+resume: answer in the brief, set `Next step` back to the role that should
+continue, commit, and start a run"* into the notice it posts. That is the only
+statement of it in the repo: neither `process.md` nor `tasks/TEMPLATE.md` tells a
+reader how to restart a blocked task, so the convention is discoverable only by
+having already been blocked once, or by grepping a workflow file.
+
+The likely right answer is a **`Resume with:`** header field, written by whichever
+role sets `Status: blocked`, naming the role that should continue and nothing
+else. **No driver may read it.** `run-loop.sh` and the `orchestrator` keep routing
+on `Next step` alone, so G0 is untouched and the orchestrator still never decides
+what runs next — that blindness is what D-3 rests on and this must not erode it.
+`Resume with:` is a note from the halted role *to a human*, and the human promotes
+it into `Next step` when they answer. The tempting version — let the driver read
+it and resume by itself — is the one to reject: it would mean the driver
+inferring from a question it is forbidden to have read.
+
+**This is a process-file change** (`process.md`, `tasks/TEMPLATE.md`, the four
+role definitions under `.claude/agents/`, and `blocked-run-notice.yml` so the
+notice surfaces the new field). G1 therefore forbids running it through the loop:
+hand-written PR, reviewed by Dkaattae, like the D-11 change before it.
+**Done when:** a halted brief names the role that should resume it; the resume
+protocol is stated in `process.md` and `tasks/TEMPLATE.md` rather than only in a
+workflow's comment text; the blocked notice shows the field; and it is written
+down that no driver routes on it.
+
 ---
 
 ## B. Finish the US entity table
