@@ -1,8 +1,8 @@
 # T-005 — Prove "no network in tests" in CI
 
-**Status:** `changes requested`
-**Next step:** `worker` — findings 1 and 2 in `## Review`. Both are in the same
-comment block in `.github/workflows/ci.yml`; the guard itself is not in question.
+**Status:** `awaiting verification`
+**Next step:** `tester` — round 2. Findings 1 and 2 in `## Review` are fixed; the
+change is comment-only in `.github/workflows/ci.yml` (see Handoff, "Round 2").
 **Approved:** `Dkaattae, 2026-08-26` — criteria 1–13 as written, unchanged.
 **From:** [`tasks.md`](../tasks.md) T-005
 **Branch:** `claude/t005-task-expander-eye0qd` — the branch this session was
@@ -20,6 +20,7 @@ here, whatever branch its own session starts on (`CLAUDE.md` "Branches",
 | worker | 2026-08-26 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` |
 | tester | 2026-08-26 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value as every other row — see Verdict, "How independent this verdict is") |
 | reviewer | 2026-08-28 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value again — the environment hands every role on this task one id; noted, not claimed as a passing check) |
+| worker (round 2) | 2026-08-28 | `cse_01L4kfvBfr1ox5LrcjvqPPiE` (same value a fourth time; the environment gives every role on this task one id) |
 
 ## Goal
 
@@ -327,6 +328,89 @@ own pre-set proxy with `env -u HTTPS_PROXY -u HTTP_PROXY ...`:
 - The four run URLs in Notes are the CI-side evidence; `ci.yml` on this branch
   is the current, final state (verified identical to the last clean commit
   before the canary work, `5551cf5`).
+
+### Round 2 — the reviewer's two findings, 2026-08-28
+
+**Both fixed, in one comment block, comment-only.** `git diff` on this round is
+13 insertions / 8 deletions in `.github/workflows/ci.yml`, every one of them a
+`#` line. No YAML key, no value, no `run:` line, no `env:`, no
+`timeout-minutes` moved. `test-guidelines.md` untouched this round.
+
+| Finding | What I changed |
+|---|---|
+| 1 — the comment asserts an unestablished mechanism (`ci.yml:67-77`) | Rewritten to state only what was observed, and to say outright that the cause was never established. Gone: "a runner-level policy in this repo's CI provider", "rejects … outright", "treating it as a network-redirection pattern". In their place: the correlation (six proxy-named `env:` keys → a zero-job run marked failed before any job started, no `pull_request` run beside it; six non-proxy names in the same shape, and the `export` form, both clean on a real runner), then "Nothing identified what rejected the file, and it may not reproduce outside the sessions that saw it." No culprit is named. |
+| 2 — "see the brief's Handoff" dangles after the sweep (`ci.yml:74-75`) | Now "Bisection, run ids and the on-runner verification of this form are in PR #26." PR #26 survives the merge and is findable without knowing the task id. |
+
+**Two things I added that the reviewer did not ask for**, both one clause, both
+because a future reader of this comment is the person who will want them:
+
+- **"The two forms are identical at runtime, so if `env:` works for you, use
+  it."** The old comment read as a standing prohibition. It is not one — it is a
+  workaround for something that may be gone or may never have been ours, and
+  nothing in the guard depends on the `export` form. Saying so is what stops this
+  becoming cargo cult in T-006 or T-008.
+- **The observation is dated to "while this guard was being written"**, so a
+  reader can tell it is a point-in-time observation rather than a current
+  property of the platform.
+
+**Where I went with the reviewer's open choice — PR #26, not `decisions.md`.**
+The reviewer offered either and called it mine. `decisions.md` records why the
+process is shaped as it is and what would change it; this is an unexplained,
+possibly session-local platform observation, and promoting it to a decision
+entry would give it more standing than the evidence supports — which is the same
+mistake finding 1 is about, one file over. It is also outside this brief's
+Constraints (`ci.yml` and `test-guidelines.md`). PR #26 carries the full
+bisection with run ids. **Owner: reviewer** — overturn this if you want the
+`env:`-versus-`export` choice on the record as a decision; it is a five-line
+addition to `decisions.md` and needs the Constraints envelope widened by a
+sentence.
+
+**The three cross-referencing comments are left as they are** —
+`question-bank`'s (`ci.yml:123-125`), `backend`'s (`ci.yml:175-179`) and
+`backend-postgres`'s (`ci.yml:224-227`). Each says "see frontend's Test step
+above", which was correct before and is correct now; the reviewer's point was
+that both problems propagated through them, and fixing the referent fixes all
+three. Nothing was copied into them.
+
+**Not touched, per the reviewer's explicit disposition:** the older T-003 "see
+the brief's Handoff" at `ci.yml:118-121` (question-bank's no-lint note), the
+missing `uv sync` in `test-guidelines.md`'s reproduce block (folded into T-047),
+and the absent permanent self-check (decided against). I opened no `tasks.md`
+entry for any of them, because the reviewer had already dispositioned all three.
+
+**Re-ran, at this commit, with exactly the six variables `ci.yml` sets** (and
+this sandbox's own proxy variables unset, so they cannot mask anything):
+
+- `question-bank` — `bun test`: 19 pass, 0 fail.
+- `frontend` — `bun test`: 80 pass, 0 fail.
+- `backend` — `uv run pytest`: 233 passed, 9 skipped.
+- `backend` — `ruff check .` clean, `ruff format --check .` 39 files formatted.
+- `question-bank` — `bun run typecheck` clean.
+
+Same numbers as round 1, which is the expected result for a comment-only diff.
+**Not re-run this round:** the Postgres arm (round 1's 242/0 stands — no input
+to it changed) and the criteria 7/8 canary experiment (destructive, already
+observed on real runners, and re-running it would push red commits to this
+branch for no new information). `frontend`'s `bun run typecheck` still fails
+here for the pre-existing reason both earlier rounds recorded — `react-simple-maps`
+and `us-atlas` are absent from `node_modules` because this sandbox's npm mirror
+403s them — and is green on the runner. My diff contains no TypeScript.
+
+**What the tester needs from this round, and it is narrow.** Nothing observable
+by criteria 1–13 changed: the guard, the target, the six spellings, the
+timeouts, the four guarded steps and the two untouched stack jobs are
+byte-identical to the tree that passed round 1. `git diff 8578cb4 HEAD --
+.github/workflows/ci.yml | grep -E '^[+-]' | grep -v '^[+-][[:space:]]*#'`
+returns nothing, which is the whole claim in one command. The subject of this
+round is whether the comment now says only what the evidence supports.
+
+**One thing to check on the runner that I could not:** whether CI runs at all at
+this tip. The tester and I both hit an Actions outage on this repo at the end of
+round 1; the reviewer recorded run `32988393077` green at `8578cb4` after it
+cleared. My commit should produce a fresh `pull_request` run — look it up by
+`head_sha` and confirm six green jobs. If Actions is starved again, criteria 5
+and 13 still rest on `32988393077`, whose `ci.yml` differs from this one only in
+comments.
 
 ## Verdict
 

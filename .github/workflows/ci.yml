@@ -67,14 +67,19 @@ jobs:
         # No network in tests, ever (test-guidelines.md). All six spellings a
         # client might consult point at a loopback port nothing binds, so any
         # outbound request fails closed instead of reaching the network. Set
-        # only on this step, and only inside the shell rather than as a step
-        # `env:` mapping: a runner-level policy in this repo's CI provider
-        # rejects a workflow run outright when `HTTP_PROXY`/`HTTPS_PROXY`/
-        # `ALL_PROXY` (or their lowercase forms) appear as `env:` keys, treating
-        # it as a network-redirection pattern regardless of the target — see the
-        # brief's Handoff for how that was isolated. `export`ing them as the
-        # first lines of the script produces the identical guard without
-        # tripping it.
+        # only on this step.
+        #
+        # `export`ed inside the script rather than declared as a step `env:`
+        # mapping, for an observed reason whose cause was never established:
+        # while this guard was being written, every push whose ci.yml carried
+        # these six names as `env:` keys produced a zero-job run, marked failed
+        # before any job started and with no `pull_request` run beside it —
+        # while six non-proxy `env:` names in the same shape, and these values
+        # `export`ed as below, both ran clean on a real runner. Nothing
+        # identified what rejected the file, and it may not reproduce outside
+        # the sessions that saw it. The two forms are identical at runtime, so
+        # if `env:` works for you, use it. Bisection, run ids and the on-runner
+        # verification of this form are in PR #26.
         timeout-minutes: 15
         run: |
           export HTTP_PROXY=http://127.0.0.1:1
