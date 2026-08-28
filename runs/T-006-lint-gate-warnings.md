@@ -150,3 +150,19 @@ Gates before spawn: **G0** `Next step` = `worker`, one role · **G1**
 no gated path · **G2** approved by name · **G3** 0 `fail`, 0 `blocked` verdicts ·
 **G4** on `claude/t006-orchestrator-startup-bmqpg4`, matches the header · **G5**
 entry state recorded: `working` / `worker`.
+
+**Spawn failed.** The `Agent` tool returned "Agent is disabled for this session,
+in subagents as well as here" — it worked once, for the orchestrator, and is now
+unavailable. The in-session relay path is therefore closed, and the only
+remaining way to run a role is `claude -p --agent <role>` (what
+`.claude/loop/run-loop.sh` does), which is the path that already failed on git
+permissions. No role ran. `Status`/`Next step` left at `working`/`worker`,
+because the worker genuinely is what comes next.
+
+**Second obstacle, found while checking the gates: G1 collides with criterion 5.**
+`gate_process_files()` in `run-loop.sh` halts unconditionally when
+`git diff --name-only origin/main...HEAD` matches `decisions.md`. Acceptance
+criterion 5 requires the worker to add a `D-12` entry to `decisions.md`. So the
+first thing the worker does to satisfy the brief is the thing that stops every
+later spawn. T-006 as approved cannot complete a driven run. Not resolved here —
+it needs a human.
