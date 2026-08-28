@@ -9,9 +9,9 @@ open the PR (see "Blocked on" below)
 the harness; this line is the authority, not `task/T-006-…`. Every later role
 checks `git branch --show-current` against it and pushes here regardless
 (`CLAUDE.md` "Branches").
-**PR:** none yet — the expander could not push, so there is no branch on the
-remote to open one from. A human opens it draft against
-`claude/t006-orchestrator-startup-bmqpg4` and writes the number here.
+**PR:** [#29](https://github.com/Dkaattae/geo-discovery-zone/pull/29) — draft,
+opened 2026-08-28 against `claude/t006-orchestrator-startup-bmqpg4`, body = the
+Goal and Acceptance criteria below.
 **Fault:** `task-expander` could not write to git — every mutating git command
 (`git add`, `git commit`, even `--dry-run`) was refused for approval in this
 session, and no human was present to grant it. The brief itself is complete.
@@ -31,6 +31,10 @@ mechanical and belongs to a human or a session whose git is not gated:
 
 Read-only git worked in this session (`git status`, `git log`); only the writing
 half was gated. Nothing about the task itself is undecided.
+
+**Steps 1-4 are done** (relay session, 2026-08-28): the brief and run log are
+committed and pushed at `8689d05`, and the draft PR is #29. **Step 5 — the
+approval — is the only thing outstanding**, and it is a human's.
 
 
 **Sessions:**

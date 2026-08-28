@@ -118,3 +118,22 @@ half was gated. Nothing about the task itself is undecided.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-08-28 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
+
+## Relay session — 2026-08-28
+
+The orchestrator agent could not spawn roles in-process (its `Task` tool was
+disabled), so it fell back to `claude -p --agent task-expander`; that nested
+process was refused approval for every mutating git command. Dkaattae chose, at
+the halt, to have this session relay the remaining rounds as in-session
+subagents, which inherit this session's git access, and to open the draft PR.
+
+Mechanical steps completed here, no role's work touched:
+
+- Draft PR [#29](https://github.com/Dkaattae/geo-discovery-zone/pull/29) opened
+  against `claude/t006-orchestrator-startup-bmqpg4`, body = the brief's Goal and
+  Acceptance criteria, verbatim.
+- The brief's `PR:` header now names it.
+
+`Approved:` is still `pending`. It was not stamped: this run is attended, so the
+orchestrator's unattended-approval line does not apply, and no human has yet said
+the criteria are frozen.
