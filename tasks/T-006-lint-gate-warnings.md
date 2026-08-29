@@ -1,8 +1,10 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `awaiting review` — implemented by hand, outside the loop
-**Next step:** `human`
-**Approved:** Dkaattae — 2026-08-28. Criteria frozen. The expander's git halt was
+**Status:** `changes requested` — reviewed 2026-08-29; the fix is sound, the
+verification is missing
+**Next step:** `tester` — a session not already listed below. If spawning is
+still closed, Dkaattae by hand, but then say so in the Verdict.
+**Approved:** Dkaattae — 2026-08-29. Criteria frozen. The expander's git halt was
 cleared by the relay session (see "Blocked on"); nothing about the criteria
 changed between the halt and the approval.
 **From:** [`tasks.md`](../tasks.md) T-006
@@ -11,7 +13,7 @@ the harness; this line is the authority, not `task/T-006-…`. Every later role
 checks `git branch --show-current` against it and pushes here regardless
 (`CLAUDE.md` "Branches").
 **PR:** [#29](https://github.com/Dkaattae/geo-discovery-zone/pull/29) — draft,
-opened 2026-08-28 against `claude/t006-orchestrator-startup-bmqpg4`, body = the
+opened 2026-08-29 against `claude/t006-orchestrator-startup-bmqpg4`, body = the
 Goal and Acceptance criteria below.
 **Fault:** no role after the expander could be spawned at all — the `Agent` tool
 was disabled and `claude -p` was refused permission for `git commit` (measured).
@@ -35,7 +37,7 @@ mechanical and belongs to a human or a session whose git is not gated:
 Read-only git worked in this session (`git status`, `git log`); only the writing
 half was gated. Nothing about the task itself is undecided.
 
-**Steps 1-4 are done** (relay session, 2026-08-28): the brief and run log are
+**Steps 1-4 are done** (relay session, 2026-08-29): the brief and run log are
 committed and pushed at `8689d05`, and the draft PR is #29. **Step 5 — the
 approval — is the only thing outstanding**, and it is a human's.
 
@@ -44,8 +46,9 @@ approval — is the only thing outstanding**, and it is a human's.
 
 | Role | Date | Session |
 |---|---|---|
-| task-expander | 2026-08-28 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
-| worker *(by hand)* | 2026-08-28 | relay session — same session as the orchestrator and as this brief's PR. Not an independent worker session. |
+| task-expander | 2026-08-29 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
+| worker *(by hand)* | 2026-08-29 | relay session — same session as the orchestrator and as this brief's PR. Not an independent worker session. |
+| reviewer | 2026-08-29 | fresh `claude -p --agent reviewer` session; read-only — its shell refused `bun run lint` and all git writes, so it reviewed by reading and its findings were applied by the relay session |
 
 ## Goal
 
@@ -268,6 +271,37 @@ Two specific risks a fresh reader should weigh: the criterion 4 interpretation
 above, and criterion 2's probe, which I designed after writing the fix and could
 have shaped to pass. A tester writing that probe from the criterion alone might
 choose a different rule or a different file.
+
+## Review
+
+**2026-08-29, reviewer.** Changes requested. The change itself is approved on
+reading — small, in-idiom, correctly scoped, `decisions.md` D-12 is a real
+decision entry. Criteria 3, 4, 5, 6, 7, 8 and 10 pass by inspection and need no
+rework. What is missing is verification, and it needs `tester`, not `worker`.
+
+1. **No independent verification exists.** The Sessions table has no `tester`
+   row and the PR has no tester commit; every verdict in the Handoff table was
+   written by the session that wrote the code (process.md step 4). A session not
+   already listed must run criteria 1–10 and write the `## Verdict`.
+2. **Criterion 9 is unproven.** `bun run typecheck` has never passed — the work
+   session's install was incomplete (private-registry 403) and produced 4
+   module-resolution errors in `UsMap.tsx`. The worker showed those errors are
+   identical on the unmodified tree, so they are not caused by this change, but
+   the criterion says typecheck passes and nothing has shown that. Quote a
+   passing run from a complete install, or PR #29's `frontend` job Typecheck
+   step, and name which.
+3. **Criterion 2's probe was authored by the implementer, after the fix.** Build
+   a probe from the criterion alone: use a warn-severity rule *other than*
+   `react-refresh/only-export-components` (the point of `--max-warnings 0` is
+   that any warn-level rule fails), and prove the glob is a directory boundary
+   by showing a sibling path such as `src/components/uiHelpers.tsx` still fails.
+   Delete every probe file and show lint back at exit 0.
+
+**Disposed, no action needed.** Criterion 4 and `frontend/src/routeTree.gen.ts:1`:
+the blanket `/* eslint-disable */` there is TanStack-Router-generated, pre-dates
+this task and is restored by regeneration. Criterion 4 targets hand-written
+silencing of first-party code, so it is met. The reviewer overturns nothing —
+the worker's reading stands, and no follow-up task is created.
 
 ## Verdict
 

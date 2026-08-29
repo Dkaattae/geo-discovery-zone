@@ -1,9 +1,9 @@
 # T-006 — The lint gate ignores warnings, and there are still seven — run log
 
 **Task:** T-006 · **Branch:** `claude/t006-orchestrator-startup-bmqpg4` · **PR:** none
-**Started:** 2026-08-28 · **Outcome:** halted — needs human
+**Started:** 2026-08-29 · **Outcome:** halted — needs human
 
-## Round 1 — task-expander — 2026-08-28
+## Round 1 — task-expander — 2026-08-29
 `Next step` on entry: `<no brief>` → on exit: `human`
 `Status` on entry: `<no brief>` → on exit: `blocked`
 
@@ -117,9 +117,9 @@ half was gated. Nothing about the task itself is undecided.
 
 | Role | Date | Session |
 |---|---|---|
-| task-expander | 2026-08-28 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
+| task-expander | 2026-08-29 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
 
-## Relay session — 2026-08-28
+## Relay session — 2026-08-29
 
 The orchestrator agent could not spawn roles in-process (its `Task` tool was
 disabled), so it fell back to `claude -p --agent task-expander`; that nested
@@ -138,12 +138,12 @@ Mechanical steps completed here, no role's work touched:
 orchestrator's unattended-approval line does not apply, and no human has yet said
 the criteria are frozen.
 
-### Approval — 2026-08-28
+### Approval — 2026-08-29
 
 Dkaattae approved the brief in the relay session. `Approved:` stamped with their
 name, `Status: working`, `Next step: worker`.
 
-### Round 2 — worker — 2026-08-28
+### Round 2 — worker — 2026-08-29
 
 Gates before spawn: **G0** `Next step` = `worker`, one role · **G1**
 `git diff --name-only origin/main...HEAD` = `runs/`, `tasks.md`, `tasks/` only,
@@ -167,7 +167,7 @@ first thing the worker does to satisfy the brief is the thing that stops every
 later spawn. T-006 as approved cannot complete a driven run. Not resolved here —
 it needs a human.
 
-## Round 2 — worker, by hand — 2026-08-28
+## Round 2 — worker, by hand — 2026-08-29
 
 Dkaattae: "let the gate win, hand-finish T006". No role was spawned; the changes
 were made directly in the relay session. `Status` `working` → `awaiting review`,
@@ -192,6 +192,42 @@ empty rather than self-signed.
 G1 now holds this branch shut for good: the diff contains `decisions.md`, so no
 driver will spawn another role against it. That is the outcome Dkaattae chose,
 not a fault. PR #29 is a draft awaiting review and merge by a person.
+
+## Round 3 — reviewer — 2026-08-29
+
+Ran as a fresh `claude -p --agent reviewer` session (the `Agent` tool is still
+disabled). It was refused `bun run lint`, `gh`, and all git writes, so it reviewed
+by reading and returned its findings as text; the relay session applied them
+verbatim. 19 turns, $0.82.
+
+`Next step` on entry: `human` → on exit: `tester`.
+`Status` on entry: `awaiting review` → on exit: `changes requested`.
+
+**Verdict: changes requested — back to `tester`. PR #29 stays draft.** Its three
+blocking findings and its disposal of the criterion-4 flag are in the brief's
+`## Review`. The one it found that the worker had not:
+
+> use a warn-severity rule **other than** `react-refresh/only-export-components`,
+> since the point of `--max-warnings 0` is that *any* warn-level rule now fails —
+> the current probe only demonstrates the one rule the config also exempts
+> elsewhere
+
+and
+
+> confirms the exemption glob does not over-reach: a first-party file at a sibling
+> path (e.g. `src/components/uiHelpers.tsx`) must still fail, so
+> `src/components/ui/**` is proven to be a directory boundary and not a prefix
+> match
+
+It also declined to sweep — correctly, the task is not done — and proposed a
+future queue entry about `@typescript-eslint/no-unused-vars` being `off`, marked
+explicitly "do not add now".
+
+**Date correction applied in this commit.** The relay session had stamped
+2026-08-28 on everything it did, inherited from the expander's own row; the actual
+date is 2026-08-29. Corrected in the brief, in what was then `decisions.md` D-12 (now
+`engineering-decisions.md` E-4 — see Round 4) and here. D-11's 2026-08-28 and
+the T-005 sweep date are genuine and were left alone.
 
 ## Round 4 — rebase onto PR #31 — 2026-08-29
 
