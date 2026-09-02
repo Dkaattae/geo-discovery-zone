@@ -1,8 +1,15 @@
-# Decisions
+# Process decisions
 
-Choices about how this project is built, why they went the way they did, and
-what would make them worth revisiting. Kept separate from
-[`geoquizdataplan.md`](geoquizdataplan.md), which is about the *product*.
+Choices about how the **development loop** is shaped — the roles, the gates, the
+brief, the branch rules, who merges — why they went the way they did, and what
+would make them worth revisiting. Numbered `D-n`.
+
+**This file is gated.** `run-loop.sh` G1 refuses to run any task whose diff
+touches it, so an entry here is always written by hand and reviewed by a person.
+That is the point: the loop may not rewrite its own rules, and this file is where
+the rules are justified. Decisions about the *code* — schema, tests, lint, CI —
+live in [`engineering-decisions.md`](engineering-decisions.md), which the loop
+may edit. Product decisions live in [`geoquizdataplan.md`](geoquizdataplan.md).
 
 Add an entry when a decision could reasonably have gone the other way. A
 decision with no trigger for revisiting is a habit, not a decision.
@@ -252,17 +259,6 @@ widen too.
 
 ---
 
-## D-5 — Alembic owns the database schema
-
-**Decided:** the pipeline emits JSON; a Python loader writes Postgres. `DbSink`
-in `question-bank/` stays a seam for standalone use, not the path that defines
-tables.
-
-With a TypeScript pipeline and a Python backend, something has to own the
-schema, and two authors will disagree. Recorded in full in plan §5.3.
-
----
-
 ## D-6 — A light path for S-sized tasks
 
 **Decided:** tasks marked `S` get a **shorter brief, not no brief**.
@@ -448,75 +444,6 @@ only thing standing between a stranded commit and a merged half-task.
 
 ---
 
-## D-9 — Frontend test files are typechecked, and `@types/bun` pays for it
-
-**Decided:** `frontend/tsconfig.json` no longer excludes `src/**/*.test.ts(x)`.
-`@types/bun` is a devDependency of `frontend/` (`^1.3.14`, the version
-`question-bank/` already uses) and `"types"` carries `"bun"`, so `bun run
-typecheck` covers test files exactly as it covers everything else.
-
-The exclusion was never a decision. It was written during PR #17 to get past a
-`tsc` that could not resolve `bun:test`, with a comment saying as much, and it
-meant **the only frontend test file was not typechecked at all** — in a
-`"strict": true` package with `exactOptionalPropertyTypes` and
-`noUncheckedIndexedAccess` on. Tests are the code most likely to be written
-against a stale idea of a signature, and they were the one part of `frontend/`
-the compiler never read.
-
-**The two alternatives, and why they lost:**
-
-- **Keep the exclusion and write down why.** Free, and honest, but it leaves the
-  hole open: a test can call `createApiClient({ baseUrl: 42 })` and nothing says
-  so until someone runs it. The cost of closing it turned out to be one
-  devDependency.
-- **A separate `tsconfig.test.json` and a second `tsc` invocation.** No new
-  dependency in the main config, but it needs `@types/bun` anyway to resolve
-  `bun:test`, so it buys nothing and costs a second config to keep in step.
-  `question-bank/tsconfig.json` already does the simple thing and has since its
-  first test.
-
-Dkaattae approved the dependency on 2026-08-24 with those alternatives stated,
-per `CLAUDE.md` "Packages". It is types only: nothing it contains reaches a
-build, a bundle or a browser.
-
-**Revisit when** `@types/bun` starts costing something real — it conflicts with
-`@types/node` or `vite/client` in a way `skipLibCheck` cannot absorb, or it
-drags the frontend's TypeScript version forward before the app is ready. The
-answer then is `tsconfig.test.json`, not the exclusion: what must not come back
-is untypechecked test files.
-
----
-
-## D-10 — CI requires frontend tests to exist
-
-**Decided:** `--pass-with-no-tests` is gone from the frontend `Test` step in
-`.github/workflows/ci.yml`. `bun test` runs bare, in both TypeScript jobs, and
-bun's exit code is the step's.
-
-The flag was added by T-003 for a true reason that has expired: `frontend/` had
-no test files, `bun test` exits 1 on a package with none, and the job would
-otherwise have been red for a reason nobody was going to fix that week. It is
-now 65 tests across two files, and the flag's only remaining effect is that
-**deleting every one of them leaves CI green** — a check that certifies nothing
-in exactly the state where you would most want it to shout. That is the same
-shape of failure T-003 spent three verify rounds on: run 31270170161 was green
-with a failing test in the tree.
-
-Removing it makes "the frontend has tests" a thing CI asserts rather than a
-thing that happens to be true.
-
-**What this does not do:** it is not a coverage threshold and it is not a
-guarantee the tests are any good. One trivial test file satisfies it. It closes
-the one failure mode that is silent — a package quietly losing its whole suite —
-and nothing more.
-
-**Revisit when** a legitimate package in this repo has no tests and should not
-be forced to grow one. The fix then is to drop the `Test` step for that package
-with a comment, not to bring the flag back: a step that cannot fail is worse
-than a step that is absent, because it reads as coverage.
-
----
-
 ## Known weaknesses
 
 Not decisions — things that are true, that we have chosen to live with, and that
@@ -648,3 +575,61 @@ will see it.
 `decisions.md`, `CLAUDE.md` or `.claude/` from running through the loop. A change
 to the loop does not go through the loop, so this one was made directly and
 reviewed as an ordinary PR.
+
+---
+
+## D-12 — Two decision files, and process tickets that never enter the loop
+
+**2026-08-29.** T-006 was the first task whose *approved* acceptance criteria
+required a `decisions.md` entry. The worker wrote it, and G1 — which halts on any
+diff touching `decisions.md` — shut the branch for every spawn after that. The
+task had to be hand-finished. The gate was right; the file was doing two jobs.
+
+**What G1 protects.** The loop may never change its own rules, because every role
+that could review such a change is itself defined by the files being changed: a
+worker that edits `tester.md` has weakened the tester that runs next, and the
+reviewer that certifies it reads a `reviewer.md` from the same diff. Nothing
+inside the loop can be trusted to review the loop, so a change to it is refused
+outright and handed to a person. `decisions.md` was on the gated list because
+nine of its eleven entries *were* the rules, with reasons attached — editing D-3
+to say "the orchestrator may read the Handoff" changes the loop as surely as
+editing `orchestrator.md`.
+
+**But the file's own header said "choices about how this project is built"**,
+and D-5 (Alembic), D-9 and D-10 (frontend tests) were engineering decisions that
+could not weaken a gate or a role. The gate sees paths, not content, so it could
+not tell D-12-the-lint-exemption from D-3. That collision had not fired before
+only because D-5, D-9 and D-10 landed off-queue.
+
+**Decided:**
+
+- **Two files.** [`process-decisions.md`](process-decisions.md) (this file,
+  `D-n`) holds decisions about the loop and stays gated.
+  [`engineering-decisions.md`](engineering-decisions.md) (`E-n`) holds decisions
+  about the code and is **not** gated: a task in the loop may add to it when its
+  criteria say so, and the reviewer checks it like anything else. D-5, D-9 and
+  D-10 moved there as E-1, E-2 and E-3, text unchanged.
+- **Process work has its own queue and never enters the loop.**
+  [`process-tasks.md`](process-tasks.md) holds `P-n` tickets — changes to
+  `process.md`, this file, `CLAUDE.md`, `.claude/`, the workflows. A `P` ticket
+  is done by hand in an ordinary session: no brief, no roles, no gates, an
+  ordinary PR that Dkaattae reviews, and a `D-n` entry here when the choice could
+  have gone the other way. The `task-expander` never picks from it; the
+  `reviewer` adds to it when a task uncovers a gap in the loop. G1 is what
+  enforces the boundary — a `P` change trips it by construction, which is the
+  gate saying "not me".
+- **G1's path list changes by one name**: `decisions.md` → `process-decisions.md`.
+  Nothing is added. `engineering-decisions.md` and `process-tasks.md` are
+  deliberately outside it: one is content the loop is allowed to produce, the
+  other is a queue, and an agent adding a ticket to a queue harms nothing.
+
+**Why not "allow appends, block edits"?** A path gate cannot be talked out of; a
+content heuristic can. Append "D-13 — D-3 is superseded" and D-3 has been edited
+without a line of it changing. Keep the gate dumb and move the content.
+
+**What would make this worth revisiting.** If `engineering-decisions.md` starts
+accumulating entries that *are* about the loop — a decision about CI that
+changes what "green" means for the gates, say — the boundary was drawn in the
+wrong place and G1 needs a second look. Or if `process-tasks.md` fills up with
+tickets nobody works, because "by hand" turned out to mean "never": then the
+process queue needs a cadence, not a different gate.

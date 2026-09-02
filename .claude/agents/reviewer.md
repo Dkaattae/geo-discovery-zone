@@ -9,11 +9,11 @@ You are the last **agent** step. The tester has already established that the wor
 meets its acceptance criteria; you judge whether it is *good*, leave the queue in
 a state the next cycle can trust, and hand a finished PR to a person.
 
-**You do not merge.** Merging is Dkaattae's, always — see `decisions.md` D-4. Your
+**You do not merge.** Merging is Dkaattae's, always — see `process-decisions.md` D-4. Your
 approval marks the PR ready and stops there. You do not hold a merge tool, which
 is the version of this rule that does not depend on you remembering it.
 
-Read `process.md` step 6 and `decisions.md` before starting.
+Read `process.md` step 6, `process-decisions.md` and `engineering-decisions.md` before starting.
 
 ## 0. Check the PR is still open
 
@@ -74,7 +74,7 @@ any good", which is what you are for. Read the diff, not just the verdict.
   them: the expander's commit must touch only `tasks/`, `tasks.md` and
   `PROGRESS.md`, and the tester's must not touch source. The expander holds Bash
   on the understanding that this check happens — if you skip it, nothing else
-  catches an expander that quietly implemented its own brief. See `decisions.md`
+  catches an expander that quietly implemented its own brief. See `process-decisions.md`
   D-7.
 - **Are the docs true?** A README that describes the old behaviour is a defect,
   not a nitpick — `process.md` treats it as part of done.
@@ -196,12 +196,15 @@ session branch leaves the PR carrying a brief for work it is about to release.
    - Did this task make a later one smaller, larger, or unnecessary? **Delete
      what no longer needs doing**, with a one-line reason. A deleted task is a
      result.
-   - Did it uncover work that is not in the queue? Add it, sized small.
+   - Did it uncover work that is not in the queue? Add it, sized small. **If the
+     gap is in the loop itself** — a role definition, a gate, `process.md` —
+     it goes in `process-tasks.md` as a `P-n` ticket, not in `tasks.md`.
    - Did it invalidate an assumption a later task rests on? Rewrite that task now.
    - Did the order change? Something newly cheap may deserve to come first.
 5. **Reconcile the rest of `PROGRESS.md`** — the thematic sections, when a group
    of tasks lands or a known gap opens or closes. `geoquizdataplan.md` changes
-   only when the plan's *reasoning* is wrong, and that goes in `decisions.md`.
+   only when the plan's *reasoning* is wrong, and that goes in
+   `engineering-decisions.md`.
 
 Re-read the remaining queue against `geoquizdataplan.md` while you trim. A task
 that made sense before this work landed may now be aimed at the wrong thing, and

@@ -36,7 +36,7 @@ each and are deliberately unable to do the others' jobs; the fifth drives them.
   manager**. Reads the brief's `Next step`, spawns that role with a fixed
   prompt, copies what it returned into `runs/T-0xx-slug.md` verbatim, repeats.
   It judges nothing and **reads no work** — not the diff, not the Handoff, not
-  the criteria. Runs one task and never picks the next. See `decisions.md` D-1.
+  the criteria. Runs one task and never picks the next. See `process-decisions.md` D-1.
 
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
@@ -74,7 +74,7 @@ whether the current code passes is exactly the influence the role exists to
 exclude. This is a written rule where it used to be a missing tool, so it comes
 with a check: **the expander's commit touches only `tasks/`, `tasks.md` and
 `PROGRESS.md`**, and the reviewer verifies that at step 6 against the diff. See
-`decisions.md` D-7.
+`process-decisions.md` D-7.
 
 ### Opening and merging the PR
 
@@ -96,7 +96,7 @@ Whichever route, the branch is pushed first. A PR needs a branch on the remote.
 The reviewer holds "PR-open" as well, for one case only: a PR merged before it
 ran, where the sweep cannot ride inside the merge and needs its own small PR.
 
-**No role holds PR-merge.** Merging is Dkaattae's — `decisions.md` D-4.
+**No role holds PR-merge.** Merging is Dkaattae's — `process-decisions.md` D-4.
 
 ### Spawning, and the isolation it must not cost
 
@@ -150,7 +150,7 @@ one session id — the tester is told not to refuse on that, not to claim the ch
 passed, and to say in its Verdict which kind of independence it actually had. And
 a spawned role **cannot ask a human a question**; it can only return text. So it
 writes the question into the brief, sets `Status: blocked`, and stops, and the
-orchestrator halts rather than answering on anyone's behalf. See `decisions.md`
+orchestrator halts rather than answering on anyone's behalf. See `process-decisions.md`
 D-3 and "Known weaknesses".
 
 **The brief in `tasks/` is the shared state, and there is no second handoff
@@ -336,6 +336,10 @@ tasks.md
 Take the **first task in [`tasks.md`](tasks.md) whose dependencies are done**.
 Order is a judgement already made — don't re-litigate it per task. Skip a task
 only when it is genuinely blocked, and write down what blocks it.
+
+Never pick from [`process-tasks.md`](process-tasks.md). Those are `P-n` tickets
+about the loop itself, and they do not run through it — see "Tasks this loop does
+not fit" below.
 
 One task at a time. Two half-finished tasks are worth less than one finished one.
 
@@ -574,7 +578,7 @@ released and there is no follow-up PR for three line changes.
 
 > Sweeping inside the PR is what removed the old friction: no second PR to delete
 > the brief, and no window where `main` carries a brief for work that already
-> shipped. See `decisions.md` D-4.
+> shipped. See `process-decisions.md` D-4.
 >
 > Note the consequence for the envelope: a swept PR **always** touches
 > `tasks.md` and `PROGRESS.md`, which no brief lists in its Constraints. Those two
@@ -704,7 +708,7 @@ prove nothing. Three kinds, each verified differently:
 
 | Kind | Examples | How it is verified |
 |---|---|---|
-| **Decision** | T-010 commit-or-generate the data, T-038 whether to store profiles | A written decision with its reasoning, in `PROGRESS.md` or the plan. Nothing to test |
+| **Decision** | T-010 commit-or-generate the data, T-038 whether to store profiles | A written decision with its reasoning — in `engineering-decisions.md` when it is about the code, in the plan when it is about the product. Nothing to test |
 | **Content and curation** | T-011 review 50 fun facts, T-012–T-014 curated fields | Human reading. A test can check *shape* — every state has a phrase, nothing is empty, no code words like "Köppen" — but not whether the writing is any good |
 | **Documentation** | T-002, this file | Human reading, plus a link check |
 
@@ -714,6 +718,30 @@ catches the missing fiftieth entry that a human skimming a list will not.
 
 **Decisions that are the user's to make stop the loop.** A task whose criteria
 cannot be settled without a product call gets asked, not guessed.
+
+### Work on the loop itself never enters the loop
+
+A fourth kind, and the one kind that is not a `T` task at all. Changes to
+`process.md`, `process-decisions.md`, `CLAUDE.md`, anything under `.claude/`, or
+the workflows are **`P-n` tickets in [`process-tasks.md`](process-tasks.md)**,
+and they are done **by hand**: no brief, no roles, no gates, an ordinary PR that
+Dkaattae reviews, and a `D-n` entry in `process-decisions.md` when the choice
+could have gone the other way.
+
+The reason is the one `run-loop.sh` G1 gives — *the loop may never change its
+own rules* — and it is structural, not cautious. Every role that could review a
+change to the loop is defined by the files being changed: a worker that edits
+`tester.md` has weakened the tester that runs next, and the reviewer that
+certifies the result reads a `reviewer.md` from the same diff. Nothing inside the
+loop can be trusted to review the loop. So G1 refuses to run such a diff at all,
+and that refusal is the rule's enforcement: a `P` change trips it by construction.
+
+What this does **not** cover: `engineering-decisions.md`. A `T` task whose
+criteria call for a recorded decision about the code writes an `E-n` entry there,
+inside the loop, and the reviewer checks it like any other file. The line between
+the two files is the line between "how the loop works" and "how the code works",
+and `process-decisions.md` D-12 says what to do if that line turns out to be in
+the wrong place.
 
 ## When reality disagrees with the plan
 

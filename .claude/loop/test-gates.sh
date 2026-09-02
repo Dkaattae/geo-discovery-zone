@@ -91,7 +91,7 @@ echo "gates:"
 # G1 — the real driver, on this repo's actual diff. Only meaningful on a branch
 # that touches the process files, which is where it matters.
 if git diff --name-only origin/main...HEAD 2>/dev/null \
-   | grep -qE '^(process\.md|decisions\.md|CLAUDE\.md|\.claude/)'; then
+   | grep -qE '^(process\.md|process-decisions\.md|CLAUDE\.md|\.claude/)'; then
   write_brief 'awaiting verification' 'tester' "Kate, 2026-08-25" "$START_BRANCH"
   check "G1  process files stop the run" "$DRIVER" "changes the process itself"
 else
