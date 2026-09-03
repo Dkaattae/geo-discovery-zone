@@ -336,3 +336,30 @@ bun test                            # criterion 9: expect >= 80 pass, 0 fail
 If `bun install --frozen-lockfile` still 403s against the private registry, read
 PR #29's `frontend` CI job instead — same commands, complete install — and cite
 the run by number.
+
+## Follow-up investigation — 2026-09-03, same relay session
+
+Tried the tester's own suggested fix: `claude -p --session-id <freshly generated
+uuid> ...`. **Partial result.** The subprocess's JSON `session_id` field genuinely
+changed to the fresh id — proof that `--session-id` works at the CLI level. But a
+second env var, `CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_01S5hqK8ZZJVEjVYNWAM3RrH` in
+this container, the source of the `session_01S5hqK8ZZJVEjVYNWAM3RrH` used in every
+commit's `Claude-Session:` attribution this whole conversation), is a harness/
+container-level identifier. **By ordinary Unix process inheritance, any `claude -p`
+subprocess spawned via Bash from this session inherits it, and `--session-id`
+has no reason to touch it** — the CLI flag sets the app's own local
+conversation/session_id, not the container's environment. Not confirmed by direct
+observation: a probe asking a fresh-`--session-id` subprocess to `printenv` that
+variable was blocked by its own sandbox (`Contains simple_expansion` on `$VAR`
+interpolation, then an unapproved `printenv` call) before it could report back.
+Reasoning, not measurement — but ordinary enough that it should be trusted absent
+a reason otherwise.
+
+**Consequence, if this holds:** no `claude -p` subprocess spawned from inside this
+container — whatever `--session-id` it is given — can be a genuinely separate
+*session* in the sense the harness's own attribution convention or a reviewer
+would recognize, because they all share the one container-level identity. A
+demonstrably independent tester would need an entirely separate Claude Code
+session (a new web session or local invocation), not a child process of this one.
+Left for Dkaattae to weigh against `tester.md`'s independence requirement — not
+decided here.
