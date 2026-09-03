@@ -9,10 +9,9 @@ branch by its harness and forbidden from pushing elsewhere (`process.md`, "When
 the environment names the branch for you"; standing permission in `CLAUDE.md`
 "Branches"). Every later role checks `git branch --show-current` against this
 line and pushes here, not to a freshly created `task/T-006-…` branch.
-**PR:** none yet — no PR-open route (GitHub MCP tools, `gh`) was available in
-this session. **Next step: human opens the draft PR** against
-`claude/task-brief-execution-w7lzqz`, using the Acceptance criteria below as the
-body, before `worker` starts.
+**PR:** [#32](https://github.com/Dkaattae/geo-discovery-zone/pull/32), opened
+draft against `main` from `claude/task-brief-execution-w7lzqz` via the GitHub
+MCP tools. Stays draft until the reviewer approves it.
 **Fault:** —
 
 **Sessions:**
