@@ -41,7 +41,7 @@ export default tseslint.config(
     // component with its `cva` variants or a context hook in the same file, which is
     // how shadcn ships them; splitting them would fork the files from upstream and
     // make every future `shadcn add` a manual merge. Scoped to this directory only —
-    // the rule stays on everywhere we write our own components. See decisions.md D-12.
+    // the rule stays on everywhere we write our own components. See engineering-decisions.md E-4.
     files: ["src/components/ui/**"],
     rules: {
       "react-refresh/only-export-components": "off",

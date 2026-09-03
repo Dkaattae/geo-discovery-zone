@@ -1,19 +1,17 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `working` — criterion 5 repointed at
-`engineering-decisions.md` (2026-09-03, task-expander), which is where commit
-`b5a7519` actually left the entry before this brief was approved. Criteria
-1-4 and 6-10 already pass by an independent tester's actual run (2026-09-03);
-`engineering-decisions.md` **E-4** already satisfies the reworded criterion 5
-in substance — the split, why, what would revisit it, the files it covers —
-so criterion 5 itself needs no further work. One thing does still need a
-worker: `frontend/eslint.config.js:44` says "See decisions.md D-12.", and
-both the filename and the number are stale (should read
-"See engineering-decisions.md E-4."). Not a criterion, but flagged twice now
-by the tester and once by this expander pass — see Constraints.
-**Next step:** `worker` — the single one-line comment fix named above and in
-Constraints. Everything else criterion 5 or the rest of the criteria need is
-already done; do not redo any of it.
+**Status:** `awaiting verification` — the one remaining implementation item is
+done. `frontend/eslint.config.js:44` now reads "See engineering-decisions.md
+E-4." Criteria 1-4 and 6-10 already passed by an independent tester's actual
+run (2026-09-03); criterion 5 is already satisfied in substance by
+`engineering-decisions.md` **E-4**. Nothing else was touched — `git diff
+--stat` against the prior commit is one file, one line. `bun run lint` (exit
+0, 0 warnings) and `bun test` (88 pass, 0 fail) both confirmed clean after the
+change; `bun run typecheck` still shows this sandbox's 4 pre-existing,
+install-related errors in `UsMap.tsx`, proven byte-for-byte identical with and
+without this diff (untouched by it) — see the worker's Handoff follow-up.
+**Next step:** `tester` — confirm the one-line fix and that nothing else
+moved. No implementation work remains.
 **Approved:** Dkaattae — 2026-09-03. Re-approves the brief with criterion 5
 repointed at `engineering-decisions.md`/E-n (was `decisions.md`/D-n); nothing
 else about the criteria changed. Given in chat in this session
@@ -64,6 +62,7 @@ approval — is the only thing outstanding**, and it is a human's.
 | tester | 2026-09-03 | `session_01S5hqK8ZZJVEjVYNWAM3RrH` — **the same id as the worker's commit `592235c`**. Fresh context window, no sight of the work; not a separate session. All execution (`bun`, `eslint`, `node <script>`) and all git writes refused for approval |
 | tester | 2026-09-03 | `session_01NhnicqMm1Yvc42QLXbZNWJ` — **a different id from the worker's `592235c`**, a genuinely independent session for the first time on this task. `bun` (1.3.11), `eslint` and `tsc` all executed successfully; git writes permitted |
 | task-expander | 2026-09-03 | `session_01Jy82NJhqegETTSxbDNfTrE` — repointed criterion 5 at `engineering-decisions.md`/E-4 (was `decisions.md`/D-n, split by `b5a7519` before this brief's approval) and flagged the same stale reference at `frontend/eslint.config.js:44` for the worker. Wrote only this brief; touched no source, test or config file. |
+| worker | 2026-09-03 | `session_018atdV6qQvHYnExh71DsSny` — the one-line `frontend/eslint.config.js:44` cross-reference fix. Confirmed criteria 1-4 and 6-10 already pass and criterion 5 is already satisfied in substance; touched nothing else. |
 
 ## Goal
 
@@ -304,6 +303,35 @@ Two specific risks a fresh reader should weigh: the criterion 4 interpretation
 above, and criterion 2's probe, which I designed after writing the fix and could
 have shaped to pass. A tester writing that probe from the criterion alone might
 choose a different rule or a different file.
+
+### Worker follow-up — 2026-09-03, the stale cross-reference
+
+Confirmed by reading before touching anything: criteria 1-4 and 6-10 already
+pass (independent tester, `cffb06a`); criterion 5 is already satisfied in
+substance by `engineering-decisions.md` E-4 (task-expander's repoint,
+`e1517f8`). Nothing to build for either. The only outstanding item, per this
+brief's Constraints ("Only remaining implementation") and the tester's
+Verdict finding, was `frontend/eslint.config.js:44`'s stale cross-reference.
+
+**The fix.** Changed the comment at `frontend/eslint.config.js:44` from
+`See decisions.md D-12.` to `See engineering-decisions.md E-4.`. One line,
+nothing else in the file or anywhere else touched — `git diff --stat` shows
+exactly `frontend/eslint.config.js | 2 +-`.
+
+**Proof nothing moved.**
+
+| Check | Result |
+|---|---|
+| `bun run lint` | `eslint . --max-warnings 0`, no output, exit 0 |
+| `bun run typecheck` | `tsc --noEmit` — same 4 pre-existing errors as before this change, all in `UsMap.tsx` (module resolution for `react-simple-maps`/`us-atlas`), confirmed byte-for-byte identical by stashing this diff and re-running: exit 2 both with and without the fix. Caused by this sandbox's `bun install --frozen-lockfile` 403ing on the same private-registry packages the prior two tester sessions hit (`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`), not by this change. `UsMap.tsx` is untouched by this diff |
+| `bun test` | **88 pass, 0 fail**, 335 `expect()` calls, across 4 files (80 pre-existing + 8 from `frontend/src/lint-gate.test.ts`, added by the prior independent tester session) — above the 80 recorded in `tasks.md` §A |
+
+Typecheck's local exit code is unproven-clean here for the same structural
+reason the independent tester already documented (this sandbox's incomplete
+install) — not something this one-line comment change could affect, and not
+something this change reintroduces. PR #29's CI, on a complete install,
+already showed a clean `Typecheck` step on a prior head commit per the
+tester's Verdict; nothing in this diff touches typecheck-relevant code.
 
 ## Review
 
