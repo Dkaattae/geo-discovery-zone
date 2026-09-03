@@ -1,16 +1,23 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `blocked` — independent tester ran 2026-09-03 in a session with a
-working `bun` and an id distinct from the worker's; criteria 1,2,3,4,6,7,8,9,10
-now pass **by an actual run** (not inspection); criterion 5 is unsatisfiable as
-written — it names `decisions.md`, which no longer exists
-**Next step:** `task-expander` — repoint criterion 5 at the file the split
-(`b5a7519`) actually left it in. The two blockers a prior tester session
-couldn't clear — same-id-as-worker, no working `bun` — are cleared; nothing
-else needs a human here.
-**Approved:** Dkaattae — 2026-08-29. Criteria frozen. The expander's git halt was
-cleared by the relay session (see "Blocked on"); nothing about the criteria
-changed between the halt and the approval.
+**Status:** `awaiting approval` — criterion 5 repointed at
+`engineering-decisions.md` (2026-09-03, task-expander), which is where commit
+`b5a7519` actually left the entry before this brief was approved. Criteria
+1-4 and 6-10 already pass by an independent tester's actual run (2026-09-03);
+`engineering-decisions.md` **E-4** already satisfies the reworded criterion 5
+in substance — the split, why, what would revisit it, the files it covers —
+so criterion 5 itself needs no further work. One thing does still need a
+worker: `frontend/eslint.config.js:44` says "See decisions.md D-12.", and
+both the filename and the number are stale (should read
+"See engineering-decisions.md E-4."). Not a criterion, but flagged twice now
+by the tester and once by this expander pass — see Constraints.
+**Next step:** `worker` — the single one-line comment fix named above and in
+Constraints. Everything else criterion 5 or the rest of the criteria need is
+already done; do not redo any of it.
+**Approved:** pending — criterion 5's wording changed, so re-approval is
+required per `process.md` ("frozen once approved... change only by coming
+back through the expander and being re-approved"). The substance of what
+criterion 5 asks for is unchanged; only the filename/format it names moved.
 **From:** [`tasks.md`](../tasks.md) T-006
 **Branch:** `claude/t006-orchestrator-startup-bmqpg4` — assigned to this session by
 the harness; this line is the authority, not `task/T-006-…`. Every later role
@@ -55,6 +62,7 @@ approval — is the only thing outstanding**, and it is a human's.
 | reviewer | 2026-08-29 | fresh `claude -p --agent reviewer` session; read-only — its shell refused `bun run lint` and all git writes, so it reviewed by reading and its findings were applied by the relay session |
 | tester | 2026-09-03 | `session_01S5hqK8ZZJVEjVYNWAM3RrH` — **the same id as the worker's commit `592235c`**. Fresh context window, no sight of the work; not a separate session. All execution (`bun`, `eslint`, `node <script>`) and all git writes refused for approval |
 | tester | 2026-09-03 | `session_01NhnicqMm1Yvc42QLXbZNWJ` — **a different id from the worker's `592235c`**, a genuinely independent session for the first time on this task. `bun` (1.3.11), `eslint` and `tsc` all executed successfully; git writes permitted |
+| task-expander | 2026-09-03 | `session_01Jy82NJhqegETTSxbDNfTrE` — repointed criterion 5 at `engineering-decisions.md`/E-4 (was `decisions.md`/D-n, split by `b5a7519` before this brief's approval) and flagged the same stale reference at `frontend/eslint.config.js:44` for the worker. Wrote only this brief; touched no source, test or config file. |
 
 ## Goal
 
@@ -95,10 +103,17 @@ branch, with `bun install --frozen-lockfile` already run in `frontend/`.
    for `react-refresh/only-export-components` exists anywhere under
    `frontend/src/` outside `frontend/src/components/ui/`.
 
-5. **The choice is recorded.** `decisions.md` gains an entry, in the file's
-   existing `D-n` form, that says which of the seven warnings were fixed and which
-   were exempted, why that split (not "to make CI green"), and what would make it
-   worth revisiting. It names the directory or the files it covers.
+5. **The choice is recorded.** `engineering-decisions.md` gains an entry, in the
+   file's existing `E-n` form, that says which of the seven warnings were fixed
+   and which were exempted, why that split (not "to make CI green"), and what
+   would make it worth revisiting. It names the directory or the files it
+   covers.
+
+   *(Repointed 2026-09-03 — was `decisions.md` / `D-n`. `b5a7519` split that
+   file into `process-decisions.md` and `engineering-decisions.md` before this
+   brief was approved; the requirement itself is unchanged, only the file and
+   numbering form it names. Already satisfied by `engineering-decisions.md`
+   **E-4**, written before this repoint and unaffected by it.)*
 
 6. **CI runs the same command.** The `Lint` step of the `frontend` job in
    `.github/workflows/ci.yml` runs `bun run lint` and nothing else — the strictness
@@ -161,6 +176,14 @@ branch, with `bun install --frozen-lockfile` already run in `frontend/`.
   cannot be fixed without changing app behaviour, halt as above rather than
   widening it quietly.
 - Commit messages name the role: `T-006 worker: …`, `T-006 tester: …`.
+- **Only remaining implementation (2026-09-03):** `frontend/eslint.config.js:44`
+  reads `// ... See decisions.md D-12.`. Both the filename and the number are
+  stale — the entry is now `engineering-decisions.md` **E-4**. Change that one
+  comment line to read `See engineering-decisions.md E-4.` and nothing else in
+  the file. This is not a numbered acceptance criterion; it is flagged here
+  because the independent tester's Verdict (2026-09-03) raised it and it would
+  otherwise get lost. Do not treat this as licence to touch anything else in
+  `eslint.config.js` — every criterion it's checked against already passes.
 
 ## Context
 
@@ -185,9 +208,12 @@ Required reading, not background.
   (`useSidebar`). `tasks.md` counts seven. **The expander did not run eslint** — by
   role, it never runs the suite — so the seventh is unidentified here; the worker
   records the real list from an actual run in its Handoff.
-- [`decisions.md`](../decisions.md) — the `D-n` format, and **D-9** and **D-10** as
-  the model for a decision about the frontend's checks. The next free number is
-  **D-12**.
+- [`engineering-decisions.md`](../engineering-decisions.md) — the `E-n` format,
+  and **E-2** and **E-3** (formerly `decisions.md` D-9 and D-10, moved by the
+  process/engineering split, `b5a7519`) as the model for a decision about the
+  frontend's checks. This task's own entry is **E-4**, already written. *(This
+  reference was `decisions.md`, D-9, D-10, "next free number D-12" until this
+  2026-09-03 repoint; `decisions.md` no longer exists.)*
 - [`test-guidelines.md`](../test-guidelines.md) — "No network in tests, ever", and
   what a test of a config change may reasonably assert.
 - [`CLAUDE.md`](../CLAUDE.md) — Packages (`bun`, never npm), and ask before adding
