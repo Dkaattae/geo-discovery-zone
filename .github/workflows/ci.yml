@@ -117,8 +117,8 @@ jobs:
 
       # No lint step: question-bank has no eslint config and no eslint
       # dependency, and adding either is a dependency decision this task may not
-      # make on its own. Its formatting is covered by nothing today; see the
-      # brief's Handoff.
+      # make on its own. Its formatting is covered by nothing today; the omission
+      # was first recorded in PR #11 and is still open.
       #
       # No network in tests, ever (test-guidelines.md) — see the identical guard
       # on frontend's Test step above, including why it is `export`ed in the

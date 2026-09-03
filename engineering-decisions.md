@@ -102,3 +102,55 @@ with a comment, not to bring the flag back: a step that cannot fail is worse
 than a step that is absent, because it reads as coverage.
 
 *Formerly `decisions.md` D-10.*
+
+---
+
+## E-4 — The lint gate fails on warnings; `components/ui/` is exempted by path
+
+**2026-08-29.** `frontend`'s lint script was `eslint .`, which exits 0 on
+warnings. Every green CI run had been printing `✖ 7 problems (0 errors, 7
+warnings)` and passing, so the gate reported a number nobody was obliged to act
+on. The script is now `eslint . --max-warnings 0`.
+
+**The strictness lives in `package.json`, not in `ci.yml`.** A `--max-warnings`
+flag added only to the workflow would mean `bun run lint` locally and `bun run
+lint` in CI returning different verdicts on the same tree, and the local one
+being the lenient one. CI's `Lint` step stays a bare `bun run lint`.
+
+**The seven split 1 / 6, and the split is not where `tasks.md` said it was.**
+The queue entry recorded, re-checked 2026-08-24, that all seven were in
+`frontend/src/components/ui/`. By the time the work ran that was false:
+
+- **Fixed — one, ours.** `frontend/src/components/screens.tsx` exported `AVATARS`
+  alongside eight components. Nothing outside that file imported it, so it stopped
+  being exported. No call site changed, because there were none.
+- **Exempted — six, vendored.** `badge.tsx`, `button.tsx`, `form.tsx`,
+  `navigation-menu.tsx`, `sidebar.tsx` and `toggle.tsx`, all in
+  `frontend/src/components/ui/`. These are shadcn-generated primitives, copied in
+  rather than written here, and each pairs a component with its `cva` variants
+  (`buttonVariants`, `badgeVariants`, `toggleVariants`,
+  `navigationMenuTriggerStyle`) or a context hook (`useFormField`, `useSidebar`)
+  in one file — which is how shadcn ships them.
+
+**Why exempt rather than fix those six.** Splitting each file in two would fork
+them from upstream and turn every future `shadcn add` into a manual merge, in
+exchange for a fast-refresh improvement in files nobody hand-edits during
+development. That is a bad trade. **Not** "to make CI green": the seventh warning,
+in code we do write, was fixed rather than exempted, which is the whole point of
+the split.
+
+**The exemption is a path glob, not a comment.** `eslint.config.js` turns
+`react-refresh/only-export-components` off for `src/components/ui/**` and nothing
+else. The rule stays at `warn` severity everywhere else, and `--max-warnings 0`
+is what makes it bite — so any rule configured at `warn`, not just this one,
+fails the build. Scoping it in one config block means the exemption is greppable
+in a single place instead of scattered through six files as `eslint-disable`
+comments.
+
+**What would make this worth revisiting.** If we ever start hand-editing
+`components/ui/` — treating those files as ours rather than as a vendored copy —
+the justification disappears and they should be split properly. Equally, if
+`eslint-plugin-react-refresh` grows a way to mark variant/style exports as
+refresh-safe, the exemption becomes unnecessary rather than merely cheap. Until
+one of those, the directory is a boundary: generated code inside, our code
+outside, and the rule applies to our code.

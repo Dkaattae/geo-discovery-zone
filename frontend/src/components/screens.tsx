@@ -5,7 +5,10 @@ import { UsMap } from "@/components/UsMap";
 import { gradeLabel, levelLabel } from "@/lib/level";
 import { cn } from "@/lib/utils";
 
-export const AVATARS = ["🦉", "🐢", "🦊", "🐙", "🦁", "🐝", "🦜", "🐳", "🦒", "🐸"];
+// Local to this module on purpose: exporting it alongside the components below
+// breaks fast refresh (react-refresh/only-export-components). Nothing outside
+// screens.tsx uses it — if something needs to, give it its own module.
+const AVATARS = ["🦉", "🐢", "🦊", "🐙", "🦁", "🐝", "🦜", "🐳", "🦒", "🐸"];
 
 function Page({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
