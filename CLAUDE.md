@@ -20,7 +20,12 @@ contract — change it deliberately and say so.
 - `geoquizdataplan.md` — the plan and the reasoning. §5 is the tech stack.
 - `PROGRESS.md` — what is done, broken, and next.
 - `conventions.md` — code conventions, commands, and repo layout detail.
-- `decisions.md` — why the process is shaped this way, and what would change it.
+- `process-decisions.md` — why the loop is shaped this way, and what would change
+  it. Gated: the loop may not edit it (`run-loop.sh` G1).
+- `engineering-decisions.md` — why the code is built the way it is. Not gated; a
+  task may add an entry when its criteria say so.
+- `process-tasks.md` — the queue for changes to the loop itself. Done by hand,
+  never expanded into a brief.
 
 ## Branches
 
@@ -39,7 +44,7 @@ Still stop and ask when the grant plainly does not cover you — the header's
 branch is not on the remote, the brief has no header, or two sources disagree
 about which branch it is. Pushing to whatever branch you are standing on is never
 the fallback: the PR cannot see it, nothing errors, and the task stalls
-invisibly. That is what cost T-003 a cycle (`decisions.md` D-8).
+invisibly. That is what cost T-003 a cycle (`process-decisions.md` D-8).
 
 ## Packages
 

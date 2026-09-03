@@ -89,8 +89,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Soft milestones at 5/10/20, a quit flow reporting places learned rather than a
   percentage (§3.6, §3.8), and no timers anywhere (§3.4).
 - 80 tests — 19 over the API client, 61 over level→grade/band display. Test
-  files are typechecked rather than excluded (`decisions.md` D-9) and CI fails
-  if they stop existing (D-10).
+  files are typechecked rather than excluded (`engineering-decisions.md` E-2) and CI fails
+  if they stop existing (E-3).
 - **The client's level labels and the server's are pinned to one another.**
   `frontend/src/lib/level.ts` and `backend/app/levels.py` are hand-copies; both
   suites now assert against the same committed table, `fixtures/level-labels.json`,
@@ -118,7 +118,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 ### Repo and process
 
 - Working docs in place — `CLAUDE.md`, `tasks.md`, `process.md`,
-  `test-guidelines.md`, `conventions.md`, `decisions.md`, and `tasks/` for the
+  `test-guidelines.md`, `conventions.md`, `process-decisions.md`,
+  `engineering-decisions.md`, `process-tasks.md`, and `tasks/` for the
   brief in flight.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
@@ -227,8 +228,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   `openapi.yaml` — that both `frontend/src/lib/level.test.ts` and
   `backend/tests/test_levels.py` assert against, so the client and server label
   arithmetic can no longer drift in silence. Two workarounds became decisions:
-  **D-9**, `frontend/tsconfig.json` stops excluding `*.test.ts(x)` and
-  `@types/bun` pays for it; **D-10**, `--pass-with-no-tests` is gone, so deleting
+  **E-2** (was D-9), `frontend/tsconfig.json` stops excluding `*.test.ts(x)` and
+  `@types/bun` pays for it; **E-3** (was D-10), `--pass-with-no-tests` is gone, so deleting
   the frontend suite now fails CI.
   *Differed from the brief:* three things. The two implementations turned out
   **not** to disagree anywhere — 2,301 levels compared, zero mismatches — so the
@@ -252,8 +253,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   with a failing test in the tree** — a green check certifying nothing, the exact
   failure the task existed to prevent. The fix deleted the guard and asked bun
   instead (`bun test --pass-with-no-tests`). *That flag is itself now gone* —
-  `frontend/` has tests, so T-004 removed it and recorded why in `decisions.md`
-  D-10. The step is a bare `bun test`.
+  `frontend/` has tests, so T-004 removed it and recorded why in `engineering-decisions.md`
+  E-3. The step is a bare `bun test`.
 - **T-002 — `test-guidelines.md` corrected against the first real tests** (PR #9,
   2026-08-06). The seams table pointed at the wrong door: it said to test through
   `SparqlTransport`, `SummaryTransport` and `EntitySink`, and none of the 19 tests

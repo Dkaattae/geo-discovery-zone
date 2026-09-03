@@ -27,7 +27,7 @@ that look most complete. The same rule covers the one hand-written file below.
 ## It is a record, not state
 
 The brief's `Status` and `Next step` header is the state machine. **Nothing here
-is read to decide what happens next.** See `decisions.md` D-1. A file that is
+is read to decide what happens next.** See `process-decisions.md` D-1. A file that is
 both a record and a source of truth goes stale in whichever of the two you check
 less often.
 

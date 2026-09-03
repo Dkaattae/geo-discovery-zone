@@ -216,9 +216,9 @@ need no setup at all.
 
 Test files are **typechecked**, not excluded — `@types/bun` is a devDependency
 of both packages and both tsconfigs carry `"types": ["bun"]`, so `bun run
-typecheck` reads `*.test.ts` like any other source file (`decisions.md` D-9).
+typecheck` reads `*.test.ts` like any other source file (`engineering-decisions.md` E-2).
 CI also **requires** them: neither `bun test` step passes a package with no test
-files (D-10).
+files (E-3).
 
 ### `api/` — pytest
 

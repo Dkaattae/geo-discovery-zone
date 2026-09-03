@@ -109,7 +109,7 @@ jobs:
           # one, so a blocked task would otherwise be announced only to this
           # log. task-expander.md tells it to open the PR first for exactly this
           # reason; an issue is the backstop for when it could not. See
-          # decisions.md D-11.
+          # process-decisions.md D-11.
           if [[ -z $pr ]]; then
             title="Blocked before a PR existed: $TASK on $BRANCH"
 

@@ -12,7 +12,7 @@ other** — see "Which one to use".
 
 ## There is no model in this file
 
-`decisions.md` D-1 originally rejected an orchestrator agent and predicted this
+`process-decisions.md` D-1 originally rejected an orchestrator agent and predicted this
 instead: *"a shell script that reads `Next step` and invokes `claude --agent
 <name>`. Fifteen lines, no model, no drift."* It came out at 500, because the
 gates turned out to be the whole value — but the principle held. **Nothing in
@@ -64,7 +64,7 @@ orchestrator agent D-1 originally rejected.
 | | Gate | Stops when |
 |---|---|---|
 | **G0** | `gate_next_unambiguous` | `Next step` names **two** roles. Taking the first silently is the D-8 failure shape |
-| **G1** | `gate_process_files` | the diff touches `process.md`, `decisions.md`, `CLAUDE.md` or `.claude/` |
+| **G1** | `gate_process_files` | the diff touches `process.md`, `process-decisions.md`, `CLAUDE.md` or `.claude/` |
 | **G2** | `gate_approval` | `Approved:` is missing or still `pending` |
 | **G3** | `gate_rounds` | `fail` or `blocked` rounds hit their bound — **counted separately** |
 | **G4** | `gate_branch` | the header is missing — otherwise it **checks the header's branch out** |

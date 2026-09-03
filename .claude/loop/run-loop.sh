@@ -2,7 +2,7 @@
 #
 # run-loop.sh — drives process.md's loop with no human in the middle.
 #
-# This is NOT an agent. decisions.md D-1 rejected an orchestrator agent and
+# This is NOT an agent. process-decisions.md D-1 rejected an orchestrator agent and
 # predicted this instead: "a shell script that reads Next step and invokes
 # claude --agent <name>. Fifteen lines, no model, no drift." It came out longer
 # than fifteen, because the gates turned out to be the whole value. The
@@ -57,7 +57,7 @@ LEDGER="runs/ledger.tsv"
 
 # Paths the loop may never touch unattended. A task that changes how the loop
 # works does not get to run through the loop.
-GATED_PATHS='^(process\.md|decisions\.md|CLAUDE\.md|\.claude/)'
+GATED_PATHS='^(process\.md|process-decisions\.md|CLAUDE\.md|\.claude/)'
 # Paths that fall outside the reviewer's envelope (D-4) and therefore
 # outside auto-approval too.
 GATED_CONTENT='^(openapi\.yaml|geoquizdataplan\.md)'
@@ -159,7 +159,7 @@ gate_process_files() {
 "Changed under a gated path:
 $(sed 's/^/  /' <<<"$hits")
 
-A task that rewrites process.md, decisions.md, CLAUDE.md or .claude/ does not
+A task that rewrites process.md, process-decisions.md, CLAUDE.md or .claude/ does not
 run unattended — that is the one change the loop must not make to itself.
 Review it by hand and merge it yourself."
 }
@@ -205,7 +205,7 @@ gate_branch() {
   local want have
   want=$(header_token Branch)
   have=$(git branch --show-current)
-  [[ -n $want ]] || stop "the brief has no Branch: header" "decisions.md D-8: that header is where every role pushes."
+  [[ -n $want ]] || stop "the brief has no Branch: header" "process-decisions.md D-8: that header is where every role pushes."
   if [[ $want != "$have" ]]; then
     say "  branch: on '$have', brief says '$want' — checking it out"
     git checkout -q "$want" 2>/dev/null || git checkout -qb "$want"

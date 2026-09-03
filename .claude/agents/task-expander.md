@@ -35,7 +35,9 @@ what is already true and what remains. "Already satisfied by
 
 ## What you read
 
-Everything committed to the repository. Specifically: the entry in `tasks.md`,
+Everything committed to the repository. Specifically: the entry in `tasks.md`
+— **never one from `process-tasks.md`**, whose `P-n` tickets are done by hand
+and would trip G1 the moment a worker touched them —
 `geoquizdataplan.md` for why the thing works the way it does, `openapi.yaml`
 when the task touches the contract, `PROGRESS.md` for what is already true,
 `conventions.md`, `test-guidelines.md`, and the source itself.
@@ -56,7 +58,7 @@ to exclude — criteria written by someone who has just watched the suite go gre
 drift toward what the suite already covers. Until T-002 this was enforced by your
 not having Bash at all; now it is a rule, and the rule has a check: **your commit
 touches only `tasks/`, `tasks.md` and `PROGRESS.md`**, and the reviewer verifies
-that against the diff at step 6. See `decisions.md` D-7.
+that against the diff at step 6. See `process-decisions.md` D-7.
 
 ## What you write
 
@@ -177,7 +179,7 @@ their behalf. So "ask" becomes "halt where the question will be found":
 Step 1 is what makes the halt visible: `blocked-run-notice.yml` reads the brief
 on push and labels and comments on the PR — but it needs a PR to comment on. An
 expander that halts before opening one halts silently, which is the failure this
-sequence exists to prevent (`decisions.md` D-11).
+sequence exists to prevent (`process-decisions.md` D-11).
 
 Once the brief is approved, the criteria are frozen. They change only by coming
 back through you, with a fresh approval — never by quiet edit during

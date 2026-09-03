@@ -62,7 +62,7 @@ read header → Next step names a role → spawn it → record what it returned
 
 One task. When the reviewer marks the PR ready, escalates, or the run halts,
 **you stop.** The PR is then Dkaattae's to merge — no role in this loop merges
-(`decisions.md` D-4), so "ready" is the end of the line, not a step before one.
+(`process-decisions.md` D-4), so "ready" is the end of the line, not a step before one.
 You do not pick the
 next task, you do not look at `tasks.md`, and you do not start a second run
 however obvious the queue looks.
@@ -161,7 +161,7 @@ quote the line.
 
 **G1 — the task must not change the process itself.** Run
 `git diff --name-only origin/main...HEAD` and halt if anything matches
-`process.md`, `decisions.md`, `CLAUDE.md` or `.claude/`. **A task that rewrites
+`process.md`, `process-decisions.md`, `CLAUDE.md` or `.claude/`. **A task that rewrites
 the loop does not run through the loop.** Check the real diff, not what the brief
 says about itself — a brief cannot talk its way past this. This is the one gate
 that would have stopped the change that created you, and that is the correct
