@@ -260,3 +260,79 @@ tree and PR #31 merged to `main` to be meaningful against `origin/main`; not run
 here as part of the rebase itself. Whoever spawns the next role should confirm
 `git diff --name-only origin/main...HEAD` no longer matches `process-decisions.md`
 before relying on that claim.
+
+## Round 5 — tester — 2026-09-03
+
+Spawned as a fresh `claude -p --agent tester` session (the `Agent` tool is still
+disabled; the same `claude -p` mechanism used for the reviewer). Given only the
+brief path, branch, PR number and a mechanical note that git writes would be
+refused — nothing about the worker's or reviewer's findings.
+
+**Verdict: blocked.** Full table and reasoning applied to the brief's `## Verdict`
+verbatim. Summary: criteria 3, 4, 6, 7, 8, 10 pass on inspection; 5 passes in
+substance but cites a file (`decisions.md`) that no longer exists after PR #31's
+split; 1, 2, 9 — the reviewer's three findings — could not be executed at all,
+because every `bun`/`eslint`/`node` invocation was refused for approval in that
+session.
+
+**The independence finding is the important one.** The tester detected that its
+own session id was byte-identical to the one stamped on the worker's commit
+(`592235c`) and **refused to sign a pass on that basis**, correctly. Investigated
+immediately after in the relay session: this session's `CLAUDE_CODE_SESSION_ID`
+environment variable is `69e5a9a4-2abc-5ddc-8f9d-d3c3274fbf8e`, and `claude -p`
+subprocesses spawned via Bash without an explicit `--session-id` inherit it from
+the environment rather than minting a fresh one. Both the reviewer round and this
+tester round confirm the same inherited id in their own JSON `session_id` field.
+**This is a metadata collision, not a context leak** — the tester's actual
+knowledge came entirely fresh from the brief and the files, by its own account —
+but the Sessions-table check `tester.md` describes exists precisely to catch this
+category of thing from the outside, without having to trust the inside. A
+demonstrably fresh id (`claude -p --session-id <freshly generated uuid> ...`) is
+worth trying before concluding the check cannot be satisfied here.
+
+**New finding, outside the criteria:** `frontend/eslint.config.js:44` still says
+"See decisions.md D-12." — stale after PR #31, same defect class as this task's
+own criterion 7. One line, not yet fixed.
+
+**Probe script**, written by the tester from criterion 2 alone, to settle
+criteria 1, 2, 3 and 9 in one pass once an environment can execute `bun`:
+
+```sh
+cd frontend
+
+# Probe A — criterion 2: any warn-severity rule fails, not just react-refresh.
+cat > src/probe-a.tsx <<'INNEREOF'
+import { useEffect, useState } from "react";
+export function ProbeA({ id }: { id: string }) {
+  const [n, setN] = useState(0);
+  useEffect(() => { setN(id.length); }, []);   // react-hooks/exhaustive-deps → warn
+  return <div>{n}</div>;
+}
+INNEREOF
+bun run lint; echo "A exit=$?"      # expect non-zero, "maximum: 0"
+rm src/probe-a.tsx
+
+# Probe B — criterion 3: the glob is a DIRECTORY boundary, not a prefix match.
+cat > src/components/uiHelpers.tsx <<'INNEREOF'
+export function Helper() { return <span />; }
+export function notAComponent(x: number) { return x + 1; }
+INNEREOF
+bun run lint; echo "B exit=$?"      # expect non-zero — sibling path is NOT exempt
+rm src/components/uiHelpers.tsx
+
+# Probe C — the exemption really is in force inside ui/.
+cat > src/components/ui/probe-c.tsx <<'INNEREOF'
+export function ProbeC() { return <span />; }
+export function notAComponent(x: number) { return x + 1; }
+INNEREOF
+bun run lint; echo "C exit=$?"      # expect 0
+rm src/components/ui/probe-c.tsx
+
+bun run lint; echo "clean exit=$?"  # criterion 1: expect 0, no output
+bun run typecheck                   # criterion 9
+bun test                            # criterion 9: expect >= 80 pass, 0 fail
+```
+
+If `bun install --frozen-lockfile` still 403s against the private registry, read
+PR #29's `frontend` CI job instead — same commands, complete install — and cite
+the run by number.

@@ -1,9 +1,10 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `changes requested` — reviewed 2026-08-29; the fix is sound, the
-verification is missing
-**Next step:** `tester` — a session not already listed below. If spawning is
-still closed, Dkaattae by hand, but then say so in the Verdict.
+**Status:** `blocked` — tester ran 2026-09-03; criteria 3,4,6,7,8,10 pass on
+inspection, 5 passes in substance, 1/2/9 unverifiable in that session
+**Next step:** `human` — two things only a person can clear: a tester session
+whose id is not the worker's, and an environment that can execute `bun`.
+Criterion 5 then goes to `task-expander`.
 **Approved:** Dkaattae — 2026-08-29. Criteria frozen. The expander's git halt was
 cleared by the relay session (see "Blocked on"); nothing about the criteria
 changed between the halt and the approval.
@@ -49,6 +50,7 @@ approval — is the only thing outstanding**, and it is a human's.
 | task-expander | 2026-08-29 | orchestrated run on `claude/t006-orchestrator-startup-bmqpg4`; `CLAUDE_CODE_REMOTE_SESSION_ID` not readable from this shell |
 | worker *(by hand)* | 2026-08-29 | relay session — same session as the orchestrator and as this brief's PR. Not an independent worker session. |
 | reviewer | 2026-08-29 | fresh `claude -p --agent reviewer` session; read-only — its shell refused `bun run lint` and all git writes, so it reviewed by reading and its findings were applied by the relay session |
+| tester | 2026-09-03 | `session_01S5hqK8ZZJVEjVYNWAM3RrH` — **the same id as the worker's commit `592235c`**. Fresh context window, no sight of the work; not a separate session. All execution (`bun`, `eslint`, `node <script>`) and all git writes refused for approval |
 
 ## Goal
 
@@ -305,9 +307,46 @@ the worker's reading stands, and no follow-up task is created.
 
 ## Verdict
 
-**Not written — no `tester` ran.** Leaving this section empty is deliberate: a
-`pass` here signed by the session that wrote the code would assert an
-independence that does not exist. The table in the Handoff is a worker's
-self-report, not a verdict.
+**blocked — 2026-09-03.** Not a code finding. Two things stopped verification and
+neither is about the change: the tester session's id is identical to the worker's,
+and the session could execute nothing — `bun run lint`, `bun run typecheck` and
+`bun test` are all refused for approval. Criteria 3, 4, 6, 7, 8 and 10 pass on
+inspection; 5 passes in substance but names a file that no longer exists; 1, 2 and
+9 — the reviewer's three findings — remain unverified.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | unverified | `bun run lint` refused for approval |
+| 2 | unverified | cannot run lint, so cannot build a probe. Static support only: `react-hooks/exhaustive-deps` is `warn` in the plugin's `configRules` and is in force project-wide, so a second warn rule does exist for `--max-warnings 0` to bite on |
+| 3 | pass (static) | base config keeps the rule at `warn` (line 35); sole override is `files: ["src/components/ui/**"]`, exactly the permitted glob. Directory-vs-prefix not proven by a run |
+| 4 | pass | one `eslint-disable` under `src/` outside `ui/`: `routeTree.gen.ts:1`, generated, pre-existing, untouched. Disposed by the reviewer |
+| 5 | pass in substance, criterion stale | `decisions.md` no longer exists (`b5a7519` split it). The entry is `engineering-decisions.md` E-4 and satisfies every clause. The criterion is frozen and unsatisfiable as written — `task-expander` must repoint it |
+| 6 | pass | `ci.yml:55–57` runs `bun run lint` and nothing else; `max-warnings` appears 0 times in the file |
+| 7 | pass | `brief's Handoff` appears 0 times; clause repointed at PR #11; rest of the comment intact |
+| 8 | pass | `bun.lock` absent from the diff; `package.json` diff is the `lint` script only |
+| 9 | unverified | `bun test` and `bun run typecheck` refused. No test file appears in the diff, so nothing was deleted or skipped |
+| 10 | pass | `ci.yml` diff is comment-only; dead-proxy guard untouched; nothing added runs at lint/typecheck/test time |
+
+**Independence.** `592235c` (worker) carries
+`Claude-Session: .../session_01S5hqK8ZZJVEjVYNWAM3RrH`, and this session signs
+with the same id; `printenv CLAUDE_CODE_REMOTE_SESSION_ID` is refused so it cannot
+be refuted. `runs/T-006-lint-gate-warnings.md` exists, but T-006 was hand-finished
+after spawning failed, so the orchestrated-run exemption does not apply. What this
+verdict has is a fresh context window — no sight of the work, every expected value
+taken from the criteria — which is real but weaker than a separate session. It is
+not enough to sign the `pass` the reviewer asked for.
+
+**Finding outside the criteria.** `frontend/eslint.config.js:44` says
+"See decisions.md D-12."; both the file and the number are now wrong (E-4). The
+task deletes one dead cross-reference under criterion 7 and adds another. Worth a
+one-line worker fix before merge.
+
+**Nothing was committed in the tester's own session.** `git add`/`commit`/`push`
+were refused there. `git branch --show-current` matched
+`claude/t006-orchestrator-startup-bmqpg4`, so there was no branch mismatch — only
+a blocked write. This section was applied by a separate relay session that could
+write. The probe script that would settle criteria 1, 2, 3 and 9 in one pass is
+in `runs/T-006-lint-gate-warnings.md` and should be pasted in by whoever runs
+next.
 
 ## Notes
