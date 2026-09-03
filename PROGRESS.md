@@ -196,6 +196,30 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-006 — the frontend lint gate fails on warnings** (PR #29, 2026-09-03).
+  `frontend`'s `lint` script is now `eslint . --max-warnings 0`, so any
+  `warn`-severity rule fails the build, not only the one this task touches. Of
+  the seven warnings CI had been printing and ignoring, one was in first-party
+  code — `screens.tsx` exported `AVATARS` unused outside the file — and is
+  fixed by un-exporting it; the other six are shadcn-generated primitives in
+  `frontend/src/components/ui/`, exempted by a single path-scoped
+  `eslint.config.js` override rather than per-file `eslint-disable` comments.
+  The reasoning is `engineering-decisions.md` **E-4**. A dead `ci.yml` comment
+  pointing at a swept brief is repointed at PR #11.
+  *Differed from the brief:* `tasks.md`'s 2026-08-24 recheck said all seven
+  warnings were in `components/ui/`; the seventh was first-party, so the split
+  landed 1 fixed / 6 exempted rather than 0/7, exactly as the brief's
+  Constraints anticipated. Every spawn mechanism (`Agent`, `claude -p` with
+  `acceptEdits`, `bypassPermissions`) was closed at implementation time, so the
+  fix was hand-finished by the relay session rather than by a spawned
+  `worker` — root cause logged as **P-2** in `process-tasks.md`. The first
+  independent-tester attempt was blocked by a session-id collision with the
+  worker's; a second, genuinely independent session then verified all ten
+  criteria by execution and mutation-tested the new assertions in
+  `frontend/src/lint-gate.test.ts` (80 → 88 frontend tests). Criterion 5 named
+  `decisions.md`, which no longer existed after PR #31 split it; `task-expander`
+  repointed it at `engineering-decisions.md` and Dkaattae re-approved before the
+  final tester pass.
 - **T-005 — "no network in tests" is enforced rather than asserted** (PR #26,
   2026-08-28). CI's four unit test steps — `frontend` → `Test`, `question-bank` →
   `Test`, `backend` → `Test`, `backend-postgres` → `Test against Postgres` — now
@@ -296,7 +320,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   when the client graded locally (T-053).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and
   `conventions.md` describes a repo with no backend and no CI (T-007).
-- `eslint .` still passes on 7 warnings (T-006).
 
 **Behaviour.**
 

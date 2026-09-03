@@ -30,7 +30,8 @@ off-queue; after T-009 and T-052 put the backend and a real stack under CI;
 after T-054's browser suite found the write-durability bug; and after T-004
 pinned the client's level labels to the server's (PR #23). Swept again
 2026-08-28, after T-005 put CI's four unit test steps behind a dead proxy
-(PR #26)._
+(PR #26). Swept again 2026-09-03, after T-006 made the frontend lint gate fail
+on warnings (PR #29)._
 
 ## How this list is ordered
 
@@ -89,7 +90,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 80 frontend, 19 question-bank |
+| **Unit and endpoint tests** | 242 backend, 88 frontend, 19 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -98,29 +99,6 @@ place, so nobody rebuilds it:
 | **Docker** | one image serves the app and the API; compose adds Postgres |
 
 What is missing from that picture is below.
-
-### T-006 — The lint gate ignores warnings, and there are still seven · S · doing
-**Depends on:** —
-`frontend`'s `lint` script is `eslint .`, which exits 0 on warnings, so every
-green CI run logs `✖ 7 problems (0 errors, 7 warnings)` and passes.
-**Re-checked 2026-08-24: still exactly seven, and all seven are in
-`src/components/ui/`** — `navigation-menu.tsx`, `sidebar.tsx`, `toggle.tsx` and
-four others, all `react-refresh/only-export-components`, all in shadcn-generated
-files nobody hand-edits. That changes the shape of the fix: "fix each of the
-seven" means editing vendored components, so the likely right answer is to scope
-the rule off `components/ui/` in `eslint.config.js` and then turn on
-`--max-warnings 0`, which keeps the gate real for code we actually write. Decide
-it deliberately; do not silence them wholesale just to get the flag in.
-**While you are in `ci.yml`, found by T-005's reviewer (PR #26):** the
-`question-bank` job's "No lint step" comment ends "see the brief's Handoff",
-pointing at T-003's brief, which was swept months ago — a dead reference in the
-file this task edits, and about lint, which is this task's subject. Point it at
-PR #11 or delete the clause. One line; it is here rather than in its own entry
-because nothing else opens that comment.
-**Done when:** `bun run lint` fails on any warning in first-party code, the
-seven are each fixed or explicitly allowed with a recorded reason, that dead
-reference resolves or is gone, and CI is green.
-**Brief:** [`tasks/T-006-lint-gate-warnings.md`](tasks/T-006-lint-gate-warnings.md).
 
 ### T-007 — `conventions.md` describes a repo that no longer exists · S · todo
 **Depends on:** —
