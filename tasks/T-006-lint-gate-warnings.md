@@ -1,6 +1,6 @@
 # T-006 — The lint gate ignores warnings, and there are still seven
 
-**Status:** `awaiting approval` — criterion 5 repointed at
+**Status:** `working` — criterion 5 repointed at
 `engineering-decisions.md` (2026-09-03, task-expander), which is where commit
 `b5a7519` actually left the entry before this brief was approved. Criteria
 1-4 and 6-10 already pass by an independent tester's actual run (2026-09-03);
@@ -14,10 +14,11 @@ by the tester and once by this expander pass — see Constraints.
 **Next step:** `worker` — the single one-line comment fix named above and in
 Constraints. Everything else criterion 5 or the rest of the criteria need is
 already done; do not redo any of it.
-**Approved:** pending — criterion 5's wording changed, so re-approval is
-required per `process.md` ("frozen once approved... change only by coming
-back through the expander and being re-approved"). The substance of what
-criterion 5 asks for is unchanged; only the filename/format it names moved.
+**Approved:** Dkaattae — 2026-09-03. Re-approves the brief with criterion 5
+repointed at `engineering-decisions.md`/E-n (was `decisions.md`/D-n); nothing
+else about the criteria changed. Given in chat in this session
+(`session_01Jy82NJhqegETTSxbDNfTrE`) and echoed as a comment on PR #29 for the
+durable record `process.md` calls for.
 **From:** [`tasks.md`](../tasks.md) T-006
 **Branch:** `claude/t006-orchestrator-startup-bmqpg4` — assigned to this session by
 the harness; this line is the authority, not `task/T-006-…`. Every later role
