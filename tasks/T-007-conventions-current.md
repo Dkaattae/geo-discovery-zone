@@ -9,8 +9,9 @@ the harness, and **this line is the authority**, not `task/T-007-…`. Every lat
 role checks `git branch --show-current` against it and pushes here regardless
 (`CLAUDE.md` "Branches"; `process.md`, "When the environment names the branch for
 you").
-**PR:** #30 — draft, opened at expand time against the branch above. It stays
-draft until the reviewer approves it.
+**PR:** [#33](https://github.com/Dkaattae/geo-discovery-zone/pull/33) — draft,
+opened at expand time against the branch above. It stays draft until the reviewer
+approves it.
 **Fault:** —
 
 **Sessions:** one line per agent run — role, date, and session id
