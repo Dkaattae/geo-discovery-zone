@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-08-24_
+_Last updated: 2026-09-04_
 
 ## In one paragraph
 
@@ -27,7 +27,10 @@ Dockerfile      Node build stage → Python runtime, one image
 docker-compose.yml  the same image plus a Postgres
 ```
 
-The service is in `backend/`; `conventions.md` still says `api/` (T-046).
+The service is in `backend/`, and `conventions.md` has said so since T-007.
+`CLAUDE.md` (lines 4 and 51) and `test-guidelines.md` still say `api/` — the
+first is loop-gated and needs a hand-written `P` ticket, the second is T-047.
+Which name wins is still T-046.
 
 Docs: [`geoquizdataplan.md`](geoquizdataplan.md) is the plan (§5 is the tech
 stack), [`tasks.md`](tasks.md) is the work queue, [`process.md`](process.md) is
@@ -121,6 +124,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   `test-guidelines.md`, `conventions.md`, `process-decisions.md`,
   `engineering-decisions.md`, `process-tasks.md`, and `tasks/` for the
   brief in flight.
+- **`conventions.md` is checked, not just written.**
+  `frontend/src/conventions-doc.test.ts` asserts it against the repo it
+  describes — every Layout path resolves, every `make` target and `bun run`
+  script it names is defined, its CI job list equals `ci.yml`'s, and every
+  relative link points at a file that exists (T-007). A doc that goes stale now
+  fails a test instead of misleading the next session.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
   task between the other four and reads none of their work.
@@ -196,6 +205,30 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-007 — `conventions.md` describes the repo that exists** (PR #33,
+  2026-09-04). The file placed the API in an `api/` directory that was never
+  built, told you to run it with `cd api && uv sync`, and described a repo with
+  no CI, no database and no Docker. It now carries a Layout block whose seven
+  paths all resolve, `make -C backend dev|test|check|migrate|revision` read out
+  of `backend/Makefile`, `bun` commands checked against all three
+  `package.json` files, `GEO_DATABASE_URL` with SQLite-default/Postgres-tested,
+  the six CI jobs by name, Docker as a pointer to `README.md` rather than a
+  second copy of it, and an explanation of `fixtures/level-labels.json` — the
+  one committed table that `frontend/src/lib/level.test.ts` and
+  `backend/tests/test_levels.py` both assert against, so a one-sided edit turns
+  exactly one suite red. `## Code` and `## Network` were already correct and are
+  byte-identical.
+  *Differed from the brief:* nothing in the criteria, but two things worth
+  knowing. The tester's 50 assertions (`frontend/src/conventions-doc.test.ts`,
+  88 → 138 frontend tests) read their expected values out of `backend/Makefile`,
+  the `package.json` files, `ci.yml` and `docker-compose.yml` rather than out of
+  the doc, so the doc cannot ratify itself — and 23 mutations proved each one
+  can fail. `CLAUDE.md` is stale in exactly the same way and was deliberately
+  left alone: it is loop-gated, so it needs a hand-written `P` ticket. The
+  worker could not run `frontend`'s `bun run typecheck` in the sandbox
+  (`react-simple-maps` unreachable from the pinned registry, `node_modules`
+  incomplete); CI's `frontend (typecheck, lint, test)` job is green on the head
+  commit, which is what settled it.
 - **T-006 — the frontend lint gate fails on warnings** (PR #29, 2026-09-03).
   `frontend`'s `lint` script is now `eslint . --max-warnings 0`, so any
   `warn`-severity rule fails the build, not only the one this task touches. Of
@@ -318,8 +351,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 - The public question bank hands out `correctIndex` by default — a leftover from
   when the client graded locally (T-053).
-- `test-guidelines.md` still says `api/` does not exist (T-047), and
-  `conventions.md` describes a repo with no backend and no CI (T-007).
+- `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
+  still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
+  is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
+  `conventions.md` was the third of these and is fixed (T-007, PR #33).
+- `README.md:202` says CI runs five jobs and names five; there are six (T-058).
 
 **Behaviour.**
 
