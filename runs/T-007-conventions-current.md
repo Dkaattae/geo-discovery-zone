@@ -1,7 +1,7 @@
 # T-007 — `conventions.md` describes a repo that no longer exists — run log
 
 **Task:** T-007 · **Branch:** `claude/t007-orchestrator-startup-8orc9r` · **PR:** #33
-**Started:** 2026-09-04 · **Outcome:** in progress
+**Started:** 2026-09-04 · **Outcome:** ready for merge — PR #33, approved and swept by the reviewer
 
 ## Round 1 — task-expander — 2026-09-04
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -121,3 +121,49 @@ G0 (`tester`), G1 (diff vs `origin/main`: `conventions.md`, `frontend/src/conven
 `runs/T-007-conventions-current.md`, `tasks.md`, `tasks/T-007-conventions-current.md` — no
 gated path), G2 (`Approved:` present), G4 (branch matches) all pass. `Status: pass`, so no G3
 round to count. Relaying to `reviewer` next, in a fresh spawn.
+
+## Round 4 — reviewer — 2026-09-04
+On entry, brief `Status`: `pass` · `Next step`: `reviewer` — on exit: brief deleted (swept), PR #33 marked ready
+
+**Approved, swept, and PR #33 is ready for merge.** All six CI jobs are green on the sweep head `fc9cb6a`. Did not merge — that is Dkaattae's (`process-decisions.md` D-4).
+
+### Verdict
+
+| Check | Result |
+|---|---|
+| Every role's work in the PR | Yes — expander `cd91bab`/`4b97aad`, worker `5a4f191`, tester `a73edcf`, orchestrator logs, all on `claude/t007-orchestrator-startup-8orc9r` |
+| Lanes held | Expander touched only `tasks.md` + brief; worker only `conventions.md` + brief; tester only its one test file + brief (D-7 check passes) |
+| Suite | frontend 138, question-bank 19, backend 233 passed / 9 skipped, lint clean; six CI jobs green |
+| Envelope | Inside it — no dependency, no `openapi.yaml`, no migration, no plan change, no child-facing text. Marked ready with no escalation |
+
+`conventions.md` reads as a conventions file rather than a second README (Docker is six lines and a link), every command in it is read out of `backend/Makefile` or a `package.json`, and the tester's `frontend/src/conventions-doc.test.ts` takes its expected values from those authorities rather than from the doc under test.
+
+### Findings — none blocking, filed as `tasks.md` T-058
+
+1. `README.md:202` — "CI runs all **five** jobs" and names five; there are six, `e2e` has run since T-054.
+2. `conventions.md:98` — "checks the lockfile did not move" holds for four of six jobs; `backend-postgres` and `integration` install `--frozen` but have no `git diff --exit-code` step.
+3. `conventions.md:66` — "thirteen full user journeys" hardcodes a count, the pattern T-047 already decided against maintaining.
+4. `conventions.md:10` — "once built" clause; accepted as accurate, logged as optional wording only.
+
+All worker/tester flags disposed: the worker's unrunnable `bun run typecheck` resolved (CI's `frontend` job green; sandbox-only registry 403, `bun.lock` unchanged). The tester's `runs/` vs criterion 13 question decided as not a violation.
+
+### Queue trimmed
+
+- T-007 deleted from `tasks.md`; brief deleted; criteria preserved verbatim in the PR body.
+- T-046 rewritten — smaller, since `conventions.md` no longer says `api/`.
+- T-058 added; §A's "already in place" table updated.
+- `PROGRESS.md` lines 30 and 322 corrected; T-007 logged under "Completed tasks".
+
+### One thing for a human, not a merge blocker
+
+`CLAUDE.md` lines 4 and 51 still say the API lives in `api/` and is "not built yet" — after this merges, `CLAUDE.md` and `conventions.md` disagree and `conventions.md` is correct. `CLAUDE.md` is loop-gated, needs a hand-written `P` ticket in `process-tasks.md`. Flagged in the PR body and `PROGRESS.md` "Known gaps" rather than filed by the reviewer, per the brief's Out of scope.
+
+## Orchestrator note — run ends here
+
+The reviewer approved, swept the brief, and marked PR #33 ready — the terminal state for a
+relayed run (`process.md`: "you stop" once the reviewer marks the PR ready). Confirmed:
+`origin/claude/t007-orchestrator-startup-8orc9r` is at `fc9cb6a`, `tasks/` holds only
+`README.md`/`TEMPLATE.md` (swept), and the diff vs `origin/main` (`PROGRESS.md`,
+`conventions.md`, `frontend/src/conventions-doc.test.ts`, `runs/T-007-conventions-current.md`,
+`tasks.md`) touches no gated path. No `Next step` to route — the brief no longer exists.
+Handing PR #33 to Dkaattae to merge. This orchestrator run does not pick a next task.
