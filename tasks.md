@@ -32,7 +32,8 @@ pinned the client's level labels to the server's (PR #23). Swept again
 2026-08-28, after T-005 put CI's four unit test steps behind a dead proxy
 (PR #26). Swept again 2026-09-03, after T-006 made the frontend lint gate fail
 on warnings (PR #29). Swept again 2026-09-04, after T-007 made `conventions.md`
-describe the repo that exists (PR #33)._
+describe the repo that exists (PR #33), and again the same day after T-008 pinned
+the third-party CI actions by SHA (PR #34)._
 
 ## How this list is ordered
 
@@ -132,19 +133,8 @@ substance; they are the rounding errors its criteria did not reach.
 **Done when:** `README.md` says six jobs and names them, and the three
 `conventions.md` lines are either corrected or deliberately left with a reason.
 
-### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · doing
-**Depends on:** —
-`ci.yml` uses `actions/checkout@v5` and `oven-sh/setup-bun@v2` — mutable major
-tags, so a compromised or merely changed action reaches the runner without a
-diff here. Raised by T-003's worker and never decided; its tester pointed at the
-reason it is not academic: `frontend/bunfig.toml` runs a 24h `minimumReleaseAge`
-guard against exactly this risk on the npm side, and CI's own supply chain is
-unguarded. Pinning by SHA costs a dependabot-shaped chore nobody has set up yet,
-which is the argument for the other side. Decide, act, and record the reason.
-**Done when:** the decision is in `engineering-decisions.md` and `ci.yml` matches it.
-
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
-**Depends on:** T-008
+**Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
 T-008's `engineering-decisions.md` E-5 pins `oven-sh/setup-bun` and
 `astral-sh/setup-uv` in `ci.yml` to a commit SHA, with `actions/checkout` and
 `actions/upload-artifact` staying on their major tags — and states plainly that
@@ -158,6 +148,30 @@ schedule is Dkaattae's call, not a task the loop can make on its own
 `.github/dependabot.yml` (or the Renovate equivalent) exists, is scoped to
 `github-actions`, and E-5's "no mechanism exists in the repo today" sentence is
 updated to match.
+
+### T-061 — Two test files enforce E-5, and one of them hardcodes a count · S · todo
+**Depends on:** —
+**New 2026-09-04, found by T-008's reviewer (PR #34).** T-008 left the frontend
+suite with two files parsing `.github/workflows/ci.yml` and applying the same
+rule: `frontend/src/ci-workflow-pins.test.ts` (the worker's, 4 tests) and
+`frontend/src/ci-action-pinning.test.ts` (the tester's, 12 tests). The second is
+a behavioural superset of the first — exact action-set equality rather than
+`toContain`, lowercase hex required, the trailing comment required to name a
+release — so nothing is lost by keeping only it. What the duplication costs is
+that E-5's rule has two implementations (`isPinnedCategory()` at
+`ci-workflow-pins.test.ts:59`, the `pinned` branch of `violations()` at
+`ci-action-pinning.test.ts:74`), and changing the rule means changing both or
+the suite contradicts itself.
+
+While there: `ci-action-pinning.test.ts:106` asserts `ci.yml` has exactly 13
+`uses:` references. The intent is to catch a `uses:` line the regex cannot read,
+which is worth keeping — but the literal also fires on any legitimately added CI
+step, and reads as "you added a step" rather than "the parser missed a line".
+Asserting the parsed count against the raw `uses:`-line count gets the same
+coverage without pinning the workflow's size. This repo has made that call twice
+already (T-058 on `conventions.md:66`, T-047 on `test-guidelines.md:198`).
+**Done when:** one file enforces E-5, the count literal is gone, and deleting a
+`# v2.2.0` comment or writing `oven-sh/setup-bun@v2` still turns the suite red.
 
 ### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
 **Depends on:** —

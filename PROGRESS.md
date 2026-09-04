@@ -140,7 +140,13 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Two unattended drivers for the same loop, enforcing the same six gates:
   `.claude/loop/run-loop.sh` locally (no model in it, a spend cap the CLI
   enforces, a fresh session id per step) and the `orchestrator` agent where no
-  shell can run. **Neither has yet driven a task end to end.**
+  shell can run. **The `orchestrator` has now driven three tasks end to end** —
+  T-006 (PR #29), T-007 (PR #33) and T-008 (PR #34), logged in `runs/`. What that
+  costs is the same every time and is written into each brief rather than
+  disguised: nobody approves the criteria (`Approved: orchestrator`), and every
+  spawned role shares one session id, so the Sessions-table independence check
+  does not run — only the fresh context window is real. `run-loop.sh` has still
+  never driven a task.
 - CI on every PR and push to `main`, six jobs: `frontend` and `question-bank`
   (typecheck, lint, test), `backend` (ruff + 221 tests on SQLite),
   `backend-postgres` (the same suite against a Postgres service container),
@@ -150,6 +156,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   and a 15-minute timeout, demonstrated on a runner with a canary that goes red
   under the guard and green without it (T-005). `integration` and `e2e` are
   deliberately left unguarded.
+- **CI's own supply chain has a written rule.** `oven-sh/setup-bun` and
+  `astral-sh/setup-uv` are pinned to a commit SHA with a version comment;
+  `actions/checkout` and `actions/upload-artifact`, published by GitHub, stay on
+  their major tag. The reasoning, the rejected options and the revisit trigger
+  are `engineering-decisions.md` **E-5** (T-008), and
+  `frontend/src/ci-action-pinning.test.ts` turns red if `ci.yml` stops obeying
+  it. **Nothing automates the pins** — no Dependabot, no Renovate; T-060 is the
+  open question about whether to add one.
 - **Integration tests** in `backend/integration/` — 30 black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
   one origin, content is public, a child's sitting works end to end, accounts
@@ -204,6 +218,32 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-008 — the CI actions have a pinning rule, and it is written down** (PR #34,
+  2026-09-04). `ci.yml`'s 13 `uses:` references were all on mutable major tags,
+  which `frontend/bunfig.toml`'s 24h `minimumReleaseAge` guard made an
+  inconsistency rather than a theoretical worry. Settled as
+  `engineering-decisions.md` **E-5**: the rule is the publisher, not the action —
+  owner `actions` stays on a tag, everyone else is pinned to a 40-character
+  commit SHA with a comment naming the release. Six references moved
+  (`oven-sh/setup-bun` ×3 → `0c5077e5… # v2.2.0`, `astral-sh/setup-uv` ×3 →
+  `d0cc045d… # v6.8.0`), seven did not, and the diff on `ci.yml` is those six
+  lines and nothing else. Both SHAs were checked against GitHub by hand three
+  times — worker, tester, reviewer — never in an assertion, because that would be
+  a network test.
+  *Differed from the brief:* nothing in the criteria, and three things worth
+  knowing. **The split was a genuine choice**, not forced by the criteria — "pin
+  everything" and "pin nothing" would both have satisfied criteria 1–6, and E-5
+  names and prices both rather than only the winner. **The brief budgeted one
+  test file and two landed**: the worker's `ci-workflow-pins.test.ts` and the
+  tester's stricter `ci-action-pinning.test.ts`, which is a behavioural superset
+  of it — T-061 is the entry to collapse them. And **`astral-sh/setup-uv`'s `v6`
+  is an annotated tag**, so a bare `git ls-remote` returns the tag object rather
+  than the commit; it has to be peeled with `v6^{}`, which is the kind of detail
+  that would have produced a plausible-looking wrong pin if nobody had looked.
+  *Flagged for Dkaattae on the PR:* E-5 sets the repository's CI supply-chain
+  posture and creates a recurring manual chore with no owner, in a run whose
+  brief no human approved.
 
 - **T-007 — `conventions.md` describes the repo that exists** (PR #33,
   2026-09-04). The file placed the API in an `api/` directory that was never
