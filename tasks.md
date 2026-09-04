@@ -100,7 +100,7 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-007 — `conventions.md` describes a repo that no longer exists · S · todo
+### T-007 — `conventions.md` describes a repo that no longer exists · S · doing
 **Depends on:** —
 **Scope grew 2026-08-24.** It was two one-line gaps; it is now most of the file:
 
@@ -119,6 +119,7 @@ What is missing from that picture is below.
 
 **Done when:** `conventions.md` matches the repo — layout, commands, CI, and how
 to run the thing.
+**Brief:** [`tasks/T-007-conventions-current.md`](tasks/T-007-conventions-current.md).
 
 ### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · todo
 **Depends on:** —
