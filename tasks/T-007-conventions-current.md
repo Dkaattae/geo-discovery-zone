@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-04`
+**Approved:** orchestrator — 2026-09-04, unattended run. See `runs/T-007-conventions-current.md`.
 **From:** [`tasks.md`](../tasks.md) T-007
 **Branch:** `claude/t007-orchestrator-startup-8orc9r` — assigned to this session by
 the harness, and **this line is the authority**, not `task/T-007-…`. Every later
