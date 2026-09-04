@@ -20,6 +20,35 @@ Push confirmed landed at `f4cfd96` on `origin/claude/t008-orchestrator-startup-a
 
 Status set to `awaiting verification`, Next step `tester`.
 
+## Round 3 — tester — 2026-09-04
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+## Verdict: **pass**
+
+All fourteen criteria hold. The two pinned SHAs resolve to exactly the releases their comments name (re-checked with `git ls-remote`), and the rule-enforcing tests survived a battery of eight mutations — seven red, one green control — every one reverted. CI is green across all six jobs on the branch head.
+
+**Independence caveat, stated plainly:** this is an orchestrated run, so every role shares session id `cse_018F9nuHyps3iBuiq4RR2Y4s`. The Sessions-table check **did not pass — it did not run**. What is real is that I am a freshly spawned agent with my own context window that never saw the worker's transcript. That is the weaker of the two kinds of independence, and it rests on the orchestrator having spawned me correctly.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1–6 | pass | E-5 appended to `engineering-decisions.md`, E-1…E-4 byte-identical. Names the split in one sentence; the rule is a predicate on the owner (`actions` or not) resolving all four actions; both rejected options costed; states "No Dependabot or Renovate config exists in this repo today"; two observable revisit triggers; final paragraph covers `blocked-run-notice.yml` (whose diff is empty) |
+| 7 | pass | 13 refs: 6 `checkout@v5`, 1 `upload-artifact@v4`, 3 `setup-bun@0c5077e5… # v2.2.0`, 3 `setup-uv@d0cc045d… # v6.8.0`. Lowercase 40-hex, release comments, no branch refs |
+| 8 | pass | Re-verified from a shell. `0c5077e5…` = `v2` = `v2.2.0`. `v6` is annotated; peeled it is `d0cc045d…` = `v6.8.0` — the Handoff's account of that wrinkle is accurate |
+| 9 | pass | Whole frontend suite 156 pass / 0 fail behind `http://127.0.0.1:1` proxies |
+| 10 | pass | 8 mutations, all reverted; `git status` clean |
+| 11 | pass | `git diff origin/main -- .github/workflows/ci.yml` is 6 changed lines, all `uses:` |
+| 12 | pass | `conventions-doc.test.ts` unchanged, 50 pass; `conventions.md` "## CI" still true |
+| 13 | pass | Runs 33900037927 (`f4cfd96`) and 33900799605 (`9c20e07`), six jobs each, all `success` |
+| 14 | pass | No manifest or lockfile differs from `origin/main`; a fifth action now turns a test red |
+
+**Mutations** (all reverted): pinned→tag, pinned→`@main`, tag→`@main`, tag→`@latest`, SHA with comment stripped, SHA truncated to 12 chars, and a fifth action swapped in — all red. The control, `actions/checkout@v5` → a *tighter* SHA, stayed green, which criterion 10 requires. Three of those (comment stripped, truncated SHA, fifth action) were checks the criteria require that the worker's own mutation round did not cover.
+
+**What I added:** `/home/user/geo-discovery-zone/frontend/src/ci-action-pinning.test.ts` — 12 tests written from the criteria, deliberately overlapping the worker's file and stricter where criterion 7 is explicit and that file is not (lowercase hex, comment must name a release, action set must stay exactly four). Its criterion-10 block runs E-5's rule against synthetic workflow fragments, so the check proves inside the suite that it discriminates. No source edited, no criterion edited.
+
+**One thing the reviewer should not be alarmed by:** `frontend`'s `bun run typecheck` fails locally with four errors in `src/components/UsMap.tsx`, because `react-simple-maps` and `us-atlas` are absent — this sandbox's npm mirror 403s on their `d3-*` deps. Pre-existing and unrelated: the branch changes no `package.json` or lockfile, and CI's `frontend` job ran `Typecheck` green.
+
+**Pushed to `claude/t008-orchestrator-startup-ai1zb2`** (the brief's `Branch:` header, which matched my working branch). `origin` head is `18991eb`; PR #34 still draft, head `9c20e07`→`18991eb`. Brief updated: `/home/user/geo-discovery-zone/tasks/T-008-pin-ci-actions.md`, **Status: `pass`**, **Next step: `reviewer`**.
+
 ## Round 1 — task-expander — 2026-09-04
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
 
