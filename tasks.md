@@ -31,7 +31,8 @@ after T-054's browser suite found the write-durability bug; and after T-004
 pinned the client's level labels to the server's (PR #23). Swept again
 2026-08-28, after T-005 put CI's four unit test steps behind a dead proxy
 (PR #26). Swept again 2026-09-03, after T-006 made the frontend lint gate fail
-on warnings (PR #29)._
+on warnings (PR #29). Swept again 2026-09-04, after T-007 made `conventions.md`
+describe the repo that exists (PR #33)._
 
 ## How this list is ordered
 
@@ -97,29 +98,39 @@ place, so nobody rebuilds it:
 | **No network in tests** | enforced, not assumed: the four unit test steps run with all six proxy spellings pointed at `http://127.0.0.1:1` and a 15-minute timeout (T-005, PR #26). `integration` and `e2e` are deliberately unguarded |
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
+| **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
 
 What is missing from that picture is below.
 
-### T-007 — `conventions.md` describes a repo that no longer exists · S · doing
+### T-058 — Three doc claims that are true-ish, and one that is not · S · todo
 **Depends on:** —
-**Scope grew 2026-08-24.** It was two one-line gaps; it is now most of the file:
+**New 2026-09-04, found by T-007's reviewer (PR #33)** while checking
+`conventions.md` against the repo. None of these is in `conventions.md`'s
+substance; they are the rounding errors its criteria did not reach.
 
-- Layout says `api/  FastAPI backend (Python, uv) — not built yet`. It is built,
-  and it is in `backend/` (see T-046).
-- Commands has an `# api (once it exists)` block pointing at `cd api`. The real
-  commands are `make -C backend dev|test|check|migrate` — see `backend/Makefile`.
-- The frontend block lists `dev`, `lint`, `format` but not `bun run typecheck`.
-- Nothing says the repo has CI, so a reader still learns the checks are run by
-  whoever remembers to.
-- Nothing mentions the database, `GEO_DATABASE_URL`, Alembic-in-practice, the
-  `Dockerfile` or `docker-compose.yml`.
-- The layout block lists neither `e2e/` nor the repo-root `fixtures/` that T-004
-  added — one committed table two suites in different languages both assert
-  against, which is a pattern a reader will otherwise not know exists.
+- **`README.md:202` is wrong, not merely imprecise.** "CI runs all **five** jobs
+  on every pull request: `frontend`, `question-bank`, `backend`,
+  `backend-postgres` and `integration`." There are six — `e2e` has been running
+  on every PR since T-054. `conventions.md` now lists all six and is asserted
+  against `ci.yml` by a test; `README.md` is not, so it drifted alone.
+- **`conventions.md:98` overstates the lockfile guard.** "Each installs from a
+  frozen lockfile, checks the lockfile did not move" — four of the six jobs do
+  both; `backend-postgres` and `integration` install with `--frozen` and have no
+  `git diff --exit-code` step. Either say "four of the six", or add the two
+  missing steps and leave the sentence true (they are two lines each, and the
+  guard is cheap).
+- **`conventions.md:66` hardcodes a count** — "thirteen full user journeys".
+  True today; stale after the next `e2e` task. T-047 already made this call for
+  `test-guidelines.md`: a count that is wrong after every task is worth dropping
+  rather than maintaining.
+- **`conventions.md:10` reads oddly** — "serving `/api/v1` and, once built, the
+  frontend on the same origin". It is accurate (the backend serves the bundle
+  when one has been built — `backend/tests/test_frontend_serving.py`), and it is
+  one clause away from the "not built yet" phrasing T-007 existed to remove.
+  Optional, and only if a rewording is clearer than the original.
 
-**Done when:** `conventions.md` matches the repo — layout, commands, CI, and how
-to run the thing.
-**Brief:** [`tasks/T-007-conventions-current.md`](tasks/T-007-conventions-current.md).
+**Done when:** `README.md` says six jobs and names them, and the three
+`conventions.md` lines are either corrected or deliberately left with a reason.
 
 ### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · todo
 **Depends on:** —
@@ -457,13 +468,20 @@ whichever way it went.
 
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
-**New 2026-08-24.** `conventions.md` §Layout and `PROGRESS.md` both say the
-FastAPI service lives in `api/`. It was built in `backend/` and everything —
-`Makefile`, `Dockerfile`, `CLAUDE.md`, both READMEs — now says `backend/`.
-Renaming is cheap but touches the Docker build, the compose file and every doc;
-leaving it means editing two docs. Either is fine. Deciding is not optional,
-because right now the docs disagree with the tree and a new session believes the
-docs. Fold the doc half into T-007 if that lands first.
+**New 2026-08-24. Smaller since T-007 (PR #33).** The service was built in
+`backend/` and the docs used to say `api/`. `conventions.md` now says `backend/`
+and `PROGRESS.md` never did, so **the doc half is done except for two files**:
+`CLAUDE.md` line 4 (``` `api/` FastAPI + Postgres (uv, not built yet)```) and
+line 51 (`uv add` / `uv run` in `api/`), which are loop-gated and belong to a
+hand-written `P` ticket rather than to this task; and `test-guidelines.md`,
+which is T-047.
+
+What is left here is the decision itself, not the doc sweep: rename `backend/`
+to `api/`, or keep `backend/` and retire the name `api/` for the directory.
+Renaming touches the Docker build, the compose file, `ci.yml` and every doc;
+keeping `backend/` costs the two lines above. Either is fine, and deciding is
+not optional — an undecided name is how the docs drifted from the tree in the
+first place.
 **Done when:** one name is used everywhere, and `engineering-decisions.md` says which and why
 if the answer was a rename.
 
