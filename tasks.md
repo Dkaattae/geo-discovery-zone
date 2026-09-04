@@ -132,7 +132,7 @@ substance; they are the rounding errors its criteria did not reach.
 **Done when:** `README.md` says six jobs and names them, and the three
 `conventions.md` lines are either corrected or deliberately left with a reason.
 
-### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · todo
+### T-008 — Decide: pin the CI actions by SHA, or stay on major tags · S · doing
 **Depends on:** —
 `ci.yml` uses `actions/checkout@v5` and `oven-sh/setup-bun@v2` — mutable major
 tags, so a compromised or merely changed action reaches the runner without a
