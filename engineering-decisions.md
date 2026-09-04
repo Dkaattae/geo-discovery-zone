@@ -154,3 +154,72 @@ the justification disappears and they should be split properly. Equally, if
 refresh-safe, the exemption becomes unnecessary rather than merely cheap. Until
 one of those, the directory is a boundary: generated code inside, our code
 outside, and the rule applies to our code.
+
+---
+
+## E-5 — Third-party CI actions are pinned by commit SHA; `actions/*` stays on major tags
+
+**2026-09-04.** `.github/workflows/ci.yml` had 13 `uses:` references across four
+actions, all on mutable major tags (`actions/checkout@v5`,
+`oven-sh/setup-bun@v2`, `astral-sh/setup-uv@v6`, `actions/upload-artifact@v4`) —
+whoever holds push access to the repo behind that tag can change what runs on
+this repo's runners without a diff here. That is the same exposure
+`frontend/bunfig.toml`'s 24h `minimumReleaseAge` guard exists to close on the
+npm side (T-003's tester flagged CI's own supply chain as the unguarded half of
+that asymmetry).
+
+**Decided: the rule is publisher, not action.** `oven-sh/setup-bun` and
+`astral-sh/setup-uv` — actions published outside the `actions/` org, by the
+smallest and least-scrutinized maintainers of the four — are pinned to the full
+40-character commit SHA their major tag currently resolves to, with a trailing
+comment naming the release it corresponds to (`# v2.2.0`, `# v6.8.0`).
+`actions/checkout` and `actions/upload-artifact` — published and operated by
+GitHub itself, under the `actions/` org's own release process — stay on the
+major tag (`@v5`, `@v4`). The rule that places every `uses:` reference in one
+category or the other: **an action's owner is `actions`, or it is not.** All
+four actions in `ci.yml` fall under exactly one branch of that.
+
+**Both options, and what the rejected one costs.**
+
+- **Stay on tags everywhere (reject: pin nothing).** Free, and was the status
+  quo before this entry. The cost is the exposure above, paid on all four
+  actions instead of two: a tag is a pointer, not a version, and nothing in this
+  repo would notice or block it moving.
+- **Pin everything, including `actions/*` (reject: pin all).** Closes the same
+  hole for `actions/checkout` and `actions/upload-artifact` too, at the cost of
+  doubling the manual update surface — 13 references instead of 6 — for two
+  actions GitHub operates directly, under org-level release controls, where a
+  tag-hijack would be a materially bigger incident for GitHub to have happen and
+  explain than for a two-person third-party project. The chosen rule accepts
+  that residual risk rather than pay to close it too.
+- **The chosen split** pays the update chore on 6 of the 13 references
+  (`oven-sh/setup-bun` ×3, `astral-sh/setup-uv` ×3) and accepts mutable-tag
+  exposure on the other 7 (`actions/checkout` ×6, `actions/upload-artifact` ×1).
+
+**How a version change reaches this repo — and on neither side of the rule does
+it happen automatically.** For the two pinned actions, nothing in this repo
+notices a new upstream release: a human has to know the tag moved, resolve it to
+a commit SHA by hand, and edit `ci.yml`. For the two tagged actions, the
+opposite is true and is exactly the risk this rule accepts rather than solves:
+the next CI run after the maintainer (GitHub) moves the major tag runs whatever
+it now points to, with no diff and no review in this repo, whether that commit
+is a bug fix or something worse. **No Dependabot or Renovate config exists in
+this repo today** — `.github/` holds only `workflows/` — so neither the pinned
+references nor the tagged ones are watched by anything automated. Enabling
+Dependabot would close the update-chore side of this but is Dkaattae's call
+(`CLAUDE.md` "Packages"), not this task's to make; see the `tasks.md` entry this
+task adds proposing it.
+
+**Revisit when** either: (a) a pinned SHA here goes roughly six months without
+being refreshed to the action's then-current release — stale enough that the
+pinned code is plausibly missing a real upstream fix, which means the manual
+chore has already lapsed and needs an owner or a bot; or (b) `actions/checkout`
+or `actions/upload-artifact` is the subject of a disclosed tag-integrity
+incident, at which point they move to the pinned side of the rule too.
+
+**`blocked-run-notice.yml`'s own `actions/checkout@v5`** (line 36, loop
+machinery, not CI) falls under the same rule and already satisfies it — its
+owner is `actions`, so it stays on the tag as it already is, and this task made
+no edit there. If that file ever adds a third-party action, pinning it is a
+hand-written `P` ticket (`process.md`, "Work on the loop itself never enters the
+loop"), not part of this task.

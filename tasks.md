@@ -143,6 +143,22 @@ unguarded. Pinning by SHA costs a dependabot-shaped chore nobody has set up yet,
 which is the argument for the other side. Decide, act, and record the reason.
 **Done when:** the decision is in `engineering-decisions.md` and `ci.yml` matches it.
 
+### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
+**Depends on:** T-008
+T-008's `engineering-decisions.md` E-5 pins `oven-sh/setup-bun` and
+`astral-sh/setup-uv` in `ci.yml` to a commit SHA, with `actions/checkout` and
+`actions/upload-artifact` staying on their major tags — and states plainly that
+nothing in the repo notices when a pinned SHA goes stale or a watched tag moves,
+because `.github/` holds only `workflows/` and no dependency bot exists. E-5
+recommends closing that gap with Dependabot or Renovate scoped to
+`package-ecosystem: "github-actions"`, but turning a bot loose to open PRs on a
+schedule is Dkaattae's call, not a task the loop can make on its own
+(`CLAUDE.md` "Packages").
+**Done when:** Dkaattae has decided whether to enable it, and — if yes —
+`.github/dependabot.yml` (or the Renovate equivalent) exists, is scoped to
+`github-actions`, and E-5's "no mechanism exists in the repo today" sentence is
+updated to match.
+
 ### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
 **Depends on:** —
 Found by T-004's worker while pinning the two level implementations together.
