@@ -457,7 +457,7 @@ anything I can verify myself.
 | 10 | pass | Mutation-tested — 8 mutations, table below. Both files live in `frontend/src/*.test.ts`, which CI's `frontend` job runs as its `Test` step, so this is a check CI already runs. |
 | 11 | pass | `git diff origin/main -- .github/workflows/ci.yml` is exactly 6 changed lines, all `uses:`. No job name, step name, `run:`, `if:`, `with:`, `env:`, `services:` or `timeout-minutes:` differs. |
 | 12 | pass | `git diff origin/main -- frontend/src/conventions-doc.test.ts` is empty; the file runs 50 pass / 0 fail. `conventions.md` "## CI" (lines 93–104) makes no claim about action versions and is still true — it describes six jobs, frozen lockfiles, independent steps and the dead-proxy guard, none of which this change touches. |
-| 13 | pass (on the code commit) | CI run 33900037927 on `f4cfd96` — the commit carrying the `ci.yml` change — completed **success** with all six jobs present and green: `frontend (typecheck, lint, test)`, `question-bank (typecheck, test)`, `backend (lint, format, test)`, `backend (postgres)`, `integration (docker compose)`, `e2e (playwright)`. No "Unable to resolve action" anywhere. See the note below on the branch head. |
+| 13 | pass | Two runs, both **success**, both with all six jobs present and green — `frontend (typecheck, lint, test)`, `question-bank (typecheck, test)`, `backend (lint, format, test)`, `backend (postgres)`, `integration (docker compose)`, `e2e (playwright)`. Run 33900037927 on `f4cfd96` (the commit carrying the `ci.yml` change) and run 33900799605 on `9c20e07` (this branch's head after the tester commit). No "Unable to resolve action" in either. |
 | 14 | pass | No `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` differs from `origin/main` (`git diff origin/main --stat` over those globs is empty). `ci-action-pinning.test.ts` asserts the set of distinct actions in `ci.yml` is exactly the original four, so a fifth action cannot be added without turning it red. |
 
 ### Criterion 8 — tag ↔ SHA, re-checked from a shell
@@ -543,12 +543,11 @@ $ cd question-bank && bun test                # 19 pass, 0 fail
   `@types/geojson` and friends. This branch changes no `package.json` and no
   lockfile (verified), and CI's own `frontend` job — which has a working
   registry — ran `Typecheck` green on `f4cfd96`. Confirms the worker's account.
-- **Criterion 13 was verified on `f4cfd96`, the commit that carries the
-  `ci.yml` change, not on the branch tip.** The tip at verification time was
-  `6cd2379`, an orchestrator run-log commit whose CI run (33900103742) was still
-  in progress; it contains no code difference from `f4cfd96`. My own test commit
-  triggers another run — the reviewer should confirm it is green before marking
-  the PR ready, which is the same check it does anyway.
+- **Criterion 13 was confirmed twice**, once on `f4cfd96` (the commit carrying
+  the `ci.yml` change) and again on `9c20e07`, this branch's head after the
+  tester commit, so the six jobs are green *including* the two pin test files.
+  Run 33900799605, all six jobs `success`. PR #34's head is `9c20e07`, still
+  draft, waiting on the reviewer.
 
 ### Where I disagreed with nothing
 
