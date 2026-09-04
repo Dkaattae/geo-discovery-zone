@@ -1,7 +1,7 @@
 # T-008 — Decide: pin the CI actions by SHA, or stay on major tags
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-09-04, unattended run. See `runs/T-008-pin-ci-actions.md`.
 **From:** [`tasks.md`](../tasks.md) T-008
 **Branch:** `claude/t008-orchestrator-startup-ai1zb2` — assigned to the expander's
@@ -22,6 +22,7 @@ session already listed as `worker`.
 |---|---|---|
 | task-expander | 2026-09-04 | cse_018F9nuHyps3iBuiq4RR2Y4s |
 | worker | 2026-09-04 | cse_018F9nuHyps3iBuiq4RR2Y4s |
+| tester | 2026-09-04 | cse_018F9nuHyps3iBuiq4RR2Y4s (orchestrated — see Verdict) |
 
 ## Goal
 
@@ -422,7 +423,140 @@ references, same line numbers, same four actions, no Dependabot config, no
 
 ## Verdict
 
-Written by `tester`.
+**Pass.** All fourteen criteria hold. The six pinned `uses:` references resolve to
+the exact commits their comments name — re-checked from a shell with
+`git ls-remote`, output below — and the two test files that enforce E-5's rule
+were mutation-tested with eight deliberate breakages, seven of which turned them
+red and one (pinning *tighter* than the rule requires) correctly stayed green.
+Every mutation was reverted; `git status` shows no source change from this
+session.
+
+**Independence: the weaker of the two kinds, and the reader should price it that
+way.** This is an orchestrated run (`runs/T-008-pin-ci-actions.md` exists), so
+every role shares one session id — `echo $CLAUDE_CODE_REMOTE_SESSION_ID` returns
+`cse_018F9nuHyps3iBuiq4RR2Y4s`, the same id the expander and worker rows carry.
+**The Sessions-table check therefore did not pass; it did not run.** What is real
+is that this is a freshly spawned agent with its own context window: I never saw
+the worker's transcript or reasoning, and read only the brief, the repo and the
+diff. That rests on the orchestrator having spawned me correctly rather than on
+anything I can verify myself.
+
+### Criteria
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `engineering-decisions.md` gains one appended `## E-5` heading — "Third-party CI actions are pinned by commit SHA; `actions/*` stays on major tags" — plus a "**Decided:** the rule is publisher, not action" paragraph. Readable without the diff. `git diff origin/main -- engineering-decisions.md` is a single hunk `@@ -154,3 +154,72 @@` with additions only: E-1…E-4 are byte-identical. |
+| 2 | pass | The rule is stated as a predicate on the owner: "**an action's owner is `actions`, or it is not**". Applied to all four: `actions/checkout`, `actions/upload-artifact` → tag; `oven-sh/setup-bun`, `astral-sh/setup-uv` → SHA. No fourth case, nothing left undetermined. |
+| 3 | pass | Both rejected options are named with their cost: "stay on tags everywhere" (mutable-tag exposure on all four actions, "a tag is a pointer, not a version") and "pin everything" (13 references of manual update surface instead of 6). The chosen split's own cost is then stated as 6 pinned / 7 tagged. Neither is a straw man — "pin everything" is granted that it closes the same hole. |
+| 4 | pass | "How a version change reaches this repo — and on neither side of the rule does it happen automatically": pinned side needs a human to notice, resolve and edit; tagged side changes silently on the next run. States "**No Dependabot or Renovate config exists in this repo today**". I confirmed that independently: `.github/` contains only `workflows/`. |
+| 5 | pass | Two triggers, both observable: (a) a pinned SHA going ~6 months without refresh, (b) a disclosed tag-integrity incident on `actions/checkout` or `actions/upload-artifact`. Neither is "revisit if this becomes a problem". |
+| 6 | pass | Final paragraph of E-5 covers `blocked-run-notice.yml`: same rule, already satisfied (owner is `actions`), no edit; a third-party action added there later is a hand-written `P` ticket. `git diff origin/main -- .github/workflows/blocked-run-notice.yml` is empty. |
+| 7 | pass | 13 `uses:` lines, counted from disk: 6 × `actions/checkout@v5`, 1 × `actions/upload-artifact@v4`, 3 × `oven-sh/setup-bun@0c5077e5… # v2.2.0`, 3 × `astral-sh/setup-uv@d0cc045d… # v6.8.0`. Both SHAs are 40 lowercase hex; both comments name a released version. No `@main`, `@master`, `@latest` or branch ref anywhere. Asserted in `frontend/src/ci-action-pinning.test.ts`. |
+| 8 | pass | Re-run by hand against GitHub, output below. Both pinned SHAs match the tag their comment names. |
+| 9 | pass | Neither test file imports anything network-capable; both read only `.github/workflows/ci.yml` via `readFileSync`. Proved rather than asserted: the whole `frontend` suite runs **156 pass / 0 fail** with `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` and lowercase forms pointed at `http://127.0.0.1:1` (`test-guidelines.md`'s dead-proxy recipe). |
+| 10 | pass | Mutation-tested — 8 mutations, table below. Both files live in `frontend/src/*.test.ts`, which CI's `frontend` job runs as its `Test` step, so this is a check CI already runs. |
+| 11 | pass | `git diff origin/main -- .github/workflows/ci.yml` is exactly 6 changed lines, all `uses:`. No job name, step name, `run:`, `if:`, `with:`, `env:`, `services:` or `timeout-minutes:` differs. |
+| 12 | pass | `git diff origin/main -- frontend/src/conventions-doc.test.ts` is empty; the file runs 50 pass / 0 fail. `conventions.md` "## CI" (lines 93–104) makes no claim about action versions and is still true — it describes six jobs, frozen lockfiles, independent steps and the dead-proxy guard, none of which this change touches. |
+| 13 | pass (on the code commit) | CI run 33900037927 on `f4cfd96` — the commit carrying the `ci.yml` change — completed **success** with all six jobs present and green: `frontend (typecheck, lint, test)`, `question-bank (typecheck, test)`, `backend (lint, format, test)`, `backend (postgres)`, `integration (docker compose)`, `e2e (playwright)`. No "Unable to resolve action" anywhere. See the note below on the branch head. |
+| 14 | pass | No `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` differs from `origin/main` (`git diff origin/main --stat` over those globs is empty). `ci-action-pinning.test.ts` asserts the set of distinct actions in `ci.yml` is exactly the original four, so a fifth action cannot be added without turning it red. |
+
+### Criterion 8 — tag ↔ SHA, re-checked from a shell
+
+Run 2026-09-04 by this session, independently of the Handoff:
+
+```
+$ git ls-remote --tags https://github.com/oven-sh/setup-bun.git 'v2*'
+0c5077e51419868618aeaa5fe8019c62421857d6  refs/tags/v2
+0c5077e51419868618aeaa5fe8019c62421857d6  refs/tags/v2.2.0
+
+$ git ls-remote https://github.com/astral-sh/setup-uv.git 'refs/tags/v6' 'refs/tags/v6^{}' 'refs/tags/v6.8.0'
+d0d8abe699bfb85fec6de9f7adb5ae17292296ff  refs/tags/v6        # annotated tag object
+d0cc045d04ccac9d8b7881df0226f9e82c39688e  refs/tags/v6^{}     # peeled commit
+d0cc045d04ccac9d8b7881df0226f9e82c39688e  refs/tags/v6.8.0
+
+$ git ls-remote https://github.com/actions/checkout.git 'refs/tags/v5'
+fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  refs/tags/v5        # tag category, nothing to pin
+$ git ls-remote https://github.com/actions/upload-artifact.git 'refs/tags/v4'
+ea165f8d65b6e75b540449e92b4886f43607fa02  refs/tags/v4        # tag category, nothing to pin
+```
+
+- `oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0` — matches `v2` and `v2.2.0`. Correct.
+- `astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0` — `v6` is an *annotated* tag, so its bare `ls-remote` line is the tag object, not the commit. Peeled (`v6^{}`) it is `d0cc045d…`, which is also what the lightweight `v6.8.0` points at. Correct, and the Handoff's account of the annotated-tag wrinkle is accurate.
+
+None of this is encoded in any assertion (criterion 9).
+
+### Criterion 10 — mutation results
+
+Applied to `.github/workflows/ci.yml`, one at a time, running both test files, then
+`git checkout -- .github/workflows/ci.yml`. `git status` after the battery showed
+zero pending changes to `ci.yml`.
+
+| # | Mutation | Result |
+|---|---|---|
+| M1 | `oven-sh/setup-bun@<sha> # v2.2.0` → `@v2` (pinned → tag) | **red**, 3 tests |
+| M2 | `astral-sh/setup-uv@<sha> # v6.8.0` → `@main` (pinned → branch) | **red**, 5 tests |
+| M3 | `actions/checkout@v5` → `@main` (tag → branch) | **red**, 5 tests |
+| M4 | `actions/upload-artifact@v4` → `@latest` | **red**, 5 tests |
+| M5 | pinned SHA keeps its SHA, loses the `# v2.2.0` comment | **red**, 3 tests |
+| M6 | pinned SHA truncated to 12 hex chars | **red**, 4 tests |
+| M7 | `actions/checkout@v5` → `@fbc6f399… # v5.1.0` (**tighter** than required) | **green** — an improvement is not punished, as criterion 10 requires |
+| M8 | `actions/upload-artifact@v4` → `actions/cache@v4` (a fifth action) | **red**, 3 tests — criterion 14's backstop |
+
+M7 is the control: it is the one mutation that *should* stay green, and it did.
+M5, M6 and M8 are checks the criteria require that the worker's own mutation
+round did not cover.
+
+### What I added
+
+- **`frontend/src/ci-action-pinning.test.ts`** (new, 12 tests) — written from the
+  criteria, not from `ci.yml`. It overlaps the worker's `ci-workflow-pins.test.ts`
+  deliberately and is stricter in the three places criterion 7 is explicit and
+  that file is not: the SHA must be *lowercase* hex, the trailing comment must
+  name a *release* (`v2.2.0`, not any `v…` token), and the set of actions must
+  still be exactly the original four (criterion 14). Its criterion-10 block runs
+  the rule against **synthetic** workflow fragments — a third-party major tag, a
+  `@main`, a `@latest`, a comment-less SHA, a truncated SHA, an uppercased SHA,
+  and the tighter-than-required control — so the check demonstrates in the suite
+  itself that it discriminates, rather than only under hand mutation.
+
+No source file was edited. No acceptance criterion was edited.
+
+### Suite, typecheck, lint
+
+```
+$ cd frontend && bun test                     # 156 pass, 0 fail (7 files)
+$ cd frontend && <dead proxy> bun test        # 156 pass, 0 fail — criterion 9
+$ cd frontend && bun test src/conventions-doc.test.ts   # 50 pass, 0 fail — criterion 12
+$ cd frontend && bun run lint                 # exit 0
+$ cd question-bank && bun run typecheck       # clean
+$ cd question-bank && bun test                # 19 pass, 0 fail
+```
+
+### Two things a reader should know
+
+- **`frontend`'s `bun run typecheck` does not run clean in this sandbox, and it
+  is not this task's doing.** `tsc --noEmit` reports four errors, all in
+  `src/components/UsMap.tsx`, all downstream of `react-simple-maps` and
+  `us-atlas` being absent from `node_modules`. `bun install --frozen-lockfile`
+  fails here with `403` from the sandbox npm mirror
+  (`europe-west1-npm.pkg.dev/…`) on `d3-selection`, `d3-zoom`, `internmap`,
+  `@types/geojson` and friends. This branch changes no `package.json` and no
+  lockfile (verified), and CI's own `frontend` job — which has a working
+  registry — ran `Typecheck` green on `f4cfd96`. Confirms the worker's account.
+- **Criterion 13 was verified on `f4cfd96`, the commit that carries the
+  `ci.yml` change, not on the branch tip.** The tip at verification time was
+  `6cd2379`, an orchestrator run-log commit whose CI run (33900103742) was still
+  in progress; it contains no code difference from `f4cfd96`. My own test commit
+  triggers another run — the reviewer should confirm it is green before marking
+  the PR ready, which is the same check it does anyway.
+
+### Where I disagreed with nothing
+
+The publisher split is a judgment call, as the Handoff says, and the criteria
+deliberately do not force it — "pin everything" and "pin nothing" would both
+satisfy criteria 1–6. Judging *which* was the better call is the reviewer's
+job, not mine; my remit is that whichever rule E-5 states, `ci.yml` obeys it and
+a test enforces it. It does, and one does.
 
 ## Review
 
