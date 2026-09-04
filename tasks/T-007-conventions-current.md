@@ -1,7 +1,7 @@
 # T-007 — `conventions.md` describes a repo that no longer exists
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-09-04, unattended run. See `runs/T-007-conventions-current.md`.
 **From:** [`tasks.md`](../tasks.md) T-007
 **Branch:** `claude/t007-orchestrator-startup-8orc9r` — assigned to this session by
@@ -22,6 +22,7 @@ session already listed as `worker`.
 |---|---|---|
 | task-expander | 2026-09-04 | `cse_01AtuAKBQ3YW1N9bz4feeDTP` (orchestrated run) |
 | worker | 2026-09-04 | `cse_01AtuAKBQ3YW1N9bz4feeDTP` (orchestrated run — same session id as task-expander; see process.md "Spawning, and the isolation it must not cost") |
+| tester | 2026-09-04 | `cse_01AtuAKBQ3YW1N9bz4feeDTP` (orchestrated run — **same session id as worker**; the Sessions check cannot prove independence here, see Verdict) |
 
 ## Goal
 
@@ -349,7 +350,109 @@ Ran all of these against the branch with `conventions.md` changed:
 
 ## Verdict
 
-Written by `tester`.
+**Pass.** All fourteen criteria hold against the branch as committed. Criteria
+1–12 are now asserted by one new test file — `frontend/src/conventions-doc.test.ts`,
+50 tests inside the existing `frontend/` `bun test` suite — and every one of them
+was proved capable of failing by 23 deliberate mutations of `conventions.md`, all
+reverted. Criteria 13–14 were checked against `origin/main` by hand.
+
+**Whole suite green**, with one pre-existing environment gap that is not this
+task's: `frontend`'s `bun run typecheck` reports 4 errors in
+`src/components/UsMap.tsx`, identical with and without my new file, caused by
+`react-simple-maps` and `us-atlas` missing from `node_modules` (sandbox registry
+403). `frontend/src` is byte-identical to `origin/main` apart from my added test,
+so this is reproducible on `main` and independent of the change.
+
+**Independence, stated honestly.** This is an orchestrated run
+(`runs/T-007-conventions-current.md` exists), so every spawned role shares one
+session id and the Sessions-table check **did not and cannot** prove I am a
+separate session — my id is the same one listed for `worker` and
+`task-expander`. What I do have is the weaker form: a freshly spawned agent with
+its own context window that never saw the worker's transcript or reasoning, and
+read only the brief and the committed repo. Every expected value below comes from
+a criterion's wording or from the repo file that criterion names as authority
+(`backend/Makefile`, the three `package.json` files, `ci.yml`,
+`docker-compose.yml`) — never from `conventions.md`, which is the artefact under
+test. A reader deciding how much to trust this `pass` should weigh it as
+orchestrator-attested rather than session-proved (`process.md`, "Spawning, and
+the isolation it must not cost").
+
+### Criterion by criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | All 7 Layout paths resolve at the repo root; asserted per path, one test each. Mutation M1 (`openapi.yaml`→`openapi.yml`) turned it red |
+| 2 | pass | All seven named with a non-empty one-line description. M2 (delete the `fixtures/` line) red |
+| 3 | pass | `not built yet`, `once it exists`, `cd api` all absent; a regex for "API/backend/database … not built / does not exist / yet to be built" finds nothing. M3 red. See the judgement call below |
+| 4 | pass | After stripping `/api/v1`, no `api/` remains. A companion test asserts `/api/v1` *is* still present, so the check cannot be satisfied by deleting the URL too (M17 red) |
+| 5 | pass | Names `fixtures/level-labels.json`, both `frontend/src/lib/level.test.ts` and `backend/tests/test_levels.py`, and says editing one side turns exactly one suite red. M5 and M21 red |
+| 6 | pass | `make -C backend dev\|test\|check\|migrate` all present in repo-root form; every `make -C backend <target>` in the doc is a target defined in `backend/Makefile` (parsed from the Makefile, not from the doc). M6 (`check`→`verify`) red |
+| 7 | pass | `migrate` and `revision` both named, both defined targets. M7 red |
+| 8 | pass | `GEO_DATABASE_URL` named as the single setting, SQLite the default, Postgres supported and tested. M8 red |
+| 9 | pass | Frontend block names `bun run typecheck` and `bun test`; every `bun run <script>` the doc names for `frontend/`, `question-bank/` and `e2e/` is a key of that package's `scripts`. M9, M13, M14, M18, M19 red |
+| 10 | pass | Names `.github/workflows/ci.yml`, the PR-to-`main` and push-to-`main` triggers, and a job list whose set equals the keys under `jobs:` in `ci.yml` exactly — `frontend`, `question-bank`, `backend`, `backend-postgres`, `integration`, `e2e`. Set equality tested both ways: M10 (drop `e2e`) and M23 (add a fake `lint` job) both red |
+| 11 | pass | Names `Dockerfile` and `docker-compose.yml`, says one origin, links `README.md`; no `docker run`, no `-p`/`-v` flag, no `host:port` mapping, and none of `docker-compose.yml`'s named volumes (`atlas-postgres`) appear. M11, M15, M20 red |
+| 12 | pass | All 7 markdown links are relative and all resolve; no link is an `http(s)://` URL. M12 and M22 red |
+| 13 | pass, with a note | Files differing from `origin/main`: `conventions.md`, `tasks/T-007-conventions-current.md`, `tasks.md` (expander's queue line), `runs/T-007-conventions-current.md` (orchestrator's log). `CLAUDE.md`, `process.md`, `process-decisions.md`, `process-tasks.md`, `openapi.yaml`, `geoquizdataplan.md`, `test-guidelines.md`, `.claude/**`, `.github/workflows/**`, `frontend/src/**`, `backend/app/**`, `question-bank/src/**`, `e2e/tests/**` are all byte-identical. The worker's own commit (`5a4f191`) touched exactly `conventions.md` and this brief |
+| 14 | pass | No `package.json`, `bun.lock`, `pyproject.toml`, `uv.lock` or `ci.yml` in the diff against `origin/main`; no job added. The new test reads local files only and passes with `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` and their lowercase forms at `http://127.0.0.1:1` |
+
+### The one thing the reviewer should look at
+
+- **`runs/T-007-conventions-current.md` differs from `main` and criterion 13 does
+  not list it.** On the strictest reading of its first sentence that is a
+  violation; I did not fail the task on it, because the file is the
+  **orchestrator's** run log, written by neither worker nor tester, mandated by
+  `process.md` for a relayed run, and the criterion's own "In particular" list —
+  which is what the criterion is actually guarding — is satisfied in full. Named
+  here rather than silently absorbed so the call is the reviewer's, not mine.
+- **A judgement call inside criterion 3.** `conventions.md:10` reads "serving
+  `/api/v1` and, once built, the frontend on the same origin". "once built"
+  refers to the frontend's static bundle, not to the API, the backend or the
+  database, and is accurate — `backend/tests/test_frontend_serving.py` covers
+  exactly that conditional. It is not one of the three strings the criterion
+  forbids. Recorded because it is the nearest thing in the file to the phrasing
+  the criterion outlaws.
+- **`README.md:202` is stale in the same way** (five CI jobs, missing `e2e`) —
+  the worker flagged it and correctly left it alone. Confirmed still stale.
+
+### What I ran
+
+| Check | Result |
+|---|---|
+| `cd frontend && bun test` (dead-port proxies) | **138 pass, 0 fail** — 88 pre-existing + 50 new |
+| `cd frontend && bun run lint` | exit 0 |
+| `cd frontend && bun run typecheck` | 4 errors, all `src/components/UsMap.tsx`, **identical without my file** — missing `react-simple-maps`/`us-atlas` in `node_modules`, sandbox registry 403. Pre-existing; `bun.lock` and `frontend/src` are unchanged from `origin/main` |
+| `cd question-bank && bun run typecheck` | clean |
+| `cd question-bank && bun test` (dead-port proxies) | 19 pass, 0 fail |
+| `make -C backend check` | ruff clean, **233 passed, 9 skipped** (Postgres-only) |
+
+### Mutations made, and reverted
+
+23 in two rounds, each a temporary edit to `conventions.md` only, applied and
+restored by a script; `git status` afterwards shows `conventions.md` unmodified.
+Every mutation turned the expected test — and only tests belonging to that
+criterion, plus criterion 1's path check where a mutation renamed a directory —
+red. No source file was edited at any point.
+
+M1 nonexistent Layout path · M2 delete `fixtures/` line · M3 add "the backend is
+not built yet" · M4 rename `backend/` to `api/` · M5 drop the backend test file
+· M6 `check`→undefined `verify` · M7 delete the `revision` command · M8 drop
+`GEO_DATABASE_URL` · M9 `build:sample`→undeclared `build:offline` · M10 drop
+`e2e` from the job list · M11 paste `docker run -p 8000:8000 -v atlas-postgres:…`
+· M12 link at a missing file · M13 delete frontend `typecheck` · M14 delete
+frontend `bun test` · M15 remove "one origin" · M16 remove the CI triggers · M17
+delete `/api/v1` as well · M18 e2e `install-browser`→undeclared · M19 frontend
+`dev`→undeclared `serve` · M20 unname `Dockerfile` · M21 remove the "turns a
+suite red" explanation · M22 add an `https://` link · M23 invent a seventh CI
+job.
+
+### Files I added
+
+- `frontend/src/conventions-doc.test.ts` — the one test file the Constraints
+  allow, in the existing suite the Constraints name, no new runner, no new
+  dependency, no network. It parses `backend/Makefile`, the three
+  `package.json`s, `ci.yml` and `docker-compose.yml` for its expected values, so
+  it stays true if those change and `conventions.md` does not.
 
 ## Review
 
