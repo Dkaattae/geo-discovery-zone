@@ -1,7 +1,7 @@
 # T-008 — Decide: pin the CI actions by SHA, or stay on major tags — run log
 
 **Task:** T-008 · **Branch:** `claude/t008-orchestrator-startup-ai1zb2` · **PR:** #34
-**Started:** 2026-09-04 · **Outcome:** in progress
+**Started:** 2026-09-04 · **Outcome:** ready for merge — PR #34, approved and swept by the reviewer, with an escalated question for Dkaattae
 
 ## Round 2 — worker — 2026-09-04
 `Next step` on entry: `worker` → on exit: `tester`
@@ -74,3 +74,38 @@ All fourteen criteria hold. The two pinned SHAs resolve to exactly the releases 
 - **A trap for the worker is in Constraints:** `frontend/src/conventions-doc.test.ts:330` takes the longest run of adjacent backticked tokens in `conventions.md`'s `## CI` section and requires it to equal `ci.yml`'s six job names — adding six or more backticked action names there would break that test.
 
 No halt was needed: `tasks.md`'s own "Done when" routes this decision to `engineering-decisions.md`, which the loop may write (E-4 was decided in-loop by T-006).
+
+## Round 4 — reviewer — 2026-09-04
+`Next step` on entry: `reviewer` → on exit: — (brief deleted on sweep; PR ready)
+
+**Approved. PR #34 is ready for review, swept, and escalated — waiting on Dkaattae to merge.**
+
+- **The work is good.** `ci.yml`'s diff is exactly six `uses:` lines; E-5 reads like E-4, its nearest analogue; the enforcing test sits beside `conventions-doc.test.ts`, which already reads `ci.yml` from disk for the same kind of reason. All 14 criteria hold, all six CI jobs green, and I re-verified both pinned SHAs myself against GitHub.
+- **Escalated, one question:** E-5 sets the repository's CI supply-chain posture and creates a recurring manual chore, in a run whose brief no human approved (`Approved: orchestrator`). Does Dkaattae want the publisher split, or all four actions pinned? Reversing it is six lines plus an E-5 amendment.
+- **Two non-blocking findings → T-061**, not fixed here.
+
+| Check | Result |
+|---|---|
+| Every role has a commit in the PR | expander, worker, tester, orchestrator — none stranded on another branch |
+| Roles stayed in their lanes | expander only `tasks.md` + `tasks/`; tester only a test file + the brief; orchestrator only `runs/` + the `Approved:` line |
+| `ci.yml` diff | 6 changed lines, all `uses:` — nothing else moved |
+| SHAs re-checked by me | `0c5077e5…` = `setup-bun` `v2` = `v2.2.0`; `d0cc045d…` = `setup-uv` `v6^{}` (annotated, peeled) = `v6.8.0` |
+| Suite | frontend 156 pass / 0 fail locally; all six jobs `success` on `12c38cf` (run 33901184694). The sweep commit `171f404` is re-running now — markdown only, 4 of 6 already green |
+
+**Findings (non-blocking, now T-061):**
+1. **Two files enforce the same rule.** `frontend/src/ci-workflow-pins.test.ts` (worker, 4 tests) and `frontend/src/ci-action-pinning.test.ts` (tester, 12 tests). The second is a behavioural superset. E-5's rule now has two implementations — `isPinnedCategory()` at `ci-workflow-pins.test.ts:59` and the `pinned` branch of `violations()` at `ci-action-pinning.test.ts:74` — so a rule change has to be made twice or the suite contradicts itself.
+2. **A hardcoded count** at `ci-action-pinning.test.ts:106`: `expect(references(CI_YML).length).toBe(13)`. It fires on any legitimately added CI step and reads as "you added a step". Asserting the parsed count against the raw `uses:`-line count gets the same parser coverage without pinning the workflow's size — the call this repo already made in T-058 and T-047.
+
+**Flags disposed of:** the publisher split is accepted on the record (criterion 2 permitted it; E-5 prices the rejected option fairly; same shape as E-4) — and separately escalated, because accepting a defensible call and choosing the owner's security posture are different acts. The stale-local-`main` note needs no action. T-060's forward reference was fixed in the sweep. The tester's independence caveat is carried into the PR body rather than buried.
+
+**Sweep (`171f404`, pushed to the brief's branch and confirmed on `origin`):** brief deleted; T-008's queue entry deleted; T-060's `Depends on: T-008` rewritten so it doesn't dangle; T-061 added; `PROGRESS.md` logged with what differed from the brief, plus two reconciliations — a new bullet stating CI's pinning rule, and correcting "Neither has yet driven a task end to end", which stopped being true at T-006.
+
+The brief `tasks/T-008-pin-ci-actions.md` no longer exists by design: on approve the record moves to the PR body and `PROGRESS.md`, so there is no `## Review` section or Sessions row to write. `tasks/` is empty and the next cycle can start clean.
+
+## Halted — reviewer escalation
+
+The reviewer approved and marked PR #34 ready for merge, and in the same round escalated a question that this orchestrated run cannot answer on Dkaattae's behalf (`CLAUDE.md`, "moment 3" in `process.md` — a product/security-posture decision):
+
+> E-5 sets the repository's CI supply-chain posture and creates a recurring manual chore, in a run whose brief no human approved (`Approved: orchestrator`). Does Dkaattae want the publisher split (third-party actions pinned by SHA, first-party `actions/*` on tags), or all four actions pinned by SHA? Reversing it is six lines plus an E-5 amendment.
+
+Per the orchestrator role: the reviewer marking a PR ready **is** the end of the line — no role merges. The relay stops here.
