@@ -3,6 +3,23 @@
 **Task:** T-008 · **Branch:** `claude/t008-orchestrator-startup-ai1zb2` · **PR:** #34
 **Started:** 2026-09-04 · **Outcome:** in progress
 
+## Round 2 — worker — 2026-09-04
+`Next step` on entry: `worker` → on exit: `tester`
+
+Push confirmed landed at `f4cfd96` on `origin/claude/t008-orchestrator-startup-ai1zb2`, matching local HEAD.
+
+### Summary
+
+**T-008 done as worker.** Decided to pin third-party CI actions (`oven-sh/setup-bun`, `astral-sh/setup-uv`) by commit SHA, leaving first-party `actions/*` (`checkout`, `upload-artifact`) on tags. Recorded as `engineering-decisions.md` E-5, `ci.yml` updated to match, a new test (`frontend/src/ci-workflow-pins.test.ts`) makes CI itself enforce the rule going forward, and `tasks.md` gained T-060 proposing Dependabot as the follow-up the decision itself flags as missing.
+
+- **Branch:** `claude/t008-orchestrator-startup-ai1zb2` — verified current branch matches the brief's header before starting; pushed and confirmed `origin/claude/t008-orchestrator-startup-ai1zb2` is at my commit `f4cfd96`.
+- **Files changed:** `/home/user/geo-discovery-zone/.github/workflows/ci.yml`, `/home/user/geo-discovery-zone/engineering-decisions.md`, `/home/user/geo-discovery-zone/tasks.md`, `/home/user/geo-discovery-zone/frontend/src/ci-workflow-pins.test.ts` (new), `/home/user/geo-discovery-zone/tasks/T-008-pin-ci-actions.md`.
+- **Verification done:** `git diff origin/main -- .github/workflows/ci.yml` shows exactly the 6 `uses:` lines changed; the 2 SHAs verified by hand against GitHub via `git ls-remote` (astral-sh/setup-uv's `v6` is an annotated tag — had to peel it with `v6^{}` to get the real commit); 3 mutations run by hand against the new test (under-pin → red, branch-name → red, over-pin → stays green), reverted afterward; `frontend/bun test` 142/142, `conventions-doc.test.ts` 50/50, `question-bank` typecheck+test clean.
+- **Known gap, not this task's fault:** `frontend/bun run typecheck` fails on `UsMap.tsx`'s `react-simple-maps`/`us-atlas` imports because this sandbox's package registry 403s those packages — confirmed pre-existing (no `package.json`/lockfile touched, same failure on a clean checkout before my edits). Flagged in the Handoff for the tester as a sandbox limitation, not a T-008 regression; criterion 13's real CI run is the authority.
+- **Judgment call flagged for the reviewer:** the "pin third-party, tag first-party" split was a genuine choice among several the criteria would have accepted (uniform pin-all or pin-none also satisfy criteria 1–6). Called out explicitly in the brief's Notes as an opinion the reviewer is free to overturn, distinct from the facts in the rest of the Handoff.
+
+Status set to `awaiting verification`, Next step `tester`.
+
 ## Round 1 — task-expander — 2026-09-04
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
 
