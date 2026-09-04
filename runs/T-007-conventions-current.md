@@ -48,3 +48,31 @@ orchestrator stamped `Approved: orchestrator — 2026-09-04, unattended run` on 
 brief header without reading the criteria above, per `process.md` "Where the loop
 stops for a human" and `.claude/agents/orchestrator.md` "Approval". Relaying to
 `worker` next.
+
+## Round 2 — worker — 2026-09-04
+`Next step` on entry: `worker` → on exit: `tester`
+
+Push confirmed landed on `origin/claude/t007-orchestrator-startup-8orc9r` at commit `5a4f191`.
+
+### Summary
+
+**Rewrote `conventions.md`** to match the built repo — the only production file this task touches. All 14 acceptance criteria are satisfied; full mapping is in the brief's `## Handoff`. `CLAUDE.md`, `PROGRESS.md`, `test-guidelines.md`, and the `## Code`/`## Network` sections were deliberately left untouched, per the brief's Out of scope.
+
+**Verified:**
+- `question-bank`: typecheck clean, `bun test` 19/19 pass
+- `backend`: `make -C backend check` — 233 passed, 9 skipped (Postgres-only, skip on SQLite by design)
+- `frontend`: `bun test` 88/88 pass, `bun run lint` exit 0
+- `frontend`: `bun run typecheck` **could not be confirmed** — this sandbox's package registry (`europe-west1-npm.pkg.dev`) returns 403 on some `react-simple-maps` transitive `@types` deps, unrelated to this docs-only change (`bun.lock` untouched, `node_modules/` gitignored). Flagged in the Handoff for the tester.
+
+**One thing flagged but not fixed (named owner: reviewer):** `README.md:202` lists five CI jobs, missing `e2e` — the same staleness this task fixes in `conventions.md`, but out of this brief's Constraints (only `conventions.md` is listed as a worker-editable file).
+
+Files changed: `/home/user/geo-discovery-zone/conventions.md`, `/home/user/geo-discovery-zone/tasks/T-007-conventions-current.md`.
+
+Brief status set to `awaiting verification`, next step `tester`. Note: this run is orchestrated, so the worker and task-expander Sessions rows share one session id (`cse_01AtuAKBQ3YW1N9bz4feeDTP`) by design — flagged in the Sessions table per `process.md`'s note on relayed-run isolation, not a violation for the tester to catch.
+
+## Orchestrator note
+
+G0 (Next step names exactly one role: `tester`), G1 (diff vs `origin/main`: `conventions.md`,
+`runs/T-007-conventions-current.md`, `tasks.md`, `tasks/T-007-conventions-current.md` — no
+gated path), G2 (`Approved:` present, not `pending`), and G4 (branch matches the header) all
+pass. Relaying to `tester` next, in a fresh spawn.
