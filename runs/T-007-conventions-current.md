@@ -76,3 +76,48 @@ G0 (Next step names exactly one role: `tester`), G1 (diff vs `origin/main`: `con
 `runs/T-007-conventions-current.md`, `tasks.md`, `tasks/T-007-conventions-current.md` — no
 gated path), G2 (`Approved:` present, not `pending`), and G4 (branch matches the header) all
 pass. Relaying to `tester` next, in a fresh spawn.
+
+## Round 3 — tester — 2026-09-04
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**Verdict: pass.** All fourteen criteria hold. Committed as `a73edcf` and pushed to `claude/t007-orchestrator-startup-8orc9r` (the brief's `Branch:` header, which matched my checked-out branch); confirmed the remote ref is now `a73edcf`, so PR #33 sees it. **Next step: `reviewer`.**
+
+**Independence — read this before trusting the pass.** This is an orchestrated run (`runs/T-007-conventions-current.md` exists), so my session id `cse_01AtuAKBQ3YW1N9bz4feeDTP` is the *same* one listed for `worker` and `task-expander`. The Sessions-table check did not pass and could not. What I have is the weaker form: a freshly spawned agent with its own context window that never saw the worker's transcript, working from the brief and the committed repo only. Every expected value came from a criterion's wording or the repo file it names as authority — never from `conventions.md`, the artefact under test.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | All 7 Layout paths resolve; one test per path |
+| 2 | pass | All seven named with a non-empty description |
+| 3 | pass | Three forbidden strings absent; regex for equivalent "not built" claims finds nothing |
+| 4 | pass | No `api/` after stripping `/api/v1`; companion test asserts `/api/v1` is still there, so deleting it cannot satisfy the check |
+| 5 | pass | Names the fixture, both test files, and the one-side-turns-red consequence |
+| 6 | pass | Every `make -C backend <target>` in the doc parsed against `backend/Makefile`'s real targets |
+| 7 | pass | `migrate` and `revision`, both defined |
+| 8 | pass | `GEO_DATABASE_URL`, SQLite default, Postgres supported and tested |
+| 9 | pass | Every `bun run <script>` checked per-package against `frontend/`, `question-bank/`, `e2e/` `package.json` |
+| 10 | pass | Doc's job list set-equal to `jobs:` keys in `ci.yml`; tested both directions (drop a job, add a fake one) |
+| 11 | pass | Names both files, "one origin", links `README.md`; no `docker run`, `-p`/`-v`, port mapping or `atlas-postgres` |
+| 12 | pass | 7 links, all relative, all resolve |
+| 13 | pass, noted | Only `conventions.md`, the brief, `tasks.md`, and the orchestrator's run log differ from `origin/main`; the entire "In particular" list is byte-identical. Worker's commit `5a4f191` touched exactly `conventions.md` + brief |
+| 14 | pass | No manifest, lockfile or CI job in the diff; tests pass with all six proxy vars at `http://127.0.0.1:1` |
+
+**Two things for the reviewer to weigh, not silently absorbed by me:**
+
+- **`runs/T-007-conventions-current.md` differs from `main` and criterion 13 does not list it.** Strictest reading, that is a violation. I did not fail on it: it is the *orchestrator's* log, written by neither worker nor tester, mandated by `process.md` for a relayed run, and the criterion's "In particular" list is fully satisfied. The call is the reviewer's.
+- **Criterion 3 judgement call.** `conventions.md:10` reads "serving `/api/v1` and, once built, the frontend on the same origin". "once built" is about the frontend's static bundle (covered by `backend/tests/test_frontend_serving.py`), not the API/backend/database, and is not one of the three forbidden strings. Nearest thing in the file to the outlawed phrasing.
+- The worker's flag about `README.md:202` (five CI jobs, missing `e2e`) is confirmed still stale, and correctly left alone.
+
+**Suite:** frontend `bun test` 138 pass / 0 fail (88 pre-existing + 50 new), lint exit 0, question-bank typecheck clean and 19 pass, `make -C backend check` 233 passed / 9 skipped. **One caveat the worker asked me to check:** frontend `bun run typecheck` emits 4 errors, all in `frontend/src/components/UsMap.tsx` (`react-simple-maps`, `us-atlas`). Reproduced and confirmed pre-existing — byte-identical with the new test file removed, the packages are declared dependencies absent from `node_modules` (sandbox registry 403), `bun.lock` unchanged, `frontend/src` otherwise byte-identical to `origin/main`. Not caused by this task.
+
+**Mutation testing:** 23 temporary edits to `conventions.md`, in two scripted rounds, each restored immediately. Every one turned the expected test red — none stayed green. `git status` after both rounds showed `conventions.md` unmodified. No source file was edited at any point.
+
+**Files:**
+- `frontend/src/conventions-doc.test.ts` — new, the one test file the Constraints allow
+- `tasks/T-007-conventions-current.md` — Verdict, Status `pass`, Next step `reviewer`, Sessions row added
+
+## Orchestrator note
+
+G0 (`tester`), G1 (diff vs `origin/main`: `conventions.md`, `frontend/src/conventions-doc.test.ts`,
+`runs/T-007-conventions-current.md`, `tasks.md`, `tasks/T-007-conventions-current.md` — no
+gated path), G2 (`Approved:` present), G4 (branch matches) all pass. `Status: pass`, so no G3
+round to count. Relaying to `reviewer` next, in a fresh spawn.
