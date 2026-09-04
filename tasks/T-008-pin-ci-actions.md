@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
+**Approved:** orchestrator — 2026-09-04, unattended run. See `runs/T-008-pin-ci-actions.md`.
 **From:** [`tasks.md`](../tasks.md) T-008
 **Branch:** `claude/t008-orchestrator-startup-ai1zb2` — assigned to the expander's
 session by the environment, so this is the task branch. It is **not** named
