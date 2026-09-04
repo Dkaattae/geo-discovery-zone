@@ -1,7 +1,7 @@
 # T-007 — `conventions.md` describes a repo that no longer exists
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-09-04, unattended run. See `runs/T-007-conventions-current.md`.
 **From:** [`tasks.md`](../tasks.md) T-007
 **Branch:** `claude/t007-orchestrator-startup-8orc9r` — assigned to this session by
@@ -21,6 +21,7 @@ session already listed as `worker`.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-04 | `cse_01AtuAKBQ3YW1N9bz4feeDTP` (orchestrated run) |
+| worker | 2026-09-04 | `cse_01AtuAKBQ3YW1N9bz4feeDTP` (orchestrated run — same session id as task-expander; see process.md "Spawning, and the isolation it must not cost") |
 
 ## Goal
 
@@ -247,8 +248,104 @@ What a human still has to read, and record in the PR:
 
 ## Handoff
 
-Written by `worker` before the tester runs. **Always written, even when nothing
-was built.**
+Written by `worker`, 2026-09-04. Rewrote `conventions.md` in full — the only
+file changed besides this brief. No other file was touched: `bun.lock`,
+`uv.lock`, `package.json`, `pyproject.toml` and `ci.yml` are all unmodified
+(`git status` confirms this, see "How to check" below).
+
+### Criterion by criterion
+
+| # | Criterion | Where it lives now |
+|---|---|---|
+| 1 | Every Layout path exists | Layout block (lines 8–16) lists `frontend/`, `backend/`, `question-bank/`, `e2e/`, `fixtures/`, `tasks/`, `openapi.yaml` — all seven resolve at repo root; verified with `ls` |
+| 2 | Layout names all seven, one line each | Same block, one line per path |
+| 3 | Nothing claims the backend is unbuilt | Grepped `conventions.md` for `not built yet`, `once it exists`, `cd api` — no matches. Every sentence about the backend/API/database describes it as built and tested |
+| 4 | `api/` gone as a directory | No line names a top-level `api/` dir; the only `api/` substrings left are `/api/v1` (lines 10, 73), which the criterion explicitly allows |
+| 5 | `fixtures/` explained | New "Shared fixtures" section (lines 18–27) names `fixtures/level-labels.json` and both `frontend/src/lib/level.test.ts` and `backend/tests/test_levels.py` by path, and says editing one side alone turns one suite red |
+| 6 | Backend commands, real targets | Commands block: `make -C backend dev\|test\|check\|migrate`. All four confirmed as targets in `backend/Makefile` (`dev`, `test`, `check`, `migrate` — read the file, not assumed) |
+| 7 | Migrations, both commands | `make -C backend migrate` (line 76) and `make -C backend revision m="..."` (line 77), both real `backend/Makefile` targets |
+| 8 | Database described | New "The database" section (lines 83–91): `GEO_DATABASE_URL` named as the single setting, SQLite default, Postgres supported and tested |
+| 9 | Frontend/question-bank/e2e commands real | Commands block names `bun run typecheck` and `bun test` for frontend; every `bun run <script>` named (`dev`, `typecheck`, `lint`, `format` for frontend; `build`, `build:sample`, `typecheck` for question-bank; `install-browser`, `typecheck`, `test` for e2e) is a key of that package's `scripts` — checked against all three `package.json` files directly |
+| 10 | CI described, job list exact | New "CI" section (lines 93–104): names `.github/workflows/ci.yml`, says it runs on every PR to `main` and every push to `main`, lists exactly `frontend`, `question-bank`, `backend`, `backend-postgres`, `integration`, `e2e` — the same six keys under `jobs:` in `ci.yml`, checked by reading the file |
+| 11 | Docker pointed at, not restated | New "Docker" section (lines 106–113): names `Dockerfile` and `docker-compose.yml`, says the image serves the frontend and API on one origin, links to `README.md` "Run it locally with Docker" for the run instructions. No `docker run` flag, volume name or port mapping was copied in |
+| 12 | Every relative link resolves | Seven markdown links, all relative, all checked to exist: `fixtures/level-labels.json`, `frontend/src/lib/level.test.ts`, `backend/tests/test_levels.py`, `.github/workflows/ci.yml`, `Dockerfile`, `docker-compose.yml`, `README.md` |
+| 13 | Nothing outside this file moves | `git status --short` shows only `conventions.md` modified in the working tree; this brief is the only other file this worker touched |
+| 14 | No dependency/CI/network change | No `package.json`, lockfile, `pyproject.toml`, `uv.lock` or `ci.yml` changed. `bun install` in `frontend/` and `question-bank/` was run only to get `node_modules` for local test runs (see below), not committed — lockfiles are untouched |
+
+### What I deliberately did not do
+
+- **Left `## Code` and `## Network` untouched**, per "What is already true" and
+  the Out of scope item "Rewriting the `## Code` and `## Network` sections" —
+  byte-for-byte the same as before.
+- **Did not touch `CLAUDE.md`**, which has the identical `api/`/`not built yet`
+  staleness. Per Out of scope, that is a `P-n` ticket in `process-tasks.md`
+  because `CLAUDE.md` is loop-gated; filing it is a human's call, not this
+  task's, so I have not filed it myself, only flagged it here again.
+- **Did not touch `PROGRESS.md` or `test-guidelines.md`.** Both become stale in
+  the same way this task fixes; per Out of scope, `PROGRESS.md`'s sweep is the
+  reviewer's job in the same PR, and `test-guidelines.md`'s `api/` section is
+  T-047.
+- **Did not restate Docker `docker run` invocations, ports or volume names** in
+  `conventions.md` — linked to `README.md` instead, per Constraints ("stays a
+  reference, not a second README").
+- **Did not add a shape-check test.** Constraints allow the tester to add at
+  most one; writing one here would have pre-empted that role, and criteria
+  1–4, 6–10 and 12–14 are exactly the mechanically-checkable ones the review
+  checklist already calls out as "several are a `grep`."
+
+### Something worth flagging, not blocking
+
+- **`README.md` line 202 is now also slightly stale** — it says "CI runs all
+  five jobs on every pull request: `frontend`, `question-bank`, `backend`,
+  `backend-postgres` and `integration`," missing `e2e`, the sixth job. I did
+  not touch it: `README.md` is not in this brief's Constraints ("Files expected
+  to change: `conventions.md`... plus this brief's Handoff") and fixing it
+  would be exactly the kind of extra commit Out of scope warns against. Noting
+  it here so it becomes a `tasks.md` entry at sweep time rather than getting
+  lost. **Proposed owner: reviewer**, to add to `tasks.md` during its sweep (or
+  the human at merge, if the reviewer judges it out of its own envelope).
+
+### How to run what I touched
+
+`conventions.md` is prose; there is nothing to run against it directly beyond
+reading it beside the repo (which is exactly what the criteria ask). To
+re-check the mechanical criteria:
+
+```bash
+grep -n "not built yet\|once it exists\|cd api\b" conventions.md   # criterion 3, expect nothing
+grep -n "api/" conventions.md                                       # criterion 4, expect only /api/v1
+grep -oE '\[[^]]*\]\([^)]*\)' conventions.md                         # criterion 12, then `ls` each target
+```
+
+### Invariant checks (Constraints: must stay green)
+
+Ran all of these against the branch with `conventions.md` changed:
+
+- `cd question-bank && bun run typecheck` — clean.
+- `cd question-bank && bun test` — 19 pass, 0 fail.
+- `make -C backend check` — ruff check clean, ruff format clean, 233 passed / 9
+  skipped (the Postgres-only tests, which skip on SQLite by design).
+- `cd frontend && bun test` — 88 pass, 0 fail (one run mid-session showed a
+  transient timeout in `lint-gate.test.ts`, which shells out to `bun run lint`
+  with a 5s timeout; re-running it alone and as part of the full suite passed
+  cleanly both before and after my edit, so it is flaky under load rather than
+  caused by this change — `conventions.md` is not part of the TypeScript
+  program or the lint target).
+- `cd frontend && bun run lint` — exit 0, no output.
+- `cd frontend && bun run typecheck` — **could not complete**: `bun install`
+  in `frontend/` fails on this sandbox with `403` from the pinned package
+  registry (`europe-west1-npm.pkg.dev`) for `react-simple-maps`'s transitive
+  `d3-*` dependencies, so the corresponding `@types` packages are missing from
+  the checked-out `node_modules` and `tsc` reports `Cannot find module
+  'react-simple-maps'` in `UsMap.tsx` — a file this task never touches. This is
+  a pre-existing sandbox network restriction, not something this change
+  introduced: `frontend/bun.lock` is byte-identical to `main` (`git diff
+  --stat -- frontend/bun.lock` is empty), `node_modules/` is gitignored, and no
+  dependency was added or changed. I could not get a clean `bun run typecheck`
+  run to confirm this invariant in this environment; **flagging for the
+  tester** to either reproduce (and treat as a pre-existing environment gap
+  unrelated to this task) or run in an environment where the frontend registry
+  is reachable.
 
 ## Verdict
 
@@ -269,3 +366,20 @@ Written by `reviewer`, and only when it sends the PR back.
 - **Criterion 13 is the one that keeps this task small.** A doc task that starts
   correcting `CLAUDE.md` and `PROGRESS.md` on the way past is how a one-hour
   change becomes a gated one.
+- **Worker note, 2026-09-04:** the survey held — all six gaps were real and
+  unfixed, and criteria 1–14 were satisfied by rewriting `conventions.md`
+  alone, no other file. The one surprise was environmental rather than about
+  the task: `frontend/`'s package registry is blocked in this sandbox
+  (`europe-west1-npm.pkg.dev` returns 403 for some `d3-*` transitive types),
+  so `bun run typecheck` in `frontend/` could not be confirmed green here even
+  though nothing in this change touches TypeScript or frontend dependencies —
+  `bun.lock` is untouched and `node_modules/` is gitignored. `bun test`,
+  `bun run lint`, question-bank's full suite and `make -C backend check` (233
+  passed, 9 skipped) all ran clean. Flagged in the Handoff for the tester to
+  either reproduce or run somewhere the registry is reachable — this is not a
+  product or dependency decision, just a sandbox gap, so I did not stop for it.
+- **Also flagged, not fixed:** `README.md` line 202 still lists five CI jobs
+  and is missing `e2e`, the same staleness this task fixes in `conventions.md`.
+  Out of this brief's Constraints (only `conventions.md` is listed as a file
+  the worker may change), so I left it and named it in the Handoff for the
+  reviewer's sweep or a new `tasks.md` entry.
