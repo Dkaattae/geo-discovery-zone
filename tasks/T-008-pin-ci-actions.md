@@ -10,7 +10,7 @@ session by the environment, so this is the task branch. It is **not** named
 the branch for you"). Every role after the expander checks
 `git branch --show-current` against this line and pushes here regardless
 (`CLAUDE.md` "Branches" carries the standing permission).
-**PR:** #35, opened draft at expand time from the branch above. It stays draft
+**PR:** #34, opened draft at expand time from the branch above. It stays draft
 until the reviewer approves it.
 **Fault:**
 
