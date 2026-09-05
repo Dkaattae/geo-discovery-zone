@@ -8,7 +8,9 @@
 was assigned by the environment (Claude Code on the web), used instead of
 `task/T-058-…` per `process.md`, "When the environment names the branch for you".
 **Every role on this task pushes here.**
-**PR:** #NN — draft, opened at expand time from the branch above
+**PR:** [#35](https://github.com/Dkaattae/geo-discovery-zone/pull/35) — draft,
+opened at expand time from the branch above, and it stays draft until the
+reviewer approves it
 **Fault:**
 
 **Sessions:**
