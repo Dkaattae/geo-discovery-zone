@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date
+**Approved:** orchestrator — 2026-09-05, unattended run. See `runs/T-058-doc-claims-about-ci.md`.
 **From:** [`tasks.md`](../tasks.md) T-058
 **Branch:** `claude/t009-orchestrator-startup-uot0vc` — the branch this session
 was assigned by the environment (Claude Code on the web), used instead of
