@@ -447,9 +447,8 @@ function longestBacktickRun(text: string): string[] {
   return runs.sort((a, b) => b.length - a.length)[0] ?? [];
 }
 
-/** Job names in `ci.yml` whose steps run `git diff --exit-code` against the
- * lockfile they just installed from. */
-function jobsWithLockfileCheck(): string[] {
+/** Every top-level job in `ci.yml`, with the lines of its block. */
+function ciJobBlocks(): { name: string; lines: string[] }[] {
   const workflow = readFileSync(join(REPO_ROOT, ".github/workflows/ci.yml"), "utf8").split("\n");
   const start = workflow.findIndex((line) => /^jobs:\s*$/.test(line));
   expect(start).toBeGreaterThanOrEqual(0);
@@ -468,7 +467,13 @@ function jobsWithLockfileCheck(): string[] {
     }
     current?.lines.push(line);
   }
-  return jobs
+  return jobs;
+}
+
+/** Job names in `ci.yml` whose steps run `git diff --exit-code` against the
+ * lockfile they just installed from. */
+function jobsWithLockfileCheck(): string[] {
+  return ciJobBlocks()
     .filter((job) => job.lines.some((line) => /git diff --exit-code/.test(line)))
     .map((job) => job.name);
 }
@@ -589,5 +594,126 @@ describe("conventions.md attributes the lockfile check only to the jobs that hav
 
   test("the CI section still says all six install from a frozen lockfile", () => {
     expect(flat(section("## CI"))).toMatch(/installs from a frozen lockfile/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T-058 tester — gaps the criteria name that the blocks above do not reach
+//
+// Written by the verifying session (`process.md` step 4) from the wording of
+// `tasks/T-058-doc-claims-about-ci.md`'s acceptance criteria, not from the
+// implementation. Three places where a criterion says more than the block
+// above it asserts:
+//
+//   * criterion 1 forbids *any* wrong count of CI jobs; the block above only
+//     looks at counts spelled as words ("five jobs"), so "all 5 jobs" would
+//     pass it.
+//   * criterion 4 is about README's Checks *section*, not only its fenced
+//     block — `make -C backend test-integration-against` and `cd e2e && bun
+//     run install-browser` are both named in its prose.
+//   * criterion 5 says the claimed jobs run `git diff --exit-code` *against
+//     the lockfile they installed from*; the block above only looks for the
+//     command.
+//   * criterion 7 says no e2e journey count survives in `conventions.md`, not
+//     only in the `# e2e` comment line.
+//
+// Expected values come from `.github/workflows/ci.yml`, `backend/Makefile` and
+// the `package.json` files. Nothing is read out of either doc. File reads
+// only; no network.
+// ---------------------------------------------------------------------------
+
+describe("T-058 #1 — no wrong CI job count survives in README, in digits either", () => {
+  test("every digit job count in README equals ci.yml's number of jobs", () => {
+    const stated = [...readmeDoc.matchAll(/\b(\d+)\s+jobs?\b/gi)].map((match) => Number(match[1]!));
+    expect(stated).toEqual(stated.map(() => workflowJobs().length));
+  });
+
+  test("README's CI sentence names every job in ci.yml individually", () => {
+    const sentence = flat(readmeSection("## Checks"))
+      .split(/(?<=[.])\s+/)
+      .find((candidate) => /\bjobs?\b/i.test(candidate) && /\bCI\b/.test(candidate));
+    expect(sentence).toBeDefined();
+    const named = [...sentence!.matchAll(/`([^`]+)`/g)].map((match) => match[1]!);
+    for (const job of workflowJobs()) expect(named).toContain(job);
+  });
+});
+
+describe("T-058 #4 — every command README's Checks section names is real", () => {
+  const checksSection = () => readmeSection("## Checks");
+
+  test("every `make -C backend <target>` in the section is a target of backend/Makefile", () => {
+    const named = backendTargetsNamedIn(checksSection());
+    expect(named.length).toBeGreaterThan(0);
+    const defined = makefileTargets();
+    expect(named.filter((target) => !defined.has(target))).toEqual([]);
+  });
+
+  for (const pkg of ["frontend", "question-bank", "e2e"]) {
+    test(`every \`bun run <script>\` the section names for ${pkg}/ is a key of its scripts`, () => {
+      const declared = Object.keys(readJson(`${pkg}/package.json`).scripts ?? {});
+      const named = bunScriptsIn(checksSection())[pkg] ?? [];
+      expect(named.filter((script) => !declared.includes(script))).toEqual([]);
+    });
+  }
+
+  test("the section names a command for every suite CI runs", () => {
+    const flatSection = flat(checksSection());
+    // backend suite, Postgres run, integration run — by Makefile target.
+    const targets = backendTargetsNamedIn(checksSection());
+    expect(targets).toContain("check");
+    expect(targets).toContain("test-postgres");
+    expect(targets).toContain("test-integration");
+    // frontend, question-bank and the browser suite — by package.
+    for (const pkg of ["frontend", "question-bank", "e2e"]) {
+      expect(flatSection).toMatch(new RegExp(`cd\\s+${pkg}\\s*&&[^.]{0,80}bun\\s+(run\\s+)?test`));
+    }
+  });
+});
+
+describe("T-058 #5 — the jobs conventions.md credits diff the lockfile they installed", () => {
+  /** Job names in the backticked run of the CI section's lockfile-drift
+   * sentence. Derived from the doc, which is the thing under test — the
+   * expectation it is compared against comes from `ci.yml`. */
+  function jobsCreditedByDoc(): string[] {
+    const sentence = flat(section("## CI"))
+      .split(/(?<=[.;])\s+/)
+      .find((candidate) => /lockfile did not move/i.test(candidate));
+    expect(sentence).toBeDefined();
+    return [...sentence!.matchAll(/`([^`]+)`/g)].map((match) => match[1]!);
+  }
+
+  test("each credited job runs `git diff --exit-code` against the lockfile it installed from", () => {
+    const blocks = ciJobBlocks();
+    const credited = [...new Set(jobsCreditedByDoc())];
+    expect(credited.length).toBeGreaterThan(0);
+    for (const name of credited) {
+      const job = blocks.find((candidate) => candidate.name === name);
+      expect(job).toBeDefined();
+      const body = job!.lines.join("\n");
+      const lockfile = /bun install/.test(body)
+        ? "bun.lock"
+        : /uv sync/.test(body)
+          ? "uv.lock"
+          : undefined;
+      expect(lockfile).toBeDefined();
+      expect(body).toMatch(
+        new RegExp(`git diff --exit-code[^\\n]*${lockfile!.replace(".", "\\.")}`),
+      );
+    }
+  });
+
+  test("no job with such a step is left out of the doc's list", () => {
+    expect([...new Set(jobsCreditedByDoc())].sort()).toEqual([...jobsWithLockfileCheck()].sort());
+  });
+});
+
+describe("T-058 #7 — no e2e journey count survives anywhere in conventions.md", () => {
+  test("no number, in digits or words, qualifies `journeys`", () => {
+    expect(flat(doc)).not.toMatch(
+      new RegExp(
+        `\\b(\\d+|${NUMBER_WORDS.join("|")}|nine|ten|eleven|twelve|thirteen|fourteen)\\b[^.]{0,20}journeys`,
+        "i",
+      ),
+    );
   });
 });

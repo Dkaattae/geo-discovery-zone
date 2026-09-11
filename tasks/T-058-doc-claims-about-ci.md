@@ -1,7 +1,7 @@
 # T-058 — Three doc claims that are true-ish, and one that is not
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-09-11
 **From:** [`tasks.md`](../tasks.md) T-058
 **Branch:** `claude/t009-orchestrator-startup-uot0vc` — the branch this session
@@ -19,6 +19,7 @@ reviewer approves it
 |---|---|---|
 | task-expander | 2026-09-05 | cse_01ACZu6WMBf4Kx8dTMZLKKuW |
 | worker | 2026-09-11 | cse_01ACZu6WMBf4Kx8dTMZLKKuW |
+| tester | 2026-09-11 | cse_01ACZu6WMBf4Kx8dTMZLKKuW (orchestrated — see Verdict) |
 
 ## Goal
 
@@ -352,6 +353,131 @@ touched.
 ## Verdict
 
 Written by `tester`.
+
+**PASS.** All ten criteria hold. Every `ci.yml`-derived claim in both docs is now
+under a test that I broke on purpose and watched go red — **15 mutations, 15
+reds, every file restored** (`md5sum` confirmed). I added 10 tests to
+`frontend/src/conventions-doc.test.ts` closing four places where a criterion says
+more than the worker's blocks assert. **Two caveats a reader must not skip:** my
+independence is the weaker, orchestrated kind (below), and `bun run typecheck`
+does not go green in this sandbox for a reason provably outside this diff.
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | README names every job, right count | pass | `README.md:206-207` lists all six; test asserts set-equality with `ci.yml`'s `jobs:` keys. Mutations M1, M3, M3b |
+| 2 | Test red in both directions | pass | M1 (drop `e2e` from README) → red; M2 (add a 7th job to `ci.yml`, README untouched) → red |
+| 3 | README no longer says CI skips Postgres | pass | Bullet gone from Known issues; M6 (re-add it verbatim) → 4 tests red |
+| 4 | Checks section names a real command per suite | pass | `cd e2e && bun run test` added; M7, M7b, M7c, M7d → red |
+| 5 | conventions.md credits only the four jobs | pass | M10 (credit all six) → red; M5b (frontend diffs `package.json` not `bun.lock`) → red |
+| 6 | Test red in both directions | pass | M4 (delete `frontend`'s step) → red; M5 (add one to `backend-postgres`) → red |
+| 7 | No unasserted e2e journey count | pass | "thirteen" removed; M8 and M8b (count reintroduced, in the comment and elsewhere) → red |
+| 8 | No unasserted suite size in README's Checks block | pass | "221 tests"/"28 tests" removed; M9 → red. See the one borderline note below |
+| 9 | `.github/` byte-identical, no dependency | pass | `git diff main -- .github/` empty; diff vs `main` touches only `README.md`, `conventions.md`, `frontend/src/conventions-doc.test.ts`, `tasks/`, `runs/` |
+| 10 | Whole suite green, no network | pass with caveat | `bun test` 184 pass / 0 fail; `bun run lint` clean at `--max-warnings 0`; `typecheck` — see below |
+
+### Independence — the weaker kind, and say so
+
+This is an **orchestrated run** (`runs/T-058-doc-claims-about-ci.md` exists), so
+every spawned role shares one session id: `cse_01ACZu6WMBf4Kx8dTMZLKKuW` appears
+against `task-expander` and `worker` as well as me. **The Sessions-table check
+therefore did not pass — it did not run.** What I actually have is a fresh
+context window: I never saw the worker's transcript or reasoning, and read only
+committed files. That is real isolation, but it rests on the orchestrator having
+spawned me correctly rather than on evidence I can produce. Weigh the `pass`
+accordingly (`process.md`, "Spawning, and the isolation it must not cost").
+
+### Handoff verified against the branch
+
+The Handoff names `README.md`, `conventions.md` and
+`frontend/src/conventions-doc.test.ts`. All three are present on
+`claude/t009-orchestrator-startup-uot0vc` at `5be9158` and contain the described
+changes. Nothing is stranded on another branch.
+
+### The 15 mutations
+
+Each was applied to a live file, the doc test file re-run, then the file restored
+from a copy and checked by `md5sum`. Working copy after the run: only my own test
+file modified.
+
+| Mutation | What it broke | What went red |
+|---|---|---|
+| M1 | README's job list drops `e2e` | README job-set test + my "names every job individually" |
+| M2 | `ci.yml` gains a 7th job `smoke` | README job-set, README count, conventions.md criterion 10, mine |
+| M3 | "all six jobs" → "all five jobs" | "no sentence states a wrong number of CI jobs" |
+| M3b | "all six jobs" → "all 5 jobs" (digits) | **only** my new digit test — the worker's word-only regex misses this |
+| M4 | `frontend` loses its `Lockfile unchanged` step | lockfile-attribution test + both of mine |
+| M5 | `backend-postgres` gains one | lockfile-attribution test + mine |
+| M5b | `frontend` diffs `package.json` instead of `bun.lock` | **only** my "against the lockfile it installed from" test |
+| M6 | the "CI only runs the SQLite path" bullet restored | all four criterion-3 tests |
+| M7 | `cd e2e && bun run test` line deleted | browser-suite test + mine |
+| M7b | that line names a non-existent script `browser` | 4 tests |
+| M7c | `test-integration` → `test-integrated` | 4 tests |
+| M7d | prose names `bun run install-chromium` (not a script) | **only** my whole-section test — the worker's checks the fenced block only |
+| M8 | "thirteen" restored to the `# e2e` comment | e2e-count test + mine |
+| M8b | a journey count added elsewhere in the Commands block | **only** my whole-file test |
+| M9 | "221 tests" restored to the Checks block | Checks-block count test |
+| M10 | conventions.md credits all six jobs with the lockfile check | 4 tests |
+
+### What I added, and why
+
+`frontend/src/conventions-doc.test.ts`, one new section at the end plus a small
+refactor (`ciJobBlocks()` factored out of `jobsWithLockfileCheck()`; behaviour
+unchanged, all 78 tests in the file still pass). No new file — the brief's
+Constraints and T-061 both argue against another `ci.yml` parser. Four gaps, each
+proved real by the mutations marked **only** above:
+
+- **Criterion 1 in digits.** The worker's count test matches spelled words only,
+  so `all 5 jobs` passed it. Mine reads `\d+ jobs?` and compares with
+  `workflowJobs().length`.
+- **Criterion 4 is about the Checks *section*, not its fenced block.** The prose
+  names `make -C backend test-integration-against` and
+  `cd e2e && bun run install-browser`; neither was under a test.
+- **Criterion 5's literal wording** — "`git diff --exit-code` **against the
+  lockfile it installed from**". The worker's parser only looks for the command,
+  so a job diffing the wrong file still counted.
+- **Criterion 7 says "in `conventions.md`"**, not "in the `# e2e` comment".
+
+### The typecheck caveat, stated plainly
+
+`cd frontend && bun run typecheck` emits four errors, **all four in
+`src/components/UsMap.tsx`**, which this task does not touch and which is
+byte-identical to `main`:
+
+```
+src/components/UsMap.tsx(2,55): error TS2307: Cannot find module 'react-simple-maps'...
+src/components/UsMap.tsx(3,24): error TS2307: Cannot find module 'us-atlas/states-10m.json'...
+```
+
+Cause, checked rather than assumed: `frontend/node_modules/react-simple-maps` and
+`us-atlas` are absent, and `bun.lock` pins their tarballs at
+`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`, which this
+sandbox's egress proxy refuses. `frontend/package.json` and `bun.lock` are
+unchanged versus `main`, so no install this task performed could have caused it.
+This is the same gap T-007 recorded at `PROGRESS.md:268-271`, settled there the
+same way: **CI's `frontend (typecheck, lint, test)` job is the authority, and I
+could not query it** (`gh` is not installed in this session). Nothing in this
+diff produces a type error — `conventions-doc.test.ts` is clean.
+
+`bun test`: 184 pass, 0 fail, 559 assertions, 7 files. `bun run lint`: clean at
+`--max-warnings 0`. No test reaches the network: the only `http` in the doc test
+file is the word "fetched" in a comment; everything else is `readFileSync`.
+
+### One borderline item — for the reviewer, not a blocker
+
+`README.md:192` says "**The nine** Postgres-only tests skip on SQLite". That is a
+test count in the Checks **section** with nothing asserting it — the exact drift
+criterion 8 exists to close. I did not fail the task on it, for two reasons: the
+criterion says "Checks **block**" and names only `:183` and `:185`, both inside
+the fenced block, while criterion 4 says "Checks **section**" — the expander drew
+that distinction deliberately; and the line is pre-existing on `main` and
+untouched here. **Reviewer: worth a small `tasks.md` entry** (remove it, or assert
+it) rather than a silent gap. I did not write a test for it, because inventing an
+interpretation that fails the task is exactly what a tester must not do.
+
+Also noted, not blocking: `ci.yml:279` still says "thirteen full user journeys"
+in a comment. Out of scope by criterion 9 (`.github/` must not change), and the
+brief scopes criterion 7 to `conventions.md` — but it is the same stale count,
+and it will outlive this task.
 
 ## Review
 
