@@ -22,8 +22,10 @@ process-tasks change made by hand, never through this loop) before resuming,
 or (c) have the top-level session implement this step directly instead of
 through a spawned `worker` — a deviation from the loop's role separation that
 needs sign-off, not a default.
-**Approved:** orchestrator — 2026-09-11, unattended run. See
-`runs/T-010-commit-or-generate-the-bank.md`.
+**Approved:** Dkaattae — 2026-09-11. (Previously stamped `orchestrator — 2026-09-11,
+unattended run`; see `runs/T-010-commit-or-generate-the-bank.md` for that
+round's record. Superseded by this line now that Dkaattae has reviewed the
+brief directly — see `process-tasks.md` P-4 / `process-decisions.md` D-13.)
 **From:** [`tasks.md`](../tasks.md) T-010
 **Branch:** `claude/gracious-mendel-1mxa5b` — assigned to this session by the
 harness; used as T-010's task branch under `CLAUDE.md` "Branches" (standing
