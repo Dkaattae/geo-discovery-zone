@@ -132,3 +132,16 @@ is worse than no entry.
 declined with a reason in the workflow — and no hardcoded journey count survives
 in `ci.yml`. Whichever way the first goes, `conventions.md` and the assertions in
 `frontend/src/conventions-doc.test.ts` still agree with the workflow afterwards.
+
+### P-4 — Orchestrator's unattended-run approval, confirmed acceptable · S · done
+**Depends on:** —
+**Found and closed 2026-09-11, during T-010's orchestrated run.** D-1 and D-11
+in `process-decisions.md` both flagged the same open question and left it open
+on purpose: an unattended run's `Approved: orchestrator — <date>, unattended
+run` stamp is written without anyone having read the criteria, and both said to
+re-examine it "the first time a run produces something that satisfies its
+criteria and is not what anyone wanted."
+T-010's run stamped exactly that during an unattended round. Dkaattae then
+reviewed the brief directly and confirmed the stamp is acceptable practice —
+recorded as `D-13`.
+**Done when:** recorded in `process-decisions.md` as `D-13`. Done — see below.
