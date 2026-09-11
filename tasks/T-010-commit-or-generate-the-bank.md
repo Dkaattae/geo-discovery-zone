@@ -1,7 +1,9 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `awaiting approval`
+**Next step:** `task-expander` — trim the draft criteria below to Option B
+plus the Q2/Q3 answers, then this brief needs Dkaattae's approval before the
+`worker` starts.
 **Approved:** `pending`
 **From:** [`tasks.md`](../tasks.md) T-010
 **Branch:** `claude/gracious-mendel-1mxa5b` — assigned to this session by the
@@ -18,7 +20,8 @@ and the round-1 note in `runs/T-010-commit-or-generate-the-bank.md`.
 **Fault:** T-010 *is* a product decision that `process.md` reserves for a human
 ("whether to commit generated output"), so the expander cannot write frozen
 criteria without making it; the question is in "The decision" below and the brief
-is blocked on the answer.
+is blocked on the answer. **Resolved 2026-09-11** — see the answers under Q1–Q3
+below.
 
 **Sessions:**
 
@@ -30,13 +33,12 @@ is blocked on the answer.
 
 ## TL;DR
 
-- **This brief is deliberately unfinished, and the halt is the output.** T-010 is
-  the exact case `process.md` names as a human-only call — "a product decision an
-  agent may not settle: … **whether to commit generated output**" — so no worker
-  should start.
-- **What is needed from Dkaattae:** one answer to Q1 (commit or keep generated),
-  plus Q2 (where reviewed fun facts live) and Q3 (what happens to
-  `sample-data/`). Answer in this file.
+- **Answered 2026-09-11.** Q1 = commit (Option B). Q2 = reviewed fun facts live
+  in the pipeline's committed output, not `backend/app/data/`. Q3 = keep
+  `sample-data/` for now, purge later once the full 50-state bank is proven —
+  as a separate task. Full answers are under each question below.
+- **Next:** `task-expander` trims the draft criteria to match, then Dkaattae
+  approves before `worker` starts.
 - **The survey below changes the shape of the choice** as `tasks.md` states it:
   the output is ~40 KB not "a large blob"; a network-free full rebuild
   **already works** from a committed fixture; and every rebuild rewrites all 50
@@ -57,6 +59,12 @@ that nothing today owns.
 ## The decision — this is what the task is blocked on
 
 ### Q1 (the task itself). Is `question-bank/data/` committed, or does it stay generated?
+
+**Answer (Dkaattae, 2026-09-11): Option B — commit it.**
+
+A periodic pipeline to refresh the committed data from Wikidata is needed, but
+is **not part of this PR** — added to `tasks.md` as a new task that depends on
+T-010.
 
 **Option A — keep it generated** (status quo; `question-bank/.gitignore:4` says
 `data/` and its comment already asserts this policy).
@@ -88,6 +96,15 @@ Two further facts that belong to the decision and are in neither column:
 
 ### Q2 (uncovered by the survey; T-011 is blocked on it in practice). Where does a reviewed fun fact live?
 
+**Answer (Dkaattae, 2026-09-11): in the data pipeline.** Reviewed fun facts
+live in the pipeline's committed output (`question-bank/data/`, under
+Option B above), not diverted to `backend/app/data/` on the far side of
+T-040's loader — that rules out plausible answer 3 below. This is plausible
+answer **2**: the built entity JSON is the committed home for `reviewed: true`
+prose, and T-011 edits it (or the source the build folds into it) directly
+rather than through a separate `curated/` file. If a later task finds that
+reading wrong, correct it here before the criteria freeze.
+
 T-011's deliverable is "50 reviewed facts … and the app can read them". Today the
 only file that holds fun-fact text is `fun-facts.review.json`, written into
 `--out`, which is **gitignored**. So a human's rewritten, `reviewed: true` prose —
@@ -108,10 +125,15 @@ The plausible answers, and they are not the same as Q1:
 entity shape. Committing all 50 makes it either redundant or a deliberate
 teaching example. Say which.
 
-**Answer in this file, under each question.** Then set `Status: awaiting
-approval` and `Next step: task-expander` — the criteria below are drafts and have
-to come back through the expander to be trimmed to the answer and approved
-(`process.md`, "Once approved, the criteria are frozen").
+**Answer (Dkaattae, 2026-09-11): keep it, for now.** Sequence: commit all 50
+states first, prove the full bank works, *then* purge `sample-data/` as
+redundant. The purge is **not part of this PR** — added to `tasks.md` as a new
+task, depending on T-010, so the cleanup isn't silently dropped.
+
+**Answered.** `Status: awaiting approval`, `Next step: task-expander` — the
+criteria above are drafts and have to come back through the expander to be
+trimmed to Option B plus these answers and re-approved (`process.md`, "Once
+approved, the criteria are frozen").
 
 ## What is already true — survey, so nobody rebuilds it
 

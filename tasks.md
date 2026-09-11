@@ -210,7 +210,7 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-010 — Decide: commit the 50-state output, or keep it generated · S · **doing** (blocked on Dkaattae)
+### T-010 — Decide: commit the 50-state output, or keep it generated · S · **doing** (awaiting approval)
 **Depends on:** —
 `question-bank/data/` is gitignored today. Committing it makes builds
 reproducible without network and gives reviewable diffs when Wikidata shifts;
@@ -218,14 +218,36 @@ keeping it generated avoids a large blob that goes stale. T-040 sharpens this:
 if a loader reads that JSON to seed the database, "regenerate it from Wikidata
 first" becomes a step in every deploy that does not have one today.
 **Expanded 2026-09-11** into [`tasks/T-010-commit-or-generate-the-bank.md`](tasks/T-010-commit-or-generate-the-bank.md),
-which is **blocked**: `process.md` reserves "whether to commit generated output"
-for a person, so the brief asks rather than guesses. The survey there moved three
-of the four arguments above — the output is ~40 KB rather than a large blob, a
-network-free full rebuild already works from the committed SPARQL fixture, and
-every rebuild rewrites all 50 files because `sources.built_at` is a wall-clock
-timestamp. It also found a question the entry never asked: **reviewed fun facts
-have no committed home**, which blocks T-011 in practice whichever way T-010 goes.
+which was blocked on a decision `process.md` reserves for a person, then
+**answered by Dkaattae 2026-09-11: commit it** (Option B). Reviewed fun facts
+live in the pipeline's committed output, not `backend/app/data/`; `sample-data/`
+stays for now and is purged in a later task once the full bank is proven (see
+T-063 and T-064 below, both split out of this decision). `task-expander` still
+needs to trim the brief's draft criteria to this answer and get it approved
+before `worker` starts.
 **Done when:** the decision is recorded in `PROGRESS.md` and `.gitignore` matches it.
+
+### T-063 — Periodic pipeline to refresh the committed 50-state data · M · todo
+**Depends on:** T-010
+Split out of T-010's Q1: once `question-bank/data/` is committed, it goes stale
+against Wikidata unless something regenerates and diffs it on a schedule. Design
+and build that refresh (likely a scheduled CI job that reruns the pipeline live
+and opens a PR with the diff — `.github/workflows/ci.yml`'s existing jobs run
+offline on purpose, per T-005, so this is a new one). Explicitly out of scope for
+T-010 itself.
+**Done when:** the committed bank can be refreshed from live Wikidata on a
+schedule without a human running the pipeline by hand, and a stale bank is
+visible (a PR, an alert, or both) rather than silent.
+
+### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
+**Depends on:** T-010
+Split out of T-010's Q3: `sample-data/` (one committed state, with its own
+README) stays alongside the full 50-state commit for now, on purpose — kept
+until the committed bank is shown to work end to end. Once that is proven, it is
+redundant and this task removes it, updating anything that pointed at it as an
+example (`question-bank/README.md`, `conventions.md`).
+**Done when:** `sample-data/` is deleted, or this task is dropped with the reason
+it turned out still to earn its place.
 
 ### T-011 — Review the 50 draft fun facts · M · todo
 **Depends on:** —
