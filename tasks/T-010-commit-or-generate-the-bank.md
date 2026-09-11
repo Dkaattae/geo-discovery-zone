@@ -1,9 +1,9 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `awaiting approval`
-**Next step:** `worker` — but not until **Approved:** below stops saying
-`pending`. The criteria were trimmed to Option B on 2026-09-11 and are frozen
-once approved.
+**Status:** `blocked`
+**Next step:** `human` — this worker session cannot execute any code at all
+(see `## Handoff`), which blocks every criterion under "What is committed" and
+"It stays reproducible". Nothing was built, and no change was committed.
 **Approved:** orchestrator — 2026-09-11, unattended run. See
 `runs/T-010-commit-or-generate-the-bank.md`.
 **From:** [`tasks.md`](../tasks.md) T-010
@@ -33,6 +33,7 @@ orchestrator rather than made in-session.
 |---|---|---|
 | task-expander | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable in this sandbox) |
 | task-expander (round 2, criteria trimmed to Option B) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` |
+| worker (blocked — no code execution available) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id, per this session's Claude-Session attribution; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable here either — same limitation the round-2 expander noted) |
 
 ---
 
@@ -400,8 +401,135 @@ reasoning is honest. A human checks these; record who, in the PR.
 
 ## Handoff
 
-_Not written — no worker has run. The brief is waiting on approval, not on a
-decision: Q1–Q3 are answered above._
+**Nothing was built or committed. This worker session cannot execute any code
+at all — not just `git write`, which is the wall round 1/2 of the expander hit,
+but every interpreter: `bun`, `node`, `python3` all return `This command
+requires approval` on the very first invocation, with no human present to grant
+it. `git add`, `git commit`, `git fetch` and `git push` return the same error;
+only read-only git (`status`, `log`) and plain file reads work.** Nothing in
+the working tree changed — this brief edit is the only file touched, made with
+the `Write`/`Edit` tools rather than Bash, and even this could not be
+committed. Confirmed the survey below is accurate by reading, not by running
+anything.
+
+**What that blocks, concretely — essentially the whole task:**
+
+- **Criteria 1–5 ("What is committed")** need `question-bank/data/us-states/`
+  to exist as 50 tracked entity files plus `index.json`. The only way to
+  produce that content is an offline build —
+  `bun run build -- --offline --out data/us-states` (or the `--fixture`
+  equivalent) — replaying `src/fixtures/us-states.sparql.json` through
+  `normalize.ts` and `JsonFileSink`. I cannot invoke `bun` at all, so I cannot
+  produce this output.
+- **Criteria 6–8 ("It stays reproducible")** need `sources.built_at` made
+  deterministic (`normalize.ts:46`, `build.ts`'s `--offline` path — the
+  fixture's own `_fixture.captured_at`, `2026-08-04T16:05:35Z`, is the
+  documented way to do this per the brief's Context), then two offline builds
+  compared byte-for-byte, then a `bun test` file that goes red on a single
+  mutated tracked value. I could *write* the `normalize.ts`/`build.ts` edit and
+  the new test file with `Edit`/`Write` — the code itself is plain
+  TypeScript/Node, no Bun-specific API — but I have no way to run either the
+  build or `bun test` to confirm any of it actually works, and shipping an
+  edit to a build pipeline that has never been executed is not something I am
+  willing to hand to the tester as if it were verified.
+- **Criterion 9** (no `reviewed: false` prose in tracked files) is a property
+  of the same output I cannot generate.
+- **Criterion 19** (whole suite green, typecheck, lint) needs `bun test`,
+  `bun run typecheck` — unavailable for the same reason.
+
+**What I deliberately did not do, and why.** I did not hand-write the 50 entity
+JSON files by reading the 2877-line fixture and the curated table and computing
+the joins, ranks, WKT centroid parsing and border resolution by hand. Three
+reasons, each sufficient on its own:
+
+1. **It would be unverifiable.** Criterion 6 requires the committed bytes to be
+   *reproducible by the offline build* — a hand-transcribed file that happens
+   to look right satisfies nothing, because there is no way, in this session,
+   to run the build and confirm it actually matches.
+2. **It is exactly the kind of guess `CLAUDE.md` "Content rules" warns
+   against** — "prefer a blank field to a guessed one" is written for curated
+   content, but the reasoning is the same for mechanically-derived fields: a
+   population rank computed by a person copying 50 numbers by eye is far more
+   likely to be silently wrong than one computed by the code that has a test
+   suite behind it.
+3. **It is not this task's decision to make.** T-010's Constraints say "do not
+   change what the pipeline computes" — hand-deriving the output from the
+   fixture without running `normalize.ts` risks doing exactly that if I get
+   even one join or rounding rule wrong, with nothing to catch it.
+
+**What I *did* survey, so the next session does not have to redo it** (all by
+reading, no execution):
+
+- `question-bank/src/build.ts`, `normalize.ts`, `types.ts`, `sinks/json.ts` —
+  confirmed the pipeline is plain Node-compatible TypeScript (no `Bun.*` API
+  calls), the offline path (`--offline`/`--fixture`) replays the committed
+  fixture with no network, `--offline` implies `--no-fun-facts` so criterion 9
+  holds by construction on that path, and `normalizeUsStates` already accepts
+  `options.builtAt` (`normalize.ts:31,46`) — determinism does not need a new
+  seam, only wiring the fixture's `_fixture.captured_at` (or an equivalent
+  fixed value) through `build.ts`'s offline branch.
+- `question-bank/sample-data/` — `us-state-co.json`, `index.json`,
+  `fun-facts.review.json`, `README.md` all present and match what
+  `JsonFileSink` and `writeReviewFile` produce; useful as the reference shape
+  for criterion 4, once an actual build can be run.
+- `question-bank/src/normalize.test.ts` — the existing test pattern (reads the
+  fixture via `parseUsStates`, asserts on `normalizeUsStates` output, never
+  writes) is the right shape to extend for criterion 8's reproducibility test.
+- `frontend/src/conventions-doc.test.ts` — the doc-vs-repo pattern the brief
+  points at for criteria 10/15; confirmed it reads files and asserts against
+  them rather than trusting the doc, which is the model criterion 8's test and
+  the doc criteria should follow.
+- `engineering-decisions.md` — confirmed no `E-6` exists yet and the file's
+  own rules (a decision needs a revisit trigger) — criteria 12–14 are entirely
+  unwritten, on purpose: writing `E-6` before the actual data exists would be
+  describing a decision about output nobody has produced yet in this session.
+- `tasks.md` — confirmed T-063 and T-064 already exist as separate entries
+  (the periodic refresh and the `sample-data/` purge), so Q1/Q3's "not part of
+  this PR" promises are already kept; T-040's entry (`tasks.md:403`) still says
+  the old thing and criterion 16 is unmet.
+- `question-bank/.gitignore`, `README.md`, `conventions.md` — read, not yet
+  edited; still assert the Option A policy, so criteria 10, 11 and 15 are
+  unmet.
+- `git ls-files question-bank/data` — confirmed empty; nothing is tracked
+  under `question-bank/data/` today, so criteria 1–5 start from zero, not from
+  something partially there.
+
+**What is needed to unblock, named for whoever reads this next:**
+
+- **This exact task, re-run in a session that can execute `bun` and write
+  git commits/pushes** — `process.md` "Prefer the driver where you have the
+  choice" (`.claude/loop/run-loop.sh` on a local machine) is the documented
+  alternative to a restricted web sandbox, and is the option that matches
+  what this task actually needs: running the pipeline, not just editing text.
+  A different **Claude Code on the web** session, if the harness's command
+  approval can be granted for `bun`/`git write` this time, would also work —
+  the restriction reproduced identically on three separate interpreters
+  (`bun`, `node -e`, `python3 -c`) and on every git write, which reads as a
+  session-level policy rather than something retryable from inside the
+  session.
+- **Once unblocked**, the actual sequence is: (1) wire a fixed `builtAt` (the
+  fixture's `_fixture.captured_at` is the documented candidate) through
+  `build.ts`'s offline path; (2) run
+  `bun run build -- --offline --out data/us-states`; (3) run it a second time
+  and confirm `git status --porcelain question-bank/data` is empty both times
+  (criterion 6); (4) diff the resulting `us-state-co.json` against
+  `sample-data/us-state-co.json` and regenerate `sample-data/` offline if they
+  disagree outside `built_at` (criterion 4); (5) write the reproducibility
+  test (criterion 8) alongside `normalize.test.ts`'s pattern; (6) write `E-6`
+  from the Q1–Q3 answers already recorded in this brief and update
+  `.gitignore`, `README.md`, `conventions.md`, `PROGRESS.md` and `tasks.md`'s
+  T-040 entry; (7) run the whole suite (`bun test`, `bun run typecheck` in
+  `question-bank/`, plus frontend and backend unchanged) before handing off.
+- **I have not touched `.gitignore`, `README.md`, `conventions.md`,
+  `engineering-decisions.md`, `PROGRESS.md`, `tasks.md`'s T-040 entry, or any
+  source file.** Editing the docs and `E-6` without the underlying data
+  existing would produce a brief that reads as done while criteria 1–9 remain
+  unmet — worse than leaving them visibly untouched.
+
+**How to confirm this blocker independently:** try `bun --version`, `node -e
+"1"`, or `git add <anything>` in the session that reads this. If any of those
+succeed, the restriction was specific to this session rather than the
+environment class, and the task can proceed from here without re-expanding.
 
 ## Verdict
 
@@ -440,3 +568,12 @@ _Not written._
   was only this file. The commit and PR #37 landed afterwards, and round 2 pushes
   to the same branch — so the brief and the PR are the record from here, not a
   chat log.
+- **The worker hit the same wall, wider.** The round-1/2 expander's Bash could
+  at least run read-only git; this worker session's Bash returned `This command
+  requires approval` for `bun`, `node -e`, `python3 -c` and every git write
+  (`add`, `commit`, `fetch`, `push`) alike — no code execution at all, not only
+  git. See `## Handoff` for what that blocks (essentially all of criteria 1–9
+  and 19, since they all depend on actually running the pipeline or `bun
+  test`) and what was surveyed instead. This edit itself may only exist in the
+  working tree if the commit below also fails — check `git log
+  origin/claude/gracious-mendel-1mxa5b -1` against the local `HEAD` to tell.
