@@ -226,7 +226,7 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 ### Earlier tasks, on-process
 
 - **P-4 — Orchestrator's unattended-run approval, confirmed acceptable**
-  (PR #TBD, 2026-09-11). D-1 and D-11 flagged the same open question and left
+  (PR #38, 2026-09-11). D-1 and D-11 flagged the same open question and left
   it open on purpose — an unattended run's `Approved: orchestrator — <date>,
   unattended run` stamp substitutes for step-2 human review. T-010's run
   stamped it; Dkaattae then reviewed the brief directly and confirmed the
