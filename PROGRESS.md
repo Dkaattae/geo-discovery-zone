@@ -124,12 +124,15 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   `test-guidelines.md`, `conventions.md`, `process-decisions.md`,
   `engineering-decisions.md`, `process-tasks.md`, and `tasks/` for the
   brief in flight.
-- **`conventions.md` is checked, not just written.**
-  `frontend/src/conventions-doc.test.ts` asserts it against the repo it
-  describes — every Layout path resolves, every `make` target and `bun run`
-  script it names is defined, its CI job list equals `ci.yml`'s, and every
-  relative link points at a file that exists (T-007). A doc that goes stale now
-  fails a test instead of misleading the next session.
+- **`conventions.md` and `README.md` are checked, not just written.**
+  `frontend/src/conventions-doc.test.ts` asserts both against the repo they
+  describe — every Layout path resolves, every `make` target and `bun run`
+  script they name is defined, their CI job lists equal `ci.yml`'s, the jobs
+  credited with a lockfile-drift guard are exactly the ones that run
+  `git diff --exit-code` against the lockfile they installed from, no suite size
+  is stated that nothing asserts, and every relative link points at a file that
+  exists (T-007 for `conventions.md`, T-058 for `README.md`). A doc that goes
+  stale now fails a test instead of misleading the next session.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
   task between the other four and reads none of their work.
@@ -140,17 +143,20 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Two unattended drivers for the same loop, enforcing the same six gates:
   `.claude/loop/run-loop.sh` locally (no model in it, a spend cap the CLI
   enforces, a fresh session id per step) and the `orchestrator` agent where no
-  shell can run. **The `orchestrator` has now driven three tasks end to end** —
-  T-006 (PR #29), T-007 (PR #33) and T-008 (PR #34), logged in `runs/`. What that
+  shell can run. **The `orchestrator` has now driven four tasks end to end** —
+  T-006 (PR #29), T-007 (PR #33), T-008 (PR #34) and T-058 (PR #35), logged in
+  `runs/`. What that
   costs is the same every time and is written into each brief rather than
   disguised: nobody approves the criteria (`Approved: orchestrator`), and every
   spawned role shares one session id, so the Sessions-table independence check
   does not run — only the fresh context window is real. `run-loop.sh` has still
   never driven a task.
 - CI on every PR and push to `main`, six jobs: `frontend` and `question-bank`
-  (typecheck, lint, test), `backend` (ruff + 221 tests on SQLite),
+  (typecheck, lint, test), `backend` (ruff + the suite on SQLite),
   `backend-postgres` (the same suite against a Postgres service container),
-  `integration` (the compose stack over HTTP) and `e2e` (a browser).
+  `integration` (the compose stack over HTTP) and `e2e` (a browser). Four of the
+  six also fail if the lockfile they installed from moved; `backend-postgres`
+  and `integration` do not, which is P-3.
 - **"No network in tests" is a fact about CI, not a claim in a doc.** The four
   unit test steps run with every proxy spelling pointed at a dead loopback port
   and a 15-minute timeout, demonstrated on a runner with a canary that goes red
@@ -218,6 +224,37 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-058 — `README.md` describes the CI that runs** (PR #35, 2026-09-11).
+  `README.md` claimed CI ran **five** jobs and named five; six have run on every
+  PR since T-054. It also carried a Known-issues bullet saying "CI only runs the
+  SQLite path … a Postgres-only regression would not fail a pull request", false
+  since `backend-postgres` landed, and two stale suite sizes ("221 tests", "28
+  tests"). `conventions.md` overstated the lockfile-drift guard as belonging to
+  all six jobs when four have it, and hardcoded "thirteen full user journeys".
+  All five are fixed, the Checks block gained the missing `cd e2e && bun run
+  test` line, and — the point of the task — **`README.md` is now held against
+  `ci.yml` by the same test that holds `conventions.md`**: its job list must
+  equal `ci.yml`'s `jobs:` keys, every command it names must be a real `make`
+  target or `bun` script, and no suite size may appear that nothing asserts.
+  `.github/` is byte-identical to `main`.
+  *Differed from the brief:* nothing in the criteria. **Both count claims were
+  closed by deleting the number rather than asserting it** — criteria 7 and 8
+  allowed either, and the alternative was a `pytest --collect-only` subprocess
+  from a `bun test` file or a word↔digit mapping, both of which add the kind of
+  machinery whose failure mode is the drift the task existed to close. The
+  reviewer confirmed that reading rather than leaving it open. **The tester's
+  four added tests were not redundant**: `all 5 jobs` written in digits, a job
+  running `git diff --exit-code` against the wrong file, and two commands named
+  in the Checks section's prose rather than its fenced block all slipped past the
+  worker's assertions and now do not — 15 mutations, 15 reds. The worker and
+  tester each wrote their own copy of the same doc-parsing helper, which is
+  folded into T-061. Two loose ends live in `ci.yml` itself and so became **P-3**
+  rather than queue entries: the two jobs with no lockfile guard, and a comment
+  still saying "thirteen". As in T-007, `bun run typecheck` could not run in the
+  sandbox (`react-simple-maps` unreachable from the pinned registry); CI's
+  `frontend (typecheck, lint, test)` job is green on the head commit, which is
+  what settled it.
 
 - **T-008 — the CI actions have a pinning rule, and it is written down** (PR #34,
   2026-09-04). `ci.yml`'s 13 `uses:` references were all on mutable major tags,
@@ -394,8 +431,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
   still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
-  `conventions.md` was the third of these and is fixed (T-007, PR #33).
-- `README.md:202` says CI runs five jobs and names five; there are six (T-058).
+  `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
+  `README.md` (T-058, PR #35) — both now fail a test rather than drift.
+- One count in `README.md` escaped T-058 and is still unasserted: ":192 — the
+  nine Postgres-only tests" (T-062).
 
 **Behaviour.**
 

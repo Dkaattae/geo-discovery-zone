@@ -103,3 +103,32 @@ carry it.
 with `LOOP_PERMISSION_MODE` left at its default, the allowlist names verbs rather
 than wildcards, and the README's "Permissions" section points at the file that now
 exists instead of describing one that does not.
+
+### P-3 — Two loose ends in `ci.yml` that a `T` task may not reach · S · todo
+**Depends on:** —
+**New 2026-09-11, carried over by T-058's reviewer (PR #35).** T-058 corrected the
+docs that describe `ci.yml` and put them under test. Two things it found are in
+`ci.yml` itself, which `process.md` ("Work on the loop itself never enters the
+loop") and `run-loop.sh` G1 put out of a `T` task's reach — T-058's criterion 9
+made that boundary checkable by requiring `git diff main -- .github/` to stay
+empty, and it did. **T-058's brief asked for these in `tasks.md`; they belong
+here**, because an entry in `tasks.md` that no `task-expander` may correctly pick
+is worse than no entry.
+
+- **Two of the six jobs have no lockfile-drift guard.** `frontend`,
+  `question-bank`, `backend` and `e2e` each install from a frozen lockfile *and*
+  run `git diff --exit-code` against it; `backend-postgres` (`ci.yml:227`) and
+  `integration` (`ci.yml:266`) install with `--frozen` and stop. Two lines each.
+  `conventions.md` now states the split accurately, so nothing is *wrong* today —
+  the question is whether the guard should be uniform. If it is added, the doc
+  sentence collapses back to "each ... checks the lockfile did not move" and
+  `conventions-doc.test.ts` fails until it does, which is the behaviour T-058
+  built: the test asserts the doc's list equals `ci.yml`'s, in both directions.
+- **`ci.yml:279` still says "thirteen full user journeys"** in a comment. The same
+  stale count T-058 removed from `conventions.md:66`, in the one file it could not
+  touch. It will outlive the next `e2e` task.
+
+**Done when:** it is decided whether all six jobs guard their lockfile — done, or
+declined with a reason in the workflow — and no hardcoded journey count survives
+in `ci.yml`. Whichever way the first goes, `conventions.md` and the assertions in
+`frontend/src/conventions-doc.test.ts` still agree with the workflow afterwards.
