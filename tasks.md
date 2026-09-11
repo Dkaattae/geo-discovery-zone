@@ -210,13 +210,21 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-010 — Decide: commit the 50-state output, or keep it generated · S · todo
+### T-010 — Decide: commit the 50-state output, or keep it generated · S · **doing** (blocked on Dkaattae)
 **Depends on:** —
 `question-bank/data/` is gitignored today. Committing it makes builds
 reproducible without network and gives reviewable diffs when Wikidata shifts;
 keeping it generated avoids a large blob that goes stale. T-040 sharpens this:
 if a loader reads that JSON to seed the database, "regenerate it from Wikidata
 first" becomes a step in every deploy that does not have one today.
+**Expanded 2026-09-11** into [`tasks/T-010-commit-or-generate-the-bank.md`](tasks/T-010-commit-or-generate-the-bank.md),
+which is **blocked**: `process.md` reserves "whether to commit generated output"
+for a person, so the brief asks rather than guesses. The survey there moved three
+of the four arguments above — the output is ~40 KB rather than a large blob, a
+network-free full rebuild already works from the committed SPARQL fixture, and
+every rebuild rewrites all 50 files because `sources.built_at` is a wall-clock
+timestamp. It also found a question the entry never asked: **reviewed fun facts
+have no committed home**, which blocks T-011 in practice whichever way T-010 goes.
 **Done when:** the decision is recorded in `PROGRESS.md` and `.gitignore` matches it.
 
 ### T-011 — Review the 50 draft fun facts · M · todo
