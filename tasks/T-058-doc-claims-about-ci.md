@@ -1,7 +1,7 @@
 # T-058 — Three doc claims that are true-ish, and one that is not
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved` — PR #35 marked ready, swept, waiting on Dkaattae's merge
+**Next step:** `human` merges PR #35. No agent owes this task anything.
 **Approved:** Dkaattae — 2026-09-11
 **From:** [`tasks.md`](../tasks.md) T-058
 **Branch:** `claude/t009-orchestrator-startup-uot0vc` — the branch this session
@@ -20,6 +20,7 @@ reviewer approves it
 | task-expander | 2026-09-05 | cse_01ACZu6WMBf4Kx8dTMZLKKuW |
 | worker | 2026-09-11 | cse_01ACZu6WMBf4Kx8dTMZLKKuW |
 | tester | 2026-09-11 | cse_01ACZu6WMBf4Kx8dTMZLKKuW (orchestrated — see Verdict) |
+| reviewer | 2026-09-11 | cse_01ACZu6WMBf4Kx8dTMZLKKuW (orchestrated — see Review) |
 
 ## Goal
 
@@ -481,7 +482,112 @@ and it will outlive this task.
 
 ## Review
 
-Written by `reviewer`, and only when it sends the PR back.
+Written by `reviewer`. **Approved** — nothing sent back, so this section records
+what was judged rather than what is owed. The brief is deleted in the sweep
+commit that follows this one; git holds it, and PR #35's body is the permanent
+record.
+
+**TL;DR:** approved and marked ready. The diff is four stale claims fixed in two
+developer docs plus the tests that hold them there — no source, no dependency, no
+child-facing text, nothing outside the brief's Constraints. Four non-blocking
+findings, all queued rather than fixed here. **Inside the envelope: no escalation
+note.**
+
+### The typecheck caveat is closed, with evidence the tester could not get
+
+The tester passed criterion 10 "with caveat" because `bun run typecheck` emits
+four `UsMap.tsx` errors in this sandbox and it had no `gh` to check CI. I could
+check CI: **`frontend (typecheck, lint, test)` is green on head commit
+`cd14905`**, along with `question-bank`, `backend`, `backend-postgres` and
+`integration`. Locally I reproduced the same four errors and confirmed the cause
+is environmental, not this diff — `frontend/node_modules/react-simple-maps` is
+absent, `frontend/package.json` and `bun.lock` are byte-identical to `main`, and
+`UsMap.tsx` is untouched. Same gap T-007 recorded at `PROGRESS.md:268-271`,
+settled the same way. Criterion 10 is a clean pass.
+
+### Quality, the part tests do not cover
+
+- **Fits the codebase.** The new blocks reuse this file's own idioms —
+  `section()`/`codeBlock()`, `readJson()`, `makefileTargets()`, expectations read
+  from `ci.yml` and `package.json` and never from the doc under test. Generalising
+  `section()` → `sectionOf()`, `backendTargetsNamedInDoc()` →
+  `backendTargetsNamedIn()` and `bunScriptsByPackage()` → `bunScriptsIn()` behind
+  thin wrappers is the right size of refactor: T-007's existing tests keep their
+  exact call sites and their behaviour.
+- **Not more than it needed to be.** No new file, no new parser of `ci.yml`, no
+  dependency, no new CI job. The brief's Out of scope held: `ci.yml` untouched
+  (`git diff main -- .github/` empty), `conventions.md:10` left alone, T-061's
+  files not touched.
+- **Role lanes held.** Expander's two commits touch only `tasks/`. Worker's
+  touches the two docs, the test file and its own Handoff. Tester's touches the
+  test file and its own Verdict — no source. Orchestrator's touch only `runs/` and
+  the `Approved:` line.
+- **Docs are true.** Checked by hand, not only by the tests: every command the
+  Checks section names resolves — `check`, `test-postgres`, `test-integration`,
+  `test-integration-against` are all targets of `backend/Makefile`; `test` and
+  `install-browser` are both keys of `e2e/package.json`'s `scripts`. The
+  conventions.md lockfile sentence matches `ci.yml` exactly: four jobs with a
+  `git diff --exit-code` step, two without.
+- **Honesty intact.** Nothing downgraded, no fixture bent, no criterion satisfied
+  in letter only. The tester's 15 mutations plus its four added gap-tests are the
+  strongest part of this PR: `all 5 jobs` in digits and a job diffing the wrong
+  lockfile both slipped past the worker's blocks and now do not.
+
+### The worker's flagged judgment call — decided here, not deferred
+
+**Criteria 7 and 8 satisfied by removing the counts rather than asserting them:
+accepted.** Both criteria offer removal as an explicit alternative, so this is
+inside the brief, not a stretch of it. It is also the better of the two: asserting
+"221 tests" from a `bun test` file needs a `pytest --collect-only` subprocess
+across a language boundary, and asserting "thirteen" needs a word↔digit mapping —
+both add machinery whose failure mode is the drift this task exists to close.
+Removal loses no information a reader needs; the commands that produce the numbers
+are still named. **Closed, not carried forward.** A future task wanting the counts
+back with real assertions is new scope, not a revert.
+
+### Findings — four, none blocking
+
+1. **A helper is duplicated inside `conventions-doc.test.ts`.**
+   `jobsDocClaimsCheckLockfile()` (worker's block) and `jobsCreditedByDoc()`
+   (tester's block) are the same function written twice, and the new
+   `longestBacktickRun()` helper is not used by criterion 10, which still carries
+   its own inline copy of the same regex. Defensible — the Constraints said not to
+   weaken criterion 10, and leaving it untouched is the safest reading — but it is
+   two implementations of one rule, which is exactly what T-061 exists to fix one
+   file over. **Amended T-061** rather than filing a new entry: it already owns
+   "one rule, two implementations, in the frontend suite's CI-parsing tests".
+2. **`README.md:192` — "The nine Postgres-only tests"** is an unasserted suite
+   count in the Checks *section*. True today (9 tests in
+   `backend/tests/test_postgres.py`, verified), pre-existing on `main`, and
+   outside criterion 8, which names the Checks *block* and lines `:183`/`:185`.
+   The tester flagged it and correctly declined to fail the task on an
+   interpretation the expander deliberately did not write. **New `tasks.md` entry
+   T-062**, sized S.
+3. **`ci.yml:279` still says "thirteen full user journeys"** in a comment — the
+   same stale count, in the one file criterion 9 forbids touching. And the two
+   missing `Lockfile unchanged` steps the brief asked me to queue are also a
+   workflow change. The brief said "add it to `tasks.md`"; **I put both in
+   `process-tasks.md` as `P-3` instead**, because `tasks.md`'s own preamble and
+   `process.md` ("Work on the loop itself never enters the loop") both put the
+   workflows in `P` territory, and an entry in `tasks.md` that no expander may
+   correctly pick is worse than no entry. Same intent, right file.
+4. **Two nits, deliberately not actioned and not queued.** The `cd e2e` line's
+   `#` comment in README's Checks block sits one column right of the other three.
+   And the worker's "no sentence states a wrong number of CI jobs" test scans the
+   whole README for `<number-word> jobs`, so a future sentence about some other
+   kind of job would fail it — stricter than criterion 1 asks, harmless today
+   (README has exactly one such phrase, checked), and cheaper to leave than to
+   queue.
+
+### Envelope
+
+Inside it on every count: tester passed; `bun test` 184/0 and `bun run lint`
+clean locally, all five completed CI jobs green on head; nothing changed outside
+`README.md`, `conventions.md`, `frontend/src/conventions-doc.test.ts` and the
+brief, apart from `runs/` (the orchestrator's log, expected in a relayed run) and
+this sweep; no dependency; no `openapi.yaml`, migration or plan; no text a child
+will read — both files are for developers; no product decision settled. **Marked
+ready with no escalation note.**
 
 ## Notes
 
