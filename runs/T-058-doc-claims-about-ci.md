@@ -1,7 +1,7 @@
 # T-058 — Three doc claims that are true-ish, and one that is not — run log
 
 **Task:** T-058 · **Branch:** `claude/t009-orchestrator-startup-uot0vc` · **PR:** #35
-**Started:** 2026-09-05 · **Outcome:** in progress
+**Started:** 2026-09-05 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-09-05
 `Next step` on entry: (none — no brief existed) → on exit: `worker`
@@ -92,3 +92,34 @@ Two caveats a reader must not skip: my independence is the weaker orchestrated k
 
 - `README.md:192` — "**The nine** Postgres-only tests skip on SQLite" is an unasserted test count in the Checks *section*. Pre-existing on `main`, and criterion 8 says "Checks **block**" and names only `:183`/`:185` (both inside the fence) while criterion 4 deliberately says "section" — so the tester did not fail on it and did not invent a test that would. Worth a small `tasks.md` entry.
 - `ci.yml:279` still comments "thirteen full user journeys" — out of scope by criterion 9, but the same stale count survives this task.
+
+## Round 4 — reviewer — 2026-09-11
+`Next step` on entry: `reviewer` → on exit: — (PR marked ready; a person merges)
+
+**Approved. PR #35 is ready for review, swept, and waiting on your merge — no escalation.**
+
+- **Verdict:** approve. Four non-blocking findings, all queued rather than fixed. Nothing sent back to any agent.
+- **Envelope:** clear on every count — tester passed, all six CI jobs green on the swept head `652848e`, no dependency, no `openapi.yaml`/migration/plan, no text a child reads, nothing outside Constraints except the expected sweep set.
+- **State:** `draft: false`, `mergeable_state: clean`. I hold no merge tool; merging is yours (D-4).
+
+### What I checked beyond the tester
+
+| Check | Result |
+|---|---|
+| Every role's work in the PR | Yes — expander (2 commits), worker, tester, orchestrator, reviewer, all on `claude/t009-orchestrator-startup-uot0vc` |
+| Role lanes against the diff | Held. Expander touched only `tasks/`; tester touched no source; orchestrator only `runs/` + the `Approved:` line |
+| Docs actually true | Verified by hand, not just by the new tests: `check`, `test-postgres`, `test-integration`, `test-integration-against` are real `backend/Makefile` targets; `test` and `install-browser` are real `e2e/package.json` scripts; the lockfile split is exactly 4 of 6 in `ci.yml` |
+| The tester's typecheck caveat | **Closed.** CI's `frontend (typecheck, lint, test)` is green on the head commit; the four local errors are all in `src/components/UsMap.tsx`, byte-identical to `main`, from the documented sandbox registry gap |
+
+### Findings and where each went
+
+1. `frontend/src/conventions-doc.test.ts` carries an internal duplicate — `jobsDocClaimsCheckLockfile()` and `jobsCreditedByDoc()` are the same function, and `longestBacktickRun()` was extracted while criterion 10 kept its inline copy. **Amended T-061**, which already owns that shape of duplication, rather than adding an entry it would have absorbed.
+2. `README.md:192`'s "The nine Postgres-only tests" is the one unasserted count left (true today — 9 tests in `backend/tests/test_postgres.py`). **New `tasks.md` entry T-062.**
+3. The brief asked me to queue the two missing `Lockfile unchanged` steps in `tasks.md`. **I put them in `/home/user/geo-discovery-zone/process-tasks.md` as P-3 instead**, with `ci.yml:279`'s stale "thirteen" — both are workflow changes, which `process.md` and `tasks.md`'s own preamble keep out of the loop. Same intent, right file; said so in the PR.
+4. Two nits (a one-column comment misalignment in README's Checks block; a job-count regex slightly stricter than criterion 1) left alone and deliberately not queued.
+
+**The worker's flagged judgment call is decided, not deferred:** removing the hardcoded counts rather than asserting them is accepted — the criteria offered it and the alternative adds cross-language machinery whose failure mode is the very drift the task closes.
+
+**Sweep, pushed to the brief's branch and confirmed on the remote** (`652848e`): brief deleted, T-058's queue entry deleted, logged in `PROGRESS.md` under Completed tasks, the standing "`README.md:202` says five jobs" gap closed, `PROGRESS.md`'s own stale "ruff + 221 tests" corrected, `tasks.md` Foundations table given a `README.md` row, T-047's stale count made undriftable.
+
+Files: `/home/user/geo-discovery-zone/tasks.md`, `/home/user/geo-discovery-zone/PROGRESS.md`, `/home/user/geo-discovery-zone/process-tasks.md`, `/home/user/geo-discovery-zone/README.md`, `/home/user/geo-discovery-zone/conventions.md`, `/home/user/geo-discovery-zone/frontend/src/conventions-doc.test.ts`.
