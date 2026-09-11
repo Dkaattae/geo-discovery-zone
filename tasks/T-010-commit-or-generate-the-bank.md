@@ -1,9 +1,9 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
 **Status:** `awaiting approval`
-**Next step:** `task-expander` — trim the draft criteria below to Option B
-plus the Q2/Q3 answers, then this brief needs Dkaattae's approval before the
-`worker` starts.
+**Next step:** `worker` — but not until **Approved:** below stops saying
+`pending`. The criteria were trimmed to Option B on 2026-09-11 and are frozen
+once approved.
 **Approved:** `pending`
 **From:** [`tasks.md`](../tasks.md) T-010
 **Branch:** `claude/gracious-mendel-1mxa5b` — assigned to this session by the
@@ -21,31 +21,36 @@ and the round-1 note in `runs/T-010-commit-or-generate-the-bank.md`.
 ("whether to commit generated output"), so the expander cannot write frozen
 criteria without making it; the question is in "The decision" below and the brief
 is blocked on the answer. **Resolved 2026-09-11** — see the answers under Q1–Q3
-below.
+below, and the Option B criteria written from them. What remains is not a fault
+in the task: the round-2 expander session hit the same "This command requires
+approval" wall on every git write, so its commit was checkpointed by the
+orchestrator rather than made in-session.
 
 **Sessions:**
 
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable in this sandbox) |
+| task-expander (round 2, criteria trimmed to Option B) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` |
 
 ---
 
 ## TL;DR
 
-- **Answered 2026-09-11.** Q1 = commit (Option B). Q2 = reviewed fun facts live
-  in the pipeline's committed output, not `backend/app/data/`. Q3 = keep
-  `sample-data/` for now, purge later once the full 50-state bank is proven —
-  as a separate task. Full answers are under each question below.
-- **Next:** `task-expander` trims the draft criteria to match, then Dkaattae
-  approves before `worker` starts.
-- **The survey below changes the shape of the choice** as `tasks.md` states it:
-  the output is ~40 KB not "a large blob"; a network-free full rebuild
-  **already works** from a committed fixture; and every rebuild rewrites all 50
-  files because `built_at` is a wall-clock timestamp.
-- **Draft criteria are written for both answers** so that answering Q1–Q3
-  converts this into an approvable brief in one short expander pass rather than a
-  fresh survey.
+- **The decision is made and the criteria are now written for it.** Q1 = commit
+  the built 50-state output (Option B). Q2 = reviewed fun facts live in the
+  pipeline's committed output, not `backend/app/data/`. Q3 = keep `sample-data/`
+  for now (T-064 purges it later). Answers are recorded verbatim under Q1–Q3.
+- **Waiting on Dkaattae's approval on PR #37**, then `worker`. Nothing else
+  blocks it.
+- **The work is three things:** commit `question-bank/data/us-states/` (50 files
+  + `index.json`, ~40 KB), make the offline rebuild reproduce them byte-for-byte
+  so the committed bank is checkable rather than asserted, and write `E-6` plus
+  the doc changes that say so.
+- **One thing the worker must not skip:** `sources.built_at` is a wall-clock
+  timestamp today (`normalize.ts:46`), so a rebuild rewrites all 50 files even
+  when no fact changed. Committing the output is worth little until that is
+  deterministic — criterion 6 is the one with teeth.
 
 ## Goal
 
@@ -130,10 +135,11 @@ states first, prove the full bank works, *then* purge `sample-data/` as
 redundant. The purge is **not part of this PR** — added to `tasks.md` as a new
 task, depending on T-010, so the cleanup isn't silently dropped.
 
-**Answered.** `Status: awaiting approval`, `Next step: task-expander` — the
-criteria above are drafts and have to come back through the expander to be
-trimmed to Option B plus these answers and re-approved (`process.md`, "Once
-approved, the criteria are frozen").
+**Answered, and carried into the criteria.** The expander returned on
+2026-09-11, deleted the conditional A/B draft and wrote the Option B criteria
+below. `Status: awaiting approval`, `Next step: worker` — but only once
+`Approved:` names a person (`process.md`, "Once approved, the criteria are
+frozen").
 
 ## What is already true — survey, so nobody rebuilds it
 
@@ -159,74 +165,122 @@ git only).
 - There is **no `.gitignore` at the repository root**; the ignore rules live in
   `question-bank/`, `frontend/`, `backend/` and `e2e/`.
 
-## Acceptance criteria — DRAFT, not frozen, pending Q1–Q3
+## Acceptance criteria
 
-Written now so answering Q1–Q3 is cheap. **Not approved and not binding.** The
-expander returns to trim these to the branch taken, and Dkaattae approves that
-version.
+Written for **Option B** and the Q2/Q3 answers above, and **frozen once
+`Approved:` is filled in** (`process.md`, step 2). Nothing here is conditional
+any more; the earlier two-branch draft is in git history at `a68ab8b`.
 
-### Common to both answers
+Several of these are already true — that is marked inline, and confirming one
+still holds is a legitimate way to satisfy it. Criteria 1–9 are shape checks a
+test can make; 10–16 are the written decision, which only a human can judge (see
+the Review checklist).
 
-1. `engineering-decisions.md` gains an `E-6` entry that states which way T-010
-   went, names the option **not** taken and what it costs, and gives a concrete
-   revisit trigger — matching the file's own rule at
-   `engineering-decisions.md:14` ("a decision with no trigger for revisiting is a
-   habit, not a decision").
-2. `PROGRESS.md` records the decision in one line under "Completed tasks",
-   including which of the two was chosen.
-3. `question-bank/.gitignore` and the recorded decision agree: no path is both
-   listed there and tracked by git, and its explanatory comment states the
-   decided policy rather than the previous one.
-4. `question-bank/README.md` and `conventions.md:61` describe the same policy as
-   `E-6` — in particular, whether a fresh clone has the 50-state bank or must
-   build it.
-5. A test in `question-bank/src/` fails if `question-bank/.gitignore` stops
-   agreeing with the decided policy, and it reads the repository rather than
-   restating the answer in a literal string. It reaches no network.
-6. `tasks.md`'s T-040 entry names which of the two it must assume, so the loader
-   task is not re-deciding this.
-7. No new dependency in any `package.json` or `pyproject.toml`, and no lockfile
-   changes.
-8. No behavioural change to the pipeline's output *content*: for the same input
-   fixture, every field of every entity has the same value before and after,
-   `sources.built_at` excepted where criterion B2 applies.
+### What is committed
 
-### Only if Q1 = A (keep it generated)
+1. `git ls-files question-bank/data/us-states` lists **exactly 51 paths**:
+   `index.json` plus 50 files named `us-state-<postal>.json` — one for each of
+   the 50 two-letter `postal` values in `CURATED_US_STATES`
+   (`question-bank/src/curated/us-states.ts`). Not 49 entity files, not 51.
+2. The tracked `question-bank/data/us-states/index.json` has `count: 50`, and its
+   `entities` array holds 50 entries whose `id` values are exactly the `id`
+   fields of the 50 tracked entity files, with no duplicates and none missing.
+3. Every tracked entity file parses as JSON and has a non-null `id`, `name`,
+   `capital`, `geometry_id`, `centroid`, `population` and `area_km2`, with
+   `type: "state"` and `scope: "us"`. Across the 50 files, `population_rank`
+   takes each integer 1–50 exactly once, and `area_rank` does too. (A 1-state or
+   49-state build emits `null` ranks — `build.ts:98-100` — so this fails it.)
+4. The tracked `question-bank/data/us-states/us-state-co.json` and the committed
+   `question-bank/sample-data/us-state-co.json` are equal field for field except
+   `sources.built_at` — either because the tracked file matches the existing
+   sample, or because `sample-data/` was regenerated offline from the same
+   fixture in this same change. A difference in any other field means the two
+   were built by different code paths and is a finding, not a rounding error.
+5. The total size of all files tracked under `question-bank/data/` is **under
+   200 KB**. (Today's one-entity file is 821 bytes, so 50 plus an index is
+   roughly 40 KB — the headroom is deliberate, the cap is the guard against a
+   later "just commit the blob".)
 
-A1. No built entity JSON is tracked anywhere outside `question-bank/sample-data/`
-— `git ls-files` lists no file under `question-bank/data/`.
-A2. `E-6` names the committed SPARQL fixture plus `--offline` as the mechanism
-that makes a network-free full rebuild possible, and states plainly that fun
-facts are **not** reproducible that way (`build.ts:90`).
-A3. The docs state, in one place a deployer will find, that seeding a database
-from pipeline output requires running the build first — the deploy step T-040
-would otherwise inherit silently.
-A4. Q2 is answered in writing: the file that will hold `reviewed: true` fun-fact
-text is named and is tracked by git, even if it does not exist yet.
+### It stays reproducible, and a test says so
 
-### Only if Q1 = B (commit the output)
+6. An **offline** build from the committed fixture
+   (`question-bank/src/fixtures/us-states.sparql.json`) into
+   `question-bank/data/us-states/` leaves `git status --porcelain
+   question-bank/data` **empty**, and running that build a second time leaves it
+   empty again. Byte-for-byte identical, `sources.built_at` included. This binds
+   the offline path only: a live build against Wikidata may legitimately differ,
+   and that difference is T-063's subject.
+7. In all 50 tracked entity files, `sources.built_at` is a valid ISO-8601 UTC
+   instant and is **the same string in every one of the 50**; `sources.builder_version`
+   equals `BUILDER_VERSION` in `question-bank/src/normalize.ts`. Criterion 6 is
+   met by making the value deterministic, not by deleting provenance.
+8. `bun test` in `question-bank/` goes **red** when any tracked file under
+   `question-bank/data/us-states/` stops matching what the offline build from the
+   committed fixture produces — changing a single value in a single tracked file
+   is enough to fail it. That test reaches no network, does not mock `fetch`,
+   writes nothing inside `question-bank/data/`, and runs under the existing
+   `question-bank` CI job with **no change to `.github/workflows/ci.yml`**.
+9. **No unreviewed prose in a shippable field.** Every tracked entity file's
+   `fun_facts` is an array in which every element has `reviewed: true`; today
+   that means all 50 are `[]`. No file tracked under `question-bank/data/`
+   contains `"reviewed": false` anywhere (`CLAUDE.md` "Content rules",
+   plan §1.6).
 
-B1. `question-bank/data/us-states/` is tracked and contains exactly 50 entity
-files plus `index.json`, and `index.json`'s `count` is `50`.
-B2. Two consecutive offline rebuilds into the tracked directory leave the working
-tree clean — `git status --porcelain` is empty after the second — so a rebuild
-that changes no fact produces no diff. (Today it produces 50, because
-`sources.built_at` is a wall-clock timestamp.)
-B3. Rebuilding from the committed fixture reproduces the tracked files
-byte-for-byte, and CI runs that check on every PR. It reaches no network.
-B4. No tracked file under `question-bank/data/` contains fun-fact prose with
-`reviewed: false`, and no entity's `fun_facts` array contains text that has not
-been through human review (`CLAUDE.md` "Content rules", plan §1.6).
-B5. The tracked output is under 200 KB in total, and a single-state rebuild
-cannot overwrite the 50-state tree with a 1-state one (`--states CO` writes only
-the states named, so the stale 49 would remain — say what happens).
-B6. Q3 is answered: `sample-data/` is either kept with a stated reason or removed
-in the same change.
+### The rules and the docs say the same thing
+
+10. `git check-ignore` matches **no** tracked path under `question-bank/data/`,
+    and a path that is *not* part of the committed bank — say
+    `question-bank/data/subset/us-state-co.json`, which
+    `question-bank/README.md:18` tells people to produce — is **still ignored**.
+    Both sides of that boundary hold.
+11. `question-bank/.gitignore`'s comment describes the decided policy. In
+    particular the tree contains no file asserting that the full bank is
+    "regenerated from Wikidata, not stored in git" (`question-bank/.gitignore:2-3`
+    today), except where `E-6` describes the option that was rejected.
+12. `engineering-decisions.md` gains an **`E-6`** entry that states the decision
+    in its own right — a reader learns which way T-010 went from `E-6` alone,
+    without diffing `.gitignore`.
+13. `E-6` names the option **not** taken and its real cost — a committed snapshot
+    goes stale against a continuously edited Wikidata
+    (`question-bank/sample-data/README.md:27`) — and gives a revisit trigger
+    that could actually be noticed, as `engineering-decisions.md:14` requires
+    ("a decision with no trigger for revisiting is a habit, not a decision").
+14. `E-6` names **the tracked path where `reviewed: true` fun-fact text will
+    live** and says whether it is built output or a build input, such that an
+    offline rebuild (criterion 6) does not destroy it. T-010 names that home; it
+    does not fill it — that is T-011.
+15. `question-bank/README.md` and `conventions.md` (its `# question bank` command
+    block, around `conventions.md:59-64`) both say that a fresh clone already
+    contains the 50-state bank and what `bun run build` does to it. Neither can
+    be read as contradicting `E-6`.
+16. `tasks.md`'s **T-040** entry states that the loader reads the committed
+    `question-bank/data/us-states/` and that seeding needs no live Wikidata run
+    at deploy time, and `PROGRESS.md` says in one line that the built 50-state
+    bank is committed. T-040 does not get to re-decide this.
+
+### What must not happen
+
+17. **No new dependency**: no addition to any `package.json` or
+    `pyproject.toml`, and `question-bank/bun.lock` is byte-identical to its
+    current content.
+18. **Nothing changes outside the Constraints list below.** In particular no
+    change to `openapi.yaml`, `geoquizdataplan.md`, any Alembic migration,
+    `.github/workflows/`, `process.md`, `process-decisions.md`, `CLAUDE.md` or
+    `.claude/`.
+19. **The whole suite stays green**, not just the new test: `question-bank`'s
+    existing 19 tests and its typecheck, plus frontend and backend unchanged.
+    No existing test is edited to accommodate this change.
 
 ## Out of scope
 
 - **Implementing T-040's loader.** T-010 decides what the loader reads from; it
   does not write it.
+- **The scheduled refresh of the committed bank — T-063.** Committing the data
+  makes it a snapshot; keeping it fresh is a new CI job and a new decision, and
+  it is explicitly not this PR. Do not add a workflow here.
+- **Deleting `question-bank/sample-data/` — T-064.** Q3 was answered "keep it for
+  now". Regenerating it offline from the same fixture is allowed where
+  criterion 4 needs it; deleting it is not.
 - **Reviewing or rewriting fun facts.** That is T-011. Q2 decides only *where the
   reviewed text lives*, not what it says.
 - **Filling any curated field** — `state_animal`, `landmark`, `climate_kid`,
@@ -244,12 +298,23 @@ in the same change.
 
 ## Constraints
 
-- **Files expected to change:** `engineering-decisions.md`, `PROGRESS.md`,
+- **Files expected to change:** `question-bank/data/us-states/**` (new, tracked),
   `question-bank/.gitignore`, `question-bank/README.md`, `conventions.md`,
-  `tasks.md` (the T-040 entry), one new test file under `question-bank/src/`.
-  Under Q1 = B, additionally `question-bank/data/us-states/**`, possibly
-  `question-bank/src/normalize.ts` (for B2's determinism) and
-  `.github/workflows/ci.yml` (for B3).
+  `engineering-decisions.md`, `PROGRESS.md`, `tasks.md` (the T-040 entry), one
+  new test file under `question-bank/src/`, and — for criterion 6's determinism —
+  `question-bank/src/build.ts` and/or `question-bank/src/normalize.ts`.
+  `question-bank/sample-data/**` may be regenerated offline if criterion 4 needs
+  it. **Not** `.github/workflows/ci.yml`: criterion 8's check has to ride inside
+  `bun test`, which the `question-bank` job already runs (`ci.yml:118-124`).
+- **Build the committed bank offline, from the committed fixture.** No live
+  Wikidata run: the sandbox has no egress to it, criterion 6 requires the
+  committed bytes to be reproducible from committed inputs, and `--offline`
+  implies `--no-fun-facts` (`build.ts:89-90`), which is what keeps criterion 9
+  true by construction. The consequence — the bank is an August 2026 snapshot
+  until T-063 exists — is the known cost of Option B and belongs in `E-6`.
+- **`sources.built_at` may change meaning, but not disappear.**
+  `normalizeUsStates` already takes `options.builtAt` (`normalize.ts:31,46`), so
+  determinism does not require inventing a new seam.
 - **`process-decisions.md`, `process.md`, `CLAUDE.md` and `.claude/` are
   off-limits** — loop-gated, `P` tickets, `run-loop.sh` G1. `engineering-decisions.md`
   is the correct home for this decision and is explicitly not gated
@@ -293,27 +358,49 @@ Required reading, not background.
   text, blank over guessed, flag the uncertain.
 - **Test rules:** [`test-guidelines.md`](../test-guidelines.md), "No network in
   tests, ever"; `ci.yml:93-124` for what the `question-bank` job actually runs.
-- **The doc-vs-repo test pattern criterion 5 should follow:**
+- **The doc-vs-repo test pattern criteria 8 and 10 should follow:**
   `frontend/src/conventions-doc.test.ts` — it reads the repository and asserts the
-  doc against it, so the doc cannot ratify itself (T-007, T-058).
+  doc against it, so the doc cannot ratify itself (T-007, T-058). The nearest
+  in-package example is `question-bank/src/normalize.test.ts:10-20`, which reads
+  the fixture off disk and never writes.
+- **Determinism, concretely:** the fixture's own `_fixture.captured_at`
+  (`question-bank/src/fixtures/us-states.sparql.json`, `2026-08-04T16:05:35Z`) is
+  a committed, meaningful instant, and `normalizeUsStates(rows, { builtAt })`
+  already accepts one. That is one way to satisfy criteria 6 and 7; the criteria
+  do not require it.
+- **Why `--offline` gives no fun facts:** `build.ts:89-90`. `writeReviewFile`
+  (`build.ts:121-141`) therefore never runs on the offline path, so nothing with
+  `reviewed: false` reaches the tracked directory.
 
 ## Review checklist — this is a decision task, so there is no test that settles it
 
 A human checks these; record who, in the PR.
 
+Criteria 12–16 are written decisions and documentation: a test can check that
+`E-6` exists and that no doc still asserts the old policy, but not whether the
+reasoning is honest. A human checks these; record who, in the PR.
+
 - [ ] The decision is **stated**, not implied — a reader can tell from `E-6`
       alone which way it went, without diffing `.gitignore`.
 - [ ] The rejected option is described with its real cost, not strawmanned.
-- [ ] The revisit trigger is something that could actually be noticed.
-- [ ] Q2's answer gives the reviewed fun facts a home that survives `git clean`.
-- [ ] Under Option B: someone has read a sample of the committed entity files and
-      confirmed no unreviewed prose is in them.
+      Staleness is the genuine argument for keeping the bank generated.
+- [ ] The revisit trigger is something that could actually be noticed — "the
+      committed bank is more than N months behind Wikidata" only counts if
+      something surfaces that.
+- [ ] Q2's answer gives the reviewed fun facts a home that survives both
+      `git clean` **and** an offline rebuild. If `E-6` puts them in built output
+      that the rebuild overwrites, criterion 14 is not really met.
+- [ ] Someone has read a sample of the committed entity files and confirmed no
+      unreviewed prose is in them — not merely that `fun_facts` is `[]`.
 - [ ] `question-bank/README.md`, `conventions.md` and `E-6` cannot be read as
       saying different things.
+- [ ] The change to `built_at`'s meaning (criterion 7) is described somewhere a
+      future reader will find it, rather than only visible in a diff.
 
 ## Handoff
 
-_Not written — no worker has run. The task is blocked on Q1–Q3 above._
+_Not written — no worker has run. The brief is waiting on approval, not on a
+decision: Q1–Q3 are answered above._
 
 ## Verdict
 
@@ -328,18 +415,27 @@ _Not written._
   worker. `process.md` reserves precisely this one ("whether to commit generated
   output") for a person, so guessing it would be the failure the role exists to
   prevent.
-- **The halt is cheap to end.** Answer Q1 with one word, Q2 with a path, Q3 with a
-  sentence; the expander then deletes one of the two draft blocks and the brief is
-  ready to approve.
+- **The halt ended as designed** (round 2, 2026-09-11). Q1–Q3 were answered in
+  the brief, the expander deleted the A/B draft blocks and wrote 19 frozen
+  criteria for Option B. No source, test or config file was touched by the
+  expander — the diff is `tasks/` and `tasks.md` only.
+- **Two places the round-2 criteria went further than the draft, deliberately.**
+  (a) The reproducibility check moved out of `.github/workflows/ci.yml` and into
+  `bun test` (criterion 8), because `process.md` "Work on the loop itself never
+  enters the loop" names the workflows as hand-done `P` tickets; a test inside
+  the package gets the same CI coverage with none of that argument. (b) Criterion
+  14 forces `E-6` to say where reviewed fun-fact text lives *such that a rebuild
+  does not destroy it* — because criterion 6 and hand-edited built output cannot
+  both be true, and T-011 would have discovered that the expensive way.
+- **Criterion 4 could legitimately fail** if `normalize.ts` has drifted since
+  `sample-data/` was built in August. That is the point of it: the fix is to
+  regenerate `sample-data/` offline, not to drop the comparison.
 - **Q2 was not in the queue entry** and is the finding worth keeping regardless of
   Q1: `tasks.md` T-011 promises 50 reviewed fun facts, and as the tree stands the
   only file that could hold them is gitignored.
-- **The halt is louder than intended, and that is a second thing to fix.** The
-  design is that a blocked brief is pushed, and `blocked-run-notice.yml` then
-  labels the PR and comments (`process-decisions.md` D-11). That cannot happen
-  here: the push was refused, so there is no PR and no issue, and the only notice
-  is this file plus the session's final report. Whoever reads this should commit
-  and push the two changed paths — `tasks/T-010-commit-or-generate-the-bank.md`
-  and `tasks.md` — and open the draft PR, at which point the workflow takes over
-  and labels it `waiting on a human`. Nothing else in the working tree was
-  touched.
+- **The halt was quieter than intended, and that is now closed.** The design is
+  that a blocked brief is pushed and `blocked-run-notice.yml` labels the PR
+  (`process-decisions.md` D-11); in round 1 the push was refused, so the notice
+  was only this file. The commit and PR #37 landed afterwards, and round 2 pushes
+  to the same branch — so the brief and the PR are the record from here, not a
+  chat log.

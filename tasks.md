@@ -222,8 +222,10 @@ which was blocked on a decision `process.md` reserves for a person, then
 **answered by Dkaattae 2026-09-11: commit it** (Option B). Reviewed fun facts
 live in the pipeline's committed output, not `backend/app/data/`; `sample-data/`
 stays for now and is purged in a later task once the full bank is proven (see
-T-063 and T-064 below, both split out of this decision). `task-expander` still
-needs to trim the brief's draft criteria to this answer and get it approved
+T-063 and T-064 below, both split out of this decision). The brief's criteria
+were **trimmed to Option B on 2026-09-11** — 19 of them, covering the committed
+`data/us-states/` tree, a byte-identical offline rebuild, and the `E-6` write-up
+— and now wait on Dkaattae's approval on [PR #37](https://github.com/Dkaattae/geo-discovery-zone/pull/37)
 before `worker` starts.
 **Done when:** the decision is recorded in `PROGRESS.md` and `.gitignore` matches it.
 
