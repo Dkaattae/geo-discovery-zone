@@ -30,3 +30,22 @@
 `tasks.md` offers two ways to fix `conventions.md:98`: qualify the sentence, or add the two missing `Lockfile unchanged` steps. **I ruled the ci.yml route out of scope** — `process.md` ("Work on the loop itself never enters the loop") puts workflow changes outside a `T` task, and criterion 9 makes that boundary checkable (`git diff main -- .github/` empty). The guard is genuinely cheap and worth having, so the brief asks the reviewer to queue it at sweep, and the PR body invites you to overturn the call at approval time if you would rather have the steps than the qualified sentence. I did not edit `tasks.md` or `PROGRESS.md` — there was nothing to sweep, and the follow-on belongs to the reviewer.
 
 Per the run's instructions I ran no build, test or lint — Bash was git and the PR call only.
+
+## Round 2 — worker — 2026-09-11
+`Next step` on entry: `worker` → on exit: `tester`
+
+Push confirmed landed on `origin/claude/t009-orchestrator-startup-uot0vc` at commit `5be9158`.
+
+### Summary
+
+**Fixed all four stale CI claims T-058 named, with tests holding each one.** Branch `claude/t009-orchestrator-startup-uot0vc`, commit `5be9158`, pushed and verified on remote. Status set to `awaiting verification`, next step `tester`.
+
+**Files changed:**
+- `/home/user/geo-discovery-zone/README.md` — CI sentence now says six jobs including `e2e`; Checks block gained the missing `e2e` command and dropped two unasserted test counts; the stale "CI only runs SQLite" bullet is removed.
+- `/home/user/geo-discovery-zone/conventions.md` — lockfile-drift check now attributed only to `frontend`/`question-bank`/`backend`/`e2e` (still says all six install from a frozen lockfile); the unasserted "thirteen" e2e count is gone.
+- `/home/user/geo-discovery-zone/frontend/src/conventions-doc.test.ts` — generalized existing helpers (`section`→`sectionOf`, `backendTargetsNamedInDoc`, `bunScriptsByPackage`) so README's claims reuse conventions.md's proven `ci.yml`-parsing logic rather than a fourth parser; added six `describe` blocks covering all 8 criteria (search `T-058 #`).
+- `/home/user/geo-discovery-zone/tasks/T-058-doc-claims-about-ci.md` — Handoff, Sessions row, Status/Next step, Notes.
+
+**One flagged judgment call:** criteria 7 and 8 (the e2e/backend/integration counts) were satisfied by *removing* the numbers rather than adding assertions — both criteria explicitly permit this, and asserting would have meant either fragile word↔digit matching (e2e) or a cross-language `pytest --collect-only` subprocess call from a frontend test (backend counts). Flagged in the brief's Handoff for reviewer confirmation.
+
+**Verification:** `git diff main -- .github/` is empty (criterion 9); manually mutated `ci.yml`/README in both directions to confirm the new job-list and lockfile-attribution tests actually go red, then restored. `cd frontend && bun test` (174 pass, 0 fail) / `bun run typecheck` / `bun run lint` (0 warnings) all pass — typecheck shows only pre-existing, documented `UsMap.tsx` errors (`PROGRESS.md:268-271`) from a private-registry package this sandbox's proxy can't reach, unrelated to this task's diff.
