@@ -63,7 +63,7 @@ bun run build:sample       # offline replay of the recorded fixture
 bun run typecheck
 bun test
 
-# e2e — thirteen full user journeys against a real docker compose stack
+# e2e — full user journeys against a real docker compose stack
 cd e2e && bun install && bun run install-browser   # once, fetches Chromium
 cd e2e && bun run typecheck
 cd e2e && bun run test                      # brings the stack up, runs, tears it down
@@ -95,9 +95,11 @@ owns the schema.
 Every pull request against `main`, and every push to `main`, runs
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) as six independent
 jobs: `frontend`, `question-bank`, `backend`, `backend-postgres`,
-`integration`, `e2e`. Each installs from a frozen lockfile, checks the
-lockfile did not move, then runs its checks independently so one red step
-never hides another. The four unit-test steps (`frontend`, `question-bank`,
+`integration`, `e2e`. Each installs from a frozen lockfile. `frontend`,
+`question-bank`, `backend` and `e2e` additionally check that the lockfile did
+not move before running their checks independently, so one red step never
+hides another; `backend-postgres` and `integration` install with `--frozen`
+and stop there. The four unit-test steps (`frontend`, `question-bank`,
 `backend`, `backend-postgres`) point every proxy variable at a dead port so no
 outbound request can reach the network (`test-guidelines.md`, "No network in
 tests, ever"); `integration` and `e2e` are the two jobs that build the Docker

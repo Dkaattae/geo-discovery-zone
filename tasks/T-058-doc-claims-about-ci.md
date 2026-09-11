@@ -1,7 +1,7 @@
 # T-058 — Three doc claims that are true-ish, and one that is not
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-09-11
 **From:** [`tasks.md`](../tasks.md) T-058
 **Branch:** `claude/t009-orchestrator-startup-uot0vc` — the branch this session
@@ -18,6 +18,7 @@ reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-05 | cse_01ACZu6WMBf4Kx8dTMZLKKuW |
+| worker | 2026-09-11 | cse_01ACZu6WMBf4Kx8dTMZLKKuW |
 
 ## Goal
 
@@ -214,6 +215,140 @@ only a person can judge.
 
 Written by `worker` before the tester runs.
 
+**TL;DR:** all four defects fixed in `README.md`/`conventions.md`; every
+`ci.yml`-derived claim now sits under a test in
+`frontend/src/conventions-doc.test.ts` (extended, not duplicated); the two
+count claims (criteria 7, 8) were fixed by *removing* the numbers rather than
+asserting them, a choice the brief explicitly allows and I'm flagging as a
+judgment call below; `.github/` diff against `main` is empty; `bun test`,
+`typecheck` and `lint` are all green modulo one pre-existing, documented,
+unrelated sandbox gap (see "What I did not touch").
+
+### Files changed
+
+- **`README.md`** — Checks block: dropped "221 tests" / "28 tests", added the
+  missing `cd e2e && bun run test` line and a one-line note on what `e2e`
+  needs (Docker + a one-time Chromium install), fixed "all five jobs" →
+  "all six jobs" with `e2e` added to the list. Known issues: deleted the
+  "CI only runs the SQLite path" bullet outright — the fact it described is no
+  longer true, so there was no accurate replacement to write, only removal.
+- **`conventions.md`** — CI section: split "each installs from a frozen
+  lockfile, checks the lockfile did not move" into two claims — all six
+  install from a frozen lockfile (still true, kept), and only `frontend`,
+  `question-bank`, `backend` and `e2e` additionally check it did not move
+  (now correct; was claimed of all six). Commands block: dropped "thirteen"
+  from the `# e2e —` comment.
+- **`frontend/src/conventions-doc.test.ts`** — extended, not duplicated (see
+  Constraints). Added:
+  - `sectionOf(lines, heading)` — the existing `section()` helper generalised
+    over which document's lines it searches, so `section()` (conventions.md)
+    and the new `readmeSection()` (README.md) share one implementation.
+  - `backendTargetsNamedIn(text)` and `bunScriptsIn(block)` — the existing
+    `backendTargetsNamedInDoc()` / `bunScriptsByPackage()` generalised the same
+    way, so README's Checks block can be checked with the same logic already
+    proven against conventions.md's Commands block.
+  - `longestBacktickRun(text)` — conventions.md's existing criterion-10 trick
+    (find the doc's job list as the longest run of adjacent backticked
+    tokens) factored out so README's CI sentence can use it too.
+  - `jobsWithLockfileCheck()` — parses `ci.yml`'s job blocks and returns the
+    ones containing a `git diff --exit-code` step.
+  - Six new `describe` blocks (search `T-058 #` in the file) covering
+    criteria 1-8: README's job list/count, README's Postgres claim, README's
+    Checks completeness against real commands, the two count-removal guards
+    (7, 8), and conventions.md's lockfile attribution (5, 6).
+
+### Criteria → where the behaviour lives
+
+| # | Criterion | Where |
+|---|---|---|
+| 1 | README names every job, right count | `README.md` Checks section CI sentence; test `README's CI claim names every job and states the right count (T-058 #1, #2)` |
+| 2 | Test goes red both directions | Same describe block — verified by hand in both directions (see below), not just by inspection |
+| 3 | README no longer claims CI skips Postgres | Bullet removed from `README.md` Known issues; test `README no longer says CI skips the Postgres path (T-058 #3)` |
+| 4 | README names a real command for every CI suite | `README.md` Checks block (added `e2e` line); test `README's Checks section runs every suite CI runs, with real commands (T-058 #4)` |
+| 5 | conventions.md attributes lockfile check only to the 4 jobs that have it | `conventions.md` CI section, reworded; test `conventions.md attributes the lockfile check only to the jobs that have it (T-058 #5, #6)` |
+| 6 | Test goes red both directions | Same describe block — verified by hand in both directions (see below) |
+| 7 | No unasserted e2e count | Number removed from `conventions.md:66`; guard test `no unstated e2e journey count survives...(T-058 #7)` |
+| 8 | No unasserted test-suite size in README's Checks block | Numbers removed from `README.md`; guard test `no unstated test-suite size survives...(T-058 #8)` |
+| 9 | `.github/` byte-identical to `main`, no dependency added | Verified: `git diff main -- .github/` is empty (checked below); no `package.json`/lockfile touched |
+| 10 | Whole suite green, no network | `cd frontend && bun test && bun run typecheck && bun run lint` — see "Test run" below |
+
+### Both directions verified for criteria 2 and 6
+
+I mutated a scratch copy of the repo to confirm each new test actually goes
+red, then restored the originals and reconfirmed `git diff main -- .github/`
+is empty:
+
+- **Criterion 2, direction 1** (delete a job name from README's list): failed
+  `README's CI claim names every job and states the right count (T-058 #1, #2)`.
+- **Criterion 2, direction 2** (append a 7th job to `ci.yml`, README untouched):
+  failed the same test (and, as a side effect, conventions.md's existing
+  criterion-10 test too — expected, since both read the same job set).
+- **Criterion 6, direction 1** (delete the `Lockfile unchanged` step from
+  `frontend`'s job): failed `conventions.md attributes the lockfile check only
+  to the jobs that have it (T-058 #5, #6)`.
+- **Criterion 6, direction 2** (add a `Lockfile unchanged` step to
+  `backend-postgres`, doc untouched): failed the same test.
+
+### Judgment call — flagging for reviewer
+
+**Criteria 7 and 8 were satisfied by removing the count, not by asserting it.**
+Both criteria explicitly allow this ("either the number is gone... or a test
+... goes red"). I chose removal over a parser that counts `test(` occurrences
+in `e2e/tests/*.spec.ts` or invokes `pytest --collect-only`, because:
+- the e2e count is easy to assert (13 `test(` calls today, matching the old
+  "thirteen") but doing so needs a spelled-number ↔ digit mapping that adds
+  fragility for no real benefit over just dropping the word;
+- the backend/integration counts (221, 28) would need either a subprocess
+  invocation of `pytest --collect-only` from a frontend test (a cross-language
+  dependency this file doesn't otherwise have, and a slower, more brittle
+  test) or hand-copying numbers I'd have to keep in sync manually — exactly
+  the failure mode this task exists to close.
+Removal is lower-risk and satisfies the letter of both criteria. **Reviewer:
+confirm this reading is acceptable** — if a future task wants the counts back
+with real assertions, that is new scope, not a revert of this one.
+
+### What I did not touch, and why
+
+- **`ci.yml`** — untouched per criterion 9 and "Out of scope" (adding the two
+  missing `Lockfile unchanged` steps is a CI change, not a doc fix; already
+  flagged by the expander for `tasks.md` at sweep).
+- **`conventions.md:10`'s optional reword** — left alone; it's accurate as
+  written and the brief marks the reword optional.
+- **`frontend/src/lint-gate.test.ts` and `UsMap.tsx`'s missing
+  `react-simple-maps`/`us-atlas` types** — pre-existing, undocumented by me
+  but documented by T-007's worker in `PROGRESS.md:268-271`: `bun.lock` pins
+  these packages' download URLs at a private Lovable npm mirror
+  (`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache`) this
+  sandbox's egress proxy denies with a 403 policy rejection, not a transient
+  fault — the proxy status endpoint reports it as `connect_rejected`, "policy
+  denial or upstream failure". I ran `bun install` early on to chase a
+  separate, since-resolved `@eslint/js` gap; that command failed to refetch
+  `react-simple-maps` and its `d3-*` dependencies (same 403), leaving
+  `UsMap.tsx`'s two `TS2307` "cannot find module" errors plus two downstream
+  `any`-type errors in `bun run typecheck`'s output. These are not caused by
+  anything in this task's diff (`UsMap.tsx` is untouched) and match exactly
+  what T-007's worker hit in the same sandbox. Per the agent-proxy README,
+  403s are a policy denial, not something to retry. CI has full registry
+  access and typechecks clean there.
+
+### Test run
+
+```
+cd frontend && bun test           # 174 pass, 0 fail (was 156 before this task;
+                                   # +18 from the new T-058 describe blocks)
+cd frontend && bun run typecheck  # clean except the pre-existing UsMap.tsx
+                                   # errors above — no error in any file this
+                                   # task touched
+cd frontend && bun run lint       # clean, 0 warnings
+```
+
+No test added or changed here reaches the network — every one reads
+`README.md`, `conventions.md`, `.github/workflows/ci.yml`,
+`backend/Makefile` or a `package.json` from disk.
+
+`git diff main -- .github/` is empty; no dependency was added; no lockfile
+touched.
+
 ## Verdict
 
 Written by `tester`.
@@ -223,3 +358,28 @@ Written by `tester`.
 Written by `reviewer`, and only when it sends the PR back.
 
 ## Notes
+
+- The survey table in the brief was accurate throughout — no surprises there.
+- Generalising `section()`/`backendTargetsNamedInDoc()`/`bunScriptsByPackage()`
+  into text-parameterised helpers (`sectionOf`, `backendTargetsNamedIn`,
+  `bunScriptsIn`) let README's Checks block reuse conventions.md's existing,
+  already-proven parsing logic instead of writing a parallel copy — this felt
+  like the right amount of refactor for "prefer extending an existing file"
+  without turning it into a rewrite. Existing T-007 tests are untouched in
+  behaviour; only their implementation moved behind the wrapper functions.
+- Removing the two hardcoded test-suite counts (README's 221/28, and
+  conventions.md's "thirteen") rather than asserting them is the one real
+  judgment call in this task — see the Handoff's "Judgment call" section.
+  I believe it is the lower-risk reading of criteria 7 and 8, but it is a
+  reviewer-checkable choice, not a fact.
+- An unrelated `bun install` (chasing a transient `@eslint/js` gap that
+  resolved itself) briefly broke `react-simple-maps`/`us-atlas` in
+  `node_modules` by trying to refetch them from a private registry mirror
+  this sandbox can't reach. This reproduces a documented, pre-existing gap
+  (`PROGRESS.md:268-271`, T-007), not a new one — but it's worth recording
+  that running unscoped `bun install` in this sandbox is a way to *lose*
+  packages, not just gain them, since the lockfile's pinned download URLs
+  aren't all reachable here. A future worker hitting the same `@eslint/js`
+  gap should reach for `bun install --frozen-lockfile` only if truly needed,
+  expect it to fail loudly on the same mirror, and not treat that failure as
+  something to fix.
