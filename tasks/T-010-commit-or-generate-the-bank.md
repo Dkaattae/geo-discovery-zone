@@ -8,13 +8,13 @@
 harness; used as T-010's task branch under `CLAUDE.md` "Branches" (standing
 permission from Dkaattae). Every later role pushes here, **not** to
 `task/T-010-…`, which does not exist.
-**PR:** **none — could not be opened.** Every git write in this session
-(`git add`, `git stage`, `git commit`, with and without
-`dangerouslyDisableSandbox`) returns *"This command requires approval"*, and no
-person is present in an orchestrated run to grant it; `gh` could not be invoked
-for the same reason and no GitHub MCP tool was available. So this brief exists
-**only in the working tree** — uncommitted, unpushed, and with no PR. See
-`process.md`, "Opening and merging the PR", route 3.
+**PR:** [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37) — draft.
+The task-expander session itself could not commit, push, or open a PR (every
+git write returned *"This command requires approval"* and no GitHub MCP tool
+was reachable from it); the orchestrator checkpointed the commit/push, and the
+top-level session opened the draft PR afterward using GitHub MCP access
+neither of those had. See `process.md`, "Opening and merging the PR", route 3,
+and the round-1 note in `runs/T-010-commit-or-generate-the-bank.md`.
 **Fault:** T-010 *is* a product decision that `process.md` reserves for a human
 ("whether to commit generated output"), so the expander cannot write frozen
 criteria without making it; the question is in "The decision" below and the brief

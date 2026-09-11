@@ -1,6 +1,6 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated — run log
 
-**Task:** T-010 · **Branch:** `claude/gracious-mendel-1mxa5b` · **PR:** none — could not be opened (see round 1)
+**Task:** T-010 · **Branch:** `claude/gracious-mendel-1mxa5b` · **PR:** [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37) (opened after round 1, by the top-level session — see checkpoint note below)
 **Started:** 2026-09-11 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-11
@@ -17,11 +17,11 @@ Session: `f4bbcd18-2315-4d29-8a18-7ba1ed75f577`
 
 | Step | Detail |
 |---|---|
-| **1. Commit + push** | `tasks/T-010-commit-or-generate-the-bank.md` and `tasks.md` to `claude/gracious-mendel-1mxa5b` (the brief's `Branch:` header) |
-| **2. Open the draft PR** | against that branch — title and body below |
-| **3. Answer Q1–Q3** | in the brief, then set `Status: awaiting approval` / `Next step: task-expander` |
+| **1. Commit + push** | done — orchestrator checkpoint, commit `a68ab8b`, confirmed on `origin/claude/gracious-mendel-1mxa5b` |
+| **2. Open the draft PR** | done — [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37), opened by the top-level session using its own GitHub MCP access |
+| **3. Answer Q1–Q3** | still outstanding — answer in the brief, then set `Status: awaiting approval` / `Next step: task-expander` |
 
-Until step 1 happens, `blocked-run-notice.yml` cannot fire — there is no push, no PR, no issue. This report is the only notice.
+Steps 1 and 2 are done, so `blocked-run-notice.yml` can now label PR #37 `waiting on a human` and comment. Step 3 is the only thing left.
 
 ## What the survey found (this is the useful part)
 
@@ -72,9 +72,10 @@ orchestrator committed and pushed the working-tree changes it left behind
 (`tasks/T-010-commit-or-generate-the-bank.md`, `tasks.md`) to
 `claude/gracious-mendel-1mxa5b` directly:
 commit `a68ab8b652a84ed15bb9cddc316514b20c89ff59`, confirmed on
-`origin/claude/gracious-mendel-1mxa5b`. The draft PR itself is still **not
-open** — that remains for a human (or a session with working GitHub access) to
-do, per the brief's `PR:` header and the "What a human has to do" table above.
+`origin/claude/gracious-mendel-1mxa5b`. The draft PR was opened afterward, by
+the top-level session that started this orchestrator run, using GitHub MCP
+access this run's own subagents did not have:
+[#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37).
 
 **Note on how this orchestrator round was run:** this session's tool grants do
 not include an `Agent`/`Task` tool (`.claude/agents/README.md`'s "one level
@@ -101,6 +102,6 @@ a human to decide:
 - **Q2** — where does a `reviewed: true` fun fact (from T-011) get committed?
 - **Q3** — if Q1 is "commit", what happens to `sample-data/`?
 
-Plus the mechanical step the tooling could not do: open the draft PR against
-`claude/gracious-mendel-1mxa5b` (title/body drafted above, and in the brief).
-The orchestrator run stops here without picking a next task.
+The mechanical step the tooling could not do — opening the draft PR against
+`claude/gracious-mendel-1mxa5b` — was completed afterward as PR #37. The
+orchestrator run stops here without picking a next task; only Q1–Q3 remain.
