@@ -180,11 +180,12 @@ start rebuilds and reseeds.
 ## Checks
 
 ```bash
-make -C backend check            # ruff + 221 tests, against a migrated SQLite file
+make -C backend check            # ruff + the backend suite, against a migrated SQLite file
 make -C backend test-postgres    # the same suite against a real Postgres server
-make -C backend test-integration # 28 tests against a real docker compose stack
+make -C backend test-integration # the integration suite against a real docker compose stack
 cd frontend && bun test && bun run typecheck && bun run lint
 cd question-bank && bun test && bun run typecheck
+cd e2e && bun run test            # the browser suite against a real docker compose stack
 ```
 
 `test-postgres` needs a server to point at; override the default with
@@ -199,8 +200,11 @@ Point it at a stack you already have with
 `make -C backend test-integration-against URL=http://localhost:8000`.
 Details in [`backend/integration/README.md`](backend/integration/README.md).
 
-**CI runs all five jobs on every pull request**: `frontend`, `question-bank`,
-`backend`, `backend-postgres` and `integration`.
+`e2e` needs a Docker daemon too, plus Chromium installed once with
+`cd e2e && bun run install-browser`. Details in [`e2e/`](e2e/).
+
+**CI runs all six jobs on every pull request**: `frontend`, `question-bank`,
+`backend`, `backend-postgres`, `integration` and `e2e`.
 
 ## Layout
 
@@ -227,9 +231,6 @@ More detail, and the reasoning behind it:
 - **A React hydration warning on first load of the Docker build.** The app
   recovers and every screen works, but the prerendered shell and the first
   client render disagree about something. It does not happen in development.
-- **CI only runs the SQLite path.** The suite passes against a real Postgres 16
-  locally, but nothing runs `make -C backend test-postgres` automatically, so a
-  Postgres-only regression would not fail a pull request.
 - Geometry, elevation profiles and superlative endpoints exist but serve no
   data: they need sampled or licensed sources this repo does not carry, and a
   guessed number in an app that teaches children is worse than none.

@@ -33,7 +33,8 @@ pinned the client's level labels to the server's (PR #23). Swept again
 (PR #26). Swept again 2026-09-03, after T-006 made the frontend lint gate fail
 on warnings (PR #29). Swept again 2026-09-04, after T-007 made `conventions.md`
 describe the repo that exists (PR #33), and again the same day after T-008 pinned
-the third-party CI actions by SHA (PR #34)._
+the third-party CI actions by SHA (PR #34). Swept again 2026-09-11, after T-058
+put `README.md`'s CI claims under the same test (PR #35)._
 
 ## How this list is ordered
 
@@ -92,7 +93,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 88 frontend, 19 question-bank |
+| **Unit and endpoint tests** | 242 backend, 184 frontend, 19 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -100,38 +101,28 @@ place, so nobody rebuilds it:
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
 | **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
+| **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and no suite size is stated that nothing asserts |
 
 What is missing from that picture is below.
 
-### T-058 — Three doc claims that are true-ish, and one that is not · S · todo
+### T-062 — One test count in `README.md` is still unasserted · S · todo
 **Depends on:** —
-**New 2026-09-04, found by T-007's reviewer (PR #33)** while checking
-`conventions.md` against the repo. None of these is in `conventions.md`'s
-substance; they are the rounding errors its criteria did not reach.
-
-- **`README.md:202` is wrong, not merely imprecise.** "CI runs all **five** jobs
-  on every pull request: `frontend`, `question-bank`, `backend`,
-  `backend-postgres` and `integration`." There are six — `e2e` has been running
-  on every PR since T-054. `conventions.md` now lists all six and is asserted
-  against `ci.yml` by a test; `README.md` is not, so it drifted alone.
-- **`conventions.md:98` overstates the lockfile guard.** "Each installs from a
-  frozen lockfile, checks the lockfile did not move" — four of the six jobs do
-  both; `backend-postgres` and `integration` install with `--frozen` and have no
-  `git diff --exit-code` step. Either say "four of the six", or add the two
-  missing steps and leave the sentence true (they are two lines each, and the
-  guard is cheap).
-- **`conventions.md:66` hardcodes a count** — "thirteen full user journeys".
-  True today; stale after the next `e2e` task. T-047 already made this call for
-  `test-guidelines.md`: a count that is wrong after every task is worth dropping
-  rather than maintaining.
-- **`conventions.md:10` reads oddly** — "serving `/api/v1` and, once built, the
-  frontend on the same origin". It is accurate (the backend serves the bundle
-  when one has been built — `backend/tests/test_frontend_serving.py`), and it is
-  one clause away from the "not built yet" phrasing T-007 existed to remove.
-  Optional, and only if a rewording is clearer than the original.
-
-**Done when:** `README.md` says six jobs and names them, and the three
-`conventions.md` lines are either corrected or deliberately left with a reason.
+**New 2026-09-11, found by T-058's tester (PR #35)** and left deliberately
+unfixed there. T-058 removed the two hardcoded suite sizes inside `README.md`'s
+Checks code block and put every other claim in that section under
+`frontend/src/conventions-doc.test.ts`. One escaped, in the prose just below the
+block: **`README.md:192` — "The nine Postgres-only tests skip on SQLite."** It is
+true today (9 tests in `backend/tests/test_postgres.py`) and nothing asserts it,
+so the next test added there makes the README quietly wrong — the exact drift
+T-058 existed to close. Out of T-058's reach because criterion 8 named the Checks
+*block* and lines `:183`/`:185`, and the tester was right not to stretch it.
+Cheapest fix is the same call T-058 made twice: drop the number, keeping the
+sentence's real content (that nobody needs a database installed to run
+`make -C backend check`). Asserting it instead means counting `test_` functions
+in `backend/tests/test_postgres.py` from a `bun test` file, which is a
+cross-language reach this suite does not otherwise make.
+**Done when:** no unasserted count of tests survives anywhere in `README.md`, and
+the reason a reader needs that sentence survives with it.
 
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
 **Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
@@ -169,9 +160,26 @@ which is worth keeping — but the literal also fires on any legitimately added 
 step, and reads as "you added a step" rather than "the parser missed a line".
 Asserting the parsed count against the raw `uses:`-line count gets the same
 coverage without pinning the workflow's size. This repo has made that call twice
-already (T-058 on `conventions.md:66`, T-047 on `test-guidelines.md:198`).
-**Done when:** one file enforces E-5, the count literal is gone, and deleting a
-`# v2.2.0` comment or writing `oven-sh/setup-bun@v2` still turns the suite red.
+already: T-058 dropped `conventions.md:66`'s "thirteen" (PR #35) and T-047 will
+drop `test-guidelines.md:198`'s.
+
+**Widened 2026-09-11 by T-058's reviewer (PR #35).** The same duplication now
+exists a third time, *inside* `frontend/src/conventions-doc.test.ts`, and it is
+cheap to fold in while the parsers are already open:
+
+- `jobsDocClaimsCheckLockfile()` (the worker's block) and `jobsCreditedByDoc()`
+  (the tester's) are the same function written twice, one describe block apart.
+- `longestBacktickRun()` was factored out for README's job list but criterion
+  10's test still carries its own inline copy of the same regex — T-058's
+  Constraints forbade weakening criterion 10, so the worker rightly left it, and
+  collapsing the two is a separate, safe step.
+
+That file is **not** one of the two to collapse — it reads `ci.yml` for a
+different purpose (doc claims, not E-5) and T-058's Constraints argued against
+adding a fourth parser. Only its internal duplicates are in scope.
+**Done when:** one file enforces E-5, the count literal is gone, no rule in the
+frontend suite has two implementations of itself, and deleting a `# v2.2.0`
+comment or writing `oven-sh/setup-bun@v2` still turns the suite red.
 
 ### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
 **Depends on:** —
@@ -518,8 +526,8 @@ if the answer was a rename.
 ### T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" · S · todo
 **Depends on:** —
 **New 2026-08-24.** Line 205: "**Forward-looking.** `api/` does not exist yet
-(plan §5, tasks T-030 onward)." There are 221 tests in `backend/tests/` and they
-invented patterns worth writing down — savepoint-joined session rollback for
+(plan §5, tasks T-030 onward)." `backend/tests/` is now the largest suite in the
+repo, and it invented patterns worth writing down — savepoint-joined session rollback for
 per-test isolation, `httpx.ASGITransport` for endpoint tests with no socket,
 contract tests that walk `openapi.yaml` in both directions, and mutation testing
 used to check the tests rather than the code. This is the same job T-002 did for
