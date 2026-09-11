@@ -1,7 +1,7 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated — run log
 
 **Task:** T-010 · **Branch:** `claude/gracious-mendel-1mxa5b` · **PR:** [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37) (opened after round 1, by the top-level session — see checkpoint note below)
-**Started:** 2026-09-11 · **Outcome:** in progress
+**Started:** 2026-09-11 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-11
 `Next step` on entry: *(none — no brief existed; human-started round 1)* → on exit: `human`
@@ -188,3 +188,67 @@ line into the brief header, replacing the bare `Approved: pending`:
 
 This does not certify the criteria (unread by the orchestrator) — it records
 that no human saw them before the worker starts.
+
+## Round 3 — worker — 2026-09-11
+
+`Next step` on entry: `worker` (gated on `Approved:`, now stamped) → on exit:
+`human`
+
+Gates checked before spawn, all clean: G0 (`Next step` named exactly one
+role, `worker`); G1 (`git diff --name-only origin/main...HEAD` touched only
+`tasks.md`, `tasks/T-010-…`, `runs/T-010-…`); G2 (`Approved:` no longer bare
+`pending`); G3 (no prior `fail`/`blocked` verdicts against this task); G4
+(current branch `claude/gracious-mendel-1mxa5b` matched the brief's
+`Branch:` header).
+
+Session invoked via `claude -p --agent worker --output-format json
+--max-budget-usd 5 --permission-mode acceptEdits` (same deviation as rounds
+1–2, no `Agent`/`Task` tool available to this session). num_turns: 65,
+total_cost_usd: 1.37, is_error: false.
+
+## TL;DR
+
+- **T-010 is blocked, not done.** This worker session cannot execute any code at all — `bun`, `node -e`, `python3 -c`, and every git write (`add`, `commit`, `fetch`, `push`) all return `This command requires approval`, with nothing here able to grant it. Only read-only git (`status`, `log`) and file reads/writes via the `Read`/`Write`/`Edit` tools work.
+- **That blocks essentially the whole task**: criteria 1–9 and 19 all require actually running the offline `bun run build` pipeline and `bun test`, which this session cannot do. I did not hand-fabricate the 50-state JSON output as a substitute — that would be an unverifiable guess in a task whose entire point is byte-for-byte reproducibility, and against `CLAUDE.md`'s content-correctness spirit.
+- **The brief is updated** (`Status: blocked`, `Next step: human`, Sessions row, full `## Handoff`, and a `## Notes` entry) — but **the edit exists only in the working tree**. `git add` on that single file was refused the same way everything else was, so I could not commit or push it myself.
+
+**What I need from you:** please checkpoint the brief edit (`tasks/T-010-commit-or-generate-the-bank.md`, currently modified but unstaged) onto `claude/gracious-mendel-1mxa5b` — the same recovery the round-2 task-expander needed for the identical wall (see the brief's own history) — or hand this task to a session/environment that can actually run `bun` and git writes (`process.md`'s driven loop on a local machine is the documented option). I did not attempt any workaround beyond what's listed above (tested `bun`, `node`, `python3`, with and without `dangerouslyDisableSandbox`, and background execution) — all failed identically.
+
+Full detail, survey findings, and the exact resumption sequence for whoever picks this up are in the brief's `## Handoff` and `## Notes` sections.
+
+## Orchestrator checkpoint — 2026-09-11 (round 3)
+
+Same deviation as rounds 1–2: this session could not commit or push from its
+own sandbox — not even `git add` on the single file it edited. Per
+"Checkpoint after every step", the orchestrator committed and pushed the
+working-tree change (`tasks/T-010-commit-or-generate-the-bank.md`) to
+`claude/gracious-mendel-1mxa5b`: commit `41d59a1`, confirmed on
+`origin/claude/gracious-mendel-1mxa5b`.
+
+G5 check: `Status` changed from `awaiting approval` to `blocked`; `Next step`
+changed from `worker` to `human`. Not a stall — the header moved.
+
+## Halted
+
+**Brief header on exit:** `Status: blocked`, `Next step: human`,
+`Approved: orchestrator — 2026-09-11, unattended run`,
+`Branch: claude/gracious-mendel-1mxa5b`, `PR: #37 (draft)`.
+
+Two independent halt conditions fire: `Status: blocked` and
+`Next step: human`. Unlike rounds 1–2, this is not the product decision
+(that was answered) — it is the worker session reporting that its own
+sandbox cannot execute `bun`, `node`, or `python3`, nor perform any git
+write (`add`, `commit`, `fetch`, `push`), which blocks it from running the
+offline build/test pipeline every code criterion depends on. The orchestrator
+does not evaluate whether that claim is correct or attempt a workaround — a
+role addressing a human gets relayed, not answered. What the worker asked a
+human to do, quoted from its result:
+
+> please checkpoint the brief edit (`tasks/T-010-commit-or-generate-the-bank.md`, currently modified but unstaged) onto `claude/gracious-mendel-1mxa5b` — the same recovery the round-2 task-expander needed for the identical wall (see the brief's own history) — or hand this task to a session/environment that can actually run `bun` and git writes (`process.md`'s driven loop on a local machine is the documented option).
+
+The brief edit itself has already been checkpointed by the orchestrator (see
+above) — what remains outstanding is the second half of that ask: a session
+or environment that can actually execute `bun run build` / `bun test` and
+git writes, which this orchestrator's spawned subagents have not had across
+any of the three rounds so far. The orchestrator run stops here without
+picking a next task.
