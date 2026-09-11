@@ -633,3 +633,24 @@ changes what "green" means for the gates, say — the boundary was drawn in the
 wrong place and G1 needs a second look. Or if `process-tasks.md` fills up with
 tickets nobody works, because "by hand" turned out to mean "never": then the
 process queue needs a cadence, not a different gate.
+
+---
+
+## D-13 — Orchestrator's unattended approval, confirmed acceptable
+
+**2026-09-11.** D-1 and D-11 named the same open question and left it open on
+purpose: an unattended run's `Approved: orchestrator — <date>, unattended run`
+stamp is written without anyone having read the criteria, and both said to
+re-examine it "the first time a run produces something that satisfies its
+criteria and is not what anyone wanted."
+
+**What happened.** T-010's orchestrated run stamped exactly that during an
+unattended round. Dkaattae then reviewed the brief directly and confirmed the
+stamp is acceptable practice; the brief's `Approved:` line was updated to
+Dkaattae's own approval afterward, with the orchestrator's stamp kept visible
+in the header for the record.
+
+**Decided:** the stamp stands as acceptable practice. **This does not retire
+D-1's trigger** — one reviewed run is not a general finding, and the next run
+that produces something unwanted despite meeting its criteria still calls for
+the re-examination D-1 and D-11 describe.
