@@ -1,7 +1,7 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated — run log
 
 **Task:** T-010 · **Branch:** `claude/gracious-mendel-1mxa5b` · **PR:** [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37) (opened after round 1, by the top-level session — see checkpoint note below)
-**Started:** 2026-09-11 · **Outcome:** halted — needs human
+**Started:** 2026-09-11 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-11
 `Next step` on entry: *(none — no brief existed; human-started round 1)* → on exit: `human`
@@ -105,3 +105,86 @@ a human to decide:
 The mechanical step the tooling could not do — opening the draft PR against
 `claude/gracious-mendel-1mxa5b` — was completed afterward as PR #37. The
 orchestrator run stops here without picking a next task; only Q1–Q3 remain.
+
+## Round resumed — 2026-09-11
+
+Dkaattae answered Q1–Q3 directly in the brief (commit the built output;
+reviewed fun facts live in the pipeline's committed output; keep
+`sample-data/` for now) and pushed. The orchestrator loop was resumed for
+T-010 from a fresh top-level session. Header on entry: `Status: awaiting
+approval`, `Next step: task-expander`, `Approved: pending`,
+`Branch: claude/gracious-mendel-1mxa5b`. Gates G0–G4 checked clean:
+`Next step` named exactly one role (`task-expander`); `git diff --name-only
+origin/main...HEAD` touched only `tasks.md`, `tasks/T-010-…`,
+`runs/T-010-…`; `Approved:` was present (bare `pending`, not missing); no
+prior `fail`/`blocked` verdicts recorded against this task (round 1 ended
+`Next step: human`, not a fail or blocked verdict against worker/tester); the
+current branch (`claude/gracious-mendel-1mxa5b`) matched the brief's `Branch:`
+header.
+
+## Round 2 — task-expander — 2026-09-11
+
+`Next step` on entry: `task-expander` → on exit: `worker` (gated on
+`Approved:`)
+
+Session invoked via `claude -p --agent task-expander --output-format json
+--max-budget-usd 5 --permission-mode acceptEdits` (no `Agent`/`Task` tool
+available to this session either, same deviation as round 1). num_turns: 45,
+total_cost_usd: 2.86, is_error: false.
+
+## Handoff — task-expander, T-010 round 2
+
+**The brief is finished: 19 frozen criteria for Option B, replacing the conditional A/B draft. It is written to the working tree but NOT committed — every `git add` / `git commit` in this session returned "This command requires approval", exactly as in round 1. The commit must be checkpointed outside the session, to `claude/gracious-mendel-1mxa5b` (PR #37).**
+
+| | |
+|---|---|
+| **Diff** | `tasks/T-010-commit-or-generate-the-bank.md` (+208/−110), `tasks.md` (+6/−4) — **only** `tasks/` and `tasks.md`, as the role requires |
+| **Status / Next step** | `awaiting approval` / `worker`, gated on `Approved:` still saying `pending` |
+| **Branch / PR** | `claude/gracious-mendel-1mxa5b` · [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37), already open and draft — no second PR needed |
+| **Push landed?** | **No.** `origin/claude/gracious-mendel-1mxa5b` is still at `9d98e3f`; my edits are uncommitted in the tree |
+
+### What the criteria now say
+
+- **Committed shape (1–5).** `git ls-files question-bank/data/us-states` lists exactly 51 paths; `index.json` `count: 50` agreeing with the 50 files; every rank 1–50 present exactly once for both `population_rank` and `area_rank` (a 49-state build emits `null`, so it fails); tracked `us-state-co.json` equal field-for-field to `sample-data/us-state-co.json` except `built_at`; under 200 KB.
+- **Reproducibility (6–8) is the one with teeth.** An offline rebuild from the committed fixture must leave `git status --porcelain question-bank/data` empty, twice running — which today it cannot, because `sources.built_at` is `new Date()` (`normalize.ts:46`) and rewrites all 50 files. Criterion 7 stops that being met by deleting provenance. Criterion 8 makes `bun test` go red when tracked bytes and rebuild diverge.
+- **Content rule (9).** Every tracked `fun_facts` element is `reviewed: true`; no `"reviewed": false"` anywhere under `question-bank/data/`. True by construction, since `--offline` implies `--no-fun-facts`.
+- **The written decision (10–16).** `E-6` states the choice, the rejected option with its real cost (staleness), a noticeable revisit trigger, **and the tracked path where reviewed fun-fact text will live such that a rebuild does not destroy it**. `.gitignore` un-ignores the bank but still ignores `data/subset/`. README, `conventions.md`, `PROGRESS.md` and T-040's entry stop contradicting it.
+- **Negatives (17–19).** No dependency, no lockfile change, nothing outside Constraints, whole suite green.
+
+### Two judgement calls worth your eye before approving
+
+- **The reproducibility check rides inside `bun test`, not `ci.yml`.** `process.md` "Work on the loop itself never enters the loop" names the workflows as hand-done `P` tickets; the `question-bank` CI job already runs `bun test` with egress nulled (`ci.yml:118-124`), so the check gets CI coverage with no workflow edit. Criterion 18 forbids touching `.github/workflows/`.
+- **Criterion 14 sharpens Q2.** "Reviewed fun facts live in the committed output" and "the output is reproduced byte-for-byte" cannot both hold if a human hand-edits built files — so `E-6` must name a home that survives a rebuild (your answer already allowed "the source the build folds into it"). T-011 would otherwise have found this the expensive way.
+
+### Already true, so nobody rebuilds it
+
+- A network-free 50-state build **already works** from `src/fixtures/us-states.sparql.json`, and `normalizeUsStates` already takes `options.builtAt` — determinism needs no new seam. The fixture's own `_fixture.captured_at` is a committed, meaningful instant.
+- `tasks.md` already carries T-063 (scheduled refresh) and T-064 (purge `sample-data/`), both split out of this decision and both explicitly out of scope here.
+
+### What a human has to do
+
+1. **Commit and push the two changed paths** to `claude/gracious-mendel-1mxa5b` — the session could not. Suggested message: `T-010 expander: commit-or-generate-the-bank — criteria trimmed to Option B`, noting the diff is `tasks/` and `tasks.md` only.
+2. **Approve on PR #37** by replacing `Approved: pending` with a name and date. The worker refuses to start until then.
+
+## Orchestrator checkpoint — 2026-09-11 (round 2)
+
+Same deviation as round 1: this session could not commit or push from its own
+sandbox. Per "Checkpoint after every step", the orchestrator committed and
+pushed the working-tree changes the session left behind
+(`tasks/T-010-commit-or-generate-the-bank.md`, `tasks.md`) to
+`claude/gracious-mendel-1mxa5b`: commit `925af61`, confirmed on
+`origin/claude/gracious-mendel-1mxa5b`.
+
+G5 check: `Status` was `awaiting approval` before and after this round
+(unchanged); `Next step` changed from `task-expander` to `worker` (gated). Not
+a silent stall — the header moved.
+
+Per orchestrator.md "Approval": since this is an unattended run and the
+expander has returned, the orchestrator wrote the unattended-run approval
+line into the brief header, replacing the bare `Approved: pending`:
+
+> **Approved:** orchestrator — 2026-09-11, unattended run. See
+> `runs/T-010-commit-or-generate-the-bank.md`.
+
+This does not certify the criteria (unread by the orchestrator) — it records
+that no human saw them before the worker starts.

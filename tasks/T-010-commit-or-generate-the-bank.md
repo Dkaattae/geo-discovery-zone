@@ -4,7 +4,8 @@
 **Next step:** `worker` — but not until **Approved:** below stops saying
 `pending`. The criteria were trimmed to Option B on 2026-09-11 and are frozen
 once approved.
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-09-11, unattended run. See
+`runs/T-010-commit-or-generate-the-bank.md`.
 **From:** [`tasks.md`](../tasks.md) T-010
 **Branch:** `claude/gracious-mendel-1mxa5b` — assigned to this session by the
 harness; used as T-010's task branch under `CLAUDE.md` "Branches" (standing
