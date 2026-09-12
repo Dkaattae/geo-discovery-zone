@@ -110,12 +110,29 @@ code, M on the criteria"** rather than as one number.
 `--permission-mode` defaults to `acceptEdits`, which **still prompts for Bash** —
 so an unattended run needs one of:
 
-- a `permissions.allow` list in `.claude/settings.json` covering the git and test
-  commands the roles actually run; or
+- the `permissions.allow` list in [`.claude/settings.json`](../settings.json),
+  which names the git and test commands the roles actually run; or
 - `LOOP_PERMISSION_MODE=bypassPermissions`, **in a sandbox or container only.**
 
 The safe one is the default on purpose. A driver that ships with
 `bypassPermissions` is a driver that gets run on a laptop by accident.
+
+**The allowlist names verbs, not wildcards** — `Bash(git push:*)` rather than
+`Bash(git:*)`, so a role never inherits `git reset --hard` or `git branch -D`
+just because it needed `git push`. It covers exactly the git verbs a role ends
+on (`add`, `commit`, `push`, `checkout`, `fetch`, `status`, `log`, `diff`,
+`branch`, `rev-parse`) and the checks CLAUDE.md "Tests" requires (`bun
+install`, `bun run lint|typecheck|format`, `bun test` — same commands in
+`frontend/` and `question-bank/` — and `make -C backend check|test|migrate`).
+See `process-decisions.md` **D-13**.
+
+**The allowlist alone is not enough on a machine that has never run `claude`
+in this repo interactively.** Claude Code will not honour `permissions.allow`
+in a directory it has not marked trusted, and trust is recorded per machine
+in the user's own config, not in the repo — a repo cannot self-certify its
+own trust. Run `claude` here once by hand and accept the trust prompt before
+the first unattended run; after that, trust persists across sessions and
+`run-loop.sh` never re-asks.
 
 ## On limits
 

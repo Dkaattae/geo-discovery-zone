@@ -151,6 +151,20 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   spawned role shares one session id, so the Sessions-table independence check
   does not run — only the fresh context window is real. `run-loop.sh` has still
   never driven a task.
+- **`.claude/settings.json` now exists (P-2).** Its `permissions.allow` names the
+  exact git verbs a role's ending calls for (`add`, `commit`, `push`, `checkout`,
+  `fetch`, `status`, `log`, `diff`, `branch`, `rev-parse`) and the CLAUDE.md
+  "Tests" checks (`bun install`, `bun run lint|typecheck|format`, `bun test`,
+  `make -C backend check|test|migrate`) — verbs, never a `git:*`/`bun:*`
+  wildcard. `process-decisions.md` **D-13** has the reasoning, plus a caveat
+  found while wiring it up and not written down before: the allowlist only
+  takes effect in a directory Claude Code has already marked trusted, which is
+  per-machine state outside the repo. That was already true everywhere
+  `run-loop.sh` has actually run; it just was not stated. **Still open:**
+  `run-loop.sh` has not yet completed an end-to-end role run under the new
+  allowlist — the sandboxed session that wired it up cannot itself accept a
+  trust prompt, so the first real proof is still the first live run on a
+  trusted machine.
 - CI on every PR and push to `main`, six jobs: `frontend` and `question-bank`
   (typecheck, lint, test), `backend` (ruff + the suite on SQLite),
   `backend-postgres` (the same suite against a Postgres service container),

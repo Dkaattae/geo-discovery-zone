@@ -633,3 +633,63 @@ changes what "green" means for the gates, say — the boundary was drawn in the
 wrong place and G1 needs a second look. Or if `process-tasks.md` fills up with
 tickets nobody works, because "by hand" turned out to mean "never": then the
 process queue needs a cadence, not a different gate.
+
+## D-13 — `.claude/settings.json` gets an allowlist of verbs, not a wildcard
+
+**2026-09-12.** P-2. `acceptEdits` still prompts for Bash, and there was no
+`.claude/settings.json` at all, so every role's closing `git commit`/`git
+push` had no unattended path — someone had to be sitting there to click
+approve, which defeats the point of `run-loop.sh`. `LOOP_PERMISSION_MODE`
+already offers `bypassPermissions` as an escape hatch, and the README already
+argued against defaulting to it: a driver that ships bypassing permissions is
+one that gets run on a laptop by accident, and — the second reason, found
+2026-08-28 — a Claude Code web session refuses `bypassPermissions` outright
+before the driver even starts, so it is not available in the environment
+these runs actually happen in. The allowlist was the only remaining option.
+
+**Decided: name each verb the roles actually end on, never a subcommand
+wildcard.** `Bash(git:*)` would have been one line instead of ten, and it was
+rejected on sight — it hands every role `git push --force`, `git reset
+--hard` and `git branch -D` on a branch four sessions share, none of which
+any role's documented ending ever calls for. The list instead names exactly:
+`git add`, `commit`, `push`, `checkout`, `fetch`, `status`, `log`, `diff`,
+`branch`, `rev-parse` — every git verb a role's ending in `worker.md`,
+`tester.md`, `task-expander.md` or `run-loop.sh` itself performs, and no
+other — plus the checks CLAUDE.md "Tests" names: `bun install`, `bun run
+lint|typecheck|format`, `bun test` (`frontend/` and `question-bank/` run the
+same commands) and `make -C backend check|test|migrate`. A verb not on this
+list — `reset`, `clean`, `rebase`, `branch -D`, `push --force` — simply is
+not something any role can do without a human, which is the property the
+ticket asked for.
+
+**Found while wiring it up, not written down anywhere before now: the
+allowlist is necessary but not sufficient.** Claude Code will not read
+`permissions.allow` at all in a directory it has not marked trusted in the
+invoking user's own config (`~/.claude.json`), and that trust is per-machine,
+not per-repo — a repo cannot ship its own trust, or any repo could. Verified
+directly: `claude -p` against this repo's own `.claude/settings.json`, with
+the file correctly parsed (it reported the exact entry count), still ignored
+every entry and blocked a plain `git status` because this sandboxed session
+had never interactively accepted the trust prompt for this path. `run-loop.sh`
+already assumes "a local machine with the `claude` CLI" — read as one where a
+human has run `claude` here at least once — so this was already true in
+practice everywhere the driver has actually run; it had just never been
+stated. Now it is, in the loop README's "Permissions" section, next to the
+allowlist it would otherwise look sufficient on its own.
+
+**Not settled by this ticket: whether `run-loop.sh` has completed a role that
+commits and pushes under the new allowlist.** It has not, in this session —
+the same trust gate above means a nested `claude -p` probe from inside this
+sandboxed environment cannot exercise it, no more than it could exercise
+`bypassPermissions` per the 2026-08-28 finding this ticket already cites. The
+allowlist is verb-scoped and matches the commands CLAUDE.md and
+`conventions.md` already document, and Claude Code parsed the file and
+enumerated its rules correctly; a live end-to-end run on a trusted machine is
+still the only thing that closes this out for real, and it should be the
+first thing checked before relying on it.
+
+**What would make this worth revisiting.** If a role's documented ending ever
+needs a git verb outside the ten listed — `stash`, say, for a worker that
+must set aside unrelated changes — add that one verb, not `git:*`. If
+`bun`/`make` gain a new check CLAUDE.md "Tests" starts requiring, the same
+rule applies: add the command, not a wildcard over the directory.
