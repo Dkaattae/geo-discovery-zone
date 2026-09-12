@@ -319,6 +319,148 @@ describe("T-010 criteria 11–16 — the rules and the docs say the same thing",
 });
 
 /**
+ * Round 2 (tester, 2026-09-12). The round-1 checks above still hold; these three
+ * blocks close the gaps the round-1 review found, and are written so each one
+ * would have been **red** against the tree as it stood before the round-2 fix.
+ *
+ * The criterion-14 test above is a shape check only: it passes for the answer
+ * the review rejected (built output) as well as for the one now recorded, since
+ * both paragraphs mention `question-bank/data/us-states`. The version below
+ * asserts the criterion's actual requirement — the home E-6 designates has to be
+ * tracked *and* outside what an offline rebuild overwrites.
+ */
+
+/** Repo-relative paths (anything backticked containing a `/`), line refs dropped. */
+function pathsIn(text: string): string[] {
+  return [...text.matchAll(/`([^`\s]*\/[^`\s]*)`/g)]
+    .map((m) => (m[1] as string).replace(/:\d+([-–]\d+)?$/, "").replace(/[.,;)]+$/, ""))
+    .filter((p) => /^[\w./@-]+$/.test(p));
+}
+
+/** Sentences, so a designation is read from its own claim and not its neighbours'. */
+const sentences = (text: string) => text.split(/(?<=\.)\s+/);
+
+describe("T-010 round 2 — criterion 14: the fun-fact home E-6 names survives an offline rebuild", () => {
+  const e6 =
+    readFileSync(join(REPO, "engineering-decisions.md"), "utf8")
+      .split(/^## /m)
+      .find((s) => s.startsWith("E-6")) ?? "";
+
+  /** Criterion 6 names the directory an offline rebuild writes over. */
+  const REBUILT_DIR = "question-bank/data/us-states";
+
+  const designations = sentences(e6).filter(
+    (s) => /reviewed/i.test(s) && /(belongs in|lives in|will live in|home is)/i.test(s),
+  );
+
+  test("E-6 designates where reviewed fun-fact text lives, and names a path for it", () => {
+    expect(designations.length).toBeGreaterThan(0);
+    expect(designations.flatMap(pathsIn).length).toBeGreaterThan(0);
+  });
+
+  test("every path E-6 designates as that home is tracked in git", () => {
+    for (const path of designations.flatMap(pathsIn)) {
+      const { status, stdout } = git(["ls-files", "--", path]);
+      expect(status).toBe(0);
+      expect({ path, tracked: stdout.split("\n").filter(Boolean).length > 0 }).toEqual({
+        path,
+        tracked: true,
+      });
+    }
+  });
+
+  test("no path E-6 designates as that home is inside what an offline rebuild overwrites", () => {
+    for (const path of designations.flatMap(pathsIn)) {
+      expect({ path, insideRebuiltOutput: path.startsWith(REBUILT_DIR) }).toEqual({
+        path,
+        insideRebuiltOutput: false,
+      });
+    }
+  });
+
+  test("E-6 says whether that home is a build input or built output", () => {
+    expect(designations.join(" ").toLowerCase()).toMatch(/build input|built output|build \*input\*/);
+  });
+
+  test("the rebuild really does overwrite the bank directory, so the test above has teeth", () => {
+    // Guards the assumption the three tests above rest on: were the build to
+    // write somewhere else, "not under data/us-states" would prove nothing.
+    const out = mkdtempSync(join(tmpdir(), "t010-home-"));
+    try {
+      const proc = Bun.spawnSync(
+        ["bun", join(PKG, "src/build.ts"), "--offline", "--out", out, "--quiet"],
+        { cwd: PKG, env: { ...process.env, ...DEAD_PROXY } },
+      );
+      expect(proc.exitCode).toBe(0);
+      expect(readFileSync(join(out, "us-state-co.json"), "utf8")).toBe(
+        readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
+      );
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("T-010 round 2 — criterion 10: a live run's unreviewed draft cannot be staged", () => {
+  // `build.ts`'s `writeReviewFile` puts this file in `--out`, which defaults to
+  // `data/us-states` — so a default (non-`--offline`) run drops `reviewed: false`
+  // Wikipedia prose straight into the tracked directory. CLAUDE.md "Content
+  // rules"; criterion 10's "a path that is not part of the committed bank … is
+  // still ignored".
+  test("question-bank/data/us-states/fun-facts.review.json is ignored", () => {
+    expect(git(["check-ignore", "-q", "question-bank/data/us-states/fun-facts.review.json"]).status)
+      .toBe(0);
+  });
+
+  test("any *.review.json in the bank directory is ignored", () => {
+    expect(git(["check-ignore", "-q", "question-bank/data/us-states/anything.review.json"]).status)
+      .toBe(0);
+  });
+
+  test("the 51 tracked bank paths are still not ignored", () => {
+    for (const path of trackedUnder("question-bank/data/us-states")) {
+      expect(git(["check-ignore", "--no-index", "-q", path]).status).toBe(1);
+    }
+  });
+});
+
+describe("T-010 round 2 — criteria 11 and 15: a doc that credits a test names one that says so", () => {
+  const DOCS = [
+    "question-bank/.gitignore",
+    "question-bank/README.md",
+    "engineering-decisions.md",
+    "PROGRESS.md",
+  ];
+  /** Docs wrap, and `.gitignore` prefixes with `#`. Compare on the text alone. */
+  const flatten = (text: string) => text.replace(/^\s*#/gm, " ").replace(/\s+/g, " ");
+
+  for (const doc of DOCS) {
+    const body = readFileSync(join(REPO, doc), "utf8");
+    const flat = flatten(body);
+    // Only attributions about T-010's own criteria: `<file>.test.ts` … "…criteri(a|on)…".
+    const claims = [...flat.matchAll(/`?([\w.-]+\.test\.ts)`?([^"“]{0,200})["“]([^"”]{10,160})["”]/g)]
+      .filter((m) => /criteri(a|on)/i.test(m[3] ?? ""))
+      .map((m) => ({ file: m[1] as string, quoted: m[3] as string }));
+
+    test(`${doc} — every test it credits with a criterion exists and contains that claim`, () => {
+      for (const { file, quoted } of claims) {
+        const matches = git(["ls-files", "--", `*/${file}`, file]).stdout.split("\n").filter(Boolean);
+        expect({ doc, file, tracked: matches.length > 0 }).toEqual({ doc, file, tracked: true });
+        const sources = matches.map((p) => flatten(readFileSync(join(REPO, p), "utf8")));
+        expect({ doc, file, quoted, found: sources.some((s) => s.includes(flatten(quoted).trim())) })
+          .toEqual({ doc, file, quoted, found: true });
+      }
+    });
+  }
+
+  test("at least one such attribution exists, so the loop above is not vacuous", () => {
+    const all = DOCS.map((doc) => flatten(readFileSync(join(REPO, doc), "utf8"))).join(" ");
+    expect([...all.matchAll(/`?[\w.-]+\.test\.ts`?[^"“]{0,200}["“][^"”]{10,160}["”]/g)].length)
+      .toBeGreaterThan(0);
+  });
+});
+
+/**
  * Criteria 17 (no new dependency) and 18 (nothing outside the Constraints list)
  * are properties of *this branch's diff*, not of the tree, so they are verified
  * in the brief's Verdict with `git diff --name-only origin/main...HEAD` rather

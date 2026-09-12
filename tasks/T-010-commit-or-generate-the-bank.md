@@ -1,7 +1,17 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
+**Tester round 2 (2026-09-12): pass.** All three round-1 review findings are
+fixed on this branch and verified independently — 13 new tests appended to
+`question-bank/src/committed-bank.test.ts` (209 total, was 196), each written so
+it is **red against the pre-fix tree**, proven by six deliberate mutations, all
+reverted. Criterion 14's round-1 test was a shape check that passed for the
+rejected answer too; the round-2 tests assert the criterion's real requirement
+(the home E-6 names is tracked and outside what a rebuild overwrites). Whole
+suite green: question-bank 209/209 + `tsc --noEmit` clean, backend 233 passed /
+9 skipped, frontend 184/184. Three findings for the `reviewer`, none blocking —
+see `## Verdict, round 2`.
 **Worker round 2 (2026-09-12): all three review findings fixed, doc/`.gitignore`
 only.** `E-6`'s fun-fact home is rewritten to name a build **input**
 (`question-bank/src/curated/us-states.ts`, folded in the way `climate_kid` and
@@ -95,6 +105,7 @@ content or criteria.
 | tester | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; **same id as the worker row above** — orchestrated run, see `## Verdict`, "What independence this verdict actually had") |
 | reviewer (round 1 — changes requested) | 2026-09-12 | `session_01NqBhtxscKupMdww97kUauJ` (session URL id; orchestrated run, same id as the rows above) |
 | worker (round 2 — fixed reviewer findings 1–3) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; same id as every row above — orchestrated run, per `process.md` "Two things break under a relayed run") |
+| tester (round 2 — verified the three fixes) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; same id as every row above — orchestrated run, so the check proves nothing either way. See `## Verdict, round 2`, "What independence this verdict had") |
 
 ---
 
@@ -1022,6 +1033,134 @@ still not), and the comment saying why the negation needs it.
   `frontend (typecheck, lint, test)` job is green at `ff6179d`.
 - **The 51 tracked data files** were spot-checked beyond "`fun_facts` is `[]`":
   no prose fields, no `reviewed` key anywhere, ~39.5 KB total.
+
+## Verdict, round 2
+
+**Pass.** The three round-1 review findings are fixed on this branch, each one
+verified against the criterion's wording rather than the diff's claims. 13 new
+tests (`question-bank/src/committed-bank.test.ts`, three `T-010 round 2 —`
+describe blocks) take the suite from 196 to **209 pass / 0 fail**; six deliberate
+mutations each turned exactly the expected test red and every one was reverted.
+
+**Whole suite green** — question-bank 209/209 with `tsc --noEmit` clean (and
+209/209 again with all six proxy vars at `http://127.0.0.1:1`, the way CI runs
+it), backend `make check` 233 passed / 9 skipped with ruff and ruff-format clean,
+frontend 184/184.
+
+**Three findings, none blocking, all for the `reviewer` to route.** `PROGRESS.md`
+went stale again the moment I added tests; E-6's named fun-fact home is one
+reading of Q2's own wording and is worth Dkaattae confirming at merge; and T-011
+now inherits a constraint worth writing down before it starts.
+
+### What independence this verdict had
+
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01NqBhtxscKupMdww97kUauJ` — **the same
+id as every other row in the Sessions table**, because this is an orchestrated
+run (`runs/T-010-commit-or-generate-the-bank.md` exists) and every spawned role
+shares one session id. That check therefore proves nothing here, in either
+direction, and I am not claiming it passed.
+
+What this verdict does rest on: a freshly spawned agent with its own context
+window, which never saw the worker's transcript or reasoning and read only the
+brief, the repository and the Context links. That is real, but it is **weaker
+evidence than a separate session**, because it depends on the orchestrator having
+spawned this role correctly rather than on anything checkable from inside.
+
+### The three findings, checked
+
+| Finding | Verdict | Evidence |
+|---|---|---|
+| **1 — E-6 named a fun-fact home a rebuild destroys** (criterion 14) | fixed | E-6's designation sentence now names `question-bank/src/curated/us-states.ts` and calls it a **build input**. New tests assert the criterion's actual requirement: every path E-6 designates as the home is tracked in git *and* is not under `question-bank/data/us-states`, the directory criterion 6 says the rebuild overwrites. Mutation 1 (restore the round-1 E-6 text) turns three of them red |
+| **2 — four docs credited the check to a test that does not do it** (criteria 11, 15) | fixed | `.gitignore`, `README.md`, E-6 and `PROGRESS.md` all now name `committed-bank.test.ts` and quote `"T-010 criteria 6 and 8 — the tracked bytes are what an offline rebuild produces"`, which exists at `committed-bank.test.ts:181` and does spawn the CLI offline twice. New doc-vs-repo test (T-058's pattern) checks, per doc, that every `*.test.ts` it credits with a criterion is tracked and contains the quoted claim. Mutations 3 and 4 turn it red |
+| **3 — a live run's unreviewed prose was stageable** (criterion 10, `CLAUDE.md` Content rules) | fixed | `question-bank/.gitignore:16` `data/us-states/*.review.json`. Checked by hand end to end: writing a real `fun-facts.review.json` with `"reviewed": false` into the tracked directory leaves `git status --porcelain question-bank/data` **empty** and `git add -An` stages nothing; the 51 tracked paths are still unignored. Mutation 2 turns the new tests red |
+
+### All 19 criteria, re-verified on the round-2 tree
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1–3 | pass | `committed-bank.test.ts` criteria 1–3 (51 tracked paths, `count: 50`, ids from the files' own `id` fields, ranks 1–50 each exactly once). Mutation 6 confirms criterion 3 bites |
+| 4 | pass | criterion-4 test green; `sample-data/` untouched this round (`git diff origin/main...HEAD` lists no `sample-data/` path) |
+| 5 | pass | 39,500 bytes tracked under `question-bank/data/` — 19% of the 200 KB cap |
+| 6 | pass | run by hand on this tree: `bun run build -- --offline --out data/us-states` twice, under the dead-loopback proxies, `git status --porcelain question-bank/data` empty both times and the whole-repo status clean. Also asserted in-suite |
+| 7 | pass | one distinct ISO-8601 UTC `built_at` across all 50; `builder_version` set is exactly `[BUILDER_VERSION]` |
+| 8 | pass | mutation 6 (one corrupted value in `us-state-vt.json`) → 3 red, naming Vermont. Mutation 5 (delete the determinism fix in `build.ts`) → 52 red. No network, no `fetch` mock, nothing written under `question-bank/data/`, no `ci.yml` change |
+| 9 | pass | every `fun_facts` is `[]`; no tracked file under `question-bank/data/` matches `/"reviewed"\s*:\s*false/` |
+| 10 | pass | strengthened this round — tracked paths unignored (`--no-index`), `data/subset/…` ignored, and now `data/us-states/*.review.json` ignored, verified with a real file on disk |
+| 11 | pass | the old policy sentence survives nowhere but E-6's rejected-option paragraph and this brief; the four docs' claims about which test checks what are now true of the tree |
+| 12–13 | pass | E-6 states the decision in its heading, names the rejected option with staleness as its real cost, and gives a revisit trigger (T-063's live-vs-committed diff, or a manually noticed wrong value). **Substance is the human review checklist, not a test** |
+| 14 | pass | see finding 1 above. The round-1 test for this criterion was a shape check that would have passed for the answer the review rejected — that gap is now closed rather than inherited |
+| 15 | pass | `README.md` and `conventions.md` both say a fresh clone has the bank and both point at `data/us-states`; neither now contradicts E-6 on which test checks the rebuild |
+| 16 | pass | `tasks.md` T-040 names `question-bank/data/us-states/` and "seeding needs no live Wikidata run"; `PROGRESS.md` records the committed bank |
+| 17 | pass | `git diff --name-only origin/main...HEAD` contains no `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` |
+| 18 | pass | same diff: `PROGRESS.md`, `conventions.md`, `engineering-decisions.md`, `question-bank/.gitignore`, `question-bank/README.md`, `question-bank/src/build.ts`, the two new test files, `question-bank/data/us-states/**`, `tasks.md`, `tasks/T-010-…`, `runs/T-010-…`. No `.github/`, `.claude/`, `openapi.yaml`, plan, migration or loop file. Round 2's worker commit (`aa5d24a`) touched no source or test file, as its handoff claims |
+| 19 | pass | counts above; `normalize.test.ts`, `sparql.test.ts` and `data-us-states.test.ts` are byte-identical to round 1 — my 13 tests are appended to the tester's own file |
+
+### Mutations — six, each reverted
+
+`git status --porcelain` after each showed only my own test file modified.
+
+| # | Mutation | Result |
+|---|---|---|
+| 1 | `engineering-decisions.md` restored to `ff6179d` (the E-6 text the review rejected) | 3 red, all mine: the designated home is untracked/inside the rebuilt directory and is not classified as an input. **The round-1 criterion-14 test stayed green** — which is the proof it was a shape check |
+| 2 | deleted `data/us-states/*.review.json` from `question-bank/.gitignore` | 2 red: both new review-file ignore tests |
+| 3 | `.gitignore`'s cited test changed to `src/normalize.test.ts` | 1 red: the `.gitignore` doc-attribution test. This is exactly finding 2's original bug, so the test would have caught it |
+| 4 | `README.md`'s quoted describe name changed to `"criterion 6 — reproducibility…"` | 1 red: the `README.md` doc-attribution test — the other original wording of finding 2 |
+| 5 | `build.ts`: `const builtAt = undefined` (removes the offline determinism fix) | 52 red, including the new round-2 rebuild-teeth guard |
+| 6 | `us-state-vt.json`: `population_rank` renamed | 3 red, naming Vermont: my rank test, my byte-identity test, the worker's per-state test |
+
+Plus one non-mutation check by hand: a real `fun-facts.review.json` containing
+`"reviewed": false` written into `question-bank/data/us-states/` is invisible to
+`git status --porcelain` and to `git add -An`, then deleted.
+
+### Findings for the `reviewer` — none blocks the pass
+
+- **1. `PROGRESS.md`'s test count is stale again, by construction.** It now reads
+  "196 tests"; the tree is at 209 because this round added 13. No criterion
+  requires the count (criterion 16 asks only that `PROGRESS.md` record the
+  committed bank), and `tasks.md` T-065 owns count drift — but this is the second
+  time in two rounds that a hard-coded suite size in a doc went stale within one
+  commit of being written. **Worth considering whether the number should be there
+  at all**, rather than fixing it a third time. Not fixed by me: `PROGRESS.md` is
+  not a file the `tester` may write.
+- **2. E-6's fun-fact home is one reading of Q2, and a human should confirm it at
+  merge.** Q2's recorded answer (Dkaattae, 2026-09-11) says reviewed facts live
+  in the built output "rather than through a separate `curated/` file", while E-6
+  now names `question-bank/src/curated/us-states.ts`. Criterion 14 is met as
+  written, and the reading is licensed both by Q2's own parenthetical ("*or the
+  source the build folds into it*") and by the reviewer's finding-1 remedy, which
+  proposed this exact home — so I did not block on it. But the person whose
+  answer is being re-read is the one who should sign it off, and it changes what
+  T-011 does. Flagging rather than deciding.
+- **3. T-011 inherits a constraint that is not written down anywhere it will
+  look.** Once T-011 adds the curated field and the fold-in, the 50 tracked entity
+  files change, so **T-011 must rebuild the bank offline and commit the result**
+  or criterion 6's byte-identity tests (51 of them) go red. E-6 says where the
+  text lives but not that the bank has to be regenerated with it. A line in
+  `tasks.md` T-011 would cost nothing now and a cycle later.
+- **4. A known limit of my doc-attribution test.** It bites on a *quoted* claim
+  near a `*.test.ts` reference; a bare, unquoted attribution — round 1's
+  "something CI checks on every push (`data-us-states.test.ts`)" — has no quoted
+  claim to check and would still slip through. Sharpening it further would mean
+  asserting on prose structure, which breaks on the next honest rewrite.
+- **5. Pre-existing, not this task:** `frontend`'s `bun run typecheck` still
+  reports the same 4 `UsMap.tsx` errors (`react-simple-maps`, `us-atlas` absent
+  from this sandbox's `node_modules`, registry 403 — the documented T-007/T-058
+  gap). `git diff --name-only origin/main...HEAD -- frontend/` is empty, so it
+  cannot be this task's regression; CI's `frontend` job is the authority.
+
+### What I did not do
+
+- **Did not touch source.** The only edits to `build.ts`, `.gitignore`,
+  `engineering-decisions.md`, `README.md` and the tracked data were the six
+  mutations above, each reverted and confirmed with `git status --porcelain`.
+- **Did not edit the acceptance criteria**, and did not reinterpret one to make a
+  test pass. Where criterion 14's wording and Q2's prose pull slightly apart, I
+  tested the criterion and flagged the tension (finding 2) rather than choosing.
+- **Did not rewrite the round-1 criterion-14 test.** It is left in place, with a
+  comment saying it is a shape check and pointing at the round-2 block that
+  carries the teeth — deleting it would hide that the gap existed.
+- **Did not fix findings 1–5.** None blocks; `PROGRESS.md` and `tasks.md` are not
+  the tester's to write.
 
 ## Notes
 
