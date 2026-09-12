@@ -109,9 +109,20 @@ Build US state entity records from Wikidata.
 `);
 }
 
-/** Replays a recorded SPARQL response through the exact parsing path. */
-function fixtureTransport(path: string): SparqlTransport {
-  return async () => JSON.parse(await readFile(path, "utf8")) as SparqlResults;
+/**
+ * Replays a recorded SPARQL response through the exact parsing path, and
+ * stashes the fixture's own `_fixture.captured_at` into `capture` as it goes —
+ * that is what lets the offline path use a fixed, meaningful `built_at`
+ * instead of wall clock, so two offline builds are byte-identical (criterion 6).
+ */
+function fixtureTransport(path: string, capture: { capturedAt?: string | undefined }): SparqlTransport {
+  return async () => {
+    const raw = JSON.parse(await readFile(path, "utf8")) as SparqlResults & {
+      _fixture?: { captured_at?: string };
+    };
+    capture.capturedAt = raw._fixture?.captured_at;
+    return raw;
+  };
 }
 
 /**
@@ -144,16 +155,26 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const log = args.quiet ? () => {} : (message: string) => console.log(message);
 
+  const fixtureCapture: { capturedAt?: string } = {};
   const query = args.offline
-    ? fixtureTransport(args.fixture)
+    ? fixtureTransport(args.fixture, fixtureCapture)
     : createSparqlClient({ log: (message) => log(`  ${message}`) });
 
   log(args.offline ? `Reading fixture ${args.fixture}` : "Querying query.wikidata.org …");
   const rows = await fetchUsStates(query);
   log(`  ${rows.length} row(s) returned`);
 
+  // Offline builds use the fixture's own capture time as built_at instead of
+  // wall clock, so replaying the same fixture twice produces byte-identical
+  // output (criterion 6). A fixture with no `_fixture.captured_at` falls back
+  // to wall clock, same as a live run.
+  const builtAt = args.offline && fixtureCapture.capturedAt
+    ? new Date(fixtureCapture.capturedAt).toISOString()
+    : undefined;
+
   const { entities, warnings, unmatched } = normalizeUsStates(rows, {
     ...(args.states === "all" ? {} : { only: args.states }),
+    ...(builtAt ? { builtAt } : {}),
   });
 
   if (args.funFacts) {

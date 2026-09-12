@@ -116,7 +116,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   unreviewed text never reaches an entity's shippable fields (§1.6).
 - `EntitySink` seam, one committed sample run, and a recorded fixture of a real
   50-row response so `--offline` reproduces a full build with no network.
-- 19 tests.
+- **The built 50-state bank is committed** (`question-bank/data/us-states/`,
+  T-010, `engineering-decisions.md` **E-6**) — a fresh clone already has it, and
+  an offline rebuild from the committed fixture reproduces it byte-for-byte
+  (`sources.built_at` now comes from the fixture's capture time, not wall
+  clock), which `data-us-states.test.ts` checks on every `bun test`. T-040 still
+  needs to write, this only settles what it reads from.
+- 74 tests (19 pre-existing + 55 in `data-us-states.test.ts`, one per tracked
+  entity file plus shape checks).
 
 ### Repo and process
 

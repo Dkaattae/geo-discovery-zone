@@ -1,0 +1,355 @@
+{
+  "count": 50,
+  "entities": [
+    {
+      "id": "us-state-ak",
+      "name": "Alaska",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "02"
+    },
+    {
+      "id": "us-state-al",
+      "name": "Alabama",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "01"
+    },
+    {
+      "id": "us-state-ar",
+      "name": "Arkansas",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "05"
+    },
+    {
+      "id": "us-state-az",
+      "name": "Arizona",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "04"
+    },
+    {
+      "id": "us-state-ca",
+      "name": "California",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "06"
+    },
+    {
+      "id": "us-state-co",
+      "name": "Colorado",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "08"
+    },
+    {
+      "id": "us-state-ct",
+      "name": "Connecticut",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "09"
+    },
+    {
+      "id": "us-state-de",
+      "name": "Delaware",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "10"
+    },
+    {
+      "id": "us-state-fl",
+      "name": "Florida",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "12"
+    },
+    {
+      "id": "us-state-ga",
+      "name": "Georgia",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "13"
+    },
+    {
+      "id": "us-state-hi",
+      "name": "Hawaii",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "15"
+    },
+    {
+      "id": "us-state-ia",
+      "name": "Iowa",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "19"
+    },
+    {
+      "id": "us-state-id",
+      "name": "Idaho",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "16"
+    },
+    {
+      "id": "us-state-il",
+      "name": "Illinois",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "17"
+    },
+    {
+      "id": "us-state-in",
+      "name": "Indiana",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "18"
+    },
+    {
+      "id": "us-state-ks",
+      "name": "Kansas",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "20"
+    },
+    {
+      "id": "us-state-ky",
+      "name": "Kentucky",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "21"
+    },
+    {
+      "id": "us-state-la",
+      "name": "Louisiana",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "22"
+    },
+    {
+      "id": "us-state-ma",
+      "name": "Massachusetts",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "25"
+    },
+    {
+      "id": "us-state-md",
+      "name": "Maryland",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "24"
+    },
+    {
+      "id": "us-state-me",
+      "name": "Maine",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "23"
+    },
+    {
+      "id": "us-state-mi",
+      "name": "Michigan",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "26"
+    },
+    {
+      "id": "us-state-mn",
+      "name": "Minnesota",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "27"
+    },
+    {
+      "id": "us-state-mo",
+      "name": "Missouri",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "29"
+    },
+    {
+      "id": "us-state-ms",
+      "name": "Mississippi",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "28"
+    },
+    {
+      "id": "us-state-mt",
+      "name": "Montana",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "30"
+    },
+    {
+      "id": "us-state-nc",
+      "name": "North Carolina",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "37"
+    },
+    {
+      "id": "us-state-nd",
+      "name": "North Dakota",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "38"
+    },
+    {
+      "id": "us-state-ne",
+      "name": "Nebraska",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "31"
+    },
+    {
+      "id": "us-state-nh",
+      "name": "New Hampshire",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "33"
+    },
+    {
+      "id": "us-state-nj",
+      "name": "New Jersey",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "34"
+    },
+    {
+      "id": "us-state-nm",
+      "name": "New Mexico",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "35"
+    },
+    {
+      "id": "us-state-nv",
+      "name": "Nevada",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "32"
+    },
+    {
+      "id": "us-state-ny",
+      "name": "New York",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "36"
+    },
+    {
+      "id": "us-state-oh",
+      "name": "Ohio",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "39"
+    },
+    {
+      "id": "us-state-ok",
+      "name": "Oklahoma",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "40"
+    },
+    {
+      "id": "us-state-or",
+      "name": "Oregon",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "41"
+    },
+    {
+      "id": "us-state-pa",
+      "name": "Pennsylvania",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "42"
+    },
+    {
+      "id": "us-state-ri",
+      "name": "Rhode Island",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "44"
+    },
+    {
+      "id": "us-state-sc",
+      "name": "South Carolina",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "45"
+    },
+    {
+      "id": "us-state-sd",
+      "name": "South Dakota",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "46"
+    },
+    {
+      "id": "us-state-tn",
+      "name": "Tennessee",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "47"
+    },
+    {
+      "id": "us-state-tx",
+      "name": "Texas",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "48"
+    },
+    {
+      "id": "us-state-ut",
+      "name": "Utah",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "49"
+    },
+    {
+      "id": "us-state-va",
+      "name": "Virginia",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "51"
+    },
+    {
+      "id": "us-state-vt",
+      "name": "Vermont",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "50"
+    },
+    {
+      "id": "us-state-wa",
+      "name": "Washington",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "53"
+    },
+    {
+      "id": "us-state-wi",
+      "name": "Wisconsin",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "55"
+    },
+    {
+      "id": "us-state-wv",
+      "name": "West Virginia",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "54"
+    },
+    {
+      "id": "us-state-wy",
+      "name": "Wyoming",
+      "type": "state",
+      "scope": "us",
+      "geometry_id": "56"
+    }
+  ]
+}

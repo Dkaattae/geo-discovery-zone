@@ -1,0 +1,33 @@
+{
+  "id": "us-state-al",
+  "type": "state",
+  "scope": "us",
+  "name": "Alabama",
+  "capital": "Montgomery",
+  "geometry_id": "01",
+  "region": "Southeast",
+  "centroid": [
+    -86.7,
+    32.7
+  ],
+  "population": 5024279,
+  "population_rank": 24,
+  "area_km2": 135765,
+  "area_rank": 30,
+  "borders": [
+    "us-state-fl",
+    "us-state-ga",
+    "us-state-ms",
+    "us-state-tn"
+  ],
+  "highest_point": "Cheaha Mountain",
+  "highest_point_m": 735.5,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q173",
+    "wikipedia_title": "Alabama",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

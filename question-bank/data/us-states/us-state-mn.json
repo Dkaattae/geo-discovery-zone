@@ -1,0 +1,34 @@
+{
+  "id": "us-state-mn",
+  "type": "state",
+  "scope": "us",
+  "name": "Minnesota",
+  "capital": "Saint Paul",
+  "geometry_id": "27",
+  "region": "Midwest",
+  "centroid": [
+    -94,
+    46
+  ],
+  "population": 5706494,
+  "population_rank": 22,
+  "area_km2": 225163,
+  "area_rank": 12,
+  "borders": [
+    "us-state-ia",
+    "us-state-mi",
+    "us-state-nd",
+    "us-state-sd",
+    "us-state-wi"
+  ],
+  "highest_point": "Eagle Mountain",
+  "highest_point_m": 701,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1527",
+    "wikipedia_title": "Minnesota",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

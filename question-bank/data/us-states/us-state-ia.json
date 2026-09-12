@@ -1,0 +1,35 @@
+{
+  "id": "us-state-ia",
+  "type": "state",
+  "scope": "us",
+  "name": "Iowa",
+  "capital": "Des Moines",
+  "geometry_id": "19",
+  "region": "Midwest",
+  "centroid": [
+    -93,
+    42
+  ],
+  "population": 3190369,
+  "population_rank": 31,
+  "area_km2": 145746,
+  "area_rank": 26,
+  "borders": [
+    "us-state-il",
+    "us-state-mn",
+    "us-state-mo",
+    "us-state-ne",
+    "us-state-sd",
+    "us-state-wi"
+  ],
+  "highest_point": "Hawkeye Point",
+  "highest_point_m": 1670,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1546",
+    "wikipedia_title": "Iowa",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

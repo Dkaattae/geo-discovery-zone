@@ -1,0 +1,33 @@
+{
+  "id": "us-state-ms",
+  "type": "state",
+  "scope": "us",
+  "name": "Mississippi",
+  "capital": "Jackson",
+  "geometry_id": "28",
+  "region": "Southeast",
+  "centroid": [
+    -90,
+    33
+  ],
+  "population": 2961279,
+  "population_rank": 34,
+  "area_km2": 125443,
+  "area_rank": 32,
+  "borders": [
+    "us-state-al",
+    "us-state-ar",
+    "us-state-la",
+    "us-state-tn"
+  ],
+  "highest_point": "Woodall Mountain",
+  "highest_point_m": 246,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1494",
+    "wikipedia_title": "Mississippi",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

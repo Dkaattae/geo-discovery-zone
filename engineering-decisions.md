@@ -223,3 +223,76 @@ owner is `actions`, so it stays on the tag as it already is, and this task made
 no edit there. If that file ever adds a third-party action, pinning it is a
 hand-written `P` ticket (`process.md`, "Work on the loop itself never enters the
 loop"), not part of this task.
+
+---
+
+## E-6 — The 50-state bank is committed; `question-bank/data/us-states/` is tracked
+
+**2026-09-12 (T-010).** `question-bank/data/us-states/` — 50 entity files plus
+`index.json`, built offline from the committed SPARQL fixture
+(`src/fixtures/us-states.sparql.json`) — is now **tracked in git**, not
+generated at deploy or build time. `question-bank/.gitignore` narrows from
+`data/` to `data/*` with `!data/us-states`, so everything else written under
+`data/` (a `--out data/subset`, a live rerun awaiting review) stays ignored and
+only this one directory is exempted.
+
+**The option not taken: keep `question-bank/data/` generated, matching the old
+`.gitignore` comment ("the full bank is regenerated from Wikidata, not stored in
+git").** Its real cost, stated plainly rather than strawmanned: **Wikidata is
+edited continuously, so a committed snapshot goes stale** the moment it is
+written (`sample-data/README.md`, before this change, made the same point about
+the one-state sample). Every population figure and any hand-corrected fact in
+this bank is an August 2026 reading, not a live one, until something refreshes
+it. That is a genuine, ongoing cost, not a one-time migration cost — it does not
+go away when this PR merges.
+
+**Why committed won anyway.** `T-040`'s loader needs something to seed the
+database from at deploy time, and CI cannot rebuild live to check a generated
+copy is current — the `question-bank` CI job runs with `HTTP_PROXY` pointed at
+`127.0.0.1:1` (`test-guidelines.md`, "No network in tests, ever"), so "regenerate
+from Wikidata first" would be a deploy-time step nothing in this repo owns yet.
+Committing turns "is the served bank right" into a question a diff review can
+answer, and turns "is the offline rebuild still faithful to the fixture" into
+something CI checks on every push (`data-us-states.test.ts`) rather than
+something asserted.
+
+**What committing did *not* require giving up.** The two arguments that looked
+strongest for staying generated turned out to already be satisfied without it:
+an offline, no-network rebuild from a committed fixture already existed
+(`build.ts --offline`) before this task, and the per-entity-file output shape
+(`sinks/json.ts`) already gives reviewable diffs. The one real gap — `built_at`
+was wall-clock (`new Date().toISOString()`), so every offline rebuild rewrote
+all 50 files even with no fact changed — is closed by this task: the offline
+path (`build.ts`'s `fixtureTransport`) now takes `built_at` from the fixture's
+own `_fixture.captured_at` instead, so `normalizeUsStates(rows, { builtAt })`
+produces byte-identical output on every offline run. `built_at`'s meaning
+changed accordingly: on the offline path it reads as "the fixture this build
+replayed was captured at instant X", not "this file was written at instant X" —
+a live run (`bun run build`, no `--offline`) is unaffected and still stamps wall
+clock, since a live Wikidata response has no captured-at of its own to reuse.
+
+**Where a reviewed fun fact lives, so a future rebuild does not destroy it
+(T-010's Q2).** Reviewed, `reviewed: true` fun-fact text belongs in the tracked
+entity files under `question-bank/data/us-states/` themselves — the built
+output, not a separate `curated/` source file and not `backend/app/data/`. This
+works *because* the offline rebuild this task made deterministic only touches
+`built_at`/`builder_version` and the Wikidata-sourced fields; it never runs the
+Wikipedia pass (`--offline` implies `--no-fun-facts`, `build.ts:89-90`) and so
+never regenerates or overwrites `fun_facts`. T-011, which edits the reviewed
+text, is editing the same tracked JSON this decision commits — it is not
+blocked on a second file existing.
+
+**What a fresh clone gets, concretely.** `question-bank/README.md` and
+`conventions.md` both now say a clone already contains the 50-state bank, and
+that `bun run build` (live) or `bun run build -- --offline --out
+data/us-states` (offline, from the fixture) is how it gets refreshed — neither
+runs automatically, and no CI job runs the live query.
+
+**Revisit when** the committed bank is old enough that the staleness cost above
+stops being theoretical — concretely, when `T-063` (the periodic refresh job,
+queued but not built by this task) exists and can post a diff showing the
+tracked bank disagrees with a live Wikidata pull, or when someone manually
+notices a value here is wrong against Wikidata and there is no job that would
+have caught it. Either is a signal that "committed, refreshed by hand" has
+become "committed, refreshed never" — at which point the generated-only option
+this entry rejected is worth re-costing, not re-arguing from scratch.

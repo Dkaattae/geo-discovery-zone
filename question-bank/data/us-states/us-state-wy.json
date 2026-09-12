@@ -1,0 +1,35 @@
+{
+  "id": "us-state-wy",
+  "type": "state",
+  "scope": "us",
+  "name": "Wyoming",
+  "capital": "Cheyenne",
+  "geometry_id": "56",
+  "region": "Mountain West",
+  "centroid": [
+    -107.5,
+    43
+  ],
+  "population": 576851,
+  "population_rank": 50,
+  "area_km2": 253348,
+  "area_rank": 10,
+  "borders": [
+    "us-state-co",
+    "us-state-id",
+    "us-state-mt",
+    "us-state-ne",
+    "us-state-sd",
+    "us-state-ut"
+  ],
+  "highest_point": "Gannett Peak",
+  "highest_point_m": 4207,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1214",
+    "wikipedia_title": "Wyoming",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

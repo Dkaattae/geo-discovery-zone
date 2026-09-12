@@ -407,6 +407,10 @@ queue: every curation and generation task above is invisible until it exists.
 is gone and the app fetches everything from the API, so the task moved
 downstream: a Python command that reads `question-bank/`'s output and upserts
 into `entities` and `questions`, idempotent on id.
+**T-010 resolved 2026-09-12 (E-6): the loader reads the committed
+`question-bank/data/us-states/`.** That JSON is tracked in git, not generated at
+deploy time — seeding needs no live Wikidata run when this loader runs. This
+task does not get to re-decide that; it consumes the committed bank as-is.
 
 Half of it already exists — `store.ensure_content_loaded` reads
 `app/data/content.json` at startup, keyed on content version, and reloading is a

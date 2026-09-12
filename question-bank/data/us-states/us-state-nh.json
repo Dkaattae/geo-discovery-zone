@@ -1,0 +1,32 @@
+{
+  "id": "us-state-nh",
+  "type": "state",
+  "scope": "us",
+  "name": "New Hampshire",
+  "capital": "Concord",
+  "geometry_id": "33",
+  "region": "Northeast",
+  "centroid": [
+    -71.5,
+    44
+  ],
+  "population": 1377529,
+  "population_rank": 41,
+  "area_km2": 24214,
+  "area_rank": 46,
+  "borders": [
+    "us-state-ma",
+    "us-state-me",
+    "us-state-vt"
+  ],
+  "highest_point": "Mount Washington",
+  "highest_point_m": 1917,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q759",
+    "wikipedia_title": "New_Hampshire",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

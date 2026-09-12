@@ -1,4 +1,9 @@
 node_modules
-# Live build output. Only sample-data/ is committed — the full bank is
-# regenerated from Wikidata, not stored in git.
-data/
+# The committed 50-state bank (E-6): `data/us-states/` is tracked, and is
+# reproduced byte-for-byte by `bun run build -- --offline --out data/us-states`
+# from the committed fixture — that offline rebuild is what a passing
+# `bun test` checks (normalize.test.ts, "criterion 6 — reproducibility").
+# Everything else under data/ — ad hoc --out targets, subsets, a live rerun
+# against Wikidata before it's reviewed — stays ignored.
+data/*
+!data/us-states

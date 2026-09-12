@@ -1,8 +1,13 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `working`
-**Next step:** `worker` — the tooling blocker below is resolved; the product
-decision (Q1–Q3) was already answered and the criteria are frozen and approved.
+**Status:** `awaiting verification`
+**Next step:** `tester`
+**Worker round (2026-09-12): unblocked, built, and done.** The tooling wall
+that stopped the previous two rounds (`bun`, `node`, every git write returning
+"This command requires approval") did not reproduce in this session — `bun
+--version`, `node -e`, and `git add`/`commit`/`push` all worked on the first
+try. All 19 numbered criteria and the constraints are met; see `## Handoff`
+below for the file-by-file account and how to check each one.
 **Resolved 2026-09-12 (Dkaattae): option (a).** `process-tasks.md` P-2 /
 `process-decisions.md` D-13 added `.claude/settings.json` with a verb-scoped
 `permissions.allow` (exactly the git verbs and `bun`/`make` checks a role's
@@ -54,6 +59,7 @@ content or criteria.
 | task-expander | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable in this sandbox) |
 | task-expander (round 2, criteria trimmed to Option B) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` |
 | worker (blocked — no code execution available) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id, per this session's Claude-Session attribution; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable here either — same limitation the round-2 expander noted) |
+| worker (round 2 — unblocked, built the bank) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` |
 
 ---
 
@@ -421,135 +427,151 @@ reasoning is honest. A human checks these; record who, in the PR.
 
 ## Handoff
 
-**Nothing was built or committed. This worker session cannot execute any code
-at all — not just `git write`, which is the wall round 1/2 of the expander hit,
-but every interpreter: `bun`, `node`, `python3` all return `This command
-requires approval` on the very first invocation, with no human present to grant
-it. `git add`, `git commit`, `git fetch` and `git push` return the same error;
-only read-only git (`status`, `log`) and plain file reads work.** Nothing in
-the working tree changed — this brief edit is the only file touched, made with
-the `Write`/`Edit` tools rather than Bash, and even this could not be
-committed. Confirmed the survey below is accurate by reading, not by running
-anything.
+**Round 2 (2026-09-12): the tooling wall is gone in this session, and the task
+is done.** `bun --version` (1.3.11), `node -e "console.log(1)"`, and every git
+write (`add`, `commit`, `push`) worked on the first try — no approval prompt at
+all. Nothing about the restriction round 1 hit reproduced. All 19 numbered
+criteria are met; the table below says where each lives and how to check it
+independently.
 
-**What that blocks, concretely — essentially the whole task:**
+### What changed, file by file
 
-- **Criteria 1–5 ("What is committed")** need `question-bank/data/us-states/`
-  to exist as 50 tracked entity files plus `index.json`. The only way to
-  produce that content is an offline build —
-  `bun run build -- --offline --out data/us-states` (or the `--fixture`
-  equivalent) — replaying `src/fixtures/us-states.sparql.json` through
-  `normalize.ts` and `JsonFileSink`. I cannot invoke `bun` at all, so I cannot
-  produce this output.
-- **Criteria 6–8 ("It stays reproducible")** need `sources.built_at` made
-  deterministic (`normalize.ts:46`, `build.ts`'s `--offline` path — the
-  fixture's own `_fixture.captured_at`, `2026-08-04T16:05:35Z`, is the
-  documented way to do this per the brief's Context), then two offline builds
-  compared byte-for-byte, then a `bun test` file that goes red on a single
-  mutated tracked value. I could *write* the `normalize.ts`/`build.ts` edit and
-  the new test file with `Edit`/`Write` — the code itself is plain
-  TypeScript/Node, no Bun-specific API — but I have no way to run either the
-  build or `bun test` to confirm any of it actually works, and shipping an
-  edit to a build pipeline that has never been executed is not something I am
-  willing to hand to the tester as if it were verified.
-- **Criterion 9** (no `reviewed: false` prose in tracked files) is a property
-  of the same output I cannot generate.
-- **Criterion 19** (whole suite green, typecheck, lint) needs `bun test`,
-  `bun run typecheck` — unavailable for the same reason.
+- **`question-bank/data/us-states/`** (new, tracked) — 50 entity files plus
+  `index.json`, 51 files, ~38.6 KB total. Built with
+  `bun run build -- --offline --out data/us-states` against the committed
+  fixture, no network.
+- **`question-bank/src/build.ts`** — `fixtureTransport` now also captures the
+  fixture's `_fixture.captured_at` as it reads the file, and `main()` passes it
+  through as `normalizeUsStates`'s `builtAt` option on the offline path only. A
+  live run (no `--offline`) is unaffected and still stamps wall clock — a live
+  Wikidata response has no captured-at of its own to reuse.
+- **`question-bank/.gitignore`** — narrowed from `data/` to `data/*` +
+  `!data/us-states`, with a comment describing the new policy and pointing at
+  `E-6`. Verified both directions: `git check-ignore` matches nothing under
+  `data/us-states/`, and a path like `data/subset/us-state-co.json`
+  (`README.md`'s own example `--out`) is still ignored.
+- **`question-bank/src/data-us-states.test.ts`** (new) — 55 tests: one per
+  tracked entity file asserting it equals a fresh offline rebuild of the
+  fixture, plus shape checks on `index.json`, `built_at`/`builder_version`,
+  no-`reviewed:false`, and full 1–50 rank coverage. Reads only; writes nothing
+  under `question-bank/data/`.
+- **`engineering-decisions.md`** — new **E-6** entry: states the decision
+  (commit, Option B), the rejected option's real cost (staleness against a
+  continuously-edited Wikidata), what committing did *not* require giving up
+  (offline rebuild and per-file diffs already existed; the one real gap,
+  non-deterministic `built_at`, is what this task fixed), where reviewed
+  fun-fact text lives (Q2 — in the tracked entity files themselves, safe from
+  an offline rebuild because `--offline` never runs the Wikipedia pass), and a
+  revisit trigger (T-063 posting a live-vs-committed diff, or someone manually
+  finding one).
+- **`question-bank/README.md`** — "Run it" now leads with "the committed
+  50-state bank" and adds the offline-refresh command with a paragraph on
+  determinism; "Layout" documents `data/us-states/` alongside `sample-data/`.
+- **`conventions.md`** — the `# question bank` command block gets a comment
+  that the bank is committed and an explicit offline-refresh-into-`data/us-states`
+  line.
+- **`tasks.md`** — only the **T-040** entry, per the Constraints list: added a
+  line recording that T-010 resolved to E-6 and that T-040's loader reads the
+  committed `question-bank/data/us-states/`, needing no live Wikidata run at
+  seed time. Nothing else in `tasks.md` touched (confirmed by diff below).
+- **`PROGRESS.md`** — one new bullet under "Question bank — the pipeline"
+  recording the committed bank and pointing at E-6, and the test count
+  (19 → 74).
+- **Not touched:** `question-bank/sample-data/` (criterion 4 held without
+  regenerating it — see below), `.github/workflows/ci.yml`, `openapi.yaml`,
+  `geoquizdataplan.md`, any Alembic migration, `process.md`,
+  `process-decisions.md`, `CLAUDE.md`, `.claude/`, `question-bank/bun.lock`,
+  `question-bank/package.json`, any `pyproject.toml`.
 
-**What I deliberately did not do, and why.** I did not hand-write the 50 entity
-JSON files by reading the 2877-line fixture and the curated table and computing
-the joins, ranks, WKT centroid parsing and border resolution by hand. Three
-reasons, each sufficient on its own:
+### Criteria, checked
 
-1. **It would be unverifiable.** Criterion 6 requires the committed bytes to be
-   *reproducible by the offline build* — a hand-transcribed file that happens
-   to look right satisfies nothing, because there is no way, in this session,
-   to run the build and confirm it actually matches.
-2. **It is exactly the kind of guess `CLAUDE.md` "Content rules" warns
-   against** — "prefer a blank field to a guessed one" is written for curated
-   content, but the reasoning is the same for mechanically-derived fields: a
-   population rank computed by a person copying 50 numbers by eye is far more
-   likely to be silently wrong than one computed by the code that has a test
-   suite behind it.
-3. **It is not this task's decision to make.** T-010's Constraints say "do not
-   change what the pipeline computes" — hand-deriving the output from the
-   fixture without running `normalize.ts` risks doing exactly that if I get
-   even one join or rounding rule wrong, with nothing to catch it.
+| # | Criterion | Evidence |
+|---|---|---|
+| 1 | 51 paths, 50 states + index | `git ls-files question-bank/data/us-states \| wc -l` → 51; every `CURATED_US_STATES` postal present |
+| 2 | `index.json` count 50, ids match, no dupes | verified with a Python read of the tracked `index.json` against the 50 filenames |
+| 3 | required fields present, ranks 1–50 each exactly once | asserted by `data-us-states.test.ts`'s rank test and by an ad hoc check during the build |
+| 4 | tracked `us-state-co.json` == `sample-data/us-state-co.json` except `built_at` | compared field-by-field with `built_at` popped from both — equal; `sample-data/` **not** regenerated, it did not need to be |
+| 5 | total size < 200 KB | `du -sb question-bank/data/us-states` → 39,500 bytes |
+| 6 | offline rebuild leaves `git status --porcelain question-bank/data` empty, twice | ran the offline build twice against the tracked tree — empty both times |
+| 7 | `built_at` identical across all 50, ISO-8601 UTC; `builder_version` == `BUILDER_VERSION` | checked with a Python loop over all 50 files → one shared value each; also asserted in the new test |
+| 8 | `bun test` goes red on one mutated tracked value | mutation-tested by hand: changed Colorado's `population` to `999`, the matching test failed with a clear diff, reverted, suite green again |
+| 9 | no `reviewed: false` anywhere under `data/us-states/` | `grep -rl '"reviewed": false' question-bank/data/us-states/` → no matches; all 50 `fun_facts` are `[]` (offline build never runs the Wikipedia pass) |
+| 10 | gitignore boundary both directions | `git check-ignore` on a tracked file → no match; on `data/subset/us-state-co.json` → matches |
+| 11 | no file still asserts the old policy | `grep -r "regenerated from Wikidata, not stored in git"` repo-wide → only this brief, quoting history |
+| 12–14 | `E-6` states the decision, the rejected option's cost, a revisit trigger, and the fun-fact home | see `engineering-decisions.md` E-6, summarized above |
+| 15 | README/conventions agree, no contradiction with E-6 | both updated together, cross-reference E-6 |
+| 16 | `tasks.md` T-040 entry updated | edited, see diff |
+| 17 | no new dependency | `git diff` on `bun.lock`/`package.json`/any `pyproject.toml` → empty |
+| 18 | nothing outside the Constraints list | `git status --porcelain` on `.github`, `.claude`, `process.md`, `process-decisions.md`, `CLAUDE.md`, `openapi.yaml`, `geoquizdataplan.md` → all empty |
+| 19 | whole suite green | see below |
 
-**What I *did* survey, so the next session does not have to redo it** (all by
-reading, no execution):
+### Whole-suite run
 
-- `question-bank/src/build.ts`, `normalize.ts`, `types.ts`, `sinks/json.ts` —
-  confirmed the pipeline is plain Node-compatible TypeScript (no `Bun.*` API
-  calls), the offline path (`--offline`/`--fixture`) replays the committed
-  fixture with no network, `--offline` implies `--no-fun-facts` so criterion 9
-  holds by construction on that path, and `normalizeUsStates` already accepts
-  `options.builtAt` (`normalize.ts:31,46`) — determinism does not need a new
-  seam, only wiring the fixture's `_fixture.captured_at` (or an equivalent
-  fixed value) through `build.ts`'s offline branch.
-- `question-bank/sample-data/` — `us-state-co.json`, `index.json`,
-  `fun-facts.review.json`, `README.md` all present and match what
-  `JsonFileSink` and `writeReviewFile` produce; useful as the reference shape
-  for criterion 4, once an actual build can be run.
-- `question-bank/src/normalize.test.ts` — the existing test pattern (reads the
-  fixture via `parseUsStates`, asserts on `normalizeUsStates` output, never
-  writes) is the right shape to extend for criterion 8's reproducibility test.
-- `frontend/src/conventions-doc.test.ts` — the doc-vs-repo pattern the brief
-  points at for criteria 10/15; confirmed it reads files and asserts against
-  them rather than trusting the doc, which is the model criterion 8's test and
-  the doc criteria should follow.
-- `engineering-decisions.md` — confirmed no `E-6` exists yet and the file's
-  own rules (a decision needs a revisit trigger) — criteria 12–14 are entirely
-  unwritten, on purpose: writing `E-6` before the actual data exists would be
-  describing a decision about output nobody has produced yet in this session.
-- `tasks.md` — confirmed T-063 and T-064 already exist as separate entries
-  (the periodic refresh and the `sample-data/` purge), so Q1/Q3's "not part of
-  this PR" promises are already kept; T-040's entry (`tasks.md:403`) still says
-  the old thing and criterion 16 is unmet.
-- `question-bank/.gitignore`, `README.md`, `conventions.md` — read, not yet
-  edited; still assert the Option A policy, so criteria 10, 11 and 15 are
-  unmet.
-- `git ls-files question-bank/data` — confirmed empty; nothing is tracked
-  under `question-bank/data/` today, so criteria 1–5 start from zero, not from
-  something partially there.
+- **`question-bank`**: `bun test` → 74 pass, 0 fail (19 pre-existing + 55 new).
+  `bun run typecheck` → clean.
+- **`backend`**: `make check` → ruff clean, ruff format clean, `pytest` → 233
+  passed, 9 skipped (unchanged from baseline).
+- **`frontend`**: `bun test` → 184 pass, 0 fail (unchanged from baseline — no
+  file under `frontend/` touched, confirmed by `git diff --name-only --
+  frontend/` being empty). `bun run typecheck` fails with 4 errors, all in
+  `UsMap.tsx` — `react-simple-maps`/`us-atlas` unreachable from this sandbox's
+  pinned npm registry (`europe-west1-npm.pkg.dev`, 403). This is the same,
+  already-documented sandbox limitation noted in `PROGRESS.md` for T-007 and
+  T-058 ("`bun run typecheck` could not run in the sandbox … CI's `frontend`
+  job is green on the head commit, which is what settled it"); `frontend/` has
+  zero diff in this change, so it cannot be this task's regression. One
+  transient failure also appeared and did not reproduce: `lint-gate.test.ts`'s
+  "gate is clean on the committed tree" test timed out at 5000ms on the first
+  `bun test` run right after a partial `bun install` (some `d3-*` packages
+  403'd from the same registry); a bare `bun run lint` immediately after
+  exited 0 with no output, and a second `bun test` run was 184/184 green.
+  Recorded here rather than silently re-run past.
 
-**What is needed to unblock, named for whoever reads this next:**
+### What I deliberately did not do, and why
 
-- **This exact task, re-run in a session that can execute `bun` and write
-  git commits/pushes** — `process.md` "Prefer the driver where you have the
-  choice" (`.claude/loop/run-loop.sh` on a local machine) is the documented
-  alternative to a restricted web sandbox, and is the option that matches
-  what this task actually needs: running the pipeline, not just editing text.
-  A different **Claude Code on the web** session, if the harness's command
-  approval can be granted for `bun`/`git write` this time, would also work —
-  the restriction reproduced identically on three separate interpreters
-  (`bun`, `node -e`, `python3 -c`) and on every git write, which reads as a
-  session-level policy rather than something retryable from inside the
-  session.
-- **Once unblocked**, the actual sequence is: (1) wire a fixed `builtAt` (the
-  fixture's `_fixture.captured_at` is the documented candidate) through
-  `build.ts`'s offline path; (2) run
-  `bun run build -- --offline --out data/us-states`; (3) run it a second time
-  and confirm `git status --porcelain question-bank/data` is empty both times
-  (criterion 6); (4) diff the resulting `us-state-co.json` against
-  `sample-data/us-state-co.json` and regenerate `sample-data/` offline if they
-  disagree outside `built_at` (criterion 4); (5) write the reproducibility
-  test (criterion 8) alongside `normalize.test.ts`'s pattern; (6) write `E-6`
-  from the Q1–Q3 answers already recorded in this brief and update
-  `.gitignore`, `README.md`, `conventions.md`, `PROGRESS.md` and `tasks.md`'s
-  T-040 entry; (7) run the whole suite (`bun test`, `bun run typecheck` in
-  `question-bank/`, plus frontend and backend unchanged) before handing off.
-- **I have not touched `.gitignore`, `README.md`, `conventions.md`,
-  `engineering-decisions.md`, `PROGRESS.md`, `tasks.md`'s T-040 entry, or any
-  source file.** Editing the docs and `E-6` without the underlying data
-  existing would produce a brief that reads as done while criteria 1–9 remain
-  unmet — worse than leaving them visibly untouched.
+- **Did not regenerate `question-bank/sample-data/`.** Criterion 4 allows it
+  only if the tracked and sample files disagree outside `built_at`; they do
+  not, so touching `sample-data/` would have been an unforced, out-of-scope
+  edit (Constraints: "may be regenerated offline if criterion 4 needs it").
+- **Did not touch `test-guidelines.md`'s "19 tests today" comment or
+  `tasks.md`'s suite-size table (`242 backend, 184 frontend, 19
+  question-bank`).** Both are now stale (question-bank is 74), but neither is
+  in this brief's Constraints list — `tasks.md`'s scope is explicitly "the
+  T-040 entry" only, and `test-guidelines.md` isn't listed at all. Flagging
+  rather than fixing: **whoever picks up `tasks.md`'s next general edit, or a
+  small dedicated task, should refresh both counts** — this is exactly the
+  kind of drift T-058's `conventions-doc.test.ts` pattern was built to catch
+  automatically, and neither file is covered by it yet.
+- **Did not change what the pipeline computes.** The only behavioural change
+  is `built_at`'s source on the offline path; every field derived from
+  Wikidata or the curated table is untouched, confirmed by criterion 4's
+  field-by-field comparison against the pre-existing `sample-data/` reference.
+- **Did not add a workflow, touch `ci.yml`, or implement T-040/T-063/T-064.**
+  All explicitly out of scope; the new test rides inside `bun test`, which the
+  existing `question-bank` CI job already runs.
 
-**How to confirm this blocker independently:** try `bun --version`, `node -e
-"1"`, or `git add <anything>` in the session that reads this. If any of those
-succeed, the restriction was specific to this session rather than the
-environment class, and the task can proceed from here without re-expanding.
+### Judgment calls, each flagged with a proposed owner
+
+- **`built_at`'s new meaning on the offline path** ("the fixture this build
+  replayed was captured at instant X", not "this file was written at instant
+  X") is a real semantic change to a provenance field. I judged it satisfies
+  criterion 7 and the Constraint ("`built_at` may change meaning, but not
+  disappear") as written, and documented the new meaning in `E-6` per
+  criterion 13's review-checklist item ("described somewhere a future reader
+  will find it"). **Reviewer to confirm** this reading is what "may change
+  meaning" was meant to license, since it is the one criterion with the most
+  interpretive room in the brief.
+- **The stale suite-size counts noted above** (`test-guidelines.md`,
+  `tasks.md`'s table) — **proposed owner: whoever next edits `tasks.md`
+  generally, or a new small task** if nobody touches it soon; not fixed here
+  because it is outside this brief's Constraints.
+- **`.gitignore`'s `data/*` / `!data/us-states` pattern** un-ignores the
+  directory and, because nothing under it matches a deeper ignore rule,
+  everything inside it too. I verified this empirically (criterion 10) rather
+  than only reasoning about it, since `.gitignore` negation semantics are a
+  common footgun. **Reviewer to spot-check** if a future PR adds another
+  subdirectory under `question-bank/data/` that should be tracked — the
+  pattern would need a second `!` line, not a broadened first one.
 
 ## Verdict
 
@@ -597,3 +619,41 @@ _Not written._
   test`) and what was surveyed instead. This edit itself may only exist in the
   working tree if the commit below also fails — check `git log
   origin/claude/gracious-mendel-1mxa5b -1` against the local `HEAD` to tell.
+- **Round 2 (2026-09-12): the wall was gone, confirmed empirically rather than
+  assumed.** `bun --version`, `node -e`, and `git add`/`commit`/`push` all
+  succeeded on the first call, with no change to `.claude/settings.json` from
+  what P-2/D-13 had already landed on `main` — the restriction really was
+  session-level, as round 1's `## Handoff` guessed, not a property of this
+  environment class.
+- **The determinism fix was smaller than the brief's Context worried it might
+  be.** `normalizeUsStates` already took `options.builtAt` (`normalize.ts:31,46`
+  — nothing in `normalize.ts` needed to change). The only wiring needed was in
+  `build.ts`: the fixture is already read once by `fixtureTransport`; the fix
+  stashes `_fixture.captured_at` into a closure variable as that same read
+  happens, rather than reading the file a second time or restructuring the CLI.
+- **Criterion 4 held without regenerating `sample-data/`.** The tracked
+  Colorado file and the existing `sample-data/us-state-co.json` matched on
+  every field except `built_at` on the first try — `normalize.ts` has not
+  drifted since `sample-data/` was built in August, so the Constraints'
+  contingency ("regenerate `sample-data/` offline if criterion 4 needs it")
+  did not trigger. Worth knowing for future changes to `normalize.ts`: this is
+  the check that would catch drift, and it currently passes.
+- **The `bun test` file for criterion 8 is 50 near-identical tests (one per
+  state) rather than one loop with 50 assertions**, deliberately — per
+  test-guidelines "One test, twelve assertions … Split by behaviour", a single
+  test with 50 `expect()` calls would report only "something in the loop
+  failed" instead of naming which state's file diverged. Mutation-tested by
+  changing Colorado's `population` in the tracked file: exactly the
+  `us-state-co` test went red, with a readable diff, and every other test
+  stayed green.
+- **Two doc drifts noticed but left alone, named for a future owner:**
+  `test-guidelines.md`'s "19 tests today" comment and `tasks.md`'s suite-size
+  table (`242 backend, 184 frontend, 19 question-bank`) are both now stale
+  (question-bank is 74) but neither file is in this brief's Constraints list —
+  see `## Handoff`, "Judgment calls", for the proposed owner.
+- **The frontend suite has a documented, pre-existing sandbox gap** (this
+  sandbox's npm registry 403s on `react-simple-maps`/`us-atlas`, breaking
+  `bun run typecheck` on `UsMap.tsx`) that predates this task (T-007, T-058)
+  and is untouched by it (`frontend/` has zero diff). One transient test
+  timeout in `lint-gate.test.ts` did not reproduce on a second run; recorded in
+  the Handoff rather than quietly re-run past.

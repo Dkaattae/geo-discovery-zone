@@ -56,10 +56,12 @@ cd frontend && bun install && bun run dev
 cd frontend && bun run typecheck && bun run lint && bun run format
 cd frontend && bun test                     # the frontend suite
 
-# question bank
+# question bank — data/us-states/ (the 50-state bank) is committed (E-6);
+# a fresh clone already has it, these commands only refresh it
 cd question-bank && bun install
 bun run build              # live: query.wikidata.org → data/us-states/
-bun run build:sample       # offline replay of the recorded fixture
+bun run build -- --offline --out data/us-states   # offline: recorded fixture → same path, byte-identical
+bun run build:sample       # offline replay of the recorded fixture → sample-data/
 bun run typecheck
 bun test
 

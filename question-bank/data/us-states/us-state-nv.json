@@ -1,0 +1,34 @@
+{
+  "id": "us-state-nv",
+  "type": "state",
+  "scope": "us",
+  "name": "Nevada",
+  "capital": "Carson City",
+  "geometry_id": "32",
+  "region": "Mountain West",
+  "centroid": [
+    -117,
+    39
+  ],
+  "population": 3104614,
+  "population_rank": 32,
+  "area_km2": 286380,
+  "area_rank": 7,
+  "borders": [
+    "us-state-az",
+    "us-state-ca",
+    "us-state-id",
+    "us-state-or",
+    "us-state-ut"
+  ],
+  "highest_point": "Boundary Peak",
+  "highest_point_m": 4007,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1227",
+    "wikipedia_title": "Nevada",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "us-state-sc",
+  "type": "state",
+  "scope": "us",
+  "name": "South Carolina",
+  "capital": "Columbia",
+  "geometry_id": "45",
+  "region": "Southeast",
+  "centroid": [
+    -81,
+    34
+  ],
+  "population": 5118425,
+  "population_rank": 23,
+  "area_km2": 82931,
+  "area_rank": 40,
+  "borders": [
+    "us-state-ga",
+    "us-state-nc"
+  ],
+  "highest_point": "Sassafras Mountain",
+  "highest_point_m": 1085,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1456",
+    "wikipedia_title": "South_Carolina",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

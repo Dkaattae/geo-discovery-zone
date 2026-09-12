@@ -1,0 +1,35 @@
+{
+  "id": "us-state-ok",
+  "type": "state",
+  "scope": "us",
+  "name": "Oklahoma",
+  "capital": "Oklahoma City",
+  "geometry_id": "40",
+  "region": "South Central",
+  "centroid": [
+    -98,
+    35.5
+  ],
+  "population": 3959353,
+  "population_rank": 28,
+  "area_km2": 181195,
+  "area_rank": 20,
+  "borders": [
+    "us-state-ar",
+    "us-state-co",
+    "us-state-ks",
+    "us-state-mo",
+    "us-state-nm",
+    "us-state-tx"
+  ],
+  "highest_point": "Black Mesa",
+  "highest_point_m": 1737,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1649",
+    "wikipedia_title": "Oklahoma",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}
