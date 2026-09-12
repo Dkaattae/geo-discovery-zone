@@ -308,3 +308,47 @@ matches local HEAD.
 
 G5 check: `Status` changed from `working` to `awaiting verification`; `Next
 step` changed from `worker` to `tester`. Not a stall — the header moved.
+
+## Round 5 — tester — 2026-09-12
+
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+**Verdict: pass.** All 19 criteria hold. Committed and pushed to the brief's branch `claude/gracious-mendel-1mxa5b` (`a2ce8c6`, confirmed on `origin`). **Next step: `reviewer`** — three non-blocking findings to route.
+
+- **What I added:** `question-bank/src/committed-bank.test.ts` — 124 tests written from the criteria's wording, plus the `## Verdict` in `tasks/T-010-commit-or-generate-the-bank.md`.
+- **Suite:** question-bank 196 pass / 0 fail + typecheck clean; backend 233 passed, 9 skipped, ruff clean; frontend 184 pass / 0 fail.
+
+**Independence caveat (read this before weighing the pass).** `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01NqBhtxscKupMdww97kUauJ`, the *same id already listed for the worker*. This is an orchestrated run (`runs/T-010-commit-or-generate-the-bank.md` exists), so the Sessions check proves nothing either way. What this verdict rests on is a freshly spawned agent with its own context window that never saw the worker's transcript — real, but weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+**Mutations — eight, every one reverted (tree clean at commit):**
+
+| # | Mutation | Result |
+|---|---|---|
+| 1 | Wyoming `population` → `999` | 2 red, both naming Wyoming |
+| 2 | `index.json` `count` → `49` | 3 red |
+| 3 | `build.ts`: `const builtAt = undefined` | 51 red — **all mine**; the worker's 55 stayed green |
+| 4 | injected `"reviewed": false` fun fact | 5 red |
+| 5 | `.gitignore` back to `data/` | 1 red (criterion 10) |
+| 6 | `BUILDER_VERSION` → `0.2.0` | 101 red |
+| 7 | duplicated `population_rank` | criterion 3 rank test red |
+| 8 | drifted `sample-data/us-state-co.json` | criterion 4 test red |
+
+**Findings (none blocking):**
+
+- **The worker's test does not guard criterion 6.** Removing the determinism fix from `build.ts` left all 55 of `data-us-states.test.ts` green — it re-derives `built_at` from `_fixture.captured_at` *inside the test* and compares to `normalizeUsStates`, rather than running the build. Criterion 8 as written is still met (mutation 1 turns it red), so not a fail; my test closes the gap by spawning the real CLI offline into a temp dir twice and comparing bytes.
+- **`question-bank/.gitignore`'s new comment cites a test that does not exist** — it names `normalize.test.ts, "criterion 6 — reproducibility"`; the real one is `data-us-states.test.ts`, `describe("criterion 8 — …")`.
+- **A live build can now stage unreviewed prose.** `!data/us-states` un-ignores the whole directory, and the default `bun run build` writes `fun-facts.review.json` (`reviewed: false`) there. `git check-ignore question-bank/data/us-states/fun-facts.review.json` exits 1 — not ignored. No criterion is violated today; worth a queued task to re-ignore `*.review.json` under that path (`CLAUDE.md` "Content rules").
+
+Also unchanged and flagged: `test-guidelines.md` and `tasks.md` still say question-bank has 19 tests (now 196), and the criterion-4 test couples to `sample-data/`, which T-064 will need to update.
+
+Criteria 17 and 18 were verified by hand rather than as tests: both are properties of this branch's diff, and CI checks out at `fetch-depth: 1`, so `origin/main` is absent there and a committed version would pass vacuously. The test file records that reasoning where the tests would have been. The suite was also run in a fresh `--depth 1` clone with no `node_modules` to confirm it rides inside the existing `question-bank` CI job with no `ci.yml` change.
+
+## Orchestrator checkpoint — 2026-09-12 (round 5)
+
+The tester pushed its own commit (`a2ce8c6`) successfully. Confirmed `git log
+origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
+
+G5 check: `Status` changed from `awaiting verification` to `pass`; `Next step`
+changed from `tester` to `reviewer`. Not a stall — the header moved.
