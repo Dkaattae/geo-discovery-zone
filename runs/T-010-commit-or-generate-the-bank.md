@@ -1,7 +1,7 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated — run log
 
 **Task:** T-010 · **Branch:** `claude/gracious-mendel-1mxa5b` · **PR:** [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37) (opened after round 1, by the top-level session — see checkpoint note below)
-**Started:** 2026-09-11 · **Outcome:** in progress
+**Started:** 2026-09-11 · **Outcome:** ready for merge, with one escalation for Dkaattae (E-6/Q2 re-reading)
 
 ## Round 1 — task-expander — 2026-09-11
 `Next step` on entry: *(none — no brief existed; human-started round 1)* → on exit: `human`
@@ -449,3 +449,33 @@ origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
 
 G5 check: `Status` changed from `awaiting verification` to `pass`; `Next step`
 changed from `tester` to `reviewer`. Not a stall — the header moved.
+
+## Round 9 — reviewer — 2026-09-12
+
+`Next step` on entry: `reviewer` → on exit: *(none — approved and escalated; the brief is deleted)*
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+**Approved and escalated. PR #37 is out of draft, swept, and waiting on Dkaattae.** All six CI jobs are green on the sweep commit `49cc793`, and `mergeable_state` is clean. The reviewer did not merge — that is Dkaattae's, per D-4.
+
+**The one thing a person must decide before merging:** `engineering-decisions.md` E-6 re-reads Dkaattae's recorded Q2 answer. The brief recorded "reviewed fun facts live in the pipeline's committed output"; E-6 now names a build **input** — a future field on `CuratedState` in `question-bank/src/curated/us-states.ts`. Round-1 review forced this because the first reading is impossible (`normalize.ts:145` emits `fun_facts: []` unconditionally; `sinks/json.ts` overwrites each file whole on every run, so hand-reviewed text in built output and criterion 6's byte-identical rebuild are mutually exclusive). The new home is licensed by Q2's own parenthetical ("or the source the build folds into it") and criterion 14 is met, but it changes what T-011 does — escalated at the top of the PR body rather than merged as routine.
+
+**Review, verified against the tree rather than taken on trust:** round-1 findings 1-3 genuinely fixed (`git check-ignore` holds in all three directions; the cited describe block exists and spawns the CLI offline twice; `climate_kid`/`state_animal`/`landmark` really are folded in from the curated table, which is what makes E-6's new home safe). Every role stayed in its lane, checked commit by commit. Suite re-run: question-bank 209/0 + typecheck clean (with dead proxies too), frontend 184/0. Nothing outside Constraints; no dependency; no `openapi.yaml`/migration/plan change; all 50 `fun_facts` confirmed `[]` by reading the files.
+
+**Sweep, pushed to `claude/gracious-mendel-1mxa5b` as `49cc793`:**
+- `tasks/T-010-commit-or-generate-the-bank.md` deleted; its 19 criteria are now verbatim in the PR body with what verified each.
+- T-010 deleted from `tasks.md`; T-011, T-040, T-063, T-064 repointed to "landed in PR #37; this is its follow-on, not its blocker".
+- T-011 rewritten with what it inherits (the curated field is the home; must rebuild and commit the bank offline or 51 byte-identity tests go red).
+- T-065 rewritten — suite count went stale three times inside this one PR, so the task is now to delete the hard-coded figures, not refresh them a fourth time; the two live counts corrected to 209 as part of reconciling.
+- `PROGRESS.md`: T-010 logged under Completed tasks with the three places reality differed from the brief.
+
+## Orchestrator checkpoint — 2026-09-12 (round 9, closing)
+
+The reviewer pushed its own commit (`49cc793`) successfully. Confirmed `git
+log origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
+
+Per `.claude/agents/orchestrator.md` "The loop you run" — the reviewer marked
+the PR ready (with an escalation) — this is where the orchestrator stops. No
+brief remains to read a header from. The task does not get picked up again by
+this run; PR #37 is Dkaattae's from here, both to weigh the E-6 escalation and
+to merge (D-4 — no role in this loop merges).
