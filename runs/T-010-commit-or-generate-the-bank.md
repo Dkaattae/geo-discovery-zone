@@ -1,7 +1,7 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated — run log
 
 **Task:** T-010 · **Branch:** `claude/gracious-mendel-1mxa5b` · **PR:** [#37](https://github.com/Dkaattae/geo-discovery-zone/pull/37) (opened after round 1, by the top-level session — see checkpoint note below)
-**Started:** 2026-09-11 · **Outcome:** halted — needs human
+**Started:** 2026-09-11 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-11
 `Next step` on entry: *(none — no brief existed; human-started round 1)* → on exit: `human`
@@ -252,3 +252,59 @@ or environment that can actually execute `bun run build` / `bun test` and
 git writes, which this orchestrator's spawned subagents have not had across
 any of the three rounds so far. The orchestrator run stops here without
 picking a next task.
+
+## Round resumed — 2026-09-12
+
+Dkaattae resumed the orchestrator run for T-010, noting the tooling question
+the round-3 halt raised already had its answer on record elsewhere in the
+repo. The top-level session (this one) checked out `claude/gracious-mendel-1mxa5b`,
+merged `origin/main` to pick up `.claude/settings.json` (added by
+`process-tasks.md` P-2 / `process-decisions.md` D-13, landed via PR #39,
+`91d935b`) — confirmed `git diff --name-only origin/main...HEAD` still shows
+only `tasks.md`, `tasks/T-010-…`, `runs/T-010-…` after the merge, so G1 holds —
+and updated the brief header: `Status: blocked` → `working`, `Next step: human`
+→ `worker`, `Fault:` cleared. Commit `1bc1ac3`, confirmed on
+`origin/claude/gracious-mendel-1mxa5b`.
+
+Gates checked before spawn, all clean: G0 (`Next step` named exactly one role,
+`worker`); G1 (see above); G2 (`Approved:` present — `Dkaattae — 2026-09-11`,
+not bare `pending`); G3 (no `fail`/`blocked` *Verdict* recorded against this
+task — round 3's halt was a tooling report, not a tester/reviewer verdict); G4
+(current branch `claude/gracious-mendel-1mxa5b` matched the brief's `Branch:`
+header).
+
+## Round 4 — worker — 2026-09-12
+
+`Next step` on entry: `worker` → on exit: `tester`
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+Confirmed: `origin/claude/gracious-mendel-1mxa5b` is at `cbdab4d`, matching local HEAD.
+
+## Summary
+
+**T-010 is built and pushed.** The tooling wall that blocked the two previous rounds did not reproduce in this session — `bun`, `node`, and every git write worked immediately — so the task moved from blocked to done in one pass.
+
+**What changed** (branch `claude/gracious-mendel-1mxa5b`, commit `cbdab4d`):
+- `question-bank/data/us-states/` — new, tracked: 50 entity files + `index.json`, ~40 KB
+- `question-bank/src/build.ts` — offline builds now take `built_at` from the fixture's `_fixture.captured_at` instead of wall clock, making the offline rebuild byte-identical (verified by running it twice and diffing)
+- `question-bank/.gitignore` — narrowed to track only `data/us-states/`
+- `question-bank/src/data-us-states.test.ts` — new, 55 tests checking the tracked bank against a fresh offline rebuild; mutation-tested by hand (broke Colorado's population, confirmed the matching test went red, reverted)
+- `engineering-decisions.md` — new **E-6** entry
+- `question-bank/README.md`, `conventions.md`, `PROGRESS.md`, `tasks.md` (T-040 entry only) — updated to match
+
+All 19 acceptance criteria are verified with evidence in the brief's `## Handoff` table. Whole suite: question-bank 74/74 + typecheck clean, backend 233 passed/9 skipped, frontend 184/184 (frontend `typecheck` hits a pre-existing sandbox registry gap on `react-simple-maps`, unrelated — `frontend/` has zero diff in this change).
+
+Two judgment calls flagged for the reviewer in the brief: `built_at`'s changed meaning on the offline path, and two doc drifts (`test-guidelines.md`, `tasks.md`'s suite-size table) left unfixed as out of this brief's Constraints, with a proposed owner named.
+
+Brief updated: `tasks/T-010-commit-or-generate-the-bank.md` — **Status: awaiting verification**, **Next step: tester**, Sessions row added, Handoff and Notes filled in. Pushed and confirmed at `origin/claude/gracious-mendel-1mxa5b` = `cbdab4d`.
+
+## Orchestrator checkpoint — 2026-09-12 (round 4)
+
+The worker pushed its own commit (`cbdab4d`) successfully this round — the
+first round of this task where a spawned role's own push landed without an
+orchestrator checkpoint. Confirmed `git log origin/claude/gracious-mendel-1mxa5b -1`
+matches local HEAD.
+
+G5 check: `Status` changed from `working` to `awaiting verification`; `Next
+step` changed from `worker` to `tester`. Not a stall — the header moved.
