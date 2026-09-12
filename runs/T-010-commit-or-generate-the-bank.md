@@ -414,3 +414,38 @@ origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
 
 G5 check: `Status` changed from `changes requested` to `awaiting verification`;
 `Next step` changed from `worker` to `tester`. Not a stall — the header moved.
+
+## Round 8 — tester (re-verify) — 2026-09-12
+
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+**Pass.** T-010's three round-1 review findings are fixed on the branch and independently verified; the whole suite is green and pushed (`origin/claude/gracious-mendel-1mxa5b` at `807fa96`, PR #37's head).
+
+| Round-1 finding | Verdict | Evidence |
+|---|---|---|
+| 1 — E-6 named a fun-fact home an offline rebuild destroys (criterion 14) | fixed | E-6 now names `question-bank/src/curated/us-states.ts`, a build **input**. New tests assert every path E-6 designates is tracked *and* outside `question-bank/data/us-states` |
+| 2 — four docs credited the determinism check to the wrong test (criteria 11, 15) | fixed | `.gitignore`, `README.md`, E-6, `PROGRESS.md` now name `committed-bank.test.ts` and quote a describe block that exists and spawns the CLI offline twice |
+| 3 — a live run's unreviewed prose was stageable (criterion 10, Content rules) | fixed | `question-bank/.gitignore:16`. A real `fun-facts.review.json` with `reviewed: false` in the tracked dir is invisible to `git status`/`git add -An`; the 51 tracked paths stay unignored |
+
+All 19 criteria re-verified on the round-2 tree, including criterion 6 by hand (two offline builds, `git status` empty both times).
+
+**Tests and mutations:** 13 tests appended to `committed-bank.test.ts` (196 → 209 pass / 0 fail), in three "T-010 round 2 —" describe blocks. Six mutations, all reverted (restoring round-1 E-6 text: 3 red; deleting the review-file ignore rule: 2 red; pointing `.gitignore` at `normalize.test.ts`: 1 red; changing README's quoted describe name: 1 red; removing `build.ts`'s determinism fix: 52 red; corrupting a tracked entity file: 3 red). Noted the round-1 criterion-14 test was vacuous (only checked the paragraph mentioned `question-bank/data/us-states`, true of both answers) — left in place with a comment; the round-2 block carries the teeth.
+
+**Suite:** question-bank 209/209 + typecheck clean (also under the no-network proxy guard); backend 233 passed/9 skipped + ruff clean; frontend 184/184 (zero frontend diff; the 4 pre-existing `UsMap.tsx` typecheck errors are the known sandbox-registry gap).
+
+**Findings for the reviewer, none blocking:**
+- `PROGRESS.md` says "196 tests"; the tree is 209 — stale again within one commit of being fixed. Not a criterion; T-065 owns count drift.
+- E-6's fun-fact home is a re-reading of Q2 (built output → `question-bank/src/curated/us-states.ts`) — licensed by Q2's own parenthetical and the reviewer's own finding-1 remedy, not blocked, but worth Dkaattae's sign-off at merge since it changes T-011's shape.
+- T-011 inherits an unwritten constraint: adding the curated field changes the 50 built files, so T-011 must rebuild and commit the bank or 51 byte-identity tests go red — worth a line in `tasks.md` T-011.
+
+**Independence caveat** (unchanged from round 1): session id is shared with every other role in this orchestrated run, so the Sessions check proves nothing; the verdict rests on a freshly spawned context that never saw the worker's transcript.
+
+## Orchestrator checkpoint — 2026-09-12 (round 8)
+
+The tester pushed its own commit (`807fa96`) successfully. Confirmed `git log
+origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
+
+G5 check: `Status` changed from `awaiting verification` to `pass`; `Next step`
+changed from `tester` to `reviewer`. Not a stall — the header moved.
