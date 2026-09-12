@@ -352,3 +352,35 @@ origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
 
 G5 check: `Status` changed from `awaiting verification` to `pass`; `Next step`
 changed from `tester` to `reviewer`. Not a stall — the header moved.
+
+## Round 6 — reviewer — 2026-09-12
+
+`Next step` on entry: `reviewer` → on exit: `worker`
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+**Changes requested — PR #37 stays draft, `Next step: worker`.** Three statements in the diff are not true of the tree; nothing was swept, and the brief is still live.
+
+| Finding | Where | Why it blocks |
+|---|---|---|
+| **1. `E-6` says an offline rebuild cannot destroy a reviewed fun fact** | `engineering-decisions.md` E-6; `question-bank/src/normalize.ts:145`, `question-bank/src/sinks/json.ts:25-28` | `normalize.ts` emits `fun_facts: []` unconditionally and the sink overwrites each file whole, so the refresh command this PR documents wipes T-011's output. `committed-bank.test.ts:212-216` also goes red on the first reviewed fact. Criterion 14's "a home an offline rebuild does not destroy" is not met. |
+| **2. Four docs credit the determinism check to the wrong test** | `question-bank/.gitignore:4-5` (cites `normalize.test.ts`, "criterion 6 — reproducibility" — does not exist), `question-bank/README.md`, `E-6`, `PROGRESS.md` | The check lives in `committed-bank.test.ts:181-217`; `data-us-states.test.ts:23-35` re-derives `built_at` in-test and never runs the build (the tester's mutation 3 proved it). `PROGRESS.md`'s "74 tests" is now 196. |
+| **3. The new ignore rule makes unreviewed prose stageable** | `question-bank/.gitignore:8-9` | `git check-ignore question-bank/data/us-states/fun-facts.review.json` exits 1 — not ignored. A default live `bun run build` writes scraped prose there with `reviewed: false`; T-011 is the next task that runs it. |
+
+**What is good and is not reopened:** the decision itself, argued honestly in `E-6` with a real cost for the rejected option and a noticeable revisit trigger; the determinism fix (smallest available — `fixtureTransport` reuses a read that already happens, `normalize.ts` untouched, live path unaffected); role separation held (expander touched only `tasks/` + `tasks.md`; tester only `committed-bank.test.ts` + the brief); all six CI jobs green at `ff6179d`, and `question-bank` re-ran here at 196 pass / 0 fail with `tsc --noEmit` clean.
+
+**Worker's flags, all disposed:** `built_at`'s new offline meaning **accepted** as what the Constraint licensed; stale suite counts **deferred to new `T-065`**; the `.gitignore` negation footgun **decided — it is finding 3**; the tester's `sample-data/` coupling note **written into `T-064`'s entry**.
+
+Pushed to `claude/gracious-mendel-1mxa5b` as `1d34d53`, confirmed on the remote. Findings also posted as a [PR comment](https://github.com/Dkaattae/geo-discovery-zone/pull/37#issuecomment-5648429993). No merge, no ready flag, no sweep.
+
+Files: `tasks/T-010-commit-or-generate-the-bank.md` (`## Review` section, header set to `changes requested` / `worker`, reviewer Sessions row), `tasks.md` (new `T-065`, note added to `T-064`, T-010 status line).
+
+## Orchestrator checkpoint — 2026-09-12 (round 6)
+
+The reviewer pushed its own commit (`1d34d53`) successfully. Confirmed `git
+log origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
+
+G5 check: `Status` changed from `pass` to `changes requested`; `Next step`
+changed from `reviewer` to `worker`. Not a stall — the header moved. G3 note:
+this is the first non-`pass`/non-approve verdict this task has drawn from a
+tester or reviewer; well within the two-`fail`/two-`blocked` bound.
