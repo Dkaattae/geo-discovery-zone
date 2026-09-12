@@ -1,27 +1,29 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `blocked`
-**Next step:** `human` — not a product question this time, a tooling one. The
-prior worker session hit "This command requires approval" on every `bun`/git
-invocation because it ran under `--permission-mode acceptEdits`, which
-`.claude/loop/README.md` "Permissions" says **still prompts for Bash** with
-nobody there to answer. That doc names two fixes: a `permissions.allow` list in
-`.claude/settings.json`, or `LOOP_PERMISSION_MODE=bypassPermissions` "in a
-sandbox or container only". Attempting the second from the top-level session
-was **refused by the harness's own auto-mode classifier** ("Create Unsafe
-Agents") — so this environment will not let an agent grant itself blanket
-bypass, even where the repo's own docs call it safe. The first fix
-(`.claude/settings.json`) is a real option but its change would land in this
-same branch/PR and trip `run-loop.sh` G1 (a task diff may never touch
-`.claude/`), so it cannot be made *inside* this task. Nothing was built or
-committed by the blocked round.
-**What a human needs to decide:** whether to (a) add a `permissions.allow`
-entry outside this repo/PR (e.g. a user-level `settings.json`, or a `P-n`
-process-tasks change made by hand, never through this loop) before resuming,
-(b) run the worker step locally where prompts can be answered interactively,
-or (c) have the top-level session implement this step directly instead of
-through a spawned `worker` — a deviation from the loop's role separation that
-needs sign-off, not a default.
+**Status:** `working`
+**Next step:** `worker` — the tooling blocker below is resolved; the product
+decision (Q1–Q3) was already answered and the criteria are frozen and approved.
+**Resolved 2026-09-12 (Dkaattae): option (a).** `process-tasks.md` P-2 /
+`process-decisions.md` D-13 added `.claude/settings.json` with a verb-scoped
+`permissions.allow` (exactly the git verbs and `bun`/`make` checks a role's
+ending calls for), landed on `main` via PR #39 (`91d935b`), outside this task's
+own PR as the brief already required. This branch has merged `origin/main` to
+pick it up (see the merge commit right before this edit) — `.claude/` now
+carries that file on this branch too, without this task's own diff touching
+`.claude/` (`git diff --name-only origin/main...HEAD` still shows only
+`tasks.md`, `tasks/T-010-…`, `runs/T-010-…`, checked after the merge). D-13
+also notes the allowlist alone is not proven sufficient — Claude Code must
+still treat the working directory as trusted for `permissions.allow` to be
+read at all, which is per-machine state outside the repo — so if the next
+`worker` round hits the same "This command requires approval" wall despite
+this, that is the open item D-13 flagged, not a new one.
+**Prior history, for context:** the tooling wall was first hit by round 2's
+worker, which hit "This command requires approval" on every `bun`/git
+invocation. `.claude/loop/README.md` "Permissions" named two fixes: a
+`permissions.allow` list in `.claude/settings.json` (now done, above), or
+`LOOP_PERMISSION_MODE=bypassPermissions` — the latter was refused by the
+harness's own auto-mode classifier when tried from the top-level session, and
+stays rejected as a default.
 **Approved:** Dkaattae — 2026-09-11. (Previously stamped `orchestrator — 2026-09-11,
 unattended run`; see `runs/T-010-commit-or-generate-the-bank.md` for that
 round's record. Superseded by this line now that Dkaattae has reviewed the
@@ -38,14 +40,12 @@ was reachable from it); the orchestrator checkpointed the commit/push, and the
 top-level session opened the draft PR afterward using GitHub MCP access
 neither of those had. See `process.md`, "Opening and merging the PR", route 3,
 and the round-1 note in `runs/T-010-commit-or-generate-the-bank.md`.
-**Fault:** T-010 *is* a product decision that `process.md` reserves for a human
-("whether to commit generated output"), so the expander cannot write frozen
-criteria without making it; the question is in "The decision" below and the brief
-is blocked on the answer. **Resolved 2026-09-11** — see the answers under Q1–Q3
-below, and the Option B criteria written from them. What remains is not a fault
-in the task: the round-2 expander session hit the same "This command requires
-approval" wall on every git write, so its commit was checkpointed by the
-orchestrator rather than made in-session.
+**Fault:** none outstanding. T-010 *was* blocked on a product decision that
+`process.md` reserves for a human — **resolved 2026-09-11**, see Q1–Q3 below and
+the Option B criteria written from them. It was then blocked a second time by a
+tooling gap (no sandboxed role could execute `bun` or write git) — **resolved
+2026-09-12**, see `Next step` above. Neither fault belonged to the task's own
+content or criteria.
 
 **Sessions:**
 
