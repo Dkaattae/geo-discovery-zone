@@ -1,7 +1,16 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `worker`
+**Reviewer round (2026-09-12): changes requested — three findings, all for the
+`worker`.** The decision itself is right and well argued, the determinism fix is
+minimal and correct, the tests are strong, and CI is green on every job. What
+sends it back is three statements in the diff that are not true of the tree:
+`E-6` says an offline rebuild cannot destroy a reviewed fun fact (it overwrites
+the file wholesale with `fun_facts: []`), `.gitignore` cites a test that does not
+exist, and `!data/us-states` leaves the unreviewed-prose file a default **live**
+build writes newly stageable. See `## Review` for each, with file, line and what
+would make it acceptable. Nothing was swept — the brief stays live.
 **Tester round (2026-09-12): pass.** All 19 criteria verified independently —
 124 new tests in `question-bank/src/committed-bank.test.ts` written from the
 criteria, eight deliberate mutations each turning the right test red and all
@@ -67,6 +76,7 @@ content or criteria.
 | worker (blocked — no code execution available) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id, per this session's Claude-Session attribution; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable here either — same limitation the round-2 expander noted) |
 | worker (round 2 — unblocked, built the bank) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` |
 | tester | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; **same id as the worker row above** — orchestrated run, see `## Verdict`, "What independence this verdict actually had") |
+| reviewer (round 1 — changes requested) | 2026-09-12 | `session_01NqBhtxscKupMdww97kUauJ` (session URL id; orchestrated run, same id as the rows above) |
 
 ---
 
@@ -718,6 +728,140 @@ time held only the new test file.
 - **Did not edit the criteria**, and did not reinterpret one to make a test pass.
 - **Did not fix findings 1–3.** Fixing them is the worker's job if the reviewer
   routes them back; the finding, not a patch, is what this role produces.
+
+## Review
+
+**Changes requested. Needs `worker` to come back and fix findings 1, 2 and 3.**
+All three are statements this diff makes that are not true of the tree; none is a
+correctness bug the tester could have caught, which is why they land here. The
+PR stays **draft**, nothing was swept, and this brief is still live.
+
+- **What is good, and is not being reopened.** The decision is the right shape
+  and `E-6` argues it honestly — the rejected option's cost (staleness against a
+  continuously-edited Wikidata) is stated plainly, not strawmanned, and the
+  revisit trigger (T-063 posting a live-vs-committed diff) is something that
+  could actually be noticed. The determinism fix is the smallest one available:
+  `fixtureTransport` stashes `_fixture.captured_at` on a read that already
+  happens, `normalize.ts` is untouched, and the live path is unaffected. Every
+  role stayed in its lane (expander: `tasks/` + `tasks.md` only; tester:
+  `committed-bank.test.ts` + this brief only). CI is green on all six jobs at
+  `ff6179d`, and `question-bank` is 196 pass / 0 fail with `tsc --noEmit` clean
+  when re-run here.
+- **What blocks:** findings 1–3 below.
+
+### Finding 1 (blocks) — `E-6` claims an offline rebuild cannot destroy a reviewed fun fact. It destroys it.
+
+`engineering-decisions.md`, `E-6`, "Where a reviewed fun fact lives": *"This
+works because the offline rebuild this task made deterministic … never runs the
+Wikipedia pass (`--offline` implies `--no-fun-facts`) and so never regenerates
+or overwrites `fun_facts`."*
+
+The second half does not follow from the first. `--no-fun-facts` only means the
+Wikipedia pass does not **add** drafts; the file is still rewritten whole:
+
+- `question-bank/src/normalize.ts:145` emits `fun_facts: []` for every entity,
+  unconditionally — there is no path on which normalize reads an existing file.
+- `question-bank/src/sinks/json.ts:25-28` does `writeFile(path, …)` per entity,
+  overwriting, with no read or merge.
+
+So `bun run build -- --offline --out data/us-states` — the exact refresh command
+this PR adds to `README.md` and `conventions.md` — replaces any hand-written
+`reviewed: true` text with `[]`. Worse, the two are mutually exclusive by
+construction: `committed-bank.test.ts:212-216` requires every tracked file to be
+byte-identical to a fresh offline build, so the moment T-011 writes a reviewed
+fact into a tracked file, that test goes red. Criterion 14 asked for a home "such
+that an offline rebuild (criterion 6) does not destroy it", and the Review
+checklist names this case exactly ("If `E-6` puts them in built output that the
+rebuild overwrites, criterion 14 is not really met"). It is not met.
+
+**What would make it acceptable:** `E-6` names a home that is actually safe, and
+says how. Q1/Q2's answers already allow it without a new human decision — Q2
+reads "the built entity JSON is the committed home for `reviewed: true` prose,
+and T-011 edits it (**or the source the build folds into it**) directly". So a
+committed build *input* under `question-bank/src/curated/`, folded into
+`fun_facts` by the build the way `climate_kid` and `landmark` already are, is
+inside the decision as recorded and survives both `git clean` and a rebuild.
+T-010 only has to name it and say T-011 adds the fold-in; it does not have to
+build it. The other honest option is to keep the built-output home and say
+plainly what protects it — but nothing does today, so that reads as a
+contradiction rather than a decision. **If you conclude the only truthful answer
+needs a call beyond Q2's wording, set `Status: blocked` / `Next step: human`
+rather than picking one.**
+
+### Finding 2 (blocks) — three docs credit the determinism check to a test that does not do it, and one to a test that does not exist.
+
+- `question-bank/.gitignore:4-5`: *"that offline rebuild is what a passing `bun
+  test` checks (normalize.test.ts, "criterion 6 — reproducibility")"*. Wrong file
+  and wrong test: `grep -rn "criterion 6 — reproducibility" question-bank/src`
+  returns nothing, and `normalize.test.ts` has no such `describe`.
+- `question-bank/README.md` ("The offline refresh is deterministic…"): *"running
+  it twice in a row leaves `git status` empty both times — `src/data-us-states.test.ts`
+  asserts this on every `bun test`"*. It does not. `data-us-states.test.ts:23-35`
+  re-derives `built_at` from the fixture **inside the test** and compares against
+  `normalizeUsStates`; it never runs the build. The tester's mutation 3 is the
+  proof — deleting the determinism fix from `build.ts` left all 55 of those tests
+  green. The test that actually spawns the CLI twice is
+  `committed-bank.test.ts:181-217`.
+- `engineering-decisions.md` `E-6`, "Why committed won anyway": same attribution,
+  *"something CI checks on every push (`data-us-states.test.ts`)"*.
+- `PROGRESS.md`: *"which `data-us-states.test.ts` checks on every `bun test`"*,
+  same attribution — and its "74 tests" line is now 196, since the tester added
+  124 after that line was written.
+
+The property is genuinely checked, so this is not a correctness fail; it is a
+pointer that sends the next reader to the wrong file, in the four documents this
+task added specifically to tell them where to look. **What would make it
+acceptable:** each of the four names the test that actually makes the assertion
+it is claiming, and `PROGRESS.md`'s count matches `bun test`.
+
+### Finding 3 (blocks) — the new ignore rule makes unreviewed scraped prose stageable.
+
+`question-bank/.gitignore:8-9` (`data/*` + `!data/us-states`) un-ignores
+everything under `data/us-states/`, including files the build writes there that
+are not the bank. Confirmed:
+
+```
+$ git check-ignore -v question-bank/data/us-states/fun-facts.review.json
+$ echo $?
+1                      # no rule matches — not ignored
+```
+
+A **default** live run (`bun run build`: fun facts on, `--out` defaults to
+`data/us-states` — `build.ts:37`) calls `writeReviewFile`, which writes
+`data/us-states/fun-facts.review.json` containing scraped Wikipedia prose with
+`reviewed: false`. Before this change all of `data/` was ignored, so that file
+could not be staged by accident; now `git add -A` after a live run commits it.
+No criterion is violated today — criterion 9 binds tracked files, and nothing
+unreviewed is tracked — but `CLAUDE.md` "Content rules" is the repo's hardest
+rule, this brief's own Constraints call the bind out by name ("*`fun-facts.review.json`
+is written into the same directory the option would commit*"), and the task that
+runs the live pipeline is **T-011, the next content task in the queue**. The
+worker's own "Judgment calls" note predicted this footgun; this is the instance.
+
+**What would make it acceptable:** an explicit re-ignore of the non-bank output
+in `question-bank/.gitignore` — e.g. `data/us-states/*.review.json` — with
+`git check-ignore` shown both ways (the review file ignored, the 51 tracked paths
+still not), and the comment saying why the negation needs it.
+
+### Disposal of the worker's flagged judgment calls — none left open
+
+| Flag | Disposal |
+|---|---|
+| **`built_at`'s new meaning on the offline path** ("the fixture this build replayed was captured at X") | **Accepted as correct, no change wanted.** The Constraint licensed exactly this ("may change meaning, but not disappear"), provenance is preserved rather than deleted, the live path is untouched, and the new meaning is written down in `E-6` and `README.md` where a future reader meets it. This is the reading the brief meant. |
+| **Stale suite counts** in `test-guidelines.md:209` and `tasks.md:96` | **Deferred to a named task** — new `T-065` in `tasks.md`. Correctly out of this brief's Constraints; not a reason to hold the PR. |
+| **The `data/*` + `!data/us-states` negation pattern** | **Decided, and it is finding 3.** The pattern works for the bank, but "everything inside is un-ignored" is the bug, not the feature. The note that a second tracked subdirectory would need its own `!` line is right and belongs in the comment. |
+| **Tester's finding 5** — T-064 must re-point `committed-bank.test.ts`'s criterion-4 test when `sample-data/` goes | **Deferred to the task that owns it** — written into `T-064`'s entry in `tasks.md` rather than left in a verdict nobody re-reads. |
+
+### Not findings, recorded so they are not re-raised
+
+- **The tester's finding 1** (the worker's test does not guard criterion 6) is
+  true but already closed in-tree by `committed-bank.test.ts`. The only thing left
+  of it is the wrong attribution in the docs, which is finding 2.
+- **`frontend/` typecheck failing in the sandbox** (`UsMap.tsx`, registry 403) is
+  the documented T-007/T-058 gap; `frontend/` has zero diff here and CI's
+  `frontend (typecheck, lint, test)` job is green at `ff6179d`.
+- **The 51 tracked data files** were spot-checked beyond "`fun_facts` is `[]`":
+  no prose fields, no `reviewed` key anywhere, ~39.5 KB total.
 
 ## Notes
 

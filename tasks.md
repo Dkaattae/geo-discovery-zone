@@ -210,7 +210,7 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-010 — Decide: commit the 50-state output, or keep it generated · S · **doing** (awaiting approval)
+### T-010 — Decide: commit the 50-state output, or keep it generated · S · **doing** (changes requested, back with `worker`)
 **Depends on:** —
 `question-bank/data/` is gitignored today. Committing it makes builds
 reproducible without network and gives reviewable diffs when Wikidata shifts;
@@ -248,8 +248,27 @@ README) stays alongside the full 50-state commit for now, on purpose — kept
 until the committed bank is shown to work end to end. Once that is proven, it is
 redundant and this task removes it, updating anything that pointed at it as an
 example (`question-bank/README.md`, `conventions.md`).
+**One thing it must not miss:** `question-bank/src/committed-bank.test.ts`'s
+criterion-4 tests compare the tracked `us-state-co.json` against
+`sample-data/us-state-co.json`. Deleting `sample-data/` makes them throw, so this
+task removes or re-points them — found by T-010's tester, recorded here so it is
+not a surprise.
 **Done when:** `sample-data/` is deleted, or this task is dropped with the reason
 it turned out still to earn its place.
+
+### T-065 — Refresh the stale suite-size counts, and stop them going stale · S · todo
+**Depends on:** —
+Three places quote a test count that is already wrong and will be wrong again:
+`test-guidelines.md:209` (`# 19 tests today`), `tasks.md`'s own coverage table
+above (`242 backend, 184 frontend, 19 question-bank`) and `PROGRESS.md`'s
+per-package bullets. `question-bank` alone went 19 → 196 in T-010. Both T-010's
+worker and its tester flagged this and correctly left it alone — neither file was
+in that brief's Constraints. This is exactly the drift
+`frontend/src/conventions-doc.test.ts` was built to catch (T-007, T-058), and
+neither file is covered by it.
+**Done when:** the counts match a real run, and either a test asserts them
+against the suite or the numbers are replaced by something that cannot rot (a
+command to run, not a figure).
 
 ### T-011 — Review the 50 draft fun facts · M · todo
 **Depends on:** —
