@@ -384,3 +384,33 @@ G5 check: `Status` changed from `pass` to `changes requested`; `Next step`
 changed from `reviewer` to `worker`. Not a stall — the header moved. G3 note:
 this is the first non-`pass`/non-approve verdict this task has drawn from a
 tester or reviewer; well within the two-`fail`/two-`blocked` bound.
+
+## Round 7 — worker — 2026-09-12
+
+`Next step` on entry: `worker` → on exit: `tester`
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+Push confirmed landed on `origin/claude/gracious-mendel-1mxa5b` at `aa5d24a`, matching local HEAD.
+
+**Fixed all three reviewer round-1 findings, doc/`.gitignore` only — no source or test changed.** `Status: awaiting verification`, `Next step: tester`.
+
+| Finding | Fix | File(s) |
+|---|---|---|
+| 1 — `E-6` claimed offline rebuild can't destroy a reviewed fun fact (it does) | Renamed home to a **build input** — a future `CuratedState` field in `question-bank/src/curated/us-states.ts`, folded in by `normalize.ts` the way `climate_kid`/`landmark` already are — not the built output. T-010 names it, T-011 builds it, per the reviewer's own stated fix | `engineering-decisions.md` E-6 |
+| 2 — four docs credited the determinism check to a nonexistent/wrong test | All now name `question-bank/src/committed-bank.test.ts`'s real describe block ("T-010 criteria 6 and 8"); `PROGRESS.md`'s stale "74 tests" corrected to 196 | `question-bank/.gitignore`, `question-bank/README.md`, `engineering-decisions.md`, `PROGRESS.md` |
+| 3 — `!data/us-states` left a live run's unreviewed `fun-facts.review.json` stageable | Added `data/us-states/*.review.json` re-ignore; verified both directions with `git check-ignore` | `question-bank/.gitignore` |
+
+**Verified:** `git check-ignore` confirms tracked files un-ignored, review file and subset paths still ignored. `question-bank` 196/196 pass + `tsc --noEmit` clean; backend 233 passed/9 skipped + ruff clean; frontend 184/184 pass (zero frontend diff). `git status --porcelain` before commit showed exactly the four expected files.
+
+**Deliberately not done:** did not implement T-011's actual `CuratedState` field/fold-in (T-011's job); did not touch `test-guidelines.md` or `tasks.md`'s coverage table (owned by `T-065`, outside this brief's Constraints).
+
+**One judgment call flagged for the reviewer to confirm:** whether naming the not-yet-built `CuratedState` field satisfies criterion 14 without building it — the worker read the reviewer's own "what would make it acceptable" text as settling this. See the brief's `## Handoff, round 2` for the full account.
+
+## Orchestrator checkpoint — 2026-09-12 (round 7)
+
+The worker pushed its own commit (`aa5d24a`) successfully. Confirmed `git log
+origin/claude/gracious-mendel-1mxa5b -1` matches local HEAD.
+
+G5 check: `Status` changed from `changes requested` to `awaiting verification`;
+`Next step` changed from `worker` to `tester`. Not a stall — the header moved.
