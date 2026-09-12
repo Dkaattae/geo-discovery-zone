@@ -2,8 +2,15 @@ node_modules
 # The committed 50-state bank (E-6): `data/us-states/` is tracked, and is
 # reproduced byte-for-byte by `bun run build -- --offline --out data/us-states`
 # from the committed fixture — that offline rebuild is what a passing
-# `bun test` checks (normalize.test.ts, "criterion 6 — reproducibility").
-# Everything else under data/ — ad hoc --out targets, subsets, a live rerun
-# against Wikidata before it's reviewed — stays ignored.
+# `bun test` checks (`src/committed-bank.test.ts`, describe block "T-010
+# criteria 6 and 8 — the tracked bytes are what an offline rebuild produces",
+# which actually spawns the CLI offline twice and diffs the bytes).
+# Everything else under data/ stays ignored — ad hoc --out targets, subsets,
+# and anything the *live* pipeline writes into data/us-states/ itself that is
+# not part of the bank. `!data/us-states` un-ignores the whole directory, so
+# `fun-facts.review.json` — which a default, non-`--offline` run writes there
+# with unreviewed, `reviewed: false` Wikipedia prose (CLAUDE.md "Content
+# rules") — needs its own re-ignore below rather than relying on `data/*`.
 data/*
 !data/us-states
+data/us-states/*.review.json

@@ -120,10 +120,13 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   T-010, `engineering-decisions.md` **E-6**) — a fresh clone already has it, and
   an offline rebuild from the committed fixture reproduces it byte-for-byte
   (`sources.built_at` now comes from the fixture's capture time, not wall
-  clock), which `data-us-states.test.ts` checks on every `bun test`. T-040 still
-  needs to write, this only settles what it reads from.
-- 74 tests (19 pre-existing + 55 in `data-us-states.test.ts`, one per tracked
-  entity file plus shape checks).
+  clock), which `committed-bank.test.ts` ("T-010 criteria 6 and 8") checks on
+  every `bun test` by actually running the offline build twice and diffing the
+  bytes. T-040 still needs to write, this only settles what it reads from.
+  Reviewed fun-fact text (T-011) will live in `question-bank/src/curated/us-states.ts`
+  as a build input, not in the built output the rebuild overwrites — see E-6.
+- 196 tests (19 pre-existing + 55 in `data-us-states.test.ts` + 124 in
+  `committed-bank.test.ts`, both added by T-010).
 
 ### Repo and process
 

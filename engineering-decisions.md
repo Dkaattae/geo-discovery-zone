@@ -253,8 +253,11 @@ copy is current — the `question-bank` CI job runs with `HTTP_PROXY` pointed at
 from Wikidata first" would be a deploy-time step nothing in this repo owns yet.
 Committing turns "is the served bank right" into a question a diff review can
 answer, and turns "is the offline rebuild still faithful to the fixture" into
-something CI checks on every push (`data-us-states.test.ts`) rather than
-something asserted.
+something CI checks on every push — `question-bank/src/committed-bank.test.ts`
+("T-010 criteria 6 and 8 — the tracked bytes are what an offline rebuild
+produces") actually spawns the CLI offline twice into a throwaway directory and
+diffs the resulting bytes against what's tracked — rather than something
+asserted.
 
 **What committing did *not* require giving up.** The two arguments that looked
 strongest for staying generated turned out to already be satisfied without it:
@@ -272,15 +275,33 @@ a live run (`bun run build`, no `--offline`) is unaffected and still stamps wall
 clock, since a live Wikidata response has no captured-at of its own to reuse.
 
 **Where a reviewed fun fact lives, so a future rebuild does not destroy it
-(T-010's Q2).** Reviewed, `reviewed: true` fun-fact text belongs in the tracked
-entity files under `question-bank/data/us-states/` themselves — the built
-output, not a separate `curated/` source file and not `backend/app/data/`. This
-works *because* the offline rebuild this task made deterministic only touches
-`built_at`/`builder_version` and the Wikidata-sourced fields; it never runs the
-Wikipedia pass (`--offline` implies `--no-fun-facts`, `build.ts:89-90`) and so
-never regenerates or overwrites `fun_facts`. T-011, which edits the reviewed
-text, is editing the same tracked JSON this decision commits — it is not
-blocked on a second file existing.
+(T-010's Q2) — corrected 2026-09-12, see the round-1 review.** The built entity
+files under `question-bank/data/us-states/` are **not** a safe home: every
+offline rebuild criterion 6 requires be byte-identical to that rebuild, and
+`normalize.ts:145` emits `fun_facts: []` unconditionally on every run —
+`--offline` implying `--no-fun-facts` only means the Wikipedia pass does not
+*add* new drafts, it does not mean an existing `fun_facts` survives. A rebuild
+overwrites each entity file whole (`sinks/json.ts`'s `writeFile`, no read or
+merge), so a hand-reviewed fact placed in built output and criterion 6's
+byte-identical rebuild are mutually exclusive by construction, not
+complementary.
+
+`reviewed: true` fun-fact text instead belongs in a **build input**:
+a new field on `CuratedState` in `question-bank/src/curated/us-states.ts`,
+committed and hand-edited exactly the way `climate_kid`, `state_animal` and
+`landmark` already are, folded into each entity's `fun_facts` by
+`normalize.ts` the same way those three fields already are folded in. That
+survives an offline rebuild for the same reason `climate_kid` does today: the
+curated table is a build *input* the rebuild reads, not part of the built
+output it overwrites, and it survives `git clean` because it is tracked
+source, not a build artefact. Q2's answer already allows this reading —
+"T-011 edits it (or the source the build folds into it) directly" — so this is
+not a new decision, only the option Q2 already named being the one actually
+built. **T-010 names this home; it does not fill it.** T-011 adds the field to
+`CuratedState`, the fold-in in `normalize.ts`, and is the task that first
+writes a `reviewed: true` fact — no field exists on `CuratedState` today, and
+none of the 50 tracked files under `question-bank/data/us-states/` carries
+anything but `fun_facts: []`.
 
 **What a fresh clone gets, concretely.** `question-bank/README.md` and
 `conventions.md` both now say a clone already contains the 50-state bank, and

@@ -1,7 +1,24 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `changes requested`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
+**Worker round 2 (2026-09-12): all three review findings fixed, doc/`.gitignore`
+only.** `E-6`'s fun-fact home is rewritten to name a build **input**
+(`question-bank/src/curated/us-states.ts`, folded in the way `climate_kid` and
+`landmark` already are) rather than the built output a rebuild overwrites —
+T-010 names it, T-011 still builds it, per the reviewer's own "what would make
+it acceptable". All four docs that credited the determinism check to a
+nonexistent or wrong test (`.gitignore`, `README.md`, `E-6`, `PROGRESS.md`) now
+name `committed-bank.test.ts`'s actual describe block, and `PROGRESS.md`'s
+stale "74 tests" is corrected to 196. `question-bank/.gitignore` gains
+`data/us-states/*.review.json` so a live run's unreviewed draft file stays
+ignored — verified both directions with `git check-ignore`. No source or test
+file touched; diff is exactly `engineering-decisions.md`,
+`question-bank/.gitignore`, `question-bank/README.md`, `PROGRESS.md`. Whole
+suite re-run and green: question-bank 196/196 + `tsc --noEmit` clean, backend
+233 passed/9 skipped + ruff clean, frontend 184/184 (zero frontend diff). See
+the new `## Handoff, round 2` section below for the full account and one
+judgment call for the reviewer to confirm.
 **Reviewer round (2026-09-12): changes requested — three findings, all for the
 `worker`.** The decision itself is right and well argued, the determinism fix is
 minimal and correct, the tests are strong, and CI is green on every job. What
@@ -77,6 +94,7 @@ content or criteria.
 | worker (round 2 — unblocked, built the bank) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` |
 | tester | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; **same id as the worker row above** — orchestrated run, see `## Verdict`, "What independence this verdict actually had") |
 | reviewer (round 1 — changes requested) | 2026-09-12 | `session_01NqBhtxscKupMdww97kUauJ` (session URL id; orchestrated run, same id as the rows above) |
+| worker (round 2 — fixed reviewer findings 1–3) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; same id as every row above — orchestrated run, per `process.md` "Two things break under a relayed run") |
 
 ---
 
@@ -589,6 +607,148 @@ independently.
   common footgun. **Reviewer to spot-check** if a future PR adds another
   subdirectory under `question-bank/data/` that should be tracked — the
   pattern would need a second `!` line, not a broadened first one.
+
+## Handoff, round 2 (2026-09-12) — reviewer's findings 1, 2 and 3 fixed
+
+Survey first: none of the three findings needed a code change to the pipeline
+(`normalize.ts`, `sinks/json.ts`, `build.ts`) — all three are documents (or a
+`.gitignore` rule) making a claim that wasn't true of the tree, exactly as the
+review said. Fixed all three, doc/`.gitignore` only. Diff is four files:
+`engineering-decisions.md`, `question-bank/.gitignore`, `question-bank/README.md`,
+`PROGRESS.md`. `git status --porcelain` before committing shows exactly those
+four, nothing else.
+
+### Finding 1 — `E-6`'s fun-fact home, fixed
+
+`engineering-decisions.md` E-6, "Where a reviewed fun fact lives" is rewritten.
+It now says plainly that the built entity files under
+`question-bank/data/us-states/` are **not** a safe home — a rebuild overwrites
+each file whole (`sinks/json.ts`'s `writeFile`, no read-and-merge) and
+`normalize.ts:145` emits `fun_facts: []` unconditionally regardless of
+`--no-fun-facts`, so a hand-reviewed fact placed there and criterion 6's
+byte-identical rebuild are mutually exclusive by construction. The named home
+is now a **build input**: a new field on `CuratedState` in
+`question-bank/src/curated/us-states.ts`, folded into `fun_facts` by
+`normalize.ts` the way `climate_kid`/`state_animal`/`landmark` already are.
+That survives an offline rebuild for the same reason those three fields do
+today — the curated table is read by the build, not overwritten by it — and
+survives `git clean` because it is tracked source. This is the reading Q2's
+own wording already allowed ("T-011 edits it *or the source the build folds
+into it*"), so it needed no new human decision, only naming the branch of
+that sentence that is actually true. **I did not add the field or the
+fold-in** — no `funFacts`-shaped field exists on `CuratedState` today, and
+T-011 is the task that adds it and writes the first reviewed fact, per the
+reviewer's own "what would make it acceptable": *"T-010 only has to name it
+… ; it does not have to build it."*
+
+Checked against the automated shape-check in `committed-bank.test.ts`,
+criterion 14 (`e6.split(/\n\n/).find(p => /reviewed/i.test(p) &&
+/fun.fact/i.test(p))`, then `toMatch(/question-bank\/data\/us-states|tracked
+entity files/)`): the rewritten paragraph still mentions
+`question-bank/data/us-states` — now to say why it is *not* the home — so the
+existing test passes without being touched; `bun test
+src/committed-bank.test.ts` confirms (122/122 green, unchanged file).
+
+### Finding 2 — wrong test attribution, fixed in all four places
+
+Replaced `normalize.test.ts, "criterion 6 — reproducibility"` (a describe
+block that never existed) and `data-us-states.test.ts` (which re-derives
+`built_at` in-test and never runs the build, per the tester's mutation 3) with
+the actual test that spawns the CLI offline twice and diffs bytes:
+`question-bank/src/committed-bank.test.ts`, describe block `"T-010 criteria 6
+and 8 — the tracked bytes are what an offline rebuild produces"`. Fixed in:
+
+- `question-bank/.gitignore` (the comment above `data/*`)
+- `question-bank/README.md` ("The offline refresh is deterministic…")
+- `engineering-decisions.md` E-6, "Why committed won anyway"
+- `PROGRESS.md`, the "Question bank — the pipeline" bullet
+
+`PROGRESS.md`'s test count is also corrected: it said 74 (19 pre-existing + 55
+in `data-us-states.test.ts`), which was already stale the moment the tester
+added 124 more — now 196 (19 + 55 + 124, both new files named). This is the
+one line of `T-065`'s stale-count list (`tasks.md` T-065) that this fix
+happens to close as a side effect of fixing the attribution on the same line;
+I did not touch `test-guidelines.md` or `tasks.md`'s coverage table, which are
+T-065's and outside this brief's Constraints (`tasks.md`: T-010 may change
+only the T-040 entry).
+
+### Finding 3 — unreviewed prose no longer stageable, fixed
+
+Added a third `.gitignore` line: `data/us-states/*.review.json`, after
+`!data/us-states`. Verified empirically, both directions, exactly as the
+finding asked:
+
+```
+$ git check-ignore -v question-bank/data/us-states/us-state-co.json; echo $?
+1                                                        # tracked file: not ignored
+$ git check-ignore -v question-bank/data/us-states/index.json; echo $?
+1                                                        # tracked file: not ignored
+$ git check-ignore -v question-bank/data/us-states/fun-facts.review.json; echo $?
+question-bank/.gitignore:16:data/us-states/*.review.json  question-bank/data/us-states/fun-facts.review.json
+0                                                        # now ignored
+$ git check-ignore -v question-bank/data/subset/us-state-co.json; echo $?
+question-bank/.gitignore:14:data/*  question-bank/data/subset/us-state-co.json
+0                                                        # still ignored
+```
+
+The comment above the rules now says why the re-ignore is needed (the
+`!data/us-states` negation un-ignores the whole directory, not just the 51
+tracked paths, so anything else the live pipeline writes there needs its own
+line) — which is also the answer to the round-1 "Judgment calls" flag about
+this exact footgun. `bun test src/committed-bank.test.ts`'s criterion-10
+tests (both directions) still pass unchanged, and the full `question-bank`
+suite is 196/196 green with `tsc --noEmit` clean.
+
+### What I deliberately did not do, and why
+
+- **Did not implement T-011's fold-in** — adding a field to `CuratedState` and
+  folding it into `fun_facts` in `normalize.ts`. Finding 1's own "what would
+  make it acceptable" says naming the home is T-010's job and building it is
+  T-011's; doing it here would be scope creep into a task the queue already
+  lists separately, with its own review-checklist ("human reading" for
+  content, per `process.md` "Tasks this loop does not fit").
+- **Did not touch `test-guidelines.md` or `tasks.md`'s coverage table.**
+  Both are named in `tasks.md` T-065, not in this brief's Constraints (which
+  name only the T-040 entry in `tasks.md`). Fixing `PROGRESS.md`'s count was
+  different: finding 2 explicitly required it on the same line I was already
+  correcting for the wrong test name, and `PROGRESS.md` is in this brief's
+  Constraints list.
+- **Did not touch any source or test file.** `build.ts`, `normalize.ts`,
+  `sinks/json.ts` and all four `*.test.ts` files are byte-for-byte what round
+  1 and the tester left — confirmed by `git diff --name-only` showing only
+  `engineering-decisions.md`, `question-bank/.gitignore`,
+  `question-bank/README.md`, `PROGRESS.md`.
+- **Did not re-litigate what's good in the review** (the decision, the
+  determinism fix, the tests) — the reviewer said explicitly those are "not
+  being reopened."
+
+### Judgment calls, each flagged with a proposed owner
+
+- **Whether naming a not-yet-existing `CuratedState` field satisfies
+  criterion 14 without building it.** I read the reviewer's own "what would
+  make it acceptable" as settling this ("T-010 only has to name it … it does
+  not have to build it"), so I did not add the field. **Reviewer to confirm**
+  on this round — it is the reviewer's own proposed fix, so confirming it
+  should be quick, but it is still the one call in this round with room to
+  read differently.
+- **`T-065`'s entry in `tasks.md` now slightly over-claims** — it lists
+  `PROGRESS.md`'s per-package bullets as one of three stale-count places, but
+  this round already fixed the one bullet it meant. I did not edit `tasks.md`
+  beyond what's already there (T-065 is not the T-040 entry, and is outside
+  this brief's Constraints). **Proposed owner: whoever picks up T-065** —
+  a one-line note that the `PROGRESS.md` bullet was already fixed by T-010
+  round 2, so only `test-guidelines.md` and `tasks.md`'s own table remain.
+
+### Whole-suite run, round 2
+
+| Package | Command | Result |
+|---|---|---|
+| question-bank | `bun test` | 196 pass, 0 fail, 1851 `expect()` (unchanged from round 1/tester) |
+| question-bank | `bun test src/committed-bank.test.ts` | 122 pass, 0 fail — re-run after each `.gitignore`/E-6 edit |
+| question-bank | `bun run typecheck` | clean |
+| backend | `make check` | ruff clean, format clean, 233 passed, 9 skipped |
+| frontend | `bun test` | 184 pass, 0 fail |
+| frontend | `bun run typecheck` | same 4 pre-existing errors in `UsMap.tsx` (registry 403 on `react-simple-maps`/`us-atlas`, documented T-007/T-058 gap) — `git diff --name-only -- frontend/` is empty, confirming this round touched no frontend file |
 
 ## Verdict
 

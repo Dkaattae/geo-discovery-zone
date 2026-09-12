@@ -26,12 +26,14 @@ bun run typecheck
 
 The offline refresh is deterministic: it takes `built_at` from the fixture's own
 `_fixture.captured_at` instead of wall clock, so running it twice in a row
-leaves `git status` empty both times — `src/data-us-states.test.ts` asserts this
-on every `bun test`, so a tracked file drifting from what the fixture produces
-fails CI rather than shipping quietly. A **live** run legitimately differs run to
-run, since Wikidata itself changes; that is expected and is a separate decision
-(`tasks.md` T-063, not yet built) about *when* to refresh the committed bank, not
-whether it is committed.
+leaves `git status` empty both times — `src/committed-bank.test.ts` ("T-010
+criteria 6 and 8 — the tracked bytes are what an offline rebuild produces")
+actually spawns the CLI offline twice into a throwaway directory and diffs the
+bytes against what's tracked, so a tracked file drifting from what the fixture
+produces fails CI rather than shipping quietly. A **live** run legitimately
+differs run to run, since Wikidata itself changes; that is expected and is a
+separate decision (`tasks.md` T-063, not yet built) about *when* to refresh the
+committed bank, not whether it is committed.
 
 | Flag | Meaning |
 |---|---|
