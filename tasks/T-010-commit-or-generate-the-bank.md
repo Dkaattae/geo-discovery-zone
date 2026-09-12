@@ -1,7 +1,13 @@
 # T-010 — Decide: commit the 50-state output, or keep it generated
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
+**Tester round (2026-09-12): pass.** All 19 criteria verified independently —
+124 new tests in `question-bank/src/committed-bank.test.ts` written from the
+criteria, eight deliberate mutations each turning the right test red and all
+reverted, and the whole suite green (question-bank 196, backend 233 + ruff,
+frontend 184). Three findings for the reviewer, none blocking — see
+`## Verdict`.
 **Worker round (2026-09-12): unblocked, built, and done.** The tooling wall
 that stopped the previous two rounds (`bun`, `node`, every git write returning
 "This command requires approval") did not reproduce in this session — `bun
@@ -60,6 +66,7 @@ content or criteria.
 | task-expander (round 2, criteria trimmed to Option B) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` |
 | worker (blocked — no code execution available) | 2026-09-11 | `session_01AccaLe16urCr5CW2EwyJEz` (session URL id, per this session's Claude-Session attribution; `CLAUDE_CODE_REMOTE_SESSION_ID` is not readable here either — same limitation the round-2 expander noted) |
 | worker (round 2 — unblocked, built the bank) | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` |
+| tester | 2026-09-12 | `cse_01NqBhtxscKupMdww97kUauJ` (`$CLAUDE_CODE_REMOTE_SESSION_ID`; **same id as the worker row above** — orchestrated run, see `## Verdict`, "What independence this verdict actually had") |
 
 ---
 
@@ -575,7 +582,142 @@ independently.
 
 ## Verdict
 
-_Not written._
+**Pass.** All 19 criteria hold, verified against the criteria's own wording
+rather than the implementation: 124 new tests in
+`question-bank/src/committed-bank.test.ts`, plus eight deliberate mutations that
+each turned exactly the expected test red and were all reverted. The whole suite
+is green — question-bank 196 pass / 0 fail and `tsc --noEmit` clean, backend 233
+passed + 9 skipped with ruff clean, frontend 184 pass / 0 fail.
+
+**Three findings, none blocking, all for the `reviewer` to route.** The worker's
+own test does not guard criterion 6 (mine now does); the new `.gitignore`
+comment points at a test file that does not exist; and the new `!data/us-states`
+rule leaves `data/us-states/fun-facts.review.json` — which a default **live**
+build writes, with `reviewed: false` — un-ignored and therefore stageable.
+
+### What independence this verdict actually had
+
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01NqBhtxscKupMdww97kUauJ`, which is
+**the same id already in the Sessions table for round 2's `worker`**. This is an
+orchestrated run (`runs/T-010-commit-or-generate-the-bank.md` exists), so every
+spawned role shares one session id and that check proves nothing either way — it
+is not evidence of contamination and not evidence of separation.
+
+What this verdict does rest on: a **freshly spawned agent with its own context
+window**, which never saw the worker's transcript or reasoning and read only the
+brief, the repository and the Context links. That is real independence, but it
+is **weaker evidence than a separate session**, because it depends on the
+orchestrator having spawned this role correctly rather than on anything checkable
+from inside. A reader weighing this `pass` should weigh it accordingly.
+
+### Criteria
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | 51 tracked paths: `index.json` + 50 `us-state-<postal>.json` | pass | `committed-bank.test.ts` "criterion 1" — `git ls-files` length 51, names compared against `CURATED_US_STATES`' 50 postals |
+| 2 | `index.json` `count: 50`, ids = the files' own `id`s, no dupes/omissions | pass | "criterion 2", reading each tracked file's `id` rather than its filename |
+| 3 | required fields non-null, `type`/`scope`, ranks 1–50 each exactly once | pass | "criterion 3" — one test per state for the fields, plus two rank tests asserting `[1..50]` exactly |
+| 4 | tracked `us-state-co.json` == `sample-data/us-state-co.json` except `built_at` | pass | "criterion 4"; the two differ only in `sources.built_at` (`2026-08-04T16:05:05.461Z` vs `2026-08-04T16:05:35.000Z`). `sample-data/` was not regenerated and did not need to be |
+| 5 | everything tracked under `question-bank/data/` under 200 KB | pass | "criterion 5" — 39,500 bytes, 19% of the cap |
+| 6 | offline rebuild leaves `git status --porcelain question-bank/data` empty, twice | pass | run by hand: `bun run build -- --offline --out data/us-states` twice, `git status --porcelain data` empty both times (untracked files included). Also covered in-suite — see the note below |
+| 7 | one shared ISO-8601 UTC `built_at`; `builder_version` == `BUILDER_VERSION` | pass | "criterion 7" — one distinct value across all 50, matching `/^\d{4}-…Z$/` and round-tripping through `Date`; version set is exactly `["0.1.0"]` |
+| 8 | `bun test` goes red when a tracked file stops matching the offline build | pass | mutation 1 below: one changed value in one file turned both the worker's test and mine red, naming the state. No network, no `fetch` mock, nothing written under `question-bank/data/`, no `ci.yml` change |
+| 9 | no unreviewed prose in a shippable field | pass | "criterion 9" — every `fun_facts` is `[]`; no tracked file under `question-bank/data/` matches `/"reviewed"\s*:\s*false/`. Mutation 4 confirms it bites |
+| 10 | ignore rules hold in both directions | pass | "criterion 10" — `git check-ignore --no-index` matches no tracked path (the `--no-index` form, so a rule matching a tracked file would still be reported); `question-bank/data/subset/us-state-co.json` is matched by `question-bank/.gitignore:8` |
+| 11 | no file still asserts the old policy | pass | "criterion 11" over `.gitignore`, both READMEs, `conventions.md`, `PROGRESS.md`. The phrase survives only in `engineering-decisions.md` E-6 (as the rejected option, which the criterion allows) and in this brief, quoting history |
+| 12 | `E-6` states the decision on its own | pass | "criterion 12"; read in full — E-6 says which way it went in its heading |
+| 13 | `E-6` names the rejected option, its real cost, a revisit trigger | pass | "criterion 13" checks the shape; read in full, the staleness argument is stated plainly and the trigger is T-063's live-vs-committed diff. **Substance is the human review checklist, not a test** |
+| 14 | `E-6` names the tracked home for `reviewed: true` fun-fact text | pass | "criterion 14"; E-6 puts it in the tracked entity files and explains why an offline rebuild cannot destroy it (`--offline` implies `--no-fun-facts`, so `fun_facts` is never regenerated) |
+| 15 | README and `conventions.md` say a fresh clone has the bank | pass | "criterion 15". One inaccuracy found, in `.gitignore` rather than these two — finding 2 |
+| 16 | `tasks.md` T-040 reads the committed bank; `PROGRESS.md` records it | pass | "criterion 16" — T-040's entry names `question-bank/data/us-states/` and "needs no live Wikidata run"; `PROGRESS.md` has the bullet |
+| 17 | no new dependency | pass | `git diff --name-only origin/main...HEAD` contains no `package.json`, `bun.lock` or `pyproject.toml`. Verified here, not as a test — see the note below |
+| 18 | nothing outside the Constraints list | pass | same diff: `PROGRESS.md`, `conventions.md`, `engineering-decisions.md`, `question-bank/.gitignore`, `question-bank/README.md`, `question-bank/data/us-states/**`, `question-bank/src/build.ts`, `question-bank/src/data-us-states.test.ts`, `tasks.md`, `tasks/T-010-…`, `runs/T-010-…` (the orchestrator's, not the worker's). No `.github/`, `.claude/`, `openapi.yaml`, plan, migration or loop file |
+| 19 | whole suite green, no existing test edited | pass | counts below; `git diff --stat origin/main...HEAD -- question-bank/src` shows only `build.ts` and the new test file — `normalize.test.ts` and `sparql.test.ts` are untouched, as is `sample-data/` |
+
+**Why 17 and 18 are not committed as tests.** Both are properties of *this
+branch's diff*, not of the tree. A committed version would be wrong for every
+future PR that legitimately adds a dependency — and worse, it would be a
+tautology in CI: `actions/checkout@v5` clones at `fetch-depth: 1`, so
+`origin/main` does not exist there and `git diff origin/main...HEAD` returns
+nothing, passing regardless of content. The test file says so where the tests
+would have been.
+
+### Mutations — eight, each reverted
+
+Verified with `git status --porcelain` after each; the working tree at commit
+time held only the new test file.
+
+| # | Mutation | Result |
+|---|---|---|
+| 1 | `data/us-states/us-state-wy.json` `population` → `999` | 2 red, both naming Wyoming: my byte-identity test and the worker's `us-state-wy` test. Criterion 8 has teeth |
+| 2 | `index.json` `count` → `49` | 3 red: my criterion-2 count test, my index byte-identity test, the worker's index test |
+| 3 | `build.ts`: `const builtAt = undefined` (removes the offline determinism fix) | 51 red — **all of them mine**. The worker's 55 tests stayed entirely green. See finding 1 |
+| 4 | added `{"text": "scraped prose", "reviewed": false}` to Vermont's `fun_facts` | 5 red, including both of my criterion-9 tests and the worker's |
+| 5 | `question-bank/.gitignore` reverted to `data/` | 1 red: my criterion-10 tracked-path test |
+| 6 | `BUILDER_VERSION` → `"0.2.0"` | 101 red, including my criterion-7 `builder_version` test by name |
+| 7 | Wyoming `population_rank` → `21` (a duplicate of Colorado's) | my criterion-3 `population_rank` test red — the rank set is checked as a set, not just for presence |
+| 8 | `sample-data/us-state-co.json` `capital` → `"Boulder"` | my criterion-4 test red — the sample comparison is a real comparison, not a smoke test |
+
+### Findings for the reviewer — none blocks the pass
+
+- **1. The worker's test does not guard criterion 6.** Mutation 3 deleted the
+  determinism fix from `build.ts` and all 55 tests in `data-us-states.test.ts`
+  stayed green, because that test re-derives `built_at` from
+  `_fixture.captured_at` *inside the test* and compares against
+  `normalizeUsStates`, rather than running the build. It verifies the tracked
+  files match a re-derivation; it does not verify the build produces them. The
+  criterion it is named for — 8 — is still met (mutation 1 turns it red), so this
+  is not a fail. `committed-bank.test.ts` closes it by spawning the real CLI
+  offline into a temp directory, twice, and comparing bytes — which is also why
+  mutation 3 shows 51 failures rather than none.
+- **2. `question-bank/.gitignore`'s new comment cites a test that does not
+  exist.** It says the rebuild "is what a passing `bun test` checks
+  (`normalize.test.ts`, "criterion 6 — reproducibility")". There is no such test
+  in `normalize.test.ts` and no `describe` by that name anywhere; the worker's
+  test is `data-us-states.test.ts`, `describe("criterion 8 — …")`. Criterion 11
+  only requires the comment describe the decided policy, which it does, so this
+  passes — but it is exactly the doc drift `conventions-doc.test.ts` exists to
+  catch, in a file this task changed.
+- **3. A live build can now stage unreviewed prose.** `!data/us-states`
+  un-ignores the whole directory, and the **default** live build
+  (`bun run build` — fun facts on, `--out data/us-states`) writes
+  `fun-facts.review.json` there with `reviewed: false`. Confirmed:
+  `git check-ignore question-bank/data/us-states/fun-facts.review.json` exits 1,
+  i.e. **not ignored**, so a `git add -A` after a live run stages it. No
+  criterion is violated today — nothing unreviewed is tracked, and criterion 9
+  binds tracked files — but `CLAUDE.md` "Content rules" makes this worth a queued
+  task: re-ignore `question-bank/data/us-states/*.review.json` explicitly. The
+  worker's own "Judgment calls" note anticipated the negation-pattern footgun;
+  this is the concrete instance of it.
+- **4. Still-stale counts, as the worker flagged.** `test-guidelines.md` says
+  "19 tests today" for `question-bank` and `tasks.md`'s suite-size table says the
+  same; it is now **196**. Unchanged by me — neither file is in this brief's
+  Constraints.
+- **5. My criterion-4 test couples to `sample-data/`.** T-064 (delete
+  `sample-data/`) must remove or re-point
+  `committed-bank.test.ts`'s criterion-4 test when it runs. Noted so it is not a
+  surprise.
+
+### Suite, as run
+
+| Package | Command | Result |
+|---|---|---|
+| question-bank | `bun test` | **196 pass, 0 fail** (19 pre-existing + 55 worker + 124 mine), 1851 `expect()` |
+| question-bank | `bun test` with all six proxy vars at `http://127.0.0.1:1` | 196 pass — no network, the way CI runs it |
+| question-bank | `bun run typecheck` | clean |
+| question-bank | fresh `git clone --depth 1` of this branch, no `node_modules`, no `origin/main` | 196 pass — criterion 8's "runs under the existing `question-bank` CI job with no change to `ci.yml`", checked rather than assumed |
+| backend | `make check` | ruff clean, format clean, **233 passed, 9 skipped** |
+| frontend | `bun test` | **184 pass, 0 fail** |
+| frontend | `bun run typecheck` | 4 errors in `UsMap.tsx` — `react-simple-maps` and `us-atlas` are declared in `package.json` but absent from this sandbox's `node_modules` (registry 403, the documented T-007/T-058 gap). `git diff --name-only origin/main...HEAD -- frontend/` is **empty**, so this cannot be T-010's regression; CI's `frontend` job is the authority |
+
+### What I did not do
+
+- **Did not touch source.** The only mutations to `build.ts`, `normalize.ts`,
+  `.gitignore` and the tracked data were the eight above, each reverted and
+  confirmed by `git status --porcelain`.
+- **Did not edit the criteria**, and did not reinterpret one to make a test pass.
+- **Did not fix findings 1–3.** Fixing them is the worker's job if the reviewer
+  routes them back; the finding, not a patch, is what this role produces.
 
 ## Notes
 
