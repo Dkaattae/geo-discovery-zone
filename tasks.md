@@ -63,7 +63,7 @@ is that gap.
 |---|---|---|
 | **States** | **15**, hand-written | 50 (the pipeline already builds all 50) |
 | **Questions** | **26** | generated from templates × entities (§1.2) |
-| **Question formats** | **2** — `map_identify`, `multiple_choice` | 9 — plus `map_click`, `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` |
+| **Question formats** | **2** — `map_identify`, `multiple_choice` | 9 in `openapi.yaml` — plus `map_click`, `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` — and a tenth, fill-in-the-blank, that plan §1.10 describes and the contract does not have yet (T-067) |
 | **Topics** | **2** — location, capital | 10 — plus climate, agriculture, wildlife, landmark, size, physical, superlative, elevation |
 | **Map** | US states, `us-atlas`, mastered states fill in | + shaded relief (§2.6), physical features (§2.4) |
 | **Backend** | all 29 contract operations, SQLite or Postgres | — |
@@ -579,7 +579,169 @@ it is acceptable.
 
 ---
 
-## G. Unverified in the environment they were built in
+## G. Flags (plan §1.10)
+
+**New 2026-09-13**, from the flag feature added to the plan as §1.10: a flag →
+country question (four choices, or type the name), chained to a second step that
+asks the kid to find that country on the map, with a skip button on each.
+
+**Flags are a country feature and this app has no countries.** `country` exists
+as an entity type on both sides — `question-bank/src/types.ts:11` and
+`EntityType.country` in `backend/app/models.py:38` — and there is not one country
+row anywhere in the repo. So T-066 gates the flag half of this section, and §I's
+ordering still governs it: not before the US loop feels good (plan §4), which
+means not before §D.
+
+**Two of these are not flag work and do not wait for countries.** Skipping
+(T-063, T-064) and chained questions (T-065) are session-flow machinery that
+every later format wants, they land against today's 26 questions, and they are
+the reason this section sits here rather than in §I.
+
+### T-063 — A skipped question has nowhere to go in the contract · M · todo
+**Depends on:** —
+`AnswerRequest` (`openapi.yaml:2095`) carries `questionId`, `choiceIndex`, `pin`,
+`order` and `elapsedMs`. There is no way to say *not answered*, and
+`AnswerResult.correct` is a required boolean — so a skip has to arrive as a right
+answer or a wrong one, and it is neither.
+
+Recording it as wrong is actively harmful, not merely inaccurate.
+`backend/app/grading.py` threads one `correct: bool` through seven consequences:
+
+- `MASTERY_ON_WRONG = 0.2` **decrements** mastery — skipping a flag would push
+  the map *backwards*, and the map is the progress bar.
+- `WRONG_STREAK_TO_DROP = 3` drops the child's level. Three skipped flags in a
+  row would quietly demote a kid for not knowing three flags.
+- `profile.queue_entity()` pushes the entity onto the review queue, `session.wrong`
+  feeds the review offer, and `session.answered` feeds the milestone prompts.
+
+Plan §1.10 is explicit that a skip is "not asked," not "missed". That is a third
+state, and it has to be threaded through all seven rather than mapped onto one of
+the two.
+
+Three things the brief must decide rather than default:
+- **Does a skip reach the review queue?** It is the clearest signal of a gap there
+  is — but the queue is capped at ~20 (plan §3.7) and a kid who skips twenty flags
+  fills it with nothing but flags.
+- **Does a skip count as answered?** `session.answered` drives the progress ribbon
+  and the 5/10/20 milestones (plan §3.6). A skipped question probably should not
+  earn a celebration.
+- **What `Reveal.tone` does a skip get?** The enum is `[reward, reason]` and a skip
+  earns neither — it is not a win and it is not a correction.
+
+Contract change either way, so say so (`CLAUDE.md`).
+**Done when:** a skip can be submitted and is stored distinctly from right and
+wrong, mastery and level do not move, and a test proves three skips in a row
+leave the child's level where it was.
+
+### T-064 — Skip button in the client · S · todo
+**Depends on:** T-063
+`Session.tsx` has no way to move past a question without answering it. The button
+sits next to the answer input, and the reveal still runs (plan §3.5) — a skip opts
+out of being graded, not out of seeing the fact. The session summary must not
+read a skip as a miss (plan §3.8: "You learned 3 new states!", never a
+percentage).
+
+**One thing to settle first, and it is a product call, not an engineering one:**
+plan §1.10 scopes the skip button to the flag pair, on the grounds that it is the
+first pair to need one. Building it that way means shipping a button that nothing
+can show until T-066 and T-068 land. Shipping it on every format the client
+already renders is cheaper, arrives now, and is where §1.10's last paragraph
+points anyway — but it does mean a child can skip a capital-city question, which
+is a different product than the plan currently describes. Decide it, then correct
+§1.10 to match whichever way it went.
+**Done when:** a question can be skipped from the client, the reveal still shows,
+the summary does not count it against the child, and an e2e test covers the path.
+
+### T-065 — Chained questions: a second step that follows the first · M · todo
+**Depends on:** T-020, T-063
+A session is a flat stream of independent questions — `selection.py` and
+`store.candidate_questions` draw each one without reference to the last. Plan
+§1.10's pair needs the opposite: step 2 follows step 1 immediately, carries the
+same entity, and is not redrawn later in the session.
+
+Four paths, and the interesting one is the third:
+
+| Step 1 | Step 2 |
+|---|---|
+| Correct | Runs |
+| **Wrong** | **Runs** — the reveal just told them the country, so "now find it on the map" is fair, and it is the pairing that teaches |
+| Skipped | Dropped — no flag identity left to locate (plan §1.10) |
+| — | Skippable on its own; that does not touch step 1's result |
+
+`chains_to` on the template record is the bank half (hence T-020). The session
+half may need nothing in `openapi.yaml` if the server simply serves the pair in
+order — check before assuming it does, and if the client needs to know a pair is
+in flight, that is a contract change to make deliberately.
+**Done when:** a chain can be served, answered and skipped as §1.10 describes,
+with a test for each of the four paths.
+
+### T-066 — Country entities, with flags · M · todo
+**Depends on:** — technically. In practice §I's ordering: not before §D.
+The gate on everything else in this section. Needs name, ISO 3166-1 alpha-3 as
+`geometry_id` (never join on names — plan §2.3), the flag image, and the alias
+list T-067's grading needs. Plan §1.9 says one Wikidata query gets the lot.
+
+The flags themselves are the part that is not routine:
+
+- **Licence.** Plan §1.9 says Wikimedia Commons / `flagcdn.com`, "public domain
+  **mostly**". "Mostly" is not a licence. Record the answer per source, the way
+  §2.2 does for map data.
+- **Contested flags are a content decision, not a data gap.** Which flag for
+  Afghanistan, or Myanmar? `CLAUDE.md` says prefer a blank to a guess, and plan
+  §1.8's `contested: true` already has the shape for it. A quiz that claims to
+  teach must not pick a side quietly.
+- **Ship or hotlink?** Plan §1.9 is firm that there are no runtime API calls and
+  no keys in the client, which argues for vendoring ~195 SVGs at build time. Check
+  what that weighs before committing to it.
+
+**Done when:** country entities carry a flag reference with its licence recorded,
+contested flags are flagged rather than guessed, and the pipeline builds them with
+no network in tests.
+
+### T-067 — Fill-in-the-blank is a tenth question format · M · todo
+**Depends on:** T-066
+`QuestionFormat` (`openapi.yaml:1314`) has nine values and none of them takes
+text; `AnswerRequest` has `choiceIndex`, `pin` and `order` and no text field. Both
+are contract changes — say so.
+
+**The grading is the task.** Case-fold, trim, strip diacritics, then match against
+an alias list on the entity rather than in the grader (plan §1.10) — "USA",
+"United States of America", "Holland". Typo tolerance is the judgement call and
+it should start strict: a Levenshtein window wide enough to accept "Peru" for
+"Perú" also accepts "Chile" for "China" at distance 3, and a child marked wrong
+for a typo learns the app is unfair, which costs more than a skip does.
+
+**This may send plan §1.10's example JSON back for a correction.** Its
+`tpl-flag-country` gives `min_age_band: 1` and `base_difficulty: 2` for a template
+whose two formats are a four-choice tap and typing a country name on a tablet
+keyboard. Those differ in both challenge and appropriateness — the two axes plan
+§1.4 is careful to keep separate — so either they are two template records or
+those two fields belong per-format. Settle it here.
+**Done when:** a typed answer can be graded, aliases live on the entity, the
+contract and the implementation agree, and the age-band question above has an
+answer written down.
+
+### T-068 — Render the flag pair in the client · M · todo
+**Depends on:** T-051, T-064, T-065, T-066, T-067
+`Session.tsx` renders two formats. This needs `image` (the flag plus four names),
+the text input from T-067, and the map step.
+
+**The map step is not a reuse of the state map.** The client bundles `us-atlas`;
+locating a country needs `world-atlas` and `geoNaturalEarth1` — never Mercator in
+a teaching app, which makes Greenland look bigger than Africa (plan §2.3). T-051
+builds `map_click` over US states; this is a second map surface, and that cost
+belongs in this task rather than hiding inside T-051's.
+
+Small countries fall straight into §2.5: Malta and Cape Verde are unclickable at
+world zoom, so this wants the pin fallback and the auto-zoom-first behaviour, or
+the second step is unanswerable for the entities whose flags a kid is most likely
+to have never seen.
+**Done when:** a child sees a flag, answers or skips it, then locates that country
+on a world map, and both steps grade and reveal like every other question.
+
+---
+
+## H. Unverified in the environment they were built in
 
 Not features — claims this repo makes that nothing here has checked.
 
@@ -633,7 +795,7 @@ every PR, so it cannot rot back to unverified.
 
 ---
 
-## H. Later, in plan order
+## I. Later, in plan order
 
 Not broken down yet — they depend on decisions above. Break each one down when
 it comes into view.
@@ -641,7 +803,9 @@ it comes into view.
 - **Superlatives** — nearly free once entities carry rank fields (plan §1.8),
   and the fastest new topic. Started in T-026 and T-039
 - **Countries**, then world cities, then rivers / mountains / oceans (plan §1.7).
-  Not before the US loop feels good (plan §4) — which means not before §D
+  Not before the US loop feels good (plan §4) — which means not before §D. §G
+  breaks out the flag half: T-066 is the country entity table those tasks need,
+  and it is the first piece of this bullet anyone will actually build
 - **Pin formats** and point-in-polygon grading (plan §2.5) — see T-045
 - **Elevation profiles** and the altitude → climate → farming → population chain
   (plan §2.6) — the strongest content for the older band
