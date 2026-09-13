@@ -85,7 +85,8 @@ Templates to build first:
 | Which city is marked here? | city | map → MC |
 | X is the capital of which country? | country | MC (reverse) |
 | Which continent is X in? | country | MC |
-| Which country does this flag belong to? | country | image → MC |
+| Which country does this flag belong to? | country | image → MC or fill-in-blank (§1.10) |
+| Now find that flag's country on the map | country | image → map_click (§1.10), chained after the above |
 | Which of these borders X? | state, country | MC |
 | What kind of climate does X have? | state, country | MC |
 | Which crop is X known for growing? | state, country | MC |
@@ -261,6 +262,69 @@ Rules that keep these good:
 | fun facts | Wikipedia REST `/page/summary/{title}` | CC BY-SA — attribute |
 
 Run all of this in a `scripts/build-data.ts` at **build time**. Ship JSON. No runtime API calls, no keys in the client, no Wikipedia vandalism reaching a child mid-quiz.
+
+### 1.10 Flag questions
+
+Two chained steps, worth their own section because the pairing is the point:
+recognizing a flag and knowing where that country is are different skills, and
+testing both back-to-back teaches more than either alone.
+
+**Step 1 — identify the country from its flag.** Same template, two formats —
+same distractor logic as everywhere else in §1.2:
+
+| Format | Shape | Difficulty |
+|---|---|---|
+| `flag_multiple_choice` | Flag image + 4 country names, tap one | Lower — recognition |
+| `flag_fill_blank` | Flag image + text input, type the country name | Higher — recall |
+
+`flag_fill_blank` needs a normalizer (case-fold, trim, strip diacritics, accept
+a short alias list — "USA" for "United States") before grading, or it penalizes
+spelling over knowledge. Store aliases on the entity, not hardcoded in the
+grader.
+
+**Step 2 — match the flag to the map.** On finishing Step 1 (correctly,
+incorrectly, or skipped), ask the kid to tap the same country on the map —
+reusing click-the-map from §1.2 and the pin/centroid fallback from §2.5 for
+small countries.
+
+```json
+{
+  "id": "tpl-flag-country",
+  "prompt": "Which country does this flag belong to?",
+  "answer_field": "name",
+  "distractor_strategy": "sibling_flags_same_region",
+  "requires": ["name", "flag_url"],
+  "applies_to": ["country"],
+  "format": ["flag_multiple_choice", "flag_fill_blank"],
+  "base_difficulty": 2,
+  "min_age_band": 1,
+  "chains_to": "tpl-flag-locate"
+},
+{
+  "id": "tpl-flag-locate",
+  "prompt": "Now find {name} on the map.",
+  "answer_field": "geometry_id",
+  "requires": ["geometry_id", "centroid"],
+  "applies_to": ["country"],
+  "format": "map_click",
+  "base_difficulty": 3,
+  "min_age_band": 1
+}
+```
+
+**Both steps carry a `[Skip]` button**, independent of each other:
+
+- A skip never counts as wrong for `level`/mastery — it's "not asked," not
+  "missed."
+- Skipping Step 1 skips Step 2 too — there's no flag identity left to locate.
+  Skipping Step 2 alone (kid knew the flag, not the map) does not touch Step 1's
+  result.
+- A skip still reveals the answer, same as any other question (§3.5) — it
+  opts out of being graded, not out of seeing the fact.
+
+This is the first template pair with a skip button. If it plays well, §3.5's
+commit/reveal flow is the natural place to generalize skipping to other
+question types.
 
 ---
 
