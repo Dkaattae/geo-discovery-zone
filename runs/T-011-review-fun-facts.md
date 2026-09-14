@@ -1,7 +1,7 @@
 # T-011 — Review the 50 draft fun facts — run log
 
 **Task:** T-011 · **Branch:** `task/T-011-review-fun-facts` · **PR:** [#41](https://github.com/Dkaattae/geo-discovery-zone/pull/41)
-**Started:** 2026-09-14 · **Outcome:** in progress
+**Started:** 2026-09-14 · **Outcome:** ready for merge, gated on Dkaattae reading all 50 facts (D-4a) — see the four content flags round 3 raised
 
 ## Round 1 — task-expander — 2026-09-14
 
@@ -87,3 +87,35 @@ origin/task/T-011-review-fun-facts -1` matches local HEAD.
 
 G5 check: `Status` changed from `awaiting verification` to `pass`; `Next step`
 changed from `tester` to `reviewer`. Not a stall — the header moved.
+
+## Round 4 — reviewer — 2026-09-14
+
+`Next step` on entry: `reviewer` → on exit: *(none — approved and escalated; the brief is deleted)*
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+**Approved and escalated. PR #41 is ready for review, swept, and waiting on Dkaattae — it must not merge until a person reads the 50 facts.** No blocking findings; the escalation is D-4a's category, not a defect. Pushed `9cce42f` to `task/T-011-review-fun-facts`, all six CI jobs green on that commit. Draft flag now `false`. The reviewer holds no merge tool and did not merge.
+
+**Checks run:** every role's work is in the PR, no stranded commits (expander touched only `tasks/`+`tasks.md`; worker touched source/bank/docs; tester touched only its test file and the Verdict — no source). `fun_facts: curated.fun_facts ?? []` sits beside the existing curated fold-ins and always emits the key (what makes criterion 8 hold for a future blank state). Suite re-run: 243 pass in question-bank, typecheck clean.
+
+**The five open flags from the tester, disposed of** (full text on the [PR review comment](https://github.com/Dkaattae/geo-discovery-zone/pull/41#issuecomment-5671048577)):
+1. Deleting `sample-data/fun-facts.review.json` — confirmed forced by criterion 2, not optional.
+2. `bun run lint` not existing in `question-bank/` — criterion 13 named a check that never existed. New **T-066**, which also carries the eslint dependency decision to Dkaattae.
+3. `source_url` is each state's general Wikipedia article, not a per-claim citation — accepted, called out in the checklist as real work for the content read.
+4. Sonnet drafted the facts, not Opus — not re-run; D-4a's human gate is the answer either way, stated at the top of the PR body.
+5. Shared session id across roles — expected under an orchestrated run (D-3), tester handled it correctly. No action.
+
+**The reviewer's own findings:** the live Wikipedia pass in `build.ts` drafts for every entity with a `wikipedia_title` regardless of whether a curated fact already exists, so a scheduled refresh would now dump 50 already-answered drafts on a human — amended into **T-063**. Non-queued notes for the content read: 14/50 facts open "`<State>` is home to …", 47/50 open with the state's name, 6 carry a four-digit year, two are about the Wright brothers, and the Handoff's "shortest fact, Hawaii at 59" is actually Kansas at 56.
+
+**Sweep, pushed as `9cce42f`:** brief deleted; `tasks.md` T-011 entry deleted; `PROGRESS.md` logged under Completed tasks with where reality differed; T-050 no longer depends on T-011; T-064 shrank by the deleted review file; T-065 records the fourth and fifth hand-correction of a suite count (209 → 243); T-066 added (question-bank lint).
+
+## Orchestrator checkpoint — 2026-09-14 (round 4, closing)
+
+The reviewer pushed its own commit (`9cce42f`) successfully. Confirmed `git
+log origin/task/T-011-review-fun-facts -1` matches local HEAD.
+
+Per `.claude/agents/orchestrator.md` "The loop you run" — the reviewer marked
+the PR ready (with an escalation) — this is where the orchestrator stops. No
+brief remains to read a header from. PR #41 is Dkaattae's from here: read the
+50 facts (the Review checklist and the four content flags round 3 raised),
+then merge (D-4 — no role in this loop merges).
