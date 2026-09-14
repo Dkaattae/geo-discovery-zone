@@ -25,7 +25,13 @@
   "highest_point": "Gannett Peak",
   "highest_point_m": 4207,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Wyoming is home to Yellowstone, the first national park ever created anywhere in the world.",
+      "source_url": "https://en.wikipedia.org/wiki/Wyoming",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1214",
     "wikipedia_title": "Wyoming",

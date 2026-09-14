@@ -24,7 +24,13 @@
   "highest_point": "Mount Greylock",
   "highest_point_m": 1064,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Massachusetts is home to Plymouth Rock, where the Pilgrims are said to have landed in 1620.",
+      "source_url": "https://en.wikipedia.org/wiki/Massachusetts",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q771",
     "wikipedia_title": "Massachusetts",

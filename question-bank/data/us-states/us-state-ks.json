@@ -23,7 +23,13 @@
   "highest_point": "Mount Sunflower",
   "highest_point_m": 4039,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Kansas sits almost exactly in the middle of the country.",
+      "source_url": "https://en.wikipedia.org/wiki/Kansas",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1558",
     "wikipedia_title": "Kansas",

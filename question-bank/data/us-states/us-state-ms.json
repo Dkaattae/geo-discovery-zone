@@ -23,7 +23,13 @@
   "highest_point": "Woodall Mountain",
   "highest_point_m": 246,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Mississippi is named after the Mississippi River, one of the longest rivers in North America.",
+      "source_url": "https://en.wikipedia.org/wiki/Mississippi",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1494",
     "wikipedia_title": "Mississippi",

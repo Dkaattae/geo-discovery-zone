@@ -25,7 +25,13 @@
   "highest_point": "Mount Davis",
   "highest_point_m": 979,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Pennsylvania is where the Declaration of Independence was signed, in Philadelphia in 1776.",
+      "source_url": "https://en.wikipedia.org/wiki/Pennsylvania",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1400",
     "wikipedia_title": "Pennsylvania",

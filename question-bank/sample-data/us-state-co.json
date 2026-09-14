@@ -28,11 +28,17 @@
   "highest_point": "Mount Elbert",
   "highest_point_m": 4401,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Colorado has 58 mountains taller than 14,000 feet. Climbers call them fourteeners.",
+      "source_url": "https://en.wikipedia.org/wiki/Colorado",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1261",
     "wikipedia_title": "Colorado",
-    "built_at": "2026-08-04T16:05:05.461Z",
+    "built_at": "2026-08-04T16:05:35.000Z",
     "builder_version": "0.1.0"
   }
 }

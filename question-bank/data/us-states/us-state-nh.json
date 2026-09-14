@@ -22,7 +22,13 @@
   "highest_point": "Mount Washington",
   "highest_point_m": 1917,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "New Hampshire was the first state to write its own constitution, before the country even had one.",
+      "source_url": "https://en.wikipedia.org/wiki/New_Hampshire",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q759",
     "wikipedia_title": "New_Hampshire",

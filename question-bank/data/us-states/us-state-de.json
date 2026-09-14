@@ -22,7 +22,13 @@
   "highest_point": "Ebright Azimuth",
   "highest_point_m": 137,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Delaware was the first state to ratify the Constitution, so it is nicknamed The First State.",
+      "source_url": "https://en.wikipedia.org/wiki/Delaware",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1393",
     "wikipedia_title": "Delaware",

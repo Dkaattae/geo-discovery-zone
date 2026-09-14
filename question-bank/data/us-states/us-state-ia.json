@@ -25,7 +25,13 @@
   "highest_point": "Hawkeye Point",
   "highest_point_m": 1670,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Iowa grows more corn than any other state, with fields stretching as far as you can see.",
+      "source_url": "https://en.wikipedia.org/wiki/Iowa",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1546",
     "wikipedia_title": "Iowa",

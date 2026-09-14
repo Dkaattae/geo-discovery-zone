@@ -23,7 +23,13 @@
   "highest_point": "Guadalupe Peak",
   "highest_point_m": 2667,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Texas is so wide that El Paso is closer to California than to Houston.",
+      "source_url": "https://en.wikipedia.org/wiki/Texas",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1439",
     "wikipedia_title": "Texas",

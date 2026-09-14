@@ -23,7 +23,13 @@
   "highest_point": "Hoye-Crest",
   "highest_point_m": 1020,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Maryland's Chesapeake Bay is the largest estuary in the United States, full of blue crabs.",
+      "source_url": "https://en.wikipedia.org/wiki/Maryland",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1391",
     "wikipedia_title": "Maryland",

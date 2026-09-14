@@ -23,7 +23,13 @@
   "highest_point": "Mount Mitchell",
   "highest_point_m": 2037,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "North Carolina is where the Wright brothers flew the first airplane, at Kitty Hawk in 1903.",
+      "source_url": "https://en.wikipedia.org/wiki/North_Carolina",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1454",
     "wikipedia_title": "North_Carolina",

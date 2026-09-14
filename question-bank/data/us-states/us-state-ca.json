@@ -22,7 +22,13 @@
   "highest_point": "Mount Whitney",
   "highest_point_m": 4421,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "California holds the highest and lowest places in the lower 48 states, and they are close together.",
+      "source_url": "https://en.wikipedia.org/wiki/California",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q99",
     "wikipedia_title": "California",

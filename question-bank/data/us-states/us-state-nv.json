@@ -24,7 +24,13 @@
   "highest_point": "Boundary Peak",
   "highest_point_m": 4007,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Nevada is the driest state, and rain that falls there never reaches the ocean.",
+      "source_url": "https://en.wikipedia.org/wiki/Nevada",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1227",
     "wikipedia_title": "Nevada",

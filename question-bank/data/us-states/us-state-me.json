@@ -20,7 +20,13 @@
   "highest_point": "Katahdin",
   "highest_point_m": 1606,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "The sun rises over Maine before anywhere else in the United States.",
+      "source_url": "https://en.wikipedia.org/wiki/Maine",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q724",
     "wikipedia_title": "Maine",

@@ -139,10 +139,11 @@ export function normalizeUsStates(
       ...(curated.landmark ? { landmark: curated.landmark } : {}),
       ...(row.highestPoint ? { highest_point: row.highestPoint } : {}),
       ...(row.highestPointM !== undefined ? { highest_point_m: row.highestPointM } : {}),
-      // Crops need USDA NASS (§1.9) and facts need human review (§1.6) — both
-      // are filled by later passes, so they start empty rather than wrong.
+      // Crops need USDA NASS (§1.9) — filled by a later pass, so it starts
+      // empty rather than wrong. Facts are curated per state (§1.6, T-011); a
+      // state with none yet still gets the key, just an empty array.
       top_crops: [],
-      fun_facts: [],
+      fun_facts: curated.fun_facts ?? [],
       sources: {
         ...(row.qid ? { wikidata_id: row.qid } : {}),
         ...(row.wikipediaTitle ? { wikipedia_title: row.wikipediaTitle } : {}),

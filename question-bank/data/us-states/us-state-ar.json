@@ -25,7 +25,13 @@
   "highest_point": "Mount Magazine",
   "highest_point_m": 839,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Arkansas has a diamond park where visitors can dig all day and keep any diamond they find.",
+      "source_url": "https://en.wikipedia.org/wiki/Arkansas",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1612",
     "wikipedia_title": "Arkansas",

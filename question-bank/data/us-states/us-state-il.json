@@ -25,7 +25,13 @@
   "highest_point": "Charles Mound",
   "highest_point_m": 376,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Illinois is home to Chicago's Willis Tower, once the tallest building in the whole world.",
+      "source_url": "https://en.wikipedia.org/wiki/Illinois",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1204",
     "wikipedia_title": "Illinois",

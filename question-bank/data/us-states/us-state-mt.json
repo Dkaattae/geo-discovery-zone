@@ -23,7 +23,13 @@
   "highest_point": "Granite Peak",
   "highest_point_m": 3904,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Montana is nicknamed Big Sky Country because its skies stretch out over such wide open land.",
+      "source_url": "https://en.wikipedia.org/wiki/Montana",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1212",
     "wikipedia_title": "Montana",

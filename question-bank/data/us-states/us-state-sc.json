@@ -21,7 +21,13 @@
   "highest_point": "Sassafras Mountain",
   "highest_point_m": 1085,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "South Carolina's official state dance is the shag, first danced on its beaches in the 1940s.",
+      "source_url": "https://en.wikipedia.org/wiki/South_Carolina",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1456",
     "wikipedia_title": "South_Carolina",

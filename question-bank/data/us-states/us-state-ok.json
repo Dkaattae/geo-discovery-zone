@@ -25,7 +25,13 @@
   "highest_point": "Black Mesa",
   "highest_point_m": 1737,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Oklahoma has more man-made lakes than any other state in the country.",
+      "source_url": "https://en.wikipedia.org/wiki/Oklahoma",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1649",
     "wikipedia_title": "Oklahoma",

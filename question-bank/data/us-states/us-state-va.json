@@ -24,7 +24,13 @@
   "highest_point": "Mount Rogers",
   "highest_point_m": 1825,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Virginia is nicknamed the Mother of Presidents because eight American presidents were born there.",
+      "source_url": "https://en.wikipedia.org/wiki/Virginia",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1370",
     "wikipedia_title": "Virginia",

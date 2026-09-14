@@ -277,14 +277,16 @@ clock, since a live Wikidata response has no captured-at of its own to reuse.
 **Where a reviewed fun fact lives, so a future rebuild does not destroy it
 (T-010's Q2) — corrected 2026-09-12, see the round-1 review.** The built entity
 files under `question-bank/data/us-states/` are **not** a safe home: every
-offline rebuild criterion 6 requires be byte-identical to that rebuild, and
-`normalize.ts:145` emits `fun_facts: []` unconditionally on every run —
-`--offline` implying `--no-fun-facts` only means the Wikipedia pass does not
-*add* new drafts, it does not mean an existing `fun_facts` survives. A rebuild
-overwrites each entity file whole (`sinks/json.ts`'s `writeFile`, no read or
-merge), so a hand-reviewed fact placed in built output and criterion 6's
-byte-identical rebuild are mutually exclusive by construction, not
-complementary.
+offline rebuild criterion 6 requires be byte-identical to that rebuild, and at
+T-010 time `normalize.ts:145` emitted `fun_facts: []` unconditionally on every
+run — `--offline` implying `--no-fun-facts` only means the Wikipedia pass does
+not *add* new drafts, it does not mean an existing `fun_facts` survives. A
+rebuild overwrites each entity file whole (`sinks/json.ts`'s `writeFile`, no
+read or merge), so a hand-reviewed fact placed in built output and criterion
+6's byte-identical rebuild are mutually exclusive by construction, not
+complementary — true whether the fold-in is unconditional (T-010) or reads a
+curated field (T-011): either way, a rebuild derives the file from source and
+overwrites whatever was there.
 
 `reviewed: true` fun-fact text instead belongs in a **build input**:
 a new field on `CuratedState` in `question-bank/src/curated/us-states.ts`,
@@ -297,11 +299,10 @@ output it overwrites, and it survives `git clean` because it is tracked
 source, not a build artefact. Q2's answer already allows this reading —
 "T-011 edits it (or the source the build folds into it) directly" — so this is
 not a new decision, only the option Q2 already named being the one actually
-built. **T-010 names this home; it does not fill it.** T-011 adds the field to
-`CuratedState`, the fold-in in `normalize.ts`, and is the task that first
-writes a `reviewed: true` fact — no field exists on `CuratedState` today, and
-none of the 50 tracked files under `question-bank/data/us-states/` carries
-anything but `fun_facts: []`.
+built. **T-010 named this home; it did not fill it.** T-011 (2026-09-14) added
+the field to `CuratedState`, the fold-in in `normalize.ts`, and wrote the
+first fifty `reviewed: true` facts — one per state, listed in full in
+`tasks/T-011-review-fun-facts.md`'s Handoff.
 
 **What a fresh clone gets, concretely.** `question-bank/README.md` and
 `conventions.md` both now say a clone already contains the 50-state bank, and

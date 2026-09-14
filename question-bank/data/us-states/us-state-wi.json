@@ -23,7 +23,13 @@
   "highest_point": "Timms Hill",
   "highest_point_m": 594.8,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Wisconsin produces more cheese than any other state, earning it the nickname America's Dairyland.",
+      "source_url": "https://en.wikipedia.org/wiki/Wisconsin",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1537",
     "wikipedia_title": "Wisconsin",

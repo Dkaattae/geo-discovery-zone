@@ -23,7 +23,13 @@
   "highest_point": "Mount Hood",
   "highest_point_m": 11237,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Oregon is home to Crater Lake, the deepest lake in the United States.",
+      "source_url": "https://en.wikipedia.org/wiki/Oregon",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q824",
     "wikipedia_title": "Oregon",
