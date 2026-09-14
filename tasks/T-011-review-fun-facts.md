@@ -6,7 +6,8 @@
 **From:** [`tasks.md`](../tasks.md) T-011
 **Branch:** `task/T-011-review-fun-facts` — this is the branch actually used, the
 one the PR is built from, and the one every later role pushes to.
-**PR:** #38, opened draft at expand time from the branch above. It stays draft
+**PR:** [#41](https://github.com/Dkaattae/geo-discovery-zone/pull/41), opened
+draft at expand time from the branch above. It stays draft
 until the reviewer approves it.
 **Fault:** —
 
