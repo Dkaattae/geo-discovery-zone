@@ -254,7 +254,7 @@ exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
 
-### T-011 — Review the 50 draft fun facts · M · todo
+### T-011 — Review the 50 draft fun facts · M · doing
 **Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
 Run the pipeline for all 50 states, then rewrite each draft in kid language and
 set `reviewed: true`. Flag anything grim or confusing rather than softening it.
