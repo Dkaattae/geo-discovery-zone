@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-14`
+**Approved:** Dkaattae, 2026-09-14
 **From:** [`tasks.md`](../tasks.md) T-011
 **Branch:** `task/T-011-review-fun-facts` — this is the branch actually used, the
 one the PR is built from, and the one every later role pushes to.
