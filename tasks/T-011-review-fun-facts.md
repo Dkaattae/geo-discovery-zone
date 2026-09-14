@@ -1,7 +1,7 @@
 # T-011 — Review the 50 draft fun facts
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae, 2026-09-14
 **From:** [`tasks.md`](../tasks.md) T-011
 **Branch:** `task/T-011-review-fun-facts` — this is the branch actually used, the
@@ -17,6 +17,7 @@ until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-09-14 | cse_01NqBhtxscKupMdww97kUauJ |
 | worker | 2026-09-14 | cse_01NqBhtxscKupMdww97kUauJ |
+| tester | 2026-09-14 | cse_01NqBhtxscKupMdww97kUauJ |
 
 ---
 
@@ -450,7 +451,145 @@ entry in `content.json` and are new prose written for this task.
 
 ## Verdict
 
-Written by `tester`.
+**TL;DR — `pass` on shape, and shape is all a test can reach.** All 13 criteria
+are met: 34 new tests in `question-bank/src/fun-facts.test.ts` cover criteria
+1–8 and 10–11, the pre-existing 209 cover 7's rebuild half, 9 and 13, and
+criteria 12 and the diff-scoped halves of 10 and 13 were verified mechanically
+and are recorded below rather than committed. `bun test` is green in
+`question-bank/` (243), `frontend/` (184) and `backend/` (233 passed, 9
+skipped). **Nothing here says the 50 facts are true or well written** — the
+brief's Review checklist is still entirely open and this PR must not merge
+until a named human closes it (`process-decisions.md` D-4a).
+
+**Independence, stated honestly.** This run is orchestrated
+(`runs/T-011-review-fun-facts.md` exists), so the Sessions-table check does not
+work: `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01NqBhtxscKupMdww97kUauJ`, the
+same id already recorded for `task-expander` and `worker`, because every role
+the orchestrator spawns shares one id. **The check did not pass; it does not
+apply.** What independence this verdict does rest on is weaker in kind: a
+freshly spawned agent with its own context window, which never saw the worker's
+reasoning and read only the brief and the repository. That rests on the
+orchestrator having spawned me correctly, not on anything I can verify myself.
+Weigh the verdict accordingly.
+
+### Criterion by criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `fun-facts.test.ts` "T-011 criterion 1" — 50/50 files have a `fun_facts` array key, none empty (the Handoff names no blank state), and the 50 non-empty arrays cover exactly the 50 curated names |
+| 2 | pass | "T-011 criterion 2" — key set is exactly `{text, source_url, reviewed}` on all 50; `text`/`source_url` are strings; `reviewed` is `true` and `typeof` `boolean`; no `reviewed": false` bytes in any of the 65 paths tracked under `question-bank/data/` or `question-bank/sample-data/` |
+| 3 | pass | "T-011 criterion 3" — 40–200 chars, `=== trim()`, no `\n`/`\t`, terminal `.!?`, no sentence over 25 words. The length and sentence predicates are themselves tested at 39/40/200/201 and 25/26 |
+| 4 | pass | "T-011 criterion 4" — the lead-sentence regex is built per entity from its own `name` and first proven to *match* the form it targets (and not to match "Texas is the biggest…"), then shown to match no shipped `text`; one test per banned term |
+| 5 | pass | "T-011 criterion 5" — every `text` contains its `name` case-sensitively; all 50 texts pairwise distinct |
+| 6 | pass | "T-011 criterion 6" — every `source_url` non-null, non-empty, `startsWith("https://")`, and `new URL(...).protocol === "https:"` |
+| 7 | pass | "T-011 criterion 7" — every shipped `text` appears verbatim in `src/curated/us-states.ts`. The rebuild half is T-010's existing "T-010 criteria 6 and 8", green against the *new* bytes (52 assertions, CLI spawned offline twice) |
+| 8 | pass | "T-011 criterion 8" — exercised, not assumed: the CO curated row's `fun_facts` is deleted in-test, `normalizeUsStates` is run on the committed fixture, and the entity still carries the key with `[]` (and serialises to `"fun_facts": []`). Restored in `finally`; a second test proves the unmutated path emits the fact |
+| 9 | pass | T-010's existing "criterion 4" test — sample ↔ bank equal except `sources.built_at`, so the regenerated sample carries Colorado's fact |
+| 10 | pass | "T-011 criterion 10" — no tracked `*.review.json` under `data/us-states/`, the ignore rules still catch one both ways, 51 bank paths still tracked and unignored. Diff-scoped halves below |
+| 11 | pass | "T-011 criterion 11" — four bans (two per doc) plus a positive check that E-6 still designates `question-bank/src/curated/us-states.ts` as a *build input* home for reviewed text. "T-010 criteria 11–16" and "T-010 round 2 — criterion 14" both still pass unchanged |
+| 12 | pass | Verified mechanically (below): the Handoff's 50-row table matches the tracked bank exactly, `text` and `source_url`, 0 mismatches, 0 states missing either way |
+| 13 | pass, with one wording defect | Zero diff on both named test files; no dependency or lockfile change; all three suites green. The defect: `bun run lint` does not exist in `question-bank/` — see below |
+
+### What was verified outside the committed tests, and why
+
+Three properties are about *this branch's diff* or *this brief*, not about the
+tree, so committing them would be wrong for the reason `committed-bank.test.ts`
+already records at its foot (CI checks out at `fetch-depth: 1`, and the brief is
+deleted at sweep — either would make the test vacuous or permanently red):
+
+- **Criterion 12.** Parsed the Handoff table and diffed it against the 50
+  tracked files: 50 rows, 50 states, **0 text mismatches, 0 URL mismatches,
+  nothing in the bank missing from the table and nothing in the table missing
+  from the bank.**
+- **Criterion 10, "no dependency."** `git diff --name-only main...HEAD` touches
+  no `package.json`, no `bun.lock`, no `uv.lock`, no `pyproject.toml`.
+- **Criterion 10, "no test performs a network request or mocks `fetch`", and
+  criterion 13, "no test deleted or loosened."** The worker changed **no test
+  file at all** (`git diff --name-only main...HEAD -- '*.test.ts'` is empty), so
+  nothing could have been weakened. My own file reaches no network and mocks
+  nothing; the whole run above was made with all six proxy spellings pointed at
+  `http://127.0.0.1:1`.
+
+### Mutation log — every test proven able to fail, every mutation reverted
+
+Shape tests on committed data are exactly where a tautology hides, so each
+assertion was broken on purpose. `git status` is clean apart from the new test
+file; all twelve were reverted with `git checkout`.
+
+| Mutation | Went red |
+|---|---|
+| Blank `us-state-ks.json`'s `fun_facts` | criterion 1 (2 tests) |
+| `reviewed: false` on one fact | criterion 2 (boolean test + the byte scan) |
+| `reviewed: "true"` (string) | criterion 2 boolean test only — the criterion's stated boundary |
+| Extra `detail` key on a fact | criterion 2 key-set test |
+| 15-char text | criterion 3 length |
+| ~350-char text, untrimmed, no terminator | criterion 3 length, trim, terminator |
+| 26-word sentence | criterion 3 sentence length (25 still passes) |
+| `"Kansas is a landlocked state in the Midwestern United States region."` | criterion 4 lead-sentence opener |
+| `"…per capita"` and `"…Köppen…"` | the matching banned-word tests, one each |
+| Text that never names Kansas | criterion 5 name-substring |
+| Iowa's text copied from Kansas | criterion 5 dedup **and** name-substring |
+| `source_url` → `null`, `""`, `/wiki/Kansas`, `http://…` | criterion 6 on all four |
+| `normalize.ts` fold-in → conditional spread (key omitted when curated has none) | criterion 8 blank-path test |
+| `normalize.ts` fold-in → back to unconditional `fun_facts: []` | 102 tests, incl. the rebuild byte-identity block |
+| `fun-facts.review.json` force-added under `data/us-states/` | criterion 10 (3 tests) |
+| Both docs reverted to their pre-T-011 wording | criterion 11 (all four ban tests; the positive "still designates" test correctly stayed green) |
+
+Every text mutation also reddened criterion 7's build-input check, which is the
+right coupling: a fact edited in built output no longer appears in the curated
+source.
+
+### Suites, in full
+
+- `question-bank/`: **243 pass, 0 fail** (209 before this run, 34 added), `bun run typecheck` clean.
+- `frontend/`: **184 pass, 0 fail**, `bun run lint` exit 0.
+- `backend/`: **233 passed, 9 skipped**. `git diff main...HEAD -- backend/ frontend/` is empty — the backend suite is untouched in the criterion's sense, and was run anyway.
+
+### Three things the reviewer should look at
+
+1. **`bun run lint` does not exist in `question-bank/`** — criterion 13 asks for
+   it, and the script is absent by deliberate decision recorded in
+   `.github/workflows/ci.yml` ("No lint step: question-bank has no eslint config
+   and no eslint dependency, and adding either is a dependency decision this task
+   may not make on its own"). The criterion's substance — nothing already
+   verified is weakened — is fully verified; the clause names a check that never
+   existed and so cannot have been weakened here. I did not block on it, because
+   spending a cycle to reword a clause about a nonexistent script would be
+   theatre, but the wording defect is real and belongs in a `P`/queue entry
+   rather than in a future brief repeating it.
+2. **`frontend/` typecheck cannot run in this sandbox** and I am not claiming it
+   passes. `bun install --frozen-lockfile` gets `403` from the sandbox npm
+   mirror for `us-atlas`, `topojson-client` and three `d3-*` packages, so
+   `tsc --noEmit` fails on `src/components/UsMap.tsx` with
+   `Cannot find module 'us-atlas/states-10m.json'`. **This is not a regression:**
+   `git diff main...HEAD -- frontend/` is empty, so the inputs to that typecheck
+   are byte-identical to `main`. CI, which installs fully, is the authority.
+3. **The deleted `question-bank/sample-data/fun-facts.review.json`** — the
+   worker's flagged divergence from the brief's "Files expected to change". I
+   agree it is forced: criterion 2 bans `reviewed": false` bytes in anything
+   tracked under `sample-data/`, that file was exactly that, and the only
+   alternatives were deletion or hand-editing built sample output (which the
+   Constraints forbid). The reviewer still owns the call, and
+   `sample-data/README.md` was updated to stop advertising the file.
+
+### The limit of this verdict, stated plainly
+
+Every criterion above is a **shape** criterion. I confirmed 50 facts exist, are
+well-formed, kid-sized, attributed, unique, owned by their state, free of
+reference-article prose, and built rather than hand-edited. I did **not** confirm
+that any of them is true, that its `source_url` supports it, or that it reads
+well to a nine-year-old — no test can, and the brief says so. The Review
+checklist is untouched, all seven boxes open, and the Handoff itself records that
+the drafting model was Sonnet rather than the Opus `process.md` recommends for
+child-facing content. Four facts I would spot-check first, as the most likely to
+be overstated rather than wrong: **Nevada** ("rain that falls there never reaches
+the ocean" is true of the Great Basin, not of the whole state), **Maine** ("the
+sun rises over Maine before anywhere else in the United States" — true of the
+contiguous 48 for part of the year, not of the US including Alaska),
+**Rhode Island** ("over 400 miles of coastline" — usually cited as 384–400), and
+**Louisiana** ("building new land as it goes" — true of delta processes, while
+the state is currently losing coastal land on net). None of these is a criterion
+failure; all four are exactly what the human read is for.
 
 ## Notes
 
