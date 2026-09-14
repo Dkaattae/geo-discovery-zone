@@ -303,6 +303,14 @@ writes a `reviewed: true` fact — no field exists on `CuratedState` today, and
 none of the 50 tracked files under `question-bank/data/us-states/` carries
 anything but `fun_facts: []`.
 
+**Confirmed by Dkaattae, 2026-09-14.** The round-1 reviewer flagged this
+re-reading of Q2 for sign-off before merging rather than treating it as
+routine, since it changes what T-011 builds. Reviewed directly: the reading
+holds — a build input a human edits and the pipeline folds in, not built
+output the pipeline overwrites, is what Q2's own parenthetical already
+allowed, and it is the only shape that survives criterion 6's byte-identical
+rebuild. No change to the decision. T-011 (`tasks.md`) proceeds on this basis.
+
 **What a fresh clone gets, concretely.** `question-bank/README.md` and
 `conventions.md` both now say a clone already contains the 50-state bank, and
 that `bun run build` (live) or `bun run build -- --offline --out
