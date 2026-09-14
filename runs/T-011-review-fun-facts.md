@@ -54,3 +54,36 @@ origin/task/T-011-review-fun-facts -1` matches local HEAD.
 
 G5 check: `Status` changed from `awaiting approval` to `awaiting verification`;
 `Next step` changed from `worker` to `tester`. Not a stall — the header moved.
+
+## Round 3 — tester — 2026-09-14
+
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+Session: `cse_01NqBhtxscKupMdww97kUauJ`
+
+**Verdict: `pass`** — on shape, which is all a test can reach for this task. Pushed to `task/T-011-review-fun-facts`; remote head `19027c6`, carries `question-bank/src/fun-facts.test.ts`. Brief `Status: pass`, `Next step: reviewer`.
+
+**Independence caveat** (as with T-010): session id shared with `task-expander` and `worker` in this orchestrated run, so the Sessions check is inapplicable — the verdict rests on a freshly spawned context that never saw the worker's reasoning.
+
+**All 13 criteria met.** 34 new tests cover criteria 1-8 and 10-11; the pre-existing 209 cover 7's rebuild half, 9 and 13. Criterion 12 and the diff-scoped halves of 10/13 were verified mechanically and recorded in the Verdict rather than committed (a committed version would be vacuous under CI's `fetch-depth: 1`, or permanently red once the reviewer sweeps the brief).
+
+- Criterion 12 checked by parsing the Handoff table against the 50 tracked files: 50 rows, 0 text mismatches, 0 URL mismatches.
+- Criterion 8 exercised, not assumed — CO's curated `fun_facts` deleted in-test, `normalizeUsStates` run on the committed fixture, entity still serializes `"fun_facts": []`; restored in `finally`.
+- Twelve mutations, each reverted: blanked arrays, `reviewed: false`, `reviewed: "true"`, an extra key, a 15-char text, a 26-word sentence, the Wikipedia lead-sentence opener, `Köppen`/`per capita`, a text that never names its state, a duplicated text, four bad `source_url`s, both `normalize.ts` fold-in variants (unconditional `[]` reddened 102 tests), a force-added `fun-facts.review.json`, both docs reverted to pre-T-011 wording. Each reddened the matching test and nothing else; tree clean.
+
+**Suites:** question-bank 243 pass + typecheck clean; frontend 184 pass + lint exit 0; backend 233 passed, 9 skipped.
+
+**Three things for the reviewer:**
+- `bun run lint` does not exist in `question-bank/`, which criterion 13's wording asks for — deliberate, recorded in `ci.yml`. Not blocked: the criterion's substance is fully verified; the wording defect belongs in the queue.
+- `frontend` typecheck cannot run in this sandbox (npm mirror 403s on `us-atlas`/`topojson-client`/three `d3-*` packages) — not a regression, `git diff main...HEAD -- frontend/` is empty.
+- The worker's deleted `question-bank/sample-data/fun-facts.review.json` — forced by criterion 2, but the call is the reviewer's.
+
+**What this verdict does not say, stated plainly.** No test checks whether a fact is true, whether its `source_url` supports it, or whether it reads well to a nine-year-old. All seven Review-checklist boxes are open, and the drafting model was Sonnet rather than Opus (recorded in the Handoff). **Four facts flagged as likely overstated rather than wrong**, for whoever reads the Handoff next: Nevada (endorheic drainage is a Great Basin fact, not whole-state), Maine (first US sunrise holds for the contiguous 48, and only part of the year), Rhode Island (coastline is usually cited 384-400 miles, check the figure used), Louisiana (delta land-building versus the state's current net coastal *loss*). Merging this PR without a named human reading all 50 ships unreviewed text to children.
+
+## Orchestrator checkpoint — 2026-09-14 (round 3)
+
+The tester pushed its own commit (`19027c6`) successfully. Confirmed `git log
+origin/task/T-011-review-fun-facts -1` matches local HEAD.
+
+G5 check: `Status` changed from `awaiting verification` to `pass`; `Next step`
+changed from `tester` to `reviewer`. Not a stall — the header moved.
