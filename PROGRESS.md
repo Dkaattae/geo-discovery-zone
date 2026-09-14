@@ -113,7 +113,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Ranks computed across the full field and suppressed to `null` on a partial
   build, so a one-state run cannot claim Colorado is the largest state.
 - Wikipedia summary pass writes `fun-facts.review.json` for human review —
-  unreviewed text never reaches an entity's shippable fields (§1.6).
+  unreviewed text never reaches an entity's shippable fields (§1.6). Reviewed
+  text comes from the other direction: a `fun_facts` field on `CuratedState`
+  (`src/curated/us-states.ts`), folded into each entity by `normalize.ts` the way
+  `climate_kid` and `landmark` already are. **All 50 states carry one fact**
+  (T-011).
 - `EntitySink` seam, one committed sample run, and a recorded fixture of a real
   50-row response so `--offline` reproduces a full build with no network.
 - **The built 50-state bank is committed** (`question-bank/data/us-states/`,
@@ -123,12 +127,13 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   clock), which `committed-bank.test.ts` ("T-010 criteria 6 and 8") checks on
   every `bun test` by actually running the offline build twice and diffing the
   bytes. T-040 still needs to write, this only settles what it reads from.
-  Reviewed fun-fact text (T-011) will live in `question-bank/src/curated/us-states.ts`
-  as a build input, not in the built output the rebuild overwrites — see E-6.
-- 209 tests (19 pre-existing, the rest added by T-010 across
-  `data-us-states.test.ts` and `committed-bank.test.ts`). That figure has gone
-  stale three times in as many rounds — T-065 replaces the hard-coded counts in
-  this file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
+  Reviewed fun-fact text lives in `question-bank/src/curated/us-states.ts` as a
+  build input, not in the built output the rebuild overwrites — see E-6, and
+  T-011 filled it for all 50 states.
+- 243 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
+  and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`). That figure
+  has now gone stale five times — T-065 replaces the hard-coded counts in this
+  file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
 
 ### Repo and process
 
@@ -250,6 +255,33 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-011 — every state has a fun fact, written for a nine-year-old** (PR #41,
+  2026-09-14). `CuratedState` gained a `fun_facts` field,
+  `normalize.ts` folds it into each entity (`fun_facts: curated.fun_facts ?? []`,
+  so a state with none still emits the key), and the 50-state bank was **rebuilt
+  offline** to carry the result — never hand-edited, per E-6. All 50 states have
+  one fact, `reviewed: true`, 56–104 characters, each naming its own state and
+  carrying an `https://` `source_url`. 34 tests in
+  `question-bank/src/fun-facts.test.ts` (209 → 243), each proven able to fail by
+  mutation.
+  *Where reality differed from the brief:* three things. **A stale review draft
+  had to be deleted** — `question-bank/sample-data/fun-facts.review.json` carried
+  Colorado's raw `reviewed: false` Wikipedia prose and was tracked, which
+  criterion 2 bans under `sample-data/` as well as `data/`; it was not on the
+  brief's "files expected to change" list, and the reviewer confirmed the
+  deletion as forced rather than optional. **Criterion 13 named a check that does
+  not exist** — there is no `bun run lint` in `question-bank/`, deliberately
+  (no eslint config, no eslint dependency, and adding one is a dependency
+  decision) — now T-066. **`source_url` is each state's general Wikipedia
+  article**, not a citation for the specific claim: enough for criterion 6 and for
+  a "read more" link, but it means verifying a fact against its URL is real work
+  rather than a click.
+  *And the part no test closed:* the facts' **truth and tone are unverified**. The
+  brief's seven-box review checklist is the gate, the PR was escalated for it
+  (`process-decisions.md` D-4a — content for children always goes to a human),
+  and the drafting model was Sonnet rather than the Opus `process.md` recommends
+  for this kind of content.
 
 - **T-010 — the built 50-state bank is committed** (PR #37, 2026-09-12). A
   decision task, answered by Dkaattae: `question-bank/data/us-states/` — 50
@@ -469,8 +501,12 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - **The pipeline's 50 states never reach the app.** `backend/app/data/content.json`
   was hand-copied from the deleted `frontend/src/data/`; no loader bridges the two
   (T-040).
-- Fun facts for the other 35 states are drafted but **not reviewed**. Nothing
-  ships until a human rewrites them (§1.6).
+- Fun facts: all 50 exist in the **pipeline** bank, curated and marked
+  `reviewed: true` (T-011, PR #41). Two things are still open. Their **substance**
+  — are they true, do they read well to a nine-year-old — is a human read, and
+  the checklist for it lives on PR #41 rather than in any test. And nothing
+  serves them: the app's fun facts are still the 15 hand-written ones in
+  `backend/app/data/content.json` until T-040 and T-050.
 - `state_animal` is **0 of 50**; `landmark` and `climate_kid` are **1 of 50**;
   `top_crops` is empty. These are the data behind four unbuilt topics.
 - **Two region vocabularies exist and they disagree** — eight in the pipeline,
@@ -512,10 +548,11 @@ states deep.
 
 The shortest path to an app that is worth playing for an hour:
 
-1. **T-040** — a loader, so the pipeline's output becomes the served bank.
-2. **T-011** — review the 50 fun facts, the step that makes it feel handmade.
-3. **T-050** — 50 states in the app, and a map that can actually fill.
-4. **T-026 starting with superlatives** — a third topic for free, since the rank
+1. **T-040** — a loader, so the pipeline's output becomes the served bank. It is
+   now the only thing between the curated 50-state bank and a child (T-011
+   landed the fun facts, PR #41).
+2. **T-050** — 50 states in the app, and a map that can actually fill.
+3. **T-026 starting with superlatives** — a third topic for free, since the rank
    fields are already populated.
 
 CI now guards all of it: the backend, the Postgres path and the compose stack
