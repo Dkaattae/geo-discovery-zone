@@ -1,0 +1,33 @@
+{
+  "id": "us-state-or",
+  "type": "state",
+  "scope": "us",
+  "name": "Oregon",
+  "capital": "Salem",
+  "geometry_id": "41",
+  "region": "Pacific Northwest",
+  "centroid": [
+    -120.575,
+    43.935833333
+  ],
+  "population": 4237256,
+  "population_rank": 27,
+  "area_km2": 255026,
+  "area_rank": 9,
+  "borders": [
+    "us-state-ca",
+    "us-state-id",
+    "us-state-nv",
+    "us-state-wa"
+  ],
+  "highest_point": "Mount Hood",
+  "highest_point_m": 11237,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q824",
+    "wikipedia_title": "Oregon",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

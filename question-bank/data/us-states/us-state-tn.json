@@ -1,0 +1,37 @@
+{
+  "id": "us-state-tn",
+  "type": "state",
+  "scope": "us",
+  "name": "Tennessee",
+  "capital": "Nashville",
+  "geometry_id": "47",
+  "region": "Southeast",
+  "centroid": [
+    -86,
+    36
+  ],
+  "population": 6910840,
+  "population_rank": 16,
+  "area_km2": 109247,
+  "area_rank": 36,
+  "borders": [
+    "us-state-al",
+    "us-state-ar",
+    "us-state-ga",
+    "us-state-ky",
+    "us-state-mo",
+    "us-state-ms",
+    "us-state-nc",
+    "us-state-va"
+  ],
+  "highest_point": "Kuwohi",
+  "highest_point_m": 2025,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1509",
+    "wikipedia_title": "Tennessee",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

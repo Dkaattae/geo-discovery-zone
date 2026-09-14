@@ -1,0 +1,32 @@
+{
+  "id": "us-state-ct",
+  "type": "state",
+  "scope": "us",
+  "name": "Connecticut",
+  "capital": "Hartford",
+  "geometry_id": "09",
+  "region": "Northeast",
+  "centroid": [
+    -72.7,
+    41.6
+  ],
+  "population": 3605944,
+  "population_rank": 29,
+  "area_km2": 14357,
+  "area_rank": 48,
+  "borders": [
+    "us-state-ma",
+    "us-state-ny",
+    "us-state-ri"
+  ],
+  "highest_point": "Mount Frissell",
+  "highest_point_m": 748,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q779",
+    "wikipedia_title": "Connecticut",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

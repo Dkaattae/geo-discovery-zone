@@ -1,0 +1,36 @@
+{
+  "id": "us-state-ky",
+  "type": "state",
+  "scope": "us",
+  "name": "Kentucky",
+  "capital": "Frankfort",
+  "geometry_id": "21",
+  "region": "Southeast",
+  "centroid": [
+    -85,
+    37.5
+  ],
+  "population": 4505836,
+  "population_rank": 26,
+  "area_km2": 104659,
+  "area_rank": 37,
+  "borders": [
+    "us-state-il",
+    "us-state-in",
+    "us-state-mo",
+    "us-state-oh",
+    "us-state-tn",
+    "us-state-va",
+    "us-state-wv"
+  ],
+  "highest_point": "Black Mountain",
+  "highest_point_m": 1263,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1603",
+    "wikipedia_title": "Kentucky",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

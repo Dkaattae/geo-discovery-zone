@@ -1,0 +1,31 @@
+{
+  "id": "us-state-wa",
+  "type": "state",
+  "scope": "us",
+  "name": "Washington",
+  "capital": "Olympia",
+  "geometry_id": "53",
+  "region": "Pacific Northwest",
+  "centroid": [
+    -120.5,
+    47.5
+  ],
+  "population": 7705281,
+  "population_rank": 13,
+  "area_km2": 184827,
+  "area_rank": 18,
+  "borders": [
+    "us-state-id",
+    "us-state-or"
+  ],
+  "highest_point": "Mount Rainier",
+  "highest_point_m": 4389,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1223",
+    "wikipedia_title": "Washington_(state)",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

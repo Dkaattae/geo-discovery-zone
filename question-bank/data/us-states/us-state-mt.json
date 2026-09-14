@@ -1,0 +1,33 @@
+{
+  "id": "us-state-mt",
+  "type": "state",
+  "scope": "us",
+  "name": "Montana",
+  "capital": "Helena",
+  "geometry_id": "30",
+  "region": "Mountain West",
+  "centroid": [
+    -110,
+    47
+  ],
+  "population": 1084225,
+  "population_rank": 44,
+  "area_km2": 381154,
+  "area_rank": 4,
+  "borders": [
+    "us-state-id",
+    "us-state-nd",
+    "us-state-sd",
+    "us-state-wy"
+  ],
+  "highest_point": "Granite Peak",
+  "highest_point_m": 3904,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1212",
+    "wikipedia_title": "Montana",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

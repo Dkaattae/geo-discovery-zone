@@ -34,7 +34,9 @@ pinned the client's level labels to the server's (PR #23). Swept again
 on warnings (PR #29). Swept again 2026-09-04, after T-007 made `conventions.md`
 describe the repo that exists (PR #33), and again the same day after T-008 pinned
 the third-party CI actions by SHA (PR #34). Swept again 2026-09-11, after T-058
-put `README.md`'s CI claims under the same test (PR #35)._
+put `README.md`'s CI claims under the same test (PR #35). Swept again 2026-09-12,
+after T-010 committed the 50-state bank and recorded the decision as `E-6`
+(PR #37)._
 
 ## How this list is ordered
 
@@ -93,7 +95,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 184 frontend, 19 question-bank |
+| **Unit and endpoint tests** | 242 backend, 184 frontend, 209 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -210,23 +212,71 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-010 — Decide: commit the 50-state output, or keep it generated · S · todo
+### T-063 — Periodic pipeline to refresh the committed 50-state data · M · todo
+**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
+Split out of T-010's Q1: once `question-bank/data/` is committed, it goes stale
+against Wikidata unless something regenerates and diffs it on a schedule. Design
+and build that refresh (likely a scheduled CI job that reruns the pipeline live
+and opens a PR with the diff — `.github/workflows/ci.yml`'s existing jobs run
+offline on purpose, per T-005, so this is a new one). Explicitly out of scope for
+T-010 itself.
+**Done when:** the committed bank can be refreshed from live Wikidata on a
+schedule without a human running the pipeline by hand, and a stale bank is
+visible (a PR, an alert, or both) rather than silent.
+
+### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
+**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
+Split out of T-010's Q3: `sample-data/` (one committed state, with its own
+README) stays alongside the full 50-state commit for now, on purpose — kept
+until the committed bank is shown to work end to end. Once that is proven, it is
+redundant and this task removes it, updating anything that pointed at it as an
+example (`question-bank/README.md`, `conventions.md`).
+**One thing it must not miss:** `question-bank/src/committed-bank.test.ts`'s
+criterion-4 tests compare the tracked `us-state-co.json` against
+`sample-data/us-state-co.json`. Deleting `sample-data/` makes them throw, so this
+task removes or re-points them — found by T-010's tester, recorded here so it is
+not a surprise.
+**Done when:** `sample-data/` is deleted, or this task is dropped with the reason
+it turned out still to earn its place.
+
+### T-065 — Refresh the stale suite-size counts, and stop them going stale · S · todo
 **Depends on:** —
-`question-bank/data/` is gitignored today. Committing it makes builds
-reproducible without network and gives reviewable diffs when Wikidata shifts;
-keeping it generated avoids a large blob that goes stale. T-040 sharpens this:
-if a loader reads that JSON to seed the database, "regenerate it from Wikidata
-first" becomes a step in every deploy that does not have one today.
-**Done when:** the decision is recorded in `PROGRESS.md` and `.gitignore` matches it.
+`test-guidelines.md:209` (`# 19 tests today`) still quotes a count that is
+already wrong and will be wrong again. `question-bank` alone went 19 → 209 in
+T-010, and the number moved **three times inside that one PR** — each round of
+worker and tester added tests, and each round left a doc naming the previous
+figure. T-010's sweep corrected `PROGRESS.md`'s bullet and this file's coverage
+table to 209 by hand, which is the third hand-correction and the argument for
+this task: **prefer removing the figures to refreshing them again.** This is
+exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
+(T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
+**Done when:** the counts match a real run, and either a test asserts them
+against the suite or the numbers are replaced by something that cannot rot (a
+command to run, not a figure).
 
 ### T-011 — Review the 50 draft fun facts · M · todo
-**Depends on:** —
+**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
 Run the pipeline for all 50 states, then rewrite each draft in kid language and
 set `reviewed: true`. Flag anything grim or confusing rather than softening it.
 This is the step that makes the app feel handmade instead of scraped (plan §1.6).
 The 15 states shipped today already have human-written prose; these are the
 other 35 plus anything the pipeline drafts fresh.
-**Done when:** 50 reviewed facts exist and the app can read them.
+**Where the reviewed text goes, settled by T-010 (`engineering-decisions.md`
+E-6):** a new field on `CuratedState` in `question-bank/src/curated/us-states.ts`
+— a build **input**, hand-edited the way `climate_kid` and `landmark` already
+are — plus the fold-in in `normalize.ts` that puts it in each entity's
+`fun_facts`. Neither the field nor the fold-in exists yet; this task adds both.
+Do **not** hand-edit the tracked files under `question-bank/data/us-states/`: an
+offline rebuild overwrites them wholesale with `fun_facts: []`.
+**Two things this task must not miss.** (a) After adding the field and the
+fold-in, **rebuild the bank offline and commit the result**
+(`bun run build -- --offline --out data/us-states`) — the 50 tracked files
+change, and 51 byte-identity tests in `question-bank/src/committed-bank.test.ts`
+go red until they are regenerated. (b) The live pipeline's
+`fun-facts.review.json` is gitignored on purpose; the drafts are read from it,
+not committed from it.
+**Done when:** 50 reviewed facts exist in the curated source, the committed bank
+is rebuilt to carry them, and the app can read them.
 
 ### T-012 — Curate state animals · S · todo
 **Depends on:** —
@@ -369,12 +419,16 @@ deleted. This section is that bridge, and it is the highest-leverage work in the
 queue: every curation and generation task above is invisible until it exists.
 
 ### T-040 — Loader: pipeline JSON → the served bank · M · todo
-**Depends on:** T-010
+**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
 **Rewritten 2026-08-24.** The old entry said "replace the hand-written
 `frontend/src/data/` with generated data, bundled at build time". That directory
 is gone and the app fetches everything from the API, so the task moved
 downstream: a Python command that reads `question-bank/`'s output and upserts
 into `entities` and `questions`, idempotent on id.
+**T-010 resolved 2026-09-12 (E-6): the loader reads the committed
+`question-bank/data/us-states/`.** That JSON is tracked in git, not generated at
+deploy time — seeding needs no live Wikidata run when this loader runs. This
+task does not get to re-decide that; it consumes the committed bank as-is.
 
 Half of it already exists — `store.ensure_content_loaded` reads
 `app/data/content.json` at startup, keyed on content version, and reloading is a

@@ -1,0 +1,34 @@
+{
+  "id": "us-state-ga",
+  "type": "state",
+  "scope": "us",
+  "name": "Georgia",
+  "capital": "Atlanta",
+  "geometry_id": "13",
+  "region": "Southeast",
+  "centroid": [
+    -83.5,
+    33
+  ],
+  "population": 10711908,
+  "population_rank": 8,
+  "area_km2": 153909,
+  "area_rank": 24,
+  "borders": [
+    "us-state-al",
+    "us-state-fl",
+    "us-state-nc",
+    "us-state-sc",
+    "us-state-tn"
+  ],
+  "highest_point": "Brasstown Bald",
+  "highest_point_m": 1458,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1428",
+    "wikipedia_title": "Georgia_(U.S._state)",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

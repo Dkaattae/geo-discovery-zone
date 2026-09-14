@@ -116,7 +116,19 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   unreviewed text never reaches an entity's shippable fields (§1.6).
 - `EntitySink` seam, one committed sample run, and a recorded fixture of a real
   50-row response so `--offline` reproduces a full build with no network.
-- 19 tests.
+- **The built 50-state bank is committed** (`question-bank/data/us-states/`,
+  T-010, `engineering-decisions.md` **E-6**) — a fresh clone already has it, and
+  an offline rebuild from the committed fixture reproduces it byte-for-byte
+  (`sources.built_at` now comes from the fixture's capture time, not wall
+  clock), which `committed-bank.test.ts` ("T-010 criteria 6 and 8") checks on
+  every `bun test` by actually running the offline build twice and diffing the
+  bytes. T-040 still needs to write, this only settles what it reads from.
+  Reviewed fun-fact text (T-011) will live in `question-bank/src/curated/us-states.ts`
+  as a build input, not in the built output the rebuild overwrites — see E-6.
+- 209 tests (19 pre-existing, the rest added by T-010 across
+  `data-us-states.test.ts` and `committed-bank.test.ts`). That figure has gone
+  stale three times in as many rounds — T-065 replaces the hard-coded counts in
+  this file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
 
 ### Repo and process
 
@@ -238,6 +250,32 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-010 — the built 50-state bank is committed** (PR #37, 2026-09-12). A
+  decision task, answered by Dkaattae: `question-bank/data/us-states/` — 50
+  entity files plus `index.json`, 39.5 KB — is now tracked, and the reasoning is
+  `engineering-decisions.md` **E-6** (with the rejected option's real cost,
+  staleness against a continuously-edited Wikidata, and a revisit trigger).
+  `.gitignore`, `README.md`, `conventions.md`, `PROGRESS.md` and `tasks.md`'s
+  T-040 entry were brought into line, and 190 tests were added (19 → 209).
+  *Where reality differed from the brief:* three things. **The determinism fix
+  was much smaller than expected** — `normalizeUsStates` already took
+  `options.builtAt`, so the whole of criterion 6 came down to `build.ts`'s
+  `fixtureTransport` stashing the fixture's `_fixture.captured_at` as it read the
+  file. `built_at` therefore changed meaning on the offline path, to "the fixture
+  this build replayed was captured at X"; the live path still stamps wall clock.
+  **Q2's answer was re-read during review.** The brief recorded reviewed fun-fact
+  text as living in the built output; the review found that an offline rebuild
+  overwrites those files wholesale with `fun_facts: []`, so E-6 names a build
+  *input* instead — a field on `CuratedState` in
+  `question-bank/src/curated/us-states.ts`, folded in by `normalize.ts` the way
+  `climate_kid` already is. That is inside Q2's own wording ("or the source the
+  build folds into it") but it is a re-reading of a human's answer, and the PR
+  was escalated for Dkaattae to confirm rather than merged as routine. T-011 now
+  carries what it inherits. **The `!data/us-states` negation un-ignored more than
+  the bank** — a default live run writes `fun-facts.review.json` with
+  `reviewed: false` into that same directory, which review caught and a third
+  ignore rule closes. Two review rounds; round 1 sent all three of these back.
 
 - **T-058 — `README.md` describes the CI that runs** (PR #35, 2026-09-11).
   `README.md` claimed CI ran **five** jobs and named five; six have run on every

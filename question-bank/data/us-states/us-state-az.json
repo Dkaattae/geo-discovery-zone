@@ -1,0 +1,34 @@
+{
+  "id": "us-state-az",
+  "type": "state",
+  "scope": "us",
+  "name": "Arizona",
+  "capital": "Phoenix",
+  "geometry_id": "04",
+  "region": "Southwest",
+  "centroid": [
+    -111.656944444,
+    34.286666666
+  ],
+  "population": 7151502,
+  "population_rank": 14,
+  "area_km2": 295234,
+  "area_rank": 6,
+  "borders": [
+    "us-state-ca",
+    "us-state-co",
+    "us-state-nm",
+    "us-state-nv",
+    "us-state-ut"
+  ],
+  "highest_point": "Humphreys Peak",
+  "highest_point_m": 12622,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q816",
+    "wikipedia_title": "Arizona",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

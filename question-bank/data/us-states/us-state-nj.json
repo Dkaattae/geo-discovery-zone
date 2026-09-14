@@ -1,0 +1,32 @@
+{
+  "id": "us-state-nj",
+  "type": "state",
+  "scope": "us",
+  "name": "New Jersey",
+  "capital": "Trenton",
+  "geometry_id": "34",
+  "region": "Northeast",
+  "centroid": [
+    -74.5,
+    40
+  ],
+  "population": 9288994,
+  "population_rank": 11,
+  "area_km2": 22591.4,
+  "area_rank": 47,
+  "borders": [
+    "us-state-de",
+    "us-state-ny",
+    "us-state-pa"
+  ],
+  "highest_point": "High Point",
+  "highest_point_m": 550,
+  "top_crops": [],
+  "fun_facts": [],
+  "sources": {
+    "wikidata_id": "Q1408",
+    "wikipedia_title": "New_Jersey",
+    "built_at": "2026-08-04T16:05:35.000Z",
+    "builder_version": "0.1.0"
+  }
+}

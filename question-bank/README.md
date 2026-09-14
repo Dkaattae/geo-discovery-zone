@@ -10,14 +10,30 @@ built until the US loop feels good (§4).
 
 ## Run it
 
+**`data/us-states/` — the built 50-state bank — is committed** (`E-6` in
+[`engineering-decisions.md`](../engineering-decisions.md)). A fresh clone
+already has it; you only need to run the build to refresh it.
+
 ```bash
 bun install
 
 bun run build:sample     # offline: recorded fixture → sample-data/
 bun run build            # live: query.wikidata.org → data/us-states/
+bun run build -- --offline --out data/us-states   # offline refresh of the committed bank
 bun run build -- --states CO,VT --out data/subset
 bun run typecheck
 ```
+
+The offline refresh is deterministic: it takes `built_at` from the fixture's own
+`_fixture.captured_at` instead of wall clock, so running it twice in a row
+leaves `git status` empty both times — `src/committed-bank.test.ts` ("T-010
+criteria 6 and 8 — the tracked bytes are what an offline rebuild produces")
+actually spawns the CLI offline twice into a throwaway directory and diffs the
+bytes against what's tracked, so a tracked file drifting from what the fixture
+produces fails CI rather than shipping quietly. A **live** run legitimately
+differs run to run, since Wikidata itself changes; that is expected and is a
+separate decision (`tasks.md` T-063, not yet built) about *when* to refresh the
+committed bank, not whether it is committed.
 
 | Flag | Meaning |
 |---|---|
@@ -120,5 +136,10 @@ src/
   normalize.ts            rows + curation → entities
   sinks/                  json.ts, db.ts, index.ts
   fixtures/               recorded SPARQL responses for offline runs
-sample-data/              output of one committed run
+data/us-states/           the committed 50-state bank (E-6) — one file per
+                          entity plus index.json, reproducible offline from
+                          fixtures/us-states.sparql.json
+sample-data/              output of one committed single-state run, kept as a
+                          teaching example of the entity shape (T-064 revisits
+                          this now that the full bank is committed alongside it)
 ```
