@@ -1,7 +1,7 @@
 # T-012 — Curate state animals
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** katechen150621@gmail.com, 2026-09-15
 **From:** [`tasks.md`](../tasks.md) T-012
 **Branch:** `claude/laughing-brown-iiooy9` — this session's harness assigned it and
@@ -20,6 +20,7 @@ approves it.
 |---|---|---|
 | task-expander | 2026-09-15 | cse_01Wc3UR6unsEDFGsaxbim3HB |
 | worker | 2026-09-15 | cse_01Wc3UR6unsEDFGsaxbim3HB |
+| tester | 2026-09-15 | cse_01Wc3UR6unsEDFGsaxbim3HB — same id as the two rows above. This environment assigns one id to every role, so the step-4 check cannot discriminate here; see the Verdict's "Independence" paragraph. |
 
 ---
 
@@ -479,7 +480,110 @@ bun run build:sample      # regenerates sample-data/us-state-co.json
 
 ## Verdict
 
-Written by `tester`.
+**Pass.** All 12 acceptance criteria hold against the tracked bank and the
+curated build input. `question-bank/src/state-animals.test.ts` adds 96 tests
+written from the criteria; the suite is **339 pass / 0 fail** (243 before this
+task, unchanged) and `bun run typecheck` is clean. Two things for the reviewer,
+neither a criterion failure: the **session-id independence check could not be
+performed** (below), and the Handoff's prose says "All other 33 values are
+unique to one state" where the bank has **30**.
+
+**Independence — read this before trusting the verdict.** This environment
+assigns every role on this task the same `$CLAUDE_CODE_REMOTE_SESSION_ID`
+(`cse_01Wc3UR6unsEDFGsaxbim3HB`), already on both the `task-expander` and
+`worker` rows. The check `process.md` step 4 describes therefore **did not pass
+and did not fail — it cannot discriminate here**, and I am not claiming it did.
+What independence there is rests on the weaker evidence that I am a freshly
+spawned agent with my own context window: I never saw the work happen, have no
+access to the worker's reasoning, and derived every expected value below from
+the criteria and the Handoff rather than from the code. A human should confirm
+the session separation before treating this as a fully independent verdict.
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | Blanks declared, none silent | pass | Handoff declares **no blanks**; all 50 tracked files carry `state_animal` (50 − 0) |
+| 2 | Blank = absent key, others non-empty | pass | No `""`, `null` or `"unknown"`; all 50 values are non-empty strings |
+| 3 | Kid-sized common name | pass | All 50 checked: lengths 4–28 (cap 3–40), each equals its `trim()`, no newline/tab, no digit, starts with a letter, none all-caps |
+| 4 | No prose, no scientific name | pass | All 50: no `( ) , ; : .`; none of the nine forbidden words, case-insensitively |
+| 5 | Text lives in the build input | pass | Per-postal bijection curated ↔ tracked, 50/50, no mismatches; each string occurs verbatim in `us-states.ts` |
+| 6 | Built, not hand-edited | pass | Two `--offline` rebuilds behind a dead proxy: 51 paths each, `diff -r` identical to each other **and** to `data/us-states/`; `built_at` is `2026-08-04T16:05:35.000Z` in all 50 |
+| 7 | Sample in step with the bank | pass | `sample-data/us-state-co.json` equals tracked CO except `sources.built_at`; both carry `Rocky Mountain bighorn sheep` |
+| 8 | Nothing but `state_animal` moves | pass | `git diff ebd0635 HEAD` on `data/`+`sample-data/`: 51 files, **51 insertions, 0 deletions**, every changed line a `"state_animal"` line; `index.json` byte-identical; `landmark` = {Colorado}, `climate_kid` = {Colorado} |
+| 9 | Duplicates disclosed | pass | Computed groups equal the Handoff table exactly: deer ×10, black bear ×3, bison ×3, moose ×2, beaver ×2 |
+| 10 | All 50 readable in one place | pass | Handoff table has 50 rows × 5 non-empty columns; every claimed string equals the shipped string, and no state ships a value the table omits |
+| 11 | Nothing unreviewed, live or new | pass | No `reviewed": false` under `data/` or `sample-data/`; no tracked `*.review.json`; no `package.json`/lockfile changed anywhere in the repo; no test calls or stubs `fetch` |
+| 12 | Nothing already verified is weakened | pass | No test file changed vs the branch point; `bun test` 339/0, `bun run typecheck` clean; `frontend/`, `backend/`, `api/`, `openapi.yaml` untouched. No `bun run lint` exists in `question-bank/` and none was invented (T-066) |
+
+### What I ran
+
+```
+cd question-bank
+bun run src/build.ts --offline --out <tmp>/rb1 --quiet   # all six proxies → http://127.0.0.1:1
+bun run src/build.ts --offline --out <tmp>/rb2 --quiet
+diff -r rb1 rb2          # identical
+diff -r rb1 data/us-states   # identical
+bun test                 # 339 pass, 0 fail, 4608 expect() calls, 6 files
+bun run typecheck        # clean
+```
+
+Tracked bank is 50.2 KB, inside the 200 KB cap. No test reaches the network;
+nothing mocks `fetch`; no fixture was edited.
+
+### Mutation check — the new tests can actually fail
+
+Every mutation was reverted; `git status` afterwards shows only the new test
+file. Each line names what went red.
+
+| Mutation | Went red |
+|---|---|
+| Dropped `state_animal` from `us-state-wy.json` | criteria 1 (×3), 5, 6, 9 (×2), 10 |
+| `us-state-ut.json` → `"Official state mammal: Elk (Cervus canadensis), adopted 1971"` | criteria 3 (×2), 4 (×2), 5 (×4), 6, 10 (×2) |
+| Added `landmark`/`climate_kid`/`top_crops` to `us-state-tx.json`; `us-state-sd.json` → `"COYOTE"` with a moved `built_at` | criteria 3, 5 (×4), 6 (×3, incl. the pinned `built_at`), 8 (×3), 10 (×2) |
+| `us-state-nv.json` → `""` | criterion 2 (×2), 3 (×2) |
+| Changed `state_animal` in `sample-data/us-state-co.json` only | criterion 7 (×2) |
+| `us-state-or.json` Beaver → Elk (breaks a disclosed duplicate group) | criterion 9 (×2), 6, 10 |
+| `reviewed: false` in `us-state-hi.json`; `left-pad` added to `package.json`; one `test()` deleted from `fun-facts.test.ts` | criteria 6, 11 (×2), 12 |
+| A `fetch(...)` call appended to `sparql.test.ts`; `state_animal` inserted into `index.json` | criteria 6, 8, 11 |
+
+### Notes, decisions and things the reviewer should not miss
+
+- **Criterion 5 has one ambiguity, resolved inside the brief, not by me.** Read
+  literally, "every `state_animal` value in that file appears in **exactly one**
+  tracked file" would fail on the ten states sharing the white-tailed deer.
+  Criterion 9 in the same brief explicitly permits shared values, so the only
+  internally consistent reading is the per-*row* one — each curated row's value
+  is carried by its own state's file, matched by `postal`. That is what the test
+  asserts, and it is stated in the test file's comment. Not `blocked`: the brief
+  resolves it against itself.
+- **The Handoff undercounts its own unique values.** It says "All other 33
+  values are unique to one state"; the bank holds **35 distinct values — 5
+  shared, 30 unique to one state**. Criterion 9 asks only that the *duplicate
+  table* match the data, and it does, exactly. The stray "33" is prose, not a
+  criterion, but it is wrong and worth a one-word fix.
+- **Three judgment calls the worker flagged are content questions for you, not
+  for a test** — no shape check can adjudicate them, and I did not try:
+  - **California grizzly bear** — extinct in the wild since 1924, still the
+    official state animal and the thing a child gets quizzed on.
+  - **Michigan white-tailed deer vs wolverine** — the deer is the codified
+    statute (state game animal, 1997); the wolverine is "traditional" folklore
+    behind the state's own nickname, which is what a nine-year-old would say.
+  - **Virginia big-eared bat** — chosen over falling back to the cardinal
+    because it is a real, singular Virginia designation; the worker itself calls
+    this the closest call of the fifty.
+  - Also worth a glance: **New Jersey's "Horse"**, plain by law, and the six
+    bird fallbacks (**ID, IN, IA, MD, MN, ND**) the brief's Out-of-scope section
+    sanctions.
+- **Three properties are of this branch's *diff*, not of the tree**, and are
+  recorded above rather than committed as tests — criterion 8's "only difference
+  from the default branch", criterion 11's "no lockfile gains a dependency" and
+  criterion 12's "no assertion is loosened". CI checks out at `fetch-depth: 1`,
+  so `origin/main` does not exist there and a committed diff test would pass
+  vacuously. This follows the precedent set at the foot of
+  `committed-bank.test.ts` for T-010's criteria 17–18. Each of the three still
+  has a tree-shaped test that runs everywhere (the `landmark`/`climate_kid`
+  sets, the `package.json` dependency shape, pinned per-file test counts).
+- **Files I added:** `question-bank/src/state-animals.test.ts` only. No source
+  file was edited by me at any point.
 
 ## Review
 
