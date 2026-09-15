@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date
+**Approved:** katechen150621@gmail.com, 2026-09-15
 **From:** [`tasks.md`](../tasks.md) T-012
 **Branch:** `claude/laughing-brown-iiooy9` — this session's harness assigned it and
 forbids pushing elsewhere (`CLAUDE.md` "Branches", `process.md` "When the
