@@ -21,7 +21,13 @@
   "highest_point": "Jerimoth Hill",
   "highest_point_m": 247,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Rhode Island is the smallest state, yet it has over 400 miles of coastline.",
+      "source_url": "https://en.wikipedia.org/wiki/Rhode_Island",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1387",
     "wikipedia_title": "Rhode_Island",

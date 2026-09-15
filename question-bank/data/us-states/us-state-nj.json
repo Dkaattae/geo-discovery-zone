@@ -22,7 +22,13 @@
   "highest_point": "High Point",
   "highest_point_m": 550,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "New Jersey is home to the first boardwalk in the country, built in Atlantic City in 1870.",
+      "source_url": "https://en.wikipedia.org/wiki/New_Jersey",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1408",
     "wikipedia_title": "New_Jersey",

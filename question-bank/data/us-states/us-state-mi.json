@@ -24,7 +24,13 @@
   "highest_point": "Mount Arvon",
   "highest_point_m": 603,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Michigan is shaped like a mitten, and it touches four of the five Great Lakes.",
+      "source_url": "https://en.wikipedia.org/wiki/Michigan",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1166",
     "wikipedia_title": "Michigan",

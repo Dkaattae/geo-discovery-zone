@@ -23,7 +23,13 @@
   "highest_point": "Cheaha Mountain",
   "highest_point_m": 735.5,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Alabama's Space & Rocket Center displays a real Saturn V moon rocket lying on its side.",
+      "source_url": "https://en.wikipedia.org/wiki/Alabama",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q173",
     "wikipedia_title": "Alabama",

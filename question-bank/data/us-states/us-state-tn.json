@@ -27,7 +27,13 @@
   "highest_point": "Kuwohi",
   "highest_point_m": 2025,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Tennessee is home to Great Smoky Mountains National Park, the most visited national park in the country.",
+      "source_url": "https://en.wikipedia.org/wiki/Tennessee",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1509",
     "wikipedia_title": "Tennessee",

@@ -25,7 +25,13 @@
   "highest_point": "Borah Peak",
   "highest_point_m": 3857,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Idaho grows more potatoes than any other state, and its license plates say Famous Potatoes.",
+      "source_url": "https://en.wikipedia.org/wiki/Idaho",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1221",
     "wikipedia_title": "Idaho",

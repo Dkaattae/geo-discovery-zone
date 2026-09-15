@@ -24,7 +24,13 @@
   "highest_point": "Brasstown Bald",
   "highest_point_m": 1458,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Georgia grows more peanuts than any other state in the whole country.",
+      "source_url": "https://en.wikipedia.org/wiki/Georgia",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1428",
     "wikipedia_title": "Georgia_(U.S._state)",

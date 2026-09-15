@@ -18,7 +18,13 @@
   "highest_point": "Mauna Kea",
   "highest_point_m": 4207.3,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Hawaii is made of volcanoes, and it is still growing today.",
+      "source_url": "https://en.wikipedia.org/wiki/Hawaii",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q782",
     "wikipedia_title": "Hawaii",

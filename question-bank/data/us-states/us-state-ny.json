@@ -24,7 +24,13 @@
   "highest_point": "Mount Marcy",
   "highest_point_m": 1629,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "New York City is the biggest city in the country, but it is not the state capital.",
+      "source_url": "https://en.wikipedia.org/wiki/New_York",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1384",
     "wikipedia_title": "New_York_(state)",

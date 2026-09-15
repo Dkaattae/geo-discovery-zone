@@ -21,7 +21,13 @@
   "highest_point": "Mount Rainier",
   "highest_point_m": 4389,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "One side of Washington is a rainforest and the other side is nearly a desert.",
+      "source_url": "https://en.wikipedia.org/wiki/Washington_(state)",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1223",
     "wikipedia_title": "Washington_(state)",

@@ -22,7 +22,13 @@
   "highest_point": "Driskill Mountain",
   "highest_point_m": 163,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "The Mississippi River dumps its mud in Louisiana, building new land as it goes.",
+      "source_url": "https://en.wikipedia.org/wiki/Louisiana",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1588",
     "wikipedia_title": "Louisiana",

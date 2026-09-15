@@ -17,7 +17,13 @@
   "borders": [],
   "highest_point_m": 6190,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Alaska is the biggest state, and in summer the sun barely sets in the far north.",
+      "source_url": "https://en.wikipedia.org/wiki/Alaska",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q797",
     "wikipedia_title": "Alaska",

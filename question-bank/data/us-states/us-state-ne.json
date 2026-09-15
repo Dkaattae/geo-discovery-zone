@@ -25,7 +25,13 @@
   "highest_point": "Panorama Point",
   "highest_point_m": 5429,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Nebraska is home to Chimney Rock, a tall spire that guided pioneers along the Oregon Trail.",
+      "source_url": "https://en.wikipedia.org/wiki/Nebraska",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1553",
     "wikipedia_title": "Nebraska",

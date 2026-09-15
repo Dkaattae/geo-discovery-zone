@@ -23,7 +23,13 @@
   "highest_point": "Hoosier Hill",
   "highest_point_m": 383,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Indiana hosts the Indianapolis 500, one of the biggest car races in the world.",
+      "source_url": "https://en.wikipedia.org/wiki/Indiana",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1415",
     "wikipedia_title": "Indiana",

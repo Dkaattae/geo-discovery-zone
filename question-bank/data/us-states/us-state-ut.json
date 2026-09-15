@@ -25,7 +25,13 @@
   "highest_point": "King's Peak",
   "highest_point_m": 4123,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Utah is home to five national parks, more than almost any other state.",
+      "source_url": "https://en.wikipedia.org/wiki/Utah",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q829",
     "wikipedia_title": "Utah",

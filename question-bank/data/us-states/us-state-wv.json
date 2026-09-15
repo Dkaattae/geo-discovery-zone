@@ -24,7 +24,13 @@
   "highest_point": "Spruce Knob",
   "highest_point_m": 1482,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "West Virginia broke away from Virginia in 1863 to become its own separate state.",
+      "source_url": "https://en.wikipedia.org/wiki/West_Virginia",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q1371",
     "wikipedia_title": "West_Virginia",

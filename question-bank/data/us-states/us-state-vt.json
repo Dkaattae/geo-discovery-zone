@@ -22,7 +22,13 @@
   "highest_point": "Mount Mansfield",
   "highest_point_m": 1339.69,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Vermont produces more maple syrup than any other state in the country.",
+      "source_url": "https://en.wikipedia.org/wiki/Vermont",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q16551",
     "wikipedia_title": "Vermont",

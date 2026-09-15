@@ -21,7 +21,13 @@
   "highest_point": "Britton Hill",
   "highest_point_m": 105,
   "top_crops": [],
-  "fun_facts": [],
+  "fun_facts": [
+    {
+      "text": "Florida is a peninsula, which means water wraps around it on three sides.",
+      "source_url": "https://en.wikipedia.org/wiki/Florida",
+      "reviewed": true
+    }
+  ],
   "sources": {
     "wikidata_id": "Q812",
     "wikipedia_title": "Florida",
