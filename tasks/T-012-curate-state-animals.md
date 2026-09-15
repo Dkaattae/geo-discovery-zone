@@ -9,8 +9,9 @@ forbids pushing elsewhere (`CLAUDE.md` "Branches", `process.md` "When the
 environment names the branch for you"). **This line is the authority**, not
 `task/T-012-…`: it is the branch the PR is built from and the one every later
 role pushes to.
-**PR:** #42, opened draft at expand time from the branch above. It stays draft
-until the reviewer approves it.
+**PR:** [#42](https://github.com/Dkaattae/geo-discovery-zone/pull/42), opened
+draft at expand time from the branch above. It stays draft until the reviewer
+approves it.
 **Fault:** —
 
 **Sessions:**
