@@ -96,7 +96,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 184 frontend, 243 question-bank |
+| **Unit and endpoint tests** | 242 backend, 184 frontend, 339 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -287,20 +287,13 @@ figure. T-010's sweep corrected `PROGRESS.md`'s bullet and this file's coverage
 table to 209 by hand, which is the third hand-correction and the argument for
 this task: **prefer removing the figures to refreshing them again.** T-011 made
 it the fourth and fifth: 209 → 243, corrected by hand in the same two places
-again (PR #41). This is
+again (PR #41), and T-012 the sixth and seventh: 243 → 339, corrected by hand in
+those same two places a third time (PR #42). This is
 exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 (T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
 **Done when:** the counts match a real run, and either a test asserts them
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
-
-### T-012 — Curate state animals · S · todo
-**Depends on:** —
-Fill `state_animal` in `question-bank/src/curated/us-states.ts`. **0 of 50 filled
-today.** Wikidata coverage is poor here on purpose-avoidance grounds (plan §1.9)
-— hand-curate. Leave blank rather than guess. This is also the data behind a
-`wildlife` topic (T-026).
-**Done when:** every state has an animal or a deliberate blank.
 
 ### T-013 — Curate one landmark per state · S · todo
 **Depends on:** —
@@ -412,7 +405,7 @@ infrastructure once T-021 lands:
 
 | Topic | Template | Needs |
 |---|---|---|
-| `wildlife` | "Which animal is <state>'s state animal?" | T-012 |
+| `wildlife` | "Which animal is <state>'s state animal?" | T-012 — **landed, PR #42** |
 | `landmark` | "Where is <landmark>?" | T-013 |
 | `climate` | "Which state is <climate phrase>?" | T-014 |
 | `agriculture` | "What grows most in <state>?" | T-015 |
@@ -421,6 +414,21 @@ infrastructure once T-021 lands:
 `size` and `superlative` are the cheapest by a wide margin: the ranks are already
 computed and populated, so they need a template and nothing else (plan §1.8).
 Start there and the app gains a third topic without waiting on any curation.
+
+**`wildlife`'s data exists now (T-012, PR #42) — and it is ambiguous backwards.**
+All 50 states carry `state_animal`, but only 35 distinct values: ten states share
+"White-tailed deer", three "American black bear", three "American bison", two
+"Moose", two "Beaver". So `<state>` → animal is a sound question and animal →
+`<state>` is not, for 20 of the 50.
+
+**Five more pairs collide only to a reader, not to a string compare**, which is
+the part a duplicate check will miss: "Black bear" (LA) vs "American black bear"
+(AL/NM/WV); "Grizzly bear" (MT) vs "California grizzly bear" (CA); "Gray
+squirrel" (KY) vs "Eastern gray squirrel" (NC); "Horse" (NJ) vs "Morgan horse"
+(VT); "Desert bighorn sheep" (NV) vs "Rocky Mountain bighorn sheep" (CO). Two of
+those offered as four options is a question with two right answers to a
+nine-year-old. Whoever writes the distractor rule (T-022) needs a same-animal
+guard, not a same-string one.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
 
