@@ -9,8 +9,9 @@ and forbids pushing elsewhere (`CLAUDE.md` "Branches", `process.md` "When the
 environment names the branch for you"). **This line is the authority**, not
 `task/T-014-…`: it is the branch the PR is built from and the one every later
 role pushes to. Check `git branch --show-current` against it before you start.
-**PR:** opened draft at expand time from the branch above — number filled in by
-the expander's second commit. It stays draft until the reviewer approves it.
+**PR:** [#44](https://github.com/Dkaattae/geo-discovery-zone/pull/44), opened
+draft at expand time from the branch above. It stays draft until the reviewer
+approves it.
 **Fault:** —
 
 **Sessions:**
