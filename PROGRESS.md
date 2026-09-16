@@ -135,10 +135,19 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   values, and the shared ones (white-tailed deer ×10, black bear ×3, bison ×3,
   moose ×2, beaver ×2) are recorded on the PR because they make the `wildlife`
   question ambiguous in the animal → state direction (T-026).
-- 339 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
+- **44 of 50 states carry a `landmark`** (T-013, PR #43), in the same build input
+  as the fun facts and the animals. Six are deliberately blank — DE, IA, KS, MS,
+  OK, RI — because no kid-recognisable pick survived the "no battle site, no
+  casino, no demolished structure, no guess" bar, which `CLAUDE.md` prefers to a
+  guessed value. All 44 values are distinct and none is a substring of another, so
+  landmark → state is unambiguous as a string compare; four pairs still collide to
+  a *reader* (NH's "Mount Washington", LA's "St. Louis Cathedral", the two NASA
+  museums in AL and TX, NE's "Chimney Rock") and T-026 records them.
+- 487 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
   and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`, 96 by T-012 in
-  `state-animals.test.ts`). That figure
-  has now gone stale seven times — T-065 replaces the hard-coded counts in this
+  `state-animals.test.ts`, 148 by T-013 across `landmarks.test.ts` and
+  `landmarks-verify.test.ts`). That figure
+  has now gone stale nine times — T-065 replaces the hard-coded counts in this
   file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
 
 ### Repo and process
@@ -261,6 +270,44 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-013 — 44 of 50 states have a landmark** (PR #43, 2026-09-16). 43 rows in
+  `question-bank/src/curated/us-states.ts` gained `landmark` (Colorado already had
+  `Rocky Mountain National Park`, the string `geoquizdataplan.md` §1.4 prints);
+  the 43 matching entity files were **rebuilt offline** to carry it — 43 added
+  lines, nothing deleted, `sources.built_at` still the pinned fixture instant,
+  `index.json` and `sample-data/` byte-identical. No schema change: `normalize.ts`
+  already folded the field in conditionally. 148 tests across
+  `question-bank/src/landmarks.test.ts` (worker) and `landmarks-verify.test.ts`
+  (tester), 339 → 487, sixteen mutations each proven to turn the expected
+  criterion red.
+  *Where reality differed from the brief:* three things, none a criterion failure.
+  **Six states ship no landmark at all** (DE, IA, KS, MS, OK, RI) — more blanks
+  than any curation task so far, because a kid-recognisable landmark that is not a
+  battle site, a casino town, a demolished rock formation or a guess does not
+  exist everywhere; each blank is declared with its rejected alternatives except
+  Oklahoma's, which names none. **One pre-existing assertion had to move**:
+  `state-animals.test.ts`'s "the set of states carrying `landmark` is exactly
+  {Colorado}" was true only because T-012 ran first, and T-013's criterion 1
+  necessarily falsifies it. It was updated to an exact 44-name set, not loosened —
+  the reviewer confirmed the strictness is identical and that mutation M1 (giving
+  Delaware a landmark) still turns it red — so criteria 1 and 14 were never in
+  tension and nothing went back to the expander. And **the offline-rebuild test
+  harness is now copy-pasted into four suites**; T-014 carries the note to extract
+  it or say why not.
+  *And the part no test closed:* the landmarks' **truth, currency and
+  age-appropriateness are unverified**. The brief's seven-box checklist is the
+  gate, the PR was escalated for it (`process-decisions.md` D-4a), and it names
+  the calls a person has to settle — **AK "Denali"** (the federal name became
+  Mount McKinley in 2025; the state, the park and school maps did not follow),
+  **three commercial picks** (FL Walt Disney World, MN Mall of America, VT Ben &
+  Jerry's Factory), **NJ Atlantic City Boardwalk** (shipped by the same worker
+  that rejected the Superdome over a casino naming-rights deal), and **SC Angel
+  Oak / CT Mystic Aquarium** as the weakest on outside-state recognition.
+  *Also worth knowing:* as with T-012, all three roles ran under one session id —
+  freshly spawned agents with separate context windows, but the Sessions-table
+  independence check could not discriminate and the Verdict said so rather than
+  claiming it passed.
 
 - **T-012 — every state has a state animal** (PR #42, 2026-09-15). All 50 rows in
   `question-bank/src/curated/us-states.ts` gained `state_animal`; the 50 tracked
@@ -549,9 +596,12 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `state_animal` is **50 of 50** (T-012, PR #42) but, like the fun facts, its
   substance — is each animal really that state's, does it read to a nine-year-old
   — is a human read, and the checklist for it lives on PR #42 rather than in any
-  test. `landmark` and `climate_kid` are **1 of 50**; `top_crops` is empty. Those
-  are the data behind three still-unbuilt topics; `wildlife` now waits only on
-  T-021/T-026 and on something serving it (T-040, T-050).
+  test. `landmark` is **44 of 50** (T-013, PR #43) with six declared blanks (DE,
+  IA, KS, MS, OK, RI) and the same unread substance, on PR #43 — so the `landmark`
+  topic will cover 44 states, not 50. `climate_kid` is still **1 of 50**;
+  `top_crops` is empty. Those are the data behind two still-unbuilt topics;
+  `wildlife` and `landmark` now wait only on T-021/T-026 and on something serving
+  them (T-040, T-050).
 - **Two region vocabularies exist and they disagree** — eight in the pipeline,
   thirteen in the served bank, six of which the pipeline never emits (T-017).
 

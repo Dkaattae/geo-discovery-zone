@@ -96,7 +96,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 184 frontend, 339 question-bank |
+| **Unit and endpoint tests** | 242 backend, 184 frontend, 487 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -288,24 +288,28 @@ table to 209 by hand, which is the third hand-correction and the argument for
 this task: **prefer removing the figures to refreshing them again.** T-011 made
 it the fourth and fifth: 209 → 243, corrected by hand in the same two places
 again (PR #41), and T-012 the sixth and seventh: 243 → 339, corrected by hand in
-those same two places a third time (PR #42). This is
+those same two places a third time (PR #42), and T-013 the eighth and ninth:
+339 → 487, corrected by hand in those same two places a fourth time (PR #43).
+This is
 exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 (T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
 **Done when:** the counts match a real run, and either a test asserts them
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
 
-### T-013 — Curate one landmark per state · S · todo
-**Depends on:** —
-Same table, `landmark`. **1 of 50 filled** (Colorado). Pick things a child might
-plausibly have heard of.
-**Done when:** every state has a landmark or a deliberate blank.
-
 ### T-014 — Curate kid-facing climate phrasing · M · todo
 **Depends on:** —
 `climate_kid`, in the words a nine-year-old would use. **1 of 50 filled.**
 Colorado's entry is the model: "dry and cold in the mountains, drier plains to
 the east".
+**One thing it must not miss, found by T-013's reviewer (PR #43):** the
+dead-loopback offline-rebuild harness is now copy-pasted into **four** suites
+(`committed-bank`, `state-animals`, `landmarks`, `landmarks-verify`) and the
+`trackedStateFiles()` helper into three, because each curation task writes a
+self-contained suite it can be deleted with. T-014 and T-015 would make it six.
+Extract the shared helpers into one module under `question-bank/src/` as you go,
+or say in the Handoff why self-containment is still worth the copies — either is
+fine, deciding by default is not.
 **Done when:** every state has a phrase, and none of them says "Köppen".
 
 ### T-015 — US crops from USDA NASS Quick Stats · M · todo
@@ -319,6 +323,13 @@ at build time (plan §1.9).
 **Depends on:** —
 The only field missing after the live run. Either add a curated fallback for
 Denali or accept the blank and stop warning about it. Deliberate either way.
+**Smaller and one question larger since T-013 (PR #43):** the curated table now
+carries `landmark: "Denali"` for Alaska, so a fallback has a string to copy — but
+it also means **the name is now decided in two places**. The mountain's *federal*
+name was changed to Mount McKinley in 2025 while Alaska's own usage, the national
+park and most school maps keep Denali; T-013's reviewer flagged that for the
+human content read and it is unsettled. Whichever way it goes, both fields have
+to say the same thing.
 **Done when:** the full build reports zero unexplained gaps.
 
 ### T-017 — Two region vocabularies, and they disagree · S · todo
@@ -406,7 +417,7 @@ infrastructure once T-021 lands:
 | Topic | Template | Needs |
 |---|---|---|
 | `wildlife` | "Which animal is <state>'s state animal?" | T-012 — **landed, PR #42** |
-| `landmark` | "Where is <landmark>?" | T-013 |
+| `landmark` | "Where is <landmark>?" | T-013 — **landed, PR #43** |
 | `climate` | "Which state is <climate phrase>?" | T-014 |
 | `agriculture` | "What grows most in <state>?" | T-015 |
 | `size` / `superlative` | "Which is bigger?" | rank fields — already on entities |
@@ -429,6 +440,27 @@ squirrel" (KY) vs "Eastern gray squirrel" (NC); "Horse" (NJ) vs "Morgan horse"
 those offered as four options is a question with two right answers to a
 nine-year-old. Whoever writes the distractor rule (T-022) needs a same-animal
 guard, not a same-string one.
+
+**`landmark`'s data exists now (T-013, PR #43) — for 44 states, not 50.** DE, IA,
+KS, MS, OK and RI are deliberately blank (no defensible kid-recognisable,
+non-battle-site pick), so this template emits nothing for them and the topic
+covers 44 of 50. All 44 values are distinct and none contains another (T-013
+criterion 5), so unlike `wildlife` the landmark → state direction is sound as a
+*string* compare. **Four pairs still collide to a reader**, which is the same
+class of problem T-012 left above and the one a duplicate check misses:
+
+- **NH "Mount Washington"** names a different state outright; WA's own landmark is
+  "Space Needle", so both can appear as options in one question.
+- **LA "St. Louis Cathedral"** points a child at Missouri, whose landmark
+  ("Gateway Arch") is itself in St. Louis.
+- **AL "U.S. Space & Rocket Center"** and **TX "Space Center Houston"** are two
+  NASA museums a nine-year-old will not tell apart.
+- **NE "Chimney Rock"** shares its name with well-known formations in North
+  Carolina and Colorado, neither of which is in the bank — the collision is with
+  what the child knows, not with another row.
+
+Never offer two of a pair as options in the same question, and prefer `<state>` →
+landmark phrasing where the pair is unavoidable.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
 
