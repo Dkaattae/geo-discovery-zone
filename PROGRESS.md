@@ -130,9 +130,15 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   Reviewed fun-fact text lives in `question-bank/src/curated/us-states.ts` as a
   build input, not in the built output the rebuild overwrites — see E-6, and
   T-011 filled it for all 50 states.
-- 243 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
-  and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`). That figure
-  has now gone stale five times — T-065 replaces the hard-coded counts in this
+- **All 50 states carry a `state_animal`** (T-012, PR #42), curated the same way
+  and living in the same build input as the fun facts — no blanks, 35 distinct
+  values, and the shared ones (white-tailed deer ×10, black bear ×3, bison ×3,
+  moose ×2, beaver ×2) are recorded on the PR because they make the `wildlife`
+  question ambiguous in the animal → state direction (T-026).
+- 339 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
+  and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`, 96 by T-012 in
+  `state-animals.test.ts`). That figure
+  has now gone stale seven times — T-065 replaces the hard-coded counts in this
   file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
 
 ### Repo and process
@@ -255,6 +261,39 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-012 — every state has a state animal** (PR #42, 2026-09-15). All 50 rows in
+  `question-bank/src/curated/us-states.ts` gained `state_animal`; the 50 tracked
+  entity files and `sample-data/us-state-co.json` were **rebuilt offline** to
+  carry it — 51 added lines, nothing deleted, `sources.built_at` still the pinned
+  fixture instant. No schema change was needed: `normalize.ts:138` already folded
+  the field in conditionally. 96 tests in `question-bank/src/state-animals.test.ts`
+  (243 → 339), each proven able to fail by mutation.
+  *Where reality differed from the brief:* two things, neither a criterion
+  failure. **Six states have no mammal-type designation at all** (ID, IN, IA, MD,
+  MN, ND) and ship their official **bird** instead, which the brief's Out of scope
+  section sanctions in advance ("if a state's only sensible animal designation is
+  a bird, that is a value for `state_animal`"); Virginia ships its **state bat**
+  on the same logic. And **criterion 5 is self-contradictory read literally** —
+  "every value … appears in exactly one tracked file" cannot hold while criterion
+  9 explicitly permits shared animals; the tester resolved it per-row (each
+  curated row's value is carried by its own `postal`'s file) from the brief's own
+  text rather than blocking.
+  *And the part no test closed:* the animals' **truth and age-appropriateness are
+  unverified**. The brief's six-box review checklist is the gate, the PR was
+  escalated for it (`process-decisions.md` D-4a), and it names four judgment calls
+  a person has to settle — California's grizzly (extinct in the wild since 1924,
+  still the designation), Michigan's codified white-tailed deer over the
+  uncodified "traditional" wolverine, Virginia's big-eared bat over a bird, and
+  New Jersey's plain "Horse". One more thing the loop found rather than the brief:
+  **five pairs of values collide to a reader but not to a string compare** ("Black
+  bear" vs "American black bear", and four others) — recorded on T-026, because it
+  is the distractor rule's problem, not this data's.
+  *Also worth knowing:* every role on this task ran under the same session id,
+  because this harness assigns one id to all subagents of a session. Each was a
+  freshly spawned agent with its own context, but the Sessions-table independence
+  check `process.md` step 4 describes could not discriminate and none of the three
+  claimed it had — they said so in the brief instead.
 
 - **T-011 — every state has a fun fact, written for a nine-year-old** (PR #41,
   2026-09-14). `CuratedState` gained a `fun_facts` field,
@@ -507,8 +546,12 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   the checklist for it lives on PR #41 rather than in any test. And nothing
   serves them: the app's fun facts are still the 15 hand-written ones in
   `backend/app/data/content.json` until T-040 and T-050.
-- `state_animal` is **0 of 50**; `landmark` and `climate_kid` are **1 of 50**;
-  `top_crops` is empty. These are the data behind four unbuilt topics.
+- `state_animal` is **50 of 50** (T-012, PR #42) but, like the fun facts, its
+  substance — is each animal really that state's, does it read to a nine-year-old
+  — is a human read, and the checklist for it lives on PR #42 rather than in any
+  test. `landmark` and `climate_kid` are **1 of 50**; `top_crops` is empty. Those
+  are the data behind three still-unbuilt topics; `wildlife` now waits only on
+  T-021/T-026 and on something serving it (T-040, T-050).
 - **Two region vocabularies exist and they disagree** — eight in the pipeline,
   thirteen in the served bank, six of which the pipeline never emits (T-017).
 
