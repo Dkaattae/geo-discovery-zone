@@ -49,6 +49,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "01",
     region: "Southeast",
     state_animal: "American black bear",
+    landmark: "U.S. Space & Rocket Center",
     fun_facts: [
       {
         text: "Alabama's Space & Rocket Center displays a real Saturn V moon rocket lying on its side.",
@@ -63,6 +64,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "02",
     region: "Pacific",
     state_animal: "Moose",
+    landmark: "Denali",
     fun_facts: [
       {
         text: "Alaska is the biggest state, and in summer the sun barely sets in the far north.",
@@ -77,6 +79,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "04",
     region: "Southwest",
     state_animal: "Ringtail",
+    landmark: "Grand Canyon",
     fun_facts: [
       {
         text: "Arizona is home to the Grand Canyon, a mile-deep gorge carved by the Colorado River.",
@@ -91,6 +94,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "05",
     region: "South Central",
     state_animal: "White-tailed deer",
+    landmark: "Crater of Diamonds State Park",
     fun_facts: [
       {
         text: "Arkansas has a diamond park where visitors can dig all day and keep any diamond they find.",
@@ -105,6 +109,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "06",
     region: "Pacific",
     state_animal: "California grizzly bear",
+    landmark: "Golden Gate Bridge",
     fun_facts: [
       {
         text: "California holds the highest and lowest places in the lower 48 states, and they are close together.",
@@ -135,6 +140,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "09",
     region: "Northeast",
     state_animal: "Sperm whale",
+    landmark: "Mystic Aquarium",
     fun_facts: [
       {
         text: "Connecticut is home to the oldest continuously published newspaper in the United States.",
@@ -163,6 +169,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "12",
     region: "Southeast",
     state_animal: "Florida panther",
+    landmark: "Walt Disney World",
     fun_facts: [
       {
         text: "Florida is a peninsula, which means water wraps around it on three sides.",
@@ -177,6 +184,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "13",
     region: "Southeast",
     state_animal: "White-tailed deer",
+    landmark: "Georgia Aquarium",
     fun_facts: [
       {
         text: "Georgia grows more peanuts than any other state in the whole country.",
@@ -191,6 +199,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "15",
     region: "Pacific",
     state_animal: "Hawaiian monk seal",
+    landmark: "Diamond Head",
     fun_facts: [
       {
         text: "Hawaii is made of volcanoes, and it is still growing today.",
@@ -205,6 +214,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "16",
     region: "Mountain West",
     state_animal: "Mountain bluebird",
+    landmark: "Craters of the Moon National Monument",
     fun_facts: [
       {
         text: "Idaho grows more potatoes than any other state, and its license plates say Famous Potatoes.",
@@ -219,6 +229,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "17",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    landmark: "Willis Tower",
     fun_facts: [
       {
         text: "Illinois is home to Chicago's Willis Tower, once the tallest building in the whole world.",
@@ -233,6 +244,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "18",
     region: "Midwest",
     state_animal: "Northern cardinal",
+    landmark: "Indianapolis Motor Speedway",
     fun_facts: [
       {
         text: "Indiana hosts the Indianapolis 500, one of the biggest car races in the world.",
@@ -275,6 +287,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "21",
     region: "Southeast",
     state_animal: "Gray squirrel",
+    landmark: "Mammoth Cave National Park",
     fun_facts: [
       {
         text: "Kentucky is famous for the Kentucky Derby, a horse race run every year since 1875.",
@@ -289,6 +302,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "22",
     region: "South Central",
     state_animal: "Black bear",
+    landmark: "St. Louis Cathedral",
     fun_facts: [
       {
         text: "The Mississippi River dumps its mud in Louisiana, building new land as it goes.",
@@ -303,6 +317,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "23",
     region: "Northeast",
     state_animal: "Moose",
+    landmark: "Acadia National Park",
     fun_facts: [
       {
         text: "The sun rises over Maine before anywhere else in the United States.",
@@ -317,6 +332,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "24",
     region: "Northeast",
     state_animal: "Baltimore oriole",
+    landmark: "Fort McHenry",
     fun_facts: [
       {
         text: "Maryland's Chesapeake Bay is the largest estuary in the United States, full of blue crabs.",
@@ -331,6 +347,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "25",
     region: "Northeast",
     state_animal: "Right whale",
+    landmark: "Plymouth Rock",
     fun_facts: [
       {
         text: "Massachusetts is home to Plymouth Rock, where the Pilgrims are said to have landed in 1620.",
@@ -345,6 +362,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "26",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    landmark: "Mackinac Bridge",
     fun_facts: [
       {
         text: "Michigan is shaped like a mitten, and it touches four of the five Great Lakes.",
@@ -359,6 +377,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "27",
     region: "Midwest",
     state_animal: "Common loon",
+    landmark: "Mall of America",
     fun_facts: [
       {
         text: "Minnesota calls itself the land of 10,000 lakes. It actually has closer to 12,000.",
@@ -387,6 +406,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "29",
     region: "Midwest",
     state_animal: "Mule",
+    landmark: "Gateway Arch",
     fun_facts: [
       {
         text: "Missouri is home to the Gateway Arch in Saint Louis, the tallest monument in the country.",
@@ -401,6 +421,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "30",
     region: "Mountain West",
     state_animal: "Grizzly bear",
+    landmark: "Glacier National Park",
     fun_facts: [
       {
         text: "Montana is nicknamed Big Sky Country because its skies stretch out over such wide open land.",
@@ -415,6 +436,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "31",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    landmark: "Chimney Rock",
     fun_facts: [
       {
         text: "Nebraska is home to Chimney Rock, a tall spire that guided pioneers along the Oregon Trail.",
@@ -429,6 +451,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "32",
     region: "Mountain West",
     state_animal: "Desert bighorn sheep",
+    landmark: "Hoover Dam",
     fun_facts: [
       {
         text: "Nevada is the driest state, and rain that falls there never reaches the ocean.",
@@ -443,6 +466,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "33",
     region: "Northeast",
     state_animal: "White-tailed deer",
+    landmark: "Mount Washington",
     fun_facts: [
       {
         text: "New Hampshire was the first state to write its own constitution, before the country even had one.",
@@ -457,6 +481,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "34",
     region: "Northeast",
     state_animal: "Horse",
+    landmark: "Atlantic City Boardwalk",
     fun_facts: [
       {
         text: "New Jersey is home to the first boardwalk in the country, built in Atlantic City in 1870.",
@@ -471,6 +496,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "35",
     region: "Southwest",
     state_animal: "American black bear",
+    landmark: "Carlsbad Caverns National Park",
     fun_facts: [
       {
         text: "New Mexico is home to Carlsbad Caverns, an underground cave system with rooms as big as a stadium.",
@@ -485,6 +511,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "36",
     region: "Northeast",
     state_animal: "Beaver",
+    landmark: "Statue of Liberty",
     fun_facts: [
       {
         text: "New York City is the biggest city in the country, but it is not the state capital.",
@@ -499,6 +526,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "37",
     region: "Southeast",
     state_animal: "Eastern gray squirrel",
+    landmark: "Wright Brothers National Memorial",
     fun_facts: [
       {
         text: "North Carolina is where the Wright brothers flew the first airplane, at Kitty Hawk in 1903.",
@@ -513,6 +541,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "38",
     region: "Midwest",
     state_animal: "Western meadowlark",
+    landmark: "Theodore Roosevelt National Park",
     fun_facts: [
       {
         text: "North Dakota's Theodore Roosevelt National Park is home to wild bison roaming the badlands.",
@@ -527,6 +556,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "39",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    landmark: "Rock and Roll Hall of Fame",
     fun_facts: [
       {
         text: "Ohio was home to the Wright brothers, who built their first airplane in a bicycle shop.",
@@ -555,6 +585,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "41",
     region: "Pacific Northwest",
     state_animal: "Beaver",
+    landmark: "Crater Lake National Park",
     fun_facts: [
       {
         text: "Oregon is home to Crater Lake, the deepest lake in the United States.",
@@ -569,6 +600,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "42",
     region: "Northeast",
     state_animal: "White-tailed deer",
+    landmark: "Liberty Bell",
     fun_facts: [
       {
         text: "Pennsylvania is where the Declaration of Independence was signed, in Philadelphia in 1776.",
@@ -597,6 +629,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "45",
     region: "Southeast",
     state_animal: "White-tailed deer",
+    landmark: "Angel Oak",
     fun_facts: [
       {
         text: "South Carolina's official state dance is the shag, first danced on its beaches in the 1940s.",
@@ -611,6 +644,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "46",
     region: "Midwest",
     state_animal: "Coyote",
+    landmark: "Mount Rushmore",
     fun_facts: [
       {
         text: "South Dakota is home to Mount Rushmore, where four presidents' faces are carved into granite.",
@@ -625,6 +659,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "47",
     region: "Southeast",
     state_animal: "Raccoon",
+    landmark: "Great Smoky Mountains National Park",
     fun_facts: [
       {
         text: "Tennessee is home to Great Smoky Mountains National Park, the most visited national park in the country.",
@@ -639,6 +674,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "48",
     region: "South Central",
     state_animal: "Armadillo",
+    landmark: "Space Center Houston",
     fun_facts: [
       {
         text: "Texas is so wide that El Paso is closer to California than to Houston.",
@@ -653,6 +689,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "49",
     region: "Mountain West",
     state_animal: "Rocky Mountain elk",
+    landmark: "Arches National Park",
     fun_facts: [
       {
         text: "Utah is home to five national parks, more than almost any other state.",
@@ -667,6 +704,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "50",
     region: "Northeast",
     state_animal: "Morgan horse",
+    landmark: "Ben & Jerry's Factory",
     fun_facts: [
       {
         text: "Vermont produces more maple syrup than any other state in the country.",
@@ -681,6 +719,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "51",
     region: "Southeast",
     state_animal: "Virginia big-eared bat",
+    landmark: "Mount Vernon",
     fun_facts: [
       {
         text: "Virginia is nicknamed the Mother of Presidents because eight American presidents were born there.",
@@ -695,6 +734,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "53",
     region: "Pacific Northwest",
     state_animal: "Orca",
+    landmark: "Space Needle",
     fun_facts: [
       {
         text: "One side of Washington is a rainforest and the other side is nearly a desert.",
@@ -709,6 +749,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "54",
     region: "Southeast",
     state_animal: "American black bear",
+    landmark: "New River Gorge Bridge",
     fun_facts: [
       {
         text: "West Virginia broke away from Virginia in 1863 to become its own separate state.",
@@ -723,6 +764,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "55",
     region: "Midwest",
     state_animal: "American badger",
+    landmark: "Lambeau Field",
     fun_facts: [
       {
         text: "Wisconsin produces more cheese than any other state, earning it the nickname America's Dairyland.",
@@ -737,6 +779,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "56",
     region: "Mountain West",
     state_animal: "American bison",
+    landmark: "Yellowstone National Park",
     fun_facts: [
       {
         text: "Wyoming is home to Yellowstone, the first national park ever created anywhere in the world.",

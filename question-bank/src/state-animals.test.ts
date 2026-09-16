@@ -492,11 +492,70 @@ describe("T-012 criterion 7 — the committed sample stays in step with the bank
 });
 
 describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () => {
-  test("the set of states carrying landmark is exactly {Colorado}", () => {
+  /**
+   * T-013 (a later, approved task) is explicitly tasked with filling `landmark`
+   * for the other 49 states — `tasks/T-013-curate-landmarks.md` criterion 1.
+   * The set this assertion checks against is no longer {Colorado}; it is
+   * Colorado plus the 43 states T-013's Handoff names as filled (44 total),
+   * transcribed from that Handoff the same way `HANDOFF_ANIMALS` above is
+   * transcribed from this task's own. The check itself is unchanged — still an
+   * exact-equality comparison, not loosened — only the ground truth it compares
+   * against has moved, the same way this test would have to move again if a
+   * future task changed `state_animal`'s own coverage.
+   */
+  test("the set of states carrying landmark is exactly Colorado plus T-013's 43 filled states", () => {
     const named = trackedStateFiles()
       .filter(({ entity }) => entity.landmark !== undefined)
-      .map(({ entity }) => entity.name);
-    expect(named).toEqual(["Colorado"]);
+      .map(({ entity }) => entity.name)
+      .sort();
+    const T013_LANDMARK_STATES = [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "California",
+      "Colorado",
+      "Connecticut",
+      "Florida",
+      "Georgia",
+      "Hawaii",
+      "Idaho",
+      "Illinois",
+      "Indiana",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Massachusetts",
+      "Michigan",
+      "Minnesota",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Jersey",
+      "New Mexico",
+      "New York",
+      "North Carolina",
+      "North Dakota",
+      "Ohio",
+      "Oregon",
+      "Pennsylvania",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Vermont",
+      "Virginia",
+      "Washington",
+      "West Virginia",
+      "Wisconsin",
+      "Wyoming",
+    ].sort();
+    expect(T013_LANDMARK_STATES).toHaveLength(44);
+    expect(named).toEqual(T013_LANDMARK_STATES);
   });
 
   test("the set of states carrying climate_kid is exactly {Colorado}", () => {
