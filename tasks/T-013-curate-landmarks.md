@@ -1,7 +1,7 @@
 # T-013 — Curate one landmark per state
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** `Dkaattae — 2026-09-16`
 **From:** [`tasks.md`](../tasks.md) T-013
 **Branch:** `claude/upbeat-dijkstra-zsrj2i` — this session's harness assigned it
@@ -20,6 +20,7 @@ approves it.
 |---|---|---|
 | task-expander | 2026-09-16 | cse_01UCAF12nnRsrikmsuHDdZ5S |
 | worker | 2026-09-16 | cse_01UCAF12nnRsrikmsuHDdZ5S |
+| tester | 2026-09-16 | cse_01UCAF12nnRsrikmsuHDdZ5S — same id as above; fresh context window, not a distinct session. See the Verdict's independence note. |
 
 ---
 
@@ -509,7 +510,159 @@ part of this task (nothing in this task's scope reaches them).
 
 ## Verdict
 
-Written by `tester`.
+**Status: pass.** All 14 criteria hold against the branch as committed, checked
+against the criterion text rather than against the implementation. The full
+`question-bank/` suite is green — **487 pass, 0 fail, 8815 expect() calls across
+8 files** — and `bun run typecheck` is clean. Sixteen deliberate mutations each
+turned exactly the expected criterion red and were all reverted.
+
+**The `state-animals.test.ts` edit the worker flagged is a pass, not a
+loosening** — detail under "The criterion 14 judgment call" below. **Next step:
+`reviewer`**, who must flag this PR rather than mark it ready with no note: it is
+50 strings a child will read, and the brief's Review checklist is still unclosed
+(D-4a). Four content observations for that human read are listed at the end;
+none is a criterion failure.
+
+### Independence — which kind this verdict had
+
+**Fresh context, not a distinct session.** `$CLAUDE_CODE_REMOTE_SESSION_ID`
+reports `cse_01UCAF12nnRsrikmsuHDdZ5S`, the id already in the Sessions table for
+`task-expander` and `worker`, so the step-4 check could not discriminate and
+**is not claimed to have passed**. This run is the relayed shape `process.md`
+describes: one top-level session spawned expander, worker and tester in
+sequence as subagents, each with its own context window. I have not seen the
+worker's or the expander's transcript — only the brief, the diff and the repo.
+That is real isolation, but it rests on the spawn having been done correctly
+rather than on evidence I can produce, and it is weaker than a separate
+session. Weigh the `pass` accordingly.
+
+### Criterion by criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | Exactly 6 files carry no `landmark` key — DE, IA, KS, MS, OK, RI — identical to the Handoff's declared blanks; the other 44 carry it. Mutation M1 (filling DE) turned it red. |
+| 2 | pass | The 6 blank files contain the substring `landmark` nowhere at all in raw text — not `""`, `null`, `"none"` or `"unknown"`; all 44 filled values are non-empty strings. |
+| 3 | pass | All 44 are 4–48 chars (longest: `Craters of the Moon National Monument`, 36; shortest: `Denali`, 6), equal their own `trim()`, no double space, no `\n`/`\t`, start uppercase, none all-caps. Boundary predicate tested at 3/4/48/49. M2 (`GRAND CANYON`) red. |
+| 4 | pass | No comma, semicolon, colon, parenthesis, slash or `http`; none ends with a full stop (`U.S. Space & Rocket Center` and `St. Louis Cathedral` carry interior ones, which the criterion permits); none contains any of the eight forbidden phrases. M3 (`Gateway Arch, in St. Louis`) red. |
+| 5 | pass | All 44 distinct case-insensitively after trimming, **and no value is a substring of any other in either direction** — checked over all 44 including Colorado, 1892 ordered pairs. M4 (`Yellowstone` alongside `Yellowstone National Park`) and M5 (exact duplicate) both red. |
+| 6 | pass | Every built value equals its own state's `CuratedState.landmark` (matched by postal), appears verbatim in `src/curated/us-states.ts`, and appears in no other state's file. The curated table has exactly 44 rows filled. M8 (hand-edited built file) red. |
+| 7 | pass | Ran `bun run src/build.ts --offline --out <tmp>` twice with all six proxy spellings on `http://127.0.0.1:1`: 51 paths, the two runs identical to each other and `diff -rq` identical to `data/us-states/`. `built_at` is `2026-08-04T16:05:35.000Z` in all 50. M9 (unpinned `built_at`) red. |
+| 8 | pass | `sample-data/us-state-co.json` equals the tracked Colorado on every field but `sources.built_at` (which is in fact the same instant), `landmark` included. M15 (sample loses `landmark`) red. |
+| 9 | pass | Tested, not just observed — see below. `index.json` is byte-identical to the default branch; each of the 50 files with `landmark` removed hashes to its default-branch value; `climate_kid` is still exactly {Colorado}; all 50 keep `state_animal`; `top_crops` still `[]`. `git diff e587ec1..HEAD -- question-bank/data/` contains no changed line that is not a `landmark` line. |
+| 10 | pass | `Rocky Mountain National Park` in the curated table, the tracked file and the sample — the string `geoquizdataplan.md` §1.4 prints. M6 (drift to `Pikes Peak`) red. |
+| 11 | pass | Computed over every state's own `name`: the self-naming set is exactly {GA, IN}, matching the Handoff. `Indianapolis` does contain `Indiana`; `Georgia Aquarium` names Georgia. M7 (undisclosed `Utah Olympic Park`) red. |
+| 12 | pass | The Handoff's table names all 50 states once each; every string it claims is the string shipped and nothing ships undeclared (transcribed independently by the tester from the brief, not read off the bank). The three span disclosures — TN Great Smoky, NV Hoover Dam, WY Yellowstone — each name a landmark actually shipped for that state and are factually right; the two the Constraints name by example (TN, WY) are both present. |
+| 13 | pass | No `reviewed": false` anywhere under `data/` or `sample-data/`; no tracked `*.review.json`; `package.json` still has no `dependencies` and the same two devDependencies, lockfile untouched; no test calls or stubs `fetch`, and the only subprocess any of them spawns is the offline build behind a dead loopback proxy. Tracked `data/` is 53 KB against the 200 KB cap. M14 (adding `lodash`) red. |
+| 14 | pass | Test counts unchanged in all six protected suites (33/6/30/43/14/5); the only one modified is `state-animals.test.ts`, +62/−3 lines, nothing deleted. `bun test` and `bun run typecheck` pass; `frontend/` and `backend/` have zero changed files on this branch. M13 (removing a `sparql.test.ts` test) red. |
+
+### The criterion 14 judgment call — verified, not taken on trust
+
+The worker asked for this to be read independently. It was, from the diff.
+
+- **What actually changed.** One test in `state-animals.test.ts`, "the set of
+  states carrying landmark". Old: `expect(named).toEqual(["Colorado"])`. New:
+  the same `toEqual` against an explicit 44-name list, plus a
+  `toHaveLength(44)` guard on the transcription, plus a comment. Three lines
+  removed, sixty-two added; the file still declares 43 tests, as it did at the
+  branch point.
+- **Not loosened.** The assertion pins an exact set both before and after — it
+  is exact-set-equality in both versions, and it is the only assertion in the
+  repo that would catch a 45th state quietly growing a `landmark`. Mutation M1
+  (giving Delaware a landmark) turned this very test red alongside T-013's own
+  criterion-1 tests, which is the proof that its teeth survived the edit. The
+  one strictness the edit does drop is order-sensitivity (both sides are now
+  `.sort()`ed), which was vacuous on a one-element list and is not what the
+  assertion is about.
+- **Necessary and minimal.** Criterion 1 requires 44 states to carry
+  `landmark`; the old expected value is false by construction once that is
+  done. The only alternatives were deleting the test — which criterion 14
+  forbids outright — or leaving the suite red, which criterion 14 also forbids.
+  Nothing else in the file moved.
+- **Reading of criterion 14.** Its two prohibitions are "no test is deleted"
+  and "no assertion is loosened". Neither happened. It does not say "this file
+  may not be edited", and the Constraints' "a new or extended test file under
+  `question-bank/src/`" covers an extension of an existing one. So this does not
+  go back to `task-expander`: there is no tension between criteria 1 and 14 to
+  arbitrate, only a constant that had to follow the data.
+- **Pinned against regression.** `landmarks-verify.test.ts` asserts the edited
+  assertion is still `expect(named).toEqual(T013_LANDMARK_STATES)` and not a
+  length check; mutation M16 (loosening it to `toBeGreaterThan(1)`) turns that
+  red.
+
+### What the tester added
+
+`question-bank/src/landmarks-verify.test.ts` — 41 tests, one describe per
+criterion, expectations derived from the criterion text and from the Handoff
+transcribed by hand. It is not a copy of the worker's `landmarks.test.ts`; it
+exists to cover two things that file left to observation rather than to a test,
+both of which a later change could have walked past unnoticed:
+
+- **Criterion 9 against the default branch.** `DEFAULT_BRANCH_DIGESTS` pins,
+  per tracked path, the SHA-256 of that file on `main` at the branch point
+  (e587ec1) with any `landmark` key removed — `index.json` hashed over raw
+  bytes. No git history needed, so it survives CI's shallow clone. **This was a
+  real gap**: mutation M12 (changing Nevada's `region` in the curated table and
+  rebuilding) passed all 446 pre-existing tests and was caught only by this
+  one. M11b (changing Texas's `state_animal`) likewise.
+- **Criterion 14's sixth file.** The worker's floor-count check pins five of
+  the six protected suites and omits `sparql.test.ts`; mutation M13 (deleting
+  one of its tests) was caught only by the tester's file.
+
+Everything else in it re-derives the same facts by a different route — reading
+the bank off disk rather than through `git ls-files`, transcribing the Handoff
+table independently — so agreement between the two suites means something.
+
+### Mutations made, and what each did
+
+Every one was reverted; `git status` is clean apart from the added test file,
+and the suite was re-run green afterwards.
+
+| # | Mutation | Turned red |
+|---|---|---|
+| M1 | Delaware, a declared blank, gains `Rehoboth Beach Boardwalk` | C1 ×3, C2, C12, **and the edited T-012 assertion** |
+| M2 | Arizona → `GRAND CANYON` | C3 (all-caps), C12 ×2 |
+| M3 | Missouri → `Gateway Arch, in St. Louis` | C4 (punctuation), C12 ×2 |
+| M4 | Montana → `Yellowstone` (substring of Wyoming's) | C5 (substring), C12 ×2 |
+| M5 | Montana → `Yellowstone National Park` (exact duplicate) | C5 ×2, C12 ×2 |
+| M6 | Colorado → `Pikes Peak` | C10 ×2, C8 ×2, C12 ×2, T-010 c4, T-012 c7 |
+| M7 | Utah → `Utah Olympic Park`, undisclosed | C11 (self-naming), C12 ×2 |
+| M8 | Hand-edit `us-state-il.json` to `Sears Tower` | C6 ×4, C7 rebuild, T-010/T-012 rebuild |
+| M9 | `built_at` moved in `us-state-ak.json` | C7 ×2, T-010 c7, T-012 c6 |
+| M10 | Texas loses `state_animal`, gains `climate_kid` | C9 ×2, plus six T-010/T-012 tests |
+| M11b | Texas `state_animal` changed in the curated table | **C9 default-branch digest (tester)**, T-012 c10 ×2 |
+| M12 | Nevada `region` changed in the curated table | **C9 default-branch digest (tester) — nothing else** |
+| M13 | A test deleted from `sparql.test.ts` | **C14 floor, sparql (tester) — nothing else** |
+| M14 | `lodash` added to `question-bank/package.json` | C13 ×3 |
+| M15 | Sample loses its `landmark` | C8 ×3, C10, T-010 c4, T-012 c7 |
+| M16 | The edited T-012 assertion loosened to `toBeGreaterThan(1)` | **C14 exact-set pin (tester)** |
+
+### For the human review checklist — content, not criteria
+
+None of these is a criterion failure; all four are things only a person can
+settle, and the reviewer should carry them to the checklist.
+
+- **New Hampshire's `Mount Washington` names a *different* state.** Criterion
+  11 is about a state's own name, so this passes, and criterion 5 does not see
+  it either. But "Where is Mount Washington?" has an obvious wrong-but-tempting
+  answer for a nine-year-old, which is exactly the reader-collision problem
+  T-026 records. Worth a deliberate keep-or-swap decision.
+- **Two of the 44 are commercial brands** — `Walt Disney World` (FL) and
+  `Ben & Jerry's Factory` (VT). The worker flagged the second itself as an
+  institution where the Constraints prefer a natural or built landmark. Whether
+  a children's quiz should teach brand names is a product call, not a shape one.
+- **`Angel Oak` (SC) is the weakest pick by the worker's own account** and
+  `Mystic Aquarium` (CT) is close behind on the "would a child outside the
+  state recognise it" test.
+- **Six blanks (DE, IA, KS, MS, OK, RI).** Declared, reasoned, and correct
+  under `CLAUDE.md`'s prefer-a-blank rule — but whether each is *genuinely*
+  better blank is checklist item 6, and it is unclosed. T-026 will emit no
+  landmark question for those six states.
+
+Provenance, stated plainly per `CLAUDE.md` "Reporting": every landmark value
+here was checked for *shape* only. The Handoff says the picks rest on general
+knowledge plus the existing `fun_facts` entries, not on a live source, and no
+test in this repo can confirm a landmark exists, is open, or is in the state it
+is filed under.
 
 ## Review
 
