@@ -26,7 +26,11 @@
   "landmark": "Statue of Liberty",
   "highest_point": "Mount Marcy",
   "highest_point_m": 1629,
-  "top_crops": [],
+  "top_crops": [
+    "apples",
+    "grapes",
+    "maple syrup"
+  ],
   "fun_facts": [
     {
       "text": "New York City is the biggest city in the country, but it is not the state capital.",

@@ -27,7 +27,10 @@
   "landmark": "Arches National Park",
   "highest_point": "King's Peak",
   "highest_point_m": 4123,
-  "top_crops": [],
+  "top_crops": [
+    "cherries",
+    "alfalfa hay"
+  ],
   "fun_facts": [
     {
       "text": "Utah is home to five national parks, more than almost any other state.",

@@ -22,7 +22,10 @@
   "state_animal": "Harbor seal",
   "highest_point": "Jerimoth Hill",
   "highest_point_m": 247,
-  "top_crops": [],
+  "top_crops": [
+    "sweet corn",
+    "potatoes"
+  ],
   "fun_facts": [
     {
       "text": "Rhode Island is the smallest state, yet it has over 400 miles of coastline.",

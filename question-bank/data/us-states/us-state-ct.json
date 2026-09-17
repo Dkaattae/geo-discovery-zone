@@ -24,7 +24,9 @@
   "landmark": "Mystic Aquarium",
   "highest_point": "Mount Frissell",
   "highest_point_m": 748,
-  "top_crops": [],
+  "top_crops": [
+    "tobacco"
+  ],
   "fun_facts": [
     {
       "text": "Connecticut is home to the oldest continuously published newspaper in the United States.",

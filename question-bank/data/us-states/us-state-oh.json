@@ -26,7 +26,10 @@
   "landmark": "Rock and Roll Hall of Fame",
   "highest_point": "Campbell Hill",
   "highest_point_m": 472,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Ohio was home to the Wright brothers, who built their first airplane in a bicycle shop.",

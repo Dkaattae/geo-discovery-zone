@@ -26,7 +26,10 @@
   "state_animal": "American goldfinch",
   "highest_point": "Hawkeye Point",
   "highest_point_m": 1670,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Iowa grows more corn than any other state, with fields stretching as far as you can see.",

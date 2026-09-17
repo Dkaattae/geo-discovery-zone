@@ -405,10 +405,15 @@ describe("T-013 tester, criterion 7 — the bank is built, not hand-edited", () 
 });
 
 describe("T-013 tester, criterion 8 — the committed sample stays in step with the bank", () => {
-  test("the sample equals the tracked Colorado in every field but sources.built_at, landmark included", () => {
+  test("the sample equals the tracked Colorado in every field but sources.built_at and top_crops, landmark included", () => {
+    // T-015 (2026-09-17, a later approved task) freezes `sample-data/us-state-co.json`
+    // deliberately at `top_crops: []` (its own criterion 12 — that file is T-064's
+    // territory) while populating the tracked bank's copy, so `top_crops` is excluded
+    // here the same way `built_at` already is.
     const strip = (raw: string) => {
       const parsed = JSON.parse(raw) as Entity & { sources?: Record<string, unknown> };
       if (parsed.sources) delete parsed.sources.built_at;
+      delete parsed.top_crops;
       return JSON.stringify(parsed);
     };
     expect(strip(readFileSync(SAMPLE, "utf8"))).toBe(
@@ -427,7 +432,7 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
     );
   });
 
-  test("each of the 50 files, with landmark and climate_kid removed, is identical to the default branch's", () => {
+  test("each of the 50 files, with landmark, climate_kid and top_crops removed, is identical to the default branch's", () => {
     // T-014 (2026-09-17, a later approved task) filled `climate_kid` for the
     // 49 states that did not already carry it at this task's own branch point
     // (Colorado already did, so its pinned digest is unaffected either way).
@@ -438,6 +443,13 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
     // named, approved tasks are known to touch* has moved) instead of turning
     // permanently red the moment either task's own field lands, which would
     // make the check meaningless rather than strict.
+    //
+    // T-015 (2026-09-17, also later and approved) fills `top_crops` for all 50
+    // states. Every file already carried the literal `top_crops: []` at this
+    // baseline (the key predates T-013), so it is restored to that literal
+    // here rather than deleted — deleting would change the hashed bytes
+    // relative to what the pinned digest actually hashed, the same distinction
+    // `climate-kid-verify.test.ts`'s equivalent check makes.
     for (const { file, raw } of stateFiles()) {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
       delete parsed["landmark"];
@@ -447,6 +459,7 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
       // pinned digest was computed with the key absent, since T-014 is what
       // adds it.
       if (file !== "us-state-co.json") delete parsed["climate_kid"];
+      parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,

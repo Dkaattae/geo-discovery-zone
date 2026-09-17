@@ -26,7 +26,11 @@
   "landmark": "Georgia Aquarium",
   "highest_point": "Brasstown Bald",
   "highest_point_m": 1458,
-  "top_crops": [],
+  "top_crops": [
+    "peaches",
+    "peanuts",
+    "pecans"
+  ],
   "fun_facts": [
     {
       "text": "Georgia grows more peanuts than any other state in the whole country.",

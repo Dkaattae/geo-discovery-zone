@@ -25,7 +25,10 @@
   "landmark": "Indianapolis Motor Speedway",
   "highest_point": "Hoosier Hill",
   "highest_point_m": 383,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Indiana hosts the Indianapolis 500, one of the biggest car races in the world.",

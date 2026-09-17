@@ -651,10 +651,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   topic will cover 44 states, not 50. `climate_kid` is **50 of 50** (T-014, PR
   #44), with the same unread substance on PR #44 and one extra thing waiting
   there: ten groups of states whose phrases describe the same climate, which
-  `climate` questions must not offer two of. `top_crops` is empty (T-015) and is
-  the last curated field. So three of the four topic fields now have data and
-  `wildlife`, `landmark` and `climate` wait only on T-021/T-026, a same-value
-  distractor guard (T-022), and something serving them (T-040, T-050).
+  `climate` questions must not offer two of. `top_crops` is **50 of 50** (T-015,
+  hand-curated plant crops, one to three per state, folded in from
+  `CuratedState.top_crops` the same way the other curated fields are — not USDA
+  NASS) and was the last curated field. So all four topic fields now have data
+  and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
+  T-021/T-026, a same-value distractor guard (T-022), and something serving
+  them (T-040, T-050).
 - **Two region vocabularies exist and they disagree** — eight in the pipeline,
   thirteen in the served bank, six of which the pipeline never emits (T-017).
 

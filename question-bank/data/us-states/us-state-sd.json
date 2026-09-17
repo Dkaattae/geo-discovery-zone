@@ -27,7 +27,10 @@
   "landmark": "Mount Rushmore",
   "highest_point": "Black Elk Peak",
   "highest_point_m": 2208,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "South Dakota is home to Mount Rushmore, where four presidents' faces are carved into granite.",

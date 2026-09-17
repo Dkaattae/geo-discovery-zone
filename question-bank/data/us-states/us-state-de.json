@@ -23,7 +23,9 @@
   "state_animal": "Gray fox",
   "highest_point": "Ebright Azimuth",
   "highest_point_m": 137,
-  "top_crops": [],
+  "top_crops": [
+    "lima beans"
+  ],
   "fun_facts": [
     {
       "text": "Delaware was the first state to ratify the Constitution, so it is nicknamed The First State.",

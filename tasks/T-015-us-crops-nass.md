@@ -1,7 +1,7 @@
 # T-015 — US crops per state, curated (was: USDA NASS Quick Stats)
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae, 2026-09-17
 **From:** [`tasks.md`](../tasks.md) T-015
 **Branch:** `claude/zen-johnson-zmsy1e` — the branch this session was assigned by
@@ -22,6 +22,7 @@ path.
 |---|---|---|
 | task-expander | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — halted on Q1–Q3 |
 | task-expander | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — criteria finalised on the answers |
+| worker | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — same session id the environment reported for this run; see the Handoff's first note before assuming this means anything about session isolation |
 
 ---
 
@@ -345,7 +346,276 @@ come from something the *offline* build reads.
 
 ## Handoff
 
-_Not started._
+**TL;DR:** all 14 criteria are met; the whole `question-bank` suite (1083
+tests) and `bun run typecheck` are green. `top_crops` is filled on all 50
+`CURATED_US_STATES` entries, folded into the tracked bank the same way
+`fun_facts` is, and the rebuild is confirmed deterministic and offline. Fixing
+this broke six *pre-existing* tests from T-010/T-012/T-013/T-014 that
+compared the sample or a pinned digest against the tracked bank assuming
+`top_crops` stayed `[]` forever — all six are fixed following the exact
+precedent T-013→T-014 already set for this, not worked around. One session-id
+oddity to flag before anything else.
+
+**Session-id note.** `echo $CLAUDE_CODE_REMOTE_SESSION_ID` in this worker run
+printed `cse_014UHMAdWWsvkfN9KUD5wDXi` — the same id already in this brief's
+Sessions table for both task-expander rows. I did not change that; it is what
+the environment reported. `process.md`'s isolation guarantee is about context,
+not the literal id string, and I have no way to confirm from inside a session
+whether this reflects genuine session reuse or just an id the harness recycled
+across roles in one unattended run. Flagging it rather than asserting either
+way — **the tester should confirm independently (their own harness-assigned
+id, and whether it differs from mine) before treating their run as isolated**,
+and if it turns out to be genuine reuse, that's a process question for
+whoever runs `run-loop.sh`/the orchestrator next, not something I can fix from
+here.
+
+### Criteria, one by one
+
+| # | Criterion | Where it lives now | Verdict |
+|---|---|---|---|
+| 1 | 1–3 non-blank, trimmed strings per state | `curated/us-states.ts` (source); `top-crops.test.ts` "criterion 1"; `climate-kid.test.ts` "15c" | met |
+| 2 | Register (trimmed, no shouted acronym, no comma, no `" - "`) | `top-crops.test.ts` "criterion 2" (one test per string, ~121 strings across curated+tracked) | met |
+| 3 | Distinct within a state, case-insensitive | `top-crops.test.ts` "criterion 3" | met |
+| 4 | No livestock word, anywhere | `top-crops.test.ts` "criterion 4" (one test per string against the exact 14-word list) | met |
+| 5 | Tracked file's array equals curated's, same order, all 50 | `climate-kid.test.ts`/`landmarks.test.ts`/`state-animals.test.ts`/`climate-kid-verify.test.ts` "top_crops is populated..." tests, each diffing against `CURATED_US_STATES` | met |
+| 6 | Two offline rebuilds byte-identical to each other and to tracked | `committed-bank.test.ts`'s existing whole-file rebuild-vs-tracked test (unmodified, already covers this generically); independently re-confirmed by hand with `rebuildOffline` twice, see "How to verify" below | met |
+| 7 | No new env var, host, or fixture file | Grepped `question-bank/src/` for `NASS` (zero hits outside comments/docs referencing the *rejected* route); no new file under `src/fixtures/`; `build.ts`'s transports are unchanged (Wikidata SPARQL + Wikipedia summary only) | met |
+| 8 | Exactly one `127.0.0.1:1` literal; no test spawns `build.ts` directly; new suite imports `rebuildOffline` | `top-crops.test.ts` does neither a rebuild nor a spawn — it reads only the already-tracked files and the curated table, so it needed no proxy isolation and imports nothing from `offline-rebuild.ts`. The one literal is still only in `offline-rebuild.ts` (unchanged) | met |
+| 9 | Four named `[]` assertions replaced; whole suite green | See "Files changed" below; `bun test` → 1083 pass, 0 fail | met |
+| 10 | No new dependency | `git status --short question-bank/package.json question-bank/bun.lock` — empty, both files untouched. `bun install` was run once to fetch the *existing* lockfile's dev deps into a clean `node_modules/` so `typecheck` could run; it added nothing new (verified before/after) | met |
+| 11 | Docs no longer say the field is empty | `sample-data/README.md`, `normalize.ts:142-144`'s comment, `PROGRESS.md:654-657` all rewritten | met |
+| 12 | Sample untouched; README explains why | `git status --short question-bank/sample-data/` — empty; README addition quoted below | met |
+| 13 | Nothing but `top_crops` moves in the bank; `built_at` pinned | `git diff` of all 50 changed files shows only `top_crops` lines (`+`) replacing `"top_crops": [],` (`-`); `built_at` is `2026-08-04T16:05:35.000Z` in all 50, matching before | met |
+| 14 | Provenance in the header comment and `engineering-decisions.md` | `curated/us-states.ts` header (new paragraph) + `CuratedState.top_crops` doc comment; `engineering-decisions.md` E-7 | met |
+
+### Files changed
+
+- `question-bank/src/curated/us-states.ts` — added `top_crops?: string[]` to
+  `CuratedState`, a provenance paragraph to the header comment, a doc comment
+  on the field itself, and the 50 values (table below).
+- `question-bank/src/normalize.ts` — `top_crops: []` (a literal) →
+  `top_crops: curated.top_crops ?? []` (reads the curated table, `fun_facts`'s
+  exact shape, not the conditional-spread shape `climate_kid` uses); comment
+  rewritten to stop naming USDA NASS.
+- `question-bank/data/us-states/*.json` (50 files) — rebuilt via `bun
+  src/build.ts --offline --quiet` with all six proxy spellings pointed at
+  `127.0.0.1:1`. Diffed against the pre-rebuild tree: only `top_crops` lines
+  changed in any of the 50 files; `index.json` did not change at all.
+- `question-bank/src/climate-kid.test.ts`,
+  `question-bank/src/climate-kid-verify.test.ts`,
+  `question-bank/src/landmarks.test.ts`,
+  `question-bank/src/state-animals.test.ts` — the four criterion-9 tests
+  (`... top_crops is still an empty array ...`) replaced with `... is
+  populated from CURATED_US_STATES ...`, each asserting the 1–3 range and
+  exact equality (order included) against the curated table, keyed by postal.
+- `question-bank/src/top-crops.test.ts` (new) — criteria 1–4's string-content
+  checks (register, distinctness, plant-only), which nothing else in the
+  suite tested. Reads only the tracked files and `CURATED_US_STATES`; no
+  build, no network, no `rebuildOffline` import (nothing here spans a build,
+  so criterion 8's "any new suite imports it" doesn't apply — see the
+  criterion 8 row above).
+- `question-bank/sample-data/README.md` — replaced the "needs USDA NASS"
+  sentence with the criterion-12 explanation (quoted in full below).
+- `PROGRESS.md:654-657` — `top_crops` moved from "empty (T-015)" to "50 of 50
+  (T-015, ...)"; the "three of the four topic fields" sentence became "all
+  four."
+- `engineering-decisions.md` — new **E-7**, provenance and the route-B
+  rejection reasoning (mirrors the brief's own "History" section).
+- **Six pre-existing tests fixed as a consequence, not listed in the brief's
+  "files expected to change" — see "A conflict the brief didn't anticipate"
+  below**: `question-bank/src/committed-bank.test.ts` (T-010 criterion 4),
+  `question-bank/src/landmarks.test.ts` (T-013 criterion 8, a second test in
+  the same file criterion 9 already touches),
+  `question-bank/src/state-animals.test.ts` (T-012 criterion 7, likewise),
+  `question-bank/src/landmarks-verify.test.ts` (T-013 tester criteria 8 and
+  9), `question-bank/src/climate-kid-verify.test.ts` (T-014 tester criteria
+  13 and 15).
+
+### A conflict the brief didn't anticipate — flagging, not asking permission
+
+The Constraints section lists exactly which files should change, and doesn't
+include the six tests above. But criterion 9 requires **the whole suite
+green**, and populating `top_crops` — which criterion 5 requires — silently
+breaks those six pre-existing tests, because they compare the tracked bank
+against either `sample-data/us-state-co.json` (frozen at `top_crops: []` by
+this task's own criterion 12) or a **pinned literal digest/hash** computed
+before this task existed, when every file still carried `top_crops: []`.
+Populating the field is not a bug in those tests; it's a field this task is
+explicitly asked to change that they didn't anticipate.
+
+**What I did:** fixed each of the six the same way `landmarks-verify.test.ts`'s
+own header comment already documents doing for `climate_kid` when T-014 landed
+on top of T-013 — i.e., there is a **precedent already in the repo** for
+exactly this situation (a later approved task populating a field an earlier
+task's frozen verification pinned). Two different fixes, matched to what each
+test actually pinned:
+
+- **Sample-vs-tracked full-object comparisons** (`committed-bank.test.ts`,
+  `landmarks.test.ts`, `state-animals.test.ts`, `landmarks-verify.test.ts`
+  criterion 8, `climate-kid-verify.test.ts` criterion 13): `top_crops` is
+  **excluded** from the comparison, the same way `sources.built_at` already
+  is — sample and tracked are allowed to differ there now, by criterion 12's
+  own design.
+- **Pinned-digest comparisons** (`landmarks-verify.test.ts` criterion 9,
+  `climate-kid-verify.test.ts` criterion 15): `top_crops` is **restored to the
+  literal `[]`** before hashing, not deleted — because the original pinned
+  digest was computed with the key *present* as `[]`, not absent. I verified
+  this by hand for one state (AK) before applying it everywhere: deleting
+  produced a different hash than the pinned value; setting back to `[]`
+  reproduced it exactly. Deleting would have been the wrong fix even though it
+  reads more like the sample-comparison fix above.
+
+**Who should confirm or overturn this:** the reviewer. I judged extending an
+already-established, in-repo pattern (T-014's own comment explains it as
+"instead of turning permanently red the moment either task's own field
+lands") to a second field is the "actually correct" call the worker brief
+allows for a plan/reality mismatch, rather than a scope question that needed
+to bounce back to `task-expander` — the fix is mechanical, narrow, and each
+touched test's own header comment now says why. But it does touch six files
+outside the brief's stated boundary, so if the reviewer disagrees with that
+judgment, the alternative is returning to `task-expander` to add these six
+files to the Constraints list explicitly (the outcome would be identical
+code, just a paper trail first).
+
+### The 50 curated values (Review checklist's spot-check material)
+
+Ranked informally by which crop the state is more famous for first, not by a
+pinned statistic (see E-7). Transcribed here from `curated/us-states.ts` so
+the reviewer's checklist and any tester `-verify` suite can check against this
+table rather than re-reading the source:
+
+| Postal | top_crops |
+|---|---|
+| AL | cotton, peanuts |
+| AK | peonies |
+| AZ | cotton, lettuce |
+| AR | rice, soybeans |
+| CA | grapes, almonds, strawberries |
+| CO | potatoes, peaches |
+| CT | tobacco |
+| DE | lima beans |
+| FL | oranges, strawberries |
+| GA | peaches, peanuts, pecans |
+| HI | pineapple, coffee, macadamia nuts |
+| ID | potatoes |
+| IL | corn, soybeans |
+| IN | corn, soybeans |
+| IA | corn, soybeans |
+| KS | wheat, sorghum |
+| KY | tobacco, corn |
+| LA | sugarcane, rice |
+| ME | blueberries, potatoes |
+| MD | corn, soybeans |
+| MA | cranberries |
+| MI | cherries, blueberries, apples |
+| MN | corn, soybeans |
+| MS | cotton, soybeans |
+| MO | soybeans, corn |
+| MT | wheat, barley |
+| NE | corn, soybeans |
+| NV | alfalfa hay |
+| NH | maple syrup, apples |
+| NJ | blueberries, tomatoes, cranberries |
+| NM | chile peppers, pecans |
+| NY | apples, grapes, maple syrup |
+| NC | sweet potatoes, tobacco |
+| ND | wheat, sunflowers |
+| OH | corn, soybeans |
+| OK | wheat |
+| OR | hazelnuts, pears |
+| PA | mushrooms, apples |
+| RI | sweet corn, potatoes |
+| SC | peaches, cotton |
+| SD | corn, soybeans |
+| TN | soybeans, cotton |
+| TX | cotton, sorghum |
+| UT | cherries, alfalfa hay |
+| VT | maple syrup, apples |
+| VA | peanuts, tobacco |
+| WA | apples, cherries |
+| WV | apples |
+| WI | cranberries, corn |
+| WY | hay, sugar beets |
+
+**Why some states have only one entry** (`CLAUDE.md`'s "prefer a blank field
+to a guessed one", the Constraints' "curation guidance"): AK, CT, DE, ID, MA,
+NV, OK and WV each got one because a second or third honest, genuinely-famous
+plant crop did not present itself without guessing — Alaska in particular is
+worth a specific note: I deliberately did **not** ship "potatoes" as its sole
+crop even though Alaska does grow some, because Idaho's sole crop is also
+"potatoes" and the Review checklist's own example ("no state's list would make
+the `agriculture` question ambiguous") names exactly this failure mode. I used
+"peonies" instead — Alaska's long summer daylight has made it a genuinely
+notable (widely reported) cut-flower export in recent years, and it is
+distinct from every other state's list. **I did check every single-crop state
+against every other single-crop state for this exact clash** (see "How to
+verify" below) — Idaho/Alaska was the only collision found, and it's fixed.
+
+**Two entries I was less certain of, flagged for the reviewer's spot-check
+specifically:**
+- **NV — "alfalfa hay".** Nevada's largest agricultural crop by both acreage
+  and value, but it is feed, not something a child would recognize as a
+  "crop" the way potatoes or corn are. I kept it because it's honest and
+  Nevada has no more kid-recognizable plant crop at any real production
+  scale — the alternative was leaving Nevada blank, which criterion 1
+  forbids. If the reviewer would rather see this state left with a
+  less-quantity-driven but more recognizable pick (e.g. "onions" or
+  "garlic" from the Fallon area, genuinely grown there but at far smaller
+  scale), that's a one-line change.
+- **MD — "corn, soybeans".** Unlike most states with this same pair (a
+  genuinely dominant Midwest row-crop identity), Maryland's case is weaker —
+  corn and soybeans are grown there but Maryland isn't nationally *known* for
+  either. I used it because Maryland has no distinctly famous plant crop at
+  real scale, and criterion 1 forbids leaving it blank; it's the same
+  reasoning as NV above, just a duller-feeling answer than Iowa's.
+
+### How to run / verify
+
+```bash
+cd question-bank
+bun install                 # only if node_modules is missing; adds nothing to bun.lock
+bun test                    # 1083 pass, 0 fail
+bun run typecheck           # clean
+```
+
+Confirm criterion 13 (only `top_crops` moved) and criterion 6 (deterministic,
+offline) directly:
+
+```bash
+cd question-bank
+git diff data/us-states/ | grep -E '^-' | grep -v '^---' | grep -v '"top_crops": \[\],\?$'
+# → no output: every removed line is exactly a `top_crops: []`
+```
+
+The offline-rebuild-twice check I ran by hand (in addition to
+`committed-bank.test.ts`'s existing whole-file version, which already covers
+this): spawn `bun src/build.ts --offline` twice via `rebuildOffline`
+(`src/offline-rebuild.ts`) into two temp dirs, compare all 51 files pairwise
+and against the tracked copies — all matched.
+
+### What I deliberately did not do
+
+- **Did not touch `sample-data/us-state-co.json`.** Criterion 12 freezes it;
+  confirmed `git status --short question-bank/sample-data/` is empty.
+- **Did not add a `sources/nass.ts`, a fixture, or any env handling.** Route A
+  was rejected before this task reached the worker; see the brief's own
+  History section and the new E-7.
+- **Did not touch `openapi.yaml`, `types.ts`, `backend/app/models.py`.**
+  Already correct per the survey; no contract change needed.
+- **Did not run the `frontend` or `backend` suites.** Nothing in this task
+  touches either package (`git status --short` confirms the changed-file set
+  is entirely under `question-bank/`, `PROGRESS.md` and
+  `engineering-decisions.md`), so I ran only `question-bank`'s suite per
+  `test-guidelines.md`'s per-area split.
+- **Did not add "which state grows X" cross-state distinctness testing as a
+  permanent suite** — I checked it by hand for the single-crop states (see
+  above) but did not write it into `top-crops.test.ts`, since criterion 3
+  only requires distinctness *within* a state and the cross-state ambiguity
+  check is explicitly under "Review checklist" (a human judgment call, not a
+  shape a test can fully own — two states could share a crop honestly and
+  only a person can judge whether that specific pairing is ever asked as a
+  quiz question). Noting the one collision I found and fixed (AK/ID) so the
+  reviewer doesn't have to re-derive it.
 
 ## Verdict
 

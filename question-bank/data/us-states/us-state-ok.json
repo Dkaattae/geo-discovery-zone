@@ -26,7 +26,9 @@
   "state_animal": "American bison",
   "highest_point": "Black Mesa",
   "highest_point_m": 1737,
-  "top_crops": [],
+  "top_crops": [
+    "wheat"
+  ],
   "fun_facts": [
     {
       "text": "Oklahoma has more man-made lakes than any other state in the country.",

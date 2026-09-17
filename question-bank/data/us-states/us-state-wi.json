@@ -25,7 +25,10 @@
   "landmark": "Lambeau Field",
   "highest_point": "Timms Hill",
   "highest_point_m": 594.8,
-  "top_crops": [],
+  "top_crops": [
+    "cranberries",
+    "corn"
+  ],
   "fun_facts": [
     {
       "text": "Wisconsin produces more cheese than any other state, earning it the nickname America's Dairyland.",

@@ -25,7 +25,10 @@
   "landmark": "U.S. Space & Rocket Center",
   "highest_point": "Cheaha Mountain",
   "highest_point_m": 735.5,
-  "top_crops": [],
+  "top_crops": [
+    "cotton",
+    "peanuts"
+  ],
   "fun_facts": [
     {
       "text": "Alabama's Space & Rocket Center displays a real Saturn V moon rocket lying on its side.",
