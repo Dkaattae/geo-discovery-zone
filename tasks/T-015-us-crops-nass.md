@@ -8,7 +8,8 @@
 Claude Code on the web, used as the task branch per `process.md`, "When the
 environment names the branch for you", and `CLAUDE.md` "Branches". Every later
 role pushes here.
-**PR:** #45, opened draft at expand time, built from the branch above.
+**PR:** #46, opened draft at expand time, built from the branch above. It stays
+draft until the reviewer approves it.
 **Fault:** the expander halted: T-015 cannot be given observable criteria without
 a human deciding **where the shipped crop values come from** (nobody has a NASS
 key, and no agent can register for one) and **what "top three" is ranked by** —
