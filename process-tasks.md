@@ -90,3 +90,38 @@ is worse than no entry.
 declined with a reason in the workflow — and no hardcoded journey count survives
 in `ci.yml`. Whichever way the first goes, `conventions.md` and the assertions in
 `frontend/src/conventions-doc.test.ts` still agree with the workflow afterwards.
+
+### P-4 — A role's last test run has to be made from the state it pushes · S · todo
+**Depends on:** —
+**New 2026-09-17, found by T-014's reviewer across two rounds (PR #44).** T-014's
+tester ran the whole suite, got a green result, wrote "687 pass / 0 fail" into its
+Verdict, then committed — and the commit turned the suite red. The new test file
+was **untracked** while the suite ran, and the criterion it violated was checked
+through `git ls-files`, so the file was invisible to the very assertion it broke.
+Nothing errored, the Verdict looked exactly like a true one, and it cost a full
+review round.
+
+This is not specific to T-014's criterion. Any check that enumerates files
+through `git ls-files` — and this repo has several, because CI checks out at
+`fetch-depth: 1` and `origin/main` is not there — sees a different repository
+before and after `git add`. The same shape bites a worker that adds a source file,
+and a reviewer whose sweep deletes one.
+
+**The likely fix is one sentence in three role files**, not a new gate:
+`worker.md`, `tester.md` and `reviewer.md` each end with "commit, push, confirm
+the push landed". That sequence should say that the run whose numbers go in the
+Handoff, Verdict or PR body is made **after** `git add`/`git commit`, not before —
+and that a number in a report has to be reproducible from the pushed commit, which
+is what `CLAUDE.md` "Reporting" already asks for and what this failure quietly
+broke. `run-loop.sh`'s per-step prompts carry the same ending and would need the
+same line. Worth considering alongside it: whether the driver should run
+`bun test` itself on the pushed tree, which is a real gate rather than a
+reminder — and is what CI already does one step later, which is how this one was
+actually caught.
+
+**This is a process-file change** (`.claude/agents/*.md`, `process.md`,
+`.claude/loop/run-loop.sh`), so G1 forbids running it through the loop:
+hand-written PR, reviewed by Dkaattae.
+**Done when:** every role that reports a test count is told to take it from the
+state it pushed, and the instruction lives with the commit-and-push sequence
+rather than in a paragraph about honesty.

@@ -143,11 +143,27 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   landmark → state is unambiguous as a string compare; four pairs still collide to
   a *reader* (NH's "Mount Washington", LA's "St. Louis Cathedral", the two NASA
   museums in AL and TX, NE's "Chimney Rock") and T-026 records them.
-- 487 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
+- **All 50 states carry a `climate_kid` phrase** (T-014, PR #44), in the same
+  build input as the fun facts, the animals and the landmarks — Colorado's was
+  already there and is untouched. All 50 strings are distinct and none contains
+  another, none names a state, none carries a digit, a unit or a geographer's
+  word. What a test could not check is whether they are *true* and readable at
+  nine: that is open on PR #44 as eight unticked boxes, and ten groups of
+  substantively-interchangeable climates covering 41 of the 50 states are recorded
+  there for T-026/T-022.
+- **The offline-rebuild test harness lives in one place** (T-014, PR #44):
+  `question-bank/src/offline-rebuild.ts` exports the dead-loopback proxy map and
+  `rebuildOffline()`, and all six suites that check a byte-identical offline
+  rebuild import it instead of pasting a fifth and sixth copy. There is exactly
+  one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
+  *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
+  catch different failures.
+- 687 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
   and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`, 96 by T-012 in
   `state-animals.test.ts`, 148 by T-013 across `landmarks.test.ts` and
-  `landmarks-verify.test.ts`). That figure
-  has now gone stale nine times — T-065 replaces the hard-coded counts in this
+  `landmarks-verify.test.ts`, 200 by T-014 across `climate-kid.test.ts` and
+  `climate-kid-verify.test.ts`). That figure
+  has now gone stale eleven times — T-065 replaces the hard-coded counts in this
   file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
 
 ### Repo and process
@@ -270,6 +286,40 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-014 — all 50 states have a kid-facing climate phrase** (PR #44,
+  2026-09-17). 49 rows in `question-bank/src/curated/us-states.ts` gained
+  `climate_kid` (Colorado already carried the string `geoquizdataplan.md` §1.4 and
+  `openapi.yaml:1478` both print, and it is untouched); the 49 matching entity
+  files were **rebuilt offline** to carry it — 49 added lines, nothing deleted,
+  `sources.built_at` still the pinned fixture instant, `index.json` and
+  `sample-data/` byte-identical. No schema change; `normalize.ts` already folded
+  the field in conditionally. 200 tests across `climate-kid.test.ts` (worker,
+  116) and `climate-kid-verify.test.ts` (tester, 84), 487 → 687, eleven mutations
+  each proven to turn the expected criterion red.
+  *Where reality differed from the brief:* three things.
+  **The task's open harness question was closed by extraction**, not by an
+  `engineering-decisions.md` entry: `question-bank/src/offline-rebuild.ts` now
+  holds the dead-loopback proxy map and the offline-rebuild runner that four
+  suites had each copy-pasted, and all six rebuild suites import it. That forced
+  edits to three files this task otherwise had no reason to open — their pinned
+  `expect(` floor for `committed-bank.test.ts` dropped 60 → 58, exactly the two
+  `expect(proc.exitCode).toBe(0)` calls the extraction turned into a thrown
+  error, which a mutation confirmed still catches what they caught.
+  **The task cost a review round to a defect in the tester's own test file, not
+  in the work**: `climate-kid-verify.test.ts` spelled `127.0.0.1:1` out in two
+  comments, which made the criterion "exactly one file under `question-bank/src/`
+  carries that literal" false and turned the committed suite and CI red — and the
+  round-1 Verdict reported 687 pass / 0 fail because the run predated `git add`,
+  so the `git ls-files`-based check could not see the offending file. Fixed in
+  round 2 by rewriting the comments and widening the suite's own scan, which had
+  excluded itself; the loop gap behind it is **P-4**.
+  **The phrases' substance is still unread.** All eight Review-checklist boxes on
+  PR #44 are open and are Dkaattae's, and the reviewer flagged three phrases and
+  a list of vocabulary for that read (WI's "right in the middle of the country",
+  OH's mismatched place/time contrast, DE's "moderating") along with the measured
+  phrasing-variety numbers. The interchangeable-climate groups T-026 needs — ten
+  groups covering 41 states — are recorded on PR #44 and summarised under T-026.
 
 - **T-013 — 44 of 50 states have a landmark** (PR #43, 2026-09-16). 43 rows in
   `question-bank/src/curated/us-states.ts` gained `landmark` (Colorado already had
@@ -598,10 +648,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   — is a human read, and the checklist for it lives on PR #42 rather than in any
   test. `landmark` is **44 of 50** (T-013, PR #43) with six declared blanks (DE,
   IA, KS, MS, OK, RI) and the same unread substance, on PR #43 — so the `landmark`
-  topic will cover 44 states, not 50. `climate_kid` is still **1 of 50**;
-  `top_crops` is empty. Those are the data behind two still-unbuilt topics;
-  `wildlife` and `landmark` now wait only on T-021/T-026 and on something serving
-  them (T-040, T-050).
+  topic will cover 44 states, not 50. `climate_kid` is **50 of 50** (T-014, PR
+  #44), with the same unread substance on PR #44 and one extra thing waiting
+  there: ten groups of states whose phrases describe the same climate, which
+  `climate` questions must not offer two of. `top_crops` is empty (T-015) and is
+  the last curated field. So three of the four topic fields now have data and
+  `wildlife`, `landmark` and `climate` wait only on T-021/T-026, a same-value
+  distractor guard (T-022), and something serving them (T-040, T-050).
 - **Two region vocabularies exist and they disagree** — eight in the pipeline,
   thirteen in the served bank, six of which the pipeline never emits (T-017).
 

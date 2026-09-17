@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { CURATED_US_STATES } from "./curated/us-states";
+import { rebuildOffline } from "./offline-rebuild";
 
 /**
  * T-013 verification, second pass — written by the `tester` role from the
@@ -45,15 +45,7 @@ import { CURATED_US_STATES } from "./curated/us-states";
 const PKG = resolve(import.meta.dirname, "..");
 const DATA_DIR = join(PKG, "data/us-states");
 const SAMPLE = join(PKG, "sample-data/us-state-co.json");
-
-const DEAD_PROXY = {
-  HTTP_PROXY: "http://127.0.0.1:1",
-  HTTPS_PROXY: "http://127.0.0.1:1",
-  ALL_PROXY: "http://127.0.0.1:1",
-  http_proxy: "http://127.0.0.1:1",
-  https_proxy: "http://127.0.0.1:1",
-  all_proxy: "http://127.0.0.1:1",
-};
+const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 /** Criterion 7 names this instant literally. */
 const PINNED_BUILT_AT = "2026-08-04T16:05:35.000Z";
@@ -393,22 +385,15 @@ describe("T-013 tester, criterion 6 — the text lives in the build input, not i
 
 describe("T-013 tester, criterion 7 — the bank is built, not hand-edited", () => {
   test("an offline rebuild reproduces all 51 tracked paths byte-for-byte", () => {
-    const out = mkdtempSync(join(tmpdir(), "t013-tester-"));
-    try {
-      const proc = Bun.spawnSync(
-        ["bun", join(PKG, "src/build.ts"), "--offline", "--out", out, "--quiet"],
-        { cwd: PKG, env: { ...process.env, ...DEAD_PROXY } },
+    // `rebuildOffline` (T-014 criterion 16(a)) is the harness shared with
+    // `committed-bank.test.ts`, `state-animals.test.ts` and `landmarks.test.ts`.
+    const names = Object.keys(DEFAULT_BRANCH_DIGESTS);
+    expect(names).toHaveLength(51);
+    const rebuilt = rebuildOffline(BUILD_SCRIPT, names, "t013-tester-");
+    for (const name of names) {
+      expect({ name, same: rebuilt.get(name) === readFileSync(join(DATA_DIR, name), "utf8") }).toEqual(
+        { name, same: true },
       );
-      expect(proc.exitCode).toBe(0);
-      const names = Object.keys(DEFAULT_BRANCH_DIGESTS);
-      expect(names).toHaveLength(51);
-      for (const name of names) {
-        expect({ name, same: readFileSync(join(out, name), "utf8") === readFileSync(join(DATA_DIR, name), "utf8") }).toEqual(
-          { name, same: true },
-        );
-      }
-    } finally {
-      rmSync(out, { recursive: true, force: true });
     }
   });
 
@@ -442,10 +427,26 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
     );
   });
 
-  test("each of the 50 files, with landmark removed, is identical to the default branch's", () => {
+  test("each of the 50 files, with landmark and climate_kid removed, is identical to the default branch's", () => {
+    // T-014 (2026-09-17, a later approved task) filled `climate_kid` for the
+    // 49 states that did not already carry it at this task's own branch point
+    // (Colorado already did, so its pinned digest is unaffected either way).
+    // `DEFAULT_BRANCH_DIGESTS` was computed by removing only `landmark`, from
+    // the tree as it stood before T-013 landed — before `climate_kid` existed
+    // on any state but Colorado. Stripping `climate_kid` here too keeps this
+    // check doing what it always did (nothing *other than the fields two
+    // named, approved tasks are known to touch* has moved) instead of turning
+    // permanently red the moment either task's own field lands, which would
+    // make the check meaningless rather than strict.
     for (const { file, raw } of stateFiles()) {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
       delete parsed["landmark"];
+      // Colorado already carried climate_kid at the pinned baseline (it is
+      // the one state T-013 itself found already filled), so its pinned
+      // digest was computed with that key still present. Every other file's
+      // pinned digest was computed with the key absent, since T-014 is what
+      // adds it.
+      if (file !== "us-state-co.json") delete parsed["climate_kid"];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,
@@ -453,11 +454,16 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
     }
   });
 
-  test("the set of states carrying climate_kid is still exactly {Colorado} — T-014 owns that field", () => {
+  test("the set of states carrying climate_kid is exactly all 50 — T-014 filled the rest", () => {
+    // Was `["Colorado"]` before T-014; T-014's criterion 1 leaves no state
+    // blank, so the ground truth this compares against is now all 50, derived
+    // from the curated table itself rather than a value copied out of it, so
+    // it cannot silently drift out of sync with a later change to that table.
     const named = stateFiles()
       .filter(({ entity }) => entity.climate_kid !== undefined)
-      .map(({ entity }) => entity.name);
-    expect(named).toEqual(["Colorado"]);
+      .map(({ entity }) => entity.name)
+      .sort();
+    expect(named).toEqual(CURATED_US_STATES.map((s) => s.name).sort());
   });
 
   test("all 50 still carry a non-empty state_animal", () => {
@@ -579,9 +585,16 @@ describe("T-013 tester, criterion 14 — nothing already verified is weakened", 
    * `state-animals.test.ts` is listed at its branch-point test count (43) and
    * its branch-point expect count (70): this task edited one of its assertions,
    * and the floor is what criterion 14 forbids dropping below.
+   *
+   * `committed-bank.test.ts`'s own expect-count floor was lowered from 60 to
+   * 58 by T-014, criterion 16(a): two inline `expect(proc.exitCode).toBe(0)`
+   * calls moved into the shared `rebuildOffline` helper (`offline-rebuild.ts`),
+   * which throws on a non-zero exit instead — the check still fails the test,
+   * just without its own `expect(` line in this file. That extraction is
+   * named exempt from "loosened" by the criterion itself.
    */
   const FLOORS: Record<string, { tests: number; expects: number }> = {
-    "committed-bank.test.ts": { tests: 33, expects: 60 },
+    "committed-bank.test.ts": { tests: 33, expects: 58 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     "normalize.test.ts": { tests: 14, expects: 31 },

@@ -96,7 +96,7 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 184 frontend, 487 question-bank |
+| **Unit and endpoint tests** | 242 backend, 184 frontend, 687 question-bank |
 | **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
 | **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
@@ -289,7 +289,11 @@ this task: **prefer removing the figures to refreshing them again.** T-011 made
 it the fourth and fifth: 209 → 243, corrected by hand in the same two places
 again (PR #41), and T-012 the sixth and seventh: 243 → 339, corrected by hand in
 those same two places a third time (PR #42), and T-013 the eighth and ninth:
-339 → 487, corrected by hand in those same two places a fourth time (PR #43).
+339 → 487, corrected by hand in those same two places a fourth time (PR #43), and
+T-014 the tenth and eleventh: 487 → 687, corrected by hand in those same two
+places a **fifth** time (PR #44). Five hand-corrections of the same two figures
+is no longer evidence that this task is worth doing — it is evidence that nobody
+will stop doing it by choice.
 This is
 exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 (T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
@@ -297,27 +301,43 @@ exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
 
-### T-014 — Curate kid-facing climate phrasing · M · todo
-**Depends on:** —
-`climate_kid`, in the words a nine-year-old would use. **1 of 50 filled.**
-Colorado's entry is the model: "dry and cold in the mountains, drier plains to
-the east".
-**One thing it must not miss, found by T-013's reviewer (PR #43):** the
-dead-loopback offline-rebuild harness is now copy-pasted into **four** suites
-(`committed-bank`, `state-animals`, `landmarks`, `landmarks-verify`) and the
-`trackedStateFiles()` helper into three, because each curation task writes a
-self-contained suite it can be deleted with. T-014 and T-015 would make it six.
-Extract the shared helpers into one module under `question-bank/src/` as you go,
-or say in the Handoff why self-containment is still worth the copies — either is
-fine, deciding by default is not.
-**Done when:** every state has a phrase, and none of them says "Köppen".
-
 ### T-015 — US crops from USDA NASS Quick Stats · M · todo
 **Depends on:** —
 Add a source module that fills `top_crops`, aggregated to the top three per
 state. Needs a free API key — keep it out of the repo, read from the environment
 at build time (plan §1.9).
+**The harness question is already answered — do not re-open it (T-014, PR #44).**
+T-014 took the "extract" branch: `question-bank/src/offline-rebuild.ts` exports
+`DEAD_PROXY` and `rebuildOffline(buildScript, fileNames, tmpPrefix?)`, and all
+six suites that check an offline rebuild import the runner from it. There is
+exactly **one** `127.0.0.1:1` under `question-bank/src/`, and
+`climate-kid.test.ts` asserts that count, so a suite of your own that pastes its
+own proxy map or spawns `src/build.ts` directly turns the suite red. Import it.
+The tracked-file *reading* route stays deliberately duplicated
+(`git ls-files` in `landmarks.test.ts` vs `readdirSync` in
+`landmarks-verify.test.ts`) — that one is a real second check, not duplication.
+**Also inherited:** any new criterion checked through `git ls-files` must be
+re-run with new files **tracked**; T-014's tester lost a round to exactly that
+(see P-4).
 **Done when:** `top_crops` is populated for all 50 states and the key is not committed.
+
+### T-067 — `climate_koppen` is declared and never emitted · S · todo
+**Depends on:** —
+**New 2026-09-17, carried over by T-014's reviewer (PR #44)** because T-014's Out
+of scope said the gap was a sweep entry rather than a commit there.
+`Entity.climate_koppen` exists (`question-bank/src/types.ts:49`) and
+`geoquizdataplan.md` §1.4's entity example prints it, but no query produces it and
+no tracked file carries the key — so the plan shows a field the pipeline has never
+emitted. T-014 filled `climate_kid` for all 50 states by hand precisely because
+the codes are not on disk to translate from (plan §1.9), which means the raw codes
+now buy the app nothing a child would see. Two honest endings: **delete the field
+and correct §1.4's example**, or **emit it** and say what reads it. Deleting looks
+right — nothing in `openapi.yaml` exposes it and `climate_kid` is the shipped
+version — but it edits the plan's example, so it is a deliberate call rather than
+a tidy-up.
+**Done when:** `climate_koppen` is either emitted by a build or gone from
+`types.ts` and from the plan's example, and nothing describes a field that does
+not exist.
 
 ### T-016 — Alaska has no `P610` highest point · S · todo
 **Depends on:** —
@@ -385,6 +405,12 @@ cleanly where data is absent.
 Indiana / Illinois / Iowa is a real question; Ohio / Hawaii / Texas / Alaska is
 free (plan §1.2). **Needs T-017 first** — "same region" is undefined while two
 region vocabularies exist.
+**Two same-value guards are now waiting on this, not just same-region:**
+`wildlife` needs a same-animal guard (20 of 50 states share an animal, T-012) and
+`climate` needs a same-climate one (41 of 50 states fall into ten
+substantively-interchangeable groups, T-014/PR #44 — listed under T-026). Both
+are invisible to a string compare, which is what makes them this task's problem
+rather than the curation tasks'.
 **Done when:** strategies are named on templates, not hardcoded, and a test
 asserts distractors come from the same region.
 
@@ -418,7 +444,7 @@ infrastructure once T-021 lands:
 |---|---|---|
 | `wildlife` | "Which animal is <state>'s state animal?" | T-012 — **landed, PR #42** |
 | `landmark` | "Where is <landmark>?" | T-013 — **landed, PR #43** |
-| `climate` | "Which state is <climate phrase>?" | T-014 |
+| `climate` | "Which state is <climate phrase>?" | T-014 — **landed, PR #44** |
 | `agriculture` | "What grows most in <state>?" | T-015 |
 | `size` / `superlative` | "Which is bigger?" | rank fields — already on entities |
 
@@ -461,6 +487,25 @@ class of problem T-012 left above and the one a duplicate check misses:
 
 Never offer two of a pair as options in the same question, and prefer `<state>` →
 landmark phrasing where the pair is unavoidable.
+
+**`climate`'s data exists now — 50 of 50 (T-014, PR #44) — and the ambiguity is
+already mapped for you.** Every state carries a `climate_kid` phrase, all 50
+strings distinct and none a substring of another, none naming a state (T-014
+criteria 10–11). That makes the strings safe; it does **not** make the question
+safe. T-014's criterion 17 required the worker to group the states whose phrases
+describe **substantively the same climate**, and it found **ten groups covering
+41 of the 50 states** — Great Plains (IA, NE, KS, SD, ND), Northern Rockies (MT,
+WY, ID), Interior Southwest (AZ, NM, UT, NV), Pacific Northwest (OR, WA),
+Southern New England (CT, MA, RI), Northern New England (NH, VT, ME),
+Mid-Atlantic (NJ, PA, MD, DE), Great Lakes / Upper Midwest (OH, IN, IL, MI, WI,
+MN), Deep South (AL, GA, MS, SC, LA), Upland South (TN, AR, KY, NC, VA, WV). The
+nine left ungrouped are AK, CA, CO, FL, HI, MO, NY, OK, TX. **"Which state is
+`<phrase>`?" has more than one true answer inside every one of those groups**, so
+this topic needs a same-climate guard exactly like `wildlife`'s same-animal one
+— it cannot rely on a string compare. The groups are recorded in PR #44 (the
+brief is swept); read them there before writing the template. The reverse
+direction, "What kind of climate does X have?" (plan line 90), is unambiguous and
+is the cheaper place to start.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
 
