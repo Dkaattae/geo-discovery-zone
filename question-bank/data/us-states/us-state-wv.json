@@ -26,7 +26,9 @@
   "landmark": "New River Gorge Bridge",
   "highest_point": "Spruce Knob",
   "highest_point_m": 1482,
-  "top_crops": [],
+  "top_crops": [
+    "apples"
+  ],
   "fun_facts": [
     {
       "text": "West Virginia broke away from Virginia in 1863 to become its own separate state.",

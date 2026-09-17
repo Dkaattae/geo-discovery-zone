@@ -19,7 +19,9 @@
   "state_animal": "Moose",
   "landmark": "Denali",
   "highest_point_m": 6190,
-  "top_crops": [],
+  "top_crops": [
+    "peonies"
+  ],
   "fun_facts": [
     {
       "text": "Alaska is the biggest state, and in summer the sun barely sets in the far north.",

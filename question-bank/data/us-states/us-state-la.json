@@ -24,7 +24,10 @@
   "landmark": "St. Louis Cathedral",
   "highest_point": "Driskill Mountain",
   "highest_point_m": 163,
-  "top_crops": [],
+  "top_crops": [
+    "sugarcane",
+    "rice"
+  ],
   "fun_facts": [
     {
       "text": "The Mississippi River dumps its mud in Louisiana, building new land as it goes.",

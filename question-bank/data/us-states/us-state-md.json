@@ -25,7 +25,10 @@
   "landmark": "Fort McHenry",
   "highest_point": "Hoye-Crest",
   "highest_point_m": 1020,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Maryland's Chesapeake Bay is the largest estuary in the United States, full of blue crabs.",

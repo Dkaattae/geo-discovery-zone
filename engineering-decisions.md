@@ -326,3 +326,58 @@ notices a value here is wrong against Wikidata and there is no job that would
 have caught it. Either is a signal that "committed, refreshed by hand" has
 become "committed, refreshed never" — at which point the generated-only option
 this entry rejected is worth re-costing, not re-arguing from scratch.
+
+---
+
+## E-7 — `top_crops` is hand-curated, not fetched from USDA NASS
+
+**2026-09-17 (T-015).** `Entity.top_crops` — declared since T-010 but emitted as
+`[]` for all 50 states until now — is filled the same way as `climate_kid`,
+`state_animal` and `landmark`: a field on `CuratedState` in
+`question-bank/src/curated/us-states.ts`, folded into each entity by
+`normalize.ts` (`curated.top_crops ?? []`, the same array-field shape
+`fun_facts` uses at the line below it). There is no `sources/nass.ts`, no
+captured fixture, no API key, and no environment variable.
+
+**Why not the live USDA NASS Quick Stats API the queue entry's title named.**
+The expander halted T-015 on exactly this (see the task's own "History"
+section) before this decision was made:
+
+- **No key exists anywhere** this repo, environment or CI secrets can reach —
+  Quick Stats keys come from a signup form and an email, an action outside
+  every role's remit, and there is no `NASS_API_KEY` in `.env.example` or any
+  `.github/workflows/` secret.
+- **CI could not use one if it existed.** The `question-bank` job runs with all
+  six proxy spellings pointed at a dead loopback (`.github/workflows/ci.yml`),
+  so a live fetch can never run there by design (`test-guidelines.md`, "No
+  network in tests, ever").
+- **"Top three" has no single honest answer without a key decision NASS
+  encodes and a human has to make anyway**: ranked by acres, production
+  quantity or value differ (California is grapes/almonds/strawberries by
+  value, roughly hay/almonds/wheat by acreage); a year or multi-year average
+  has to be picked; and NASS commodity labels are machine strings in shouted
+  case, not the kid-facing text every shipped string here already has to be.
+
+**What is curated instead.** One to three genuinely famous **plant** crops per
+state, hand-picked by a human and guided informally by rough production
+quantity — not a statistic tied to a year, because there is no live lookup to
+pin a year to, and not an exhaustive top-N. Livestock, poultry, dairy and eggs
+are never crops here: cattle is the top agricultural commodity by value in
+several states and would contradict a kid-facing "what grows" question, so
+that data is tracked separately by **T-068**, a sibling curated field this
+decision deliberately excludes. Fewer than three is correct, not a gap, for a
+state with fewer than three honest entries — `CLAUDE.md`'s "prefer a blank
+field to a guessed one" rules out padding to three.
+
+**Whose words.** The curated table's `top_crops` strings are themselves the
+reviewed, kid-facing text under `CLAUDE.md` "Content rules" — there is no
+separate review pass for this field the way `fun-facts.review.json` provides
+for `fun_facts` (E-6's build-input reasoning applies here too: a curated field
+is a build input the rebuild reads, not built output it overwrites, so it
+survives criterion 6's byte-identical offline rebuild the same way
+`climate_kid` does).
+
+**Revisit when** a live USDA NASS integration becomes worth the cost this entry
+declined to pay now — concretely, if a key becomes available to CI without a
+human registering by hand, or if T-068's livestock field turns up a similar
+need and the two are worth solving together.

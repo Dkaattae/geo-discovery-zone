@@ -25,7 +25,10 @@
   "landmark": "Glacier National Park",
   "highest_point": "Granite Peak",
   "highest_point_m": 3904,
-  "top_crops": [],
+  "top_crops": [
+    "wheat",
+    "barley"
+  ],
   "fun_facts": [
     {
       "text": "Montana is nicknamed Big Sky Country because its skies stretch out over such wide open land.",

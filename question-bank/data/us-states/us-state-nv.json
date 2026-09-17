@@ -26,7 +26,9 @@
   "landmark": "Hoover Dam",
   "highest_point": "Boundary Peak",
   "highest_point_m": 4007,
-  "top_crops": [],
+  "top_crops": [
+    "alfalfa hay"
+  ],
   "fun_facts": [
     {
       "text": "Nevada is the driest state, and rain that falls there never reaches the ocean.",

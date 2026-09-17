@@ -26,7 +26,10 @@
   "landmark": "Mount Vernon",
   "highest_point": "Mount Rogers",
   "highest_point_m": 1825,
-  "top_crops": [],
+  "top_crops": [
+    "peanuts",
+    "tobacco"
+  ],
   "fun_facts": [
     {
       "text": "Virginia is nicknamed the Mother of Presidents because eight American presidents were born there.",

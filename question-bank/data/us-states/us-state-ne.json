@@ -27,7 +27,10 @@
   "landmark": "Chimney Rock",
   "highest_point": "Panorama Point",
   "highest_point_m": 5429,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Nebraska is home to Chimney Rock, a tall spire that guided pioneers along the Oregon Trail.",

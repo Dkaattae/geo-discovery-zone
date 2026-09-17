@@ -449,8 +449,12 @@ describe("T-012 criterion 6 — the bank is built, not hand-edited", () => {
 });
 
 describe("T-012 criterion 7 — the committed sample stays in step with the bank", () => {
+  // T-015 (2026-09-17, a later approved task) freezes the sample at
+  // `top_crops: []` (its own criterion 12 — sample-data is T-064's territory)
+  // while populating the tracked copy, so `top_crops` is dropped here the
+  // same way `built_at` already is.
   const stripBuiltAt = (entity: TrackedEntity) => {
-    const { sources, ...rest } = entity;
+    const { sources, top_crops: _crops, ...rest } = entity;
     const { built_at: _dropped, ...restSources } = sources ?? {};
     return { ...rest, sources: restSources };
   };
@@ -459,7 +463,7 @@ describe("T-012 criterion 7 — the committed sample stays in step with the bank
   const sample = () =>
     JSON.parse(readFileSync(join(PKG, "sample-data/us-state-co.json"), "utf8")) as TrackedEntity;
 
-  test("sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at", () => {
+  test("sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops", () => {
     expect(stripBuiltAt(sample())).toEqual(stripBuiltAt(tracked()));
   });
 
@@ -601,9 +605,18 @@ describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () 
     expect(named).toEqual(T014_CLIMATE_KID_STATES);
   });
 
-  test("top_crops is still an empty array in all 50 tracked files — T-015 owns it", () => {
-    for (const { file, entity } of trackedStateFiles()) {
-      expect({ file, topCrops: entity.top_crops }).toEqual({ file, topCrops: [] });
+  test("top_crops is populated from CURATED_US_STATES in all 50 tracked files — T-015", () => {
+    const curatedCrops = new Map(CURATED_US_STATES.map((s) => [s.postal, s.top_crops] as const));
+    for (const { file, postal, entity } of trackedStateFiles()) {
+      const crops = entity.top_crops as unknown;
+      expect(Array.isArray(crops)).toBe(true);
+      const arr = crops as string[];
+      expect({ file, inRange: arr.length >= 1 && arr.length <= 3 }).toEqual({
+        file,
+        inRange: true,
+      });
+      expect(curatedCrops.has(postal)).toBe(true);
+      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curatedCrops.get(postal) as string[] });
     }
   });
 

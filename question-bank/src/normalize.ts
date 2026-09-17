@@ -139,10 +139,11 @@ export function normalizeUsStates(
       ...(curated.landmark ? { landmark: curated.landmark } : {}),
       ...(row.highestPoint ? { highest_point: row.highestPoint } : {}),
       ...(row.highestPointM !== undefined ? { highest_point_m: row.highestPointM } : {}),
-      // Crops need USDA NASS (§1.9) — filled by a later pass, so it starts
-      // empty rather than wrong. Facts are curated per state (§1.6, T-011); a
-      // state with none yet still gets the key, just an empty array.
-      top_crops: [],
+      // Hand-curated plant crops (T-015; see the header comment in
+      // curated/us-states.ts for provenance), folded in the same shape as
+      // `fun_facts` below — the key stays present even if a future state has
+      // none curated yet, rather than being spread away.
+      top_crops: curated.top_crops ?? [],
       fun_facts: curated.fun_facts ?? [],
       sources: {
         ...(row.qid ? { wikidata_id: row.qid } : {}),

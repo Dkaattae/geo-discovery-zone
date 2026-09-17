@@ -648,10 +648,14 @@ describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", ()
 });
 
 describe("T-014 tester, criterion 13 — the committed sample stays in step with the bank", () => {
-  test("the sample equals the tracked Colorado in every field but sources.built_at", () => {
+  test("the sample equals the tracked Colorado in every field but sources.built_at and top_crops", () => {
+    // T-015 (2026-09-17, a later approved task) freezes the sample at
+    // `top_crops: []` (its own criterion 12) while populating the tracked
+    // copy, so it is excluded here the same way `built_at` already is.
     const strip = (raw: string) => {
       const parsed = JSON.parse(raw) as { sources?: Record<string, unknown> };
       if (parsed.sources) delete parsed.sources["built_at"];
+      delete (parsed as Record<string, unknown>)["top_crops"];
       return JSON.stringify(parsed);
     };
     expect(strip(readFileSync(SAMPLE, "utf8"))).toBe(
@@ -683,10 +687,20 @@ describe("T-014 tester, criterion 14 — Colorado's phrase is unchanged", () => 
 });
 
 describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the bank", () => {
-  test("each of the 50 files, with climate_kid removed, digests to the default branch's value", () => {
+  test("each of the 50 files, with climate_kid and top_crops removed, digests to the default branch's value", () => {
+    // T-015 (2026-09-17, a later approved task) fills `top_crops` for all 50
+    // states. `BASELINE_DIGESTS` was computed at a branch point that predates
+    // T-015 too, where every file still carried the literal `top_crops: []`
+    // (present, not absent — unlike `climate_kid`, which that baseline never
+    // had at all for 49 of the 50 states). Restoring that literal here, rather
+    // than deleting the key, reproduces exactly what the pinned digest hashed,
+    // so this keeps checking "nothing other than the fields named, approved
+    // tasks are known to touch has moved" instead of turning permanently red
+    // the moment T-015's own field lands.
     for (const { file, raw } of stateFiles()) {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
       delete parsed["climate_kid"];
+      parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: BASELINE_DIGESTS[file] as string,
@@ -737,9 +751,18 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
     }
   });
 
-  test("15c — top_crops is still an empty array in all 50", () => {
-    for (const { file, entity } of stateFiles()) {
-      expect({ file, topCrops: entity.top_crops }).toEqual({ file, topCrops: [] });
+  test("15c — top_crops is populated from CURATED_US_STATES in all 50 (T-015)", () => {
+    const curatedCrops = new Map(CURATED_US_STATES.map((s) => [s.postal, s.top_crops] as const));
+    for (const { file, postal, entity } of stateFiles()) {
+      const crops = entity.top_crops as unknown;
+      expect(Array.isArray(crops)).toBe(true);
+      const arr = crops as string[];
+      expect({ file, inRange: arr.length >= 1 && arr.length <= 3 }).toEqual({
+        file,
+        inRange: true,
+      });
+      expect(curatedCrops.has(postal)).toBe(true);
+      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curatedCrops.get(postal) as string[] });
     }
   });
 

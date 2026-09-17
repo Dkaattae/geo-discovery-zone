@@ -25,7 +25,10 @@
   "landmark": "Crater Lake National Park",
   "highest_point": "Mount Hood",
   "highest_point_m": 11237,
-  "top_crops": [],
+  "top_crops": [
+    "hazelnuts",
+    "pears"
+  ],
   "fun_facts": [
     {
       "text": "Oregon is home to Crater Lake, the deepest lake in the United States.",

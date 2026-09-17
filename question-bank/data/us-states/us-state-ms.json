@@ -24,7 +24,10 @@
   "state_animal": "White-tailed deer",
   "highest_point": "Woodall Mountain",
   "highest_point_m": 246,
-  "top_crops": [],
+  "top_crops": [
+    "cotton",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Mississippi is named after the Mississippi River, one of the longest rivers in North America.",

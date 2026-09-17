@@ -264,11 +264,16 @@ README) stays alongside the full 50-state commit for now, on purpose — kept
 until the committed bank is shown to work end to end. Once that is proven, it is
 redundant and this task removes it, updating anything that pointed at it as an
 example (`question-bank/README.md`, `conventions.md`).
-**One thing it must not miss:** `question-bank/src/committed-bank.test.ts`'s
-criterion-4 tests compare the tracked `us-state-co.json` against
-`sample-data/us-state-co.json`. Deleting `sample-data/` makes them throw, so this
-task removes or re-points them — found by T-010's tester, recorded here so it is
-not a surprise.
+**One thing it must not miss — and it is five files now, not one.**
+`committed-bank.test.ts` (T-010 criterion 4), `landmarks.test.ts` (T-013
+criterion 8), `landmarks-verify.test.ts` (T-013 tester criterion 8),
+`state-animals.test.ts` (T-012 criterion 7) and `climate-kid-verify.test.ts`
+(T-014 tester criterion 13) all compare the tracked `us-state-co.json` against
+`sample-data/us-state-co.json`. Deleting `sample-data/` makes every one of them
+throw, so this task removes or re-points all five — found by T-010's tester as
+one file, and grown by every curation task since (T-015/PR #46 touched all five
+to exclude `top_crops`, the sample being frozen while the bank moved).
+**The count going up each cycle is itself the argument for doing this sooner.**
 **Smaller since T-011 (PR #41):** `sample-data/fun-facts.review.json` is already
 gone. It held Colorado's raw `reviewed: false` Wikipedia draft, which T-011's
 criterion 2 banned from anything tracked under `sample-data/`, and
@@ -294,32 +299,21 @@ T-014 the tenth and eleventh: 487 → 687, corrected by hand in those same two
 places a **fifth** time (PR #44). Five hand-corrections of the same two figures
 is no longer evidence that this task is worth doing — it is evidence that nobody
 will stop doing it by choice.
+**T-015 (PR #46) broke the pattern in the worse direction: 687 → 1131, and
+nobody corrected it.** Its Out of scope named this task and deliberately left the
+figures stale rather than hand-fixing them a sixth time. So
+`PROGRESS.md:161` and `test-guidelines.md:209` are now *wrong in the tree*,
+not merely fragile — the first says 687 against a real 1131, the second still
+says 19. That is the outcome this entry predicted, it is the cheapest it will
+ever be to fix, and it settles the open question in favour of **deleting the
+figures**: a number that five sweeps refreshed and the sixth abandoned is not a
+number anyone is maintaining.
 This is
 exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 (T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
 **Done when:** the counts match a real run, and either a test asserts them
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
-
-### T-015 — US crops from USDA NASS Quick Stats · M · todo
-**Depends on:** —
-Add a source module that fills `top_crops`, aggregated to the top three per
-state. Needs a free API key — keep it out of the repo, read from the environment
-at build time (plan §1.9).
-**The harness question is already answered — do not re-open it (T-014, PR #44).**
-T-014 took the "extract" branch: `question-bank/src/offline-rebuild.ts` exports
-`DEAD_PROXY` and `rebuildOffline(buildScript, fileNames, tmpPrefix?)`, and all
-six suites that check an offline rebuild import the runner from it. There is
-exactly **one** `127.0.0.1:1` under `question-bank/src/`, and
-`climate-kid.test.ts` asserts that count, so a suite of your own that pastes its
-own proxy map or spawns `src/build.ts` directly turns the suite red. Import it.
-The tracked-file *reading* route stays deliberately duplicated
-(`git ls-files` in `landmarks.test.ts` vs `readdirSync` in
-`landmarks-verify.test.ts`) — that one is a real second check, not duplication.
-**Also inherited:** any new criterion checked through `git ls-files` must be
-re-run with new files **tracked**; T-014's tester lost a round to exactly that
-(see P-4).
-**Done when:** `top_crops` is populated for all 50 states and the key is not committed.
 
 ### T-067 — `climate_koppen` is declared and never emitted · S · todo
 **Depends on:** —
@@ -335,9 +329,64 @@ and correct §1.4's example**, or **emit it** and say what reads it. Deleting lo
 right — nothing in `openapi.yaml` exposes it and `climate_kid` is the shipped
 version — but it edits the plan's example, so it is a deliberate call rather than
 a tidy-up.
+**A second, smaller plan correction rides here (T-015's reviewer, PR #46)**,
+because it is the same one-line kind of deliberate plan edit and is not worth its
+own entry: **`geoquizdataplan.md:256` still lists US crops as coming from the
+"USDA NASS Quick Stats API", notes "Free key", and is now false.** T-015
+considered that route and rejected it — no key exists in the repo, the
+environment or CI secrets, no agent can register for one (signup form plus
+email), and CI runs with all six proxy spellings on a dead loopback, so a live
+fetch cannot run there by design. `top_crops` ships hand-curated instead, on
+`CuratedState`, and the full reasoning is already written down in
+`engineering-decisions.md` **E-7**. The plan's *reasoning* is what is wrong, not
+a detail: it prices the route at "free key" when the real cost is a human action
+outside the loop. Correct the row to say hand-curated, pointing at E-7. **Leave
+the `world crops | FAOSTAT` row alone** — that one is untouched, still unbuilt,
+and still plausible, since a bulk download needs no key.
 **Done when:** `climate_koppen` is either emitted by a build or gone from
-`types.ts` and from the plan's example, and nothing describes a field that does
-not exist.
+`types.ts` and from the plan's example, nothing describes a field that does not
+exist, and §1.9's US-crops row names the source the code actually uses.
+
+### T-068 — US livestock/poultry per state, separate from crops · S · todo
+**Depends on:** — (**T-015 landed, PR #46**, and settled the pattern this
+inherits.)
+**Smaller than when it was written (T-015's reviewer, PR #46).** T-015 proved the
+whole route end to end, so this is now a copy of a working shape rather than a
+design: a `string[]` field on `CuratedState`, folded in by `normalize.ts` as
+`curated.<field> ?? []` (`fun_facts`'s shape — **not** `climate_kid`'s
+conditional spread, so a blank state keeps the key and the bank diff does not
+move), values curated as the reviewed kid-facing text itself with no second
+review pass, provenance in the table's header comment and an `engineering-decisions.md`
+entry. Read **E-7** and PR #46's body before writing the brief; the field name
+and the `openapi.yaml`/template exposure are the only genuinely open questions
+left, since `top_crops` was already declared and this one is not.
+**One thing it must not miss — the guard T-015 left weaker.** Two pinned-digest
+tests, `landmarks-verify.test.ts` (T-013 criterion 9) and
+`climate-kid-verify.test.ts` (T-014 criterion 15), assert "nothing but this
+task's field moved in the bank" by hashing each tracked file against a digest
+pinned at an older branch point. Each later task that fills a field has to
+neutralise its own field before hashing — `climate_kid` is deleted, `top_crops`
+is set back to the literal `[]` (the key predates those digests; deleting it
+changes the hashed bytes and is the wrong fix — T-015's worker checked this
+empirically against AK). **Every field added this way covers a little less**, and
+this task adds the next one. Either neutralise `top_livestock` the same way and
+say so, or re-pin the baselines against the current default branch and stop the
+list growing — a judgement worth making deliberately rather than by adding a
+third `delete`. T-067 (`climate_koppen`) will hit exactly the same wall.
+**Why it exists, from a question raised while scoping T-015:** cattle, dairy,
+poultry and eggs are farm output but not crops, and folding them into
+`top_crops` would make that field's own name wrong and could crowd out an
+actual plant crop in a state where livestock is the bigger commodity by value
+(e.g. cattle over corn). Neither `tasks.md` nor `geoquizdataplan.md` currently
+tracks livestock at all — this is a new entry, not a gap in an existing one.
+Add a sibling curated field (e.g. `top_livestock`) with one or two standout
+livestock/poultry products per state where one is genuinely well known (e.g.
+poultry in Delaware or Arkansas, dairy in Wisconsin) — hand-curated, same route
+T-015 took for crops, not a live API. Leave it blank for states with no
+standout, per `CLAUDE.md`'s "prefer a blank field to a guessed one."
+**Done when:** a decision is recorded on the field name and where it's exposed
+(`openapi.yaml`, the `agriculture` topic's templates), and it's populated for
+the states where a standout genuinely exists.
 
 ### T-016 — Alaska has no `P610` highest point · S · todo
 **Depends on:** —
@@ -405,12 +454,18 @@ cleanly where data is absent.
 Indiana / Illinois / Iowa is a real question; Ohio / Hawaii / Texas / Alaska is
 free (plan §1.2). **Needs T-017 first** — "same region" is undefined while two
 region vocabularies exist.
-**Two same-value guards are now waiting on this, not just same-region:**
-`wildlife` needs a same-animal guard (20 of 50 states share an animal, T-012) and
+**Three same-value guards are now waiting on this, not just same-region:**
+`wildlife` needs a same-animal guard (20 of 50 states share an animal, T-012),
 `climate` needs a same-climate one (41 of 50 states fall into ten
-substantively-interchangeable groups, T-014/PR #44 — listed under T-026). Both
-are invisible to a string compare, which is what makes them this task's problem
-rather than the curation tasks'.
+substantively-interchangeable groups, T-014/PR #44 — listed under T-026), and
+`agriculture` needs a same-crop one (T-015/PR #46: nine states' whole crop list
+is `corn, soybeans`; `apples` spans six states and `wheat` four — listed under
+T-026). The first two are invisible to a string compare, which is what makes
+them this task's problem rather than the curation tasks'. **`agriculture` is the
+opposite case and worth separating:** its collisions *are* exact string matches,
+deliberately, because crops genuinely repeat across states. A same-string check
+catches them — what it cannot decide is that the right response is to gate the
+reverse question direction rather than to reshuffle distractors.
 **Done when:** strategies are named on templates, not hardcoded, and a test
 asserts distractors come from the same region.
 
@@ -445,7 +500,7 @@ infrastructure once T-021 lands:
 | `wildlife` | "Which animal is <state>'s state animal?" | T-012 — **landed, PR #42** |
 | `landmark` | "Where is <landmark>?" | T-013 — **landed, PR #43** |
 | `climate` | "Which state is <climate phrase>?" | T-014 — **landed, PR #44** |
-| `agriculture` | "What grows most in <state>?" | T-015 |
+| `agriculture` | "What grows most in <state>?" | T-015 — **landed, PR #46** |
 | `size` / `superlative` | "Which is bigger?" | rank fields — already on entities |
 
 `size` and `superlative` are the cheapest by a wide margin: the ranks are already
@@ -506,6 +561,33 @@ this topic needs a same-climate guard exactly like `wildlife`'s same-animal one
 brief is swept); read them there before writing the template. The reverse
 direction, "What kind of climate does X have?" (plan line 90), is unambiguous and
 is the cheaper place to start.
+
+**`agriculture`'s data exists now — 50 of 50 (T-015, PR #46) — and it is the
+most ambiguous backwards of the four.** Every state carries one to three plant
+crops (eight states one, 36 two, six three; 98 strings). Unlike `landmark`, the
+strings are **deliberately** shared: crops repeat across states because that is
+what is true. So **"What grows in `<state>`?" is sound and "Which state grows
+`<crop>`?" is not**, for most of the bank — the reverse direction needs a
+same-crop guard before it can be asked at all, not just a distractor rule:
+
+- **`corn` and `soybeans` are the *entire* list for nine states** — IL, IN, IA,
+  MD, MN, NE, OH, SD, and MO with the pair reordered — and appear again in AR,
+  KY, MS, TN and WI. Asking which state grows corn has a dozen right answers,
+  and those nine states are mutually indistinguishable on this topic.
+- **`apples` is six states** (NH, NY, PA, VT, WA, **WV**) and **`wheat` four**
+  (KS, MT, ND, **OK**). WV's and OK's lists are *only* that crop, so those two
+  states cannot be the answer to a reverse question at all.
+- **Safe in both directions**, because the crop is unique to one state: AK
+  `peonies`, DE `lima beans`, HI `pineapple`/`macadamia nuts`, LA `sugarcane`,
+  NM `chile peppers`, OR `hazelnuts`, PA `mushrooms`, WY `sugar beets`. That is
+  the set a reverse-direction template could safely draw from, and it is small.
+- **Single-crop states were checked against each other** and are mutually
+  distinct (T-015's worker; Alaska ships `peonies` rather than `potatoes`
+  precisely to avoid colliding with Idaho). That check does **not** extend to
+  multi-crop states, which is where the collisions above live.
+
+Prefer `<state>` → crop phrasing, and treat "which state grows X" as gated on the
+unique-crop list above.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
 

@@ -27,7 +27,10 @@
   "landmark": "Yellowstone National Park",
   "highest_point": "Gannett Peak",
   "highest_point_m": 4207,
-  "top_crops": [],
+  "top_crops": [
+    "hay",
+    "sugar beets"
+  ],
   "fun_facts": [
     {
       "text": "Wyoming is home to Yellowstone, the first national park ever created anywhere in the world.",

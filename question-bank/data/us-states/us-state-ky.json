@@ -28,7 +28,10 @@
   "landmark": "Mammoth Cave National Park",
   "highest_point": "Black Mountain",
   "highest_point_m": 1263,
-  "top_crops": [],
+  "top_crops": [
+    "tobacco",
+    "corn"
+  ],
   "fun_facts": [
     {
       "text": "Kentucky is famous for the Kentucky Derby, a horse race run every year since 1875.",

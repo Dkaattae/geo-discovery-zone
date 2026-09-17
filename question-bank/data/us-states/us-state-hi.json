@@ -20,7 +20,11 @@
   "landmark": "Diamond Head",
   "highest_point": "Mauna Kea",
   "highest_point_m": 4207.3,
-  "top_crops": [],
+  "top_crops": [
+    "pineapple",
+    "coffee",
+    "macadamia nuts"
+  ],
   "fun_facts": [
     {
       "text": "Hawaii is made of volcanoes, and it is still growing today.",

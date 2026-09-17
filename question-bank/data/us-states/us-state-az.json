@@ -26,7 +26,10 @@
   "landmark": "Grand Canyon",
   "highest_point": "Humphreys Peak",
   "highest_point_m": 12622,
-  "top_crops": [],
+  "top_crops": [
+    "cotton",
+    "lettuce"
+  ],
   "fun_facts": [
     {
       "text": "Arizona is home to the Grand Canyon, a mile-deep gorge carved by the Colorado River.",

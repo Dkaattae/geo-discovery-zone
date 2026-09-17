@@ -26,7 +26,10 @@
   "landmark": "Mall of America",
   "highest_point": "Eagle Mountain",
   "highest_point_m": 701,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Minnesota calls itself the land of 10,000 lakes. It actually has closer to 12,000.",

@@ -601,9 +601,18 @@ describe("T-014 criterion 15 — nothing but climate_kid moves in the bank (tree
     }
   });
 
-  test("15c — top_crops is still an empty array in all 50 tracked files (T-015 owns it)", () => {
-    for (const { file, entity } of trackedStateFiles()) {
-      expect({ file, topCrops: entity.top_crops }).toEqual({ file, topCrops: [] });
+  test("15c — top_crops is populated from CURATED_US_STATES in all 50 tracked files (T-015)", () => {
+    for (const { postal, file, entity } of trackedStateFiles()) {
+      const curated = CURATED_US_STATES.find((s) => s.postal === postal);
+      const crops = entity.top_crops as unknown;
+      expect(Array.isArray(crops)).toBe(true);
+      const arr = crops as string[];
+      expect({ file, inRange: arr.length >= 1 && arr.length <= 3 }).toEqual({
+        file,
+        inRange: true,
+      });
+      expect(curated).toBeDefined();
+      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curated?.top_crops as string[] });
     }
   });
 

@@ -24,7 +24,10 @@
   "landmark": "Ben & Jerry's Factory",
   "highest_point": "Mount Mansfield",
   "highest_point_m": 1339.69,
-  "top_crops": [],
+  "top_crops": [
+    "maple syrup",
+    "apples"
+  ],
   "fun_facts": [
     {
       "text": "Vermont produces more maple syrup than any other state in the country.",

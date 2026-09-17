@@ -27,7 +27,9 @@
   "landmark": "Craters of the Moon National Monument",
   "highest_point": "Borah Peak",
   "highest_point_m": 3857,
-  "top_crops": [],
+  "top_crops": [
+    "potatoes"
+  ],
   "fun_facts": [
     {
       "text": "Idaho grows more potatoes than any other state, and its license plates say Famous Potatoes.",

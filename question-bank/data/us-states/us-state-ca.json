@@ -24,7 +24,11 @@
   "landmark": "Golden Gate Bridge",
   "highest_point": "Mount Whitney",
   "highest_point_m": 4421,
-  "top_crops": [],
+  "top_crops": [
+    "grapes",
+    "almonds",
+    "strawberries"
+  ],
   "fun_facts": [
     {
       "text": "California holds the highest and lowest places in the lower 48 states, and they are close together.",

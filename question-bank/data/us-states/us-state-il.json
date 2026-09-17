@@ -27,7 +27,10 @@
   "landmark": "Willis Tower",
   "highest_point": "Charles Mound",
   "highest_point_m": 376,
-  "top_crops": [],
+  "top_crops": [
+    "corn",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Illinois is home to Chicago's Willis Tower, once the tallest building in the whole world.",

@@ -287,6 +287,44 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-015 — all 50 states have crops, hand-curated rather than from USDA NASS**
+  (PR #46, 2026-09-17). 98 crop strings across 50 new `top_crops` entries in
+  `question-bank/src/curated/us-states.ts` — one to three genuinely famous
+  **plant** crops per state, folded in by `normalize.ts` as
+  `curated.top_crops ?? []` (`fun_facts`'s shape, not `climate_kid`'s
+  conditional spread, so a future blank state keeps the key) and rebuilt offline
+  into the 50 tracked files. Eight states carry one crop, 36 two, six three.
+  This was the **last unpopulated curated field**, so all four topic fields now
+  have data. **`top_crops` is the reviewed kid-facing text itself** — there is
+  no `fun-facts.review.json`-style second pass for it, which is why the PR was
+  escalated to Dkaattae for a content read rather than marked routinely ready.
+  *Differed from the brief, four ways:*
+  - **The task stopped being a NASS integration.** The expander halted on Q1–Q3
+    before approval: no Quick Stats key exists in the repo, the environment or
+    CI secrets, no agent can register for one, and CI's dead-loopback proxies
+    would block a live fetch anyway. Dkaattae chose the curated route; the
+    reasoning is kept in `engineering-decisions.md` **E-7**, and the queue entry's
+    title ("from USDA NASS Quick Stats") is the thing that turned out to be wrong.
+  - **Livestock split out mid-scope.** Cattle, dairy, poultry and eggs are farm
+    output but not crops; criterion 4 bans fourteen livestock words from the
+    field and the data moved to the new **T-068**.
+  - **Six pre-existing tests outside the brief's Constraints had to change.**
+    `committed-bank`, `landmarks`, `landmarks-verify`, `state-animals`,
+    `climate-kid-verify` (and `climate-kid`) pinned the tracked bank against
+    either the frozen sample or a literal digest computed when every file still
+    carried `top_crops: []`. The worker fixed them along T-013→T-014's existing
+    in-repo precedent and flagged it rather than hiding it; the tester confirmed
+    per-file `test(` counts are unchanged from `origin/main`, so nothing was
+    deleted to reach green, and the reviewer upheld the call. **The consequence
+    to watch:** the two pinned-digest tests now neutralise `top_crops` before
+    hashing, so each new curated field hollows out the "nothing else moved"
+    guard a little further — recorded on T-068, the next field to hit it.
+  - **Alaska ships `peonies`, not potatoes.** Alaska does grow potatoes, but
+    Idaho's sole crop is `potatoes`, and a single-crop collision makes the
+    `agriculture` question ambiguous backwards. Peonies are the cut-flower export
+    Alaska's long summer daylight actually made it known for, and they collide
+    with nothing. All eight single-crop states were checked against each other;
+    that was the only clash.
 - **T-014 — all 50 states have a kid-facing climate phrase** (PR #44,
   2026-09-17). 49 rows in `question-bank/src/curated/us-states.ts` gained
   `climate_kid` (Colorado already carried the string `geoquizdataplan.md` §1.4 and
@@ -651,10 +689,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   topic will cover 44 states, not 50. `climate_kid` is **50 of 50** (T-014, PR
   #44), with the same unread substance on PR #44 and one extra thing waiting
   there: ten groups of states whose phrases describe the same climate, which
-  `climate` questions must not offer two of. `top_crops` is empty (T-015) and is
-  the last curated field. So three of the four topic fields now have data and
-  `wildlife`, `landmark` and `climate` wait only on T-021/T-026, a same-value
-  distractor guard (T-022), and something serving them (T-040, T-050).
+  `climate` questions must not offer two of. `top_crops` is **50 of 50** (T-015,
+  hand-curated plant crops, one to three per state, folded in from
+  `CuratedState.top_crops` the same way the other curated fields are — not USDA
+  NASS) and was the last curated field. So all four topic fields now have data
+  and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
+  T-021/T-026, a same-value distractor guard (T-022), and something serving
+  them (T-040, T-050).
 - **Two region vocabularies exist and they disagree** — eight in the pipeline,
   thirteen in the served bank, six of which the pipeline never emits (T-017).
 

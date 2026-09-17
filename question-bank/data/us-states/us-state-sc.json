@@ -23,7 +23,10 @@
   "landmark": "Angel Oak",
   "highest_point": "Sassafras Mountain",
   "highest_point_m": 1085,
-  "top_crops": [],
+  "top_crops": [
+    "peaches",
+    "cotton"
+  ],
   "fun_facts": [
     {
       "text": "South Carolina's official state dance is the shag, first danced on its beaches in the 1940s.",

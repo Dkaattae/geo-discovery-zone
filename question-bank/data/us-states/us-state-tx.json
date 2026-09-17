@@ -25,7 +25,10 @@
   "landmark": "Space Center Houston",
   "highest_point": "Guadalupe Peak",
   "highest_point_m": 2667,
-  "top_crops": [],
+  "top_crops": [
+    "cotton",
+    "sorghum"
+  ],
   "fun_facts": [
     {
       "text": "Texas is so wide that El Paso is closer to California than to Houston.",

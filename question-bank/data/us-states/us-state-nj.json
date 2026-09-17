@@ -24,7 +24,11 @@
   "landmark": "Atlantic City Boardwalk",
   "highest_point": "High Point",
   "highest_point_m": 550,
-  "top_crops": [],
+  "top_crops": [
+    "blueberries",
+    "tomatoes",
+    "cranberries"
+  ],
   "fun_facts": [
     {
       "text": "New Jersey is home to the first boardwalk in the country, built in Atlantic City in 1870.",

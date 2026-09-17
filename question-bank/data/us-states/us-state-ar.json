@@ -27,7 +27,10 @@
   "landmark": "Crater of Diamonds State Park",
   "highest_point": "Mount Magazine",
   "highest_point_m": 839,
-  "top_crops": [],
+  "top_crops": [
+    "rice",
+    "soybeans"
+  ],
   "fun_facts": [
     {
       "text": "Arkansas has a diamond park where visitors can dig all day and keep any diamond they find.",

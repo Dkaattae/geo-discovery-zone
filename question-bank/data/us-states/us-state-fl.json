@@ -23,7 +23,10 @@
   "landmark": "Walt Disney World",
   "highest_point": "Britton Hill",
   "highest_point_m": 105,
-  "top_crops": [],
+  "top_crops": [
+    "oranges",
+    "strawberries"
+  ],
   "fun_facts": [
     {
       "text": "Florida is a peninsula, which means water wraps around it on three sides.",

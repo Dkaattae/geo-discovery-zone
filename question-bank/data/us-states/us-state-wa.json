@@ -23,7 +23,10 @@
   "landmark": "Space Needle",
   "highest_point": "Mount Rainier",
   "highest_point_m": 4389,
-  "top_crops": [],
+  "top_crops": [
+    "apples",
+    "cherries"
+  ],
   "fun_facts": [
     {
       "text": "One side of Washington is a rainforest and the other side is nearly a desert.",

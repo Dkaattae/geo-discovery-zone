@@ -26,7 +26,11 @@
   "landmark": "Mackinac Bridge",
   "highest_point": "Mount Arvon",
   "highest_point_m": 603,
-  "top_crops": [],
+  "top_crops": [
+    "cherries",
+    "blueberries",
+    "apples"
+  ],
   "fun_facts": [
     {
       "text": "Michigan is shaped like a mitten, and it touches four of the five Great Lakes.",

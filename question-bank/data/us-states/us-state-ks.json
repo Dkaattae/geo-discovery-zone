@@ -24,7 +24,10 @@
   "state_animal": "American bison",
   "highest_point": "Mount Sunflower",
   "highest_point_m": 4039,
-  "top_crops": [],
+  "top_crops": [
+    "wheat",
+    "sorghum"
+  ],
   "fun_facts": [
     {
       "text": "Kansas sits almost exactly in the middle of the country.",

@@ -29,7 +29,10 @@
   "landmark": "Great Smoky Mountains National Park",
   "highest_point": "Kuwohi",
   "highest_point_m": 2025,
-  "top_crops": [],
+  "top_crops": [
+    "soybeans",
+    "cotton"
+  ],
   "fun_facts": [
     {
       "text": "Tennessee is home to Great Smoky Mountains National Park, the most visited national park in the country.",
