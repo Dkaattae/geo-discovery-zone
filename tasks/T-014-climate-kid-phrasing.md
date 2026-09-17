@@ -1,7 +1,9 @@
 # T-014 — Curate kid-facing climate phrasing
 
-**Status:** `verified — pass (shape); Review checklist still open for a human`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — fix Review findings 1 and 2 below (`climate-kid-verify.test.ts`
+carries the dead-loopback literal in two comments, which turns the committed
+suite and CI red and breaks criterion 16(a)). Findings 3–5 need no work from you.
 **Approved:** `Dkaattae — 2026-09-17`
 **From:** [`tasks.md`](../tasks.md) T-014
 **Branch:** `claude/ecstatic-mendel-x3m3tk` — this session's harness assigned it
@@ -21,6 +23,7 @@ approves it.
 | task-expander | 2026-09-16 | cse_01EA17nGfGQfj9H6WstCQo5j |
 | worker | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j |
 | tester | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j (relayed run — see Verdict) |
+| reviewer | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j (relayed run — same artifact) |
 
 ---
 
@@ -811,7 +814,166 @@ and rebuilt again after reverting.
 
 ## Review
 
-Written by `reviewer`, and only when it sends the PR back.
+**TL;DR:** sent back to `tester`. The curation and the criterion-16 extraction
+are good work and I would approve both — but the branch as committed is **red**:
+`bun test` fails 1 of 687 in `question-bank/`, and CI's
+`question-bank (typecheck, test)` job is failing on `775671c`. The cause is two
+comments in the tester's own new file, and it makes criterion 16(a) untrue in
+substance as well as breaking criterion 19. Findings 1–2 block; 3–4 I decided
+here and they need no work; 5 is for Dkaattae's content read, not for an agent.
+
+### 1. BLOCKING — the committed suite is red, and so is CI
+
+`question-bank/src/climate-kid-verify.test.ts:37` and `:818` each contain the
+literal `127.0.0.1:1` (both inside comments, prose about the criterion rather
+than a proxy definition). The worker's suite asserts criterion 16(a)'s own
+wording — "the string `127.0.0.1:1` appears in exactly **one** file under
+`question-bank/src/`" — at `climate-kid.test.ts:643–648`, over the files
+`git ls-files` reports. With the tester's file committed, two files match:
+
+```
+(fail) T-014 criterion 16 — the duplicated test harness is decided, not defaulted
+       > exactly one file under question-bank/src/ contains the dead-loopback proxy literal
+  expected: ["question-bank/src/offline-rebuild.ts"]
+  received: ["question-bank/src/climate-kid-verify.test.ts", "question-bank/src/offline-rebuild.ts"]
+```
+
+Reproduced locally at `775671c` (`686 pass, 1 fail`) and independently red in
+CI: job `question-bank (typecheck, test)` on run 35253158628. `bun run
+typecheck` is clean and the lockfile is unchanged, so this is the only failure.
+
+**What would make it acceptable:** rewrite those two comments so the file does
+not carry the literal — either build it from parts the way
+`climate-kid.test.ts:643` does (`["127","0","0","1"].join(".") + ":1"`), or
+refer to it in prose ("the dead-loopback proxy literal") without spelling it.
+Then `bun test` must be green in `question-bank/` **with the new file tracked**
+(see finding 2), and CI's `question-bank` job green on the pushed commit.
+
+This is not a cosmetic test-vs-test collision. Criterion 16(a) counts files
+carrying the literal, and as committed the count is two, so the criterion the
+Verdict marked `pass (a)` is not met. The purpose behind it — one place to audit
+the no-network guard — is still served, but the criterion is frozen and says
+"exactly one".
+
+### 2. BLOCKING — the Verdict's green claim is not true of the committed branch
+
+The Verdict states "687 tests pass in `question-bank/`" and, under criterion 19,
+"`bun test` 687 pass / 0 fail". Neither holds at `775671c`. The reason is
+visible in the Verdict's own Mutations note — "`git status` afterwards showed
+only my new untracked test file": the worker's scan reads `git ls-files`, so
+while `climate-kid-verify.test.ts` was untracked it was invisible to the very
+check it breaks. The suite went red at the moment of commit, which is after the
+last run.
+
+**What would make it acceptable:** re-run `bun test` and `bun run typecheck`
+from a state where the new file is **tracked** (`git add` it first, or re-run
+after committing), and correct the Verdict's counts and criteria 16 and 19 rows
+to what that run actually reports. `CLAUDE.md` "Reporting" — a number in a
+Verdict has to be a number somebody can reproduce from the branch.
+
+A note for the tester's own suite, not a required fix: its criterion-16 scan
+excludes only itself from the sweep, which is exactly why its own violation was
+invisible to it. A scan that cannot see the scanning file is fine when that file
+does not carry the string; it is not fine as the file's only protection against
+carrying it.
+
+### 3. Decided here, no work needed — criterion 16(a)'s "obtains both"
+
+The Verdict flagged that the five suites import only `rebuildOffline`, never
+`DEAD_PROXY` by name, so "every suite obtains **both** from that module" is met
+through the runner rather than by two imports. **I agree with the tester's
+reading: satisfied.** `DEAD_PROXY` is exported from `offline-rebuild.ts:28` and
+applied inside `rebuildOffline` at `:58`, so every suite does get the proxy
+environment from that module — it is passed to the subprocess, which is the only
+thing a suite could do with it. An unused named import would be dead code and
+would make the module's one real guarantee weaker, not stronger. No follow-up
+task; this judgement call is closed.
+
+### 4. Decided here, no work needed — the `frontend/` lint failure is local only
+
+The Verdict flagged 5 failures in `frontend/`'s lint-gate suite because `eslint`
+is not installed in `frontend/node_modules`. Confirmed environmental and not a
+repo defect: `frontend/node_modules/.bin` contains no `eslint` binary in this
+sandbox, and CI's `frontend (typecheck, lint, test)` job is **green on this
+exact commit**. Nothing to file, no task, no `tasks.md` entry.
+
+### 5. Not blocking, and not an agent's to settle — for Dkaattae's content read
+
+Raised here so it is not lost on the return trip, and because it is the one
+thing I measured that bears directly on Review-checklist boxes 2, 3 and 5. **I
+am not asking the worker to rewrite anything**: phrasing for children is a
+content decision and it is Dkaattae's under `process-decisions.md` D-4a, not
+mine to settle by instruction.
+
+Measured over the 50 shipped phrases:
+
+- **44 of 50** pair "summers" with "winters"; the six that do not are AK, CA,
+  CO, HI, TX, VA.
+- **37 of 50** open with `hot`, `cold`, `warm` or `cool`.
+- **15 of 50** use one frame verbatim — `<A> summers and <B> winters, with <C>`
+  (AL, CT, GA, IA, KS, KY, MN, MO, ND, NE, NJ, OK, RI, SD, TN).
+- **Colorado — the model the Constraints name — is one of the six that breaks
+  the pattern.** It reads adjectivally ("`Colorado` is dry and cold in the
+  mountains"); most of the 49 new ones are noun phrases ("`Alabama` is hot
+  sticky summers and mild winters"), which reads differently in both of T-026's
+  frames.
+
+Checklist box 5's own words are "varied phrasing, not one template with the
+adjectives swapped", and box 3 is grammar in both frames. Those numbers are what
+I would want in hand before ticking either. Three specific phrases I would look
+at first:
+
+- **Wisconsin** — "…right in the middle of the country" is a location claim, not
+  weather, and a loose one (Wisconsin is the upper Midwest; the contiguous
+  country's middle is Kansas). The only phrase whose tail is not about weather.
+- **Ohio** — "cold snowy winters near the lake, and warm humid summers the rest
+  of the year" pairs a *place* contrast with a *time* contrast, so the two
+  halves do not parallel.
+- **Delaware** — "the ocean's moderating winds": `moderating` is the strongest
+  candidate in the set for failing box 2 ("no word needs a grown-up to explain
+  it").
+
+Vocabulary worth a second look for box 2, with counts: `moderating` (DE),
+`severe` (OK), `swings` (MN), `lowlands` (NM, UT), `valleys` (WY), `coastal`
+(MA, SC), `inland` (AK, CA), `further` (CA, OR), `occasional` (KY, LA, MO, NJ,
+TN), `bitterly` (MN, ND, WI), `scorching` (AZ, TX), `muggy` (FL, GA, LA, MS,
+SC).
+
+### What I checked and found good — so the return trip does not re-litigate it
+
+- **`offline-rebuild.ts` is clean shared infrastructure**, not worker-specific.
+  It takes the build script path and the file list as parameters, takes a
+  suite-specific temp prefix purely for traceability, cleans up in a `finally`,
+  and throws on a non-zero exit instead of asserting — so it carries no
+  `bun:test` dependency and leaks no assumption into the other four suites.
+  Dropping the old `cwd: PKG` is safe: `build.ts:31` resolves `ROOT` from
+  `import.meta.dirname` and `:56` resolves `--out` absolutely, so nothing in it
+  reads `process.cwd()`.
+- **The four suites' harness edits lose nothing.** Every rewritten assertion
+  kept exact-equality (`toEqual` against a named 50-element list, derived from
+  `CURATED_US_STATES` in `landmarks*.test.ts` and transcribed in
+  `state-animals.test.ts`, matching that file's own `T013_LANDMARK_STATES`
+  precedent). The `expects: 60 → 58` floor drop is exactly the two
+  `expect(proc.exitCode).toBe(0)` calls the extraction moved, it is commented in
+  all three files, and mutation 10 shows the throw still catches what they
+  caught. The deliberate `readdirSync` vs `git ls-files` carve-out is intact.
+- **The curated data follows T-011/T-012/T-013's precedent exactly** — one new
+  line per row in `question-bank/src/curated/us-states.ts`, bank regenerated
+  offline, one key added per built file in `normalize.ts`'s existing emit
+  position, nothing hand-edited.
+- **Nothing outside the brief's Constraints moved.** The diff against the branch
+  point `13a735f` is 58 files: `us-states.ts` (+49), the 49 regenerated entity
+  files (+49 −0), `offline-rebuild.ts`, the two new suites, the four harness
+  edits, and this brief. `index.json`, `sample-data/`, `normalize.ts`,
+  `openapi.yaml`, `geoquizdataplan.md`, `frontend/`, `backend/` and `e2e/` are
+  absent entirely. No dependency, no lockfile change.
+- **Every role stayed in its lane.** Expander's three commits touch only
+  `tasks/T-014-…`; the worker's touches source, data and the brief; the tester's
+  touches only its own new test file and the brief.
+- **The Sessions-table session-id collision** the worker and tester both
+  recorded is a relayed-run artifact and I am not treating it as a fault. Both
+  roles disclosed it in their own words rather than papering over it, which is
+  the behaviour the honesty rule asks for.
 
 ## Notes
 
