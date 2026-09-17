@@ -339,6 +339,24 @@ a tidy-up.
 `types.ts` and from the plan's example, and nothing describes a field that does
 not exist.
 
+### T-068 — US livestock/poultry per state, separate from crops · S · todo
+**Depends on:** T-015 (uses the same curated-table pattern and fold-in point
+T-015 chose for farm-product fields).
+**New 2026-09-17**, from a question raised while scoping T-015: cattle, dairy,
+poultry and eggs are farm output but not crops, and folding them into
+`top_crops` would make that field's own name wrong and could crowd out an
+actual plant crop in a state where livestock is the bigger commodity by value
+(e.g. cattle over corn). Neither `tasks.md` nor `geoquizdataplan.md` currently
+tracks livestock at all — this is a new entry, not a gap in an existing one.
+Add a sibling curated field (e.g. `top_livestock`) with one or two standout
+livestock/poultry products per state where one is genuinely well known (e.g.
+poultry in Delaware or Arkansas, dairy in Wisconsin) — hand-curated, same route
+T-015 took for crops, not a live API. Leave it blank for states with no
+standout, per `CLAUDE.md`'s "prefer a blank field to a guessed one."
+**Done when:** a decision is recorded on the field name and where it's exposed
+(`openapi.yaml`, the `agriculture` topic's templates), and it's populated for
+the states where a standout genuinely exists.
+
 ### T-016 — Alaska has no `P610` highest point · S · todo
 **Depends on:** —
 The only field missing after the live run. Either add a curated fallback for

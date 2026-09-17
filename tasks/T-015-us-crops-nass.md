@@ -1,7 +1,7 @@
 # T-015 — US crops from USDA NASS Quick Stats
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `expanding`
+**Next step:** `task-expander`
 **Approved:** `pending`
 **From:** [`tasks.md`](../tasks.md) T-015
 **Branch:** `claude/zen-johnson-zmsy1e` — the branch this session was assigned by
@@ -50,6 +50,31 @@ questions from. It is the last unpopulated curated-ish field on a US state.
 
 Answer inline in this file. Each one changes what the criteria say, so none can
 be guessed without deciding the task's shape on your behalf.
+
+### Answers, from Dkaattae, 2026-09-17
+
+- **Q1 — Route B.** Hand-curated `top_crops` on `CuratedState`, folded in by
+  `normalize.ts` exactly as `climate_kid`/`state_animal`/`landmark` are. No NASS
+  module, no fixture. A few very well-known crops per state — e.g. grapes for
+  California, potatoes for Idaho — not an exhaustive top-N from a live source.
+  **This also means criterion 1's "exactly three" should be revisited**: a
+  curated "what's this state actually famous for" list may genuinely have fewer
+  than three honest entries for some states, and forcing three risks a guess
+  where `CLAUDE.md`'s "prefer a blank field to a guessed one" says to leave it
+  short instead. Finalize this as up to three, allowing fewer, rather than
+  exactly three.
+- **Q2 — Not needed.** Confirmed by Q1: no key, no live capture, route A is
+  dropped entirely. Delete the route-A-only criteria (11–14) and the route-A row
+  from Constraints' "files expected to change."
+- **Q3 — Ranked by production quantity**, used informally as the human's guide
+  when picking which crops are genuinely famous for a state, not as a NASS
+  statistic tied to a specific year (there is no live lookup to pin a year to).
+  **Livestock does not count as a crop** — cattle, dairy, poultry and eggs are
+  tracked separately now: see the new queue entry **T-068**, added to
+  `tasks.md` alongside this task, sized independently. `top_crops` stays
+  plant crops only. Whose words: the curated table itself is the reviewed,
+  kid-facing text — there is no separate machine-label rewrite step under route
+  B, so drop that part of Q3 as moot.
 
 ### Q1 — Where do the shipped values come from?
 
