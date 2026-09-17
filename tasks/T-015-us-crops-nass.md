@@ -1,7 +1,7 @@
 # T-015 — US crops per state, curated (was: USDA NASS Quick Stats)
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae, 2026-09-17
 **From:** [`tasks.md`](../tasks.md) T-015
 **Branch:** `claude/zen-johnson-zmsy1e` — the branch this session was assigned by
@@ -23,6 +23,7 @@ path.
 | task-expander | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — halted on Q1–Q3 |
 | task-expander | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — criteria finalised on the answers |
 | worker | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — same session id the environment reported for this run; see the Handoff's first note before assuming this means anything about session isolation |
+| tester | 2026-09-17 | cse_014UHMAdWWsvkfN9KUD5wDXi — **the same id again, and the check therefore proves nothing.** This ran relayed (a top-level session spawning each role through the Task tool), which `process.md` "Spawning, and the isolation it must not cost" names as the case where every spawned role shares one session id and the Sessions-table check degrades to attestation. What is real here is a fresh context window: no memory of the worker's transcript, no sight of its reasoning, only the brief's text. See the Verdict's first section |
 
 ---
 
@@ -619,4 +620,158 @@ and against the tracked copies — all matched.
 
 ## Verdict
 
-_Not started._
+**TL;DR: pass — all 14 criteria hold, verified by a suite written from the
+criterion text rather than from the code.** `question-bank/src/top-crops-verify.test.ts`
+(new, 48 tests) plus the pre-existing suite: **1131 pass, 0 fail**, green again
+under CI's six dead-loopback proxy spellings; `bun run typecheck` clean;
+`question-bank` has no lint step by design (`.github/workflows/ci.yml` says so
+in a comment). 27 deliberate mutations were made and every one turned the right
+test red; all were reverted. Next step is the `reviewer`, who still owns the one
+thing no test can settle — whether the 98 crop strings are *true*.
+
+### What kind of independence this verdict has
+
+**Not the session-id kind.** `echo $CLAUDE_CODE_REMOTE_SESSION_ID` printed
+`cse_014UHMAdWWsvkfN9KUD5wDXi`, the id already recorded against both
+`task-expander` rows and the `worker` row. This run was **relayed** — a
+top-level session spawning each role through the Task tool — and `process.md`
+names this exact failure: "every spawned role shares one session id … the tester
+is told not to refuse on that, not to claim the check passed, and to say in its
+Verdict which kind of independence it actually had."
+
+So, plainly: **the Sessions-table check did not pass and could not.** What this
+verdict rests on instead is a fresh context window — this session never saw the
+worker's transcript, its reasoning, or anything but the committed repository and
+the brief. That is the isolation that actually matters for "tests what was asked
+for rather than what was built", but it is **weaker evidence than a distinct
+session id**, because it rests on the relay having spawned this role correctly
+rather than on anything checkable from inside. A reader deciding how much to
+trust this `pass` should weigh it accordingly. (`runs/T-015-*.md` does not exist,
+so this was not a `run-loop.sh` run either.)
+
+The worker's Handoff asked the tester to confirm whether the ids differ. They do
+not. That is a process question for whoever runs the loop next, not a defect in
+this task — nothing in the diff depends on it.
+
+### Criteria
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | 1–3 non-blank crops, all 50 files | **pass** | Distribution over the 50 files matched by the criterion's own `git ls-files` glob: **8 states with one crop** (AK CT DE ID MA NV OK WV), **36 with two**, **6 with three** (CA GA HI MI NJ NY) — 50 accounted for, none at 0, none at 4+. 98 strings, none blank after trimming. `readdirSync` cross-check finds no untracked stray |
+| 2 | Register | **pass** | All 98 strings (curated table + tracked files) are trimmed, contain no comma, no `" - "`, and no `/[A-Z]{2,}/` match — in fact **no capital letter at all**, so the proper-noun allowance is unused |
+| 3 | Distinct within a state | **pass** | No repeat case-insensitively in any file or curated entry; the six three-entry states each have three distinct crops |
+| 4 | Plant crops only | **pass** | Zero hits for any of the 14 words, checked as case-insensitive substrings against **both** `CURATED_US_STATES` and the 50 tracked files. Worth noting the substring rule is stricter than it looks and still holds: nothing here is `eggplant` (`egg`) or a `pigeon` pea (`pig`) |
+| 5 | Curated table is the source | **pass** | All 50 entries carry `top_crops`; each tracked array equals its curated entry string-for-string **and in order** (a separate test proves the comparison is not order-blind by checking the reversed list does *not* match) |
+| 6 | Offline determinism | **pass** | Two `rebuildOffline` runs into separate temp dirs: `top_crops` byte-identical between the two rebuilds and to the tracked files, compared both as raw emitted block text and as parsed arrays. Reverting the fold-in in `normalize.ts` turns this red (mutation M1) |
+| 7 | No new network or env surface | **pass** | `NASS` appears under `question-bank/src/` only inside comments naming the *rejected* route — zero occurrences in comment-stripped code. Host set across non-test sources is unchanged (`query.wikidata.org`, `en.wikipedia.org`, `www.wikidata.org`, plus `github.com` in the User-Agent contact string, never a request target). `src/fixtures/` still holds exactly `us-states.sparql.json` |
+| 8 | No test reaches the network | **pass, with one interpretation noted below** | Exactly one file under `question-bank/src/` carries the `127.0.0.1:1` literal (`offline-rebuild.ts`); no `*.test.ts` spawns `src/build.ts`; this suite imports `rebuildOffline` and defines no proxy map of its own. Full suite green under CI's proxy env |
+| 9 | Stale assertions replaced, not deleted | **pass** | No suite asserts a tracked `top_crops` is `[]` any more; all four named files now assert against `CURATED_US_STATES`. Test counts per file are **identical to `origin/main`** (59/77/53/43 and 33/36 for the two collaterally-touched files) — nothing was deleted to go green |
+| 10 | No new dependency | **pass** | `question-bank/package.json` and `bun.lock` hash byte-identical to `origin/main` |
+| 11 | Docs no longer say the field is empty | **pass** | `sample-data/README.md` no longer defers `top_crops` to NASS; `normalize.ts` contains no `NASS` at all and emits `curated.top_crops ?? []` under a comment naming the curated table; `PROGRESS.md` reads `**50 of 50**` |
+| 12 | Sample untouched | **pass** | `sample-data/us-state-co.json` SHA-256 `88db1cb0…b338f` — identical to `origin/main`; its own `top_crops` is still `[]`; the README says explicitly that it is an older snapshot while `data/us-states/` carries curated crops |
+| 13 | Nothing else in the bank moves | **pass** | Each of the 50 files, with the `top_crops` block put **textually** back to `"top_crops": [],`, hashes to its pinned `origin/main` digest — so any other byte moving anywhere fails. `index.json` byte-identical. `built_at` is `2026-08-04T16:05:35.000Z` in all 50. `index.json` and the per-state files agree on 50 ids |
+| 14 | Provenance in two places | **pass** | The **leading block comment** of `curated/us-states.ts` (not the field's doc comment — see mutation M19) and `engineering-decisions.md` **E-7** each state: hand-picked by a human, guided informally by production quantity, not USDA NASS or any live source, not year-pinned, plant crops only with livestock at T-068, and the strings as their own reviewed kid-facing text under `CLAUDE.md` |
+
+### Mutations (27 made, 27 reverted — `git status` clean afterwards)
+
+Verified by breaking things on purpose, since several criteria could otherwise
+be satisfied by an assertion that never looks at anything.
+
+| Mutation | Turned red |
+|---|---|
+| M1 `normalize.ts` fold-in back to the literal `[]` | criterion 6 (and 11) |
+| M2 `GRAPES` for California | criterion 2 (shouted label), 5, 6 |
+| M3 `dairy cattle` for Alabama | criterion 4 (curated), 5, 6 |
+| M4 `rice` + `Rice` for Arkansas | criterion 3 (curated), 5, 6 |
+| M5 Alaska's list emptied in the curated table | criterion 5, 6 |
+| M6 four crops for Montana in the curated table | criterion 5, 6 |
+| M7 Florida's two crops swapped | criterion 5 **including the order test** |
+| M8 tracked `us-state-wv.json` emptied | criterion 1 (range + distribution), 5, 6 |
+| M9 tracked `us-state-mt.json` given four | criterion 1 (range + distribution), 5, 6 |
+| M10 tracked Colorado's `population` off by one | criterion 13 digest |
+| M11 tracked Iowa's `built_at` moved | criterion 13 digest **and** the `built_at` test |
+| M12 sample given a crop | criterion 12 (both tests) |
+| M13 `dairy cows` into tracked Alaska | criterion 4 (tracked), 5, 6 |
+| M14 a `NASS_API_KEY` env read in `sinks/index.ts` | criterion 7 |
+| M15 a stale `topCrops: []` assertion put back in `landmarks.test.ts` | criterion 9 |
+| M16 `left-pad` added to `package.json` | criterion 10 |
+| M17 the old "needs USDA NASS" sentence restored in the README | criterion 11 **and** 12 |
+| M18 `production quantity` struck from E-7's "guided by" clause | criterion 14 |
+| M19–M21 header comment: `T-068`→`T-999`, "hand-picked by a human"→"chosen by a heuristic", `CLAUDE.md`→elsewhere | criterion 14, one test each |
+| M22–M25 curated strings: leading space, embedded comma, whitespace-only entry, `" - "` | criterion 2 (each specific test) and criterion 1's blank check |
+| M26 a new `src/fixtures/us-crops.nass.json`, tracked | criterion 7 |
+| M27 a second `127.0.0.1:1` literal in `sinks/index.ts`, tracked | criterion 8 |
+
+**Two mutations initially failed to turn anything red, and both exposed a
+tautology in my own tests rather than a gap in the work** — both tests were
+tightened before the run that produced this verdict:
+
+- **M18** passed at first because E-7 also uses the phrase "production quantity"
+  when explaining why NASS's *own* ranking measure is ambiguous. The assertion
+  now requires the phrase inside the "guided …" clause.
+- **M19** passed at first because I had taken "the header comment" to mean the
+  whole preamble, which includes the `top_crops` field's own doc comment — so the
+  field's mention of `T-068` satisfied a claim the header itself might not make.
+  It now reads the leading block comment alone.
+
+Two others (M10 the first time, M18's first attempt) were no-ops from a `sed`
+pattern that did not match; both were re-run properly and are reported above with
+their real results.
+
+### What I checked by hand, beyond the tests
+
+- **The Handoff's 50-row table is accurate.** Transcribed the tracked bank into
+  the same shape and compared row by row: all 50 match, including the eight
+  single-crop states and Alaska's `peonies`.
+- **The single-crop collision the Handoff claims to have fixed is genuinely
+  gone.** The eight one-crop states are `peonies`, `tobacco`, `lima beans`,
+  `potatoes`, `cranberries`, `alfalfa hay`, `wheat`, `apples` — all distinct
+  from each other.
+- **The `git diff` route to criterion 13, independent of the digest test.** Every
+  removed line across the 50 files is exactly `"top_crops": [],` and every added
+  line is either the opening bracket, a crop string, or the closing bracket.
+
+### Three things for the reviewer, none of them a failure
+
+1. **Criterion 8's last clause reads strictly against `top-crops.test.ts`.** It
+   says "any new suite imports `rebuildOffline` rather than re-creating it", and
+   the worker's new suite imports nothing from `offline-rebuild.ts`. I read the
+   clause as forbidding a *re-creation* of the harness, which that file does not
+   do — it never rebuilds or spawns the CLI at all, so there is nothing for it to
+   import. Every network-safety property the criterion actually names holds, and
+   this suite (which does rebuild) imports the runner. Recorded as met, flagged
+   because a stricter reader could differ.
+2. **The six collaterally-fixed tests are outside the brief's Constraints list,
+   exactly as the Handoff says.** I confirmed the fixes are narrow and that no
+   test was deleted to reach green: per-file `test(` counts are identical to
+   `origin/main` in all six. Whether extending T-013/T-014's in-repo precedent
+   was the worker's call to make is a judgement the Handoff explicitly hands to
+   the reviewer, and it stays there. One consequence worth naming: the two
+   pinned-digest tests now set `top_crops = []` before hashing, so they no longer
+   notice that field moving — which is why criterion 13 is verified here by its
+   own independent per-file digest against `origin/main`.
+3. **Cross-state ambiguity is still open, and is the Review checklist's, not
+   mine.** The worker checked single-crop states against each other and stopped
+   there, as it says. Worth a human eye: West Virginia's only crop is `apples`,
+   which also appears in NH, NY, PA, VT and WA; Oklahoma's only crop is `wheat`,
+   shared with KS, MT and ND. That is fine for "what grows in X?" and awkward for
+   "which state grows X?" — a content judgement no test should be making.
+   Nevada's `alfalfa hay` and Maryland's `corn, soybeans`, which the Handoff
+   flags as its least certain picks, also sit here.
+
+### How to reproduce
+
+```bash
+cd question-bank
+bun test                     # 1131 pass, 0 fail (48 of them in top-crops-verify.test.ts)
+bun run typecheck            # clean
+# and as CI runs it — no network, fails closed:
+export HTTP_PROXY=http://127.0.0.1:1 HTTPS_PROXY=http://127.0.0.1:1 ALL_PROXY=http://127.0.0.1:1
+export http_proxy=http://127.0.0.1:1 https_proxy=http://127.0.0.1:1 all_proxy=http://127.0.0.1:1
+bun test                     # same 1131
+```
+
+`frontend` and `backend` were not run: the branch's diff touches nothing under
+either (`question-bank/`, `PROGRESS.md`, `engineering-decisions.md`, `tasks.md`,
+`tasks/` only), and `frontend/node_modules` is not installed in this environment.
+Naming the skip rather than implying a full-repo green.
