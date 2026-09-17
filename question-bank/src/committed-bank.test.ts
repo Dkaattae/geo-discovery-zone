@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { CURATED_US_STATES } from "./curated/us-states";
 import { BUILDER_VERSION } from "./normalize";
+import { rebuildOffline } from "./offline-rebuild";
 
 /**
  * T-010 verification (tester). Written from the brief's acceptance criteria,
@@ -13,23 +13,15 @@ import { BUILDER_VERSION } from "./normalize";
  * a 200 KB cap, `reviewed: true` only.
  *
  * Nothing here reaches the network (the rebuild in criterion 6 runs `--offline`
- * with every proxy pointed at a dead loopback port), nothing mocks `fetch`, and
- * nothing writes inside `question-bank/data/` — the rebuild goes to a temp dir
- * and is compared byte for byte against the tracked files.
+ * with every proxy pointed at a dead loopback port, via `offline-rebuild.ts` —
+ * T-014 criterion 16(a)), nothing mocks `fetch`, and nothing writes inside
+ * `question-bank/data/` — the rebuild goes to a temp dir and is compared byte
+ * for byte against the tracked files.
  */
 const PKG = resolve(import.meta.dirname, "..");
 const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-
-/** No network, ever — the same loopback trick CI uses (test-guidelines.md). */
-const DEAD_PROXY = {
-  HTTP_PROXY: "http://127.0.0.1:1",
-  HTTPS_PROXY: "http://127.0.0.1:1",
-  ALL_PROXY: "http://127.0.0.1:1",
-  http_proxy: "http://127.0.0.1:1",
-  https_proxy: "http://127.0.0.1:1",
-  all_proxy: "http://127.0.0.1:1",
-};
+const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 function git(args: string[]): { status: number; stdout: string } {
   const proc = Bun.spawnSync(["git", ...args], { cwd: REPO });
@@ -184,26 +176,9 @@ describe("T-010 criteria 6 and 8 — the tracked bytes are what an offline rebui
    * against the bytes the build writes — not against a re-derivation of them.
    * Two runs, both compared, is criterion 6's "and a second time" boundary.
    */
-  function rebuild(): Map<string, string> {
-    const out = mkdtempSync(join(tmpdir(), "t010-rebuild-"));
-    try {
-      const proc = Bun.spawnSync(
-        ["bun", join(PKG, "src/build.ts"), "--offline", "--out", out, "--quiet"],
-        { cwd: PKG, env: { ...process.env, ...DEAD_PROXY } },
-      );
-      expect(proc.exitCode).toBe(0);
-      const files = new Map<string, string>();
-      for (const name of ["index.json", ...POSTALS.map((p) => `us-state-${p}.json`)]) {
-        files.set(name, readFileSync(join(out, name), "utf8"));
-      }
-      return files;
-    } finally {
-      rmSync(out, { recursive: true, force: true });
-    }
-  }
-
-  const first = rebuild();
-  const second = rebuild();
+  const PATHS = ["index.json", ...POSTALS.map((p) => `us-state-${p}.json`)];
+  const first = rebuildOffline(BUILD_SCRIPT, PATHS, "t010-rebuild-");
+  const second = rebuildOffline(BUILD_SCRIPT, PATHS, "t010-rebuild-");
 
   test("two offline rebuilds of the committed fixture are byte-identical to each other", () => {
     expect([...second.entries()].sort()).toEqual([...first.entries()].sort());
@@ -385,19 +360,10 @@ describe("T-010 round 2 — criterion 14: the fun-fact home E-6 names survives a
   test("the rebuild really does overwrite the bank directory, so the test above has teeth", () => {
     // Guards the assumption the three tests above rest on: were the build to
     // write somewhere else, "not under data/us-states" would prove nothing.
-    const out = mkdtempSync(join(tmpdir(), "t010-home-"));
-    try {
-      const proc = Bun.spawnSync(
-        ["bun", join(PKG, "src/build.ts"), "--offline", "--out", out, "--quiet"],
-        { cwd: PKG, env: { ...process.env, ...DEAD_PROXY } },
-      );
-      expect(proc.exitCode).toBe(0);
-      expect(readFileSync(join(out, "us-state-co.json"), "utf8")).toBe(
-        readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
-      );
-    } finally {
-      rmSync(out, { recursive: true, force: true });
-    }
+    const rebuilt = rebuildOffline(BUILD_SCRIPT, ["us-state-co.json"], "t010-home-");
+    expect(rebuilt.get("us-state-co.json")).toBe(
+      readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
+    );
   });
 });
 

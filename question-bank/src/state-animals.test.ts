@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { CURATED_US_STATES } from "./curated/us-states";
+import { rebuildOffline } from "./offline-rebuild";
 
 /**
  * T-012 verification (tester). Written from the acceptance criteria in
@@ -42,16 +42,7 @@ import { CURATED_US_STATES } from "./curated/us-states";
 const PKG = resolve(import.meta.dirname, "..");
 const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-
-/** No network, ever — the same loopback trick CI uses (`test-guidelines.md`). */
-const DEAD_PROXY = {
-  HTTP_PROXY: "http://127.0.0.1:1",
-  HTTPS_PROXY: "http://127.0.0.1:1",
-  ALL_PROXY: "http://127.0.0.1:1",
-  http_proxy: "http://127.0.0.1:1",
-  https_proxy: "http://127.0.0.1:1",
-  all_proxy: "http://127.0.0.1:1",
-};
+const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 /** Criterion 6 names this instant literally. */
 const PINNED_BUILT_AT = "2026-08-04T16:05:35.000Z";
@@ -423,25 +414,11 @@ describe("T-012 criterion 6 — the bank is built, not hand-edited", () => {
     ...CURATED_US_STATES.map((s) => `us-state-${s.postal.toLowerCase()}.json`),
   ];
 
-  /** Runs the real CLI offline into a throwaway directory. Nothing is mocked. */
-  function rebuild(): Map<string, string> {
-    const out = mkdtempSync(join(tmpdir(), "t012-rebuild-"));
-    try {
-      const proc = Bun.spawnSync(
-        ["bun", join(PKG, "src/build.ts"), "--offline", "--out", out, "--quiet"],
-        { cwd: PKG, env: { ...process.env, ...DEAD_PROXY } },
-      );
-      expect(proc.exitCode).toBe(0);
-      const files = new Map<string, string>();
-      for (const name of PATHS) files.set(name, readFileSync(join(out, name), "utf8"));
-      return files;
-    } finally {
-      rmSync(out, { recursive: true, force: true });
-    }
-  }
-
-  const first = rebuild();
-  const second = rebuild();
+  // Runs the real CLI offline into a throwaway directory. Nothing is mocked.
+  // `rebuildOffline` (T-014 criterion 16(a)) is the harness shared with
+  // `committed-bank.test.ts`, `landmarks.test.ts` and `landmarks-verify.test.ts`.
+  const first = rebuildOffline(BUILD_SCRIPT, PATHS, "t012-rebuild-");
+  const second = rebuildOffline(BUILD_SCRIPT, PATHS, "t012-rebuild-");
 
   test("the offline rebuild writes all 51 paths", () => {
     expect(PATHS).toHaveLength(51);
@@ -558,11 +535,70 @@ describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () 
     expect(named).toEqual(T013_LANDMARK_STATES);
   });
 
-  test("the set of states carrying climate_kid is exactly {Colorado}", () => {
+  test("the set of states carrying climate_kid is exactly all 50 — T-014 filled the rest", () => {
+    // Was `["Colorado"]` before T-014 (2026-09-17): T-014's criterion 1 leaves
+    // no state blank, unlike `landmark`'s six declared blanks above, so the
+    // set to check against grew from one name to all 50, transcribed from
+    // T-014's own `## Handoff` the same way `T013_LANDMARK_STATES` above is
+    // transcribed from T-013's.
     const named = trackedStateFiles()
       .filter(({ entity }) => entity.climate_kid !== undefined)
-      .map(({ entity }) => entity.name);
-    expect(named).toEqual(["Colorado"]);
+      .map(({ entity }) => entity.name)
+      .sort();
+    const T014_CLIMATE_KID_STATES = [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "California",
+      "Colorado",
+      "Connecticut",
+      "Delaware",
+      "Florida",
+      "Georgia",
+      "Hawaii",
+      "Idaho",
+      "Illinois",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Massachusetts",
+      "Michigan",
+      "Minnesota",
+      "Mississippi",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Jersey",
+      "New Mexico",
+      "New York",
+      "North Carolina",
+      "North Dakota",
+      "Ohio",
+      "Oklahoma",
+      "Oregon",
+      "Pennsylvania",
+      "Rhode Island",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Vermont",
+      "Virginia",
+      "Washington",
+      "West Virginia",
+      "Wisconsin",
+      "Wyoming",
+    ].sort();
+    expect(T014_CLIMATE_KID_STATES).toHaveLength(50);
+    expect(named).toEqual(T014_CLIMATE_KID_STATES);
   });
 
   test("top_crops is still an empty array in all 50 tracked files — T-015 owns it", () => {
@@ -729,9 +765,16 @@ describe("T-012 criterion 12 — nothing already verified is weakened", () => {
    * point, so a later deletion shows up without needing git history (CI clones
    * shallow). "No assertion loosened" is a diff property and is checked in the
    * brief's Verdict instead.
+   *
+   * `committed-bank.test.ts`'s own expect-count floor was lowered from 60 to
+   * 58 by T-014, criterion 16(a): two inline `expect(proc.exitCode).toBe(0)`
+   * calls moved into the shared `rebuildOffline` helper (`offline-rebuild.ts`),
+   * which throws on a non-zero exit instead — the check still fails the test,
+   * just without its own `expect(` line in this file. That extraction is
+   * named exempt from "loosened" by the criterion itself.
    */
   const PINNED: Record<string, { tests: number; expects: number }> = {
-    "committed-bank.test.ts": { tests: 33, expects: 60 },
+    "committed-bank.test.ts": { tests: 33, expects: 58 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     "normalize.test.ts": { tests: 14, expects: 31 },

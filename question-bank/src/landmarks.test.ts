@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { CURATED_US_STATES } from "./curated/us-states";
+import { rebuildOffline } from "./offline-rebuild";
 
 /**
  * T-013 verification (worker). Written from the acceptance criteria in
@@ -43,16 +43,7 @@ import { CURATED_US_STATES } from "./curated/us-states";
 const PKG = resolve(import.meta.dirname, "..");
 const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-
-/** No network, ever — the same loopback trick CI uses (`test-guidelines.md`). */
-const DEAD_PROXY = {
-  HTTP_PROXY: "http://127.0.0.1:1",
-  HTTPS_PROXY: "http://127.0.0.1:1",
-  ALL_PROXY: "http://127.0.0.1:1",
-  http_proxy: "http://127.0.0.1:1",
-  https_proxy: "http://127.0.0.1:1",
-  all_proxy: "http://127.0.0.1:1",
-};
+const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 /** Criterion 7 names this instant literally. */
 const PINNED_BUILT_AT = "2026-08-04T16:05:35.000Z";
@@ -477,25 +468,12 @@ describe("T-013 criterion 7 — the bank is built, not hand-edited", () => {
     ...CURATED_US_STATES.map((s) => `us-state-${s.postal.toLowerCase()}.json`),
   ];
 
-  /** Runs the real CLI offline into a throwaway directory. Nothing is mocked. */
-  function rebuild(): Map<string, string> {
-    const out = mkdtempSync(join(tmpdir(), "t013-rebuild-"));
-    try {
-      const proc = Bun.spawnSync(
-        ["bun", join(PKG, "src/build.ts"), "--offline", "--out", out, "--quiet"],
-        { cwd: PKG, env: { ...process.env, ...DEAD_PROXY } },
-      );
-      expect(proc.exitCode).toBe(0);
-      const files = new Map<string, string>();
-      for (const name of PATHS) files.set(name, readFileSync(join(out, name), "utf8"));
-      return files;
-    } finally {
-      rmSync(out, { recursive: true, force: true });
-    }
-  }
-
-  const first = rebuild();
-  const second = rebuild();
+  // Runs the real CLI offline into a throwaway directory. Nothing is mocked.
+  // `rebuildOffline` (T-014 criterion 16(a)) is the harness shared with
+  // `committed-bank.test.ts`, `state-animals.test.ts` and
+  // `landmarks-verify.test.ts`.
+  const first = rebuildOffline(BUILD_SCRIPT, PATHS, "t013-rebuild-");
+  const second = rebuildOffline(BUILD_SCRIPT, PATHS, "t013-rebuild-");
 
   test("the offline rebuild writes all 51 paths", () => {
     expect(PATHS).toHaveLength(51);
@@ -547,11 +525,18 @@ describe("T-013 criterion 8 — the committed sample stays in step with the bank
 });
 
 describe("T-013 criterion 9 — nothing but landmark moves in the bank (tree-shaped pieces)", () => {
-  test("the set of states carrying climate_kid is exactly {Colorado}", () => {
+  test("the set of states carrying climate_kid is exactly all 50 — T-014 filled the rest", () => {
+    // Was `["Colorado"]` at this task's (T-013's) own landing; T-014
+    // (2026-09-17, a later approved task) filled the other 49 with no blanks,
+    // so the ground truth this test compares against moved from one name to
+    // all 50, the same way `state-animals.test.ts`'s own landmark-coverage
+    // assertion moved for this task. Still an exact-equality comparison
+    // against a named list, not loosened to a count.
     const named = trackedStateFiles()
       .filter(({ entity }) => entity.climate_kid !== undefined)
-      .map(({ entity }) => entity.name);
-    expect(named).toEqual(["Colorado"]);
+      .map(({ entity }) => entity.name)
+      .sort();
+    expect(named).toEqual(CURATED_US_STATES.map((s) => s.name).sort());
   });
 
   test("all 50 tracked files still carry a non-empty state_animal", () => {
@@ -740,9 +725,16 @@ describe("T-013 criterion 14 — nothing already verified is weakened", () => {
    * "No assertion loosened" for the other four files (which this task does not
    * touch at all) is a diff property and is checked in the brief's Verdict
    * instead.
+   *
+   * `committed-bank.test.ts`'s own expect-count floor was lowered from 60 to
+   * 58 by T-014, criterion 16(a): two inline `expect(proc.exitCode).toBe(0)`
+   * calls moved into the shared `rebuildOffline` helper (`offline-rebuild.ts`),
+   * which throws on a non-zero exit instead — the check still fails the test,
+   * just without its own `expect(` line in this file. That extraction is
+   * named exempt from "loosened" by the criterion itself.
    */
   const PINNED: Record<string, { tests: number; expects: number }> = {
-    "committed-bank.test.ts": { tests: 33, expects: 60 },
+    "committed-bank.test.ts": { tests: 33, expects: 58 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     "normalize.test.ts": { tests: 14, expects: 31 },

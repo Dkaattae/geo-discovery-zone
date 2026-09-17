@@ -49,6 +49,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "01",
     region: "Southeast",
     state_animal: "American black bear",
+    climate_kid: "hot sticky summers and mild winters, with strong thunderstorms much of the year",
     landmark: "U.S. Space & Rocket Center",
     fun_facts: [
       {
@@ -64,6 +65,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "02",
     region: "Pacific",
     state_animal: "Moose",
+    climate_kid: "long cold snowy winters inland, milder and rainy along the southern coast",
     landmark: "Denali",
     fun_facts: [
       {
@@ -79,6 +81,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "04",
     region: "Southwest",
     state_animal: "Ringtail",
+    climate_kid: "scorching dry summers in the desert, cooler snowy winters up north",
     landmark: "Grand Canyon",
     fun_facts: [
       {
@@ -94,6 +97,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "05",
     region: "South Central",
     state_animal: "White-tailed deer",
+    climate_kid: "hot humid summers with strong storms, and mild winters that turn icy at times",
     landmark: "Crater of Diamonds State Park",
     fun_facts: [
       {
@@ -109,6 +113,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "06",
     region: "Pacific",
     state_animal: "California grizzly bear",
+    climate_kid: "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
     landmark: "Golden Gate Bridge",
     fun_facts: [
       {
@@ -140,6 +145,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "09",
     region: "Northeast",
     state_animal: "Sperm whale",
+    climate_kid: "cold snowy winters and warm sticky summers, with all four seasons clearly felt",
     landmark: "Mystic Aquarium",
     fun_facts: [
       {
@@ -155,6 +161,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "10",
     region: "Northeast",
     state_animal: "Gray fox",
+    climate_kid: "mild humid summers and cool damp winters, close to the ocean's moderating winds",
     fun_facts: [
       {
         text: "Delaware was the first state to ratify the Constitution, so it is nicknamed The First State.",
@@ -169,6 +176,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "12",
     region: "Southeast",
     state_animal: "Florida panther",
+    climate_kid: "hot muggy summers nearly all year, with sudden storms and mild winters",
     landmark: "Walt Disney World",
     fun_facts: [
       {
@@ -184,6 +192,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "13",
     region: "Southeast",
     state_animal: "White-tailed deer",
+    climate_kid: "hot muggy summers and mild winters, with thunderstorms common in the warm months",
     landmark: "Georgia Aquarium",
     fun_facts: [
       {
@@ -199,6 +208,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "15",
     region: "Pacific",
     state_animal: "Hawaiian monk seal",
+    climate_kid: "warm breezy weather all year, with wetter mountains and drier coasts nearby",
     landmark: "Diamond Head",
     fun_facts: [
       {
@@ -214,6 +224,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "16",
     region: "Mountain West",
     state_animal: "Mountain bluebird",
+    climate_kid: "warm dry summers and cold snowy winters, especially high in the mountains",
     landmark: "Craters of the Moon National Monument",
     fun_facts: [
       {
@@ -229,6 +240,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "17",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    climate_kid: "hot humid summers, cold snowy winters, and strong storms every spring",
     landmark: "Willis Tower",
     fun_facts: [
       {
@@ -244,6 +256,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "18",
     region: "Midwest",
     state_animal: "Northern cardinal",
+    climate_kid: "warm sticky summers, icy cold winters, and plenty of storms each spring",
     landmark: "Indianapolis Motor Speedway",
     fun_facts: [
       {
@@ -259,6 +272,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "19",
     region: "Midwest",
     state_animal: "American goldfinch",
+    climate_kid: "hot humid summers and freezing cold winters, with strong winds across the open fields",
     fun_facts: [
       {
         text: "Iowa grows more corn than any other state, with fields stretching as far as you can see.",
@@ -273,6 +287,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "20",
     region: "Midwest",
     state_animal: "American bison",
+    climate_kid: "hot dry summers and cold windy winters, with sudden storms sweeping the plains",
     fun_facts: [
       {
         text: "Kansas sits almost exactly in the middle of the country.",
@@ -287,6 +302,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "21",
     region: "Southeast",
     state_animal: "Gray squirrel",
+    climate_kid: "warm humid summers and cool winters, with occasional snow and ice storms",
     landmark: "Mammoth Cave National Park",
     fun_facts: [
       {
@@ -302,6 +318,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "22",
     region: "South Central",
     state_animal: "Black bear",
+    climate_kid: "hot muggy summers most of the year, mild winters, and occasional powerful storms",
     landmark: "St. Louis Cathedral",
     fun_facts: [
       {
@@ -317,6 +334,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "23",
     region: "Northeast",
     state_animal: "Moose",
+    climate_kid: "cold snowy winters and cool breezy summers, especially up near the coast",
     landmark: "Acadia National Park",
     fun_facts: [
       {
@@ -332,6 +350,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "24",
     region: "Northeast",
     state_animal: "Baltimore oriole",
+    climate_kid: "hot humid summers and cold winters, milder and breezier close to the water",
     landmark: "Fort McHenry",
     fun_facts: [
       {
@@ -347,6 +366,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "25",
     region: "Northeast",
     state_animal: "Right whale",
+    climate_kid: "cold snowy winters with strong coastal storms, and warm humid summers",
     landmark: "Plymouth Rock",
     fun_facts: [
       {
@@ -362,6 +382,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "26",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    climate_kid: "long cold winters with heavy lake snow, and mild humid summers",
     landmark: "Mackinac Bridge",
     fun_facts: [
       {
@@ -377,6 +398,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "27",
     region: "Midwest",
     state_animal: "Common loon",
+    climate_kid: "bitterly cold snowy winters and warm humid summers, with big swings between them",
     landmark: "Mall of America",
     fun_facts: [
       {
@@ -392,6 +414,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "28",
     region: "Southeast",
     state_animal: "White-tailed deer",
+    climate_kid: "hot muggy summers nearly all year, with mild winters and frequent thunderstorms",
     fun_facts: [
       {
         text: "Mississippi is named after the Mississippi River, one of the longest rivers in North America.",
@@ -406,6 +429,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "29",
     region: "Midwest",
     state_animal: "Mule",
+    climate_kid: "hot humid summers and cold winters, with sudden storms and occasional ice",
     landmark: "Gateway Arch",
     fun_facts: [
       {
@@ -421,6 +445,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "30",
     region: "Mountain West",
     state_animal: "Grizzly bear",
+    climate_kid: "cold snowy winters in the mountains, hot dry summers out on the plains",
     landmark: "Glacier National Park",
     fun_facts: [
       {
@@ -436,6 +461,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "31",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    climate_kid: "hot windy summers and freezing cold winters, with sudden storms across the open plains",
     landmark: "Chimney Rock",
     fun_facts: [
       {
@@ -451,6 +477,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "32",
     region: "Mountain West",
     state_animal: "Desert bighorn sheep",
+    climate_kid: "hot dry summers, cold winters, and very little rain any time of year",
     landmark: "Hoover Dam",
     fun_facts: [
       {
@@ -466,6 +493,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "33",
     region: "Northeast",
     state_animal: "White-tailed deer",
+    climate_kid: "cold snowy winters, especially high in the mountains, and warm summers below",
     landmark: "Mount Washington",
     fun_facts: [
       {
@@ -481,6 +509,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "34",
     region: "Northeast",
     state_animal: "Horse",
+    climate_kid: "hot humid summers and cold snowy winters, with occasional storms along the shore",
     landmark: "Atlantic City Boardwalk",
     fun_facts: [
       {
@@ -496,6 +525,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "35",
     region: "Southwest",
     state_animal: "American black bear",
+    climate_kid: "hot dry summers in the lowlands, cold snowy winters up in the mountains",
     landmark: "Carlsbad Caverns National Park",
     fun_facts: [
       {
@@ -511,6 +541,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "36",
     region: "Northeast",
     state_animal: "Beaver",
+    climate_kid: "cold snowy winters, heaviest near the lakes and mountains, and warm humid summers",
     landmark: "Statue of Liberty",
     fun_facts: [
       {
@@ -526,6 +557,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "37",
     region: "Southeast",
     state_animal: "Eastern gray squirrel",
+    climate_kid: "hot humid summers, and winters that turn cold and snowy up in the mountains",
     landmark: "Wright Brothers National Memorial",
     fun_facts: [
       {
@@ -541,6 +573,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "38",
     region: "Midwest",
     state_animal: "Western meadowlark",
+    climate_kid: "bitterly cold winters and hot summers, with strong winds across the open plains",
     landmark: "Theodore Roosevelt National Park",
     fun_facts: [
       {
@@ -556,6 +589,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "39",
     region: "Midwest",
     state_animal: "White-tailed deer",
+    climate_kid: "cold snowy winters near the lake, and warm humid summers the rest of the year",
     landmark: "Rock and Roll Hall of Fame",
     fun_facts: [
       {
@@ -571,6 +605,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "40",
     region: "South Central",
     state_animal: "American bison",
+    climate_kid: "hot windy summers and mild winters, with sudden severe storms in spring",
     fun_facts: [
       {
         text: "Oklahoma has more man-made lakes than any other state in the country.",
@@ -585,6 +620,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "41",
     region: "Pacific Northwest",
     state_animal: "Beaver",
+    climate_kid: "wet mild winters and dry sunny summers near the coast, drier further east",
     landmark: "Crater Lake National Park",
     fun_facts: [
       {
@@ -600,6 +636,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "42",
     region: "Northeast",
     state_animal: "White-tailed deer",
+    climate_kid: "cold snowy winters and warm humid summers, changing a lot from place to place",
     landmark: "Liberty Bell",
     fun_facts: [
       {
@@ -615,6 +652,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "44",
     region: "Northeast",
     state_animal: "Harbor seal",
+    climate_kid: "cold snowy winters and warm humid summers, with strong storms off the coast",
     fun_facts: [
       {
         text: "Rhode Island is the smallest state, yet it has over 400 miles of coastline.",
@@ -629,6 +667,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "45",
     region: "Southeast",
     state_animal: "White-tailed deer",
+    climate_kid: "hot muggy summers, mild winters, and the chance of a strong coastal storm",
     landmark: "Angel Oak",
     fun_facts: [
       {
@@ -644,6 +683,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "46",
     region: "Midwest",
     state_animal: "Coyote",
+    climate_kid: "cold windy winters and hot summers, with sudden storms sweeping the plains",
     landmark: "Mount Rushmore",
     fun_facts: [
       {
@@ -659,6 +699,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "47",
     region: "Southeast",
     state_animal: "Raccoon",
+    climate_kid: "hot humid summers and mild winters, with occasional snow in the higher hills",
     landmark: "Great Smoky Mountains National Park",
     fun_facts: [
       {
@@ -674,6 +715,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "48",
     region: "South Central",
     state_animal: "Armadillo",
+    climate_kid: "scorching hot summers, humid and stormy in the east, drier and milder out west",
     landmark: "Space Center Houston",
     fun_facts: [
       {
@@ -689,6 +731,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "49",
     region: "Mountain West",
     state_animal: "Rocky Mountain elk",
+    climate_kid: "dry hot summers in the lowlands, and cold snowy winters up in the mountains",
     landmark: "Arches National Park",
     fun_facts: [
       {
@@ -704,6 +747,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "50",
     region: "Northeast",
     state_animal: "Morgan horse",
+    climate_kid: "cold snowy winters, heavy in the mountains, and mild cool summers below",
     landmark: "Ben & Jerry's Factory",
     fun_facts: [
       {
@@ -719,6 +763,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "51",
     region: "Southeast",
     state_animal: "Virginia big-eared bat",
+    climate_kid: "hot humid summers near the coast, colder and snowier out in the mountains",
     landmark: "Mount Vernon",
     fun_facts: [
       {
@@ -734,6 +779,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "53",
     region: "Pacific Northwest",
     state_animal: "Orca",
+    climate_kid: "wet mild winters and dry summers near the coast, drier and hotter to the east",
     landmark: "Space Needle",
     fun_facts: [
       {
@@ -749,6 +795,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "54",
     region: "Southeast",
     state_animal: "American black bear",
+    climate_kid: "warm humid summers and cold snowy winters, especially high in the hills",
     landmark: "New River Gorge Bridge",
     fun_facts: [
       {
@@ -764,6 +811,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "55",
     region: "Midwest",
     state_animal: "American badger",
+    climate_kid: "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
     landmark: "Lambeau Field",
     fun_facts: [
       {
@@ -779,6 +827,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "56",
     region: "Mountain West",
     state_animal: "American bison",
+    climate_kid: "cold snowy winters high in the mountains, and hot dry summers down in the valleys below",
     landmark: "Yellowstone National Park",
     fun_facts: [
       {
