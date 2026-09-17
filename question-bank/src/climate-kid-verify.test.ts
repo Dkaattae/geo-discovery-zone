@@ -34,9 +34,14 @@ import { rebuildOffline } from "./offline-rebuild";
  *    field* but `sources.built_at`. `climate-kid.test.ts` compares only
  *    `climate_kid` and a `git diff` name list; the whole-object comparison is
  *    below.
- *  - **Criterion 16's** "exactly one file carries `127.0.0.1:1`" scan excludes
- *    `climate-kid.test.ts` from its own sweep. This file excludes only itself,
- *    so the worker's suite is inside the scanned set here.
+ *  - **Criterion 16's** "exactly one file carries the dead-loopback proxy
+ *    literal" scan excludes `climate-kid.test.ts` from its own sweep. The scan
+ *    below excludes nothing: it sweeps every `*.ts` under `question-bank/src/`,
+ *    this file included, and builds the needle from parts at run time so that
+ *    looking for the literal never becomes a second copy of it. (Round 2 of
+ *    this task is exactly why: an earlier version of this file spelled the
+ *    literal out in two comments and, being untracked when the suite last ran,
+ *    hid from the worker's `git ls-files`-based count until it was committed.)
  *
  * Everything else re-derives its expected values from the criterion text (the
  * 15–90 and 3–16 bounds and their named edges, the four forbidden-value lists,
@@ -754,13 +759,16 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
 });
 
 describe("T-014 tester, criterion 16 — the harness decision holds as branch (a)", () => {
-  /** Built from parts so this file cannot become a second match for what it counts. */
+  /**
+   * Built from parts so that looking for the literal is never itself a second
+   * copy of it — which is what lets the sweep below exclude nothing, this file
+   * included. Round 2's defect was an exclusion plus a spelled-out literal.
+   */
   const NEEDLE = ["127", "0", "0", "1"].join(".") + ":1";
-  const SELF = "climate-kid-verify.test.ts";
 
   const srcFiles = () =>
     readdirSync(join(PKG, "src"))
-      .filter((n) => n.endsWith(".ts") && n !== SELF)
+      .filter((n) => n.endsWith(".ts"))
       .sort();
 
   test("exactly one file under question-bank/src/ carries the dead-loopback literal, and it is offline-rebuild.ts", () => {
@@ -815,9 +823,10 @@ describe("T-014 tester, criterion 16 — the harness decision holds as branch (a
         imports: true,
       });
       // A definition, not a mention: the four pre-existing suites each held
-      // `HTTP_PROXY: "http://127.0.0.1:1"` in an object literal. A suite that
-      // merely *checks* for that spelling (as `climate-kid.test.ts` does) is
-      // not defining one, so the pattern requires the quoted value.
+      // the dead-loopback proxy address as the quoted value of an `HTTP_PROXY`
+      // key in an object literal. A suite that merely *checks* for that
+      // spelling (as `climate-kid.test.ts` does) is not defining one, so the
+      // pattern requires an `HTTP_PROXY:` key with a quoted `http` value.
       expect({ name, ownProxy: /HTTP_PROXY:\s*["']http/.test(source) }).toEqual({
         name,
         ownProxy: false,

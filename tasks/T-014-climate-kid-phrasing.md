@@ -1,9 +1,11 @@
 # T-014 — Curate kid-facing climate phrasing
 
-**Status:** `changes requested`
-**Next step:** `tester` — fix Review findings 1 and 2 below (`climate-kid-verify.test.ts`
-carries the dead-loopback literal in two comments, which turns the committed
-suite and CI red and breaks criterion 16(a)). Findings 3–5 need no work from you.
+**Status:** `pass`
+**Next step:** `reviewer` — Review findings 1 and 2 are fixed and re-verified
+(see **Verdict — round 2 correction** at the end of the Verdict). The committed
+suite is green: `question-bank/` is **687 pass / 0 fail** with the tester's file
+tracked, `bun run typecheck` clean. Findings 3 and 4 needed no work; finding 5
+is still Dkaattae's content read, as is the whole Review checklist.
 **Approved:** `Dkaattae — 2026-09-17`
 **From:** [`tasks.md`](../tasks.md) T-014
 **Branch:** `claude/ecstatic-mendel-x3m3tk` — this session's harness assigned it
@@ -24,6 +26,7 @@ approves it.
 | worker | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j |
 | tester | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j (relayed run — see Verdict) |
 | reviewer | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j (relayed run — same artifact) |
+| tester (round 2) | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j (spawned agent — same id again; see "On independence") |
 
 ---
 
@@ -695,6 +698,13 @@ No `bun run lint` exists in `question-bank/` (T-066) and none was added.
 
 ## Verdict
 
+> **Round 1 of this Verdict was wrong about one number and one criterion.** Its
+> "687 pass / 0 fail" and its `pass (a)` on criterion 16 were **not true of the
+> committed branch** — see **Round 2 correction** at the end of this section for
+> what was false, why, and the re-verified state. Everything else below stands;
+> nothing in it has been deleted or rewritten, so the record of the defect and
+> its cause survives.
+
 **PASS on shape — all 19 criteria hold.** 50 phrases, 0 shape violations against
 predicates re-derived from the criterion text; 687 tests pass in
 `question-bank/` (603 pre-existing + 84 new tester tests), `bun run typecheck`
@@ -811,6 +821,128 @@ and rebuilt again after reverting.
   *true*, *readable at nine*, or that the interchangeable-climate groups are
   right — and the groups are what stops T-026 shipping a question with two true
   answers.
+
+### Round 2 correction — what round 1 got wrong, and the re-verified state
+
+**TL;DR:** the reviewer was right. Round 1's Verdict claimed 687 pass / 0 fail;
+the committed branch was **686 pass / 1 fail**, and criterion 16(a) was **not
+met** as committed. The cause was in the tester's own new file, not in the
+worker's work. It is fixed, the fix is mutation-tested, and
+`question-bank/` is now **687 pass / 0 fail** with that file tracked, plus a
+clean `bun run typecheck`. Criteria 16 and 19 are re-verified below; no other
+criterion's evidence changed, and no source or data file was touched.
+
+**What was false in round 1's Verdict**
+
+| Round 1 claim | Truth at `775671c` | Why it was wrong |
+|---|---|---|
+| "687 tests pass in `question-bank/`" (TL;DR) | **686 pass / 1 fail** | The count was taken from a run made while `climate-kid-verify.test.ts` was still **untracked**. |
+| criterion 19 row: "`bun test` 687 pass / 0 fail" | same — one failure | Same run, same reason. |
+| criterion 16 row: "pass (a)" … "`127.0.0.1:1` appears in exactly one file under `question-bank/src/`" | **two** files carried it | `climate-kid-verify.test.ts:37` and `:818` spelled the literal out in prose comments. |
+
+**Why the round-1 run could not see it.** The worker's check
+(`climate-kid.test.ts:643–648`) enumerates candidate files with `git ls-files`.
+An untracked file is not in that list, so while the tester's suite sat
+uncommitted it was invisible to the very criterion it violated — and the suite
+went red at the moment of commit, which is after the last run. The round-1
+Verdict's own mutation note ("`git status` afterwards showed only my new
+untracked test file") is the fingerprint of exactly that. **The lesson, for any
+later criterion checked through `git ls-files`: a suite that adds a file must
+re-run after `git add`, not before.**
+
+**Reproduced before touching anything.** `cd question-bank && bun test` at
+`50f1d32` (same tree as `775671c` for all code): `686 pass, 1 fail`, the single
+failure being
+
+```
+(fail) T-014 criterion 16 — the duplicated test harness is decided, not defaulted
+       > exactly one file under question-bank/src/ contains the dead-loopback proxy literal
+  expected: ["question-bank/src/offline-rebuild.ts"]
+  received: ["question-bank/src/climate-kid-verify.test.ts", "question-bank/src/offline-rebuild.ts"]
+```
+
+**The fix — `question-bank/src/climate-kid-verify.test.ts` only** (+18 −9; no
+other file in the diff, `git diff --stat` confirms):
+
+- **The two comments no longer spell the literal.** The header comment at line
+  37 and the inline comment in the "obtains the harness from the module" test
+  now describe it in prose ("the dead-loopback proxy literal", "the
+  dead-loopback proxy address as the quoted value of an `HTTP_PROXY` key"). The
+  file now contains **zero** occurrences of the literal as a substring.
+- **The suite's own scan no longer excludes itself.** `srcFiles()` previously
+  filtered out `climate-kid-verify.test.ts`, which is precisely why the file's
+  violation was invisible to its own criterion-16 test. It now sweeps every
+  `*.ts` under `question-bank/src/`, this file included; the needle is still
+  built from parts at run time (`["127","0","0","1"].join(".") + ":1"`), so
+  looking for the literal can never become a second copy of it. This addresses
+  the reviewer's non-blocking note under finding 2.
+- **No test was deleted and no assertion loosened.** The scan got *wider*, and
+  the file's test count is unchanged at 84.
+
+**Verified after the fix**
+
+| Check | Result |
+|---|---|
+| `cd question-bank && bun test` (file tracked) | **687 pass, 0 fail**, 14,611 `expect()` calls, 10 files |
+| `cd question-bank && bun run typecheck` | clean (`tsc --noEmit`, no output) |
+| `cd backend && uv run pytest -q` | 233 passed, 9 skipped |
+| `cd frontend && bun test` | 179 pass, **5 fail** — the same pre-existing environmental gap the reviewer closed as finding 4: no `eslint` binary in `frontend/node_modules/.bin`, so `lint-gate.test.ts` cannot resolve a config. No `frontend/` file is in this branch's diff and CI's `frontend` job is green on it. |
+| `bun run lint` in `question-bank/` | does not exist and was not added (T-066) |
+
+**Criterion 16(a), re-verified independently of any suite** (shell checks, not
+by re-running the tests that assert it):
+
+- **Exactly one file** under `question-bank/src/` contains the literal —
+  `question-bank/src/offline-rebuild.ts` — by **both** routes: iterating
+  `git ls-files question-bank/src` and `grep -rl` over the directory on disk.
+  The two routes agree, which is the point: a tracked-but-absent or stray file
+  cannot hide between them.
+- **It is not a `*.test.ts`**, and it exports both `DEAD_PROXY` and
+  `rebuildOffline`.
+- **No `*.test.ts` spawns `src/build.ts`** — no `spawnSync` in any suite
+  mentions `build.ts`; the only subprocesses in test files are `git`.
+- **All six suites obtain the harness from the module**:
+  `committed-bank`, `state-animals`, `landmarks`, `landmarks-verify`,
+  `climate-kid` and `climate-kid-verify` each import from `./offline-rebuild`.
+- **`climate-kid-verify.test.ts` is tracked** (`git ls-files` lists it), so it
+  is inside the worker's scan now rather than beside it.
+- **The carve-out is intact.** Read out of the two function bodies:
+  `landmarks-verify.test.ts`'s `stateFiles()` still uses `readdirSync(DATA_DIR)`
+  and mentions neither `ls-files` nor `trackedUnder`;
+  `landmarks.test.ts`'s `trackedStateFiles()` still goes through
+  `trackedUnder()`, whose body runs `git ls-files`, and uses no `readdirSync`.
+
+**Mutation, round 2.** One made, one reverted: appended
+`// mutation probe: 127.0.0.1:1` to `climate-kid-verify.test.ts`. **Both**
+criterion-16 tests went red — the worker's (`climate-kid.test.ts`, as before)
+*and* the tester's own, which stayed green against this same class of defect in
+round 1. Reverted; `git diff --stat` afterwards shows only the intended +18 −9,
+and the full suite is back to 687 / 0. That mutation is the evidence the fix is
+structural rather than cosmetic: the hole was the self-exclusion, and it is
+closed.
+
+**Criteria 16 and 19 now read:**
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 16 | **pass (a)** — now true of the committed branch | Exactly one file carries the literal by both the `git ls-files` and on-disk routes; the module is not a `*.test.ts`; no suite spawns `build.ts`; all six suites import `rebuildOffline`; `readdirSync`-vs-`git ls-files` carve-out intact. Round 1 recorded this as `pass` against a tree where the count was two. |
+| 19 | **pass** | `bun test` **687 pass / 0 fail**, `bun run typecheck` clean, in `question-bank/` with every file tracked. No test deleted, no assertion loosened — round 2's only change widens a scan. `frontend/`, `backend/` and `e2e/` still absent from the diff. |
+
+**Still owed by a person, unchanged:** all eight Review checklist boxes, and the
+reviewer's finding 5 (the phrasing-variety and vocabulary measurements) is
+Dkaattae's content call, not an agent's. Nothing in this round read, judged or
+changed a single phrase.
+
+**On independence, round 2.** Same limitation as round 1, stated the same way: I
+am a freshly spawned agent with my own context window — I did not see the
+worker's or the previous tester's transcript and read only committed files — but
+**the Sessions-table session-id check did not pass and I am not claiming it
+did**, because every role in this run shares `cse_01EA17nGfGQfj9H6WstCQo5j`.
+That is weaker evidence than a distinct session id: it rests on the harness
+having spawned me correctly rather than on anything I can verify myself. Note
+also that this round's finding came from the *reviewer*, not from my own reading
+— the loop caught it, and the honest reading of round 1 is that the tester's
+self-check had a hole the reviewer found first.
 
 ## Review
 
