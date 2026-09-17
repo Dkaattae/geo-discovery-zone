@@ -1,7 +1,7 @@
 # T-014 — Curate kid-facing climate phrasing
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass (shape); Review checklist still open for a human`
+**Next step:** `reviewer`
 **Approved:** `Dkaattae — 2026-09-17`
 **From:** [`tasks.md`](../tasks.md) T-014
 **Branch:** `claude/ecstatic-mendel-x3m3tk` — this session's harness assigned it
@@ -20,6 +20,7 @@ approves it.
 |---|---|---|
 | task-expander | 2026-09-16 | cse_01EA17nGfGQfj9H6WstCQo5j |
 | worker | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j |
+| tester | 2026-09-17 | cse_01EA17nGfGQfj9H6WstCQo5j (relayed run — see Verdict) |
 
 ---
 
@@ -691,7 +692,122 @@ No `bun run lint` exists in `question-bank/` (T-066) and none was added.
 
 ## Verdict
 
-Written by `tester`.
+**PASS on shape — all 19 criteria hold.** 50 phrases, 0 shape violations against
+predicates re-derived from the criterion text; 687 tests pass in
+`question-bank/` (603 pre-existing + 84 new tester tests), `bun run typecheck`
+clean. 10 deliberate mutations were made and reverted; each turned the right
+tests red. **The Review checklist is untouched and still owed by a named human**
+— nothing below certifies that a phrase is *true* of its state or readable by a
+nine-year-old, and the reviewer must flag this PR for that (D-4a).
+
+**What was added:** `question-bank/src/climate-kid-verify.test.ts` — the
+tester's own suite, 84 tests, written from the criteria and from the Handoff
+table (transcribed from the brief, not read off the bank), independent of the
+worker's `climate-kid.test.ts`.
+
+### On independence — read this before trusting the `pass`
+
+This was a **relayed run**: one top-level session spawned `task-expander`,
+`worker` and `tester` as separate agents, so the Sessions table shows my id
+matching the worker's. **The session-id check therefore did not pass and I am
+not claiming it did.** My independence rests on being a freshly spawned agent
+with its own context window: I have no visibility into the worker's transcript
+or reasoning, and I read only committed files. That is real, but it is **weaker
+evidence than a distinct session id**, because it rests on the harness having
+spawned me correctly rather than on anything I can verify myself. The id match
+is a mechanism artifact, not a sign that one conversation wrote the code and
+then graded it. This is the known limitation `.claude/agents/tester.md` and
+`.claude/agents/README.md` describe.
+
+### Handoff claims checked against the branch
+
+Every file the `## Handoff` names is on `claude/ecstatic-mendel-x3m3tk` at
+`bc544e3` with the claimed change: `src/curated/us-states.ts` (**+49 lines, −0**,
+every added line a `climate_kid:`), the **49** regenerated
+`data/us-states/us-state-*.json` (**+49, −0**, every added line `climate_kid`;
+Colorado's file not in the diff), new `src/offline-rebuild.ts`, the four updated
+suites, new `src/climate-kid.test.ts`. `index.json`, `sample-data/`,
+`normalize.ts`, `openapi.yaml`, `geoquizdataplan.md`,
+`engineering-decisions.md`, `frontend/`, `backend/` and `e2e/` are absent from
+the diff entirely.
+
+### Criterion by criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | All 50 files carry a non-empty `climate_kid` string; none is `""`, `null`, `unknown`, `none`, `tbd`, `n/a` or `—`. The filled set equals `CURATED_US_STATES`' 50 postals. |
+| 2 | pass | All 50 are 15–90 chars (min 55 CO, max 87 WY) and 3–16 words (min 11, max 16 WY). Both bounds tested at their named edges (14/15, 90/91, 2/3, 16/17). Colorado is 55 chars / 11 words as the criterion states. |
+| 3 | pass | Every phrase equals its own `trim()`, no double space, no `\n` or `\t`. |
+| 4 | pass | All begin lowercase `a`–`z`; none ends `.`/`!`/`?`; none contains `; : ( ) / " * \|` or `http`. Commas present in all 50 and allowed. Both T-026 frames render without a doubled stop. |
+| 5 | pass | No digit, no `°`, none of `celsius`/`fahrenheit`/`degrees`/`inches`/`millimetres`/`millimeters`. The criterion's own examples land on the right sides. |
+| 6 | pass | No `koppen`/`köppen` in any phrase; the 50 `climate_kid:` lines in `us-states.ts` carry none either (line count asserted as 50, so the scan cannot be vacuous). |
+| 7 | pass | All 31 codes absent as whole words, case-sensitively. Verified the matcher's own edge: lowercase `as` does not trip `As`; an injected `BSk` does. |
+| 8 | pass | None of the 17 geographer's words appears as a substring; `humid` (allowed) appears in 21 phrases while `humidity` appears in none — the exact distinction the criterion draws. |
+| 9 | pass | Every phrase matches ≥1 of the 23 weather words; `beautiful all year round` correctly fails the same predicate. |
+| 10 | pass | No phrase contains any of the 50 state names as a whole word, its own included. The `Sierra Nevada` edge and the `Great Lakes` counter-example both behave as the criterion says. |
+| 11 | pass | 50 distinct keys after `trim()`+lowercase; no phrase is a substring of any other in either direction (checked both directions, 2450 ordered pairs). |
+| 12 | pass | `rebuildOffline` runs the real CLI `--offline` twice: 51/51 paths byte-identical to the tracked bank and to each other. `sources.built_at` is `2026-08-04T16:05:35.000Z` in all 50. Tracked `data/` is 57,741 bytes, inside the 200 KB cap. |
+| 13 | pass | `sample-data/us-state-co.json` equals tracked `us-state-co.json` in **every** field after deleting `sources.built_at` (whole-object comparison, not just `climate_kid`), and both carry the pinned phrase. The file is absent from the branch diff. |
+| 14 | pass | `us-states.ts`, tracked `us-state-co.json` and the sample all carry exactly `dry and cold in the mountains, drier plains to the east`; that string still appears verbatim in `geoquizdataplan.md` and `openapi.yaml`. |
+| 15 | pass | **Checked against the branch point directly**, not only tree-shaped: for each of the 51 paths, the file with `climate_kid` removed is byte-equal to `git show 13a735f:<path>` with the same key removed, and `index.json` is byte-identical. Pinned as `BASELINE_DIGESTS` so it also runs on a shallow clone. Separately: 15a 44 `landmark`s, blanks exactly DE/IA/KS/MS/OK/RI, every value equal to its curated row; 15b all 50 `state_animal` unchanged, one `fun_facts` entry each with `reviewed: true` and the curated text; 15c `top_crops` `[]` in all 50; 15d `index.json` digest pinned and free of `climate_kid`. Numstat corroborates: `data/` is +49 −0. |
+| 16 | pass (a) | `127.0.0.1:1` appears in exactly one file under `question-bank/src/` — `offline-rebuild.ts`, not a `*.test.ts`; my scan excludes only my own file, so the worker's suite is inside the scanned set. No `*.test.ts` spawns `src/build.ts` (the only `Bun.spawnSync` in any test file is `git`). All five suites import `rebuildOffline` and define no proxy of their own. **The carve-out was honoured:** `landmarks-verify.test.ts`'s `stateFiles()` still reads with `readdirSync` and `landmarks.test.ts`'s `trackedStateFiles()` still goes through `git ls-files` — asserted on those two function bodies, not on the files as a whole. 16(b) was not also taken. *One literal-vs-substance note for the reviewer below.* |
+| 17 | pass | The Handoff table names all 50 states once; every phrase it claims is the string shipped, and nothing ships undeclared — checked against a transcription taken from the brief, so a mis-stated row would have failed. Its per-row char/word counts are all true of the shipped phrase. The 10 groups plus the 9 "deliberately not grouped" states account for all 50 exactly once, every grouped state is filled, and each group's members ship distinct strings. *Whether the groupings are right is the Review checklist's sixth box.* |
+| 18 | pass | No `reviewed": false` in any of the 54 files under `data/`+`sample-data/`; no `*.review.json` under `data/us-states/`; `question-bank/package.json` still has no `dependencies` and the same two devDependencies; no `package.json` or lockfile anywhere in the repo is in the diff; no test under `question-bank/src/` calls `fetch(`, assigns `fetch`, or calls `mock(`. |
+| 19 | pass | No test deleted: floors for all eight protected suites hold. `bun test` 687 pass / 0 fail, `bun run typecheck` clean. `frontend/`, `backend/`, `e2e/` untouched. The three rewritten `climate_kid`-coverage assertions still use exact-set `toEqual`, not a count or `toContain`. |
+
+### Mutations made, and reverted
+
+All ten were reverted; `git status` afterwards showed only my new untracked test
+file. Where a mutation touched the curated table, the bank was rebuilt offline
+and rebuilt again after reverting.
+
+| # | Mutation | Result |
+|---|---|---|
+| 1 | Deleted Wyoming's `climate_kid` from `us-states.ts`, rebuilt | red in both suites — criterion 1 directly, and the no-blank invariant throws rather than silently filtering |
+| 2 | Vermont → `snow up to 300 inches, with a subarctic chill` | red on 5 (digit + `inches`), 8 (`subarctic`), 17 in both suites |
+| 3 | Ohio → `wet winters in the Sierra Nevada, and warm summers.` | red on 4 (terminal stop), 10 (`Nevada`), 17 in both suites |
+| 4 | Kansas → a strict substring of Nebraska's phrase | red on 11's containment check only — distinctness alone stayed green, which is the point of the second half of that criterion |
+| 5 | Colorado → `dry and cold up high, drier plains to the east` | red on 13, 14, 17, and on criterion 2's 55-char pin |
+| 6 | Hand-edited `state_animal` in built `us-state-oh.json` | red on 12 (rebuild byte-identity), 15's baseline digest and 15b |
+| 7 | Gave `landmarks.test.ts` its own `HTTP_PROXY: "http://127.0.0.1:1"` | red on 16's one-file count and the no-own-proxy check, both suites |
+| 8 | Deleted a test from `normalize.test.ts` | red on 19's floor for that file, both suites |
+| 9 | Swapped `landmarks-verify.test.ts`'s reading route onto `git ls-files` | **stayed green first time** — my carve-out check matched an unrelated `readdirSync` elsewhere in the file. Tightened to inspect the `stateFiles()` body; the retried mutation then went red. Recorded because it was a real hole in my own test, not in the code. |
+| 10 | Removed the non-zero-exit `throw` from `offline-rebuild.ts` | red on the check that the extraction did not swallow what the two removed `expect(proc.exitCode).toBe(0)` calls used to catch |
+
+### Notes for the reviewer — none blocking
+
+- **Criterion 16(a), literal reading.** It says every suite "obtains **both**"
+  the proxy environment and the runner "from that module". The five suites
+  import only `rebuildOffline`; `DEAD_PROXY` is exported but imported by name
+  nowhere, reaching each suite *through* the runner that applies it. The
+  criterion's purpose — one `127.0.0.1:1` to audit, no suite spawning
+  `build.ts`, no suite holding its own copy — is fully met, and importing
+  `DEAD_PROXY` unused would be dead code, so I read this as satisfied rather
+  than as a fail. Flagging it because it is a judgement, not a measurement.
+- **The `expects: 60 → 58` floor drop** in `state-animals.test.ts`,
+  `landmarks.test.ts` and `landmarks-verify.test.ts` is exactly as far as the
+  extraction forced: `committed-bank.test.ts` now contains precisely 58
+  `expect(` occurrences, pinned by a test of mine, so the floor carries no
+  slack. Mutation 10 confirms the two removed assertions' job is still done by
+  a throw. Criterion 16(a) names this kind of edit exempt from "loosened".
+- **`landmarks-verify.test.ts`'s digest check now strips `climate_kid`** before
+  hashing (except Colorado's, whose pinned baseline included it). That is not a
+  loosening in substance — it is how criterion 15 is enforced — and my own
+  `BASELINE_DIGESTS` re-checks the same property from the opposite direction
+  (pinning the branch point with `climate_kid` stripped everywhere, Colorado
+  included).
+- **Environment gap, unrelated to this task:** `frontend/`'s lint-gate suite
+  has 5 failures here because `eslint` is not installed in
+  `frontend/node_modules` and `bun run lint` cannot resolve its config. No
+  `frontend/` file is in this branch's diff, so this is pre-existing and
+  environmental. `question-bank/` has no `lint` script and none was added
+  (T-066).
+- **Still owed by a person:** all eight Review checklist boxes. A test confirmed
+  the 50 phrases are well-formed, distinct, jargon-free, digit-free,
+  state-name-free strings that read as fragments. Nothing confirmed they are
+  *true*, *readable at nine*, or that the interchangeable-climate groups are
+  right — and the groups are what stops T-026 shipping a question with two true
+  answers.
 
 ## Review
 
