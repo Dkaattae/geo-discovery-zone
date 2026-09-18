@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-18`
+**Approved:** `Dkaattae, 2026-09-18`
 **From:** [`tasks.md`](../tasks.md) T-016
 **Branch:** `claude/gallant-pasteur-jtdovj` — the harness assigned this session its
 own branch and forbids pushing elsewhere, so this is the task branch
