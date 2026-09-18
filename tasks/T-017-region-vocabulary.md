@@ -1,8 +1,8 @@
 # T-017 — Two region vocabularies, and they disagree
 
-**Status:** `awaiting approval`
-**Next step:** `human` (approve on the PR), then `worker`
-**Approved:** pending
+**Status:** `working`
+**Next step:** `worker`
+**Approved:** Kate, 2026-09-18 (approved via chat on PR #49)
 **From:** [`tasks.md`](../tasks.md) T-017
 **Branch:** `claude/task-t017-xqyyeq` — this session was assigned this branch by
 the harness and CLAUDE.md's "Branches" grants pushing to it for this task.
