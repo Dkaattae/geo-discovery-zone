@@ -1,6 +1,6 @@
 # T-062 — One test count in `README.md` is still unasserted
 
-**Status:** `verified`
+**Status:** `pass`
 **Next step:** `reviewer`
 **Approved:** Dkaattae, 2026-09-18
 **From:** [`tasks.md`](../tasks.md) T-062 · `S`, light brief (`process.md`, D-6)
