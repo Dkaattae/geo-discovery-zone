@@ -1,7 +1,7 @@
 # T-016 — Alaska has no `P610` highest point
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** `Dkaattae, 2026-09-18`
 **From:** [`tasks.md`](../tasks.md) T-016
 **Branch:** `claude/gallant-pasteur-jtdovj` — the harness assigned this session its
@@ -19,6 +19,7 @@ draft until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-09-18 | `01DcPFTAMrySYcEfrLFRiZHc` |
 | worker | 2026-09-18 | `cse_01DcPFTAMrySYcEfrLFRiZHc` |
+| tester | 2026-09-18 | `cse_01DcPFTAMrySYcEfrLFRiZHc` — same id as `worker`; see the Verdict's independence note |
 
 ## Goal
 
@@ -405,6 +406,112 @@ diff data/us-states/us-state-ak.json /tmp/check/us-state-ak.json   # empty
 ## Verdict
 
 Written by `tester`.
+
+**TL;DR: pass.** All 16 criteria hold, checked against the criteria's own wording
+and against `origin/main`'s committed bytes rather than against the
+implementation. The whole `question-bank` suite is green at **1192 pass / 0
+fail** (1142 pre-existing + 50 added here) and `bun run typecheck` is clean. 14
+deliberate mutations were made and every one turned the expected test red; all
+were reverted. **Next: `reviewer`** — and note that the Review checklist (Denali
+vs. Mount McKinley) is still unticked and is not the loop's to settle.
+
+### Independence — read this before trusting the verdict
+
+**This was fresh-context attestation, not a distinct-session-id proof.**
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01DcPFTAMrySYcEfrLFRiZHc`, which is
+already in the Sessions table as `worker`. Under this harness every agent spawned
+inside one top-level session shares an id, so that check cannot distinguish a
+genuinely separate session from a reused one, and I am not claiming it passed.
+
+What I can attest: I am a freshly spawned agent with my own context window. I
+never saw the worker's or the expander's conversation — only the committed repo
+state, the brief, and my own prompt. That is real independence, but it rests on
+the orchestration having spawned me correctly, which I cannot verify myself. It
+is weaker than the driven path's separate `--session-id`. Same posture as
+T-006 / T-012 / T-013 / T-014's testers.
+
+`git branch --show-current` is `claude/gallant-pasteur-jtdovj`, matching the
+`Branch:` header. No mismatch to resolve.
+
+### Handoff check
+
+The `## Handoff` exists and every file it names is on this branch.
+`git diff --stat origin/main..HEAD` is exactly the 7 files it lists, plus the
+brief and `tasks.md`. `tasks.md` is the **expander's** commit (`b9be0d5`, the
+T-069 entry) and not the worker's — that is the expander's own remit
+(`process.md` step 2) and the brief's Out of scope explicitly routes spill-over
+work there, so it is not a criterion-15 breach.
+
+Every Handoff claim I re-checked held, including the counts: `bun test` before
+my file was 1142 pass / 0 fail, and `bun test src/highest-point.test.ts` alone is
+10 pass. The one place the Handoff under-claims is criterion 9 — see that row.
+
+### Criterion → verdict → evidence
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `git ls-files` finds exactly 50 state files; all 50 carry a non-empty string `highest_point`. Mutation **M11** (strip it from Wyoming) reddens this. |
+| 2 | pass | `normalizeUsStates` returns the curated value when the row has no label, the Wikidata label when it does, and no key when neither exists. Mutations **M5** (inverted precedence) and **M7** (fallback removed) each redden it. Also checked the fixture's real Alaska row genuinely has no `highestPoint`, so the gap case is not hypothetical. |
+| 3 | pass | Equal in both places, and proven by mutation in all four directions: **M1** curated `highest_point` alone → 4 red; **M2** curated `landmark` alone → 3 red; **M3** tracked `highest_point` alone → 5 red; **M4** tracked `landmark` alone → 7 red. |
+| 4 | pass | Shipped value `"Denali"` — non-empty, no `(`, `)`, `/`, `,`, no `" or "`. Asserted against the **tracked file**, not only the curated table. |
+| 5 | pass | Checked byte-for-byte, not by eye. `git diff --unified=0` is one `@@ -20,0 +21 @@` hunk adding `  "highest_point": "Denali",` — nothing removed, nothing changed. Committed as a test: the tracked file with that one line removed digests to `744c58bd…`, the SHA-256 of `origin/main:…/us-state-ak.json`. `highest_point_m` is `6190`; `sources.built_at` is `2026-08-04T16:05:35.000Z`. |
+| 6 | pass | All 49 other files, `index.json` and `sample-data/us-state-co.json` digest to their `origin/main` SHA-256s — 51 pins computed here from `git show origin/main:<path>`, independent of the three existing guards' pins. |
+| 7 | pass | `committed-bank.test.ts` already runs `rebuildOffline` twice and compares all 51 paths. Independently reproduced: a real `--offline` build into a temp dir is byte-identical to the tracked bank, and differs from a same-build on the `origin/main` worktree by exactly the one Alaska line. |
+| 8 | pass | Warning has `entity: "us-state-co"`, `field: "highest_point"`, and the set of warned entities equals the set of entities with no `highest_point` key. **The "report prints it" half was checked end to end by hand** — a *derived* fixture (the committed recording untouched) with Colorado's `highestPoint` and `capital` dropped makes the real CLI print `2 warning(s):` / `us-state-co.capital: missing` / `us-state-co.highest_point: missing`, exactly the "alongside the ones it already prints" the criterion asks for. It could not be committed as a test: `top-crops-verify.test.ts` (T-015 criterion 8) and `climate-kid-verify.test.ts` (T-014 criterion 16) forbid any `*.test.ts` from spawning `build.ts`, and `rebuildOffline` returns written files rather than stdout. What is committed instead asserts the property behind the printed line — `report()` iterates its warnings and filters none by field. Mutations **M6** (delete the warning) and **M14** (add a field allow-list to `report()`) each redden it. |
+| 9 | pass | Measured rather than assumed: `bun run src/build.ts --offline` on a worktree at `origin/main` prints **no warning line at all** — count 0. The same build on this branch also prints none. Both halves pinned as tests, including one that asserts `warnings` is `[]` for *every* field, not just `highest_point`. Note the worker's own criterion-9 test hand-built rows with only two fields, so it could not have caught a new warning of another kind; this one parses the fixture through `parseUsStates`. |
+| 10 | pass | No digest literal in the three guards is re-pinned and no assertion is deleted, skipped or loosened — confirmed from the diff and asserted as a test (no `.skip`/`.todo`, `expect()` counts intact, no ungated `delete parsed["highest_point"]`). The asymmetry is independently verified: at all three guards' pinned baselines (`e587ec1`, `13a735f`, `eda7fde`) 49 files carried `highest_point` and only `us-state-ak.json` did not. Mutation **M8** (strip for all 50) reddens `landmarks-verify`; **M9** (remove the strip) reddens `climate-kid-verify`; **M10** (no-op the helper) reddens `top-crops-verify`. |
+| 11 | pass | The worker proved the textual route only. Both routes are now proven: the textual strip changes the bytes, drops the value and lands exactly on `origin/main`'s digest; the `JSON.parse` + `delete` route used by the other two guards changes the serialisation and removes the key. Plus a check that the same strip would move a non-Alaska file, so the Alaska-only gate is load-bearing. |
+| 12 | pass | `bun test` in `question-bank/`: **1192 pass, 0 fail**, 18199 expects, 14 files. `bun run typecheck`: clean. No lint step exists for this package (`ci.yml:118`). |
+| 13 | pass | Whole suite re-run with all six proxy spellings at the dead loopback port — no difference. No `fetch` mock anywhere; the one build a test here runs goes through `offline-rebuild.ts`. **My first draft of this suite broke it** and the repo's own guards caught me: spawning `build.ts` directly tripped T-014 criterion 16 and T-015 criterion 8 the moment the file was staged. Reworked to use `rebuildOffline`; both guards green. |
+| 14 | pass | `git diff origin/main..HEAD -- question-bank/package.json question-bank/bun.lock` is empty. |
+| 15 | pass | Only `question-bank/`, `engineering-decisions.md`, the brief and (expander-only) `tasks.md` changed. `openapi.yaml`, `backend/`, `frontend/` untouched. Alaska's `landmark` value is identical to `origin/main`. |
+| 16 | pass | E-8 is the next free number and the highest; it states the gap-fill-never-override rule, names Alaska as the only state relying on it and why (the fixture's one row with no `P610` label), and records the `landmark` pinning so the Denali call is one edit. Mutations **M12** (renumber) and **M13** (strip the never-override claim) each redden it. |
+
+### Mutations made, and what each did
+
+Every one was reverted; `git status` afterwards shows only my new, untracked
+test file, and the full suite is back to 1192/0.
+
+| # | Mutation | Result |
+|---|---|---|
+| M1 | curated Alaska `highest_point` → `"Mount McKinley"`, `landmark` left | 4 red, incl. the offline-rebuild byte check |
+| M2 | curated Alaska `landmark` → `"Mount McKinley"`, `highest_point` left | 3 red |
+| M3 | tracked `us-state-ak.json` `highest_point` value changed alone | 5 red, incl. two rebuild guards |
+| M4 | tracked `us-state-ak.json` `landmark` value changed alone | 7 red |
+| M5 | `normalize.ts`: `curated.highest_point ?? row.highestPoint` (precedence inverted) | 2 red — both "Wikidata wins" tests |
+| M6 | `normalize.ts`: warning push deleted | 4 red, incl. the end-to-end CLI report check |
+| M7 | `normalize.ts`: curated fallback dropped | 10 red across criteria 1, 2, 8, 9 |
+| M8 | `landmarks-verify`: Alaska strip made unconditional (all 50) | 2 red — proves the 49 must keep the key |
+| M9 | `climate-kid-verify`: Alaska strip removed | 1 red |
+| M10 | `top-crops-verify`: `withoutAlaskaHighestPoint` made a no-op | 2 red, incl. the worker's own non-vacuity test |
+| M11 | `highest_point` deleted from `us-state-wy.json` | 4 red across criteria 1, 6, 10 |
+| M12 | `engineering-decisions.md`: `E-8` heading renumbered | 4 red |
+| M13 | E-8's "never overrides" claim rewritten to the opposite | 1 red |
+| M14 | `build.ts` `report()`: warnings filtered to exclude `highest_point` | 1 red |
+
+### What I did not check, and one thing worth the reviewer's eye
+
+- **The Review checklist is untouched**, as instructed. Denali vs. Mount McKinley
+  is a human content call and out of the loop's hands. It is still unticked, and
+  this PR ships `"Denali"`.
+- **`frontend/` tests were not run** — `node_modules` is absent there and this
+  task changes nothing under `frontend/`. Criterion 12 scopes to `question-bank/`.
+- **For the reviewer, not a criterion:** the three digest guards now each carry a
+  task-specific neutralisation (`us-state-co` for `climate_kid`, `us-state-ak`
+  for `highest_point`). That is correct here and each exception is commented with
+  its reason, but the pattern is accreting one conditional per task. `tasks.md`
+  T-068's "One thing it must not miss" already flags this wall; it may be worth a
+  queue entry before a fourth field lands.
+
+### Test file added
+
+`question-bank/src/highest-point-verify.test.ts` — 50 tests, named per
+criterion, expected values derived from the criteria and from `origin/main`'s
+bytes. It does not duplicate `highest-point.test.ts`; it adds the byte-pinned
+`origin/main` comparison (criteria 5 and 6), the all-fields warning count
+(criterion 9), the report's no-allow-list property (criterion 8), the
+guard-weakening checks (criterion 10) and the second neutralisation proof
+(criterion 11).
 
 ## Review
 
