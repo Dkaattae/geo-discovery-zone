@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-09-04_
+_Last updated: 2026-09-18_
 
 ## In one paragraph
 
@@ -151,6 +151,16 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   nine: that is open on PR #44 as eight unticked boxes, and ten groups of
   substantively-interchangeable climates covering 41 of the 50 states are recorded
   there for T-026/T-022.
+- **All 50 states carry a `highest_point` name** (T-016, PR #47). Forty-nine came
+  from Wikidata's `P610` and have since the first commit; Alaska's row in the
+  fixture has an elevation but no label, so it now comes from `CuratedState` —
+  read only as a **fallback**, never over a live value (`engineering-decisions.md`
+  **E-8**). A state left with neither source now warns at build time, so the next
+  gap of this shape announces itself instead of shipping blank. Alaska's value is
+  pinned equal to its `landmark` ("Denali"); whether that name should be "Mount
+  McKinley" is the same unsettled human call as T-013's, open on PR #43 and #47.
+  **`highest_point_m` is a separate problem** — at least five states carry feet
+  under a metres key (T-069).
 - **The offline-rebuild test harness lives in one place** (T-014, PR #44):
   `question-bank/src/offline-rebuild.ts` exports the dead-loopback proxy map and
   `rebuildOffline()`, and all six suites that check a byte-identical offline
@@ -287,6 +297,47 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-016 — Alaska's missing `highest_point`, filled from the curated table**
+  (PR #47, 2026-09-18). The last blank field in the committed bank: Alaska's row
+  in the recorded SPARQL fixture carries a `P2044` elevation and no `P610`
+  *label*, the only one of 50 like that, so it shipped `highest_point_m: 6190`
+  with no name. `CuratedState` gains an optional `highest_point`, read by
+  `normalize.ts` as `row.highestPoint ?? curated.highest_point` — a live Wikidata
+  label always wins, the curated value only fills a gap — and a state left with
+  neither now raises a `field: "highest_point"` build warning, which is the half
+  of the task that was actually missing: nothing warned before, so this gap had
+  been invisible since the first commit. One line added to
+  `us-state-ak.json`, nothing else in the bank moved. Recorded as
+  `engineering-decisions.md` **E-8**. 50 worker tests + 50 tester tests
+  (`highest-point.test.ts`, `highest-point-verify.test.ts`), 14 mutations each
+  proven to redden the expected criterion, suite 1142 → 1192.
+  *Where it differed from the brief:* nowhere in substance — all 16 criteria met
+  as written, the survey held, no route change. Three things are worth carrying
+  forward:
+  - **It ships "Denali", and that is still a human call.** The value is copied
+    from Alaska's existing `landmark` and the two are pinned equal, so the
+    federal-name change to Mount McKinley (2025) stays a **one-place edit in the
+    data** rather than two fields drifting. It is the same open box as T-013 /
+    PR #43 — settling one settles both — and PR #47 was escalated for it rather
+    than marked routinely ready. Note the "one edit" is one edit *in the bank*:
+    the name is also a literal in three test expectation tables, and in
+    `backend/app/data/content.json`'s Alaska fun fact, which T-040 replaces.
+  - **The pinned-digest guards took a fourth exception**, in all three of
+    `landmarks-verify`, `climate-kid-verify` and `top-crops-verify`, and this one
+    had to be **asymmetric** — strip `highest_point` for `us-state-ak.json` only,
+    because the field predated every pin for the other 49 states. A symmetric
+    strip turns the guards red, proven by mutation. The accretion is now its own
+    queue entry, **T-070**, which T-067, T-068 and T-069 all point at.
+  - **The build report's printed output is still untested.** Criterion 8's "the
+    report prints it" half could only be asserted by grepping `build.ts` for the
+    absence of a field filter, because `rebuildOffline()` returns written files
+    rather than stdout and two committed guards forbid a test from spawning
+    `build.ts`. The behaviour was checked by hand and the workaround is declared
+    in the test's own comment; closing it properly is part of T-070.
+  - *Also worth knowing:* as with T-012 to T-015, all four roles ran under one
+    session id — freshly spawned agents with separate context windows, but the
+    Sessions-table independence check could not discriminate, and the Verdict
+    said so rather than claiming it passed.
 - **T-015 — all 50 states have crops, hand-curated rather than from USDA NASS**
   (PR #46, 2026-09-17). 98 crop strings across 50 new `top_crops` entries in
   `question-bank/src/curated/us-states.ts` — one to three genuinely famous
