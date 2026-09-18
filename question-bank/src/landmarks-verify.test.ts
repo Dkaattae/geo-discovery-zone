@@ -121,59 +121,65 @@ const HANDOFF_SPANS: Record<string, string> = {
  * `index.json`, which is hashed over its raw bytes because criterion 9 says
  * "byte-identical". Regenerating these is a two-line script; they are pinned so
  * the check needs no git history.
+ *
+ * **Re-pinned 2026-09-18 (T-017).** `region` moved on every one of the 50
+ * state files, the largest change any of these guards has absorbed. `region`
+ * had a real value both before and after — unlike `climate_kid` (absent, then
+ * filled) — so there is no shared baseline to restore it to, and the key is
+ * dropped from the parsed object entirely, for all 50 files, before hashing.
  */
 const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "index.json": "cd6822166faad673",
-  "us-state-ak.json": "f91c4765c0d54664",
-  "us-state-al.json": "40df8800263b9d38",
-  "us-state-ar.json": "86f9557d4bf83304",
-  "us-state-az.json": "462c3325a1966ccd",
-  "us-state-ca.json": "c81f07e1f3eed888",
-  "us-state-co.json": "72ed5e71192e0688",
-  "us-state-ct.json": "60d1ad3776b2e2f8",
-  "us-state-de.json": "18a4cebbf8e18b9a",
-  "us-state-fl.json": "7d8d302b68b658c2",
-  "us-state-ga.json": "6bd6f2a9b112665a",
-  "us-state-hi.json": "9ea73548c0be1354",
-  "us-state-ia.json": "92ce435dfb28da33",
-  "us-state-id.json": "99f71c6d78861198",
-  "us-state-il.json": "4960c9587162bd0e",
-  "us-state-in.json": "c42d40acbad644b5",
-  "us-state-ks.json": "e55a2677742bc79e",
-  "us-state-ky.json": "cc8d8f8c326e755f",
-  "us-state-la.json": "5205b79d8a6e3ae8",
-  "us-state-ma.json": "1586c85acfc86646",
-  "us-state-md.json": "4124db608007dd8f",
-  "us-state-me.json": "82f4b403c9349ed0",
-  "us-state-mi.json": "1bf3e4a864c1dd6d",
-  "us-state-mn.json": "10b5c03bab896d76",
-  "us-state-mo.json": "3a6b27a66678b8a3",
-  "us-state-ms.json": "d09339ac53f425f7",
-  "us-state-mt.json": "a0235f7be90d8ef4",
-  "us-state-nc.json": "e04bd9bc1460db11",
-  "us-state-nd.json": "a1a6485f64258b92",
-  "us-state-ne.json": "4cb9f2fdce62ba3d",
-  "us-state-nh.json": "55e4ea8fb903ff01",
-  "us-state-nj.json": "3227bf02ad8ed07c",
-  "us-state-nm.json": "3459d090da2ae6af",
-  "us-state-nv.json": "69e6241d6965984e",
-  "us-state-ny.json": "959cdc21ec3c6f9f",
-  "us-state-oh.json": "46d4215baeb377f0",
-  "us-state-ok.json": "a6e139805e3259aa",
-  "us-state-or.json": "e96b742e4bdf6f4c",
-  "us-state-pa.json": "59c66e1ca4946921",
-  "us-state-ri.json": "53fe5e9954b1c9e0",
-  "us-state-sc.json": "6938e1d64d9d1ef0",
-  "us-state-sd.json": "681700497baac252",
-  "us-state-tn.json": "03f9259f8e76dbd9",
-  "us-state-tx.json": "681106ecdb558b4e",
-  "us-state-ut.json": "668e25bd56eb1a18",
-  "us-state-va.json": "60ad1ecfc356d24b",
-  "us-state-vt.json": "2142ecac39f953a6",
-  "us-state-wa.json": "e3e2b880b75e675b",
-  "us-state-wi.json": "55249a219e8f388a",
-  "us-state-wv.json": "5a76dccf55df1929",
-  "us-state-wy.json": "979dc61725511def",
+  "us-state-ak.json": "cf4a556329d614d5",
+  "us-state-al.json": "d82bc4f2c1f5f155",
+  "us-state-ar.json": "3b4eccfb868d9117",
+  "us-state-az.json": "70868822502a4b72",
+  "us-state-ca.json": "49fa0eabd28fd480",
+  "us-state-co.json": "e6eb67c02ddc33c2",
+  "us-state-ct.json": "5db6edbaab75a99d",
+  "us-state-de.json": "15983e11ad03ae2f",
+  "us-state-fl.json": "6d5c8c6b27838505",
+  "us-state-ga.json": "7cfb57ce0c5b4801",
+  "us-state-hi.json": "13d4b74003be8d73",
+  "us-state-ia.json": "b7a3b84690acab5d",
+  "us-state-id.json": "25bca54684d182ec",
+  "us-state-il.json": "3e47b363340a826f",
+  "us-state-in.json": "b8ff928c88c9870e",
+  "us-state-ks.json": "4a79f2a995cbe70e",
+  "us-state-ky.json": "0542e546c88e1c49",
+  "us-state-la.json": "7fde68508d5a251e",
+  "us-state-ma.json": "2b347a9a5c8781c0",
+  "us-state-md.json": "549458f12b98582e",
+  "us-state-me.json": "2817f426bffc0f35",
+  "us-state-mi.json": "e12a8a2ab2b13827",
+  "us-state-mn.json": "71d1b665523ef020",
+  "us-state-mo.json": "4f8fb8bf2c69b38d",
+  "us-state-ms.json": "492b6fdef9145442",
+  "us-state-mt.json": "a8aa099b9ce45bde",
+  "us-state-nc.json": "9b8ab525dbceb9ab",
+  "us-state-nd.json": "dfc242d023446388",
+  "us-state-ne.json": "1f9d1efee1654cba",
+  "us-state-nh.json": "cb725c26f416074f",
+  "us-state-nj.json": "b1a4efb628d9c1ac",
+  "us-state-nm.json": "9c0cbc641e899711",
+  "us-state-nv.json": "42e302f3970d4e92",
+  "us-state-ny.json": "eeb6cf481347335d",
+  "us-state-oh.json": "6b946ea158fc156e",
+  "us-state-ok.json": "634eca378ebc98a8",
+  "us-state-or.json": "7ffbff96d27da3f9",
+  "us-state-pa.json": "1c4c056806d3c079",
+  "us-state-ri.json": "c8f6a8d682284ebf",
+  "us-state-sc.json": "09442675601b1712",
+  "us-state-sd.json": "f8690c67ea1a4a7f",
+  "us-state-tn.json": "63a777ceec9aee07",
+  "us-state-tx.json": "eeac7bdb0aed09c6",
+  "us-state-ut.json": "ee239d24eccaae90",
+  "us-state-va.json": "e2a586f9de37d435",
+  "us-state-vt.json": "44a0ec517b778568",
+  "us-state-wa.json": "849bf70fbaff1e65",
+  "us-state-wi.json": "31a46c3adfd4fc22",
+  "us-state-wv.json": "fa0df471888faef6",
+  "us-state-wy.json": "09e2361bfb378659",
 };
 
 interface Entity {
@@ -465,12 +471,23 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
       // Alaska's was not, so it alone is stripped here, the same asymmetric
       // shape the climate_kid line above already uses for Colorado.
       if (file === "us-state-ak.json") delete parsed["highest_point"];
+      // T-017 (2026-09-18, a later approved task) resettles `region` for all
+      // 50 states — see the DEFAULT_BRANCH_DIGESTS comment above.
+      delete parsed["region"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,
       });
     }
+  });
+
+  test("the region removal actually drops the key — otherwise the digest check proves nothing (T-017)", () => {
+    const il = readFileSync(join(DATA_DIR, "us-state-il.json"), "utf8");
+    const parsed = JSON.parse(il) as Record<string, unknown>;
+    expect(parsed["region"]).toBe("Great Lakes");
+    delete parsed["region"];
+    expect(Object.keys(parsed)).not.toContain("region");
   });
 
   test("the set of states carrying climate_kid is exactly all 50 — T-014 filled the rest", () => {

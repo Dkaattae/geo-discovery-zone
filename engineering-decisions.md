@@ -432,3 +432,51 @@ change cannot be verified offline and risks moving the other 49 files.
 the curated value is independently sourced or, like Alaska, pinned to another
 already-curated field is worth deciding per state rather than assuming Alaska's
 shape generalises.
+
+---
+
+## E-9 — The app's `region` vocabulary is the served bank's thirteen values, not the pipeline's eight
+
+**2026-09-18 (T-017).** `question-bank/src/curated/us-states.ts` assigned each
+of the 50 states one of **eight** region strings (`Midwest`, `Mountain West`,
+`Northeast`, `Pacific`, `Pacific Northwest`, `South Central`, `Southeast`,
+`Southwest`); the bank the app actually serves today
+(`backend/app/data/content.json`, 15 states) uses **thirteen**. The curated
+table's own comment claimed to match "the values already in the frontend" —
+that had stopped being true, and `region` query filters meant something
+different depending on which half of the repo produced the row.
+
+**Why the served bank's set won, not the pipeline's.** Asked of the human
+rather than guessed, per `process.md`'s expander gate for decisions "not yours
+to make": the finer, thirteen-value list is the one already shipping to
+children today, and it is the one `openapi.yaml`'s `region` filter already
+returns real values from. Widening the pipeline's eight-value set up to match
+it, rather than collapsing the served bank's thirteen down to eight, keeps the
+vocabulary the one already in production and avoids a second, disruptive
+change to `content.json` on top of this one.
+
+**What changed and what did not.** `content.json`'s 15 `region` values are
+untouched — this task confirms they already satisfy the closed 13-value set
+(they do; that set is defined as their union) and freezes them. Every one of
+the 50 rows in the curated table now carries one of exactly those 13 values,
+written down once in that file's header comment. For the 15 states already
+served, the curated table's row was brought to match `content.json`'s value,
+not the other way around. For the remaining 35, a human assigned the finer
+category by ordinary US regional usage — adapted from, not copied from, the
+Census Bureau's divisions (e.g. the Dakotas, Kansas, Nebraska and Missouri
+split between `Great Plains` and `Upper Midwest`; New England split out from
+the rest of the Northeast; Nevada alone keeps `Great Basin` while the other
+Rocky Mountain states stay `Mountain West`). That per-state judgment is
+content curation under `CLAUDE.md`'s "Content rules", the same kind already
+governing `state_animal` and `climate_kid`, and the brief's Review checklist
+records who spot-checked it.
+
+**What this unblocks.** T-022 (same-region distractors for map/capital
+questions) was blocked on the vocabulary being well-defined at all; this
+decision is what "well-defined" now means for that task, though T-022 itself
+still needs T-021 first regardless.
+
+**Revisit when** T-050 wires the pipeline's 50-state output into what the app
+actually serves — at that point every one of the 50 rows' region assignment
+(not just the 15 already live) becomes user-facing, and the 35 judgment calls
+this entry describes are worth a second look by whoever picks that task up.

@@ -36,6 +36,32 @@
  * apart. **Decided 2026-09-18 by Dkaattae, on PR #47: Mount McKinley** — the
  * same call T-013's reviewer left open on PR #43. See `engineering-decisions.md`
  * E-8.
+ *
+ * **`region` vocabulary (T-017, 2026-09-18).** This field used to carry an
+ * eight-value set of its own, out of step with the thirteen values the served
+ * bank (`backend/app/data/content.json`, the 15 states shipping today) already
+ * returns from `region` filters. **Decided 2026-09-18 (product call, asked of
+ * the human per `process.md`'s expander gate): the app adopts the served
+ * bank's vocabulary**, not the pipeline's. Every row below now carries one of
+ * exactly these 13 values, and no other string is valid here:
+ *
+ *   `Great Basin`, `Great Lakes`, `Great Plains`, `Mountain West`,
+ *   `New England`, `Northeast`, `Pacific`, `Pacific Northwest`,
+ *   `Pacific West`, `South Central`, `Southeast`, `Southwest`,
+ *   `Upper Midwest`.
+ *
+ * The 15 states already served (`Colorado`, `Florida`, `Texas`, `Alaska`,
+ * `Hawaii`, `Maine`, `Michigan`, `Louisiana`, `California`, `New York`,
+ * `Arizona`, `Kansas`, `Washington`, `Minnesota`, `Nevada`) carry the exact
+ * value `content.json` already ships for them — this table was brought to
+ * match that file, not the other way around (T-017 leaves `content.json`
+ * itself untouched). The remaining 35 states are a human's judgment call
+ * against ordinary US regional usage (adapted from the Census Bureau's
+ * divisions, not copied from them line for line — e.g. Census's "West North
+ * Central" is split here between `Great Plains` and `Upper Midwest`, and New
+ * England is split out from the rest of the Northeast). See
+ * `engineering-decisions.md` E-9 and the brief's Review checklist for which
+ * calls were closer than others.
  */
 
 import type { FunFact } from "../types";
@@ -45,7 +71,11 @@ export interface CuratedState {
   name: string;
   /** FIPS 5-2 numeric, zero-padded. The map's join key. */
   fips: string;
-  /** This app's region vocabulary — matches the values already in the frontend. */
+  /**
+   * This app's region vocabulary — the closed 13-value set the header comment
+   * above names, matching the values `backend/app/data/content.json` already
+   * serves. See that comment for provenance (T-017).
+   */
   region: string;
   /** Kid-facing climate phrasing (§1.9: map Köppen codes yourself). */
   climate_kid?: string;
@@ -97,7 +127,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "AK",
     name: "Alaska",
     fips: "02",
-    region: "Pacific",
+    region: "Pacific Northwest",
     state_animal: "Moose",
     climate_kid: "long cold snowy winters inland, milder and rainy along the southern coast",
     landmark: "Mount McKinley",
@@ -149,7 +179,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "CA",
     name: "California",
     fips: "06",
-    region: "Pacific",
+    region: "Pacific West",
     state_animal: "California grizzly bear",
     climate_kid: "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
     landmark: "Golden Gate Bridge",
@@ -183,7 +213,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "CT",
     name: "Connecticut",
     fips: "09",
-    region: "Northeast",
+    region: "New England",
     state_animal: "Sperm whale",
     climate_kid: "cold snowy winters and warm sticky summers, with all four seasons clearly felt",
     landmark: "Mystic Aquarium",
@@ -284,7 +314,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "IL",
     name: "Illinois",
     fips: "17",
-    region: "Midwest",
+    region: "Great Lakes",
     state_animal: "White-tailed deer",
     climate_kid: "hot humid summers, cold snowy winters, and strong storms every spring",
     landmark: "Willis Tower",
@@ -301,7 +331,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "IN",
     name: "Indiana",
     fips: "18",
-    region: "Midwest",
+    region: "Great Lakes",
     state_animal: "Northern cardinal",
     climate_kid: "warm sticky summers, icy cold winters, and plenty of storms each spring",
     landmark: "Indianapolis Motor Speedway",
@@ -318,7 +348,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "IA",
     name: "Iowa",
     fips: "19",
-    region: "Midwest",
+    region: "Upper Midwest",
     state_animal: "American goldfinch",
     climate_kid: "hot humid summers and freezing cold winters, with strong winds across the open fields",
     top_crops: ["corn", "soybeans"],
@@ -334,7 +364,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "KS",
     name: "Kansas",
     fips: "20",
-    region: "Midwest",
+    region: "Great Plains",
     state_animal: "American bison",
     climate_kid: "hot dry summers and cold windy winters, with sudden storms sweeping the plains",
     top_crops: ["wheat", "sorghum"],
@@ -384,7 +414,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "ME",
     name: "Maine",
     fips: "23",
-    region: "Northeast",
+    region: "New England",
     state_animal: "Moose",
     climate_kid: "cold snowy winters and cool breezy summers, especially up near the coast",
     landmark: "Acadia National Park",
@@ -418,7 +448,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "MA",
     name: "Massachusetts",
     fips: "25",
-    region: "Northeast",
+    region: "New England",
     state_animal: "Right whale",
     climate_kid: "cold snowy winters with strong coastal storms, and warm humid summers",
     landmark: "Plymouth Rock",
@@ -435,7 +465,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "MI",
     name: "Michigan",
     fips: "26",
-    region: "Midwest",
+    region: "Great Lakes",
     state_animal: "White-tailed deer",
     climate_kid: "long cold winters with heavy lake snow, and mild humid summers",
     landmark: "Mackinac Bridge",
@@ -452,7 +482,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "MN",
     name: "Minnesota",
     fips: "27",
-    region: "Midwest",
+    region: "Upper Midwest",
     state_animal: "Common loon",
     climate_kid: "bitterly cold snowy winters and warm humid summers, with big swings between them",
     landmark: "Mall of America",
@@ -485,7 +515,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "MO",
     name: "Missouri",
     fips: "29",
-    region: "Midwest",
+    region: "Great Plains",
     state_animal: "Mule",
     climate_kid: "hot humid summers and cold winters, with sudden storms and occasional ice",
     landmark: "Gateway Arch",
@@ -519,7 +549,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "NE",
     name: "Nebraska",
     fips: "31",
-    region: "Midwest",
+    region: "Great Plains",
     state_animal: "White-tailed deer",
     climate_kid: "hot windy summers and freezing cold winters, with sudden storms across the open plains",
     landmark: "Chimney Rock",
@@ -536,7 +566,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "NV",
     name: "Nevada",
     fips: "32",
-    region: "Mountain West",
+    region: "Great Basin",
     state_animal: "Desert bighorn sheep",
     climate_kid: "hot dry summers, cold winters, and very little rain any time of year",
     landmark: "Hoover Dam",
@@ -553,7 +583,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "NH",
     name: "New Hampshire",
     fips: "33",
-    region: "Northeast",
+    region: "New England",
     state_animal: "White-tailed deer",
     climate_kid: "cold snowy winters, especially high in the mountains, and warm summers below",
     landmark: "Mount Washington",
@@ -638,7 +668,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "ND",
     name: "North Dakota",
     fips: "38",
-    region: "Midwest",
+    region: "Upper Midwest",
     state_animal: "Western meadowlark",
     climate_kid: "bitterly cold winters and hot summers, with strong winds across the open plains",
     landmark: "Theodore Roosevelt National Park",
@@ -655,7 +685,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "OH",
     name: "Ohio",
     fips: "39",
-    region: "Midwest",
+    region: "Great Lakes",
     state_animal: "White-tailed deer",
     climate_kid: "cold snowy winters near the lake, and warm humid summers the rest of the year",
     landmark: "Rock and Roll Hall of Fame",
@@ -722,7 +752,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "RI",
     name: "Rhode Island",
     fips: "44",
-    region: "Northeast",
+    region: "New England",
     state_animal: "Harbor seal",
     climate_kid: "cold snowy winters and warm humid summers, with strong storms off the coast",
     top_crops: ["sweet corn", "potatoes"],
@@ -755,7 +785,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "SD",
     name: "South Dakota",
     fips: "46",
-    region: "Midwest",
+    region: "Upper Midwest",
     state_animal: "Coyote",
     climate_kid: "cold windy winters and hot summers, with sudden storms sweeping the plains",
     landmark: "Mount Rushmore",
@@ -823,7 +853,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "VT",
     name: "Vermont",
     fips: "50",
-    region: "Northeast",
+    region: "New England",
     state_animal: "Morgan horse",
     climate_kid: "cold snowy winters, heavy in the mountains, and mild cool summers below",
     landmark: "Ben & Jerry's Factory",
@@ -891,7 +921,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     postal: "WI",
     name: "Wisconsin",
     fips: "55",
-    region: "Midwest",
+    region: "Great Lakes",
     state_animal: "American badger",
     climate_kid: "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
     landmark: "Lambeau Field",

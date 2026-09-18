@@ -165,59 +165,66 @@ const LANDMARK_BLANKS = ["DE", "IA", "KS", "MS", "OK", "RI"] as const;
  * McKinley" — Dkaattae's decision on PR #47, the same call T-013's reviewer
  * left open. This digest is recomputed with the new value; nothing else about
  * the neutralisation changed.
+ *
+ * **All 50 re-pinned again 2026-09-18 (T-017).** `region` moved on every
+ * tracked state file, the largest change any of these guards has absorbed. It
+ * had a real value both before and after this task, so — unlike `climate_kid`
+ * itself, which the criterion-15 test below restores by deleting the key it
+ * knows was absent — the key is simply dropped before hashing, for all 50
+ * files.
  */
 const BASELINE_DIGESTS: Record<string, string> = {
   "index.json": "cd6822166faad673",
-  "us-state-ak.json": "977a8c18589aceec",
-  "us-state-al.json": "f55ad200e61c9b4d",
-  "us-state-ar.json": "71097ccf61829be6",
-  "us-state-az.json": "56fa52e4e51f6163",
-  "us-state-ca.json": "8f8bdee9fc396ba9",
-  "us-state-co.json": "b58ac5ce6519b193",
-  "us-state-ct.json": "8bde85a9c5263b47",
-  "us-state-de.json": "18a4cebbf8e18b9a",
-  "us-state-fl.json": "c480061ec9658f2f",
-  "us-state-ga.json": "b4eab8168a0df03c",
-  "us-state-hi.json": "bcdb49ae54dedcb1",
-  "us-state-ia.json": "92ce435dfb28da33",
-  "us-state-id.json": "5c167884ac5614ef",
-  "us-state-il.json": "6dac73973290b74c",
-  "us-state-in.json": "4d7c978080a03b11",
-  "us-state-ks.json": "e55a2677742bc79e",
-  "us-state-ky.json": "293c2ccaca627b56",
-  "us-state-la.json": "ee9b9d0f2f01131c",
-  "us-state-ma.json": "eadcbfb233724139",
-  "us-state-md.json": "4013abfaeec71fd8",
-  "us-state-me.json": "33b66142356f8486",
-  "us-state-mi.json": "5cc555f7dec25710",
-  "us-state-mn.json": "614d968613fc08d0",
-  "us-state-mo.json": "75d801cb7a159700",
-  "us-state-ms.json": "d09339ac53f425f7",
-  "us-state-mt.json": "bfd9c4e5b77f1ee7",
-  "us-state-nc.json": "571cca1aca96cc1f",
-  "us-state-nd.json": "f873b5e2cb16a7e7",
-  "us-state-ne.json": "b60c550a4e1b4b0e",
-  "us-state-nh.json": "9476f7f742eb58a7",
-  "us-state-nj.json": "ebd059de613df085",
-  "us-state-nm.json": "196ed29b700e39f2",
-  "us-state-nv.json": "3459460ed9ee4faf",
-  "us-state-ny.json": "fed5562fff27138f",
-  "us-state-oh.json": "c297ac2d19ba4cc0",
-  "us-state-ok.json": "a6e139805e3259aa",
-  "us-state-or.json": "223c2f87c5a30087",
-  "us-state-pa.json": "53fd4a81cecd55a2",
-  "us-state-ri.json": "53fe5e9954b1c9e0",
-  "us-state-sc.json": "74e668c0ecc654ec",
-  "us-state-sd.json": "5612636c6ec7f514",
-  "us-state-tn.json": "2d0177ab21e8ec9e",
-  "us-state-tx.json": "7435fe0ca1f57133",
-  "us-state-ut.json": "78a03f5ec81d160e",
-  "us-state-va.json": "55a28e4e4cc44531",
-  "us-state-vt.json": "01786c6fe93f5d73",
-  "us-state-wa.json": "b25c731db9b6b4ad",
-  "us-state-wi.json": "a6aaf71b038e6b3b",
-  "us-state-wv.json": "7e2ea6047e546e0d",
-  "us-state-wy.json": "eb9aa1138bae3dba",
+  "us-state-ak.json": "587666550161ddf1",
+  "us-state-al.json": "82ab9588076b3db0",
+  "us-state-ar.json": "561806edd56aabf4",
+  "us-state-az.json": "9fa14329e4b144bb",
+  "us-state-ca.json": "b6353f508ddc8359",
+  "us-state-co.json": "5ca27841d528e1a2",
+  "us-state-ct.json": "1252f4c86d7f7a02",
+  "us-state-de.json": "15983e11ad03ae2f",
+  "us-state-fl.json": "dbe71284ff699e23",
+  "us-state-ga.json": "2d9fa327b4a80534",
+  "us-state-hi.json": "c137c91a1bc47f3e",
+  "us-state-ia.json": "b7a3b84690acab5d",
+  "us-state-id.json": "118a374b6e523db0",
+  "us-state-il.json": "ea3a9128cb0e1173",
+  "us-state-in.json": "ec47dbaf1d17b121",
+  "us-state-ks.json": "4a79f2a995cbe70e",
+  "us-state-ky.json": "27ba3ecfece60554",
+  "us-state-la.json": "252296416894caa6",
+  "us-state-ma.json": "09cb58b494ed91a8",
+  "us-state-md.json": "0da1586f68272870",
+  "us-state-me.json": "a926140e1eff24b6",
+  "us-state-mi.json": "808281523dd2fae7",
+  "us-state-mn.json": "f66534b7c479ad1e",
+  "us-state-mo.json": "3700da9e872dbc52",
+  "us-state-ms.json": "492b6fdef9145442",
+  "us-state-mt.json": "c9696b91c412509a",
+  "us-state-nc.json": "c190c6f1999bfffb",
+  "us-state-nd.json": "cdb290b86e4c6200",
+  "us-state-ne.json": "aeaa240904b8aaba",
+  "us-state-nh.json": "e546fff7a815a610",
+  "us-state-nj.json": "febda88eeca88c97",
+  "us-state-nm.json": "880ee3588c8fbc92",
+  "us-state-nv.json": "44a3702a6842b5cc",
+  "us-state-ny.json": "0077127c6f911388",
+  "us-state-oh.json": "f98b2b1c7806048e",
+  "us-state-ok.json": "634eca378ebc98a8",
+  "us-state-or.json": "2b75882efa918b15",
+  "us-state-pa.json": "fc29a41dfc7dc863",
+  "us-state-ri.json": "c8f6a8d682284ebf",
+  "us-state-sc.json": "83749783302b65a2",
+  "us-state-sd.json": "4be1ea1b3cd222ae",
+  "us-state-tn.json": "6d3bc1a0ce140799",
+  "us-state-tx.json": "6efdc195678a7949",
+  "us-state-ut.json": "03285a43eb758e57",
+  "us-state-va.json": "8c98489f276d6e37",
+  "us-state-vt.json": "873d23eba39d9d06",
+  "us-state-wa.json": "8c2a90397321ead7",
+  "us-state-wi.json": "23d1d95c21591b5a",
+  "us-state-wv.json": "3ed25d05ad08bb0e",
+  "us-state-wy.json": "f1bb478c900eb36f",
 };
 
 /** Criterion 7's 31 Köppen class codes, matched as whole words, case-sensitively. */
@@ -711,12 +718,23 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
       // own baseline, so their pinned digests were computed with it present.
       // Alaska's was not, so it alone is stripped here.
       if (file === "us-state-ak.json") delete parsed["highest_point"];
+      // T-017 (2026-09-18, a later approved task) resettles `region` for all
+      // 50 states — see the BASELINE_DIGESTS comment above.
+      delete parsed["region"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: BASELINE_DIGESTS[file] as string,
       });
     }
+  });
+
+  test("the region removal actually drops the key — otherwise the digest check proves nothing (T-017)", () => {
+    const il = readFileSync(join(DATA_DIR, "us-state-il.json"), "utf8");
+    const parsed = JSON.parse(il) as Record<string, unknown>;
+    expect(parsed["region"]).toBe("Great Lakes");
+    delete parsed["region"];
+    expect(Object.keys(parsed)).not.toContain("region");
   });
 
   test("15a — exactly 44 states carry landmark, and the six blanks are the ones named", () => {
@@ -1090,6 +1108,24 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     expect(() => rebuildOffline(join(PKG, "src/does-not-exist.ts"), ["index.json"], "t014-neg-")).toThrow();
   });
 
+  /**
+   * Same named per-task exception as `climate-kid.test.ts`'s copy of this
+   * guard, and for the same reason: the range is not scoped to T-014's own
+   * commits, so on a later task's branch this measures that task's diff.
+   *
+   * - `backend/tests/test_region_vocabulary.py` — T-017 (tester), the served
+   *   side of the region closed-set check.
+   *
+   * **This does not make the assertion pass, and is not meant to.** Its range
+   * is the hardcoded `13a735f`, which predates the FastAPI backend itself, so
+   * `backend/app/data/content.json` is in the diff on `origin/main` too and
+   * this test is red there — measured, 1192 pass / 1 fail in a clean worktree
+   * at `f5b2382`. The exception exists so that T-017 adds nothing to that
+   * failure: the list it reports here is identical to the one it reports on
+   * `origin/main`. T-070 owns re-pinning it for real.
+   */
+  const ALLOWED_OUTSIDE_QUESTION_BANK = ["backend/tests/test_region_vocabulary.py"];
+
   test("frontend/ and backend/ carry no change from this task", () => {
     const proc = Bun.spawnSync(["git", "diff", "--name-only", "13a735f...HEAD"], { cwd: REPO });
     const stdout = proc.stdout.toString();
@@ -1097,7 +1133,8 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
       const outside = stdout
         .split("\n")
         .filter(Boolean)
-        .filter((p) => p.startsWith("frontend/") || p.startsWith("backend/") || p.startsWith("e2e/"));
+        .filter((p) => p.startsWith("frontend/") || p.startsWith("backend/") || p.startsWith("e2e/"))
+        .filter((p) => !ALLOWED_OUTSIDE_QUESTION_BANK.includes(p));
       expect(outside).toEqual([]);
     } else {
       // Shallow clone: the branch point is not present. Recorded in the Verdict

@@ -1131,7 +1131,12 @@ components:
     Region:
       name: region
       in: query
-      description: Region slug, e.g. `mountain-west`, `europe`, `southeast-asia`.
+      description: >
+        Region name, matched against Entity.region case- and
+        hyphen-insensitively. The canonical stored form is a titled string
+        with spaces, e.g. `Mountain West`, `Southeast`, `Pacific Northwest`
+        (see engineering-decisions.md E-9 for the closed set the served US
+        states currently use).
       schema:
         type: string
     EntityId:

@@ -75,56 +75,56 @@ const LIVESTOCK_WORDS = [
  */
 const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "index.json": "cd6822166faad67383db4d0506bcc1a833e142884e1792b03292795ce3e1e066",
-  "us-state-ak.json": "8d4e6ac03298f52438e7cd9ad3301f6671891b77b060ae1d9cb438e633b2ac33",
-  "us-state-al.json": "8cb7ced87ad6bfce10a266cca404123d717413b74b89178475a09caca027bb4a",
-  "us-state-ar.json": "38c1e0c7dcd10daf78f0400fc7e808edc85785a7bb488e946d277b6d8bfac533",
-  "us-state-az.json": "53b19aa64223a29b4152a73c5333284da4cbdb57be49deb0994e107450ee03cc",
-  "us-state-ca.json": "8c9e5fa3e8cd5872c2009b32fd0fb9ec4c9692d96900f2d5041936ff93b8950d",
-  "us-state-co.json": "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
-  "us-state-ct.json": "aa83ecdee44696ebb37e45cdb3d7db38f1d5527b29e23740e5b1dc894af095e3",
-  "us-state-de.json": "d26a2aabb6d7e72399d7331533e0419787ccecc0be6859214e2392a71ece52fb",
-  "us-state-fl.json": "031b88b2d7ebe036ad96a6005db07b8539e73bd769e34adddcc01b007419e5eb",
-  "us-state-ga.json": "f96c8ed8c25c642504692cd70e8d89afae6ad2a04cd6598fe5bd339e5ad8c145",
-  "us-state-hi.json": "9b14068bb8b2da6ca0db711b2a157f529ad0009dc87c54b92439151bb4092684",
-  "us-state-ia.json": "ef5d4844dc9bbb7ea2d19b479f175a179584111edf495467c69ba022756f2f3c",
-  "us-state-id.json": "628cd4313b7681abb2ac33dfe9a887876918c1a0c4154452989afbad62eac8cd",
-  "us-state-il.json": "af8544013b831bc01d640fd843657771c5dbc7bd65a068cb78c4a404a5e686c7",
-  "us-state-in.json": "d1fecd007debfa7d76084beaef524c052b25bfb4c89d046ca4a4007db342146a",
-  "us-state-ks.json": "3b8ce8eda9c4b8e490e343f6284f2531eb3cbb9592a4e397600e6439280a4e44",
-  "us-state-ky.json": "e101240dcdad75d55a6365788752fef0f690393a9ed6aea40df3e48b8547d8af",
-  "us-state-la.json": "d091960973b8d2b9401c0d340f5f719a403c3691860eb576007cb2596bff073d",
-  "us-state-ma.json": "58926c964f5f989bd4a504df55e90f2dd37ad3a5c57cd0646a84921a2ed31ea6",
-  "us-state-md.json": "e8aa7f5479fb6308469c6b12225953865673646019fbe36ef041bfa9b7b84ab5",
-  "us-state-me.json": "44394c4e4c7c9d2168ee7e03fa16d165716b24a5675b74f8b3a40d9aa8d70524",
-  "us-state-mi.json": "ecc2df44f6ccaa131303e9383f271078022a330176f3411202033bd8382a4c32",
-  "us-state-mn.json": "771abcd8ebc84123b0ab5e97280b2b60c85ded50c17be91c2564b3c7620a2b2e",
-  "us-state-mo.json": "4158f907946fbe4fc3f496ac5b6acbea6798f685dbe10c5a5e3ced2d0dc98674",
-  "us-state-ms.json": "9313593c012e9a272b26284be6a2e37349a3b3ab45c03ddb5651926f030a2542",
-  "us-state-mt.json": "916d21d6968786cfb241aced5e99db23fb1c6d36ca744d0516e267fecc41e805",
-  "us-state-nc.json": "06e50ed8d7e6a5d5a8cb31be319c3a56ec6877dbbd3b4385a775792e36baff7b",
-  "us-state-nd.json": "036b8e02bfd58c34383166088101fad14aa1fd33a20a45a4f543cefe8784324a",
-  "us-state-ne.json": "00eda14317978584c8457cb3116785bd128461be53a662ba882b50a8449b5916",
-  "us-state-nh.json": "5a8c21fb14f7f41d6f053f058380c652c05cdee1cd4f0f92d35cc95e705e91f7",
-  "us-state-nj.json": "69750185c4eab7b6bbe9da01ba9613f9608debae92da921c36e2df44c320c2a0",
-  "us-state-nm.json": "2def65b72040fee5b128b74e9cefb45ab71c75863a274a6ecd3e546eda06fd5d",
-  "us-state-nv.json": "8d6b801d8e643cb9821b496dba37d834d6ad7d1861a9549cf8ad99bb5c87a2c7",
-  "us-state-ny.json": "a6fe84795b9da35fd386cb47093e4dad82ffd7da6e34d50d3e234a0fc5f7c812",
-  "us-state-oh.json": "eb8ebfff125e9c0f19787ff1fb9f2ee857f8852f82b4e14f1870788d233d3100",
-  "us-state-ok.json": "5ceeeecdb93f69e5338e7e31733907b583ebf7e1a8be3840ad406f4e38999ba8",
-  "us-state-or.json": "6463baffbbd722ac6501f0c338b9f8f4c8e16d13399384a140854673dbb256f0",
-  "us-state-pa.json": "df0485102694f4675f9445c979ef1c7da86adda6519ccf04f982ce3236f29eb0",
-  "us-state-ri.json": "3263c891f5267809fb0f988e2c95cc53d4b4177c05e0de1e40f039dfa906c017",
-  "us-state-sc.json": "bec2013eb18738656211216cb53514d72567a8283f79a4bd02e2268dcf992a60",
-  "us-state-sd.json": "5ad612aee50f2297c0e64e418b43017dc39d74d71e876ed69cfdcc21934cdaa3",
-  "us-state-tn.json": "747352fa7fd030165249f7c50d47ab81d8d37ee52943306bcbcf06e954619447",
-  "us-state-tx.json": "321b4c269e3a112d28e2dd925a2bba310080ac7adf21519202223da93856701d",
-  "us-state-ut.json": "f66a39622e6b006ce20bf4c7b31a5d3cb5468cebccf80e4dce03bf97ebedf014",
-  "us-state-va.json": "6bbce553dd4121266f20a2dd58f37ad6e4366c7145a5a9d2835918a04d3aa6f2",
-  "us-state-vt.json": "4ee12cc5664cfe4eb834f186b4927233e166d736fcae2986a5ed66a153d356dc",
-  "us-state-wa.json": "0f7bcaa4b2baf3399a96775e86d3f00b01fe00023403c8fdfa36ff405fc40c0e",
-  "us-state-wi.json": "fe5bd462f7e471e1a9b9a2b27f20c26fa859bf44f85a9ee6880462dc58526aa4",
-  "us-state-wv.json": "a3ee05e4c7356d0fc610849636f492c249835f4bb7ae2c5d97f3755b778bcf30",
-  "us-state-wy.json": "902feb5d1f10db7e92141b1ff12ad706d3806d74e072aa28e79dcf9e3f43aee8",
+  "us-state-ak.json": "0ed4d5975b3dcfdfb099853c3975e04292e6ddc2c9e916bd7f4d0cd54f604e40",
+  "us-state-al.json": "07b0593819dd12a4c0dbce3a6a17ad106b8af90a03a950c2c89fda8dd2b62aed",
+  "us-state-ar.json": "bfbeb6e735c1badf0566145671d3e7936734a48259240a5cd44646466c7a4e3a",
+  "us-state-az.json": "dcd39c02d7cfe18110a8fbbd11c86979ef2c05f7b22387a89cc2bd929382dfc3",
+  "us-state-ca.json": "df04d66849846fbeab41f403557a9592f0b0892df158496b548071ed0efe6201",
+  "us-state-co.json": "7946bf850ca87d55a3db6ecb3f8d7bcc60d3a49f7ce7e0c10367c28950dd452f",
+  "us-state-ct.json": "20a603d14f99a528b3818afae8f624be1d0025d75b2770008d3953ec7f20c80d",
+  "us-state-de.json": "c62ae57f380807270b6cce6ef16b583c32b3e66f834e5d29c4e36b8ab61f83b6",
+  "us-state-fl.json": "d098ea73401385a19a17e905a654a9e2157d3703f129542e7f77d7c62fe4e7e6",
+  "us-state-ga.json": "e75c5242ca326d10306525fefd7c4933a5ecdc2722120037c2c9a5ad4cd49671",
+  "us-state-hi.json": "8888ec328f7db7c092f478a48910e298a157d0e9d545820aa4e4bc600d0ed37e",
+  "us-state-ia.json": "71d060bbaeb82ac94671305869dd06b9011b09724dad6e168563f64e5ea17b56",
+  "us-state-id.json": "eea5a472db7af29bb50f510eb51554de1b4fb1257031a3ef11115129adfb37f2",
+  "us-state-il.json": "d4c9ad2429623d2d30786cb701b5c4a97c2d2670eb81d339dd796ee2d1642568",
+  "us-state-in.json": "b5e883be5b362235aea0c946a0863bed201f9b7d035d0374a1894077defea620",
+  "us-state-ks.json": "ec6d9fd2a71e6f099ed8fb532b7649cead00f208955671b81b55f2c654d524b2",
+  "us-state-ky.json": "51b5e8a0c2e9ede77f1823ad3716947878f8311859dcef2f082f73c90d278ecf",
+  "us-state-la.json": "968d26711bfb31a4df98586da8b765b166916f727ccdce19b6a957226cfccbfe",
+  "us-state-ma.json": "19df3576b23771629bd8947042016e5c303bffc090a6d868db400c49ffc59606",
+  "us-state-md.json": "ae3968ba4bef0ddc27202178c903713d8c9b81f28eaee084625572a1ba770509",
+  "us-state-me.json": "d0294db44c9c2c4928fbccdeabb69a36d697f1509c825e372b113c7ef435febd",
+  "us-state-mi.json": "04399f87d88a1e0687b3b23bd311774f5223a118d033ffccfabd144f5e2d5541",
+  "us-state-mn.json": "aad6c2346c6f0577359f9451841b006a2c0a28dbbac9688426a2fea7b39d172a",
+  "us-state-mo.json": "5729334df98508d453f1b41e584eeee5e45834bcfdc8841c7f877147422885d8",
+  "us-state-ms.json": "e932fa50cb560fe33d758dc0f11aa5d36747515ede86ef2196d00bcb35088275",
+  "us-state-mt.json": "0af2e96d0f1bcdb29b246fcff270ae168294a6ec4ee0ddb1ef6ba5f8f0b27726",
+  "us-state-nc.json": "26f5d88c0d6d4eeca9617f41054c283486589ed7e2e0d7756dbb60e7f770701e",
+  "us-state-nd.json": "9efb948a7108ecf41e26bbfa517e9e4d013370bc34d89ea82b9da9fb351bc6c6",
+  "us-state-ne.json": "8ef2da6d5200ca7e4a017cf080204c151a53abfdccc60a487437ed3e4da99d64",
+  "us-state-nh.json": "ebe97710f086c6b85011d9d7509699c3df30ed6d57d397cbff76f646e4a36cb6",
+  "us-state-nj.json": "612034fc4f2753d124e608e64688f4eb5198bc8010ed6f8da2e602bfcd99a85f",
+  "us-state-nm.json": "7ec5775a5f5e327e2e423f2290a16514771a7dd5fbec8ea0aed31e79f1247146",
+  "us-state-nv.json": "16fe16a0fd4826dc18918ac994d87ff81fc3d52cb4e7c10f9108efb8b0d0094f",
+  "us-state-ny.json": "b92d7495fffb0b544d0b7c743344e110d1f94d18d27f5239849a8fc8de1ef4d7",
+  "us-state-oh.json": "047c748df45896bd1f278594a7563e0112c8a869cf00a1e81094823c256e5271",
+  "us-state-ok.json": "93c091ec2921931e6e8c9bf76abfae8a714dc12b2af6c000e50ecca408857bae",
+  "us-state-or.json": "fc52d9730d113492f91065482f32282a9aca517059e7aa8e89294e3fc9c5e5e6",
+  "us-state-pa.json": "2012dbf94997633f39218e4309869595cdf78996ef29432010c4870a5b7aa71e",
+  "us-state-ri.json": "bd5b1706d0f81c1cb830e3c0d7051182ffdc6fa69180fb8e086b6b8f79e1da83",
+  "us-state-sc.json": "84fde80fcaef23437d11ea0674ed10184f449df12354ee75a76a75d259f8ad4c",
+  "us-state-sd.json": "a7ac0ff55cdec517f5fb09f3c8552f4cc4829eab39875af25dbfe9372ee52fb7",
+  "us-state-tn.json": "35cfe9347dd7f41dd5c70f6e85bc0ece4eed56c8e8025719f0e5bb0a95bd30e4",
+  "us-state-tx.json": "1d7235e54a2d368c45dcffb399286e1cbf19c52f9e7ca0d39f9af9bd38ba4617",
+  "us-state-ut.json": "7f288a00406b7cd33e722c4adf9887dcf9258d955abb9ddb93aca402ace91e83",
+  "us-state-va.json": "87c3a0c3a02face51f872595983e79b9f23b2939edf610ba8a023be150fda969",
+  "us-state-vt.json": "5ac40b4a07dff0b9775fd07349a16af93102fc52b555b49961682b9dd996b532",
+  "us-state-wa.json": "4522415e14cb10c9f01b915127449720f36882b17e4a895d198b6c1eb91cdf9f",
+  "us-state-wi.json": "a3606b8b65f07c242238787f1c7ce8238771cd395a75cd422becd5b52c9d8306",
+  "us-state-wv.json": "a1cdd5166239b704223c7a87217a500855d0edb083c383b95d74061d39c3151c",
+  "us-state-wy.json": "e56f1b303199dda19ae2bf6c747e233a004407c34141a961a62238a348376866",
 };
 
 /** Criterion 10: the two dependency files, on the same default-branch commit. */
@@ -212,6 +212,20 @@ const withEmptyTopCrops = (raw: string) => raw.replace(TOP_CROPS_BLOCK, '  "top_
 const ALASKA_HIGHEST_POINT_LINE = /^ {2}"highest_point": "[^"]*",\n/m;
 const withoutAlaskaHighestPoint = (file: string, raw: string) =>
   file === "us-state-ak.json" ? raw.replace(ALASKA_HIGHEST_POINT_LINE, "") : raw;
+
+/**
+ * T-017 (2026-09-18, a later approved task) resettles the `region` vocabulary
+ * for all 50 states — the largest change any of these digest guards has
+ * absorbed (the brief's own Constraints say so), since most of the eight-region
+ * set needed splitting into the finer thirteen-region one. Unlike `top_crops`
+ * (reset to a shared `[]`) or Alaska's `highest_point` (absent before, so
+ * simply removed), `region` was present with a real value for every state both
+ * before and after, and there is no single baseline value to restore it to — so
+ * the line is dropped entirely, for all 50 files, the same asymmetry-free shape
+ * a field with no common fallback needs.
+ */
+const REGION_LINE = /^ {2}"region": "[^"]*",\n/m;
+const withoutRegion = (raw: string) => raw.replace(REGION_LINE, "");
 
 describe("T-015 tester, criterion 1 — one to three non-blank crops in every tracked file", () => {
   test("git ls-files matches exactly 50 state files, and readdirSync finds no stray extra", () => {
@@ -533,11 +547,19 @@ describe("T-015 tester, criterion 11 — the docs no longer say the field is emp
   });
 });
 
+/**
+ * T-017 (2026-09-18): `DEFAULT_BRANCH_DIGESTS["us-state-co.json"]` above is now
+ * pinned with `region` stripped, for the *tracked* file's criterion-13 check.
+ * The sample below is a different, untouched file — its own region
+ * ("Mountain West", which T-017 does not change for Colorado, an anchor state)
+ * is never removed, so it needs its own un-neutralised baseline rather than
+ * reusing that key.
+ */
+const SAMPLE_DIGEST = "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f";
+
 describe("T-015 tester, criterion 12 — the committed sample is untouched", () => {
   test("sample-data/us-state-co.json is byte-identical to the default branch", () => {
-    expect(digest(readFileSync(SAMPLE, "utf8"))).toBe(
-      DEFAULT_BRANCH_DIGESTS["us-state-co.json"] as string,
-    );
+    expect(digest(readFileSync(SAMPLE, "utf8"))).toBe(SAMPLE_DIGEST);
   });
 
   test("the sample's own top_crops is still []", () => {
@@ -554,13 +576,24 @@ describe("T-015 tester, criterion 12 — the committed sample is untouched", () 
 });
 
 describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => {
-  test("each of the 50 files, with top_crops put back to [] and Alaska's highest_point line stripped, digests to the default branch's bytes", () => {
+  test("each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped and region removed, digests to the default branch's bytes", () => {
     for (const { file, raw } of trackedStates()) {
-      expect({ file, digest: digest(withoutAlaskaHighestPoint(file, withEmptyTopCrops(raw))) }).toEqual({
+      expect({
+        file,
+        digest: digest(withoutRegion(withoutAlaskaHighestPoint(file, withEmptyTopCrops(raw)))),
+      }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,
       });
     }
+  });
+
+  test("the region removal actually drops the line — otherwise the digest check proves nothing (T-017)", () => {
+    const il = readFileSync(join(DATA_DIR, "us-state-il.json"), "utf8");
+    const neutralised = withoutRegion(il);
+    expect(neutralised).not.toBe(il);
+    expect(il).toContain('"region": "Great Lakes"');
+    expect(neutralised).not.toContain('"region"');
   });
 
   test("the restoration actually removes the crops — otherwise the digest check proves nothing", () => {
