@@ -400,6 +400,30 @@ park and most school maps keep Denali; T-013's reviewer flagged that for the
 human content read and it is unsettled. Whichever way it goes, both fields have
 to say the same thing.
 **Done when:** the full build reports zero unexplained gaps.
+**In flight (2026-09-18):** brief at `tasks/T-016-alaska-highest-point.md`, PR #47.
+It takes the curated-fallback route, pins `highest_point` equal to `landmark` so
+the name stays a one-place decision, and leaves the Denali / Mount McKinley call
+to the human content read it already belongs to.
+
+### T-069 — `highest_point_m` carries feet for some states · S · todo
+**Depends on:** —
+**New 2026-09-18, found while surveying T-016.** `P2044` carries a unit that
+`wdt:` drops, so an elevation stated in feet arrives as a plausible-looking
+number under a metres key — the same trap `normalize.ts:103-114` already flags
+for `area_km2` on `P2046`, and nothing flags here. At least five of the 50
+committed files are wrong by a factor of 3.28: **AZ `12622`** (Humphreys Peak is
+3,852 m), **OR `11237`** (Mount Hood, 3,429 m), **NE `5429`** (Panorama Point,
+1,653 m), **KS `4039`** (Mount Sunflower, 1,232 m), **IA `1670`** (Hawkeye Point,
+509 m). Two of those are also *plausible* metre values for a mountain, so a
+magnitude sanity check alone will not catch the low ones — Iowa's 1,670 "m" would
+make a cornfield taller than Mount Mitchell and reads as fine. This poisons every
+superlative question that ranks states by height (§1.8), which is the whole point
+of the field. Check all 50, not just the five; the fix has to survive an offline
+rebuild, so it belongs in the query or in `normalize.ts`, not in hand-edited JSON.
+Alaska's `6190` is genuinely metres — leave it.
+**Done when:** every state's `highest_point_m` is in metres and cross-checked by
+hand against the plan's §1.9 instruction to cross-check peaks, and a value in the
+wrong unit warns instead of shipping.
 
 ### T-017 — Two region vocabularies, and they disagree · S · todo
 **Depends on:** —
