@@ -551,9 +551,24 @@ describe("README's Checks section runs every suite CI runs, with real commands (
   }
 });
 
-describe("no unstated test-suite size survives in README's Checks block (T-058 #8)", () => {
-  test("no digit count of tests appears in the Checks code block", () => {
-    expect(codeBlock(readmeSection("## Checks"))).not.toMatch(/\b\d+\s+tests?\b/);
+describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-062)", () => {
+  // Catches both "9 Postgres-only tests" and "nine Postgres-only tests" —
+  // anywhere in the file, not just inside the fenced Checks block — while
+  // leaving a spelled-out number that isn't about a count of tests alone
+  // (e.g. "nine states"), since the word "test(s)" has to follow within a
+  // few words. T-062: README no longer states such a count at all (the
+  // Postgres-only test count in backend/tests/test_postgres.py can drift
+  // without going stale in prose), so this test's job is to keep it that
+  // way rather than to pin a number.
+  const NUMBER_WORDS =
+    "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen";
+  const testCountPattern = new RegExp(
+    `\\b(?:\\d+|${NUMBER_WORDS})\\b(?:\\s+[a-zA-Z][a-zA-Z-]*){0,3}\\s+tests?\\b`,
+    "gi",
+  );
+
+  test("no digit or spelled-out count of tests appears anywhere in README.md", () => {
+    expect(readmeDoc.match(testCountPattern)).toBeNull();
   });
 });
 
