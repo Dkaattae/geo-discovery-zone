@@ -1,8 +1,10 @@
 # T-017 — Two region vocabularies, and they disagree
 
-**Status:** `changes requested`
-**Next step:** `worker` (findings 1 and 2), then `tester` (finding 3) — see
-`## Review` below. The PR stays draft until both are closed.
+**Status:** `awaiting verification`
+**Next step:** `tester` — findings 1 and 2 are closed (see the worker's note at
+the end of `## Review`); finding 3 (the question-bank regression) is still
+open and is the tester's to fix, not the worker's. The PR stays draft until it
+is closed.
 **Approved:** Kate, 2026-09-18 (approved via chat on PR #49)
 **From:** [`tasks.md`](../tasks.md) T-017
 **Branch:** `claude/task-t017-xqyyeq` — this session was assigned this branch by
@@ -18,6 +20,7 @@ the harness and CLAUDE.md's "Branches" grants pushing to it for this task.
 | worker | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz |
 | tester | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fresh context, shared id — see Verdict) |
 | reviewer | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (changes requested — see `## Review`) |
+| worker | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fix round — findings 1 and 2 closed, see `## Review`) |
 
 ## Goal
 
@@ -763,3 +766,32 @@ changes `openapi.yaml`, which is outside the reviewer's envelope on its own, and
 it carries 35 hand-curated region assignments whose Review checklist only a
 person can close. Both belong at the top of the PR body as "do not merge without
 a decision" when the findings above are closed.
+
+### Worker's fix, 2026-09-18 — findings 1 and 2 closed
+
+Both are done; finding 3 is untouched, deliberately — it names `tester` and I
+was told not to touch it.
+
+- **Finding 1.** `openapi.yaml`'s `Region` parameter description now reads:
+  *"Region name, matched against Entity.region case- and hyphen-insensitively.
+  The canonical stored form is a titled string with spaces, e.g. `Mountain
+  West`, `Southeast`, `Pacific Northwest` (see engineering-decisions.md E-9 for
+  the closed set the served US states currently use)."* No kebab-case slug was
+  added — the three backticked examples are unchanged and are all real values
+  in the 13-value set. Verified: `backend/tests/test_region_vocabulary.py -k
+  "kebab or example_in_the_contract"` — 3 passed — and the full file, 13
+  passed.
+- **Finding 2.** `## E-9` moved from between `## E-7` and `## E-8` to after
+  `## E-8`, at the true end of `engineering-decisions.md`. Content byte-for-byte
+  unchanged (only its position moved); order is now `E-1` … `E-9` ascending.
+  Verified with `grep -n "^## E-" engineering-decisions.md`.
+
+**Verification run:** `cd backend && uv run pytest -q` — 246 passed, 9 skipped
+(same as before this fix). `uv run ruff check .` and `uv run ruff format
+--check .` both clean. `openapi.yaml` re-parsed with `yaml.safe_load` —
+valid. I did not run the `question-bank` suite's fix for finding 3 — that
+regression and its repair belong to `tester`, not to me, per the Review's
+`Next step`.
+
+Status set to `awaiting verification`, Next step to `tester`, per the Review's
+routing for finding 3.
