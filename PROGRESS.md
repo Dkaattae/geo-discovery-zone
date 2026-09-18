@@ -189,8 +189,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   describe — every Layout path resolves, every `make` target and `bun run`
   script they name is defined, their CI job lists equal `ci.yml`'s, the jobs
   credited with a lockfile-drift guard are exactly the ones that run
-  `git diff --exit-code` against the lockfile they installed from, no suite size
-  is stated that nothing asserts, and every relative link points at a file that
+  `git diff --exit-code` against the lockfile they installed from, no count of
+  tests is stated anywhere in `README.md` in digits or words (T-062), and every
+  relative link points at a file that
   exists (T-007 for `conventions.md`, T-058 for `README.md`). A doc that goes
   stale now fails a test instead of misleading the next session.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
@@ -299,6 +300,27 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-062 — the last unasserted test count in `README.md`** (PR #50,
+  2026-09-18). `README.md:193` said "The **nine** Postgres-only tests skip on
+  SQLite" — true, unasserted, and out of reach of T-058's guard, which looked
+  only inside the Checks code block and only for digits. The number is gone and
+  the sentence's real content stays (skip on SQLite, so no database server is
+  needed for `make -C backend check`). The guard was widened rather than
+  replaced: `testCountPattern` in `frontend/src/conventions-doc.test.ts` now
+  scans the **whole** file for a number — digits or `one`…`fifteen` — followed
+  within three words by `test`/`tests`, so "nine states" still passes and "the
+  eleven Postgres-only tests" fails wherever it is written.
+  *Differed from the brief:* nothing in the criteria. The brief allowed either
+  dropping the number or pinning it; dropping it is the third time this repo has
+  made that call (T-058 made it twice) and the only one that cannot itself go
+  stale. Pinning would have meant counting `test_` functions in
+  `backend/tests/test_postgres.py` from a `bun test` file. *Worth knowing:*
+  `bun run typecheck` cannot be run in the sandbox these sessions use — the npm
+  mirror 403s the `react-simple-maps`/`us-atlas` family, so `UsMap.tsx` fails to
+  resolve on the unmodified tree too. Both worker and tester reproduced it
+  pre-diff; CI's `frontend` job is green and is where the clean typecheck was
+  confirmed.
 
 - **T-017 — one region vocabulary, and it is the served bank's thirteen values**
   (PR #49, 2026-09-18). The pipeline's curated table used eight regions and the
@@ -810,8 +832,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
   `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
   `README.md` (T-058, PR #35) — both now fail a test rather than drift.
-- One count in `README.md` escaped T-058 and is still unasserted: ":192 — the
-  nine Postgres-only tests" (T-062).
+- `test-guidelines.md:209` and `PROGRESS.md:161` still quote suite sizes that
+  nothing asserts and that are already wrong (T-065). `README.md`'s last one is
+  closed (T-062, PR #50).
 
 **Behaviour.**
 
