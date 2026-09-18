@@ -228,6 +228,27 @@ corrected, or the client grows the picker the server is sizing windows for — a
 `level_window`'s three-or-four-choices rule is documented wherever it really
 lives. Say in the same breath whether `frontend/src/lib/level.ts` keeps existing.
 
+### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
+**Depends on:** —
+**New 2026-09-18, from T-017's reviewer (PR #49).** `bunx prettier --check
+"src/**/*.ts"` in `question-bank/` flags **22 files**, including ones no recent
+task has touched (`build.ts`, `sparql.ts`, `normalize.ts`). It is pre-existing
+drift, not any one task's doing — but `question-bank`'s CI job runs typecheck and
+test only, so nothing catches it and nothing stops it growing.
+
+The cost is already being paid task by task: T-017's worker deliberately did not
+run `prettier --write` on the files it edited, because doing so reformatted
+unrelated pre-existing lines well beyond that task's diff and would have made a
+content-curation PR unreviewable. That was the right call, and it is the wrong
+call to keep making — every future task in this package faces the same choice.
+
+Fix it in one commit that is *only* the reformat, then add the gate so the next
+one cannot accumulate. Check `frontend/` and the repo root for the same drift
+while you are there, and check whether the prettier version is pinned — an
+unpinned formatter is how this happens.
+**Done when:** `bunx prettier --check` is clean in `question-bank/`, the
+formatter version is pinned, and CI fails on a badly-formatted file.
+
 ---
 
 ## B. Finish the US entity table
@@ -447,32 +468,29 @@ and `climate-kid-verify.test.ts:828` (rightly) forbid a test from spawning
 had to settle for grepping `build.ts`'s source for the absence of a field filter,
 with the real behaviour checked by hand and recorded in the PR. Returning captured
 stdout from the existing harness would make that a real test and costs a few lines.
+**(c) A third guard is task-scoped in the same way and is red on `origin/main`
+itself.** Added 2026-09-18 by T-017's reviewer (PR #49). `climate-kid-verify.test.ts`'s
+`"T-014 tester, criterion 19 — frontend/ and backend/ carry no change from this
+task"` diffs a hardcoded `13a735f`, which **predates the FastAPI backend's own
+addition**, so `backend/app/data/content.json` is in that range on the default
+branch: measured in a clean worktree at `f5b2382`, 1192 pass / **1 fail**. Its
+sibling in `climate-kid.test.ts` uses `origin/main...HEAD`, which is not scoped
+to T-014's commits either — it measures whatever the *current* branch changed, so
+every later task that legitimately adds a file under `backend/` or `frontend/`
+trips a guard written about a task that ended long ago. T-017 hit exactly this
+and had to add a named `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist to both copies
+to get past it. **Two things for whoever picks this up:** re-pin or re-scope both
+assertions to the commits they are actually about, and **delete the now-dead
+`ALLOWED_OUTSIDE_QUESTION_BANK` entry** — once T-017 merged, `backend/tests/test_region_vocabulary.py`
+is in `origin/main` and the entry is inert, but it will not remove itself and the
+next reader cannot tell a live exception from an expired one. Both are the same
+defect as (a): a task-scoped "nothing outside my package moved" assertion frozen
+into the permanent suite.
 **Done when:** the three guards no longer need a per-task exception (or the
-decision to keep them is written down in `engineering-decisions.md`), and a test
-can assert on the build report's printed warnings without spawning `build.ts`.
-
-### T-017 — Two region vocabularies, and they disagree · S · todo
-**Depends on:** —
-**New 2026-08-24.** `question-bank/src/curated/us-states.ts` assigns each of the
-50 states one of **eight** regions — Midwest, Mountain West, Northeast, Pacific,
-Pacific Northwest, South Central, Southeast, Southwest. The bank the app
-actually serves (`backend/app/data/content.json`, 15 states) uses **thirteen**,
-including six the pipeline never emits: Pacific West, Great Basin, Great Lakes,
-Upper Midwest, Great Plains, New England.
-
-The curated table's own comment says its regions "match the values already in
-the frontend". That stopped being true. Two consequences, both real:
-
-- `GET /questions?region=…` and `GET /entities?region=…` filter on a vocabulary
-  that depends on which half of the repo produced the row.
-- **T-022 is blocked in practice.** "Distractors from the same region" is only a
-  meaningful constraint if one vocabulary decides what a region is.
-
-Pick one list, write it down as the app's vocabulary, and make both sides use it.
-Eight regions and thirteen are different products for a child — "Great Basin" is
-a geographer's word — so this is a content decision, not a rename.
-**Done when:** one vocabulary is documented, both the pipeline and the served
-bank use it, and a test fails if a region outside the list appears.
+decision to keep them is written down in `engineering-decisions.md`), the two
+`climate-kid` copies of the criterion-19 assertion are green on the default
+branch and carry no expired allowlist entries, and a test can assert on the build
+report's printed warnings without spawning `build.ts`.
 
 ---
 
@@ -499,11 +517,23 @@ question with a hole in it.
 cleanly where data is absent.
 
 ### T-022 — Distractor strategies · M · todo
-**Depends on:** T-021, T-017
+**Depends on:** T-021
 `sibling_capitals_same_region` and neighbours-first for map questions. Ohio /
 Indiana / Illinois / Iowa is a real question; Ohio / Hawaii / Texas / Alaska is
-free (plan §1.2). **Needs T-017 first** — "same region" is undefined while two
-region vocabularies exist.
+free (plan §1.2). **T-017 is done (PR #49)** — "same region" is now one
+documented 13-value vocabulary, used by both the pipeline and the served bank.
+
+**Four of the thirteen regions are too small to draw distractors from, and this
+task has to have an answer for them** (found by T-017's reviewer, PR #49). The
+settled assignment leaves `Great Basin` = Nevada, `Pacific` = Hawaii and
+`Pacific West` = California with **one state each**, and `Southwest` = Arizona +
+New Mexico with two. `sibling_capitals_same_region` cannot produce a single
+same-region distractor for HI, CA or NV, nor three for AZ/NM. This follows from
+`content.json`'s frozen anchor values and the approved product decision, so it
+is not a defect to fix in the data — but the strategy needs a named fallback
+(nearest region, neighbouring states, or skip the entity for that template) and
+a test that the fallback fires for exactly those states rather than silently
+emitting a question with two choices.
 **Three same-value guards are now waiting on this, not just same-region:**
 `wildlife` needs a same-animal guard (20 of 50 states share an animal, T-012),
 `climate` needs a same-climate one (41 of 50 states fall into ten
