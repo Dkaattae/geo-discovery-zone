@@ -59,7 +59,7 @@ const HANDOFF_BLANKS = ["DE", "IA", "KS", "MS", "OK", "RI"] as const;
  */
 const HANDOFF_TABLE: Record<string, string> = {
   AL: "U.S. Space & Rocket Center",
-  AK: "Denali",
+  AK: "Mount McKinley",
   AZ: "Grand Canyon",
   AR: "Crater of Diamonds State Park",
   CA: "Golden Gate Bridge",
@@ -459,6 +459,12 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
       // pinned digest was computed with the key absent, since T-014 is what
       // adds it.
       if (file !== "us-state-co.json") delete parsed["climate_kid"];
+      // T-016 (2026-09-18, a later approved task) adds `highest_point` to
+      // Alaska only — the other 49 states already carried it at this task's
+      // own baseline, so their pinned digests were computed with it present.
+      // Alaska's was not, so it alone is stripped here, the same asymmetric
+      // shape the climate_kid line above already uses for Colorado.
+      if (file === "us-state-ak.json") delete parsed["highest_point"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,

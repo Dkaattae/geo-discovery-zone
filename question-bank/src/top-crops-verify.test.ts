@@ -67,10 +67,15 @@ const LIVESTOCK_WORDS = [
  * testable without git history: take the file as it is now, put that literal
  * back textually, and the bytes must hash to the pinned value — any other
  * field moving, `built_at` included, turns it red.
+ *
+ * **`us-state-ak.json` re-pinned 2026-09-18.** Alaska's `landmark` (and the
+ * `highest_point` this task already strips) changed from "Denali" to "Mount
+ * McKinley" — Dkaattae's decision on PR #47, the same call T-013's reviewer
+ * left open. This digest is recomputed with the new value.
  */
 const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "index.json": "cd6822166faad67383db4d0506bcc1a833e142884e1792b03292795ce3e1e066",
-  "us-state-ak.json": "2b2674fd140ba37a070ca53b3c09afb56c5e2c1ef20a38c401e2454623c4eb0e",
+  "us-state-ak.json": "8d4e6ac03298f52438e7cd9ad3301f6671891b77b060ae1d9cb438e633b2ac33",
   "us-state-al.json": "8cb7ced87ad6bfce10a266cca404123d717413b74b89178475a09caca027bb4a",
   "us-state-ar.json": "38c1e0c7dcd10daf78f0400fc7e808edc85785a7bb488e946d277b6d8bfac533",
   "us-state-az.json": "53b19aa64223a29b4152a73c5333284da4cbdb57be49deb0994e107450ee03cc",
@@ -195,6 +200,18 @@ function allCropStrings(): { where: string; value: string }[] {
  */
 const TOP_CROPS_BLOCK = /^ {2}"top_crops": \[\n(?: {4}[^\n]*\n)* {2}\],$/m;
 const withEmptyTopCrops = (raw: string) => raw.replace(TOP_CROPS_BLOCK, '  "top_crops": [],');
+
+/**
+ * T-016 (2026-09-18, a later approved task) adds a `highest_point` line to
+ * Alaska only — the other 49 states already carried the field at this
+ * suite's own baseline (`eda7fde`), so their pinned digests already include
+ * it. Alaska's did not, so its new line alone is removed textually before
+ * hashing, the same asymmetric shape `landmarks-verify.test.ts` and
+ * `climate-kid-verify.test.ts` use for the same field.
+ */
+const ALASKA_HIGHEST_POINT_LINE = /^ {2}"highest_point": "[^"]*",\n/m;
+const withoutAlaskaHighestPoint = (file: string, raw: string) =>
+  file === "us-state-ak.json" ? raw.replace(ALASKA_HIGHEST_POINT_LINE, "") : raw;
 
 describe("T-015 tester, criterion 1 — one to three non-blank crops in every tracked file", () => {
   test("git ls-files matches exactly 50 state files, and readdirSync finds no stray extra", () => {
@@ -537,9 +554,9 @@ describe("T-015 tester, criterion 12 — the committed sample is untouched", () 
 });
 
 describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => {
-  test("each of the 50 files, with top_crops put back to [], digests to the default branch's bytes", () => {
+  test("each of the 50 files, with top_crops put back to [] and Alaska's highest_point line stripped, digests to the default branch's bytes", () => {
     for (const { file, raw } of trackedStates()) {
-      expect({ file, digest: digest(withEmptyTopCrops(raw)) }).toEqual({
+      expect({ file, digest: digest(withoutAlaskaHighestPoint(file, withEmptyTopCrops(raw))) }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,
       });
@@ -551,6 +568,14 @@ describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => 
     expect(ca).not.toBe(withEmptyTopCrops(ca));
     expect(withEmptyTopCrops(ca)).toContain('"top_crops": [],');
     expect(withEmptyTopCrops(ca)).not.toContain('"grapes"');
+  });
+
+  test("the Alaska neutralisation actually removes the highest_point line — otherwise the digest check proves nothing (T-016 criterion 11)", () => {
+    const ak = readFileSync(join(DATA_DIR, "us-state-ak.json"), "utf8");
+    const neutralised = withoutAlaskaHighestPoint("us-state-ak.json", ak);
+    expect(neutralised).not.toBe(ak);
+    expect(ak).toContain('"highest_point": "Mount McKinley"');
+    expect(neutralised).not.toContain('"highest_point"');
   });
 
   test("index.json is byte-identical to the default branch", () => {

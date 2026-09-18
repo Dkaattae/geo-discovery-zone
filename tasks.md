@@ -37,7 +37,9 @@ the third-party CI actions by SHA (PR #34). Swept again 2026-09-11, after T-058
 put `README.md`'s CI claims under the same test (PR #35). Swept again 2026-09-12,
 after T-010 committed the 50-state bank and recorded the decision as `E-6`
 (PR #37). Swept again 2026-09-14, after T-011 gave all 50 states a curated fun
-fact (PR #41)._
+fact (PR #41). Swept again 2026-09-18, after T-016 filled Alaska's
+`highest_point` (PR #47) — the T-012 to T-015 sweeps happened too, and are
+logged in `PROGRESS.md` rather than here._
 
 ## How this list is ordered
 
@@ -329,6 +331,9 @@ and correct §1.4's example**, or **emit it** and say what reads it. Deleting lo
 right — nothing in `openapi.yaml` exposes it and `climate_kid` is the shipped
 version — but it edits the plan's example, so it is a deliberate call rather than
 a tidy-up.
+**If this one ends by *emitting* the field, it hits the pinned-digest wall —
+read T-070 first.** Deleting the field touches no tracked file and avoids it
+entirely, which is one more small argument for that ending.
 **A second, smaller plan correction rides here (T-015's reviewer, PR #46)**,
 because it is the same one-line kind of deliberate plan edit and is not worth its
 own entry: **`geoquizdataplan.md:256` still lists US crops as coming from the
@@ -360,19 +365,12 @@ review pass, provenance in the table's header comment and an `engineering-decisi
 entry. Read **E-7** and PR #46's body before writing the brief; the field name
 and the `openapi.yaml`/template exposure are the only genuinely open questions
 left, since `top_crops` was already declared and this one is not.
-**One thing it must not miss — the guard T-015 left weaker.** Two pinned-digest
-tests, `landmarks-verify.test.ts` (T-013 criterion 9) and
-`climate-kid-verify.test.ts` (T-014 criterion 15), assert "nothing but this
-task's field moved in the bank" by hashing each tracked file against a digest
-pinned at an older branch point. Each later task that fills a field has to
-neutralise its own field before hashing — `climate_kid` is deleted, `top_crops`
-is set back to the literal `[]` (the key predates those digests; deleting it
-changes the hashed bytes and is the wrong fix — T-015's worker checked this
-empirically against AK). **Every field added this way covers a little less**, and
-this task adds the next one. Either neutralise `top_livestock` the same way and
-say so, or re-pin the baselines against the current default branch and stop the
-list growing — a judgement worth making deliberately rather than by adding a
-third `delete`. T-067 (`climate_koppen`) will hit exactly the same wall.
+**One thing it must not miss — the pinned-digest wall, now owned by T-070.**
+T-016 (PR #47) reached it before this task did and added the third and fourth
+neutralisations rather than re-pinning, so the judgement this entry used to
+carry has moved to its own entry: **read T-070 before writing this brief**, and
+do not add a fifth exception without reading it. If T-070 has not run, neutralise
+`top_livestock` the same way the three guards already do and say so on the PR.
 **Why it exists, from a question raised while scoping T-015:** cattle, dairy,
 poultry and eggs are farm output but not crops, and folding them into
 `top_crops` would make that field's own name wrong and could crowd out an
@@ -388,18 +386,70 @@ standout, per `CLAUDE.md`'s "prefer a blank field to a guessed one."
 (`openapi.yaml`, the `agriculture` topic's templates), and it's populated for
 the states where a standout genuinely exists.
 
-### T-016 — Alaska has no `P610` highest point · S · todo
+### T-069 — `highest_point_m` carries feet for some states · S · todo
 **Depends on:** —
-The only field missing after the live run. Either add a curated fallback for
-Denali or accept the blank and stop warning about it. Deliberate either way.
-**Smaller and one question larger since T-013 (PR #43):** the curated table now
-carries `landmark: "Denali"` for Alaska, so a fallback has a string to copy — but
-it also means **the name is now decided in two places**. The mountain's *federal*
-name was changed to Mount McKinley in 2025 while Alaska's own usage, the national
-park and most school maps keep Denali; T-013's reviewer flagged that for the
-human content read and it is unsettled. Whichever way it goes, both fields have
-to say the same thing.
-**Done when:** the full build reports zero unexplained gaps.
+**New 2026-09-18, found while surveying T-016.** `P2044` carries a unit that
+`wdt:` drops, so an elevation stated in feet arrives as a plausible-looking
+number under a metres key — the same trap `normalize.ts:103-114` already flags
+for `area_km2` on `P2046`, and nothing flags here. At least five of the 50
+committed files are wrong by a factor of 3.28: **AZ `12622`** (Humphreys Peak is
+3,852 m), **OR `11237`** (Mount Hood, 3,429 m), **NE `5429`** (Panorama Point,
+1,653 m), **KS `4039`** (Mount Sunflower, 1,232 m), **IA `1670`** (Hawkeye Point,
+509 m). Two of those are also *plausible* metre values for a mountain, so a
+magnitude sanity check alone will not catch the low ones — Iowa's 1,670 "m" would
+make a cornfield taller than Mount Mitchell and reads as fine. This poisons every
+superlative question that ranks states by height (§1.8), which is the whole point
+of the field. Check all 50, not just the five; the fix has to survive an offline
+rebuild, so it belongs in the query or in `normalize.ts`, not in hand-edited JSON.
+Alaska's `6190` is genuinely metres — leave it.
+**Done when:** every state's `highest_point_m` is in metres and cross-checked by
+hand against the plan's §1.9 instruction to cross-check peaks, and a value in the
+wrong unit warns instead of shipping.
+**It will move five tracked files' bytes, so it hits the pinned-digest wall —
+read T-070 first.** This is the first queued task that *changes* a value rather
+than adding a key, which none of the existing neutralisations handle.
+
+### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
+**Depends on:** — (blocks nothing, but **T-067, T-068 and T-069 all hit it**)
+**New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
+`question-bank/`'s test suite, both consequences of the same design, and both
+cheaper to settle once than to work around a fifth time.
+
+**(a) The pinned-digest guards now carry one exception per task, and there are
+four.** `landmarks-verify.test.ts` (T-013 criterion 9), `climate-kid-verify.test.ts`
+(T-014 criterion 15) and `top-crops-verify.test.ts` (T-015 criterion 13) each
+assert "nothing but this task's field moved in the bank" by hashing every tracked
+file against a digest pinned at an older branch point. Every later task that
+touches the bank must neutralise its own change before hashing, and the list only
+grows: `climate_kid` is deleted, `top_crops` is set back to the literal `[]` (the
+key predates those digests, so deleting it is the wrong fix — T-015's worker
+checked that empirically against AK), Colorado's `climate_kid` is exempted from
+the deletion, and T-016 added a fourth — Alaska's `highest_point` stripped for
+`us-state-ak.json` alone, in all three guards, because the field predated every
+pin for the other 49 states. **Each exception covers a little less, and the shape
+is not the same each time**: T-016's had to be asymmetric, and T-015's had to be a
+reset rather than a delete. T-016's tester proved the asymmetry is load-bearing by
+mutation (a symmetric strip turns the guard red), which is the same thing as
+saying it is easy to get wrong.
+**Either** re-pin all three baselines against the current default branch and
+delete the accumulated exceptions — the guards then mean "nothing has moved since
+today", which is what each new task actually wants — **or** write down why the
+historical pins are worth more than what they now cost, and give the neutralisation
+one shared helper instead of three hand-copied conditionals. Re-pinning looks
+right, but it discards the "unchanged since T-013" property those digests exist to
+hold, so it is a deliberate call rather than a tidy-up. Whichever way it goes, say
+it in `engineering-decisions.md` so the next field task inherits an answer instead
+of the question.
+**(b) `rebuildOffline()` returns written files, not stdout**, so no test can see
+what `build.ts`'s `report()` actually prints — and `top-crops-verify.test.ts:438`
+and `climate-kid-verify.test.ts:828` (rightly) forbid a test from spawning
+`build.ts` itself. T-016's criterion 8 wanted "the report prints the warning" and
+had to settle for grepping `build.ts`'s source for the absence of a field filter,
+with the real behaviour checked by hand and recorded in the PR. Returning captured
+stdout from the existing harness would make that a real test and costs a few lines.
+**Done when:** the three guards no longer need a per-task exception (or the
+decision to keep them is written down in `engineering-decisions.md`), and a test
+can assert on the build report's printed warnings without spawning `build.ts`.
 
 ### T-017 — Two region vocabularies, and they disagree · S · todo
 **Depends on:** —

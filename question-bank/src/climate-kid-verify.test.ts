@@ -159,10 +159,16 @@ const LANDMARK_BLANKS = ["DE", "IA", "KS", "MS", "OK", "RI"] as const;
  * the parsed object — except `index.json`, hashed over its raw bytes, because
  * 15d says "byte-identical". Regenerating these is a two-line script; pinning
  * them is what lets the check run on a shallow CI clone.
+ *
+ * **`us-state-ak.json` re-pinned 2026-09-18.** Alaska's `landmark` (and the
+ * `highest_point` this task already strips) changed from "Denali" to "Mount
+ * McKinley" — Dkaattae's decision on PR #47, the same call T-013's reviewer
+ * left open. This digest is recomputed with the new value; nothing else about
+ * the neutralisation changed.
  */
 const BASELINE_DIGESTS: Record<string, string> = {
   "index.json": "cd6822166faad673",
-  "us-state-ak.json": "e4913ac0e615f446",
+  "us-state-ak.json": "977a8c18589aceec",
   "us-state-al.json": "f55ad200e61c9b4d",
   "us-state-ar.json": "71097ccf61829be6",
   "us-state-az.json": "56fa52e4e51f6163",
@@ -700,6 +706,11 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
     for (const { file, raw } of stateFiles()) {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
       delete parsed["climate_kid"];
+      // T-016 (2026-09-18, a later approved task) adds `highest_point` to
+      // Alaska only — the other 49 states already carried it at this task's
+      // own baseline, so their pinned digests were computed with it present.
+      // Alaska's was not, so it alone is stripped here.
+      if (file === "us-state-ak.json") delete parsed["highest_point"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,

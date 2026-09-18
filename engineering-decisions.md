@@ -381,3 +381,54 @@ survives criterion 6's byte-identical offline rebuild the same way
 declined to pay now — concretely, if a key becomes available to CI without a
 human registering by hand, or if T-068's livestock field turns up a similar
 need and the two are worth solving together.
+
+---
+
+## E-8 — `highest_point`'s curated value fills a Wikidata gap only, never overrides it
+
+**2026-09-18 (T-016).** `Entity.highest_point` has been declared and folded in
+since the pipeline's first commit, sourced entirely from Wikidata's `P610`
+(`normalize.ts`, `sources/wikidata.ts`). Alaska's row in the committed SPARQL
+fixture (`src/fixtures/us-states.sparql.json`) is the one exception: it carries
+an `elevation` (`P2044`) binding but no `highestPoint` label, so Alaska shipped
+with `highest_point_m: 6190` and no name — a silent blank on the most famous
+peak in the country, and one nothing in the build warned about.
+
+**What changed.** `CuratedState` (`curated/us-states.ts`) gains an optional
+`highest_point` field, read only as a **fallback**: `normalize.ts` computes
+`row.highestPoint ?? curated.highest_point`, so a live Wikidata label always
+wins when present, and the curated value is used only when Wikidata's own is
+absent. A state that ends up with neither now gets a build warning (`field:
+"highest_point"`) the same shape as the existing `capital`/`centroid` warnings,
+so a future gap like Alaska's announces itself in `build.ts`'s report instead
+of disappearing the way this one did.
+
+**Alaska is the only state relying on it today**, because it is the only row
+the fixture leaves without a `P610` label. The curated value is not
+independently chosen: it is pinned equal to Alaska's `landmark`, so the two
+fields cannot silently drift apart. That pinning is what turned the Denali /
+Mount McKinley question — escalated by T-013's reviewer on PR #43, still open
+when this decision was first written — into exactly one place to be answered
+rather than two. **Dkaattae answered it 2026-09-18, on PR #47: Mount
+McKinley.** Both `landmark` and `highest_point` were changed together in the
+same edit to `curated/us-states.ts`, followed by an offline rebuild, exactly as
+this pinning was designed to make possible.
+
+**Why a curated fallback rather than accepting the blank.** `tasks.md` offered
+both routes; the approved brief took the fallback because the string already
+existed three lines away in the same curated row, `geoquizdataplan.md` §1.9
+lists peak elevation as a field the bank carries, and a blank specifically on
+Denali is the worst blank to ship in a quiz that claims to teach US geography.
+
+**What this does not do.** It does not fix the `highest_point_m` unit bug
+found while surveying this task — several states carry the elevation in feet
+under a metres key (Arizona, Oregon, Nebraska, Kansas, Iowa) — filed separately
+as **T-069**, since Alaska's `6190` is genuinely metres and the two problems
+are unrelated. It also does not change `US_STATES_QUERY` or re-capture the
+fixture: the committed fixture is what every offline test replays, so a query
+change cannot be verified offline and risks moving the other 49 files.
+
+**Revisit when** a second state needs this fallback — at that point, whether
+the curated value is independently sourced or, like Alaska, pinned to another
+already-curated field is worth deciding per state rather than assuming Alaska's
+shape generalises.

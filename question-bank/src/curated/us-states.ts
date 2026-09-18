@@ -25,6 +25,17 @@
  * are themselves the reviewed, kid-facing text under `CLAUDE.md` "Content
  * rules" — there is no separate review pass for this field the way
  * `fun-facts.review.json` provides for `fun_facts`.
+ *
+ * **`highest_point` provenance (T-016, 2026-09-18).** A gap-filler, not a
+ * primary source: `normalize.ts` only reaches for this field when Wikidata's
+ * own `P610` label is absent for that state, and a live label always wins over
+ * it. Alaska is the only row that sets it today — its P610 binding has no
+ * label, which is the fixture's gap this field exists to close. The value here
+ * is pinned equal to `landmark`, not independently chosen, so the Denali /
+ * Mount McKinley call stays a one-place edit instead of two fields drifting
+ * apart. **Decided 2026-09-18 by Dkaattae, on PR #47: Mount McKinley** — the
+ * same call T-013's reviewer left open on PR #43. See `engineering-decisions.md`
+ * E-8.
  */
 
 import type { FunFact } from "../types";
@@ -41,6 +52,13 @@ export interface CuratedState {
   /** §1.9 flags animals as hand-curate — left blank rather than guessed. */
   state_animal?: string;
   landmark?: string;
+  /**
+   * Gap-filler for `Entity.highest_point` only — used when Wikidata's `P610`
+   * label is missing for this state, never when it is present. See the header
+   * comment above for provenance. Currently set for Alaska only, and pinned
+   * equal to Alaska's `landmark`.
+   */
+  highest_point?: string;
   /**
    * One to three genuinely famous plant crops, hand-picked (not NASS-derived,
    * not year-pinned) — see the header comment above for full provenance.
@@ -82,7 +100,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     region: "Pacific",
     state_animal: "Moose",
     climate_kid: "long cold snowy winters inland, milder and rainy along the southern coast",
-    landmark: "Denali",
+    landmark: "Mount McKinley",
+    highest_point: "Mount McKinley",
     top_crops: ["peonies"],
     fun_facts: [
       {

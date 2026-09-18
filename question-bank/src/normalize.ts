@@ -115,6 +115,12 @@ export function normalizeUsStates(
     if (!row.capital) warnings.push({ entity: id, field: "capital", message: "missing" });
     if (!row.centroid) warnings.push({ entity: id, field: "centroid", message: "missing" });
 
+    // Wikidata's P610 label wins when present; the curated table only fills the
+    // gap it leaves (T-016) — never the other way around. Warn rather than ship
+    // a silent blank when neither has one.
+    const highestPoint = row.highestPoint ?? curated.highest_point;
+    if (!highestPoint) warnings.push({ entity: id, field: "highest_point", message: "missing" });
+
     const borders = resolveBorders(row, qidToPostal);
     if (borders.length === 0 && curated.postal !== "AK" && curated.postal !== "HI") {
       warnings.push({ entity: id, field: "borders", message: "no neighbours resolved" });
@@ -137,7 +143,7 @@ export function normalizeUsStates(
       ...(curated.climate_kid ? { climate_kid: curated.climate_kid } : {}),
       ...(curated.state_animal ? { state_animal: curated.state_animal } : {}),
       ...(curated.landmark ? { landmark: curated.landmark } : {}),
-      ...(row.highestPoint ? { highest_point: row.highestPoint } : {}),
+      ...(highestPoint ? { highest_point: highestPoint } : {}),
       ...(row.highestPointM !== undefined ? { highest_point_m: row.highestPointM } : {}),
       // Hand-curated plant crops (T-015; see the header comment in
       // curated/us-states.ts for provenance), folded in the same shape as
