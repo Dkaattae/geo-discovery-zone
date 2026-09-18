@@ -75,61 +75,72 @@ const readState = (name: string) => readFileSync(join(DATA_DIR, name), "utf8");
  * `git show origin/main:<path> | sha256sum`. Criterion 6 says 51 of these must
  * still match exactly; criterion 5 says the fifty-second, Alaska's, must match
  * once one added line is removed and nothing else.
+ *
+ * **Re-pinned 2026-09-18 (T-017).** `region` moved on every one of the 50
+ * state files, the largest change any of these guards has absorbed. It had a
+ * real value at `284b8bc` too (this field predates every task these guards
+ * cover), so it cannot be restored to a shared baseline the way `top_crops`
+ * is — the `"region": "…",` line is dropped from every tracked state file's
+ * bytes, `index.json` and the sample untouched, before hashing.
  */
 const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "index.json": "cd6822166faad67383db4d0506bcc1a833e142884e1792b03292795ce3e1e066",
-  "us-state-ak.json": "744c58bd8c090188247382677f261c9ad36dc11ba35a54bcfa78c388191be573",
-  "us-state-al.json": "33c25660e581fedbe6463b1347e1ab2856ac6b6045ce17440ca6164590ee06bf",
-  "us-state-ar.json": "c32157b0ac5620786c2d37dadda9b7d38a81db0baf7c10ef2abcd4c02b5be22b",
-  "us-state-az.json": "f7c4173b24ac0f0ce85b4ac2852cf1cec0149e89f3efd88261e77027eb2837cc",
-  "us-state-ca.json": "64671c5bb7825ff4db8c8a495fefdb1de41304e4820aadd78c76d44c5c704e55",
-  "us-state-co.json": "c2fda4e24f7d22ed662aa8cf44df14a66d857fd4e2a7522f092d20cafcb36c3d",
-  "us-state-ct.json": "d01bf26f128256dadf37a6e3ca61e52f4624d7c74ac895af16bc720f3e8ecb38",
-  "us-state-de.json": "f592b9351ac5134e7c4848a1035a57c90776650a72cf4605fdce0c4a334b81eb",
-  "us-state-fl.json": "9e21552e93682ab7e3d01f75d8fcc653f4ab38367c37b2f114989e4c9cb034f2",
-  "us-state-ga.json": "f3d20c5a8ca2c9d5507cff7f6ef6138a14242727b25d241212bf570147dfd058",
-  "us-state-hi.json": "b0eecbb5d2f5af7b434c0f8968edbac7e8e40bb9606d19b3447c4e778697a09f",
-  "us-state-ia.json": "65dd902255a21e3abde7ecede733934da7c310da03e5002cc34976233954bf98",
-  "us-state-id.json": "f30fb312afc0d3e043e5bd5ac9dbb07d6a06eb88d038f43b934b4328e34256d5",
-  "us-state-il.json": "e3bd57b910d4e675b8a9e1e4777aa25c406ea027bc9885a2e27733e52fad9e3b",
-  "us-state-in.json": "bd03a7a2a67e6ef7f92cc5eadd50d72b5a12c76f7b8ff5d87253723810608602",
-  "us-state-ks.json": "4bad2d7287f9b5da6de150abeb455cdc41b53bcb3fe825d6e00f18cc2e9adef1",
-  "us-state-ky.json": "bc5e676be44f742d476c16d6dc50bdb439484cbf2534c77522dfab570b858b06",
-  "us-state-la.json": "498c68553437dffaeec32fd29d22da0351319de042c8bbc5f8eab3327eac91d9",
-  "us-state-ma.json": "d0e76dffe0e3244b2ab6303eb9a1f77591c6337612b741a84fa9a6f419b58582",
-  "us-state-md.json": "720cc8424958d2b51257bc19c656a16f0f38a07b8839d5060ded44937aa02d33",
-  "us-state-me.json": "b2c032001c3b34542059f078c848875f881c21c3fd33359280bf33f4534c8feb",
-  "us-state-mi.json": "43c7cc5623ca52449ba96b920d2a80be62acb42ffc7f82683644a948053cba33",
-  "us-state-mn.json": "7e7b71ac94ebb13a7e32b61087beb506cb8c6c85582ef6e0a96d7caa27c483d2",
-  "us-state-mo.json": "747be422f4c93c403663b478c484821b613816c5a18ff81e26cadc5a9294c2ff",
-  "us-state-ms.json": "f1f6c2504de42c2c0a3a99eab5f9b0a440658a44e2fe7bd7f5c6491c46406782",
-  "us-state-mt.json": "aece977c8913180dd6a462e8eb4d15a65bf5ff1b0b2a4386ce5f8af55d5a8596",
-  "us-state-nc.json": "4b11728b9e90222ff894bd109c75298807011dbc111ce40b57f97b4a90b64716",
-  "us-state-nd.json": "3ca5a8d3f3be486ba75c3a3d1a8d034f74c34de4f7b24fc1246a68943a0eb07e",
-  "us-state-ne.json": "db095accba8ec9e9d39a25febf1d1c271c7cf180933e41aaa0a8d4957cb942fe",
-  "us-state-nh.json": "0092bdbebb8cd54f6ffade56a70f1ffb98dd95140aa1bc2d3d355f2b97fbd3e0",
-  "us-state-nj.json": "bd9d15bfeadfebed3cca98e3c92186f6d92ac058da5b5aaa18fe8b544c8cb23f",
-  "us-state-nm.json": "c893db4738487f75ac4d6e149c682f0a2b0ea94a9e79627e4a472a07460494b4",
-  "us-state-nv.json": "cc4297a8d903c9375aefe6b08bd0a9416163eb213e4724b3d5ba8a8a15908435",
-  "us-state-ny.json": "71f382dfa9cfe78f6c546412b193d24bc1118c68f56d1d0841e212a798502836",
-  "us-state-oh.json": "2e164c2db1a26b776e4fb335c2442f30f48ef886c524310478963552c1f5d7cc",
-  "us-state-ok.json": "f949fb5d3171235c3e7c7cbb863c6b4abad7efebe09dc87c0414ba393b075165",
-  "us-state-or.json": "93c517773246003de321097cbf5f69795e3a6477e857dbc3b5747ea9a5cf075e",
-  "us-state-pa.json": "c283314d5a8115570bde86811f7408980376cf61462c127914ec3699dc99c53d",
-  "us-state-ri.json": "51fad7fb3c16878583e7c1809167e2606ae221ed62ab7d6b579a1681f97849cd",
-  "us-state-sc.json": "6db4e45070c49ea001ed4db821388a6594affb22d4fa36600135973b6af1bbd2",
-  "us-state-sd.json": "0e03da5ab870b2ac65eca1392cf192a7703895b93fcc77f665060edc56421958",
-  "us-state-tn.json": "ab6be01b6315a46a936b27bd590ba3107a4f16d072ba408f6817ee18d71bb230",
-  "us-state-tx.json": "8b6153e3187ae5d1648f4f9540e8afc5b2f1121e9c8623c24fd79f8e14d1db00",
-  "us-state-ut.json": "08bb3faa6bf9ad1234f753d6f88eaa17e69304794913b14ddb96066b4c7c1371",
-  "us-state-va.json": "c269cd6d7e2570c6fd4cde47b7327063e94280e0c8f5d36a87c371a1852abbbf",
-  "us-state-vt.json": "a0573e9eeb943c83c2e00344f48cf82006e75204de72607661be9ba711858988",
-  "us-state-wa.json": "21bcac0a17c59243d87b588d414bca2f7a7ee58e0a5a1df10d59f6c276c846c0",
-  "us-state-wi.json": "2de695ba49bc9bc8acdace5b105296645f3137aadf716480fc9b1a4d1a924073",
-  "us-state-wv.json": "342b5e2e2a703a38ff5d97803db0f086fdc157f77ba56fce24da338d55dbd18d",
-  "us-state-wy.json": "9e14ce362bf3c76c69fa1e903a462c5a9e03a1ea941b230817b57ae29a6186ea",
+  "us-state-ak.json": "5f508c213fec6f7f903d351430d9470bd5e9875e6e92dc7be2189591e074435f",
+  "us-state-al.json": "976a08cffa6472f7a81dae41bee5af4df38cb6562d7d992fe4152d811db58364",
+  "us-state-ar.json": "391190121f27f0f026f46c07be83323d857d007a729b9a6f432635c5be4baddd",
+  "us-state-az.json": "df66142fb344d3f5e70c8d2b5693508c96df397d2fb6ef57344bad46b5e92d74",
+  "us-state-ca.json": "cd8fa13d58d0f804f661c8d08d1362f0934e0b0b004eb88a7fa08eb6bb48af19",
+  "us-state-co.json": "280fc99a98973a843e197355dac9b541e220c26397247e52d71499b9281ce8f6",
+  "us-state-ct.json": "d1266794f87c76ecf5336fa7530151759d7a71cd8cda72c51a0a0573e9f2bfdd",
+  "us-state-de.json": "1e00b5a2c038fec3741567da6381b624c1bf0ae373fdf2d0cefe7eaa6a283a5f",
+  "us-state-fl.json": "f71591fce78be334bc532421bb5eaab6917df20cb39e2a2e90dd7ff37de69b59",
+  "us-state-ga.json": "6b0d8be13b0be83df026f2ab852c861044309688441e856d001ca4da4678082e",
+  "us-state-hi.json": "b8f9f577ff98cca104c103bb8a3ce45b3ccf913e9ac405ea589f716f100185dd",
+  "us-state-ia.json": "e44d17b59a40625e071856236c53b144235206190b5659186b6a7d0853fc4b31",
+  "us-state-id.json": "deaf02c2cbddf1bfa548195a65f73f86d4a93395cd36ab519314f1e0aaaee250",
+  "us-state-il.json": "1252d91aa43576f5d842de47d081463f46686c933ab0caea1b74090a23bfa981",
+  "us-state-in.json": "ef74779886bbdbb23c056b097056487b4ff2e98cfc35abb9b1a82650e785ea64",
+  "us-state-ks.json": "113536dc719800ab229866f755ff440884f09b4673aed3d7062cddd403a8b1d9",
+  "us-state-ky.json": "cb6fbad12b34345309a24a10a4b0f07e530e730398b90d78e3a70598a9317031",
+  "us-state-la.json": "a9243a4c60c6e0d5a61c21da45e825b3fa8667464adeebfb8ee928d96ea2e26d",
+  "us-state-ma.json": "8d88607befcc8e397d5429dee3ee505290e1fb8ffe65fdf359815e0439acdaea",
+  "us-state-md.json": "b1a5b19eea78ea6ba829451529a4ea5465d4f866b8ac0c93a4c35749e5d266c6",
+  "us-state-me.json": "c6306b41835837ee42a88b086d4e077f0eb27013a74be8a0db69c65fbbe638bb",
+  "us-state-mi.json": "f8f5a95003eace6c96b78dafc6223ad54fddbada8717ad515835e996794d78a7",
+  "us-state-mn.json": "acce74f6c78f86699878074e788b2e95de6bba406741a197e8bb6a6a96ba261a",
+  "us-state-mo.json": "1234fca1408d7155e7b3e32f64dc1e6c511bc6a6cde567456ff3ab9410bcd47b",
+  "us-state-ms.json": "24aafafe092112e362ff2409156ababfd7315cc4a37c8c8b8104c12d553909ea",
+  "us-state-mt.json": "bd36649c061e60ae7588781fe04d71c44489ebeb172e80044fb78417604eacaa",
+  "us-state-nc.json": "42a971e398d55bfc36fafa047febdb4e4f104511eaea9ad8faae97af59c80190",
+  "us-state-nd.json": "1e0976187ecb0a4988f5a77e2fc06513dd169cb3d536548f9d449e615742c6ae",
+  "us-state-ne.json": "b648a8c394208fda459a0afee0ae75fb956890edfdbc663c373de70dc21b3a56",
+  "us-state-nh.json": "e71e1968f351ed158ad6c7227e776f94fb1142ab66b7c326b4575482f7913585",
+  "us-state-nj.json": "d44a922e7eb00316e36935d96207489a2ac45ff25bce45b58da3da13e5400153",
+  "us-state-nm.json": "549545ee1577eb48739bbe2a51d7d9e3b67a6d7ed7422bc20d276c7c9714c972",
+  "us-state-nv.json": "2aef523367d859a6897072b3058ce3e190f76fd1aee7b9bac8c2e3a2e3382822",
+  "us-state-ny.json": "ca26b1830c3c114c5c8873de14481dac98b6652654182acf1e2a37fbd62c48b7",
+  "us-state-oh.json": "e780161e00329fb5f6c6df629a5c966ef658e65e91b7d300a686db0a0a5643cf",
+  "us-state-ok.json": "b1b150235fd9b5aa019df79db9846bf791790f081f1de1a576cf2cf511f236f0",
+  "us-state-or.json": "de48c5ed88ecf7169cbe1a7b26bf2a9cd500bdfc22d36293f6ac505d042d5169",
+  "us-state-pa.json": "33ef0776fe5faebfd1210f971e914e64e485453094747abe80e44a2983da9f20",
+  "us-state-ri.json": "6d66bb8c1347a73efb7f6e59c2721a208128bcb3f4fe7bd3ad48606a148fce51",
+  "us-state-sc.json": "5b0ee2d95db871f16719290707c429b855fb9442aabbc7f5a25569a615b1e07c",
+  "us-state-sd.json": "95564391b72f7749485fbd9885d8b48aa65133502af16e11b6dd71e4e6e849ff",
+  "us-state-tn.json": "c86cb16812e3dbc1bb6fd9c0f7419f218e5535aa8199d26940bc43a2f7c06729",
+  "us-state-tx.json": "012b7628d0a2f1dffefc3bdc6d29bacf287a670d35d3572a966690e8e7a2eecb",
+  "us-state-ut.json": "e218e7865fefa58b178025b419039d3decc4f94c22faa62658fae65a6b947499",
+  "us-state-va.json": "c27a36695e24e7b8fa5e004bf6126423fdbf96c92a014842eae8a648d3b52827",
+  "us-state-vt.json": "448a202ca4235bfa0be7cc83ab659393b18e80d6726cfc3901a1ce568be71d14",
+  "us-state-wa.json": "51078af3252e946731552fb59c859d02f70daff5644ba785d7d05779790bc997",
+  "us-state-wi.json": "cee9689d0071eebcdbd45ba1a84b0d8c0fc7ed7678225adbeaa5183ed4046bb7",
+  "us-state-wv.json": "63d390aee0a350e51f3bc07ad4cb6bd29fdeffb0048ef245497a0fa293b4813d",
+  "us-state-wy.json": "4c2aff03fe94762eac25f355dd73567e13e5b08278ca307518e7d30c92cf1507",
   "sample-data/us-state-co.json": "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
 };
+
+/** T-017: the region field is dropped before hashing — see DEFAULT_BRANCH_DIGESTS above. */
+const REGION_LINE = /^ {2}"region": "[^"]*",\n/m;
+const withoutRegion = (raw: string) => raw.replace(REGION_LINE, "");
 
 /** A minimal row — `parseUsStates` guarantees these three keys and nothing more. */
 const rowFor = (name: string, overrides: Partial<WikidataStateRow> = {}): WikidataStateRow => ({
@@ -276,10 +287,12 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
    * differs from the default branch. The test below is widened to name both
    * differences explicitly rather than pretend only one exists.
    */
-  test("removing the highest_point line and reverting landmark to the default branch's value reproduces the default branch's bytes exactly", () => {
-    const withoutLine = raw
-      .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
-      .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",');
+  test("removing the highest_point line, reverting landmark and dropping region reproduces the default branch's bytes exactly", () => {
+    const withoutLine = withoutRegion(
+      raw
+        .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
+        .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
+    );
     expect(sha256(withoutLine)).toBe(DEFAULT_BRANCH_DIGESTS["us-state-ak.json"] as string);
   });
 
@@ -312,14 +325,22 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
 });
 
 describe("T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched", () => {
-  test("each of the 49 non-Alaska state files is byte-identical to the default branch", () => {
+  test("each of the 49 non-Alaska state files matches the default branch once T-017's region line is dropped", () => {
     for (const name of trackedStateFiles()) {
       if (name === "us-state-ak.json") continue;
-      expect({ name, digest: sha256(readState(name)) }).toEqual({
+      expect({ name, digest: sha256(withoutRegion(readState(name))) }).toEqual({
         name,
         digest: DEFAULT_BRANCH_DIGESTS[name] as string,
       });
     }
+  });
+
+  test("the region removal actually drops the line — otherwise the check above proves nothing (T-017)", () => {
+    const il = readState("us-state-il.json");
+    const neutralised = withoutRegion(il);
+    expect(neutralised).not.toBe(il);
+    expect(il).toContain('"region": "Great Lakes"');
+    expect(neutralised).not.toContain('"region"');
   });
 
   test("index.json is byte-identical to the default branch", () => {
@@ -486,10 +507,14 @@ describe("T-016 tester, criterion 11 — both neutralisation routes are proven r
   // Addendum, 2026-09-18: see criterion 5's addendum above — `landmark` also
   // differs from the default branch now, by the same deliberate, human-decided
   // edit, so reproducing the default branch's bytes needs that reverted too.
+  // A second addendum, same day (T-017): `region` also differs now, and has no
+  // baseline to revert to, so it is dropped rather than restored.
   test("the textual route (top-crops-verify) changes the bytes and drops the value", () => {
-    const neutralised = raw
-      .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
-      .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",');
+    const neutralised = withoutRegion(
+      raw
+        .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
+        .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
+    );
     expect(neutralised).not.toBe(raw);
     expect(neutralised).not.toContain('"highest_point"');
     expect(neutralised).not.toContain(`"highest_point": "${value}"`);
@@ -586,12 +611,20 @@ describe("T-016 tester, criterion 16 — engineering-decisions.md records the de
       .split(/^## /m)
       .find((s) => /^E-8\b/.test(s)) ?? "";
 
-  test("an E-8 entry exists and it is the highest-numbered one", () => {
+  test("an E-8 entry exists, and every E-n number in the file is distinct", () => {
+    // Was pinned to "E-8 is the highest-numbered entry" until T-017
+    // (2026-09-18, a later approved task) added E-9 on top of it — the same
+    // kind of change this criterion itself asks every future curated-field
+    // task to make. Loosened to match the forward-compatible shape
+    // `top-crops-verify.test.ts`'s equivalent check already uses for E-7
+    // ("a new numbered entry, not a rewrite of an earlier one"): E-8 must
+    // still exist and no number may repeat, but a later, higher entry is not
+    // a failure of this one.
     expect(entry).not.toBe("");
     const numbers = [
       ...readFileSync(join(REPO, "engineering-decisions.md"), "utf8").matchAll(/^## E-(\d+)\b/gm),
     ].map((m) => Number(m[1]));
-    expect(Math.max(...numbers)).toBe(8);
+    expect(numbers).toContain(8);
     expect(new Set(numbers).size).toBe(numbers.length);
   });
 
