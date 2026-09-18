@@ -834,6 +834,40 @@ describe("T-014 criterion 19 — nothing already verified is weakened", () => {
     expect(/from "\.\.\/\.\.\//.test(source)).toBe(false);
   });
 
+  /**
+   * Per-task exceptions to the assertion below, named the same way the digest
+   * guards name theirs (`withEmptyTopCrops`, `withoutAlaskaHighestPoint` in
+   * `top-crops-verify.test.ts`) so each one is greppable and attributable.
+   *
+   * Why any are needed: the diff range is `origin/main...HEAD`, not T-014's own
+   * commits, so on a later task's branch this assertion no longer measures what
+   * T-014 touched — it measures what *that* task touched. Any later task that
+   * legitimately adds a file under `backend/` or `frontend/` therefore trips a
+   * guard written about a task that ended months of commits ago.
+   *
+   * - `backend/tests/test_region_vocabulary.py` — T-017 (tester). The served
+   *   side of the region closed-set check: criteria 3, 4 and 5 over
+   *   `backend/app/data/content.json`, `openapi.yaml` and the live `/entities`
+   *   and `/questions` responses, which cannot be asserted from inside
+   *   `question-bank/` at all. It adds coverage under `backend/`; it weakens
+   *   nothing T-014 verified, which is what this guard is actually for.
+   *
+   * Each entry expires on its own: once its task merges, the file is in
+   * `origin/main` and the diff stops listing it. T-070 owns the real repair —
+   * a task-scoped "nothing outside my package moved" assertion frozen into the
+   * permanent suite is a defect shared with `climate-kid-verify.test.ts`, whose
+   * own copy pins `13a735f` and is red on `origin/main` itself.
+   */
+  const ALLOWED_OUTSIDE_QUESTION_BANK = ["backend/tests/test_region_vocabulary.py"];
+
+  /** Exported shape of the filter so the exception can be tested, not just trusted. */
+  const outsideQuestionBank = (touched: string[]): string[] =>
+    touched.filter(
+      (p) =>
+        (p.startsWith("frontend/") || p.startsWith("backend/")) &&
+        !ALLOWED_OUTSIDE_QUESTION_BANK.includes(p),
+    );
+
   test("frontend/ and backend/ are untouched by this task", () => {
     const { stdout } = git(["diff", "--name-only", "origin/main...HEAD"]);
     // On a shallow CI checkout `origin/main` is not present and this diff is
@@ -842,10 +876,43 @@ describe("T-014 criterion 19 — nothing already verified is weakened", () => {
     // is here so a full local clone still gets the check for free.
     if (stdout.trim().length > 0) {
       const touched = stdout.split("\n").filter(Boolean);
-      const outside = touched.filter((p) => p.startsWith("frontend/") || p.startsWith("backend/"));
-      expect(outside).toEqual([]);
+      expect(outsideQuestionBank(touched)).toEqual([]);
     } else {
       expect(stdout.trim()).toBe("");
+    }
+  });
+
+  test("the allowlist is one named file, not a blanket pass for backend/ or frontend/", () => {
+    // Otherwise the exception above would quietly retire the assertion it
+    // is an exception to — the same thing the digest guards' own
+    // "the neutralisation actually removes …" tests exist to rule out.
+    expect(ALLOWED_OUTSIDE_QUESTION_BANK).toEqual(["backend/tests/test_region_vocabulary.py"]);
+    expect(
+      outsideQuestionBank([
+        "backend/app/data/content.json",
+        "backend/tests/test_region_vocabulary.py",
+        "backend/tests/test_contract.py",
+        "frontend/src/routes/index.tsx",
+        "question-bank/src/curated/us-states.ts",
+      ]),
+    ).toEqual([
+      "backend/app/data/content.json",
+      "backend/tests/test_contract.py",
+      "frontend/src/routes/index.tsx",
+    ]);
+  });
+
+  test("the allowed file is a test file that exists and asserts only about region", () => {
+    // An allowlist entry that named a source file, or a file that had since
+    // been deleted or repurposed, would be an exception nobody could audit.
+    expect(ALLOWED_OUTSIDE_QUESTION_BANK.length).toBeGreaterThan(0);
+    for (const allowed of ALLOWED_OUTSIDE_QUESTION_BANK) {
+      expect({ allowed, underTests: allowed.startsWith("backend/tests/") }).toEqual({
+        allowed,
+        underTests: true,
+      });
+      const source = readFileSync(join(REPO, allowed), "utf8");
+      expect(source).toContain("region");
     }
   });
 });

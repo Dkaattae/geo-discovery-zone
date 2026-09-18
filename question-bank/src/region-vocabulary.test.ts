@@ -330,6 +330,16 @@ describe("T-017 criterion 7 — engineering-decisions.md records the choice as E
     expect(Math.max(...numbers)).toBe(9);
   });
 
+  test("the entries run in ascending order, so E-9 is the last block in the file", () => {
+    // Criterion 7 says "next number"; a next number filed above its
+    // predecessor is only half of that, and the first round of this task did
+    // exactly that (E-9 landed between E-7 and E-8).
+    const numbers = headings.map((match) => Number(match[1]!.slice(2)));
+    expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
+    expect(numbers.at(-1)).toBe(9);
+    expect(decisions.slice(decisions.indexOf("## E-9 —"))).not.toContain("\n## E-");
+  });
+
   test("E-9 says which vocabulary won and why", () => {
     const start = decisions.indexOf("## E-9 —");
     const rest = decisions.slice(start + 1);

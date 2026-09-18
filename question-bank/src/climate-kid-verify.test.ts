@@ -1108,6 +1108,24 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     expect(() => rebuildOffline(join(PKG, "src/does-not-exist.ts"), ["index.json"], "t014-neg-")).toThrow();
   });
 
+  /**
+   * Same named per-task exception as `climate-kid.test.ts`'s copy of this
+   * guard, and for the same reason: the range is not scoped to T-014's own
+   * commits, so on a later task's branch this measures that task's diff.
+   *
+   * - `backend/tests/test_region_vocabulary.py` — T-017 (tester), the served
+   *   side of the region closed-set check.
+   *
+   * **This does not make the assertion pass, and is not meant to.** Its range
+   * is the hardcoded `13a735f`, which predates the FastAPI backend itself, so
+   * `backend/app/data/content.json` is in the diff on `origin/main` too and
+   * this test is red there — measured, 1192 pass / 1 fail in a clean worktree
+   * at `f5b2382`. The exception exists so that T-017 adds nothing to that
+   * failure: the list it reports here is identical to the one it reports on
+   * `origin/main`. T-070 owns re-pinning it for real.
+   */
+  const ALLOWED_OUTSIDE_QUESTION_BANK = ["backend/tests/test_region_vocabulary.py"];
+
   test("frontend/ and backend/ carry no change from this task", () => {
     const proc = Bun.spawnSync(["git", "diff", "--name-only", "13a735f...HEAD"], { cwd: REPO });
     const stdout = proc.stdout.toString();
@@ -1115,7 +1133,8 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
       const outside = stdout
         .split("\n")
         .filter(Boolean)
-        .filter((p) => p.startsWith("frontend/") || p.startsWith("backend/") || p.startsWith("e2e/"));
+        .filter((p) => p.startsWith("frontend/") || p.startsWith("backend/") || p.startsWith("e2e/"))
+        .filter((p) => !ALLOWED_OUTSIDE_QUESTION_BANK.includes(p));
       expect(outside).toEqual([]);
     } else {
       // Shallow clone: the branch point is not present. Recorded in the Verdict

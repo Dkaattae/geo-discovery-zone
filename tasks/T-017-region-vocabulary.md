@@ -1,10 +1,10 @@
 # T-017 — Two region vocabularies, and they disagree
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — findings 1 and 2 are closed (see the worker's note at
-the end of `## Review`); finding 3 (the question-bank regression) is still
-open and is the tester's to fix, not the worker's. The PR stays draft until it
-is closed.
+**Status:** `pass`
+**Next step:** `reviewer` — all three findings are closed. Findings 1 and 2 by
+the worker (note at the end of `## Review`), finding 3 by the tester (see
+`## Verdict — round 2`, which also re-verifies criteria 5 and 7 against the
+worker's fixes).
 **Approved:** Kate, 2026-09-18 (approved via chat on PR #49)
 **From:** [`tasks.md`](../tasks.md) T-017
 **Branch:** `claude/task-t017-xqyyeq` — this session was assigned this branch by
@@ -21,6 +21,7 @@ the harness and CLAUDE.md's "Branches" grants pushing to it for this task.
 | tester | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fresh context, shared id — see Verdict) |
 | reviewer | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (changes requested — see `## Review`) |
 | worker | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fix round — findings 1 and 2 closed, see `## Review`) |
+| tester | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fix round — finding 3 closed, see `## Verdict — round 2`) |
 
 ## Goal
 
@@ -402,6 +403,12 @@ Lakes shoreline and isn't Gulf-adjacent; Kentucky and West Virginia kept at
 is marked closed.
 
 ## Verdict
+
+> **Amended, not withdrawn — see `## Verdict — round 2` at the end of this
+> file.** The suite claim in this first verdict was wrong: the branch had **two**
+> `question-bank` failures, one of them caused by this session's own commit
+> (reviewer finding 3). Round 2 fixes that and re-states the numbers. Every
+> criterion verdict below still stands.
 
 **Pass.** All eight criteria hold, verified by 68 new tests written from the
 criteria (55 in `question-bank/src/region-vocabulary.test.ts`, 13 in
@@ -795,3 +802,132 @@ regression and its repair belong to `tester`, not to me, per the Review's
 
 Status set to `awaiting verification`, Next step to `tester`, per the Review's
 routing for finding 3.
+
+## Verdict — round 2 (tester, 2026-09-18)
+
+**Pass.** Finding 3 is closed: the failure this session's own commit introduced
+is gone, and `question-bank` is now red for **exactly** the one test that is red
+on `origin/main` itself, with a byte-identical failure list. Criteria 5 and 7
+were re-verified independently against the worker's fixes and both still hold.
+Suites on a **full, unshallowed** checkout: `question-bank` 1254 pass / 1 fail
+(pre-existing, proved below) + typecheck clean, `backend` 248 passed / 9 skipped
++ ruff clean, `frontend` 184 pass / 0 fail.
+
+**The first verdict's suite claim was wrong and is corrected here**: it reported
+one pre-existing failure when there were two, one of them mine. The criteria
+table in the first verdict is unchanged — no criterion verdict moved.
+
+### What changed on the branch in this round
+
+| File | Change | Why |
+|---|---|---|
+| `question-bank/src/climate-kid.test.ts` | named `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist + 2 new tests that police it | closes finding 3 |
+| `question-bank/src/climate-kid-verify.test.ts` | the same named allowlist, applied to its sibling guard | so this task adds nothing to that guard's **pre-existing** failure |
+| `question-bank/src/region-vocabulary.test.ts` | 1 new test: `E-n` entries run in ascending order and `E-9` is last | regression test for finding 2 |
+| `backend/tests/test_region_vocabulary.py` | 2 new tests: the description claims no rule stricter than the API, and a slug spelling matches the same entities | regression tests for finding 1 |
+
+No source file was touched. `git status` is clean apart from these four test
+files; every temporary mutation listed below was reverted.
+
+### Finding 3 — which fix, and why
+
+**Chosen: (a), a named per-task exception, not (b) relocation.**
+`climate-kid.test.ts:837`'s guard diffs `origin/main...HEAD`, a range that is
+**not scoped to T-014's own commits**. On any later task's branch it therefore
+measures *that* task's diff, so every future task that legitimately adds a file
+under `backend/` or `frontend/` trips a guard written about a task that ended
+long ago. Relocating `backend/tests/test_region_vocabulary.py` would have
+deleted real coverage — it is the only place criteria 3, 4 and 5 are checked
+through the running app (`/entities`, `/questions`), which the reviewer
+explicitly said not to drop — and backend tests have nowhere else to live, so
+(b) would only have deferred the same collision to the next task.
+
+The exception is shaped like the digest guards' own per-task neutralisations
+(`withEmptyTopCrops`, `withoutAlaskaHighestPoint`): a named constant, one entry,
+attributed in a comment, and **greppable**. It expires by itself — once this
+task merges the file is in `origin/main` and the diff stops listing it.
+
+It does not retire the assertion it is an exception to, and that is tested
+rather than asserted in prose:
+
+- `the allowlist is one named file, not a blanket pass for backend/ or frontend/`
+  runs the filter over a synthetic path list and requires
+  `backend/app/data/content.json`, `backend/tests/test_contract.py` and
+  `frontend/src/routes/index.tsx` to still come back as violations.
+- `the allowed file is a test file that exists and asserts only about region`
+  requires each entry to be under `backend/tests/`, to exist on disk, and to
+  mention `region` — an entry naming a source file cannot hide in it.
+
+**`climate-kid-verify.test.ts` gets the same entry and is still red.** That is
+deliberate and is not a fix: its range is the hardcoded `13a735f`, which
+predates the FastAPI backend, so `backend/app/data/content.json` is in its diff
+on `origin/main` too. Measured in a clean worktree at `f5b2382`: **1192 pass /
+1 fail**, reporting `["backend/app/data/content.json"]`. On this branch after
+the change it reports **the same single path** — T-017 contributes nothing to
+it. Re-pinning it for real stays T-070's (reviewer finding 5).
+
+### Mutations made in this round, and reverted
+
+| Mutation | Expected red | Observed |
+|---|---|---|
+| `ALLOWED_OUTSIDE_QUESTION_BANK` emptied (i.e. my fix reverted) | the guard, for the right reason | 3 red — the guard reports exactly `backend/tests/test_region_vocabulary.py`, plus both allowlist-policing tests |
+| the allowlist filter replaced by a blanket `!p.startsWith("backend/")` | the anti-blanket test | 1 red — a blanket pass cannot be smuggled in |
+| a temporary commit appending a line to `backend/app/store.py` | the guard still guards | 1 red, reporting `backend/app/store.py` — the allowlist hides only its one named file. Commit removed, `HEAD` back at `aa95081` |
+| `openapi.yaml` description restored to "matched against Entity.region exactly" | the new contract-claim test | 1 red |
+| `backend/app/store.py` `_slug_expression` returning the raw column | the new slug-matching test | 2 red (it and `the documented example works as a filter`) |
+| `## E-9` moved back between `## E-7` and `## E-8` | the new ordering test | 1 red |
+
+### Criteria 5 and 7, re-verified after the worker's fixes
+
+Re-checked from the files, not from the worker's report.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 5 | pass | `openapi.yaml:1131–1141`: description now reads *"matched against Entity.region case- and hyphen-insensitively … canonical stored form is a titled string with spaces, e.g. `Mountain West`, `Southeast`, `Pacific Northwest`"*. All three backticked examples are in the 13-value set and are values `content.json` actually carries; no kebab-case example was added; `git diff origin/main...HEAD -- openapi.yaml` is **the description block and nothing else** — `schema: {type: string}`, `in`, `name` unchanged, no enum (Out of scope respected). The new claim is also now true of the code, tested behaviourally: `?region=mountain-west` returns the same rows as `?region=Mountain West` |
+| 7 | pass | `grep -n "^## E-"` gives `E-1 … E-8` then `E-9` at line 438 — ascending, and `E-9` is the last block in the file (nothing follows it). `git diff origin/main...HEAD -- engineering-decisions.md` is 48 insertions, 0 deletions. Content mirrors `E-7`/`E-8`: dated `(T-017)` opener, both vocabularies named, the product call recorded as asked-of-a-human, what changed vs. what was frozen, and a `Revisit when` (T-050) |
+
+Criterion 3 re-confirmed while I was there: `git diff --name-only
+origin/main...HEAD -- backend/app/data/content.json` is empty, and all 15
+anchors read exactly the brief's values.
+
+### Whole-suite results, on a non-shallow checkout
+
+`git rev-parse --is-shallow-repository` returned `true` at the start of this
+session, so the self-disabling branch in both guards **would** have masked the
+regression. I ran `git fetch --unshallow origin` first; afterwards
+`is-shallow-repository` is `false`, `git fetch origin main` succeeds and
+`origin/main` resolves to `f5b2382`. Every number below is from that tree, with
+all six proxy spellings pointed at `http://127.0.0.1:1`.
+
+- **`question-bank`** — `bun test`: **1254 pass / 1 fail** (the `climate-kid-verify.test.ts`
+  T-014 guard, red on `origin/main` too). `bun run typecheck`: clean.
+- **`backend`** — `uv run pytest -q`: **248 passed, 9 skipped**. `ruff check`
+  and `ruff format --check`: clean.
+- **`frontend`** — `bun test`: **184 pass / 0 fail**.
+- **Prettier**: the three `question-bank` test files I edited were already
+  flagged by `bunx prettier --check` **before** my edits (verified by
+  `git stash`), and nothing in CI gates it. Reviewer finding 6 still stands
+  untouched.
+
+### Independence — which kind this round had
+
+**Fresh context, not a separate session, and weaker evidence than last round's
+because there is no `runs/T-017-*.md` to point at.** `$CLAUDE_CODE_REMOTE_SESSION_ID`
+is `cse_01NEERZW3gE6qHsQgi6suzSz`, already in the Sessions table against every
+other role, so **the Sessions-table check did not pass — it did not run.** What
+is true: I am a freshly spawned agent with my own context window, I never saw
+the worker's or reviewer's transcripts, and everything I inherited is this
+brief, the repository and my prompt. That rests on the spawning having been done
+correctly rather than on anything I can verify myself. Weigh this `pass`
+accordingly, exactly as with round 1.
+
+### Still open for the reviewer, unchanged
+
+- The per-state curation **Review checklist** is still a human's to close, with
+  the five calls round 1 flagged (Missouri, Kentucky/West Virginia,
+  Delaware/Maryland, Idaho, the Dakotas vs. Nebraska).
+- **This PR cannot go out unflagged**: it changes `openapi.yaml` and carries 35
+  hand-curated assignments.
+- Reviewer findings 4, 5 and 6 (`T-022` fallback rule, `T-070` re-pinning,
+  prettier hygiene) are still the reviewer's to file at approval. Finding 5's
+  guard is the one test still red here.

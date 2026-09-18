@@ -215,6 +215,36 @@ def test_the_region_parameter_is_still_a_plain_string_with_no_schema_change(
     assert parameter["name"] == "region"
 
 
+def test_the_description_does_not_claim_a_matching_rule_stricter_than_the_api(
+    spec: dict[str, Any],
+) -> None:
+    """The first round of this task shipped "matched against Entity.region
+    exactly", which `backend/app/store.py`'s slug comparison contradicts. The
+    point of T-017 is that the contract and the data stop disagreeing about
+    `region`, so a claim of exactness is a claim the served behaviour has to
+    honour — and it does not (see the behavioural test below)."""
+    description = region_parameter_description(spec).lower()
+    assert "exactly" not in description
+    assert "case- and hyphen-insensitively" in description
+
+
+async def test_a_slug_form_of_a_documented_example_matches_the_same_entities(
+    client: httpx.AsyncClient, spec: dict[str, Any]
+) -> None:
+    """The behavioural half: whatever the description claims about matching has
+    to be true of the API. A kebab-case spelling of a documented example returns
+    the same rows as the canonical titled spelling."""
+    example = next(value for value in region_examples(spec) if value in VOCABULARY)
+    canonical = (await client.get("/entities", params={"region": example, "limit": 500})).json()
+    slugged = (
+        await client.get(
+            "/entities", params={"region": example.lower().replace(" ", "-"), "limit": 500}
+        )
+    ).json()
+    assert canonical["data"], f"no entity matched the documented example {example!r}"
+    assert [row["id"] for row in slugged["data"]] == [row["id"] for row in canonical["data"]]
+
+
 async def test_the_documented_example_works_as_a_filter(
     client: httpx.AsyncClient, spec: dict[str, Any]
 ) -> None:
