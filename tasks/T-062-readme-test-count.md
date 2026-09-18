@@ -1,7 +1,7 @@
 # T-062 — One test count in `README.md` is still unasserted
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified`
+**Next step:** `reviewer`
 **Approved:** Dkaattae, 2026-09-18
 **From:** [`tasks.md`](../tasks.md) T-062 · `S`, light brief (`process.md`, D-6)
 **Branch:** `claude/happy-shannon-dstj7a` — assigned to the expander's session by
@@ -15,6 +15,7 @@ session starts on; `CLAUDE.md` "Branches" carries the standing permission.
 |---|---|---|
 | task-expander | 2026-09-18 | 01YP7QezsJVN7pxQyV1scM6g |
 | worker | 2026-09-18 | cse_01YP7QezsJVN7pxQyV1scM6g |
+| tester | 2026-09-18 | cse_01YP7QezsJVN7pxQyV1scM6g (shared id — see Verdict) |
 
 ## Acceptance criteria
 
@@ -172,5 +173,116 @@ it's a `readFileSync` + regex, same pattern as every other test in that file.
 
 ## Verdict
 
-Written by `tester`: pass, fail or blocked, which criterion, and what was
-observed.
+**Pass.** All four criteria hold. The worker's guard genuinely fires: three
+criterion-2 mutations of `README.md` each turned it red, the negative control
+("nine states") left it green, and every mutation was reverted. New tests in
+`frontend/src/readme-test-count.criteria.test.ts` (16, all green). Two things
+the reviewer should read before merging — neither is a T-062 defect, both are
+pre-existing and reproduced on the unmodified tree.
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | No count of tests in `README.md` survives unpinned | pass | Number dropped from `:193`. Added a 10th `test_` function to `backend/tests/test_postgres.py` — `README.md` still true, `frontend` suite still 184 pass / 0 fail. Reverted. |
+| 2 | Guard reaches the whole file, words as well as digits | pass | 3 mutations red, 1 negative control green (table below) |
+| 3 | The reason a reader needs that sentence survives | pass | 5 new assertions, each mutation-checked |
+| 4 | Confined, and green | pass, with two caveats | `git diff --name-only origin/main...HEAD` = `README.md`, `frontend/src/conventions-doc.test.ts`, this brief. `frontend`: `bun test` 200 pass / 0 fail, `bun run lint` clean. `bun run typecheck` red — environmental, see below. |
+
+### Session independence
+
+**Not established by session id.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_01YP7QezsJVN7pxQyV1scM6g`, identical to the `worker` row above and to the
+`task-expander`'s. There is no `runs/T-062-*.md`, so this is not the
+orchestrated case the tester's agent definition carves out either — the id
+check simply did not separate anything here.
+
+What independence there is rests on this being a freshly spawned agent with its
+own context window: no sight of the worker's conversation or reasoning, only
+the committed brief and repo. That is real but **weaker than a separate
+session**, because it rests on the harness having spawned the role correctly
+rather than on anything checkable from inside. Weigh this `pass` accordingly.
+
+### Criterion 2 — mutations of `README.md`, against the worker's guard
+
+Run as `bun test src/conventions-doc.test.ts` before any test of mine existed,
+so each red is attributable to `conventions-doc.test.ts:554-573` alone.
+
+| Mutation | Placement | Result |
+|---|---|---|
+| `The eleven Postgres-only tests skip on SQLite` | `## Checks` prose, outside the fence | **red** (77 pass / 1 fail) |
+| `The 11 Postgres-only tests skip on SQLite` | `## Checks` prose, outside the fence | **red** (77 pass / 1 fail) |
+| `The eleven Postgres-only tests skip on SQLite.` | under `## Layout`, a different section | **red** (77 pass / 1 fail) |
+| `The quiz covers nine states today.` | under `## Layout` | **green** (78 pass / 0 fail) — correct, not a count of tests |
+
+All four reverted; `git status` clean afterwards.
+
+### Criterion 1 — the boundary, both sides
+
+- **At 9** `test_` functions in `backend/tests/test_postgres.py` (today):
+  `frontend` suite green, `README.md` reads true.
+- **At 10** (a 10th function appended, then reverted): `frontend` suite still
+  green — 184 pass / 0 fail — and `README.md` is *still true as written*,
+  because it states no number. That is the first arm of the criterion's
+  disjunction, so the criterion holds. Drift is now impossible by
+  construction rather than by assertion.
+
+### New tests, and the mutations that prove they can fail
+
+`frontend/src/readme-test-count.criteria.test.ts`, 16 tests. Expected values
+come from the criteria and from `backend/tests/test_postgres.py`, not from
+`README.md` or from the worker's guard — both are the things under test. The
+detector is a second, independently written implementation (tokenising, not
+phrase-matching), so it can disagree with the guard it sits beside.
+
+| Mutation | Tests turned red |
+|---|---|
+| `README.md` says `nine Postgres-only tests` (count *correct*) | criterion 1 "states no count at all" — and correctly **not** "every claim matches", since 9 is the true count |
+| `README.md` says `eleven Postgres-only tests` (count wrong) | both criterion 1 tests |
+| Delete the skip-on-SQLite / no-database sentence | both criterion 3 prose tests |
+| `make -C backend check` → `make -C backend everything` | criterion 3 literal-string test |
+| Delete the `GEO_TEST_DATABASE_URL` override sentence | criterion 3 override-intact test |
+| Remove the `only_postgres` skip from `backend/tests/test_postgres.py` | criterion 3 "the claim README makes is true" test |
+
+Every mutation reverted; working tree clean. No network in any test — local
+`readFileSync` only.
+
+### Caveat 1 — `bun run typecheck` is red in this sandbox, and was before the diff
+
+```
+src/components/UsMap.tsx(2,55): error TS2307: Cannot find module 'react-simple-maps'…
+src/components/UsMap.tsx(3,24): error TS2307: Cannot find module 'us-atlas/states-10m.json'…
+src/components/UsMap.tsx(36,15): error TS7031 / (37,30): error TS7006
+```
+
+Reproduced independently of the worker's report, and **not taken on faith**:
+
+- **Same four errors on the unmodified tree.** `git checkout eea566a -- README.md frontend/src/conventions-doc.test.ts`, re-ran `tsc` — byte-identical output. Restored.
+- **Cause is a missing install, not the diff.** `react-simple-maps@^3.0.0`, `us-atlas@^3.0.1` and `@types/react-simple-maps@^3.0.6` are declared in `frontend/package.json` but absent from `node_modules/`. `bun install` fails with `403` from the sandbox's npm mirror (`europe-west1-npm.pkg.dev/…/sandbox-npm-cache`) for exactly the `react-simple-maps` / `us-atlas` / `d3-*` / `topojson-client` family and nothing else.
+- **`UsMap.tsx` is not in the diff** and was last touched by `6954657`, a formatting commit predating this branch.
+
+Judgment: **pre-existing and environmental, not a regression.** No workaround
+was applied — adding a stub or touching config would breach criterion 4.
+`conventions-doc.test.ts` and the new test file draw no `tsc` error of their
+own. **Reviewer:** confirm the `frontend` job on PR #50 is green before
+merging; CI has a working registry and is the only place a clean `typecheck`
+can be observed.
+
+### Caveat 2 — `question-bank`'s suite is red, and was already red on `main`
+
+`cd question-bank && bun test` → 1253 pass / 2 fail. Both failures are the
+frozen T-014 "nothing outside my package moved" guards:
+
+- **`climate-kid-verify.test.ts`** — red on `origin/main` (`eea566a`) itself, verified in a detached worktree: 1254 pass / **1 fail** with no T-062 change present at all.
+- **`climate-kid.test.ts`** — diffs `origin/main...HEAD` and flags `frontend/src/conventions-doc.test.ts`. It goes red for *any* branch touching `frontend/`, including one whose criterion 4 expressly permits touching test files.
+
+Not a T-062 defect: the guard asserts something about T-014, it is documented in
+its own header as a defect owned by **T-070**, and it is vacuous in CI
+(`.github/workflows/ci.yml` uses `actions/checkout@v5` with no `fetch-depth`, so
+`origin/main` is not a ref and the diff comes back empty). Criterion 4 scopes
+"green" to the `frontend` command, which passes. Recorded here so the reviewer
+does not read it as new.
+
+### What was checked but needed no test
+
+- **Confinement** — `git diff --name-only origin/main...HEAD` is exactly `README.md`, `frontend/src/conventions-doc.test.ts` and this brief. Nothing under `backend/`, `question-bank/`, `e2e/`; no non-test file under `frontend/src/`; `test-guidelines.md` and `PROGRESS.md` untouched, left to T-065.
+- **No dependency added** — `frontend/package.json` and `bun.lock` are not in the diff.
+- **The surviving prose is true** — `backend/tests/test_postgres.py`'s autouse `only_postgres` fixture calls `pytest.skip` when `engine.dialect.name != "postgresql"`, so "skip on SQLite, so nobody needs a database installed" is accurate, not merely present. Asserted, not just eyeballed.
