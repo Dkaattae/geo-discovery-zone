@@ -1,7 +1,7 @@
 # T-016 — Alaska has no `P610` highest point
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** `Dkaattae, 2026-09-18`
 **From:** [`tasks.md`](../tasks.md) T-016
 **Branch:** `claude/gallant-pasteur-jtdovj` — the harness assigned this session its
@@ -18,6 +18,7 @@ draft until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-18 | `01DcPFTAMrySYcEfrLFRiZHc` |
+| worker | 2026-09-18 | `cse_01DcPFTAMrySYcEfrLFRiZHc` |
 
 ## Goal
 
@@ -250,6 +251,157 @@ who checked these on the PR.
 Written by `worker` before the tester runs. **Always written, even when nothing
 was built.**
 
+**TL;DR:** All 16 criteria are implemented — a curated `highest_point` fallback
+for Alaska, folded in only when Wikidata's own label is absent, with a new
+build warning for any future gap. The bank was rebuilt offline (one line added
+to `us-state-ak.json`, nothing else moved). The three pinned-digest guards are
+neutralised for Alaska only, with their own digests unchanged. `bun test`
+(1142 pass) and `bun run typecheck` are both green. The Denali / Mount McKinley
+call is left to the Review checklist, as instructed — this ships "Denali"
+because that is what `landmark` already says.
+
+### Survey check
+
+The brief's survey (`## What is already true`) still held: the field, query,
+parsing and conditional fold-in all existed unchanged; Alaska was still the
+only state without a `highest_point` name; `highest_point_m: 6190` was still
+correct; `landmark: "Denali"` was still at `curated/us-states.ts:85`; and no
+warning fired for a missing `highest_point` before this task. Nothing had
+landed on this since the survey date (`284b8bc`).
+
+### What changed, file by file
+
+- **`question-bank/src/curated/us-states.ts`** — added an optional
+  `highest_point?: string` field to `CuratedState`, documented as a gap-filler
+  only (never a primary source), with provenance pointing at E-8. Set
+  `highest_point: "Denali"` on Alaska's row, directly beside its existing
+  `landmark: "Denali"`. No other row touched.
+- **`question-bank/src/normalize.ts`** — the fold-in now computes
+  `const highestPoint = row.highestPoint ?? curated.highest_point;` and emits
+  `highest_point` from that (Wikidata wins whenever present; curated only fills
+  the gap). Added `if (!highestPoint) warnings.push({ entity: id, field:
+  "highest_point", message: "missing" })`, in the same shape and the same
+  place as the existing `capital`/`centroid` checks. `build.ts`'s `report()`
+  needed no change — it already prints every warning generically
+  (`${warning.entity}.${warning.field}: ${warning.message}`), so criterion 8's
+  "prints that warning alongside the ones it already prints" was already true
+  of the existing code, and criterion 8 is met purely by the warning now
+  existing to print.
+- **`question-bank/data/us-states/us-state-ak.json`** — rebuilt offline
+  (`bun run src/build.ts --offline --out <tmpdir>`, then the rebuilt file
+  copied over the tracked one; never hand-edited). Diffed against the
+  pre-change tracked file: exactly one line added
+  (`"highest_point": "Denali",`, placed between `landmark` and
+  `highest_point_m` by the object's own field order), nothing removed or
+  changed. `highest_point_m` is still `6190`; `sources.built_at` is still
+  `2026-08-04T16:05:35.000Z`.
+- **The other 49 state files, `data/us-states/index.json`, and
+  `sample-data/us-state-co.json`** — confirmed byte-identical to the pre-change
+  tree (`git diff --stat` shows only the one Alaska line across the whole
+  bank).
+- **`question-bank/src/landmarks-verify.test.ts`**,
+  **`question-bank/src/climate-kid-verify.test.ts`** — both already parse each
+  tracked file to an object and `delete` specific keys before re-hashing
+  (`landmark`/`climate_kid`, plus a conditional exception for Colorado). Added
+  one more conditional line to each: `if (file === "us-state-ak.json") delete
+  parsed["highest_point"];`, right beside the existing Colorado exception, with
+  a comment explaining why it is asymmetric (the other 49 states already
+  carried `highest_point` at each suite's own pinned baseline — it has existed
+  since the pipeline's first commit — so their pinned digests already include
+  it; only Alaska's is new). No pinned digest constant was touched, and no
+  existing assertion was weakened, skipped or deleted.
+- **`question-bank/src/top-crops-verify.test.ts`** — this file's digest check
+  works on raw text (a regex swaps the `top_crops` block back to `[]`) rather
+  than `JSON.parse`, so the same fix needed a textual route: a new
+  `ALASKA_HIGHEST_POINT_LINE` regex and `withoutAlaskaHighestPoint(file, raw)`
+  helper strip the one new line for `us-state-ak.json` only, applied in the
+  existing "nothing else in the bank moves" digest test. Added one new test —
+  "the Alaska neutralisation actually removes the highest_point line" —
+  mirroring this file's own pre-existing "the restoration actually removes the
+  crops" pattern, which is criterion 11's proof that the digest check cannot
+  pass vacuously.
+- **`question-bank/src/highest-point.test.ts`** (new) — the worker-written
+  suite alongside the data, covering what no existing suite reached: the
+  fallback's fill-vs-never-override logic (criterion 2, using hand-built
+  minimal `WikidataStateRow` objects, not the network) directly against
+  `normalizeUsStates`; the new warning firing exactly when both sources are
+  absent and staying silent otherwise (criterion 8); a full-fixture run
+  producing zero `highest_point` warnings (criterion 9, reading the committed
+  fixture off disk — no network, no build spawned); and Alaska's content shape
+  — non-empty, equal to `landmark` in both the curated table and the tracked
+  file, and free of parens/`/`/comma/` or ` (criteria 1, 3, 4).
+- **`engineering-decisions.md`** — added **E-8**, the next free number,
+  covering: the fallback fills a gap only and never overrides a live Wikidata
+  value; Alaska is the only state relying on it today and why (the fixture's
+  one row with no `P610` label); `highest_point` and `landmark` are pinned to
+  one string so the Denali/Mount McKinley call is a single edit; and what this
+  task deliberately did not do (the `highest_point_m` unit bug, filed as
+  T-069; changing the query or the fixture).
+
+### Criteria → where the behaviour lives
+
+| # | Criterion | Where |
+|---|---|---|
+| 1 | 50/50 files carry `highest_point` | rebuilt bank; `highest-point.test.ts` criteria-1 block |
+| 2 | fallback fills gap, never overrides | `normalize.ts` fold-in; `highest-point.test.ts` criterion-2 block |
+| 3 | AK's two fields equal, editing one alone reddens a test | `curated/us-states.ts` AK row; `highest-point.test.ts` "equals its landmark" tests |
+| 4 | AK value is one plain name | `curated/us-states.ts` AK row; `highest-point.test.ts` "one plain name" test |
+| 5 | AK file: exactly one line added | verified by direct diff (see above); no automated test added beyond the existing rebuild-byte-identity suites, since this is a one-time diff property of the committed tree, not a build invariant |
+| 6 | other 49 + index.json + sample untouched | verified by `git diff --stat`; covered ongoingly by `committed-bank.test.ts` and the three digest guards' byte-identity checks |
+| 7 | built not hand-edited, rebuild-twice stable | unchanged: `committed-bank.test.ts`, `landmarks-verify.test.ts`, `climate-kid-verify.test.ts` all already spawn `rebuildOffline` twice and diff |
+| 8 | missing-highest_point warning shape | `normalize.ts`; `highest-point.test.ts` criterion-8 block |
+| 9 | zero warnings on full fixture build | `highest-point.test.ts` criterion-9 block; confirmed manually via `bun run src/build.ts --offline` (no warning line printed) |
+| 10 | three digest guards pass, nothing re-pinned | `landmarks-verify.test.ts`, `climate-kid-verify.test.ts`, `top-crops-verify.test.ts` — Alaska-only neutralisation added, no pinned constant touched |
+| 11 | neutralisation proven non-vacuous | `top-crops-verify.test.ts`'s new "actually removes the highest_point line" test |
+| 12 | `bun test` and typecheck green | confirmed below |
+| 13 | no network, no `fetch` mock | `highest-point.test.ts` calls `normalizeUsStates` directly and reads the fixture off disk; no subprocess, no `fetch` |
+| 14 | no new dependency | `bun install --frozen-lockfile` reported no changes; `git diff --stat package.json bun.lock` is empty |
+| 15 | nothing outside scope changed | `git diff --stat` (full repo) shows only the 7 files listed above |
+| 16 | `engineering-decisions.md` entry | E-8, added |
+
+### What I deliberately did not do, and why
+
+- **Did not touch the Review checklist boxes.** The Denali/Mount McKinley call
+  is a human content decision this task explicitly does not make; shipped
+  "Denali" because that is `landmark`'s current value, unchanged by this task.
+- **Did not add a per-criterion automated check for criterion 5's "exactly one
+  line, no line changed or removed"** beyond the direct diff recorded above and
+  the pre-existing rebuild-byte-identity suites. That property is about the
+  one-time commit, not an ongoing build invariant `normalizeUsStates` could
+  assert about itself — the existing byte-identity tests (rebuild twice,
+  diff against tracked) are what actually re-check it on every future run.
+- **Did not touch `build.ts`'s `report()`.** It already prints every warning
+  generically; no change was needed for criterion 8's "prints alongside the
+  ones it already prints".
+- **Did not fix the `highest_point_m` unit bug** (Arizona/Oregon/Nebraska/
+  Kansas/Iowa carrying feet under a metres key) — out of scope, already filed
+  as T-069.
+- **Did not change `US_STATES_QUERY` or re-capture the fixture** — out of
+  scope per the brief, and would move all 50 files instead of just Alaska's.
+
+### Contradictions found
+
+None. The survey held; the route (curated fallback) matched what the approved
+brief specified; no criterion was ambiguous or impossible to satisfy as
+written.
+
+### How to run what I touched
+
+```
+cd question-bank
+bun install --frozen-lockfile   # only needed once per clone; node_modules is gitignored
+bun test                        # 1142 pass, 0 fail
+bun run typecheck               # clean
+bun test src/highest-point.test.ts   # the new suite alone: 10 pass
+```
+
+To reproduce the rebuild that produced the tracked `us-state-ak.json`:
+
+```
+bun run src/build.ts --offline --out /tmp/check
+diff data/us-states/us-state-ak.json /tmp/check/us-state-ak.json   # empty
+```
+
 ## Verdict
 
 Written by `tester`.
@@ -266,3 +418,21 @@ Written by `reviewer`, and only when it sends the PR back.
   negatives that cost a line of test each. The task itself is one curated value,
   one conditional fold-in and one warning. The light path is unavailable anyway:
   this ships text a child will read (`process.md`, "The light path").
+- **Worker note (2026-09-18).** The survey held exactly as written; nothing
+  needed re-checking beyond confirming the same commit's state. The one thing
+  worth flagging for whoever reads this next: `highest_point` turned out to
+  have existed in 49 of the 50 tracked files since the pipeline's very first
+  commit (`git log -p --follow` on `us-state-al.json` shows it in "Add
+  question-bank pipeline"), predating T-013/T-014/T-015 entirely — which is
+  *why* those three tasks' pinned digests already include it for every state
+  but Alaska, and why the neutralisation this task adds is asymmetric (strip
+  for Alaska only, leave the other 49 alone) rather than symmetric. Worth
+  knowing before assuming a "strip field X for all 50" pattern generalises to
+  a future field that does *not* predate every guard the way this one did.
+- `node_modules/` was absent at the start of this session (fresh clone,
+  gitignored) — `bun install --frozen-lockfile` was needed before `bun run
+  typecheck` would run at all. It reported no lockfile changes, consistent
+  with criterion 14.
+- No dependency was added; no product decision was made (the Denali/Mount
+  McKinley call is explicitly left to the Review checklist below); no
+  criterion was ambiguous, wrong or impossible as written.

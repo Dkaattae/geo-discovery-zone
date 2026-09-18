@@ -700,6 +700,11 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
     for (const { file, raw } of stateFiles()) {
       const parsed = JSON.parse(raw) as Record<string, unknown>;
       delete parsed["climate_kid"];
+      // T-016 (2026-09-18, a later approved task) adds `highest_point` to
+      // Alaska only — the other 49 states already carried it at this task's
+      // own baseline, so their pinned digests were computed with it present.
+      // Alaska's was not, so it alone is stripped here.
+      if (file === "us-state-ak.json") delete parsed["highest_point"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
