@@ -6,7 +6,7 @@
 **From:** [`tasks.md`](../tasks.md) T-017
 **Branch:** `claude/task-t017-xqyyeq` — this session was assigned this branch by
 the harness and CLAUDE.md's "Branches" grants pushing to it for this task.
-**PR:** opened draft at expand time, built from the branch above.
+**PR:** [#49](https://github.com/Dkaattae/geo-discovery-zone/pull/49), opened draft at expand time, built from the branch above.
 **Fault:** (empty)
 
 **Sessions:**
