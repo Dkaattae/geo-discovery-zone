@@ -1,7 +1,7 @@
 # T-017 — Two region vocabularies, and they disagree
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Kate, 2026-09-18 (approved via chat on PR #49)
 **From:** [`tasks.md`](../tasks.md) T-017
 **Branch:** `claude/task-t017-xqyyeq` — this session was assigned this branch by
@@ -15,6 +15,7 @@ the harness and CLAUDE.md's "Branches" grants pushing to it for this task.
 |---|---|---|
 | task-expander | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz |
 | worker | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz |
+| tester | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fresh context, shared id — see Verdict) |
 
 ## Goal
 
@@ -397,7 +398,132 @@ is marked closed.
 
 ## Verdict
 
-(tester writes this)
+**Pass.** All eight criteria hold, verified by 68 new tests written from the
+criteria (55 in `question-bank/src/region-vocabulary.test.ts`, 13 in
+`backend/tests/test_region_vocabulary.py`), each of which was made to fail on
+purpose before being trusted. Whole suites: `question-bank` 1251 pass / 1 fail,
+`backend` 246 passed / 9 skipped, `frontend` 184 pass / 0 fail. **The one
+`question-bank` failure is pre-existing on `origin/main`** — proved by running
+it in a clean worktree at `origin/main`, where it fails identically — and is
+not attributable to this task.
+
+**Three things for the reviewer, none of them a criterion failure:** the
+contract's new description says region is "matched … exactly" when the backend
+in fact matches case- and hyphen-insensitively; `E-9` was inserted between
+`E-7` and `E-8` rather than after `E-8`; and the per-state curation review
+checklist is still open and still a human's to close.
+
+### Criteria
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | All 50 curated rows are in the 13-value set; zero `Midwest`; the only member of the old eight that is not in the 13 is `Midwest`, and no row carries it. `region-vocabulary.test.ts` "criterion 1", 5 tests |
+| 2 | pass | All 13 values appear in the file's **leading block comment**, alongside the `top_crops` and `highest_point` provenance paragraphs; the stale "match the values already in the frontend" claim is gone. 15 tests |
+| 3 | pass | All 15 anchors match the brief's values in `content.json` **and** in the curated table, and `content.json` is byte-identical to the branch point (`git diff f5b2382...HEAD -- backend/app/data/content.json` is empty). 15 TS tests + 3 Python tests, including one through the live API |
+| 4 | pass | Closed-set scan over all three sources the criterion names — curated table (50 rows), built `us-state-*.json` (50 files), `content.json` (15 entities + 26 questions, recursively) — plus the served `/entities` and `/questions` responses. 7 TS + 6 Python tests |
+| 5 | pass | Every backticked example in `components/parameters/Region`'s description is a region the API actually returns, none is kebab-case, the three fabricated old examples are gone, `schema` is still `{type: string}` (no enum, per Out of scope), and the first documented example works as a real filter |
+| 6 | pass | All four guards pass, and mutation proves they still guard: a non-`region` edit to one built file turns all four red, and no-op'ing each guard's region neutralisation turns its digest check red |
+| 7 | pass | `## E-9` exists, is the highest and only claimant of that number, names both vocabularies, points at `content.json`, and carries a `Revisit when` in `E-7`/`E-8`'s shape |
+| 8 | pass | No manifest or lockfile in the diff (`git diff --name-only f5b2382...HEAD`); `question-bank` still declares no runtime dependency and the same two devDependencies; every suite re-run with all six proxy spellings at `http://127.0.0.1:1` produced identical results |
+
+### On criterion 4 — the worker's open question
+
+**The worker's reading is right, and this is not a brief-clarity gap.** Criterion
+4 is phrased as an outcome ("a test fails if…"), the brief's Constraints name
+four *existing* guard files to extend and no fifth, and `process.md` step 4 puts
+test-writing with the session that did not do the work. The closed-set test is
+therefore this session's deliverable and now exists, over all three sources the
+criterion lists, in both packages that own them. No `blocked`, nothing for
+`task-expander`.
+
+### Mutations made, and reverted
+
+Every one was reverted; `git status` is clean apart from the two new test files.
+
+| Mutation | Expected red | Observed |
+|---|---|---|
+| One curated `Great Lakes` → `Midwest` | criteria 1, 4 | 6 tests red, including the built-vs-curated drift check |
+| `us-state-oh.json` region → `great-lakes` | criterion 4 (built) | 2 tests red |
+| `content.json` `Great Lakes` → `Midwest` | criteria 3, 4 | 5 Python + 2 TS tests red |
+| `us-state-oh.json` `capital` Columbus → Cleveland | criterion 6 | **all four** digest guards red — the recomputed pins are real, and the neutralisation did not over-strip |
+| Each guard's region neutralisation made a no-op | criterion 6 | each guard's digest check red; `top-crops`/`highest-point` also redden their own "the region removal actually drops…" test |
+| `Pacific West` removed from the header comment | criterion 2 | 1 test red |
+| `openapi.yaml` description restored to the old slug text | criterion 5 | 3 tests red |
+| `## E-9` renamed to `## E-10` | criterion 7 | 3 tests red |
+
+### Independence — which kind this run actually had
+
+**Fresh context, not a separate session.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_01NEERZW3gE6qHsQgi6suzSz`, the same id the Sessions table already records
+for `task-expander` and `worker`, so **the Sessions-table check did not pass —
+it did not run.** This is the relayed shape `process.md` describes: I am a
+subagent spawned with my own context window, I never saw the worker's
+transcript or reasoning, and everything I inherited is the brief, the
+repository and my prompt. That is real independence, but it rests on the
+spawning being correct rather than on evidence I can check myself, and it is
+weaker than a separate session. Weigh this `pass` accordingly.
+
+The worker's Handoff asks the tester to *refuse* on the shared id. I did not,
+because `process.md` (step 4, "Spawning, and the isolation it must not cost")
+and `.claude/agents/tester.md` both say explicitly not to refuse on the id
+alone under a relayed run, and to say instead which kind of independence
+applied — which is what the paragraph above does.
+
+### For the reviewer
+
+- **`openapi.yaml`'s new description overstates the matching rule.** It says
+  "Region name, matched against Entity.region **exactly**", but
+  `backend/app/store.py:385` `_slug_expression` lowercases and hyphenates both
+  sides, so `?region=mountain-west` still matches a stored `Mountain West`.
+  Criterion 5 only asks that the *example* be one the API returns, and it is —
+  so this is not a fail — but the contract now carries a claim the
+  implementation contradicts, and the Handoff itself notes the leniency. One
+  word ("matched against `Entity.region`, case- and hyphen-insensitively")
+  fixes it.
+- **`E-9` sits between `E-7` and `E-8`**, breaking the file's otherwise
+  ascending order; the Handoff says it is at the "end of file", which it is
+  not. Criterion 7 says nothing about placement, so it passes, but the file
+  reads oddly and the Handoff's claim is wrong.
+- **One pre-existing red test, worth a queue entry.**
+  `climate-kid-verify.test.ts` → "T-014 tester, criterion 19 … frontend/ and
+  backend/ carry no change from this task" fails on `origin/main` itself
+  (verified in a clean worktree), because its hardcoded branch point `13a735f`
+  predates the backend's own addition. Its sibling in `climate-kid.test.ts`
+  uses `origin/main...HEAD` and passes once `origin/main` is fetched. Not this
+  task's to fix — it is another task's frozen guard — but it will keep costing
+  every future tester a paragraph until someone re-pins it.
+- **Frontend typecheck could not be run here.** `bun install` fails with 403s
+  from the sandbox's npm proxy, so `us-atlas` and several `d3-*` packages are
+  absent and `tsc` reports missing modules in `UsMap.tsx`. No frontend file is
+  in this task's diff, and the frontend job in CI covers it. Frontend `bun
+  test` does pass (184/184).
+- **Repo-wide prettier drift is real and pre-existing**, as the Handoff says. I
+  did not reformat anything either.
+
+### Review checklist — still open, still a human's
+
+Criterion 4 proves every state has *a* value from the 13; it cannot prove it is
+the *right* one. The two the Handoff flags are the right two to look at, and I
+would add three more:
+
+- **Missouri → `Great Plains`.** The flagged call. Most sources put Missouri in
+  the Midwest, and with `Midwest` gone the nearest members are `Great Plains`
+  and `Upper Midwest`; a child in St. Louis would not say "Great Plains".
+- **Kentucky and West Virginia → `Southeast`.** The flagged call. Defensible,
+  and the 13-set genuinely has no Appalachian category.
+- **Iowa, North Dakota, South Dakota → `Upper Midwest`** while Kansas and
+  Nebraska go to `Great Plains`. The Dakotas are as plains-like as Nebraska;
+  the split is drawn on latitude rather than terrain.
+- **Delaware and Maryland → `Northeast`.** Both are usually called
+  Mid-Atlantic, and Maryland is often grouped south; `Northeast` is the least
+  bad of the 13 but is not what most adults would say.
+- **Idaho → `Mountain West`** while Oregon and Washington are `Pacific
+  Northwest`. Idaho is frequently counted in the Pacific Northwest.
+
+None of these is wrong enough to fail a criterion — all five are inside the
+closed set and are judgment calls the brief explicitly routes to a human. T-022
+will eventually group distractors by exactly this field, which is the reason to
+read them now rather than later.
 
 ## Notes
 
