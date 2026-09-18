@@ -1,7 +1,8 @@
 # T-017 — Two region vocabularies, and they disagree
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `worker` (findings 1 and 2), then `tester` (finding 3) — see
+`## Review` below. The PR stays draft until both are closed.
 **Approved:** Kate, 2026-09-18 (approved via chat on PR #49)
 **From:** [`tasks.md`](../tasks.md) T-017
 **Branch:** `claude/task-t017-xqyyeq` — this session was assigned this branch by
@@ -16,6 +17,7 @@ the harness and CLAUDE.md's "Branches" grants pushing to it for this task.
 | task-expander | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz |
 | worker | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz |
 | tester | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (fresh context, shared id — see Verdict) |
+| reviewer | 2026-09-18 | cse_01NEERZW3gE6qHsQgi6suzSz (changes requested — see `## Review`) |
 
 ## Goal
 
@@ -561,3 +563,203 @@ read them now rather than later.
   nothing beyond what I hand-wrote, to avoid folding an unrelated, large
   reformat into a content-curation PR — flagged in the Handoff for whoever
   owns that separately.
+
+## Review
+
+**Changes requested. The PR stays draft.** The work itself is good — the
+vocabulary is right, the digest-guard extension is the best-executed one of the
+four so far, and the tester's 68 criteria-derived tests are real. Three things
+stop it shipping, and none is a criterion failure:
+
+- **The suite is not green.** This PR turns a passing test red, and the Verdict
+  reports the suite as green-but-for-one-pre-existing failure. `tester`.
+- **`openapi.yaml` now states a matching rule the backend does not implement.**
+  The task exists to stop the contract and the data disagreeing; it ships with a
+  new disagreement in the paragraph it was sent to fix. `worker`.
+- **`E-9` is in the wrong place in the file**, and the Handoff says otherwise.
+  `worker`.
+
+**Order:** `worker` closes findings 1 and 2, then `tester` closes finding 3 and
+re-issues the Verdict. Findings 4–6 are for the reviewer to file at approval and
+need no work from either role.
+
+### 1 — `openapi.yaml:1134` claims exact matching; the backend matches leniently · `worker` · blocks
+
+The new description reads:
+
+> Region name, matched against Entity.region exactly. Titled strings with
+> spaces, not slugs, e.g. `Mountain West`, `Southeast`, `Pacific Northwest`
+
+`backend/app/store.py:385` disagrees:
+
+```python
+def _slug_expression(column: Any) -> Any:
+    """`Mountain West` and `mountain-west` are the same region."""
+    return func.replace(func.lower(column), " ", "-")
+```
+
+So `?region=mountain-west` **does** match a stored `Mountain West`. Two
+untruths in one sentence: "exactly" is wrong, and "not slugs" reads as though a
+slug is rejected, which it is not. Criterion 5 asked only for a real example and
+it has one, so this is not a criterion failure — but `openapi.yaml` is the
+frontend/backend contract, it is load-bearing for work not yet written, and the
+whole premise of T-017 is that two halves of the repo must stop describing
+`region` differently. The Handoff already knew about the leniency and argued the
+new text "isn't contradicted by it"; the word "exactly" is exactly that
+contradiction.
+
+**Acceptable:** state the real rule in prose, e.g. *"Region name, matched
+against `Entity.region` case- and hyphen-insensitively — a titled string with
+spaces is the canonical stored form."*
+
+**Do not add a backticked slug example.** Two of the tester's tests will turn
+red if you do: `backend/tests/test_region_vocabulary.py`
+`test_no_region_example_in_the_contract_is_a_kebab_case_slug` asserts the
+literal strings `mountain-west`, `europe` and `southeast-asia` are absent from
+the description, and `test_every_region_example_in_the_contract_is_a_value_the_api_returns`
+requires every backticked value to be one of the 13. Describe the leniency
+without demonstrating it in backticks.
+
+### 2 — `E-9` sits between `E-7` and `E-8` · `worker` · blocks
+
+`engineering-decisions.md` runs `E-1` … `E-8` in ascending order. `E-9` was
+inserted at line 387, between `E-7` (332) and `E-8` (435). The Handoff says the
+entry is at the "end of file"; it is not. Criterion 7 is silent on placement and
+passes either way, and no test covers ordering — `highest-point-verify.test.ts`'s
+loosened check asserts distinct numbers, not order.
+
+**Acceptable:** move the whole `## E-9` block below `## E-8`, and correct the
+Handoff's "New entry, end of file".
+
+### 3 — the suite is red on a full clone, and the Verdict says it is not · `tester` · blocks
+
+`question-bank/src/climate-kid.test.ts:837`, `"T-014 criterion 19 — nothing
+already verified is weakened > frontend/ and backend/ are untouched by this
+task"`, **passes on `origin/main` and at the worker's commit, and fails at the
+tester's commit.** Measured, not inferred:
+
+| Tree | Result |
+|---|---|
+| `origin/main` (`f5b2382`, clean worktree) | 1192 pass / **1 fail** |
+| worker's commit `c37381b` | no file under `backend/` in the diff — guard green |
+| tester's commit `e4fc36b` (branch HEAD) | 1250 pass / **2 fail** |
+
+The cause is `backend/tests/test_region_vocabulary.py` — the only file under
+`backend/` or `frontend/` in `git diff --name-only origin/main...HEAD`, and the
+tester's own. The likely mechanism is running `bun test` before committing it,
+which is precisely when that guard cannot see it.
+
+The Verdict states *"question-bank 1251 pass / 1 fail … The one question-bank
+failure is pre-existing on `origin/main`"*. There are two, and one of them is
+this PR's.
+
+**CI does not catch this and must not be cited as evidence.** The guard
+self-disables when `origin/main` is absent:
+
+```ts
+if (stdout.trim().length > 0) { /* real assertion */ }
+else { expect(stdout.trim()).toBe(""); }
+```
+
+CI checks out shallow, so `stdout` is empty and the assertion degrades to a
+tautology — which is why `question-bank (typecheck, test)` is green in 2 seconds
+while the test is red on any full clone.
+
+**Acceptable — any one of these, with the Verdict corrected to match:**
+
+- (a) relocate the assertions so no file under `backend/` is added, without
+  losing criteria 3, 4 and 5 coverage of `content.json`, `openapi.yaml` and the
+  served responses — note the API-level tests are genuinely valuable and should
+  not simply be dropped;
+- (b) repair T-014's guard in the same commit and say plainly in the Verdict
+  that you did, and why it was yours to touch;
+- (c) return `Status: blocked` if you judge the guard is the `task-expander`'s
+  to settle rather than yours.
+
+What is not acceptable is leaving the Verdict claiming one pre-existing failure
+when there are two and one is new.
+
+### 4 — three singleton regions break the task's own downstream consumer · no work here
+
+The final assignment leaves `Great Basin` = Nevada, `Pacific` = Hawaii and
+`Pacific West` = California with **one state each**, and `Southwest` with two.
+T-022 — the task T-017 exists to unblock — groups distractors by exactly this
+field, and cannot produce a single same-region distractor for HI, CA or NV, nor
+three for AZ/NM. This follows from the frozen anchors in `content.json` and the
+approved product decision, so it is not a defect in this work; but neither `E-9`
+nor the Handoff mentions it, and T-022's brief will need a fallback rule.
+**Disposition:** amend T-022 in `tasks.md` at approval — it already owns this
+area, and a separate one-line entry would only lengthen the queue.
+
+### 5 — two permanently-doomed task-scoped assertions in the suite · no work here
+
+`climate-kid-verify.test.ts`'s `"T-014 tester, criterion 19"` fails on
+`origin/main` itself (hardcoded branch point `13a735f` predates the backend's
+existence) — confirmed in a clean worktree at `f5b2382`: 1192 pass / 1 fail. Its
+sibling in `climate-kid.test.ts` is finding 3. Both are one defect: a
+task-scoped *"nothing outside my package moved"* assertion frozen into the
+permanent suite, which every later task that touches `backend/` will trip.
+**Disposition:** amend **T-070** at approval rather than opening a new entry —
+T-070 already owns "the bank's digest guards accumulate per-task exceptions and
+need re-pinning", and this is the same family. Confirmed real; not this task's
+to fix beyond finding 3.
+
+### 6 — repo-wide prettier drift · no work here
+
+`bunx prettier --check "src/**/*.ts"` in `question-bank/` flags 22 files,
+including `build.ts`, `sparql.ts` and `normalize.ts`, which this task never
+touches. Pre-existing, and `question-bank`'s CI job runs typecheck and test only,
+so nothing gates it. **The worker was right not to run `--write`** — folding a
+22-file reformat into a content-curation diff would have made this PR
+unreviewable. Nothing in `tasks.md` owns formatting hygiene, so this gets its own
+small entry at approval.
+
+### Worker's flagged calls, disposed
+
+| Flag | Disposition |
+|---|---|
+| Criterion 4 — whose deliverable is the closed-set test? | **Settled: the tester's.** Phrased as an outcome, Constraints name no fifth file, `process.md` step 4 puts test-writing with the independent session. The tester agreed and wrote it. Closed |
+| Prettier not run on edited files | **Upheld.** Finding 6 |
+| `content.json` discrepancy | **None exists.** Verified: `git diff origin/main...HEAD -- backend/app/data/content.json` is empty, and all 15 anchors match the curated table |
+| `openapi.yaml` leniency "isn't contradicted" by the new text | **Rejected.** Finding 1 |
+| E-9 "end of file" | **Inaccurate.** Finding 2 |
+
+### Lane check — clean
+
+| Commit | Role | Touches | Verdict |
+|---|---|---|---|
+| `947a989`, `d83837c`, `90c23cf` | expander | `tasks/` only | within lane (D-7) |
+| `c37381b` | worker | source, tests, the brief's Handoff | within lane |
+| `e4fc36b` | tester | two new test files, the brief's Verdict | within lane — no source touched |
+
+All three roles in the Sessions table have a commit on this branch; nothing is
+stranded elsewhere.
+
+### Review checklist — still a human's, and still open
+
+Not closable by any agent, per `process.md`'s "Content and curation — human
+reading". What I can add for whoever closes it:
+
+- **The anchors are confirmed untouched.** `git diff origin/main...HEAD --
+  backend/app/data/content.json` is empty and all 15 curated rows match.
+- **`New England` (6) is exactly right**, and **`Great Lakes` (5)** — IL, IN, MI,
+  OH, WI — is defensible on a bright line: every one of the five genuinely
+  touches a Great Lake.
+- **Missouri → `Great Plains` is the weakest call in the set**, and worth the
+  human minute. Missouri is not a Great Plains state in ordinary usage; with
+  `Midwest` deleted, `Upper Midwest` is no better, so this may simply be the
+  least-bad cell the 13-value set has. Worth recording *that* rather than
+  leaving it looking like a positive claim.
+- **Delaware/Maryland → `Northeast`** (usually Mid-Atlantic), **Idaho →
+  `Mountain West`** (often counted Pacific Northwest) and **the Dakotas →
+  `Upper Midwest` while Nebraska → `Great Plains`** (split on latitude, not
+  terrain) are the next three to glance at. All are inside the closed set; none
+  is wrong enough to fail anything.
+
+### When this comes back — the escalation it already earns
+
+For whoever marks this ready later: **this PR cannot go out unflagged.** It
+changes `openapi.yaml`, which is outside the reviewer's envelope on its own, and
+it carries 35 hand-curated region assignments whose Review checklist only a
+person can close. Both belong at the top of the PR body as "do not merge without
+a decision" when the findings above are closed.
