@@ -405,12 +405,14 @@ of disappearing the way this one did.
 
 **Alaska is the only state relying on it today**, because it is the only row
 the fixture leaves without a `P610` label. The curated value is not
-independently chosen: it is pinned equal to Alaska's existing `landmark`
-("Denali"), so the two fields cannot silently drift apart, and the still-open
-Denali / Mount McKinley question (escalated by T-013's reviewer on PR #43) has
-exactly one place to be answered rather than two. If that call changes, both
-`landmark` and `highest_point` change together — one edit in
-`curated/us-states.ts`, followed by an offline rebuild.
+independently chosen: it is pinned equal to Alaska's `landmark`, so the two
+fields cannot silently drift apart. That pinning is what turned the Denali /
+Mount McKinley question — escalated by T-013's reviewer on PR #43, still open
+when this decision was first written — into exactly one place to be answered
+rather than two. **Dkaattae answered it 2026-09-18, on PR #47: Mount
+McKinley.** Both `landmark` and `highest_point` were changed together in the
+same edit to `curated/us-states.ts`, followed by an offline rebuild, exactly as
+this pinning was designed to make possible.
 
 **Why a curated fallback rather than accepting the blank.** `tasks.md` offered
 both routes; the approved brief took the fallback because the string already

@@ -32,8 +32,10 @@
  * it. Alaska is the only row that sets it today — its P610 binding has no
  * label, which is the fixture's gap this field exists to close. The value here
  * is pinned equal to `landmark`, not independently chosen, so the Denali /
- * Mount McKinley call (still open from T-013's PR #43) stays a one-place edit
- * instead of two fields drifting apart. See `engineering-decisions.md` E-8.
+ * Mount McKinley call stays a one-place edit instead of two fields drifting
+ * apart. **Decided 2026-09-18 by Dkaattae, on PR #47: Mount McKinley** — the
+ * same call T-013's reviewer left open on PR #43. See `engineering-decisions.md`
+ * E-8.
  */
 
 import type { FunFact } from "../types";
@@ -98,8 +100,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     region: "Pacific",
     state_animal: "Moose",
     climate_kid: "long cold snowy winters inland, milder and rainy along the southern coast",
-    landmark: "Denali",
-    highest_point: "Denali",
+    landmark: "Mount McKinley",
+    highest_point: "Mount McKinley",
     top_crops: ["peonies"],
     fun_facts: [
       {

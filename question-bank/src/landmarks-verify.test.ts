@@ -59,7 +59,7 @@ const HANDOFF_BLANKS = ["DE", "IA", "KS", "MS", "OK", "RI"] as const;
  */
 const HANDOFF_TABLE: Record<string, string> = {
   AL: "U.S. Space & Rocket Center",
-  AK: "Denali",
+  AK: "Mount McKinley",
   AZ: "Grand Canyon",
   AR: "Crater of Diamonds State Park",
   CA: "Golden Gate Bridge",

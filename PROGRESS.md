@@ -156,9 +156,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   fixture has an elevation but no label, so it now comes from `CuratedState` —
   read only as a **fallback**, never over a live value (`engineering-decisions.md`
   **E-8**). A state left with neither source now warns at build time, so the next
-  gap of this shape announces itself instead of shipping blank. Alaska's value is
-  pinned equal to its `landmark` ("Denali"); whether that name should be "Mount
-  McKinley" is the same unsettled human call as T-013's, open on PR #43 and #47.
+  gap of this shape announces itself instead of shipping blank. Alaska's value
+  is pinned equal to its `landmark`, so the two never drift apart — and
+  **Dkaattae decided the still-open name question directly on PR #47
+  (2026-09-18): Mount McKinley**, the same call T-013's reviewer left open on
+  PR #43. Both fields were updated together.
   **`highest_point_m` is a separate problem** — at least five states carry feet
   under a metres key (T-069).
 - **The offline-rebuild test harness lives in one place** (T-014, PR #44):
@@ -314,14 +316,15 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   *Where it differed from the brief:* nowhere in substance — all 16 criteria met
   as written, the survey held, no route change. Three things are worth carrying
   forward:
-  - **It ships "Denali", and that is still a human call.** The value is copied
-    from Alaska's existing `landmark` and the two are pinned equal, so the
-    federal-name change to Mount McKinley (2025) stays a **one-place edit in the
-    data** rather than two fields drifting. It is the same open box as T-013 /
-    PR #43 — settling one settles both — and PR #47 was escalated for it rather
-    than marked routinely ready. Note the "one edit" is one edit *in the bank*:
-    the name is also a literal in three test expectation tables, and in
-    `backend/app/data/content.json`'s Alaska fun fact, which T-040 replaces.
+  - **It shipped "Denali" at review, then Dkaattae settled the name on the same
+    PR (2026-09-18): Mount McKinley.** The value was copied from Alaska's
+    existing `landmark`, and the two fields are pinned equal, so this was a
+    **one-place edit in the curated table**, followed by an offline rebuild —
+    exactly the shape the pinning was built for. It was the same open box as
+    T-013 / PR #43; settling it here settled both. The "one edit" was one edit
+    *in the curated data* — the name was also a literal in three test
+    expectation tables (updated alongside it) and in `backend/app/data/content.json`'s
+    Alaska fun fact (also updated; that file is the served bank T-040 replaces).
   - **The pinned-digest guards took a fourth exception**, in all three of
     `landmarks-verify`, `climate-kid-verify` and `top-crops-verify`, and this one
     had to be **asymmetric** — strip `highest_point` for `us-state-ak.json` only,

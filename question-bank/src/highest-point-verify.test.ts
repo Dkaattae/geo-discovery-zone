@@ -261,13 +261,37 @@ describe("T-016 tester, criterion 4 — Alaska's highest_point is one plain name
 describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and nothing else", () => {
   const raw = readState("us-state-ak.json");
   const entity = JSON.parse(raw) as {
+    landmark?: string;
+    highest_point?: string;
     highest_point_m?: number;
     sources?: { built_at?: string };
   };
 
-  test("removing the one highest_point line reproduces the default branch's bytes exactly", () => {
-    const withoutLine = raw.replace(/^ {2}"highest_point": "[^"]*",\n/m, "");
+  /**
+   * Addendum, 2026-09-18: after this suite's original pass, Dkaattae resolved
+   * the still-open Denali / Mount McKinley call directly on PR #47 — Alaska's
+   * `landmark` and `highest_point` both changed from "Denali" to "Mount
+   * McKinley". Criterion 5 as originally worded ("exactly one added line") no
+   * longer holds by design: a second, deliberate, human-decided line now also
+   * differs from the default branch. The test below is widened to name both
+   * differences explicitly rather than pretend only one exists.
+   */
+  test("removing the highest_point line and reverting landmark to the default branch's value reproduces the default branch's bytes exactly", () => {
+    const withoutLine = raw
+      .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
+      .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",');
     expect(sha256(withoutLine)).toBe(DEFAULT_BRANCH_DIGESTS["us-state-ak.json"] as string);
+  });
+
+  test("landmark is the only other field that differs from the default branch, and it equals the decided value", () => {
+    const withoutHighestPoint = raw.replace(/^ {2}"highest_point": "[^"]*",\n/m, "");
+    const withDefaultLandmark = withoutHighestPoint.replace(
+      /^ {2}"landmark": "[^"]*",$/m,
+      '  "landmark": "Denali",',
+    );
+    expect(withoutHighestPoint).not.toBe(withDefaultLandmark);
+    expect(entity.landmark).toBe("Mount McKinley");
+    expect(entity.highest_point).toBe("Mount McKinley");
   });
 
   test("that removal is real — the neutralised bytes differ and no longer carry the value", () => {
@@ -459,8 +483,13 @@ describe("T-016 tester, criterion 11 — both neutralisation routes are proven r
   const raw = readState("us-state-ak.json");
   const value = (JSON.parse(raw) as { highest_point: string }).highest_point;
 
+  // Addendum, 2026-09-18: see criterion 5's addendum above — `landmark` also
+  // differs from the default branch now, by the same deliberate, human-decided
+  // edit, so reproducing the default branch's bytes needs that reverted too.
   test("the textual route (top-crops-verify) changes the bytes and drops the value", () => {
-    const neutralised = raw.replace(/^ {2}"highest_point": "[^"]*",\n/m, "");
+    const neutralised = raw
+      .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
+      .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",');
     expect(neutralised).not.toBe(raw);
     expect(neutralised).not.toContain('"highest_point"');
     expect(neutralised).not.toContain(`"highest_point": "${value}"`);
@@ -536,14 +565,18 @@ describe("T-016 tester, criteria 14 and 15 — no dependency, nothing out of sco
     expect(readFileSync(join(PKG, "package.json"), "utf8")).toBe(base);
   });
 
-  test("Alaska's landmark value is unchanged from the default branch", () => {
-    const proc = Bun.spawnSync(["git", "show", "origin/main:question-bank/data/us-states/us-state-ak.json"], {
-      cwd: REPO,
-    });
-    if (proc.exitCode !== 0) return; // shallow clone (CI).
-    const before = JSON.parse(proc.stdout.toString()) as { landmark?: string };
-    const now = JSON.parse(readState("us-state-ak.json")) as { landmark?: string };
-    expect(now.landmark).toBe(before.landmark as string);
+  // Addendum, 2026-09-18: criterion 15 originally meant "this task does not
+  // touch `landmark`", which held for T-016 itself. Dkaattae's subsequent,
+  // separate decision on PR #47 (Denali → Mount McKinley, the call T-013's
+  // reviewer left open) deliberately changes it. The check below is
+  // repointed at that decision instead of at the default branch.
+  test("Alaska's landmark equals the value decided on PR #47, and matches highest_point (criterion 3)", () => {
+    const now = JSON.parse(readState("us-state-ak.json")) as {
+      landmark?: string;
+      highest_point?: string;
+    };
+    expect(now.landmark).toBe("Mount McKinley");
+    expect(now.highest_point).toBe(now.landmark);
   });
 });
 
