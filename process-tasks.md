@@ -162,6 +162,32 @@ lint` (clean) and `bun run typecheck` without a single approval prompt. So the
 failure is specific to spawned `claude -p` children, not to the container, and
 that is the gap to characterise before designing around it.
 
+**Narrower still, from the same day's run.** The driving session also tried
+spawning `orchestrator` as its own `Agent`-tool subagent (one level below the
+top-level session), expecting it to relay `worker`/`tester`/`reviewer` per its
+own design. It couldn't: at that nesting depth it had no `Agent`/`Task` tool of
+its own, so — mirroring what `run-loop.sh` does — it fell back to `claude -p`
+and hit the identical "requires approval" wall. But the driving session then
+spawned `reviewer` **directly** as its own subagent (not through a nested
+orchestrator), and that subagent's `bun test`/`lint`/`typecheck` calls ran with
+no prompt at all, same as the top-level session's. A later mutation-testing
+subagent, spawned the same direct way, ran eight mutations with full Bash access
+and no prompts either. So the trust wall is not "any subagent" — it is
+specifically **a `claude` CLI process spawned without this session's inherited
+context**, whether that's `run-loop.sh`'s `claude -p` or a nested orchestrator's
+`claude -p`. A subagent spawned via `Agent` one level below an already-trusted
+session inherits that trust and runs fine; a subagent spawned two levels below
+(or a bare CLI invocation at any depth) does not.
+
+**The working fallback, until this is designed properly:** in an environment
+that shows this fault, have the top-level session itself relay each role via
+`Agent` directly — i.e. act as the orchestrator by hand, one spawn at a time —
+rather than spawning an `orchestrator` subagent or running `run-loop.sh`. It is
+slower to invoke (a person has to say it explicitly, e.g. "spawn worker/tester/
+reviewer yourself instead of using run-loop.sh") and it still needs the gates
+`orchestrator.md` describes applied by hand, since nothing enforces them
+otherwise, but it is the one path in today's evidence that reliably executes.
+
 Worth weighing, rather than assuming the first is the answer:
 - **Make the trust state a documented precondition** of `run-loop.sh` — a
   preflight that spawns one child, runs `git status`, and refuses to start the
