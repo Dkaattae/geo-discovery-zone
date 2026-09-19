@@ -4,13 +4,17 @@ import { join } from "node:path";
 
 /**
  * T-008, written by the `tester` session from the brief's acceptance criteria
- * (`process.md` step 4) — not from the implementation. It overlaps
- * `ci-workflow-pins.test.ts` (the worker's criterion-10 deliverable) on purpose:
- * this file is the independent restatement, and it is stricter in three places
- * the criteria are explicit about and the worker's file is not — the SHA must be
- * *lowercase* hex (criterion 7), the trailing comment must name a *released
- * version* rather than any `v…` token (criterion 7), and no fifth action may
- * appear at all (criterion 14).
+ * (`process.md` step 4) — not from the implementation. It is stricter in three
+ * places the criteria are explicit about — the SHA must be *lowercase* hex
+ * (criterion 7), the trailing comment must name a *released version* rather
+ * than any `v…` token (criterion 7), and no fifth action may appear at all
+ * (criterion 14).
+ *
+ * T-061 folded the worker's original criterion-10 deliverable — a separate
+ * test file, and a behavioural subset of this one — into this file, so E-5's
+ * pinning rule — the predicate below, deciding by `uses:` owner whether a
+ * reference must be pinned to a commit SHA — has exactly one implementation
+ * under `frontend/src/`.
  *
  * The rule being checked is `engineering-decisions.md` E-5's, which criterion 2
  * requires to resolve every reference in `ci.yml` into exactly one category:
@@ -46,12 +50,19 @@ interface Reference {
   comment: string | null;
 }
 
+/** A `uses:` line whose right-hand side is not `owner/repo@ref [# comment]` — for
+ * example `uses: docker://alpine:3`. Named separately so it can be reported as
+ * a violation (criterion 6) instead of silently dropping out of `references()`
+ * as one fewer parsed reference. */
+const USES_LINE = /^\s*(?:-\s+)?uses:\s*(.+?)\s*$/;
+const REFERENCE_SHAPE = /^([^/\s]+)\/([^@\s]+)@([^\s#]+)\s*(?:#\s*(.*?))?\s*$/;
+
 function references(workflow: string): Reference[] {
   const found: Reference[] = [];
   for (const line of workflow.split("\n")) {
-    const match = line.match(
-      /^\s*(?:-\s+)?uses:\s*([^/\s]+)\/([^@\s]+)@([^\s#]+)\s*(?:#\s*(.*?))?\s*$/,
-    );
+    const usesMatch = line.match(USES_LINE);
+    if (!usesMatch) continue;
+    const match = usesMatch[1]!.match(REFERENCE_SHAPE);
     if (!match) continue;
     found.push({
       action: `${match[1]!}/${match[2]!}`,
@@ -63,12 +74,27 @@ function references(workflow: string): Reference[] {
   return found;
 }
 
+/** Every `uses:` line present that `references()` could not decompose into
+ * `owner/repo@ref` — the raw right-hand side, so a failure names it. */
+function unparsedUsesLines(workflow: string): string[] {
+  const found: string[] = [];
+  for (const line of workflow.split("\n")) {
+    const usesMatch = line.match(USES_LINE);
+    if (!usesMatch) continue;
+    if (!REFERENCE_SHAPE.test(usesMatch[1]!)) found.push(usesMatch[1]!);
+  }
+  return found;
+}
+
 /**
  * Every way a workflow's `uses:` lines can violate E-5, as a list of strings so
  * a failure names the offending line rather than just going red.
  */
 function violations(workflow: string): string[] {
   const problems: string[] = [];
+  for (const raw of unparsedUsesLines(workflow)) {
+    problems.push(`uses: ${raw}: cannot be decomposed into owner/repo@ref`);
+  }
   for (const { action, owner, ref, comment } of references(workflow)) {
     const pinned = owner !== "actions";
     const isSha = LOWERCASE_SHA.test(ref);
@@ -99,12 +125,13 @@ describe("T-008 criterion 7 — every uses: reference in ci.yml conforms to E-5"
     expect(actions).toEqual(EXPECTED_ACTIONS);
   });
 
-  test("ci.yml has thirteen uses: references, none of them unparsed", () => {
-    // The survey in the brief counted 13; criterion 11 forbids losing any of the
-    // steps that carry them. A `uses:` line the parser cannot read would show up
-    // here as a short count rather than passing silently.
-    expect(references(CI_YML).length).toBe(13);
-    expect(CI_YML.split("\n").filter((l) => /^\s*(?:-\s+)?uses:/.test(l)).length).toBe(13);
+  test("no uses: line in ci.yml is unparsed — every one decomposes into owner/repo@ref", () => {
+    // T-061 criterion 5 forbids pinning a workflow size here — the raw line
+    // count would fire on any legitimately added step. Instead: every line that
+    // looks like `uses:` must actually parse, checked by name rather than count,
+    // so a line the regex cannot read shows up in the array rather than passing
+    // silently as one fewer reference (criterion 6).
+    expect(unparsedUsesLines(CI_YML)).toEqual([]);
   });
 
   test("no reference uses a branch name — no @main, @master, @latest, nothing unversioned", () => {
@@ -152,10 +179,18 @@ describe("T-008 criterion 10 — the check goes red when a reference is less pin
 
   test("an actions/* reference on a branch name is a violation", () => {
     expect(violations("      - uses: actions/checkout@main\n")).toHaveLength(1);
+    expect(violations("      - uses: actions/checkout@master\n")).toHaveLength(1);
   });
 
   test("an actions/* reference on @latest is a violation", () => {
     expect(violations("      - uses: actions/upload-artifact@latest\n")).toHaveLength(1);
+  });
+
+  test("a uses: line the parser cannot decompose into owner/repo@ref is a violation, not a silently dropped reference", () => {
+    // T-061 criterion 6 — this line has no `/` before `@`, so the strict shape
+    // never matches; it must be reported, not just missing from references().
+    expect(violations("      - uses: docker://alpine:3\n")).toHaveLength(1);
+    expect(violations("      - uses: docker://alpine:3\n")[0]).toContain("docker://alpine:3");
   });
 
   test("a SHA pin with no comment naming its release is a violation", () => {

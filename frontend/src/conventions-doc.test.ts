@@ -8,9 +8,9 @@ import { join } from "node:path";
  * the bottom of this file, which check the same kind of claim in `README.md`
  * and a lockfile-attribution claim in `conventions.md`'s CI section — reusing
  * this file's helpers (`workflowJobs()` in particular) rather than adding a
- * third parser of `ci.yml` next to this one and `ci-workflow-pins.test.ts` /
- * `ci-action-pinning.test.ts` (T-061 dedupes those two; this file is not one
- * of them, so it stays a third, not a fourth).
+ * third parser of `ci.yml` next to `ci-action-pinning.test.ts` (T-061 folded
+ * the test file that used to duplicate it into this one; this file is not
+ * part of that pair, so it stays a third parser, not a fourth).
  *
  * Every expected value here comes from the wording of a criterion in
  * `tasks/T-007-conventions-current.md` or `tasks/T-058-doc-claims-about-ci.md`,
@@ -354,11 +354,11 @@ describe("criterion 10 — CI is described, and the job list matches", () => {
     // "`frontend`, `question-bank`, ..." — which is well defined without
     // reading any expected value out of the doc. Neither a job the list omits
     // nor a name in it that is not a job satisfies the criterion.
-    const runs = [...flat(section("## CI")).matchAll(/`[^`]+`(?:\s*(?:,|and)?\s*`[^`]+`)+/g)].map(
-      (match) => [...match[0].matchAll(/`([^`]+)`/g)].map((token) => token[1]!),
-    );
-    const longest = runs.sort((a, b) => b.length - a.length)[0];
-    expect(longest).toBeDefined();
+    // T-061: `longestBacktickRun()` (defined below, reused for README's job
+    // list) used to be duplicated here as an inline regex; one implementation
+    // now serves both.
+    const longest = longestBacktickRun(section("## CI"));
+    expect(longest.length).toBeGreaterThan(0);
     expect([...new Set(longest)].sort()).toEqual([...workflowJobs()].sort());
   });
 });
@@ -478,6 +478,21 @@ function jobsWithLockfileCheck(): string[] {
     .map((job) => job.name);
 }
 
+/** Job names in the backticked run of `conventions.md`'s `## CI` section's
+ * lockfile-drift sentence — the doc's claim of which jobs check the lockfile
+ * they installed from. Derived from the doc, which is the thing under test;
+ * the expectation it is compared against comes from `ci.yml`. T-061: this used
+ * to be defined twice (once per describe block below, five identical lines
+ * each) — one definition now serves both. */
+function jobsDocClaimsCheckLockfile(): string[] {
+  const ci = flat(section("## CI"));
+  const sentence = ci
+    .split(/(?<=[.;])\s+/)
+    .find((candidate) => /lockfile did not move/i.test(candidate));
+  expect(sentence).toBeDefined();
+  return [...sentence!.matchAll(/`([^`]+)`/g)].map((match) => match[1]!);
+}
+
 describe("README's CI claim names every job and states the right count (T-058 #1, #2)", () => {
   test("the set of job names in README's CI sentence is exactly ci.yml's job set", () => {
     const longest = longestBacktickRun(readmeSection("## Checks"));
@@ -560,6 +575,18 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
   // Postgres-only test count in backend/tests/test_postgres.py can drift
   // without going stale in prose), so this test's job is to keep it that
   // way rather than to pin a number.
+  //
+  // T-061 criterion 11: this pattern and `readme-test-count.criteria.test.ts`'s
+  // `testCountClaims()` (a tokeniser, not a phrase regex) are kept as two
+  // independent implementations on purpose — the latter's header comment
+  // (lines 17-20) says it was written independently precisely so it could
+  // disagree with the guard beside it, and folding one into the other would
+  // undo that. T-061 did not add a comparison between them; it only closed the
+  // gap the survey found: `testCountClaims()` already had a test proving it is
+  // not vacuous (`readme-test-count.criteria.test.ts:134-137`), and this
+  // pattern did not. The test below is that test's counterpart, so narrowing
+  // this pattern's reach (for example, back to only the Checks code block)
+  // goes red here too, not just on the other file's detector.
   const NUMBER_WORDS =
     "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen";
   const testCountPattern = new RegExp(
@@ -569,6 +596,10 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
 
   test("no digit or spelled-out count of tests appears anywhere in README.md", () => {
     expect(readmeDoc.match(testCountPattern)).toBeNull();
+  });
+
+  test("the pattern is not vacuous: it matches the sentence README.md used to state", () => {
+    expect("The nine Postgres-only tests skip on SQLite, so nobody").toMatch(testCountPattern);
   });
 });
 
@@ -586,15 +617,6 @@ describe("no unstated e2e journey count survives in conventions.md's Commands bl
 });
 
 describe("conventions.md attributes the lockfile check only to the jobs that have it (T-058 #5, #6)", () => {
-  function jobsDocClaimsCheckLockfile(): string[] {
-    const ci = flat(section("## CI"));
-    const sentence = ci
-      .split(/(?<=[.;])\s+/)
-      .find((candidate) => /lockfile did not move/i.test(candidate));
-    expect(sentence).toBeDefined();
-    return [...sentence!.matchAll(/`([^`]+)`/g)].map((match) => match[1]!);
-  }
-
   test("the doc's lockfile-checking job list is exactly the jobs with a `git diff --exit-code` step", () => {
     expect([...new Set(jobsDocClaimsCheckLockfile())].sort()).toEqual(
       [...jobsWithLockfileCheck()].sort(),
@@ -686,20 +708,9 @@ describe("T-058 #4 — every command README's Checks section names is real", () 
 });
 
 describe("T-058 #5 — the jobs conventions.md credits diff the lockfile they installed", () => {
-  /** Job names in the backticked run of the CI section's lockfile-drift
-   * sentence. Derived from the doc, which is the thing under test — the
-   * expectation it is compared against comes from `ci.yml`. */
-  function jobsCreditedByDoc(): string[] {
-    const sentence = flat(section("## CI"))
-      .split(/(?<=[.;])\s+/)
-      .find((candidate) => /lockfile did not move/i.test(candidate));
-    expect(sentence).toBeDefined();
-    return [...sentence!.matchAll(/`([^`]+)`/g)].map((match) => match[1]!);
-  }
-
   test("each credited job runs `git diff --exit-code` against the lockfile it installed from", () => {
     const blocks = ciJobBlocks();
-    const credited = [...new Set(jobsCreditedByDoc())];
+    const credited = [...new Set(jobsDocClaimsCheckLockfile())];
     expect(credited.length).toBeGreaterThan(0);
     for (const name of credited) {
       const job = blocks.find((candidate) => candidate.name === name);
@@ -718,7 +729,9 @@ describe("T-058 #5 — the jobs conventions.md credits diff the lockfile they in
   });
 
   test("no job with such a step is left out of the doc's list", () => {
-    expect([...new Set(jobsCreditedByDoc())].sort()).toEqual([...jobsWithLockfileCheck()].sort());
+    expect([...new Set(jobsDocClaimsCheckLockfile())].sort()).toEqual(
+      [...jobsWithLockfileCheck()].sort(),
+    );
   });
 });
 

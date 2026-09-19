@@ -19,6 +19,11 @@ import { join } from "node:path";
  * tokenises rather than pattern-matching a whole phrase — so that it can
  * disagree with the guard it is checking alongside.
  *
+ * T-061 criterion 11 reviewed this pair against `conventions-doc.test.ts`'s
+ * `testCountPattern` and kept both, for the reason above; see
+ * `conventions-doc.test.ts`'s "no unstated test-suite size" describe block for
+ * the full note and the matching non-vacuous test it added there.
+ *
  * Local file reads only; no network (`test-guidelines.md`, "No network in
  * tests, ever").
  */
