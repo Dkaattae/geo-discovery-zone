@@ -1,21 +1,26 @@
 # T-061 — One rule, one implementation: collapse the duplicated CI-workflow guards
 
 **Status:** `awaiting approval`
-**Next step:** `human` — this session could not commit, push or open the PR (see
-Fault). A person commits these two files, pushes the branch below, opens the
-draft PR, and records approval; then `worker`.
+**Next step:** `human` — the brief, branch, and draft PR are all in place; the
+only remaining gate is a person replacing `Approved: pending` below, which no
+session may do on its own; then `worker`.
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-19`
 **From:** [`tasks.md`](../tasks.md) T-061
 **Branch:** `claude/next-task-queue-ncef5o` — the branch this session was assigned
 (`process.md`, "When the environment names the branch for you"). It is what the
 PR must be built from; every later role pushes here, not to `task/T-061-…`.
-**PR:** not opened — `gh` is absent from this session and no GitHub MCP tool was
-available. Title and body to use are at the bottom of this file.
+**PR:** [#52](https://github.com/Dkaattae/geo-discovery-zone/pull/52) — draft,
+opened via the GitHub MCP tools from the driving session, which had them where
+the `task-expander` subprocess (see Fault) did not.
 **Fault:** mechanical, not editorial, and owned by the environment rather than by
-a role: every git write in this session — `git add`, `git commit`, `git push`, in
-every spelling tried — came back "This command requires approval", and an
-unattended `claude -p` run has nobody to grant it. The brief itself is complete;
-only its commit is missing.
+a role: `task-expander` ran under `claude -p` inside `run-loop.sh`, and every git
+write in that subprocess — `git add`, `git commit`, `git push`, in every spelling
+tried — came back "This command requires approval" (the workspace trust dialog
+has not been accepted for unattended `claude` invocations here), with no human
+to grant it mid-run. `run-loop.sh`'s own checkpoint step committed and pushed the
+brief from the trusted outer session immediately after
+(`db5230f`), and the PR above was opened the same way. No criterion, code or
+brief content was affected — only who ran the git commands.
 
 **Sessions:**
 
