@@ -131,6 +131,10 @@ Two halves, and the second is the cheap one:
 **Done when:** `bun run lint` either exists in `question-bank/` or is documented
 as deliberately absent, and nothing in the repo's docs implies a command the
 package does not have.
+**Skipped by the expander, 2026-09-19:** the first half is a dependency decision
+reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
+for it without guessing the answer. Unblocks the moment that call is recorded
+here; T-061 was taken instead.
 
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
 **Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
@@ -147,8 +151,10 @@ schedule is Dkaattae's call, not a task the loop can make on its own
 `.github/dependabot.yml` (or the Renovate equivalent) exists, is scoped to
 `github-actions`, and E-5's "no mechanism exists in the repo today" sentence is
 updated to match.
+**Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
+is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 
-### T-061 — Two test files enforce E-5, and one of them hardcodes a count · S · todo
+### T-061 — Two test files enforce E-5, and one of them hardcodes a count · S · **in flight** (brief: [`tasks/T-061-dedupe-e5-guards.md`](tasks/T-061-dedupe-e5-guards.md))
 **Depends on:** —
 **New 2026-09-04, found by T-008's reviewer (PR #34).** T-008 left the frontend
 suite with two files parsing `.github/workflows/ci.yml` and applying the same
