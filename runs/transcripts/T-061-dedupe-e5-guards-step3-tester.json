@@ -1,0 +1,2 @@
+Ignoring 18 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/geo-discovery-zone"].hasTrustDialogAccepted: true in /root/.claude.json.
+--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons
