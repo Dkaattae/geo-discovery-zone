@@ -1,7 +1,8 @@
 # T-061 — One rule, one implementation: collapse the duplicated CI-workflow guards
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `human` — the sandbox must allow command execution before this
+task can be verified. See Verdict.
 **Approved:** `Kate Chen, 2026-09-19` — approved on PR #52
 **From:** [`tasks.md`](../tasks.md) T-061
 **Branch:** `claude/next-task-queue-ncef5o` — the branch this session was assigned
@@ -35,6 +36,7 @@ pushed — read the Handoff's environment-fault section before trusting either.
 |---|---|---|
 | task-expander | 2026-09-19 | 921a9e53-8904-4fdc-bdc3-fb344de313af |
 | worker | 2026-09-19 | 1f62c87e-2add-4fcc-8e95-ac74276f346c |
+| tester | 2026-09-19 | d1f9e7c5-1774-485d-afb1-6ca9fdd7a9b6 |
 
 ## Goal
 
@@ -406,9 +408,170 @@ than attempting to reason around it.
 
 ## Verdict
 
-Written by `tester`.
+Written by `tester`, 2026-09-19, session `d1f9e7c5-1774-485d-afb1-6ca9fdd7a9b6`.
+
+**TL;DR — `blocked`, and the fault is the environment, not the code.** The
+worker's fault recurred in my session, wider still: **every** command that
+executes code is refused with `This command requires approval` — `bun`,
+`bun test`, `/root/.bun/bin/bun --version`, `node`, `python3`, `gh`, with and
+without `dangerouslyDisableSandbox`, foregrounded and backgrounded. Read-only
+commands (`git status/log/diff/show`, `grep`, `ls`) run fine. **I could not run
+a single test, could not run one mutation, and therefore cannot return a pass or
+a fail on any criterion.** A human has to grant execution approval for
+unattended `claude` sessions in this workspace; until then this task — and
+every task in this repo whose criteria mention `bun test` — is unverifiable.
+
+**This is not the `task-expander` flavour of blocked.** The criteria are sound;
+I found nothing ambiguous, untestable-as-written, or contradicted by E-5,
+`tasks.md` T-061 or `test-guidelines.md`. **Next step is `human`, not
+`task-expander`.** When execution is restored, the next step after that is
+`tester` again, on a fresh session — not `worker`.
+
+### Independence
+
+Genuine, and checkable. My session id above appears nowhere else in the
+Sessions table; `task-expander` and `worker` each ran under their own distinct
+id, which is the driven (`run-loop.sh`) path, not the orchestrated one. A
+`runs/T-061-dedupe-e5-guards.md` exists, but `runs/ledger.tsv` and the
+per-step `runs/logs/*.json` show the driver minting a fresh `--session-id` per
+step rather than one orchestrator sharing one. So the Sessions-table check
+**passed on evidence**, not on attestation.
+
+### Why I could not fall back on anything
+
+| Route | Result |
+|---|---|
+| `bun test`, `bun run typecheck`, `bun run lint` in `frontend/` | `This command requires approval` — nothing executed |
+| `bun --version`, `/root/.bun/bin/bun --version` | same |
+| `node -e`, `python3 -c` | same — so no hand-rolled harness either |
+| `dangerouslyDisableSandbox: true`, `run_in_background: true` | same |
+| `gh pr checks 52` — read CI's result instead of running locally | same; and I hold no GitHub MCP tools |
+
+The `.claude/settings.json` allow-list does list `bun test:*`; the refusal
+overrides it, exactly as the worker reported. The block is on *executing code*,
+not on any one binary.
+
+### The work is on the branch
+
+Confirmed before anything else, because a stranded commit is the other way this
+run could have gone wrong (D-8). It is not stranded:
+
+- `git branch --show-current` → `claude/next-task-queue-ncef5o`, matching the
+  `Branch:` header.
+- `9b3aec9` (`checkpoint … worker step 1`) carries all four files the Handoff
+  names, and is on `origin/claude/next-task-queue-ncef5o`.
+- `frontend/src/ci-workflow-pins.test.ts` is gone from disk; the other three
+  files are modified as described. Working tree clean.
+
+So the worker's "left uncommitted" note in Notes is **stale** — `run-loop.sh`'s
+checkpoint step landed it from the trusted outer session, the same way it landed
+the expander's brief. Nothing needs re-landing.
+
+### What I could establish, and what it is worth
+
+Everything below is **reading, not verification.** `test-guidelines.md` is
+explicit that "a test that stays green while its subject is broken is not a
+test, and mutation is the only way to tell one from a green tautology" — I ran
+no mutation, so none of these rows is evidence that the tests fire. They are
+evidence only that the *shape* the criteria describe is present. **A reviewer
+must not read this table as a pass.**
+
+| # | Criterion | Static reading | Still needs |
+|---|---|---|---|
+| 1 | One E-5 implementation | `ci-workflow-pins.test.ts` absent from disk; `grep` over `frontend/src/*.ts` finds `owner !== "actions"` / `=== "actions"` only in `ci-action-pinning.test.ts` (:99, :145, :154). Structurally satisfied | nothing — this one is decidable by reading |
+| 2 | Third-party pins enforced | All five mutations have a synthetic-fragment test: `@v2` :173, comment deleted :197, `# pinned` :198, 12-char SHA :203, uppercased SHA :206. Synthetic fragments are explicitly allowed by the criteria preamble | each must be *run* red |
+| 3 | `actions/*` both sides | `@main` :181, `@master` :182, `@latest` :186 red; `@v5` and SHA+`# v5.1.0` green :212–213 | run |
+| 4 | Vanished action noticed | Exact-set equality at :124–125 (`toEqual(EXPECTED_ACTIONS)`), which a deletion breaks. No mutated-`ci.yml` test exists — the criterion's mutation is on the real file | run the mutation |
+| 5 | No literal workflow size | `grep` for numeric assertions across all four CI-reading test files finds no count of `uses:`/steps/lines; the two `.toBe(13)` lines are gone | run with an extra `- uses: actions/checkout@v5` in `ci.yml` and confirm the **whole** suite stays green — `conventions-doc.test.ts` and `lint-gate.test.ts` also parse `ci.yml` and I could not exercise them |
+| 6 | Parser coverage without the literal | `unparsedUsesLines()` :79–87 plus `violations()` :95–97; test :192–193. `docker://alpine:3` has no `@`, so `REFERENCE_SHAPE` cannot match | run |
+| 7 | New action names itself | :220–224 diffs the action *set*, so failure output is `["docker/login-action"]`, not a count | run the mutation and read the actual failure text |
+| 8 | Lockfile lookup once | `grep "lockfile did not move"` under `frontend/src/` → exactly one hit, :491, inside the single module-level `jobsDocClaimsCheckLockfile()` :487. `jobsCreditedByDoc()` gone. Decidable by reading | nothing |
+| 9 | Lockfile attribution both ways | Both tests (:620-ish, :731-ish) now call the one function; assertions unchanged | run both mutations |
+| 10 | Backtick-run extraction once | One definition, :443; two call sites, :360 and :498; no surviving inline copy of the regex. Note `longestBacktickRun()` applies `flat()` internally, so :360's change from `flat(section("## CI"))` to `section("## CI")` is behaviour-preserving | run both job-name deletions |
+| 11 | Test-count pair settled | Decision comment present, names T-061, says **kept not folded**, gives the reason (:579–589); cross-reference added in `readme-test-count.criteria.test.ts` :22–26. Both detectors now have a non-vacuous test (:601–603 and :139–142) | run the narrowing mutation on each detector |
+| 12 | No gone file named | `grep -rn ci-workflow-pins` → `tasks.md:161,167`, `PROGRESS.md:653`, `runs/T-008…`, and this brief. `PROGRESS.md:653` is inside the **T-008 "Completed tasks"** entry, exempt by the criterion's own wording; `runs/` likewise. Neither `conventions.md`, `README.md` nor any surviving test header names it | nothing — decidable by reading |
+| 13 | Stays inside the suite | `git diff --stat origin/main...HEAD`: `.github/`, `README.md`, `conventions.md`, `engineering-decisions.md` and every `package.json` are **untouched** ✓. No dependency added ✓ | **`bun test`, `bun run typecheck`, `bun run lint` — the half of this criterion I could not touch at all** |
+
+### Two things for whoever picks this up
+
+- **A comment overstates what its test proves (:587–589).** It claims that
+  narrowing `testCountPattern` "back to only the Checks code block" goes red at
+  :601. It would not: :601 feeds a literal string to the *pattern*, so it binds
+  the pattern's reach, not the *scope* the pattern is applied over at :598.
+  Restricting :598 to `codeBlock(section("## Checks"))` leaves :601 green.
+  Criterion 11 asks about narrowing "any surviving detector" — the pattern — so
+  I read the criterion as met and the comment as inaccurate by one example. Not
+  a fail; a `reviewer` nit, and I am flagging it rather than editing it because
+  the tester does not edit source.
+- **Criterion 13's diff wording vs. what is on the branch.** The criterion says
+  the diff touches "only files under `frontend/src/`, plus `PROGRESS.md` and the
+  brief". `origin/main...HEAD` also contains `tasks.md` (the expander's queue
+  edit, which `process.md` step 2 authorises) and `runs/` + `runs/logs/`
+  (written by `run-loop.sh`, not by any role). I read both as bookkeeping
+  outside the criterion's target — which is the config and doc files it
+  enumerates, all of which are clean — but the reviewer should confirm that
+  reading rather than inherit it from me.
+
+### What has to happen next
+
+1. **A human grants command execution** for unattended `claude` sessions in this
+   workspace (accept the workspace-trust dialog, or whatever this sandbox's
+   equivalent is). This is moment 3 in `process.md`'s "Where the loop stops for a
+   human": an environment decision no agent may make for itself.
+2. **Re-run `tester`** on a fresh session. Nothing about the code needs changing
+   first — do **not** send this back to `worker`; there is no observed defect,
+   only unobserved everything.
+3. That run owns the mutations in the "Still needs" column above, and criterion
+   13's `bun test` / `bun run typecheck` / `bun run lint`.
+
+**I wrote no tests.** With no way to execute one, adding a test file would have
+been an unexecuted guess dressed up as coverage — the "green tautology" that
+`test-guidelines.md` calls worse than an admitted gap, except worse again,
+because nobody would even have seen it go green.
 
 ## Notes
+
+### Tester, 2026-09-19
+
+**Landing this session's change.** Third role in a row to hit it: `git add`,
+`git commit -am` and `git push` all return `This command requires approval`,
+including with `dangerouslyDisableSandbox`. The only file I changed is this
+brief (header `Status`/`Next step`, the Sessions row, the Verdict, and this
+note). I wrote no test files — the Verdict says why.
+
+```
+git add tasks/T-061-dedupe-e5-guards.md
+git commit -m "T-061 tester: blocked — no command execution in the sandbox, suite never ran"
+git push origin claude/next-task-queue-ncef5o
+```
+
+Commit message body to append, per this session's attribution rules:
+
+```
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01FRfWBXHjMiyzdKKrJMYh6j
+```
+
+`run-loop.sh`'s checkpoint step has landed the previous two roles' work from the
+trusted outer session and will presumably land this too; confirm with
+`git log origin/claude/next-task-queue-ncef5o -1` before treating the brief as
+handed over.
+
+**One correction to the worker's note below, recorded here rather than by
+editing their section:** its "the working tree has these changes unstaged and
+uncommitted" is now stale. The checkpoint commit `9b3aec9` landed all four test
+files and is on `origin/claude/next-task-queue-ncef5o`; the working tree was
+clean when I started. Nothing needs re-landing by hand.
+
+**The fault is now three-for-three and should stop being treated as bad luck.**
+`task-expander` lost git writes, `worker` lost `bun`/`node`/`bash` *and* git
+writes, and I lost all of those plus `python3` and `gh`. That is not a
+per-session misconfiguration; it is the standing policy for unattended `claude`
+invocations in this workspace, and it makes **every** task whose criteria say
+"`bun test` goes red" unverifiable, not just T-061. **Owner: a human** — and
+this probably wants a `P-n` ticket in `process-tasks.md`, which I have not
+opened because `process-tasks.md` is loop-governance and the loop may not edit
+its own rules (`run-loop.sh` G1).
 
 ### Worker, 2026-09-19
 
