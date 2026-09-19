@@ -1,8 +1,11 @@
 # T-061 — One rule, one implementation: collapse the duplicated CI-workflow guards
 
-**Status:** `blocked`
-**Next step:** `human` — the sandbox must allow command execution before this
-task can be verified. See Verdict.
+**Status:** `awaiting verification`
+**Next step:** `tester` — a **fresh** session, per the previous tester's Verdict:
+"there is no observed defect, only unobserved everything." Command execution is
+now restored (Kate authorized `LOOP_PERMISSION_MODE=bypassPermissions` for this
+run's subprocesses, 2026-09-19); the mutations and `bun test`/`typecheck`/`lint`
+in the Verdict's "Still needs" column are this session's job.
 **Approved:** `Kate Chen, 2026-09-19` — approved on PR #52
 **From:** [`tasks.md`](../tasks.md) T-061
 **Branch:** `claude/next-task-queue-ncef5o` — the branch this session was assigned
