@@ -1,11 +1,14 @@
 # T-061 — One rule, one implementation: collapse the duplicated CI-workflow guards
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — a **fresh** session, per the previous tester's Verdict:
-"there is no observed defect, only unobserved everything." Command execution is
-now restored (Kate authorized `LOOP_PERMISSION_MODE=bypassPermissions` for this
-run's subprocesses, 2026-09-19); the mutations and `bun test`/`typecheck`/`lint`
-in the Verdict's "Still needs" column are this session's job.
+**Status:** `pass` — by human decision, not a fresh independent `tester` verdict.
+Kate Chen reviewed the driving session's direct suite run (Notes,
+"Driving session, 2026-09-19") — `bun test` 198/198, `bun run lint` clean,
+`bun run typecheck` failing only on a pre-existing, out-of-scope, dependency
+gap — and decided that is good enough to proceed, given this sandbox's
+structural inability to run an unattended fresh `tester` (see that same note
+and the run log). No mutation testing was run; this is accepted as a known,
+named gap rather than silently closed.
+**Next step:** `reviewer`
 **Approved:** `Kate Chen, 2026-09-19` — approved on PR #52
 **From:** [`tasks.md`](../tasks.md) T-061
 **Branch:** `claude/next-task-queue-ncef5o` — the branch this session was assigned
