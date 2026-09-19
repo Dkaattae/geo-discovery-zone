@@ -106,28 +106,9 @@ place, so nobody rebuilds it:
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
 | **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
-| **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and no suite size is stated that nothing asserts |
+| **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
 
 What is missing from that picture is below.
-
-### T-062 — One test count in `README.md` is still unasserted · S · todo
-**Depends on:** —
-**New 2026-09-11, found by T-058's tester (PR #35)** and left deliberately
-unfixed there. T-058 removed the two hardcoded suite sizes inside `README.md`'s
-Checks code block and put every other claim in that section under
-`frontend/src/conventions-doc.test.ts`. One escaped, in the prose just below the
-block: **`README.md:192` — "The nine Postgres-only tests skip on SQLite."** It is
-true today (9 tests in `backend/tests/test_postgres.py`) and nothing asserts it,
-so the next test added there makes the README quietly wrong — the exact drift
-T-058 existed to close. Out of T-058's reach because criterion 8 named the Checks
-*block* and lines `:183`/`:185`, and the tester was right not to stretch it.
-Cheapest fix is the same call T-058 made twice: drop the number, keeping the
-sentence's real content (that nobody needs a database installed to run
-`make -C backend check`). Asserting it instead means counting `test_` functions
-in `backend/tests/test_postgres.py` from a `bun test` file, which is a
-cross-language reach this suite does not otherwise make.
-**Done when:** no unasserted count of tests survives anywhere in `README.md`, and
-the reason a reader needs that sentence survives with it.
 
 ### T-066 — `question-bank` has no `lint`, and briefs keep asking for it · S · todo
 **Depends on:** —
@@ -204,6 +185,19 @@ cheap to fold in while the parsers are already open:
 That file is **not** one of the two to collapse — it reads `ci.yml` for a
 different purpose (doc claims, not E-5) and T-058's Constraints argued against
 adding a fourth parser. Only its internal duplicates are in scope.
+
+**Widened 2026-09-18 by T-062's reviewer (PR #50), with a caveat.** A fourth
+instance: `testCountPattern` in `frontend/src/conventions-doc.test.ts:562` (the
+worker's, a phrase regex) and `testCountClaims()` in
+`frontend/src/readme-test-count.criteria.test.ts:67` (the tester's, a tokeniser)
+are the same rule — "a number, then `test(s)` within three words" — written
+twice. **Unlike the other three, this pair may be worth keeping**: the tester
+wrote the second deliberately as an independent implementation so it could
+disagree with the guard it sits beside, and says so in the file's header comment.
+Decide it, do not fold it by reflex. Note what the duplication does *not* buy
+today: nothing compares the two, so narrowing the worker's regex back to the
+Checks code block would leave every test in both files green.
+
 **Done when:** one file enforces E-5, the count literal is gone, no rule in the
 frontend suite has two implementations of itself, and deleting a `# v2.2.0`
 comment or writing `oven-sh/setup-bun@v2` still turns the suite red.
@@ -325,7 +319,8 @@ will stop doing it by choice.
 **T-015 (PR #46) broke the pattern in the worse direction: 687 → 1131, and
 nobody corrected it.** Its Out of scope named this task and deliberately left the
 figures stale rather than hand-fixing them a sixth time. So
-`PROGRESS.md:161` and `test-guidelines.md:209` are now *wrong in the tree*,
+`PROGRESS.md:173` (cited as `:161` before the file grew) and
+`test-guidelines.md:209` are now *wrong in the tree*,
 not merely fragile — the first says 687 against a real 1131, the second still
 says 19. That is the outcome this entry predicted, it is the cheapest it will
 ever be to fix, and it settles the open question in favour of **deleting the
@@ -334,6 +329,12 @@ number anyone is maintaining.
 This is
 exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 (T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
+**Smaller since T-062 (PR #50):** `README.md` is out of scope here — it now
+states no count of tests at all — and T-062 left the shape to copy,
+`testCountPattern` at `frontend/src/conventions-doc.test.ts:562`, which catches
+digits and spelled-out numbers anywhere in a file. Pointing it at
+`test-guidelines.md` and `PROGRESS.md` after deleting their figures is most of
+this task.
 **Done when:** the counts match a real run, and either a test asserts them
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).

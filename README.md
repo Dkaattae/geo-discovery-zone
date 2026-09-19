@@ -190,7 +190,7 @@ cd e2e && bun run test            # the browser suite against a real docker comp
 
 `test-postgres` needs a server to point at; override the default with
 `GEO_TEST_DATABASE_URL=postgresql+psycopg://… make -C backend test-postgres`.
-The nine Postgres-only tests skip on SQLite, so nobody needs a database
+The Postgres-only tests skip on SQLite, so nobody needs a database
 installed to run `make -C backend check`.
 
 `test-integration` builds the image, brings the stack up, runs against it over
