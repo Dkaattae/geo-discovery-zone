@@ -125,3 +125,62 @@ hand-written PR, reviewed by Dkaattae.
 **Done when:** every role that reports a test count is told to take it from the
 state it pushed, and the instruction lives with the commit-and-push sequence
 rather than in a paragraph about honesty.
+
+### P-5 — The loop cannot run its only independent step in this environment · M · todo
+**Depends on:** —
+**New 2026-09-19, carried over by T-061's reviewer (PR #52).** T-061 shipped
+without an independent `tester` verdict, and not because anyone skipped a step.
+Every `claude -p` subprocess `run-loop.sh` spawned in this workspace was refused
+command execution — `bun`, `bun test`, `node -e`, `bash <script>`, `python3`,
+`gh`, **and `git add`/`git commit`/`git push`** — each returning `This command
+requires approval` with nothing executed, with and without
+`dangerouslyDisableSandbox`, foregrounded and backgrounded. It hit
+`task-expander`, then `worker`, then `tester`, three roles in a row and each one
+wider than the last. D-13 already records the cause — Claude Code ignores
+`.claude/settings.json`'s allowlist in a directory the invoking user has never
+interactively marked trusted, and that trust is per-machine, so a repo cannot
+ship it — and D-13's own last paragraph says a live end-to-end run under the
+allowlist "is still the only thing that closes this out for real". T-061 is that
+run, and it did not close it.
+
+**What it cost, specifically.** The `tester` is the loop's only independent
+signal (`process.md` step 4, D-6: "the one step the light path never drops").
+T-061's tester was honest and returned `blocked` having executed nothing, so
+`Status: pass` was set by a human on the strength of a suite run made from the
+*driving* session — real execution, but a session that had already read the
+Handoff, which is the one property step 4 exists to exclude. **No mutation was
+ever run**, on the task whose entire subject is whether guards still fire when
+broken.
+
+**What is known and what is not.** `bypassPermissions` is refused outright for
+root and in web sessions (D-13, 2026-08-28), so `LOOP_PERMISSION_MODE`'s escape
+hatch is not available here; the driving session's later attempt to authorise it
+for subprocesses (commit `3a6a158`) was followed by a `tester` step that still
+exited 1. Against that: a *trusted* top-level session in this same sandbox runs
+the suite fine — this reviewer's session ran `bun test` (198 pass), `bun run
+lint` (clean) and `bun run typecheck` without a single approval prompt. So the
+failure is specific to spawned `claude -p` children, not to the container, and
+that is the gap to characterise before designing around it.
+
+Worth weighing, rather than assuming the first is the answer:
+- **Make the trust state a documented precondition** of `run-loop.sh` — a
+  preflight that spawns one child, runs `git status`, and refuses to start the
+  loop rather than running four roles that cannot execute anything. Cheap, and
+  turns three silent wasted sessions into one loud refusal.
+- **Let the driver run the checks itself** on the pushed tree, which P-4 already
+  proposes for a different reason. It does not restore independence — the driver
+  is not the tester — but it means "the suite is green" stops depending on a
+  child process that may be unable to run it.
+- **Say what a `tester` may do when it cannot execute.** Today it returns
+  `blocked`, correctly, and the loop then has no defined path except a human
+  substituting their own run and recording it honestly, which is what happened.
+  Whether that substitution is ever acceptable — and if so, what it must say in
+  the Verdict — is a `D-n` decision, not a code change.
+
+**This is a process-file change** (`.claude/loop/run-loop.sh`, `.claude/agents/
+tester.md`, `process.md`, and a `D-n` entry), so G1 forbids running it through
+the loop: hand-written PR, reviewed by Dkaattae.
+**Done when:** a run in this environment either produces a genuinely independent
+`tester` verdict, or refuses to start and says why — and the case where it
+cannot is written down somewhere a reader of a `pass` can find it, instead of
+being reconstructed from a brief's Notes section after the fact.

@@ -154,60 +154,6 @@ updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 
-### T-061 — Two test files enforce E-5, and one of them hardcodes a count · S · **in flight** (brief: [`tasks/T-061-dedupe-e5-guards.md`](tasks/T-061-dedupe-e5-guards.md))
-**Depends on:** —
-**New 2026-09-04, found by T-008's reviewer (PR #34).** T-008 left the frontend
-suite with two files parsing `.github/workflows/ci.yml` and applying the same
-rule: `frontend/src/ci-workflow-pins.test.ts` (the worker's, 4 tests) and
-`frontend/src/ci-action-pinning.test.ts` (the tester's, 12 tests). The second is
-a behavioural superset of the first — exact action-set equality rather than
-`toContain`, lowercase hex required, the trailing comment required to name a
-release — so nothing is lost by keeping only it. What the duplication costs is
-that E-5's rule has two implementations (`isPinnedCategory()` at
-`ci-workflow-pins.test.ts:59`, the `pinned` branch of `violations()` at
-`ci-action-pinning.test.ts:74`), and changing the rule means changing both or
-the suite contradicts itself.
-
-While there: `ci-action-pinning.test.ts:106` asserts `ci.yml` has exactly 13
-`uses:` references. The intent is to catch a `uses:` line the regex cannot read,
-which is worth keeping — but the literal also fires on any legitimately added CI
-step, and reads as "you added a step" rather than "the parser missed a line".
-Asserting the parsed count against the raw `uses:`-line count gets the same
-coverage without pinning the workflow's size. This repo has made that call twice
-already: T-058 dropped `conventions.md:66`'s "thirteen" (PR #35) and T-047 will
-drop `test-guidelines.md:198`'s.
-
-**Widened 2026-09-11 by T-058's reviewer (PR #35).** The same duplication now
-exists a third time, *inside* `frontend/src/conventions-doc.test.ts`, and it is
-cheap to fold in while the parsers are already open:
-
-- `jobsDocClaimsCheckLockfile()` (the worker's block) and `jobsCreditedByDoc()`
-  (the tester's) are the same function written twice, one describe block apart.
-- `longestBacktickRun()` was factored out for README's job list but criterion
-  10's test still carries its own inline copy of the same regex — T-058's
-  Constraints forbade weakening criterion 10, so the worker rightly left it, and
-  collapsing the two is a separate, safe step.
-
-That file is **not** one of the two to collapse — it reads `ci.yml` for a
-different purpose (doc claims, not E-5) and T-058's Constraints argued against
-adding a fourth parser. Only its internal duplicates are in scope.
-
-**Widened 2026-09-18 by T-062's reviewer (PR #50), with a caveat.** A fourth
-instance: `testCountPattern` in `frontend/src/conventions-doc.test.ts:562` (the
-worker's, a phrase regex) and `testCountClaims()` in
-`frontend/src/readme-test-count.criteria.test.ts:67` (the tester's, a tokeniser)
-are the same rule — "a number, then `test(s)` within three words" — written
-twice. **Unlike the other three, this pair may be worth keeping**: the tester
-wrote the second deliberately as an independent implementation so it could
-disagree with the guard it sits beside, and says so in the file's header comment.
-Decide it, do not fold it by reflex. Note what the duplication does *not* buy
-today: nothing compares the two, so narrowing the worker's regex back to the
-Checks code block would leave every test in both files green.
-
-**Done when:** one file enforces E-5, the count literal is gone, no rule in the
-frontend suite has two implementations of itself, and deleting a `# v2.2.0`
-comment or writing `oven-sh/setup-bun@v2` still turns the suite red.
-
 ### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
 **Depends on:** —
 Found by T-004's worker while pinning the two level implementations together.
@@ -337,10 +283,33 @@ exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
 (T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
 **Smaller since T-062 (PR #50):** `README.md` is out of scope here — it now
 states no count of tests at all — and T-062 left the shape to copy,
-`testCountPattern` at `frontend/src/conventions-doc.test.ts:562`, which catches
+`testCountPattern` — since T-061 (PR #52) at
+`frontend/src/conventions-doc.test.ts:592`, not `:562` — which catches
 digits and spelled-out numbers anywhere in a file. Pointing it at
 `test-guidelines.md` and `PROGRESS.md` after deleting their figures is most of
 this task.
+**Amended 2026-09-19 by T-061's reviewer (PR #52).** Three things to pick up
+while you are already inside `conventions-doc.test.ts`, none of them worth their
+own entry:
+- **The `frontend` figure in this file's §A table is stale again** — it says 184
+  and a real run is now **198** (T-061 deleted a four-test file and added three
+  tests). Same argument as the rest of this entry: delete the figure rather than
+  refresh it a seventh time.
+- **A comment at `conventions-doc.test.ts:587-589` overstates its own test.** It
+  says narrowing `testCountPattern`'s reach "back to only the Checks code block"
+  goes red at the test below. It would not: that test feeds a literal string to
+  the *pattern*, so it binds the pattern, not the *scope* the pattern is applied
+  over at `:598`. Restricting `:598` to `codeBlock(section("## Checks"))` leaves
+  it green. Found by T-061's tester; the criterion it was written for is met, the
+  parenthetical example is wrong. Fix the sentence, or add the scope-level test
+  it describes — the second is the better answer if this entry ends up pointing
+  the pattern at two more files.
+- **That file's header comment now counts parsers oddly.** It says this file
+  "stays a third parser, not a fourth" and that T-061 "folded the test file that
+  used to duplicate it into this one", where "this one" and "this file" mean
+  different files one clause apart. After T-061 there are three `ci.yml` parsers
+  in total (`ci-action-pinning`, `conventions-doc`, `lint-gate`), so the ordinal
+  no longer says anything. One sentence.
 **Done when:** the counts match a real run, and either a test asserts them
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
