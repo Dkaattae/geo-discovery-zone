@@ -3,14 +3,14 @@
 Written by `.claude/loop/run-loop.sh`. Regenerated from `runs/ledger.tsv` on
 every step — edit the ledger, not this file.
 
-**Rounds:** 1 · **Steps:** 2 · **Turns:** 0 · **Cost:** $0.00
+**Rounds:** 2 · **Steps:** 3 · **Turns:** 0 · **Cost:** $0.00
 **Sent back:** 0 on the code, 1 on the criteria
-**Started:** 2026-09-19T19:42:02Z · **Last step:** 2026-09-19T19:58:26Z · **Status:** `blocked`
+**Started:** 2026-09-19T19:42:02Z · **Last step:** 2026-09-19T20:06:51Z · **Status:** `awaiting verification`
 
 ## Path
 
 ```
-worker → verify(blocked)
+worker → verify(blocked) → verify(awaiting verification)
 ```
 
 ## Steps
@@ -19,6 +19,7 @@ worker → verify(blocked)
 |---|---|---|---|---|---|---|---|---|
 | 1 | 1 | `worker` | 0 | $0 | 757s | ok | `awaiting verification` | `tester` |
 | 2 | 1 | `tester` | 0 | $0 | 225s | ok | `blocked` | `human` |
+| 3 | 2 | `tester` | 0 | $0 | 1s | err1 | `awaiting verification` | `tester` |
 
 ## Faults
 
@@ -38,3 +39,4 @@ independence checkable rather than promised (`process.md` step 4).
 |---|---|---|
 | 1 | `worker` | `1f62c87e-2add-4fcc-8e95-ac74276f346c` |
 | 2 | `tester` | `d1f9e7c5-1774-485d-afb1-6ca9fdd7a9b6` |
+| 3 | `tester` | `b363ebd3-3238-4848-bfa6-6f1511bc2b51` |
