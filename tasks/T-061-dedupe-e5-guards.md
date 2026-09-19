@@ -1,10 +1,8 @@
 # T-061 — One rule, one implementation: collapse the duplicated CI-workflow guards
 
 **Status:** `awaiting approval`
-**Next step:** `human` — the brief, branch, and draft PR are all in place; the
-only remaining gate is a person replacing `Approved: pending` below, which no
-session may do on its own; then `worker`.
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-19`
+**Next step:** `worker`
+**Approved:** `Kate Chen, 2026-09-19` — approved on PR #52
 **From:** [`tasks.md`](../tasks.md) T-061
 **Branch:** `claude/next-task-queue-ncef5o` — the branch this session was assigned
 (`process.md`, "When the environment names the branch for you"). It is what the
