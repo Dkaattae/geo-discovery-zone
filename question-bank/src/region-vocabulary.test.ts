@@ -324,20 +324,29 @@ describe("T-017 criterion 7 — engineering-decisions.md records the choice as E
     expect(ids).toContain("E-9");
   });
 
-  test("E-9 is the next number — no other entry claims it, and none is higher", () => {
+  test("E-9 is the next number at the time it was filed — no other entry claims it", () => {
+    // T-057 criteria 10/11 generalise this away from "9 is the highest number
+    // that will ever exist" (which made every later E-n impossible, contrary
+    // to `CLAUDE.md`'s "not gated" rule for this file) to "no two entries
+    // share a number" — the part of T-017 criterion 7 this test can still
+    // prove once the file is allowed to grow past E-9.
     const numbers = headings.map((match) => Number(match[1]!.slice(2)));
     expect(new Set(numbers).size).toBe(numbers.length);
-    expect(Math.max(...numbers)).toBe(9);
   });
 
-  test("the entries run in ascending order, so E-9 is the last block in the file", () => {
+  test("the entries run in ascending order, so E-9 is followed only by higher numbers", () => {
     // Criterion 7 says "next number"; a next number filed above its
     // predecessor is only half of that, and the first round of this task did
-    // exactly that (E-9 landed between E-7 and E-8).
+    // exactly that (E-9 landed between E-7 and E-8). T-057 generalises "E-9 is
+    // the last block in the file" to "nothing after E-9 has a number ≤ 9",
+    // so a later task's E-10, E-11, ... can follow it without breaking this.
     const numbers = headings.map((match) => Number(match[1]!.slice(2)));
     expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
-    expect(numbers.at(-1)).toBe(9);
-    expect(decisions.slice(decisions.indexOf("## E-9 —"))).not.toContain("\n## E-");
+    const nineIndex = numbers.indexOf(9);
+    expect(nineIndex).toBeGreaterThanOrEqual(0);
+    for (const laterNumber of numbers.slice(nineIndex + 1)) {
+      expect(laterNumber).toBeGreaterThan(9);
+    }
   });
 
   test("E-9 says which vocabulary won and why", () => {
