@@ -8,7 +8,7 @@
 its harness, so this is the task branch (`process.md`, "When the environment names
 the branch for you"). Every later role pushes here, whatever branch it starts on;
 `CLAUDE.md` "Branches" is the standing permission.
-**PR:** #NN — draft, opened at expand time from the branch above, stays draft
+**PR:** #53 — draft, opened at expand time from the branch above, stays draft
 until the reviewer approves it
 **Fault:**
 
