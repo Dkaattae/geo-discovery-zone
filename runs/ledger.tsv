@@ -1,1 +1,5 @@
 ts_start	ts_end	task	step	round	role	session	turns	cost_usd	wall_s	exit	status_after	next_after	fault
+2026-09-19T02:07:29Z	2026-09-19T02:13:31Z	between-tasks	1	1	task-expander	921a9e53-8904-4fdc-bdc3-fb344de313af	0	0	362	ok	unknown	unknown	
+2026-09-19T19:42:02Z	2026-09-19T19:54:39Z	T-061-dedupe-e5-guards	1	1	worker	1f62c87e-2add-4fcc-8e95-ac74276f346c	0	0	757	ok	awaiting verification	tester	mechanical, not editorial, and owned by the environment rather than by
+2026-09-19T19:54:41Z	2026-09-19T19:58:26Z	T-061-dedupe-e5-guards	2	1	tester	d1f9e7c5-1774-485d-afb1-6ca9fdd7a9b6	0	0	225	ok	blocked	human	mechanical, not editorial, and owned by the environment rather than by
+2026-09-19T20:06:50Z	2026-09-19T20:06:51Z	T-061-dedupe-e5-guards	3	2	tester	b363ebd3-3238-4848-bfa6-6f1511bc2b51	0	0	1	err1	awaiting verification	tester	mechanical, not editorial, and owned by the environment rather than by

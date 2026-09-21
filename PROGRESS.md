@@ -243,7 +243,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   their major tag. The reasoning, the rejected options and the revisit trigger
   are `engineering-decisions.md` **E-5** (T-008), and
   `frontend/src/ci-action-pinning.test.ts` turns red if `ci.yml` stops obeying
-  it. **Nothing automates the pins** — no Dependabot, no Renovate; T-060 is the
+  it — since T-061 (PR #52) that is the **only** file implementing the rule, and
+  it no longer pins `ci.yml`'s size, so adding a CI step does not read as a
+  violation. **Nothing automates the pins** — no Dependabot, no Renovate; T-060 is the
   open question about whether to add one.
 - **Integration tests** in `backend/integration/` — 30 black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
@@ -300,6 +302,41 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-061 — one rule, one implementation for E-5's CI guards** (PR #52,
+  2026-09-19). Four rules in the `frontend/` suite were each written twice.
+  `frontend/src/ci-workflow-pins.test.ts` is **deleted** — it was a behavioural
+  subset of `ci-action-pinning.test.ts`, which is now the only file under
+  `frontend/src/` that decides from a `uses:` owner whether a reference must be
+  SHA-pinned. The two `toBe(13)` assertions on `ci.yml`'s size are gone,
+  replaced by `unparsedUsesLines()`: every line that looks like `uses:` must
+  decompose into `owner/repo@ref`, checked **by name rather than by count**, so
+  a legitimately added CI step no longer reads as "you added a step" while a
+  line the parser cannot read still fails and says which line. Inside
+  `conventions-doc.test.ts`, `jobsCreditedByDoc()` and the inline copy of the
+  backtick-run regex are gone in favour of the one `jobsDocClaimsCheckLockfile()`
+  and the existing `longestBacktickRun()`. The `frontend/` suite is **198**
+  tests afterwards (four went with the deleted file; two were added).
+  *Differed from the brief:* the fourth pair — `testCountPattern` here versus
+  `testCountClaims()` in `readme-test-count.criteria.test.ts` — was **kept, not
+  folded**, which criterion 11 explicitly allowed either way. The second was
+  written to be an independent implementation that can disagree with the first,
+  and folding would have deleted that on a task that was not asked to revisit
+  it; the real gap (only one of the two had a not-vacuous test) was closed
+  instead. Both files carry the decision in a comment naming T-061.
+  *Where the loop itself differed, and it is the part worth reading:*
+  **no independent `tester` ever ran.** Every `claude -p` subprocess in this
+  workspace was refused command execution — `bun`, `node`, `git add`, `gh` —
+  across three roles in a row, so the tester returned `blocked` having run
+  nothing, and `Status: pass` was set by Kate Chen on the strength of a direct
+  suite run from the driving session that had already read the Handoff. **No
+  mutation testing was run**: criteria 2, 3 and 6 are exercised by
+  synthetic-fragment tests that do run in the green suite (the brief's preamble
+  allows that as evidence), but the real-file mutations behind criteria 4, 5, 7,
+  9, 10 and 11 were never executed, and nothing but reading says those guards
+  still fire. The PR was marked ready **with an escalation note** saying exactly
+  that rather than as routine. `process-tasks.md` **P-5** is the ticket for the
+  underlying gap.
 
 - **T-062 — the last unasserted test count in `README.md`** (PR #50,
   2026-09-18). `README.md:193` said "The **nine** Postgres-only tests skip on
