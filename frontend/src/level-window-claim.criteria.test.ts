@@ -131,14 +131,22 @@ describe("T-057 criterion 8 — engineering-decisions.md records the level-windo
     return next === -1 ? rest : rest.slice(0, next);
   }
 
-  test("an E-10 entry exists, and it is the last one", () => {
-    // NOTE: `question-bank/src/region-vocabulary.test.ts` (T-017 criterion 7)
-    // asserts the exact opposite — that 9 is the highest E-number and E-9 is
-    // the last block in the file. Both cannot hold. See this task's Verdict.
+  test("an E-10 entry exists, the numbers are unique and ascending, and nothing after it is ≤ 10", () => {
+    // Deliberately NOT `numbers.at(-1) === 10`. That is the ceiling T-017
+    // criterion 7 pinned at 9 and this task's criteria 10 and 11 exist to
+    // remove — `CLAUDE.md` says `engineering-decisions.md` is "not gated; a
+    // task may add an entry when its criteria say so", so a later task's E-11
+    // must not turn this suite red. Criterion 8 asks only that the file gains
+    // E-10 and that no existing entry is modified; existence, uniqueness,
+    // ascending order and "E-10 is followed only by higher numbers" say all of
+    // that without re-arming the landmine.
     expect(numbers).toContain(10);
     expect(new Set(numbers).size).toBe(numbers.length);
     expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
-    expect(numbers.at(-1)).toBe(10);
+    const tenIndex = numbers.indexOf(10);
+    for (const laterNumber of numbers.slice(tenIndex + 1)) {
+      expect(laterNumber).toBeGreaterThan(10);
+    }
   });
 
   test("E-10 names the field the window is served as", () => {

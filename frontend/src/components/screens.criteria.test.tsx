@@ -82,9 +82,14 @@ describe("criterion 3 — the level picker options are exactly suggestedLevels, 
   });
 
   test("a three-choice suggestedLevels (the top-of-scale case) renders exactly three, not four", () => {
-    const suggested = [17, 18];
+    // Three, because criterion 4 requires `level_window(18.0)` to offer three
+    // or four choices — it used to collapse to two, and the name and the data
+    // here used to disagree about that. The client still renders whatever list
+    // it is handed; this case only pins that a shorter list is not padded out.
+    const suggested = [16, 17, 18];
     const html = renderSetup(PROFILE, progressWith(suggested));
     expect(levelOptionLabels(html)).toEqual(suggested.map((level) => levelLabel(level)));
+    expect(levelOptionLabels(html)).toHaveLength(3);
   });
 
   test("an empty suggestedLevels array falls back to the single lastSessionEndLevel", () => {
