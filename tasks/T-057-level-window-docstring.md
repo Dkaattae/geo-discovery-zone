@@ -488,7 +488,12 @@ is green; the other four criterion-8 assertions run everywhere.
 | `frontend`: `bun run typecheck` | 4 errors, all `UsMap.tsx`, all the missing-package artefact; my new file adds none |
 | `question-bank`: `bun test --no-install` | 1251 pass, **4 fail** — 2 are this task's `E-10` (above), 2 are pre-existing (below) |
 | CI on `cf3fc5f` (worker's head) | frontend ✅ · backend ✅ · backend-postgres ✅ · e2e ✅ · integration ✅ · **question-bank ❌** |
+| CI on `e9147a5` (this commit, my tests included) | frontend ✅ · backend ✅ · backend-postgres ✅ · e2e ✅ · integration ✅ · **question-bank ❌** — the only two annotations are `region-vocabulary.test.ts:330` and `:339`, `Expected: 9 / Received: 10` |
 | CI on `main` (`54e2796`) | all six ✅ |
+
+So my own tests are green in an environment with full registry access, in both
+suites, and the **only** thing standing between this branch and a green CI is the
+`E-10` pin described above.
 
 ### Environment, and what it cost
 
