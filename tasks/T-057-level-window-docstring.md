@@ -1,7 +1,8 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have
 
 **Status:** `awaiting verification` — round 2 worker done; criteria 1–14 all
-verified locally, CI to be confirmed on the pushed commit.
+verified locally and all six CI jobs confirmed green on the pushed commit
+(`b19477e`).
 **Next step:** `tester`
 **Approved:** orchestrator — 2026-09-21, unattended run (round 2 of criteria).
 See `runs/T-057-level-window-docstring.md`. Round-1 approval was also
