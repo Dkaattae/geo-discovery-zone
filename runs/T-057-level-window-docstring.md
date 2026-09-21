@@ -1,7 +1,7 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have — run log
 
 **Task:** T-057 · **Branch:** `claude/loving-franklin-su4qzl` · **PR:** #53
-**Started:** 2026-09-21 · **Outcome:** in progress — blocked round 1 of 2, returning to task-expander
+**Started:** 2026-09-21 · **Outcome:** ready for merge — PR #53 approved, escalated, swept. Dkaattae merges.
 
 ## Round 2 — worker — 2026-09-21
 `Next step` on entry: `worker` → on exit: `tester`
@@ -290,6 +290,59 @@ One note for the next cycle: CI was still `in_progress` on the previous head (`9
 - **Two rounds of findings are now closed.** A third blocking issue in the same file should go to a human under `process.md`'s two-round bound, not to another tester round. Amendment 1's judgement call (generalising a merged task's test without Dkaattae) is untouched by this round and already flagged for escalation in the `## Review` section.
 
 Brief: `/home/user/geo-discovery-zone/tasks/T-057-level-window-docstring.md` — Status, Next step, Sessions row and `### Verdict — round 3` all written and pushed.
+
+## Round 9 — reviewer (round 2) — 2026-09-21
+`Next step` on entry: `reviewer` → on exit: — (approved, swept; the brief is deleted)
+
+## T-057 — reviewer (round 2): **approved, escalated, swept.** PR #53 is ready for review; Dkaattae merges.
+
+**TL;DR**
+- **Approved.** The three findings from review round 1 are closed in exactly the two frontend test files they named, with **no source changed** (commit `e5d687d`, 19 insertions / 6 deletions).
+- **Marked ready with an escalation note at the top of the PR body** — this task relaxed an assertion a *merged* task (T-017) shipped verified. The judgement is upheld, not overruled, but Dkaattae should ratify it before merging.
+- **Swept in the PR's own branch** (`9281009`, pushed to `claude/loving-franklin-su4qzl`, confirmed as `origin`'s head): brief deleted, queue entry deleted, `PROGRESS.md` logged, queue trimmed.
+
+### Findings disposition
+
+| Finding (round 1) | Status |
+|---|---|
+| 1 (blocking) — `frontend/src/level-window-claim.criteria.test.ts:141` pinned `numbers.at(-1) === 10`, re-arming the `E-n` ceiling one number higher | Closed — replaced by `indexOf(10)` + "every later number > 10"; `toContain(10)`, uniqueness and ascending-order kept |
+| 2 (blocking) — stale comment at `:135-137` claiming `region-vocabulary.test.ts` asserts the opposite | Closed — now explains why there is deliberately no ceiling, quoting `CLAUDE.md`'s "not gated" rule |
+| 3 (non-blocking) — `screens.criteria.test.tsx:84` named "renders exactly three" over `[17, 18]` | Closed — data is `[16, 17, 18]` (what `level_window(18.0)` actually returns) plus `toHaveLength(3)` |
+
+No new blocking findings. Two observations recorded in the PR body rather than filed as tasks: the two backend test files both sweep the same 37 levels (the loop's design — tester's numbers from the brief, worker's from the code), and `level-window-claim.criteria.test.ts` pins `level.ts`'s exact export list, which whoever takes T-004's label-formatting question will have to update — that is the tripwire `E-10`'s "Revisit when" wants.
+
+### Why it escalates
+
+1. **Amendment 1's judgement call.** T-017 left `question-bank/src/region-vocabulary.test.ts` asserting 9 is the highest `engineering-decisions.md` number for ever; criterion 8 needs `E-10`; the expander widened the brief to generalise it. Upheld (T-017 merged and swept, the pin contradicts `CLAUDE.md`'s "not gated" rule, the file is a test so G1 does not bite, criterion 11 bounds the relaxation and all four mutations still fire) — but "a merged task's verified assertion was changed" belongs in front of a person before the merge, not after.
+2. **Minor, same glance:** the Constraints named *one* frontend test file; the diff has two, because the tester's step-4 tests went into `level-window-claim.criteria.test.ts`. Lane working as designed, but outside the Constraints as written.
+
+Everything else is inside the envelope: tester `pass`, no dependency, `openapi.yaml` / migrations / plan untouched, no text a child reads.
+
+### Verification I ran myself
+- `backend`: `uv run pytest -q` → **517 passed, 9 skipped**; `ruff check` and `ruff format --check` clean (41 files).
+- `question-bank`: `src/region-vocabulary.test.ts` 56/56; whole suite 1253 pass / 2 fail — both the pre-existing **T-072** `git diff 13a735f…` guard that fails on `main` in any full clone.
+- `frontend`: 209 pass; the single unloadable file is `screens.criteria.test.tsx` → `UsMap.tsx` → `react-simple-maps`, absent because this sandbox's registry 403s it. Cited to CI, not stubbed.
+- CI: **all six jobs `success`** on pre-sweep head `3efc14f`. On the sweep commit `9281009` (markdown only) five of six are complete and green; `e2e (playwright)` was still `in_progress` when I stopped — no code changed between the two commits.
+- Finding 1's fix I verified by reading, not by a live `E-11` mutation (appending `E-11` gives unique, ascending numbers with the only later number `> 10`, and the "no existing `E-n` modified" slice ends at `\n## E-10 — `). Saying so plainly: the tester did run the live mutation; I did not repeat it. A bash attempt to append a throwaway `E-11` to `engineering-decisions.md` was blocked by the sandbox classifier.
+
+### Sweep contents (`9281009`)
+- `tasks/T-057-level-window-docstring.md` **deleted** — `tasks/` now holds only `README.md` and `TEMPLATE.md`. Its criteria are verbatim in the PR body, so I did not write a `## Review` section into a file the same commit deletes; the review lives in the PR body and in comment `#issuecomment-5763898475`.
+- T-057's entry **deleted** from `/home/user/geo-discovery-zone/tasks.md`; the file's header note now records that the `E-9` ceiling is gone so the next task filing `E-11` does not rediscover it.
+- `/home/user/geo-discovery-zone/PROGRESS.md`: new "Completed tasks" entry (the top-of-scale bug, the E-ceiling landmine, the escalation, the sandbox registry gap), and T-004's dangling "now **T-057**" pointer updated to say it was settled here.
+- Queue trim: nothing else depended on T-057. **T-072** stays — real, not this task's.
+
+### Files a human may want
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/53 (open, **not draft**, not merged)
+- `/home/user/geo-discovery-zone/backend/app/levels.py` — rewritten docstring and the extend-downward fix
+- `/home/user/geo-discovery-zone/engineering-decisions.md` — `E-10`
+- `/home/user/geo-discovery-zone/question-bank/src/region-vocabulary.test.ts` — the generalised T-017 criterion-7 block
+- `/home/user/geo-discovery-zone/frontend/src/level-window-claim.criteria.test.ts`, `/home/user/geo-discovery-zone/frontend/src/components/screens.criteria.test.tsx`
+
+**I did not merge, and hold no merge tool.** Next step is Dkaattae: read the escalation at the top of the PR body, then merge.
+
+## Ending
+
+Reviewer marked PR #53 ready for review and swept the brief. No role in this loop holds merge — that is Dkaattae's, per `process-decisions.md` D-4. The orchestrator stops here: it does not pick the next task from `tasks.md`, however obvious the queue looks (`process.md` "One task at a time").
 
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
