@@ -1,13 +1,13 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have
 
-**Status:** `changes requested` — all 14 criteria hold, but the review found that
-`frontend/src/level-window-claim.criteria.test.ts:141` re-arms the exact landmine
-criteria 10 and 11 exist to defuse: it pins `E-10` as the highest decision number
-for ever, so the next task that writes `E-11` turns the frontend suite red. See
-`## Review` below.
-**Next step:** `tester` — fix findings 1 and 2 (and, while you are in the file,
-the non-blocking finding 3). Both blocking findings are in test files, which is
-the tester's lane; no source change is needed and none is wanted.
+**Status:** `pass` — all 14 criteria hold and the review's three findings are
+fixed. The `E-10` ceiling is gone from
+`frontend/src/level-window-claim.criteria.test.ts`, the stale comment with it,
+and `screens.criteria.test.tsx`'s top-of-scale case now agrees with its own
+name. Appending an `E-11` to `engineering-decisions.md` now leaves **both**
+suites green — verified by mutation this session. See `### Verdict — round 3`.
+**Next step:** `reviewer` — the findings it raised are closed; no source
+changed, only the two test files it named.
 **Approved:** orchestrator — 2026-09-21, unattended run (round 2 of criteria).
 See `runs/T-057-level-window-docstring.md`. Round-1 approval was also
 `orchestrator — 2026-09-21, unattended run`.
@@ -35,6 +35,7 @@ task reaches `pass`.
 | worker (round 2) | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
 | tester (round 2) | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
 | reviewer | 2026-09-21 | 5992b640-9ccf-5259-8734-1034957823e2 |
+| tester (round 3) | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
 
 ## Goal
 
@@ -975,6 +976,146 @@ when its subject is broken.
 - **Amendment 1's judgement call** (that generalising a merged task's test is the
   expander's to make) is untouched by this verdict. I verified the relaxation is
   bounded; whether it needed Dkaattae is the reviewer's line to draw.
+
+### Verdict — round 3
+
+**Status: `pass` — on to the `reviewer`.**
+
+**TL;DR:** the reviewer was right. I reproduced finding 1 before fixing it —
+appending a well-formed `E-11` to the real `engineering-decisions.md` turned
+`level-window-claim.criteria.test.ts:141` red (`Expected: 10 / Received: 11`)
+while `region-vocabulary.test.ts` stayed green, so criterion 10 was satisfied in
+one suite and defeated in the other. All three findings are now closed, in the
+two test files the reviewer named and nothing else. **No source file changed
+this round**; `git diff origin/main...HEAD` over `backend/app/`,
+`frontend/src/components/screens.tsx`, `frontend/src/lib/`, `openapi.yaml` and
+`engineering-decisions.md` is untouched by my commit.
+
+#### On my independence — read this before trusting the verdict
+
+**Unchanged from rounds 1 and 2, and it has not improved.** This is an
+orchestrated run (`runs/T-057-level-window-docstring.md` exists), so every role
+shares one session id: `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_01VNvekndCsNWvPYSNudz67b`, already in the Sessions table as `worker`. **The
+Sessions-table check did not pass — it does not apply**, and I am not claiming
+it did. What I have is the weaker kind of independence: a fresh context window.
+I never saw the worker's or the earlier testers' transcripts, and read only the
+brief, the repo, `openapi.yaml`, `CLAUDE.md`, `process.md` and
+`test-guidelines.md`. That rests on the orchestrator having spawned me
+correctly, not on anything I could verify myself. I re-derived every mutation
+below in this session rather than trusting round 2's tables.
+
+#### The three findings
+
+| Finding | Fix | Evidence it is closed |
+|---|---|---|
+| **1 (blocking)** — `level-window-claim.criteria.test.ts:141` pinned `numbers.at(-1)).toBe(10)` | Replaced by "every number after `E-10`'s position is `> 10`". `toContain(10)`, uniqueness and ascending-order all kept. | Reproduced first: with a throwaway `E-11` appended, the old assertion failed `Expected: 10 / Received: 11` (10 pass / 1 fail). With the fix: **11 pass / 0 fail** with `E-11` present, and `region-vocabulary.test.ts` 56 pass / 0 fail at the same time. Reverted; `md5sum engineering-decisions.md` = `eb12c7639c534ce1317427eeb0781b8c` before and after. |
+| **2 (blocking)** — the comment at `:135-137` claimed `region-vocabulary.test.ts` asserts the opposite | Replaced with a comment saying *why* the ceiling is deliberately absent, quoting `CLAUDE.md`'s "not gated" rule, so the next session does not put it back. | `git grep -n "asserts the exact opposite"` → no match. The claim was false on this branch head: `13cc373` removed those two assertions. |
+| **3 (non-blocking)** — `screens.criteria.test.tsx:84` named "renders exactly three" over `[17, 18]` | Data changed to `[16, 17, 18]` (a real top-of-scale window under criterion 4's three-or-four rule), name kept, and `toHaveLength(3)` added so "exactly three" is asserted rather than implied. | Name and data now agree. Not runnable in this sandbox (`react-simple-maps` absent — see Environment); `bun run typecheck` reads the file and reports **no** error in it, and the `frontend` CI job runs it — see criterion 9's row. |
+
+**Why "nothing after E-10 is ≤ 10" and not just deleting the line.** The repo
+already has this exact shape: `question-bank/src/highest-point-verify.test.ts:615-629`
+loosened its own "E-8 is the highest-numbered entry" pin to
+`toContain(8)` + uniqueness, with a comment saying a later, higher entry is not
+a failure of that criterion. My fix is that pattern plus the ordering clause
+`region-vocabulary.test.ts` now uses for `E-9`, so all three files agree on one
+rule and none of them caps the file.
+
+#### Criteria — re-verified this session
+
+Criteria 1–8 and 10–14 were re-checked from the criteria's own wording, not from
+round 2's tables. Every expected value comes from the brief or `openapi.yaml`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `git grep -n levelWindow -- backend frontend e2e question-bank fixtures openapi.yaml conventions.md test-guidelines.md` → no match (exit 1), working tree included. Mutation R1 turned the tree scan red. |
+| 2 | pass | `level_window`'s docstring names `suggestedLevels`, `app/serializers.py` and `screens.tsx`'s `Setup`, and says the client renders it "rather than deriving a window of its own". `level.ts` exports only `gradeOf`, `bandOf`, `gradeLabel`, `bandLabel`, `levelLabel`. Mutation R1 turned two backend tests red. |
+| 3 | pass | Source half: `screens.tsx`'s fallback is unedited; mutation R3 (fallback becomes a three-element computed window) turned the criterion-3 scan red. Behavioural half: `screens.criteria.test.tsx`, cited to the green `frontend` CI job (below), not runnable here. |
+| 4 | pass | My own sweep of all 37 half-integers `0.0…18.0` via `uv run python`, expectations taken from the criterion and `openapi.yaml:1943`: **zero violations**, every window 3 or 4 values. Boundaries: `level_window(17.5) == [16.5, 17.5, 18.0]`, `level_window(18.0) == [16.0, 17.0, 18.0]`. Bug-fix test proved by mutation R2 (pre-task algorithm) → **4 tests red, all at `L = 18.0`**. `openapi.yaml` unchanged on the branch. |
+| 5 | pass | Same sweep: sorted strictly ascending, no duplicates, all in `[0.0, 18.0]`, all multiples of `0.5`, all containing `clamp_level(L)`. |
+| 6 | pass | `level_window(6.0) == [5.0, 6.0, 7.0, 8.0]`, `max(level_window(2.0)) == 4.0`, `min(level_window(0.0)) == 0.0`; `test_profiles_api.py` green inside the 517-test run and shows **no diff at all** against `origin/main`. |
+| 7 | pass | Mutation R1 — reinserting the banned "mirrors a client function" sentence turned three tests red across two suites (`test_levels.py`'s docstring test, `test_levels_t057_criteria.py`'s comment scan, the frontend tree scan). No network, no server; the frontend one reads files and `git ls-files` off disk. |
+| 8 | pass, and still enforced after the generalisation | `E-10` is present at `engineering-decisions.md:486` and names `suggestedLevels`, `frontend/src/lib/level.ts` and three `screens.tsx` call sites. **Six mutations, mine, each reverted** — see the table below; every one turned the matching assertion red. `git diff --numstat origin/main...HEAD -- engineering-decisions.md` → 43 added, 0 deleted. |
+| 9 | pass | All six CI jobs `success` on my pushed head `e5d687d` — see "CI on the branch head". Local: backend 517 passed / 9 skipped, ruff clean, 41 files formatted; `question-bank` 1253 pass / 2 fail (both T-072, confirmed pre-existing on `main` — `git diff --name-only 13a735f...origin/main` lists six `frontend/`+`backend/` files, so the guard fails on `main` in any non-shallow clone); frontend 209 pass with one file unable to import (`react-simple-maps` missing here), `bun run lint` clean, `bun run typecheck` 4 errors, all `UsMap.tsx`, none from any file this task touched. |
+| 10 | pass — **and now in both suites, which is what changed** | Appending a well-formed `## E-11 — …` block to the real `engineering-decisions.md`: `region-vocabulary.test.ts` 56 pass / 0 fail **and** `level-window-claim.criteria.test.ts` 11 pass / 0 fail. Before my fix the second was 10 pass / 1 fail. Nothing in either file now pins a maximum number or a last heading. Reverted, md5 identical. |
+| 11 | pass | Not re-run this round — criterion 11 is about `engineering-decisions.md` versus `question-bank/src/region-vocabulary.test.ts`, and **neither file changed since round 2 verified all four mutations** (`git diff 6081cb5..HEAD --stat` → only the brief, `runs/` and the two frontend test files). What I did verify is that my edit cannot have weakened it: my diff touches no file criterion 11 names. Round 2's four-mutation table stands; the equivalents against `E-10` are in my table below, which exercises the same four shapes. |
+| 12 | pass (negative) | `git diff origin/main...HEAD` over all eight manifests and lockfiles is empty. I ran `bun install --frozen-lockfile` once (it 403s on `d3-*`/`react-simple-maps`) and confirmed afterwards that `git status --short` showed no lockfile change. |
+| 13 | pass (negative) | My edits add one `toHaveLength(3)` and comments. The only subprocesses in either file are `Bun.spawnSync(["git", …])` — `ls-files`, `merge-base`, `show` — local reads, no network, no server. No endpoint test was added. |
+| 14 | pass (negative) | `frontend/node_modules` holds 237 packages and **neither `react-simple-maps` nor `us-atlas`**; I wrote no stand-in and the branch diff contains none. Everything I could not run locally is cited to the CI job on `e5d687d`. |
+
+#### Mutations made this session, and reverted
+
+Every one was applied to the real file, run, then reverted; `git status --short`
+showed only my two test files afterwards and `md5sum engineering-decisions.md`
+was `eb12c7639c534ce1317427eeb0781b8c` throughout.
+
+| # | Mutation | Turned red |
+|---|---|---|
+| R1 | Reinsert ``Mirrors `<the banned name>()` in the client:`` into `level_window`'s docstring | `test_levels.py::test_level_window_docstring_names_no_client_function…`, `test_levels_t057_criteria.py::test_criterion_2_no_comment…`, and the frontend criterion-1 tree scan |
+| R2 | Delete the downward-extension loop (the pre-task algorithm) | 4 tests, all at `L = 18.0`, across both backend test files |
+| R3 | `screens.tsx` fallback becomes a three-element computed window | criterion 3's "options are suggestedLevels, or exactly the one-element fallback" |
+| R4 | Append a well-formed `## E-11 — …` after `E-10` | **nothing, which is the point** — before my fix it reddened `level-window-claim.criteria.test.ts:141` |
+| R5 | `## E-10 — …` heading renamed `## Zz-10 — …` | all five criterion-8 tests |
+| R6 | `E-9` renumbered `E-10`, so a number repeats | all five criterion-8 tests (uniqueness first) |
+| R7 | An entry numbered `E-4` appended after `E-10` | the ascending/"nothing after E-10 is ≤ 10" test |
+| R8 | `E-10` stops saying `suggestedLevels` | "E-10 names the field the window is served as" |
+| R9 | `E-10` stops naming `frontend/src/lib/level.ts` | "E-10 names the client module it decides to keep" |
+| R10 | `E-1`'s heading edited | "no existing E-n entry was modified" |
+
+**Honesty note on R7.** The ascending-order assertion catches it as well as the
+new loop does, and a duplicate `10` is caught by the uniqueness assertion — so
+the "nothing after E-10 is ≤ 10" loop is belt-and-braces rather than the sole
+guard for any shape. I kept it because it states the criterion in the criterion's
+own words and matches `region-vocabulary.test.ts`'s generalised block, not
+because it catches something the other two miss.
+
+#### CI on the branch head
+
+Read from `api.github.com/.../commits/e5d687d/check-runs` after pushing, not
+reported from a local run. `e5d687d` is my fix commit.
+
+| Job | Conclusion |
+|---|---|
+| `frontend (typecheck, lint, test)` | success — this is the job that runs `screens.criteria.test.tsx`, which cannot run here |
+| `question-bank (typecheck, test)` | success |
+| `backend (lint, format, test)` | success |
+| `backend (postgres)` | success |
+| `integration (docker compose)` | success |
+| `e2e (playwright)` | success |
+
+#### Environment, and what I would not do about it
+
+- **`react-simple-maps` and `us-atlas` still cannot be installed here.** I tried
+  `bun install --frozen-lockfile` once this session and got `403` from
+  `europe-west1-npm.pkg.dev` on the `d3-*` tarballs. `screens.criteria.test.tsx`
+  therefore cannot run locally, and `bun run typecheck` reports four `UsMap.tsx`
+  errors — `UsMap.tsx` is untouched by this branch.
+- **I did not stub them**, for the reason both earlier testers gave and
+  criterion 14 states: a suite that is green because a third-party module was
+  hand-written is not green. I cited the CI job instead.
+- `bun test --no-install` is what makes the rest of the frontend suite runnable
+  here.
+
+#### What I did not do
+
+- **Did not edit any source.** The only source touched was mutations R1–R3,
+  every one reverted and checked with `git status` / `md5sum`.
+- **Did not edit the acceptance criteria**, and did not touch
+  `question-bank/src/region-vocabulary.test.ts` or `engineering-decisions.md` —
+  the reviewer's findings were all in `frontend/`, and widening beyond them
+  would have put round 2's verified work back in play.
+- **Did not open a second PR or branch.** Committed to
+  `claude/loving-franklin-su4qzl`, the brief's `Branch:` header, which is also
+  the branch this session was standing on.
+
+#### Left for the reviewer
+
+- **Amendment 1's judgement call** — whether generalising a merged task's test
+  needed Dkaattae — is untouched by this round and is already flagged for
+  escalation in the `## Review` above. I did not reopen it.
+- **Two rounds of findings are now closed.** If the reviewer finds a third
+  blocking issue in the same file, `process.md`'s two-round bound applies and
+  the next stop is a human, not another tester round.
 
 ## Review
 
