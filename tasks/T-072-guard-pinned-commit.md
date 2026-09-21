@@ -1,24 +1,24 @@
 # T-072 — A guard test diffs against a fixed commit and fails on `main`
 
-**Status:** `blocked`
-**Next step:** `human` — commit, push and open the draft PR (the expander could
-not), then approve. After that: `worker`.
+**Status:** `awaiting approval`
+**Next step:** `worker`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-21`
 **From:** [`tasks.md`](../tasks.md) T-072
 **Branch:** `claude/upbeat-volta-mw29cv` — the branch this session was assigned by
 the harness, used in place of `task/T-072-guard-pinned-commit` under
 `CLAUDE.md` "Branches". **This line is the authority.** Every later role checks
 `git branch --show-current` against it and pushes here, whatever branch it was
-started on. **The brief is not yet on it** — see Fault. Whoever commits should
-push to this branch, or change this line to whatever branch they actually push.
-**PR:** none yet. To be opened as a **draft** against the branch above, with the
-Acceptance criteria below as its body.
-**Fault:** the expander wrote this brief but could not commit, push or open a PR
-— every mutating git command in its session (`git add`, `git commit`,
-`git checkout -b`, `git push`, with and without the sandbox override) returned
-"This command requires approval", and neither `gh` nor a GitHub MCP tool was
-available. Nothing is wrong with the task; the brief simply needs a person to
-land it. Clear this line once it is pushed.
+started on.
+**PR:** [#55](https://github.com/Dkaattae/geo-discovery-zone/pull/55) — draft,
+opened against `claude/upbeat-volta-mw29cv`.
+**Fault:** cleared. The expander wrote this brief but its sandboxed `claude -p`
+session could not commit, push or open a PR — `.claude/settings.json`'s git
+allowlist was ignored because the workspace was not marked trusted, so every
+mutating git command returned "This command requires approval", and no `gh` or
+GitHub MCP tool was reachable from that session either. The brief itself was
+unaffected; `run-loop.sh`'s own checkpoint committed and pushed it, and the
+orchestrating (top-level) session opened PR #55 above. Recorded here as a
+process note, not a task fault — see `runs/between-tasks.md`.
 
 **Sessions:**
 
