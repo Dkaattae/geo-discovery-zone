@@ -1,8 +1,12 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have
 
-**Status:** `blocked`
-**Next step:** `task-expander`
-**Approved:** orchestrator — 2026-09-21, unattended run. See `runs/T-057-level-window-docstring.md`.
+**Status:** `awaiting approval` — amended criteria, round 2. See **Amendment 1**
+below; criteria 1–8 are unchanged and already satisfied.
+**Next step:** `worker`
+**Approved:** `pending` — the criteria changed after the round-1 block, so the
+round-1 approval does not carry over (`process.md` step 2, "Once approved, the
+criteria are frozen"). Round-1 approval was `orchestrator — 2026-09-21,
+unattended run`; see `runs/T-057-level-window-docstring.md`.
 **From:** [`tasks.md`](../tasks.md) T-057
 **Branch:** `claude/loving-franklin-su4qzl` — assigned to the expander's session by
 its harness, so this is the task branch (`process.md`, "When the environment names
@@ -13,7 +17,8 @@ until the reviewer approves it
 **Fault:** criterion 8 mandates an `E-10` entry that T-017's already-merged
 criterion-7 test forbids, and the Constraints exclude the file that would have to
 change, so criteria 8 and 9 cannot both hold — the brief's, and the expander's to
-fix.
+fix. **Addressed by Amendment 1** (2026-09-21); stays recorded here until the
+task reaches `pass`.
 
 **Sessions:**
 
@@ -22,6 +27,7 @@ fix.
 | task-expander | 2026-09-21 | 5992b640-9ccf-5259-8734-1034957823e2 |
 | worker | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
 | tester | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
+| task-expander (amendment 1) | 2026-09-21 | 5992b640-9ccf-5259-8734-1034957823e2 |
 
 ## Goal
 
@@ -65,9 +71,71 @@ and are stated only so they stay satisfied.
   Criterion 4 closes that, by moving the code to the contract rather than the
   contract to the code.
 
+### Amendment 1 — 2026-09-21, after the round-1 `blocked` verdict
+
+**TL;DR:** the tester was right and the brief was wrong. Criterion 8 asks for an
+`E-10` entry; a test left behind by the merged T-017 asserts that no `E-n` above
+`E-9` may ever exist; and the old Constraints forbade touching the file holding
+it. Criteria 9–14 below widen the task to fix that test, and nothing about the
+implementation the worker already landed needs to move.
+
+**What changed, exactly:**
+
+- **Criteria 1–8 are untouched.** The tester verified all eight and every one
+  passes. They are restated verbatim so the worker does not have to diff two
+  versions of this file; treat them as "keep satisfied", not "build".
+- **Criterion 9 is rewritten.** It used to say "the whole suite is green" while
+  listing only the backend and frontend suites, which is how the `question-bank`
+  suite went unnoticed. It now names the CI jobs, and says how to report a suite
+  the sandbox cannot run.
+- **Criteria 10 and 11 are new** and are the actual fix: `engineering-decisions.md`
+  must be able to grow past `E-9`, while everything T-017's criterion 7 genuinely
+  meant keeps holding.
+- **Criteria 12, 13 and 14 are new**, and are the "no new dependency", "no
+  network" and "no faked module" halves that used to be buried inside criterion 9.
+  Splitting them out is bookkeeping, not new work.
+
+**The judgement behind criterion 10, written down so the reviewer can overrule
+it.** `question-bank/src/region-vocabulary.test.ts:327-341` pins
+`Math.max(...numbers) === 9` and `numbers.at(-1) === 9`. T-017's criterion 7 read
+"engineering-decisions.md records the choice as **E-9**" — an instruction about
+where that one entry goes, written when `E-9` was the newest. The verifying
+session encoded it as "nine is the maximum, for ever", which makes every future
+`E-n` impossible. That directly contradicts a standing rule in `CLAUDE.md`:
+*"`engineering-decisions.md` — why the code is built the way it is. **Not gated**;
+a task may add an entry when its criteria say so."* So the test is wrong against
+the repo's own rule, and fixing it is the same move criterion 4 already makes for
+`level_window` — bring the code to the contract, not the contract to the code.
+
+I am treating this as the expander's call rather than a human's, and here is why,
+so the reviewer can disagree cheaply:
+
+- T-017 is **merged and swept**. "Frozen criteria" bind the task in flight; a
+  merged task leaves behind ordinary repo tests, and later tasks correct those
+  when they encode something untrue. The record of what T-017 meant lives in its
+  PR and is not edited here.
+- `question-bank/src/region-vocabulary.test.ts` is a **test file, not a loop
+  file**. It is nowhere near `process.md`, `.claude/` or the workflows, so `G1`
+  does not bite and this is not a `P-n` ticket.
+- None of the four human gates in `process.md` ("Where the loop stops for a
+  human") covers it: no dependency, no product call, no text a child reads, no
+  second failed verify round on the code itself.
+- Criterion 11 exists so the relaxation is **bounded**: four named mutations must
+  still turn the suite red, so T-017's real intent is provably intact afterwards.
+
+If the reviewer thinks generalising another task's test needs Dkaattae, the PR is
+the place to say so — it is waiting on a human merge regardless.
+
+**What I considered and rejected:** dropping criterion 8 and recording the
+decision somewhere other than `engineering-decisions.md`. That would leave the
+landmine armed for T-058 and everything after it, and put an engineering decision
+somewhere nobody looks. The tester recommended the same.
+
 ## Acceptance criteria
 
 Numbered, observable, each checkable on its own. **Frozen once approved.**
+Criteria 1–8 were approved in round 1 and are verified passing; 9 is rewritten
+and 10–14 are new (see Amendment 1).
 
 1. **The false name is gone everywhere it could mislead.** The string
    `levelWindow` (case-sensitive) appears in no tracked file under `backend/`,
@@ -128,10 +196,56 @@ Numbered, observable, each checkable on its own. **Frozen once approved.**
    that needs client-side label formatting (`frontend/src/components/screens.tsx`
    line 361, 423 or 195).
 
-9. **The whole suite is green, not just the new tests** — the backend suite and
-   the frontend suite both pass, along with `bun run typecheck` and
-   `bun run lint` in `frontend/`. No test reaches the network, and no new
-   dependency is added to any package.
+9. **The whole suite is green, not just the new tests — all six CI jobs.** On the
+   branch head, every job in `.github/workflows/ci.yml` succeeds:
+   `frontend (typecheck, lint, test)`, `question-bank (typecheck, test)`,
+   `backend (lint, format, test)`, `backend (postgres)`,
+   `integration (docker compose)` and `e2e (playwright)`. As of `e9147a5` five
+   pass and **`question-bank` fails**, on two assertions in
+   `region-vocabulary.test.ts` (`Expected: 9 / Received: 10`) — criterion 10 is
+   what closes it. Run the suites locally too; where this sandbox cannot install
+   a package, say which job you are citing instead of a local run, and see
+   criterion 14 for what you may not do about it.
+
+10. **`engineering-decisions.md` can grow past `E-9`.** With `E-10` present
+    (criterion 8), the whole `question-bank` suite passes — specifically
+    `question-bank/src/region-vocabulary.test.ts` has no assertion that a
+    decision entry's number is at most 9, nor that `E-9` is the last heading in
+    the file. And it stays that way for the next task: appending a well-formed
+    `## E-11 — …` heading after `E-10` in `engineering-decisions.md` leaves the
+    `question-bank` suite green. (The tester checks the `E-11` half by mutation
+    and reverts it.)
+
+11. **What T-017's criterion 7 actually meant still holds.** Each of these four
+    mutations, made one at a time to `engineering-decisions.md` and reverted,
+    turns at least one test in `question-bank/src/region-vocabulary.test.ts`
+    red:
+    - a. the `## E-9 — …` heading is deleted;
+    - b. a second entry is numbered `E-9`, so the numbers are no longer unique;
+    - c. the `E-10` block is moved above `E-8`, so the numbers no longer run in
+      ascending order;
+    - d. the word `content.json` is removed from `E-9`'s body.
+
+    No `describe` block is deleted from that file, no test in it is skipped, and
+    the blocks for T-017 criteria 1–6 and 8 are unedited.
+
+12. **No new dependency** (negative). `frontend/package.json`,
+    `frontend/bun.lock`, `question-bank/package.json`, `question-bank/bun.lock`,
+    `e2e/package.json`, `e2e/bun.lock`, `backend/pyproject.toml` and
+    `backend/uv.lock` are byte-identical to their versions on `main`.
+
+13. **No test reaches the network** (negative). No test added or edited by this
+    task performs an HTTP request to a real host, and none spawns a server to
+    exercise a pure function. Endpoint-level checks go through the existing
+    `httpx.ASGITransport` client fixture; repo-scanning tests read files from
+    disk only.
+
+14. **No result is reported from a faked third-party module** (negative). The
+    diff contains no hand-written stand-in for `react-simple-maps`, `us-atlas`
+    or any other third-party package, and no suite result cited in the Handoff
+    or the Verdict was produced with such a stand-in present in `node_modules/`.
+    Where a package cannot be installed here, cite the matching CI job on the
+    branch head and say so.
 
 ## Out of scope
 
@@ -150,14 +264,33 @@ Numbered, observable, each checkable on its own. **Frozen once approved.**
   session endpoints' `levelLabel` object.
 - **The stale suite-size counts (T-065)**, `question-bank` lint (T-066) and the
   prettier drift (T-071). None of them ride along.
+- **Anything in `question-bank/src/region-vocabulary.test.ts` other than the two
+  assertions that cap the decision number.** T-017's criteria 1–6 and 8 blocks
+  are not this task's to review, tidy or extend.
+- **`question-bank/src/climate-kid-verify.test.ts`'s `git diff 13a735f...HEAD`
+  guard**, which the round-1 tester found fails on `main` in a full clone and is
+  only green in CI because `actions/checkout` shallow-clones. Real, and not this
+  task's — it is **T-072** in `tasks.md`.
+- **The missing `react-simple-maps` / `us-atlas` packages in this sandbox.** A
+  proxy restriction, not a repo defect; criterion 14 says how to report around
+  it rather than fix it.
 
 ## Constraints
 
 - **Files expected to change:** `backend/app/levels.py`,
   `backend/tests/test_levels.py` (or a new file alongside it),
-  `engineering-decisions.md`, and one frontend test file for criterion 3. Nothing
-  else. `backend/app/serializers.py:143` keeps calling `level_window` — the field
-  stays server-computed.
+  `engineering-decisions.md`, one frontend test file for criterion 3, and — new
+  in Amendment 1 — **`question-bank/src/region-vocabulary.test.ts`**, for
+  criteria 10 and 11 only. Nothing else.
+  `backend/app/serializers.py:143` keeps calling `level_window` — the field
+  stays server-computed. The first four are already changed on this branch and
+  need no further edit; the fifth is the whole of round 2's work.
+- **`region-vocabulary.test.ts` is generalised, not gutted.** The only
+  assertions that may change are the two that cap the number
+  (`Math.max(...numbers)).toBe(9)` at :330 and `numbers.at(-1)).toBe(9)` plus
+  the "nothing follows E-9" slice at :339-340). Uniqueness, ascending order, the
+  existence of `E-9` and its content checks all stay, and criterion 11 is how
+  that is proved.
 - **`openapi.yaml` must not change.** The contract already documents the three-
   or-four rule, so this task moves the code to match it. If the worker concludes
   the *contract* is the thing that is wrong, that is a deliberate contract change
@@ -172,6 +305,12 @@ Numbered, observable, each checkable on its own. **Frozen once approved.**
   checks use the existing `httpx.ASGITransport` client fixture.
 - **A bug fix gets a test that fails without the fix** (`CLAUDE.md` "Tests") —
   criterion 4's test must go red against today's `level_window`.
+- **Do not fake a package to make a suite look green.** If `bun install` cannot
+  reach the registry, report the CI job instead (criterion 14). The round-1
+  worker stubbed `react-simple-maps` and `us-atlas` under `node_modules/` and
+  deleted the stub afterwards; the round-1 tester declined to, and the tester was
+  right — `test-guidelines.md` does not let you edit the thing under test to make
+  it pass, and a fake module is that.
 - Commands are in `conventions.md`; run the whole suite, not only what you
   touched.
 
@@ -193,8 +332,17 @@ Numbered, observable, each checkable on its own. **Frozen once approved.**
   — the assertions criterion 6 protects.
 - `fixtures/level-labels.json`, `_fixture` block — why the two sides are pinned
   together, and what that pin deliberately does not cover.
-- `engineering-decisions.md` — `E-9` is the last entry; criterion 8 adds `E-10`
-  in the same shape.
+- `engineering-decisions.md` — `E-10` is now the last entry (`:486`), added by
+  the round-1 worker for criterion 8. `E-9` is at `:438`.
+- **`question-bank/src/region-vocabulary.test.ts:316-354`** — the whole
+  `T-017 criterion 7` describe block. **Read all four of its tests before
+  touching any of them**; criterion 11 is a restatement of what the other three
+  are for. The two failing assertions are at `:330` and `:339-340`.
+- `CLAUDE.md` "Docs", the `engineering-decisions.md` line — *"Not gated; a task
+  may add an entry when its criteria say so."* This is the rule the capped test
+  contradicts, and the reason criterion 10 is in scope.
+- `.github/workflows/ci.yml` — the six job names criterion 9 lists, at lines 17,
+  93, 141, 197, 253 and 281.
 - `tasks.md` T-057 (the queue entry) and `PROGRESS.md`'s T-004 entry, where the
   finding came from.
 - `test-guidelines.md` and `conventions.md` — how tests are written here and how
@@ -202,18 +350,33 @@ Numbered, observable, each checkable on its own. **Frozen once approved.**
 
 ## Review checklist — non-testable parts only
 
-Criteria 1–9 are testable. These are the two judgements a human should make on
-the PR, because no test can:
+Criteria 1–14 are testable. These are the judgements a human should make on the
+PR, because no test can:
 
 - [ ] The rewritten `level_window` docstring is true of the code that ships, and
       a reader who has never seen this task would not have to grep to find where
       the window is used.
 - [ ] `E-10` explains the decision rather than restating it, and would still make
       sense to someone reading it in six months.
+- [ ] **Amendment 1's judgement call** — that generalising T-017's capped
+      assertion is the expander's to make and not Dkaattae's. The reasoning is
+      written out under Amendment 1; overruling it costs one comment.
+- [ ] The generalised `region-vocabulary.test.ts` block still reads as a test of
+      T-017's criterion 7, not as a test that was widened until it stopped
+      failing.
+- [ ] `frontend/src/components/screens.criteria.test.tsx:84` is named *"a
+      three-choice `suggestedLevels` … renders exactly three, not four"* but
+      passes `[17, 18]` and asserts two. The assertion is right, the name is
+      wrong. A rename is welcome here rather than as a follow-up task, but it is
+      not a criterion.
 
 ## Handoff
 
-Written by `worker` before the tester runs.
+Written by `worker` before the tester runs. **Round 2 appends a
+`### Handoff — round 2` block at the end of this section; it does not rewrite
+round 1's.**
+
+### Handoff — round 1
 
 **TL;DR:** `level_window`'s false docstring is rewritten, the top-of-scale
 collapse (2 choices at `L=18.0`) is fixed by extending the window downward
@@ -359,6 +522,12 @@ typecheck` fails on `UsMap.tsx` for a reason unrelated to this task — see
   or `node_modules/us-atlas` are missing in this sandbox.
 
 ## Verdict
+
+Written by `tester`. **Round 2 appends a `### Verdict — round 2` block at the
+end; it does not rewrite round 1's.** Round 1's verdict is what produced
+Amendment 1, and its criteria 1–8 evidence still stands.
+
+### Verdict — round 1
 
 **Status: `blocked` — back to `task-expander`, not to the worker.**
 

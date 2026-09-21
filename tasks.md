@@ -157,6 +157,10 @@ is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 ### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · doing
 **Depends on:** —
 **Expanded 2026-09-21** into [`tasks/T-057-level-window-docstring.md`](tasks/T-057-level-window-docstring.md).
+**Amended 2026-09-21** after a `blocked` verdict: criterion 8's `E-10` entry is
+forbidden by a capped assertion T-017 left in
+`question-bank/src/region-vocabulary.test.ts`, so the task now also generalises
+that cap. Criteria 1–8 are already satisfied on the branch.
 The expander's survey settled the either/or in this entry: the client **does**
 have a level picker (`frontend/src/components/screens.tsx:366-425`), it renders
 the server's `suggestedLevels`, and only the *arithmetic* is server-only — so the
@@ -180,6 +184,23 @@ forcing it.
 corrected, or the client grows the picker the server is sizing windows for — and
 `level_window`'s three-or-four-choices rule is documented wherever it really
 lives. Say in the same breath whether `frontend/src/lib/level.ts` keeps existing.
+
+### T-072 — A guard test diffs against a fixed commit and fails on `main` · S · todo
+**Depends on:** —
+**New 2026-09-21, from T-057's round-1 tester.**
+`question-bank/src/climate-kid-verify.test.ts:1129` runs
+`git diff --name-only 13a735f...HEAD` and fails if anything under `frontend/`,
+`backend/` or `e2e/` has changed since that commit. Six such files have already
+changed, so the test fails on **`main`** in any full clone. It is green in CI
+only because `actions/checkout` shallow-clones and the missing-history `else`
+branch swallows the failure. That means it fails locally for every task from now
+on, for reasons unrelated to the task, and it is not really checking anything in
+CI either — the worst of both.
+**Done when:** the guard expresses what it meant (that this task's change did not
+reach into the app) without pinning a commit that ages, or is deleted with a note
+saying why. It behaves the same in a shallow clone and a full one — no silent
+`else` that turns the check off — and `question-bank`'s suite passes on `main` in
+a full clone.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
