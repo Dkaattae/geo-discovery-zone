@@ -158,8 +158,15 @@ updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 
-### T-072 — A guard test diffs against a fixed commit and fails on `main` · S · todo
+### T-072 — A guard test diffs against a fixed commit and fails on `main` · S · doing
 **Depends on:** —
+**Expanded 2026-09-21** into [`tasks/T-072-guard-pinned-commit.md`](tasks/T-072-guard-pinned-commit.md)
+— written, but **not yet committed, pushed or opened as a PR**: that session
+could run no mutating git command (see the brief's `Fault:` line), so it is
+`blocked` on a person landing it. The brief takes in the sibling copy in `climate-kid.test.ts` as well —
+same defect, same ten lines, and its `origin/main...HEAD` range measures whatever
+the *current* branch changed — so this closes **T-070 (c)**. T-070 (a) and (b)
+survive and that entry should be trimmed, not deleted, when this merges.
 **New 2026-09-21, from T-057's round-1 tester.**
 `question-bank/src/climate-kid-verify.test.ts:1129` runs
 `git diff --name-only 13a735f...HEAD` and fails if anything under `frontend/`,
