@@ -529,11 +529,15 @@ named (`Math.max(...numbers)).toBe(9)` at old line 330, and the "E-9 is last"
 half at old lines 339-340) are generalised to "no two entries share a number"
 and "nothing after E-9 has a number ≤ 9". Nothing else changed: criteria 1–8
 were already satisfied by round 1 and I did not touch their files.
-`question-bank`'s suite goes from 1251 pass/4 fail to 1253 pass/2 fail — the
-two E-10 failures Amendment 1 diagnosed are gone; the remaining two failures
-are `climate-kid-verify.test.ts`/`climate-kid.test.ts`'s `git diff` guard,
-confirmed pre-existing on this exact branch head (identical failure before my
-edit, via `git stash`) and already filed as **T-072**, out of scope here.
+`question-bank`'s suite goes from 1251 pass/4 fail to 1253 pass/2 fail locally
+— the two E-10 failures Amendment 1 diagnosed are gone; the remaining two
+failures are `climate-kid-verify.test.ts`/`climate-kid.test.ts`'s `git diff`
+guard, confirmed pre-existing on this exact branch head (identical failure
+before my edit, via `git stash`) and already filed as **T-072**, out of scope
+here. **Pushed as `13cc373` and confirmed on GitHub Actions: all six CI jobs
+are green, including `question-bank (typecheck, test)`**, which was the one
+red job on the pre-fix head (`4ba642a`) — see criterion 9's row below for the
+full list. This is not a local report; it is the real workflow run.
 
 ### Files changed (round 2)
 
@@ -590,7 +594,7 @@ unchanged in this round's diff (it already carries `E-10` from round 1).
 
 | # | Verdict | Evidence |
 |---|---|---|
-| 9 | done, with the same registry caveat round 1 flagged | `question-bank`: `bun test --no-install` → **1253 pass, 2 fail** (both pre-existing, T-072, confirmed identical via `git stash` against the pre-edit branch head). `backend`: `uv run pytest -q` → 517 passed, 9 skipped; `uv run ruff check` and `ruff format --check` clean. `frontend`: `bun test --no-install` → 209 pass, 1 fail/1 error — the same `UsMap.tsx` → `react-simple-maps`/`us-atlas` import failure round 1 documented (this sandbox's proxy returns 403 on those tarballs); `bun run lint` clean; `bun run typecheck` → same 4 pre-existing `UsMap.tsx` errors, nothing new. `question-bank`: `bun run typecheck` fails on `Cannot find type definition file for 'bun'` — same registry restriction, not something I can fix from here. CI on this branch's pre-fix head (`4ba642a`) via the GitHub API: `backend (lint, format, test)` ✅, `backend (postgres)` ✅, `frontend (typecheck, lint, test)` ✅, `integration (docker compose)` ✅, `e2e (playwright)` ✅, `question-bank (typecheck, test)` ❌ — matching the brief's own account exactly. I could not re-poll CI on my own pushed commit before handing off (no workflow run exists yet at push time); the tester should re-check `question-bank (typecheck, test)` on the new head and confirm it goes green now that the two capped assertions are gone. |
+| 9 | **done — all six CI jobs green** | `question-bank`: `bun test --no-install` → **1253 pass, 2 fail** locally (both pre-existing, T-072, confirmed identical via `git stash` against the pre-edit branch head). `backend`: `uv run pytest -q` → 517 passed, 9 skipped; `uv run ruff check` and `ruff format --check` clean. `frontend`: `bun test --no-install` → 209 pass, 1 fail/1 error locally — the same `UsMap.tsx` → `react-simple-maps`/`us-atlas` import failure round 1 documented (this sandbox's proxy returns 403 on those tarballs); `bun run lint` clean; `bun run typecheck` → same 4 pre-existing `UsMap.tsx` errors, nothing new. `question-bank`: `bun run typecheck` fails locally on `Cannot find type definition file for 'bun'` — same registry restriction. **CI on the pushed commit (`13cc373`), polled via the GitHub API after push and waited out to completion — all seven checks `success`:** `backend (lint, format, test)`, `backend (postgres)`, `frontend (typecheck, lint, test)`, `integration (docker compose)`, `e2e (playwright)`, **`question-bank (typecheck, test)`** (the one this round's fix targets — was `failure` on the pre-fix head `4ba642a`, now `success`), and `Is a task waiting on a human?`. This is a real CI run in an environment with full registry access, not a local report — it resolves both the registry caveat and the "will E-10 actually unblock CI" question at once. |
 | 10 | done | See the mutation table above — the `E-11` append stays green (56/56), and neither of the two now-generalised assertions pins the maximum number or the last-heading position. |
 | 11 | done | See the mutation table above — all four named mutations turn a `region-vocabulary.test.ts` test red, each reverted cleanly. |
 | 12 | done (negative) | `git diff main -- frontend/package.json frontend/bun.lock question-bank/package.json question-bank/bun.lock e2e/package.json e2e/bun.lock backend/pyproject.toml backend/uv.lock` is empty — none of the eight files changed. |
@@ -861,10 +865,11 @@ Written by `reviewer`, and only when it sends the PR back.
   and only cut the two clauses that pinned `9` as a ceiling, rather than
   rewriting the tests from scratch. That kept the diff to the minimum the
   Constraints asked for and made the mutation table above line up cleanly
-  with the brief's own four-mutation list. **Named owner for the one open
-  question:** whether the tester's environment can actually re-poll CI on the
-  pushed commit (mine could not, since no workflow run existed yet at push
-  time) — if `question-bank (typecheck, test)` is still red on the new head
-  for a reason other than the two assertions I touched, that is new
-  information for the tester to bring back, not something I could have caught
-  here.
+  with the brief's own four-mutation list. **Update after push:** I waited
+  for CI on the pushed commit (`13cc373`) to finish rather than leaving this
+  open for the tester — all six jobs, including `question-bank (typecheck,
+  test)`, are `success`. The one thing left for the tester to bring
+  independent judgement to is the review-checklist item on whether the
+  generalised test still reads as T-017 criterion 7 rather than as a test
+  widened until it stopped failing — that is a human/tester read, not
+  something a passing CI run settles.
