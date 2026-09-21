@@ -1,7 +1,7 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have — run log
 
 **Task:** T-057 · **Branch:** `claude/loving-franklin-su4qzl` · **PR:** #53
-**Started:** 2026-09-21 · **Outcome:** in progress
+**Started:** 2026-09-21 · **Outcome:** in progress — blocked round 1 of 2, returning to task-expander
 
 ## Round 2 — worker — 2026-09-21
 `Next step` on entry: `worker` → on exit: `tester`
@@ -23,6 +23,69 @@ T-057 worker done. Branch `claude/loving-franklin-su4qzl` pushed at commit `7fad
 **One judgment call flagged for reviewer** (named in brief Notes): criterion 3's test renders a real component via `react-dom/server` rather than doing a source-level regex check (the style `lint-gate.test.ts` uses for non-pure-function behaviour). I judged the render more faithful to what the criterion actually claims; reviewer should confirm this fits house style or push back — it's a style question, not a criterion-3-met-or-not question.
 
 Full details, file-by-file diff description, and the exact verification commands are in `tasks/T-057-level-window-docstring.md` under `## Handoff` and `## Notes`.
+
+## Round 3 — tester — 2026-09-21
+`Next step` on entry: `tester` → on exit: `task-expander`
+
+## T-057 tester — Status: `blocked`, Next step: `task-expander`
+
+**TL;DR:** Criteria 1–8 all hold, and I verified every one with tests I broke on purpose first (14 mutations, all reverted). **Criterion 9 does not: this branch turns CI red.** Adding `E-10` — which criterion 8 *requires* — breaks `question-bank/src/region-vocabulary.test.ts`, which carries T-017's frozen criterion 7 pinning 9 as the highest E-number and E-9 as the last block in the file. The brief's Constraints exclude that file, so criteria 8 and 9 cannot both be satisfied as written. That is a brief problem, not a worker problem, so it goes back to the expander rather than to the worker.
+
+Pushed to `claude/loving-franklin-su4qzl` (the brief's `Branch:` header, and the branch I was already on). Confirmed landed: `origin/claude/loving-franklin-su4qzl` is now `8514419`.
+
+### Independence caveat (must be read with the verdict)
+
+This is an **orchestrated run** (`runs/T-057-level-window-docstring.md` exists), so the Sessions-table check does not work and I am not claiming it passed. `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01VNvekndCsNWvPYSNudz67b`, the same id already listed as `worker`. What I had is the weaker kind of independence — a **fresh context window**, never having seen the worker's transcript — which rests on the orchestrator having spawned me correctly. This is stated in the Verdict too.
+
+### The contradiction
+
+`question-bank/src/region-vocabulary.test.ts:327-342`:
+
+```ts
+expect(Math.max(...numbers)).toBe(9);
+expect(numbers.at(-1)).toBe(9);
+expect(decisions.slice(decisions.indexOf("## E-9 —"))).not.toContain("\n## E-");
+```
+
+Observed twice, locally and in CI: `Expected: 9 / Received: 10`. This is a landmine for **every** future task, not just this one — nothing can ever add an `E-n` entry without editing that file. My recommendation for the expander: widen the Constraints to include it and add a criterion saying the T-017 pin becomes "E-9 exists, numbers are unique and ascending", which keeps what T-017 criterion 7 actually meant. If relaxing another merged task's frozen criterion needs a person, escalate rather than guess.
+
+### Criteria
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `git ls-files` over the eight named paths (241 files), none contains the banned name. Mutation M1 turns it red. |
+| 2 | pass | Docstring names `suggestedLevels` and says the client renders it "rather than deriving a window of its own"; whole-file scan of `levels.py` finds no client-attributed function `level.ts` lacks. |
+| 3 | pass | Behavioural half = worker's `screens.criteria.test.tsx`, green in CI. Source half (the negative claim no render can prove) = my new tests; mutations M13/M14 turn them red. |
+| 4 | pass | 37 parametrised levels; **genuine bug-fix test** — mutation M2 (pre-task algorithm) turns `L-18.0` red. Contract unedited and still says "three or four" (M12 proves that assertion is live). |
+| 5 | pass | Four separate assertions; M3–M6 each turn exactly the matching one red. |
+| 6 | pass | Pins hold; `git diff main...HEAD --numstat` shows 69 added / **0 deleted** in `test_levels.py`, and no change at all to `test_profiles_api.py`, `openapi.yaml`, `screens.tsx`, `level.ts`, `serializers.py`. |
+| 7 | pass | M1 turns **three** tests red across two suites. |
+| 8 | pass on its own terms | E-10 correct and complete; E-1…E-9 byte-identical. **Satisfying it is what breaks 9.** |
+| 9 | **fail** | question-bank red on branch, green on main. |
+
+### Test runs
+
+- `backend`: **517 passed, 9 skipped** (324 + my 193). `ruff check` and `ruff format --check` clean.
+- `frontend`: `bun run lint` clean. `bun test --no-install` → 209 pass, 1 fail/1 error (`screens.criteria.test.tsx` cannot import — sandbox only, see below). My file 11/11.
+- `question-bank`: 1251 pass, 4 fail — 2 are this task's E-10, 2 are pre-existing (below).
+- **CI on my commit `e9147a5`**: frontend ✅ backend ✅ backend-postgres ✅ e2e ✅ integration ✅ **question-bank ❌**, with the *only* two annotations being `region-vocabulary.test.ts:330/:339` `Expected: 9 / Received: 10`. All six green on `main`. So my tests are green with full registry access, and the E-10 pin is the sole blocker.
+
+### Environment note — where I diverged from the worker
+
+`bun install` cannot reach `europe-west1-npm.pkg.dev` from this sandbox (403 at the agent proxy), and installing from `registry.npmjs.org` instead was refused ("Package Registry Bypass"), so `react-simple-maps`/`us-atlas` are absent. The worker stubbed them under `node_modules` to get a green run; **I did not**. Reporting a green suite that depends on a hand-written fake of a third-party module is not a green suite. I read the real CI result off the branch head instead, which is stronger evidence anyway. `bun test --no-install` is what makes the rest of the frontend suite runnable here.
+
+### Findings for the queue (not this task's to fix)
+
+- **`question-bank/src/climate-kid-verify.test.ts:1129`** (T-014 criterion 19) runs `git diff --name-only 13a735f...HEAD` and fails if `frontend/`, `backend/` or `e2e/` changed since that commit. It **fails on `main`** in a full clone (`git diff --name-only 13a735f...main` already lists six such files) and only passes in CI because `actions/checkout` shallow-clones and the `else` branch swallows it. Same class of landmine as the T-017 pin.
+- **`screens.criteria.test.tsx:84`** is named "renders exactly three, not four" but passes `[17, 18]` and asserts two. Assertion right, name wrong — a rename for the reviewer, not a criterion failure.
+
+### Files
+
+- `/home/user/geo-discovery-zone/tasks/T-057-level-window-docstring.md` — Verdict, `Status: blocked`, `Next step: task-expander`, `Fault:` filled, Sessions row added.
+- `/home/user/geo-discovery-zone/backend/tests/test_levels_t057_criteria.py` (new) — criteria 2, 4, 5, 6 + contract guard, 193 tests.
+- `/home/user/geo-discovery-zone/frontend/src/level-window-claim.criteria.test.ts` (new) — criteria 1, 8, source half of 3, 11 tests.
+
+No source was edited except the 14 temporary mutations, every one reverted and confirmed with `git status` / `git diff`. No acceptance criterion was edited. No second PR or branch.
 
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
