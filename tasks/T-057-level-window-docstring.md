@@ -1083,6 +1083,11 @@ reported from a local run. `e5d687d` is my fix commit.
 | `integration (docker compose)` | success |
 | `e2e (playwright)` | success |
 
+`d693dcd`, the commit carrying this Verdict, is green too — all seven checks
+`success`, including `Is a task waiting on a human?`. The only commit after it
+on this branch is the one adding these three lines, a markdown-only change to
+this brief that touches no suite.
+
 #### Environment, and what I would not do about it
 
 - **`react-simple-maps` and `us-atlas` still cannot be installed here.** I tried
