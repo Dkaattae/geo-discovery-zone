@@ -208,6 +208,55 @@ Full detail is in `tasks/T-057-level-window-docstring.md` under `### Handoff —
 - **`frontend/src/components/screens.criteria.test.tsx:84` is still misnamed** — "renders exactly three, not four" over `[17, 18]`, asserting two. Assertion right, name wrong; the one-line rename the checklist invites.
 - **Amendment 1's judgement call** (that generalising a merged task's test is the expander's to make, not Dkaattae's) is untouched by this verdict — I only verified the relaxation is bounded.
 
+## Round 7 — reviewer — 2026-09-21
+`Next step` on entry: `reviewer` → on exit: `tester`
+
+## T-057 reviewer — **changes requested**. PR #53 stays draft. Next step: `tester`.
+
+- **The implementation is good**; one test the tester added re-creates the exact landmine this task exists to remove, so it goes back rather than shipping.
+- **`frontend/src/level-window-claim.criteria.test.ts:141`** asserts `expect(numbers.at(-1)).toBe(10)` — i.e. `E-10` is the highest `engineering-decisions.md` entry number for ever. That is `region-vocabulary.test.ts`'s `…toBe(9)`, which criteria 10 and 11 exist to delete, moved forward by one and committed by this same PR.
+- **Nothing swept** (task not done), **PR not marked ready**, **not merged** (no merge tool, and merging is Dkaattae's).
+
+### Verified by mutation, this session
+
+Appended a well-formed `## E-11 — …` block to the real `engineering-decisions.md`:
+
+| Suite | Result with `E-11` present |
+|---|---|
+| `question-bank`: `bun test --no-install src/region-vocabulary.test.ts` | 56 pass, 0 fail — criterion 10 holds exactly as written |
+| `frontend`: `bun test --no-install src/level-window-claim.criteria.test.ts` | **10 pass, 1 fail** — `Expected: 10 / Received: 11` at `:141` |
+
+Reverted; `md5sum engineering-decisions.md` identical before and after (`eb12c7639c534ce1317427eeb0781b8c`), `git status --short` empty. Criterion 10 only ever checked the `question-bank` suite, which is why nothing caught this. Not hypothetical — `tasks.md` lines 389, 466 and 845 each already require a new `engineering-decisions.md` entry.
+
+### Findings
+
+1. **Blocking** — `/home/user/geo-discovery-zone/frontend/src/level-window-claim.criteria.test.ts:141`, above. Fix: delete the line, or generalise it the way the worker did in `region-vocabulary.test.ts` ("every number after `E-10`'s position is `> 10`"). Criterion 8 is not weakened: `toContain(10)`, uniqueness, ascending order and the `no existing E-n entry was modified` byte comparison already cover it.
+2. **Blocking** — same file, `:135-137`. The `NOTE:` comment says `region-vocabulary.test.ts` "asserts the exact opposite … Both cannot hold." True in round 1, false on this head — commit `13cc373` removed those assertions. A doc that is untrue.
+3. **Not blocking, fix in the same round** — `/home/user/geo-discovery-zone/frontend/src/components/screens.criteria.test.tsx:84`, named "renders exactly three, not four (the top-of-scale case)" while passing `[17, 18]` and asserting two. After criterion 4's fix the top of the scale returns `[16.0, 17.0, 18.0]`, so the data is wrong about itself too. No `tasks.md` entry — one line in a file already being reopened.
+
+### What is good, and is not to be re-litigated
+
+- `backend/app/levels.py` — docstring true of the shipped code, names `suggestedLevels`, `app/serializers.py` and `Setup`; the extension loop's comment explains rather than restates.
+- `E-10` explains the decision (bare numbers vs `LevelLabel`), names its three call sites, carries a real **Revisit when** for T-004.
+- The generalised `region-vocabulary.test.ts` block still reads as T-017 criterion 7: existence, uniqueness, ascending order and `E-9`'s content all still enforced, single hunk, `describe`/`test` counts match `origin/main`.
+- **Role lanes clean**, checked commit by commit: expander → `tasks.md` + brief only; tester → test files + brief only; orchestrator → `runs/` + header (`process-decisions.md` D-7). All 17 commits are on the brief's branch; no stranded work.
+
+### Flags disposed of (none left open)
+
+- **Extend-until-three loop vs a `MAX_LEVEL` special case** → keep the loop.
+- **Criterion 3 rendering via `react-dom/server`** → keep it; no dependency, exercises the JSX, source-level half covered elsewhere.
+- **`react-simple-maps` / `us-atlas` 403** → no task; sandbox proxy restriction, CI green.
+- **Amendment 1's judgement call** (generalising a merged task's frozen-criterion test without Dkaattae) → **upheld, not overruled**; I re-verified criterion 11 bounds it. **Recorded intent: when this comes back green it will be marked ready with an escalation note**, so Dkaattae sees the relaxation of a merged task's test before merging.
+
+### Where it landed
+
+- Brief: `/home/user/geo-discovery-zone/tasks/T-057-level-window-docstring.md` — `Status: changes requested`, `Next step: tester`, new `## Review` section, Sessions row added.
+- Commit `e45238e` pushed to `claude/loving-franklin-su4qzl` (the brief's `Branch:` header) and confirmed on the remote; working tree clean.
+- PR comment posted: https://github.com/Dkaattae/geo-discovery-zone/pull/53#issuecomment-5763598202
+- PR #53 left **draft**, open, unmerged.
+
+One note for the next cycle: CI was still `in_progress` on the previous head (`9f20d70`, a markdown-only run-log commit) while I reviewed; the tester's six-green evidence is on `6081cb5`. That is not why this went back, and the `question-bank` job had already reported `success` on `9f20d70`.
+
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
 
