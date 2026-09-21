@@ -480,3 +480,46 @@ still needs T-021 first regardless.
 actually serves — at that point every one of the 50 rows' region assignment
 (not just the 15 already live) becomes user-facing, and the 35 judgment calls
 this entry describes are worth a second look by whoever picks that task up.
+
+---
+
+## E-10 — The level window is computed once, on the server, and `level.ts` stays
+
+**2026-09-21 (T-057).** `backend/app/levels.py`'s `level_window` docstring
+claimed to mirror a `levelWindow()` function in the client. No such function
+has ever existed — `grep -rn levelWindow` over the whole tree matched nothing
+outside that one docstring, `tasks.md` and `PROGRESS.md`. The false claim
+raised the question T-004 had deliberately left open: does the client need its
+own window arithmetic at all, or was the docstring simply wrong?
+
+**The docstring was wrong, not the client.** `backend/app/serializers.py` puts
+`level_window(profile.last_session_end_level)` straight into `suggestedLevels`
+on `GET /profiles/{profileId}/progress`, and `frontend/src/components/screens.tsx`'s
+`Setup` already renders that array as-is — one button per entry, falling back
+to `[profile.lastSessionEndLevel]` only when the array is absent or empty. No
+module under `frontend/src` derives a window from a level; there was nothing
+to move to the client, because the client was never supposed to compute one.
+
+**`frontend/src/lib/level.ts` keeps existing anyway**, and this is the part
+worth writing down rather than assuming: `suggestedLevels` is an array of bare
+numbers, not the labelled `LevelLabel` object the session endpoints return.
+Something still has to turn `6` into `"3rd grade · Hard"` for a screen that has
+a level but no session to ask — `Setup`'s own "How tricky?" buttons
+(`screens.tsx:423`, calling `levelLabel(option)` on each candidate the server
+suggested), the profile line above it (`screens.tsx:361`), and the profile
+picker (`screens.tsx:195`). `level.ts` is exactly that: display-only formatting
+that never computes a level, only labels one the server already picked.
+Deleting it would not remove any arithmetic — it would just leave those three
+call sites with a bare number where a child expects a grade and a difficulty.
+
+**What this leaves open, on purpose.** Whether label formatting itself should
+move server-side — so the client never duplicates `gradeOf`/`bandOf` at all —
+is T-004's larger question, and it stays open. `fixtures/level-labels.json`
+pins the two implementations together so a drift between them fails loudly
+instead of quietly; that is what buys the time to decide it properly rather
+than under this task's much narrower scope (a false docstring and a window
+that broke its own three-or-four rule at the top of the scale).
+
+**Revisit when** T-004's label-formatting question is actually picked up — at
+that point this entry's three call sites are exactly what would need a home on
+the server, and `level.ts` is what would be deleted once they had one.

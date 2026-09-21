@@ -1,7 +1,7 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-09-21, unattended run. See `runs/T-057-level-window-docstring.md`.
 **From:** [`tasks.md`](../tasks.md) T-057
 **Branch:** `claude/loving-franklin-su4qzl` — assigned to the expander's session by
@@ -17,6 +17,7 @@ until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-21 | 5992b640-9ccf-5259-8734-1034957823e2 |
+| worker | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
 
 ## Goal
 
@@ -210,6 +211,149 @@ the PR, because no test can:
 
 Written by `worker` before the tester runs.
 
+**TL;DR:** `level_window`'s false docstring is rewritten, the top-of-scale
+collapse (2 choices at `L=18.0`) is fixed by extending the window downward
+when clamping eats the top, `E-10` is written, and a new frontend test covers
+criterion 3's already-true behaviour. Backend suite: 324 passed, 9 skipped.
+Frontend suite: 203 passed (198 pre-existing + 5 new), lint clean. `bun run
+typecheck` fails on `UsMap.tsx` for a reason unrelated to this task — see
+"What I did not do" below; confirmed identical on the pre-worker tree.
+
+### Files changed
+
+- **`backend/app/levels.py`** — `level_window`'s body and docstring.
+  - Docstring rewritten: names `suggestedLevels`, `app/serializers.py`, and
+    `Setup` in `screens.tsx` as where the result goes and who renders it
+    as-is; states `level.ts` only formats a level the server already sent and
+    has never computed one. No function name in the module is attributed to
+    the client that `level.ts` does not export (criterion 2).
+  - Algorithm changed only where clamping collapses the window. The old
+    version built the four raw offsets `{-1, 0, +1, +2}`, rounded and clamped
+    each to `[0, 18]`, and deduped via a set — at `current = 18.0` three of
+    the four offsets clamp to `18.0` itself, leaving only `{17.0, 18.0}`, two
+    values. The fix keeps the same four offsets, then — only if the deduped
+    set still has fewer than three members — extends downward one half-step
+    at a time (`-2`, `-3`, …) until it reaches three, or until extending
+    further stops changing the set (the bottom of the scale, not reachable
+    today since `MAX_LEVEL - MIN_LEVEL = 18` is far bigger than the window).
+    Verified by hand that `level_window(L)` for every `L` in
+    `{0.0, 0.5, …, 18.0}` now returns 3 or 4 well-formed values; the middle of
+    the scale (`6.0`, `2.0`, `0.0`) is untouched — see the criterion-6 pins
+    below.
+- **`backend/tests/test_levels.py`** — new tests, nothing removed or edited
+  in the existing ones.
+  - `test_level_window_offers_three_or_four_choices_at_every_level_on_the_scale`
+    (criterion 4, parametrised over all 37 half-integers 0.0–18.0). This is
+    the bug-fix test `CLAUDE.md` "Tests" requires: it fails against
+    today's (pre-fix) code at `L=18.0`, where the old implementation
+    returned exactly 2.
+  - `test_level_window_stays_at_least_three_choices_at_the_boundaries_criterion_4_names`
+    — the two boundaries the brief names explicitly, `17.5` (already 3, must
+    not regress) and `18.0` (was 2, must not stay 2).
+  - `test_level_window_is_well_formed_at_every_level_on_the_scale` (criterion
+    5, same 37-value parametrisation): sorted ascending with no duplicates,
+    bounds, half-integer steps, and `clamp_level(L)` is always a member.
+  - `test_level_window_docstring_names_no_client_function_the_client_does_not_have`
+    (criteria 2 and 7): reads `level_window.__doc__`, extracts every
+    `` `name()` `` mention, reads `frontend/src/lib/level.ts`'s exports off
+    disk (no network, no server), and asserts every mentioned name is one of
+    them. I hand-verified criterion 7 directly: temporarily reinserting the
+    deleted sentence (worded here without repeating the banned string, to
+    keep criterion 1 satisfied inside this very file's comments) turned this
+    test red with `AssertionError: level_window's docstring names
+    ['<the deleted name>'] as a client function, but ... exports only
+    [...]`, then restored the file and reran green. Net diff after the
+    restore was exactly my intended change (verified with `git diff --stat`).
+- **`engineering-decisions.md`** — new `E-10` entry appended at the end, after
+  `E-9`; no existing entry touched. States the window is server-only, that
+  `level.ts` stays and why (formats `suggestedLevels` for `Setup`'s "How
+  tricky?" buttons at `screens.tsx:423`, the profile line at `:361`, and the
+  profile picker at `:195`), and leaves T-004's label-formatting question
+  explicitly open for later.
+- **`frontend/src/components/screens.criteria.test.tsx`** (new file) —
+  criterion 3. Renders `Setup` with `react-dom/server`'s
+  `renderToStaticMarkup` (already a dependency; no jsdom, no
+  `@testing-library/react`, no new package) and reads the "How tricky?"
+  option buttons back out of the static HTML. Five cases: a 4-element
+  `suggestedLevels` renders exactly those four in order; a 2-element one (the
+  top-of-scale shape) renders exactly two; an empty array and an `undefined`
+  `progress` both fall back to exactly `[profile.lastSessionEndLevel]`; and
+  the fallback is always length 1, never a computed set.
+
+### Criteria — where each lives now
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | done | `grep -rn levelWindow backend frontend/src e2e question-bank fixtures openapi.yaml conventions.md test-guidelines.md` returns nothing (checked after every edit, including inside my own new test's comments). |
+| 2 | done | `level_window`'s docstring in `backend/app/levels.py`; enforced by the new test above. |
+| 3 | done (already true) | `screens.tsx:383-385`, unedited; new coverage in `screens.criteria.test.tsx`. |
+| 4 | done | New algorithm in `level_window`; parametrised test over all 37 scale values, plus the two named boundaries. |
+| 5 | done | Same parametrised test (`test_level_window_is_well_formed_at_every_level_on_the_scale`). |
+| 6 | done (unedited) | `backend/tests/test_levels.py:108-116` (old line numbers; content unchanged) and `backend/tests/test_profiles_api.py:228` both still pass verbatim — reran both explicitly. |
+| 7 | done | Mutation hand-verified as described above; not left for the tester to discover blind. |
+| 8 | done | `engineering-decisions.md` `E-10`. |
+| 9 | done, with one caveat below | See "Test runs" below. |
+
+### What I did not do, and why
+
+- **Did not touch `openapi.yaml`, `screens.tsx`, `level.ts`, `serializers.py`,
+  or `fixtures/level-labels.json`** — all out of scope or already correct per
+  the brief's survey.
+- **Did not add `@testing-library/react` or jsdom.** No DOM testing library is
+  in `package.json`, and adding one is a dependency decision `CLAUDE.md`
+  reserves for a human. `react-dom/server`'s `renderToStaticMarkup` — already
+  a transitive dependency of every screen component — was enough to cover
+  criterion 3's actual claim (which options render, in which order) without
+  a DOM at all.
+- **A caveat on criterion 9, not a gap I created:** `bun run typecheck` fails
+  in this sandbox with four pre-existing errors, all in `UsMap.tsx`
+  (`Cannot find module 'react-simple-maps'`, `Cannot find module
+  'us-atlas/states-10m.json'`, plus two `implicit any` errors that follow from
+  those). This sandbox's `bun install` cannot reach the npm registry mirror
+  for those two packages (`403` on every `d3-*`/`react-simple-maps`/`us-atlas`
+  tarball — an outbound network restriction of this environment, not a
+  dependency I touched). I confirmed the failure is identical on the
+  pre-worker tree: `git stash -u`, ran `bun run typecheck`, got byte-identical
+  output, then `git stash pop`. `UsMap.tsx` is untouched by this task and
+  `Setup` (which my new test renders) does not import it directly — `screens.tsx`
+  does, at module scope, so any test importing anything from that file pulls
+  `UsMap` in transitively. To actually run my new test file and the frontend
+  suite end-to-end, I stubbed `react-simple-maps` and `us-atlas` locally under
+  `node_modules/` (a two-function fake module and an empty topology JSON),
+  confirmed 203/203 tests pass and `bun run lint` is clean, then **deleted the
+  stub before finishing** — `node_modules/` is gitignored, nothing here is
+  committed, and `git status` shows only the four files above. The tester
+  will hit the same missing-package wall if this sandbox is the same one; if
+  CI or the tester's environment has full registry access, `bun run typecheck`
+  should be clean of everything except (if unfixed elsewhere) this same
+  pre-existing pair. Flagging this for the **tester to confirm** whether their
+  environment has registry access — if it does, this caveat evaporates; if it
+  doesn't, the tester needs the same stub-and-delete workaround to exercise
+  the new test file, or should judge criterion 9 against `bun test` and
+  `bun run lint` alone and treat the `UsMap.tsx` typecheck errors as a
+  pre-existing, out-of-scope environment gap (worth its own `tasks.md` entry
+  if it recurs, not a T-057 fix).
+
+### Test runs (this session)
+
+- `cd backend && uv run pytest -q` — 324 passed, 9 skipped (up from 248
+  passed, 9 skipped before my changes; the delta is exactly the new tests).
+- `cd frontend && bun test` — 203 passed (198 before, 5 new), with the
+  `react-simple-maps`/`us-atlas` stub in place as described above; without
+  it, exactly one file errors on import (`screens.criteria.test.tsx`, via
+  `screens.tsx` → `UsMap.tsx`) and the other 198 still pass.
+- `cd frontend && bun run lint` — clean, `--max-warnings 0`.
+- `cd frontend && bun run typecheck` — fails only on the pre-existing
+  `UsMap.tsx` errors described above; identical to the pre-worker tree.
+
+### How to run what I touched
+
+- Backend: `cd backend && uv run pytest tests/test_levels.py -v` (or the whole
+  suite with `uv run pytest -q`).
+- Frontend: `cd frontend && bun test src/components/screens.criteria.test.tsx`
+  — needs the registry-access caveat above if `node_modules/react-simple-maps`
+  or `node_modules/us-atlas` are missing in this sandbox.
+
 ## Verdict
 
 Written by `tester`.
@@ -219,3 +363,34 @@ Written by `tester`.
 Written by `reviewer`, and only when it sends the PR back.
 
 ## Notes
+
+- **Surprise:** the top-of-scale collapse the brief flagged was the *only*
+  failure across all 37 half-integer levels — I checked every one by hand
+  (`uv run python -c ...` sweep) before writing the parametrised tests, and
+  `L=18.0` was the sole offender under the old algorithm. The fix (extend
+  downward when the top collapses) is a small, local change; nothing in the
+  middle of the scale needed to move, matching the brief's constraint.
+- **Decision:** rather than special-casing `current == MAX_LEVEL`, I wrote a
+  general "extend until 3 distinct values or no further progress" loop. It's
+  a few more lines than a special case, but it can't silently stop working if
+  `MAX_LEVEL`/`MIN_LEVEL` or the window shape ever change — reviewer may
+  prefer the special case for readability; either is fine, tester's call
+  whether to flag it, reviewer decides if it comes up.
+- **Environment gap found, not caused:** this sandbox's `bun install` cannot
+  reach the npm registry for `react-simple-maps`, `us-atlas`, and their `d3-*`
+  transitive deps (403 from the proxy-gated mirror), which pre-existing breaks
+  `bun run typecheck` on `UsMap.tsx` regardless of this task. I did not file a
+  new `tasks.md` entry for it since it may be specific to this sandbox
+  instance rather than the repo's CI (which likely has full registry access);
+  flagging it here for whoever verifies next to confirm one way or the other,
+  and to open a `tasks.md` entry only if it turns out to be a persistent CI
+  problem rather than a one-off sandbox restriction.
+- **Judgment call, needs a named owner:** criterion 3's test renders a real
+  React component via `react-dom/server` rather than doing a purely
+  source-level/regex check (the style used by `lint-gate.test.ts` and
+  similar files for behaviour that isn't a pure function). I chose the render
+  because it actually exercises the JSX logic instead of pattern-matching the
+  source text, and it needed no new dependency. Reviewer to confirm this
+  matches the repo's testing conventions closely enough, or push back if a
+  source-level check was intended instead — either way it's a call about
+  house style, not about whether criterion 3 is met.
