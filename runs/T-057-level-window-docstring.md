@@ -165,6 +165,49 @@ T-057 round 2 worker complete. Status: `awaiting verification`, Next step: `test
 
 Full detail is in `tasks/T-057-level-window-docstring.md` under `### Handoff — round 2`, including a mutation-by-mutation table and the exact CI job list with conclusions. Sessions table has my `worker (round 2)` row with session `cse_01VNvekndCsNWvPYSNudz67b`.
 
+## Round 6 — tester (round 2) — 2026-09-21
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-057 tester — verdict: `pass`. Next step: `reviewer`.** All 14 criteria hold; I re-ran criterion 11's four mutations and criterion 10's `E-11` append myself against the real `engineering-decisions.md` (each reverted, md5-checked), plus five mutations on this task's own subject. All six CI jobs are `success` on the branch head, and on both commits I pushed.
+
+- **Brief updated and pushed** to `claude/loving-franklin-su4qzl` (the `Branch:` header): `6081cb5` (Verdict, Status `pass`, Next step `reviewer`, Sessions row) and `0f441c3` (one table row recording that `6081cb5`'s own CI was green). `git log origin/claude/loving-franklin-su4qzl -1` → `0f441c3`. Push confirmed landed; working tree clean.
+- **Full report is in the brief**: `/home/user/geo-discovery-zone/tasks/T-057-level-window-docstring.md`, `### Verdict — round 2`.
+
+**Independence — this is the weak kind, and I am not claiming otherwise.** Orchestrated run (`runs/T-057-level-window-docstring.md` exists), so every role shares one session id: `$CLAUDE_CODE_REMOTE_SESSION_ID` = `cse_01VNvekndCsNWvPYSNudz67b`, already in the Sessions table as `worker`. **The Sessions-table check did not pass — it does not apply.** What I had is a fresh context window: I never saw the worker's transcript and read only the brief, the repo, `openapi.yaml`, `CLAUDE.md`, `process.md` and `test-guidelines.md`. That rests on the orchestrator having spawned me correctly, not on anything I could verify. I deliberately re-derived criteria 1–8 rather than trusting round 1's table.
+
+**Criteria**
+
+| # | Verdict | Evidence (short) |
+|---|---|---|
+| 1 | pass | `git grep levelWindow` over the eight named paths → no matches; mutation R1 reddened the tree scan |
+| 2 | pass | docstring names `suggestedLevels`/`serializers.py`/`Setup`; `level.ts` exports only `gradeOf,bandOf,gradeLabel,bandLabel,levelLabel` |
+| 3 | pass | `screens.tsx:383-385` unedited; mutation R5 reddened the source scan; render test verified via the green CI `frontend` job (not runnable here) |
+| 4 | pass | my own sweep of all 37 half-integers: 3–4 values everywhere; `17.5`→3, `18.0`→`[16.0,17.0,18.0]`; mutation R2 (pre-fix algorithm) reddens 4 tests, all at `L=18.0` |
+| 5 | pass | same sweep: ascending, deduped, in-bounds, half-steps, contains `clamp_level(L)`; mutation R3 reddened the matching parametrisation |
+| 6 | pass | `6.0→[5,6,7,8]`, `max(2.0)=4.0`, `min(0.0)=0.0`, endpoint test green; `test_levels.py` is +69/-0 and `test_profiles_api.py` unchanged |
+| 7 | pass | mutation R1 reddened 3 tests across 2 suites; no network, no server |
+| 8 | pass | `E-10` last, names the field, `level.ts` and 3 call sites; `engineering-decisions.md` is +43/-0 vs `main` |
+| 9 | pass | six jobs `success` on `de9581f`, and seven on `6081cb5` / `0f441c3` (GitHub API, not a local claim) |
+| 10 | pass | cap assertions gone; appending a real `## E-11 —` left the suite at 1253 pass / 2 fail — unchanged |
+| 11 | pass | all four mutations red (see below); `describe`/`test(`/`.skip` counts identical to `main` (7/26/0), diff is a single hunk |
+| 12 | pass | all eight manifests/lockfiles byte-identical to `main`; CI's `Lockfile unchanged` step green |
+| 13 | pass | only subprocesses in the task's tests are local `git ls-files`/`merge-base`/`show`; no fetch, no server |
+| 14 | pass | no stand-in module in the diff; `frontend/node_modules` contains neither `react-simple-maps` nor `us-atlas`, so nothing I ran was faked green |
+
+**Criterion 11 mutations (mine, each reverted):** (a) `E-9` heading renamed → 3 red; (b) `E-10` renumbered to a duplicate `E-9` → 2 red; (c) `E-10` moved above `E-8` → 1 red; (d) `content.json` stripped from `E-9` → 1 red. `engineering-decisions.md` md5 `eb12c76…` before and after every one.
+
+**Local suites:** backend 517 passed / 9 skipped, ruff check + format clean; `question-bank` 1253 pass / **2 fail**; frontend 209 pass with one file unable to import, lint clean, typecheck 4 `UsMap.tsx` errors.
+
+- **The 2 `question-bank` failures are not this task's, and I checked that myself** rather than taking the Handoff's word: `git diff --name-only 13a735f...origin/main` already lists six `frontend/`+`backend/` files, so T-014 criterion 19's guard fails on **`main`** in any full clone and passes in CI only because `actions/checkout` shallow-clones. That is T-072, out of scope.
+- **`react-simple-maps`/`us-atlas` cannot be installed in this sandbox** (proxy 403), which is the only reason `screens.criteria.test.tsx` and `bun run typecheck` cannot complete here. **I did not stub them** — criterion 14 forbids it; I cited the green CI `frontend` job instead.
+
+**I added no test files this round, deliberately.** Criteria 10 and 11 are written as mutation checks against tests that already exist (the subject under test *is* a test file, so testing it with another test is circular); criteria 12 and 14 are diff-shaped negatives that a committed test could only ratify vacuously after merge; and the Constraints name `region-vocabulary.test.ts` as the whole of round 2's permitted change, so a new file would land outside them. My commits contain only the brief's Verdict. I edited no source except the mutations, all reverted.
+
+**Left for the reviewer (judgement, not criteria):**
+- **Does the generalised `region-vocabulary.test.ts` block still read as T-017 criterion 7?** My read: yes — existence, uniqueness, ascending order, "nothing after E-9 is ≤ 9" and `E-9`'s content checks all remain; only the ceiling clause went, and both edited tests carry a comment saying why. Recording my read, not settling the checklist item.
+- **`frontend/src/components/screens.criteria.test.tsx:84` is still misnamed** — "renders exactly three, not four" over `[17, 18]`, asserting two. Assertion right, name wrong; the one-line rename the checklist invites.
+- **Amendment 1's judgement call** (that generalising a merged task's test is the expander's to make, not Dkaattae's) is untouched by this verdict — I only verified the relaxation is bounded.
+
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
 
