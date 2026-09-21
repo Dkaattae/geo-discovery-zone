@@ -146,6 +146,25 @@ Replace `Approved: pending` with a name and date. The one judgement worth a minu
 
 **Orchestrator note:** this run is unattended, so per `process.md` "moment 1 does not move — it disappears" under the orchestrator, the human review this section asks for did not happen. `Approved:` was stamped `orchestrator — 2026-09-21, unattended run (round 2 of criteria)` without reading whether Amendment 1's judgement call was sound — that is the recorded cost of this run, not a certification.
 
+## Round 5 — worker (round 2) — 2026-09-21
+`Next step` on entry: `worker` → on exit: `tester`
+
+T-057 round 2 worker complete. Status: `awaiting verification`, Next step: `tester`. Branch `claude/loving-franklin-su4qzl` pushed to `origin`, confirmed landed at `8ea020d` (`git log origin/claude/loving-franklin-su4qzl -1`).
+
+**What changed:** one file, `question-bank/src/region-vocabulary.test.ts`. Amendment 1's two named assertions — `expect(Math.max(...numbers)).toBe(9)` and the "E-9 is the last block" pair (`numbers.at(-1)).toBe(9)` plus the string-slice check) — are generalised to "no two entries share a number" and "everything after E-9 has a number > 9". Nothing else in that file touched (no describe block deleted, no test skipped, T-017 criteria 1–6 and 8 blocks byte-identical to `main`), matching the Constraints exactly.
+
+**Criteria 1–14:** all pass.
+- 1–8: unchanged from round 1, re-verified they still hold, not rebuilt.
+- 10, 11: verified by hand — ran each of the four named mutations directly against `engineering-decisions.md` (delete E-9, duplicate its number, move E-10 above E-8, strip `content.json` from E-9's body), confirmed each turns exactly the matching test red, reverted every one (`git diff` empty after). Appended a throwaway `## E-11 —` heading after E-10 and reran the suite: 56/56 pass, confirming criterion 10's growth guarantee, then reverted.
+- 9: `question-bank` local suite went from 1251 pass/4 fail to 1253 pass/2 fail (the 2 remaining are pre-existing, `climate-kid-verify.test.ts`/`climate-kid.test.ts`'s `git diff` guard — confirmed identical via `git stash` against the pre-edit branch head, already tracked as T-072, out of scope). Backend: 517 passed/9 skipped, ruff clean. Frontend: 209/210 pass locally (one file can't import due to this sandbox's registry block on `react-simple-maps`/`us-atlas`, same gap round 1 documented), lint clean. **Pushed the fix as `13cc373` and polled GitHub Actions to completion: all six CI jobs green, including `question-bank (typecheck, test)`** — the one job that was red on the pre-fix head (`4ba642a`). This is a real CI run with full registry access, so it also resolves the local registry-gap caveat for frontend typecheck.
+- 12, 13, 14: no dependency file touched (`git diff main` on the eight named files is empty), no test reaches the network, no module faked — cited the CI conclusion instead of stubbing anything.
+
+**What I did not do:** touch any of the four files round 1 already landed (`backend/app/levels.py`, `backend/tests/test_levels.py`, `frontend/src/components/screens.criteria.test.tsx`, `engineering-decisions.md`) — Constraints called the fifth file "the whole of round 2's work" and I read that literally. Did not re-file T-072 or the registry gap in `tasks.md` — both already recorded elsewhere.
+
+**One thing left for the tester's own judgement** (not settled by CI): the Review checklist item asking whether the generalised test still reads as testing T-017 criterion 7, or as a test widened until it stopped failing. I believe it does (kept the original test names' intent, cut only the ceiling clauses), but that's a human/tester read the brief explicitly reserves.
+
+Full detail is in `tasks/T-057-level-window-docstring.md` under `### Handoff — round 2`, including a mutation-by-mutation table and the exact CI job list with conclusions. Sessions table has my `worker (round 2)` row with session `cse_01VNvekndCsNWvPYSNudz67b`.
+
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
 
