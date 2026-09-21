@@ -154,8 +154,15 @@ updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 
-### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
+### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · doing
 **Depends on:** —
+**Expanded 2026-09-21** into [`tasks/T-057-level-window-docstring.md`](tasks/T-057-level-window-docstring.md).
+The expander's survey settled the either/or in this entry: the client **does**
+have a level picker (`frontend/src/components/screens.tsx:366-425`), it renders
+the server's `suggestedLevels`, and only the *arithmetic* is server-only — so the
+docstring is false and nothing needs growing in the client. It also found that
+the "three or four choices" rule the docstring and `openapi.yaml:1943` both
+promise is untrue at the top of the scale: `level_window(18.0)` returns two.
 Found by T-004's worker while pinning the two level implementations together.
 `backend/app/levels.py:60` documents `level_window()` as mirroring
 `levelWindow()` in the client — there is no such function anywhere in
