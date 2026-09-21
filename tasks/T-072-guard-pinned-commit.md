@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-09-21`
+**Approved:** `Kate, 2026-09-21`
 **From:** [`tasks.md`](../tasks.md) T-072
 **Branch:** `claude/upbeat-volta-mw29cv` — the branch this session was assigned by
 the harness, used in place of `task/T-072-guard-pinned-commit` under
