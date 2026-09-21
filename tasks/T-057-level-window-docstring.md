@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
+**Approved:** orchestrator — 2026-09-21, unattended run. See `runs/T-057-level-window-docstring.md`.
 **From:** [`tasks.md`](../tasks.md) T-057
 **Branch:** `claude/loving-franklin-su4qzl` — assigned to the expander's session by
 its harness, so this is the task branch (`process.md`, "When the environment names
