@@ -1,9 +1,13 @@
 # T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have
 
-**Status:** `pass` — round 2 verified. All 14 criteria hold; the four criterion-11
-mutations and the criterion-10 `E-11` append were re-run independently by the
-tester and reverted; all six CI jobs green on the branch head.
-**Next step:** `reviewer`
+**Status:** `changes requested` — all 14 criteria hold, but the review found that
+`frontend/src/level-window-claim.criteria.test.ts:141` re-arms the exact landmine
+criteria 10 and 11 exist to defuse: it pins `E-10` as the highest decision number
+for ever, so the next task that writes `E-11` turns the frontend suite red. See
+`## Review` below.
+**Next step:** `tester` — fix findings 1 and 2 (and, while you are in the file,
+the non-blocking finding 3). Both blocking findings are in test files, which is
+the tester's lane; no source change is needed and none is wanted.
 **Approved:** orchestrator — 2026-09-21, unattended run (round 2 of criteria).
 See `runs/T-057-level-window-docstring.md`. Round-1 approval was also
 `orchestrator — 2026-09-21, unattended run`.
@@ -30,6 +34,7 @@ task reaches `pass`.
 | task-expander (amendment 1) | 2026-09-21 | 5992b640-9ccf-5259-8734-1034957823e2 |
 | worker (round 2) | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
 | tester (round 2) | 2026-09-21 | cse_01VNvekndCsNWvPYSNudz67b |
+| reviewer | 2026-09-21 | 5992b640-9ccf-5259-8734-1034957823e2 |
 
 ## Goal
 
@@ -973,7 +978,125 @@ when its subject is broken.
 
 ## Review
 
-Written by `reviewer`, and only when it sends the PR back.
+Written by `reviewer`. **Verdict: changes requested. PR #53 stays draft.**
+
+**TL;DR:** the implementation is good — the docstring is true, the top-of-scale
+fix is the right shape, `E-10` earns its place, and the
+`region-vocabulary.test.ts` generalisation is a genuine narrowing rather than a
+widening. But **the tester's own new test re-creates the landmine this task
+exists to remove**: `frontend/src/level-window-claim.criteria.test.ts:141` pins
+`E-10` as the highest decision number for ever, so the next task that files
+`E-11` turns the frontend suite red. Criterion 10 only ever checked the
+`question-bank` suite, so nothing caught it. One assertion and one stale comment;
+back to `tester`.
+
+### Finding 1 — blocking. `frontend/src/level-window-claim.criteria.test.ts:141`
+
+```ts
+expect(numbers.at(-1)).toBe(10);
+```
+
+This is `region-vocabulary.test.ts`'s `expect(numbers.at(-1)).toBe(9)` — the
+assertion Amendment 1 called a landmine for every future task — moved forward by
+exactly one number and committed by this same PR. It defeats criterion 10's own
+heading, *"`engineering-decisions.md` can grow past `E-9`"*, and it contradicts
+`CLAUDE.md`'s standing rule that this file is *"not gated; a task may add an
+entry when its criteria say so"*.
+
+**Verified by mutation, this session.** Appending a well-formed
+`## E-11 — …` block to the real `engineering-decisions.md`:
+
+| Suite | Result with `E-11` present |
+|---|---|
+| `question-bank`: `bun test --no-install src/region-vocabulary.test.ts` | 56 pass, 0 fail — criterion 10 holds as written |
+| `frontend`: `bun test --no-install src/level-window-claim.criteria.test.ts` | **10 pass, 1 fail** — `Expected: 10 / Received: 11` at `:141` |
+
+Reverted; `md5sum engineering-decisions.md` is `eb12c7639c534ce1317427eeb0781b8c`
+before and after, `git status --short` empty.
+
+This is not hypothetical: `tasks.md` lines 389, 466 and 845 each already require
+a new `engineering-decisions.md` entry, so `E-11` is queued work, not a someday.
+
+**What would make it acceptable:** delete that one line, or replace it with the
+same generalisation the worker applied in `region-vocabulary.test.ts` — "every
+number after `E-10`'s position is `> 10`". Criterion 8 is not weakened by
+either: it asks that the file *gains a new entry* `E-10` and that no existing
+`E-n` is modified, and `expect(numbers).toContain(10)`, the uniqueness check, the
+ascending-order check and the `no existing E-n entry was modified` byte
+comparison already cover all of that between them.
+
+### Finding 2 — blocking. `frontend/src/level-window-claim.criteria.test.ts:135-137`
+
+```ts
+// NOTE: `question-bank/src/region-vocabulary.test.ts` (T-017 criterion 7)
+// asserts the exact opposite — that 9 is the highest E-number and E-9 is
+// the last block in the file. Both cannot hold. See this task's Verdict.
+```
+
+True when it was written in round 1; **false on this branch head.** Commit
+`13cc373` removed those two assertions, which is the whole of round 2. A comment
+that describes the repo as it was two commits ago is a doc that is not true, and
+`process.md` treats that as a defect rather than a nitpick.
+
+**What would make it acceptable:** delete it, or rewrite it to say that the
+`E-9` ceiling was generalised by this task's criteria 10 and 11 and that this
+file must not reintroduce one — which is also the comment that stops finding 1
+from coming back.
+
+### Finding 3 — not blocking, but fix it in the same round
+
+`frontend/src/components/screens.criteria.test.tsx:84`. The brief's review
+checklist already invites this and both testers raised it, so it is settled here
+rather than deferred: the test is named *"a three-choice `suggestedLevels` (the
+top-of-scale case) renders exactly three, not four"* while passing `[17, 18]`
+and asserting two. The assertion is right and the name is wrong — and after
+criterion 4's fix the data is wrong about itself too, because the top of the
+scale now returns `[16.0, 17.0, 18.0]`, not `[17, 18]`.
+
+**What would make it acceptable:** pass `[16, 17, 18]`, which is what
+`level_window(18.0)` actually returns on this branch, and keep the name; or keep
+`[17, 18]` and rename it to a two-element `suggestedLevels` case. Either is fine;
+the name and the data have to agree.
+
+**No `tasks.md` entry for this** — it is a one-line change in a file the tester
+is already reopening for findings 1 and 2, and two one-line tasks that the next
+session would absorb anyway make the queue longer without making it more useful.
+
+### What is good, and is not to be re-litigated
+
+- **`backend/app/levels.py`.** The docstring is true of the code that ships and
+  names `suggestedLevels`, `app/serializers.py` and `screens.tsx`'s `Setup`, so a
+  reader who has never seen this task does not have to grep. The clamping
+  paragraph explains the extension loop rather than restating it.
+- **`E-10`** explains the decision rather than restating it, gives the reason
+  `level.ts` survives (bare numbers vs the `LevelLabel` object), names its three
+  call sites, and carries a **Revisit when** that hands T-004 a real trigger. It
+  will still make sense in six months.
+- **The generalised `region-vocabulary.test.ts` block** reads as a test of
+  T-017 criterion 7, not as one widened until it stopped failing: existence,
+  uniqueness, ascending order and `E-9`'s content are all still enforced, only
+  the ceiling clause is gone, and both edited tests carry a comment saying what
+  was generalised and why. The diff is a single hunk; `describe`/`test` counts
+  match `origin/main`.
+- **Role lanes are clean.** Checked commit by commit: the expander's three
+  commits touch only `tasks.md` and the brief, the tester's touch only test files
+  and the brief, the orchestrator's only `runs/` and the header
+  (`process-decisions.md` D-7).
+
+### Flags raised by the worker and the tester — all disposed of here
+
+| Flag | Decision |
+|---|---|
+| Extend-until-three loop vs a `current == MAX_LEVEL` special case (worker, Notes) | **Keep the loop.** The comment carries the reader over the break condition, and it stays correct if the offsets or `MIN_LEVEL`/`MAX_LEVEL` ever move. No change wanted. |
+| Criterion 3's test renders `Setup` via `react-dom/server` instead of scanning source (worker, Notes) | **Keep the render.** It is the first component render in this suite, but it adds no dependency and it exercises the JSX instead of pattern-matching it; the whole-tree negative half is covered separately in `level-window-claim.criteria.test.ts`. Noted consequence, not a defect: it cannot run where `react-simple-maps` is missing, because `screens.tsx` imports `UsMap` at module scope. |
+| `react-simple-maps` / `us-atlas` 403 from this sandbox's registry (worker, Notes; tester, Environment) | **No `tasks.md` entry.** CI installs both and `frontend (typecheck, lint, test)` is green on the branch head; both testers independently identified it as a sandbox proxy restriction rather than a repo defect. If it ever appears in CI, that is a new finding then. |
+| Amendment 1's judgement call — generalising a merged task's test without Dkaattae (expander; tester left it to me) | **Upheld, and flagged rather than buried.** The reasoning holds: T-017 is merged and swept, the pinned assertion contradicts an explicit `CLAUDE.md` rule, the file is a test and nowhere near `.claude/` or the workflows so `G1` does not bite, and criterion 11 bounds the relaxation — which I re-verified is bounded. I am not overruling it. **But when this PR comes back green it will be marked ready *with an escalation note*,** because "a merged task's frozen criterion was relaxed" is exactly the thing Dkaattae should see before merging, and escalation is a normal outcome. |
+| `screens.criteria.test.tsx:84` misnamed (both testers) | Finding 3 above — settled here, fixed this round, not deferred. |
+
+### Not swept
+
+The task is not done, so the brief stays, `tasks.md` keeps its T-057 entry, and
+`PROGRESS.md` is untouched. The sweep happens on the approving pass.
 
 ## Notes
 
