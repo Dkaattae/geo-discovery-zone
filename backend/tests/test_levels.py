@@ -8,17 +8,25 @@ The table in `fixtures/level-labels.json` at the repo root is the agreed answer,
 and `frontend/src/lib/level.test.ts` asserts against the same file. Changing
 `app/levels.py` or `frontend/src/lib/level.ts` alone therefore turns one of the
 two suites red instead of drifting quietly.
+
+`level_window` is not part of that shared table — `frontend/src/lib/level.ts`
+has never computed a window, only formatted one the server already sent — so
+its tests live here only, pinned against `openapi.yaml`'s `suggestedLevels`
+description directly (T-057).
 """
 
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 import pytest
 
 from app.levels import (
+    MAX_LEVEL,
+    MIN_LEVEL,
     band_label,
     band_of,
     clamp_level,
@@ -28,6 +36,13 @@ from app.levels import (
     level_label,
     level_window,
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+LEVEL_TS = REPO_ROOT / "frontend" / "src" / "lib" / "level.ts"
+
+# Every half-integer on the 0-18 scale — the same set the client's Setup
+# picker could ever be asked to render a window for.
+ALL_LEVELS = [i * 0.5 for i in range(37)]
 
 LABELS_PATH = Path(__file__).resolve().parents[2] / "fixtures" / "level-labels.json"
 
@@ -108,3 +123,57 @@ def test_a_k2_child_never_scrolls_past_7th_grade() -> None:
 @pytest.mark.parametrize(("raw", "clamped"), [(-3.0, 0.0), (0.0, 0.0), (18.0, 18.0), (99.0, 18.0)])
 def test_clamp_level(raw: float, clamped: float) -> None:
     assert clamp_level(raw) == clamped
+
+
+# T-057 criterion 4: `openapi.yaml`'s `suggestedLevels` description promises
+# three or four choices at every level, not just the ones the tests above
+# happened to cover. This is a bug-fix test — `level_window(18.0)` returned
+# only two values before this task, and this fails against that code.
+@pytest.mark.parametrize("level", ALL_LEVELS, ids=[f"level-{level}" for level in ALL_LEVELS])
+def test_level_window_offers_three_or_four_choices_at_every_level_on_the_scale(
+    level: float,
+) -> None:
+    assert 3 <= len(level_window(level)) <= 4
+
+
+def test_level_window_stays_at_least_three_choices_at_the_boundaries_criterion_4_names() -> None:
+    # Already 3 before this task; must not regress below it.
+    assert len(level_window(17.5)) >= 3
+    # The bug this task fixes: `level_window(18.0)` returned exactly 2.
+    assert len(level_window(18.0)) >= 3
+
+
+# Criterion 5.
+@pytest.mark.parametrize("level", ALL_LEVELS, ids=[f"level-{level}" for level in ALL_LEVELS])
+def test_level_window_is_well_formed_at_every_level_on_the_scale(level: float) -> None:
+    window = level_window(level)
+    assert window == sorted(window)
+    assert len(window) == len(set(window))  # sorted + no duplicates == strictly ascending
+    assert all(MIN_LEVEL <= value <= MAX_LEVEL for value in window)
+    assert all(value * 2 == round(value * 2) for value in window)
+    assert clamp_level(level) in window
+
+
+def _client_level_exports() -> set[str]:
+    """Every name `frontend/src/lib/level.ts` exports as a function or const."""
+    source = LEVEL_TS.read_text(encoding="utf-8")
+    return set(re.findall(r"export (?:function|const) (\w+)", source))
+
+
+def test_level_window_docstring_names_no_client_function_the_client_does_not_have() -> None:
+    """Criteria 2 and 7: `level_window`'s docstring must not attribute a
+    function to the client that `frontend/src/lib/level.ts` does not export.
+
+    Reads no network and spawns no server. T-057 deleted a sentence here that
+    claimed this function mirrored a same-named one in the client; putting
+    that sentence back turns this red, because the client never exported the
+    function it named.
+    """
+    doc = level_window.__doc__ or ""
+    named_as_client_functions = set(re.findall(r"`(\w+)\(\)`", doc))
+    exports = _client_level_exports()
+    unknown = named_as_client_functions - exports
+    assert unknown == set(), (
+        f"level_window's docstring names {sorted(unknown)} as a client function, "
+        f"but frontend/src/lib/level.ts exports only {sorted(exports)}"
+    )

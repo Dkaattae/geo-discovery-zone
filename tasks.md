@@ -18,7 +18,11 @@ prunes stops being read.
 `process-decisions.md`, `CLAUDE.md`, `.claude/` or the workflows are `P-n`
 tickets in [`process-tasks.md`](process-tasks.md), done by hand and never
 expanded into a brief. `run-loop.sh` G1 refuses to run them. A `T` task may still
-add to `engineering-decisions.md` when its criteria say so.
+add to `engineering-decisions.md` when its criteria say so — and since T-057
+(PR #53) that is actually possible: the assertions in
+`question-bank/src/region-vocabulary.test.ts` that pinned `E-9` as the highest
+entry for ever are generalised to uniqueness and ascending order, so filing
+`E-11` no longer turns a suite red. Do not reintroduce a ceiling.
 
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
@@ -154,25 +158,22 @@ updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 
-### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · todo
+### T-072 — A guard test diffs against a fixed commit and fails on `main` · S · todo
 **Depends on:** —
-Found by T-004's worker while pinning the two level implementations together.
-`backend/app/levels.py:60` documents `level_window()` as mirroring
-`levelWindow()` in the client — there is no such function anywhere in
-`frontend/`, and `grep levelWindow frontend/` returns nothing. So either the
-client lost a level picker that the server still describes, or the docstring is
-describing a function that never existed. Either way the comment is false, and
-`fixtures/level-labels.json` deliberately covers only the functions both sides
-actually have.
-T-004 left a second, larger question in the same place and deliberately did not
-answer it: the session endpoints already return a `levelLabel` object, so the
-client may not need its own copy of the arithmetic at all. `fixtures/level-labels.json`
-now makes drift loud, which buys the time to decide it properly rather than
-forcing it.
-**Done when:** it is settled which of the two is true — the docstring is
-corrected, or the client grows the picker the server is sizing windows for — and
-`level_window`'s three-or-four-choices rule is documented wherever it really
-lives. Say in the same breath whether `frontend/src/lib/level.ts` keeps existing.
+**New 2026-09-21, from T-057's round-1 tester.**
+`question-bank/src/climate-kid-verify.test.ts:1129` runs
+`git diff --name-only 13a735f...HEAD` and fails if anything under `frontend/`,
+`backend/` or `e2e/` has changed since that commit. Six such files have already
+changed, so the test fails on **`main`** in any full clone. It is green in CI
+only because `actions/checkout` shallow-clones and the missing-history `else`
+branch swallows the failure. That means it fails locally for every task from now
+on, for reasons unrelated to the task, and it is not really checking anything in
+CI either — the worst of both.
+**Done when:** the guard expresses what it meant (that this task's change did not
+reach into the app) without pinning a commit that ages, or is deleted with a note
+saying why. It behaves the same in a shallow clone and a full one — no silent
+`else` that turns the check off — and `question-bank`'s suite passes on `main` in
+a full clone.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —

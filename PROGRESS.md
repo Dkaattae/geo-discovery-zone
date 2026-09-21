@@ -303,6 +303,39 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-057 — `levels.py`'s docstring claimed a client function that never
+  existed** (PR #53, 2026-09-21). `level_window`'s docstring said it mirrored a
+  `levelWindow()` in the client; no such function has ever existed. The
+  docstring now says where the result actually goes — `suggestedLevels` on
+  `GET /profiles/{profileId}/progress` via `app/serializers.py`, rendered as-is
+  by `screens.tsx`'s `Setup` — and **E-10** records why
+  `frontend/src/lib/level.ts` survives anyway (`suggestedLevels` is bare
+  numbers, so three screens still need client-side labels), leaving T-004's
+  "move label formatting to the server" question open with a Revisit-when.
+  *Differed from the brief, and it is the part worth reading:* the survey found
+  the docstring's own "three or four choices" promise — which `openapi.yaml`
+  also makes — was **false at the top of the scale**: `level_window(18.0)`
+  returned two, because three of the four offsets clamp onto `18.0`. The window
+  now extends downward when clamping collapses it, so all 37 half-integer levels
+  offer three or four. The middle of the scale is untouched.
+  *And the landmine:* criterion 8's `E-10` entry could not exist at all — T-017
+  had left `question-bank/src/region-vocabulary.test.ts` asserting that 9 is the
+  highest decision number **for ever**, which contradicts `CLAUDE.md`'s "not
+  gated" rule for `engineering-decisions.md`. The tester blocked on it, the
+  brief was amended, and the two capping assertions were generalised to
+  uniqueness plus "nothing after `E-9` is ≤ 9"; four mutations prove what T-017
+  actually meant still fires. **This relaxed a merged task's verified assertion,
+  so the PR was marked ready with an escalation note rather than as routine.**
+  The first review round then caught the same ceiling being re-armed one number
+  higher in this task's *own* new test (`level-window-claim.criteria.test.ts`
+  pinned `E-10` as last); it is gone, and both files now carry a comment saying
+  why there is no ceiling.
+  *Also worth knowing:* `react-simple-maps`/`us-atlas` still 403 from the agent
+  sandbox's registry, so `screens.criteria.test.tsx` and `bun run typecheck`
+  could only be confirmed by the green `frontend` CI job. No role stubbed the
+  packages — the round-1 worker did and deleted it, and every round after
+  declined, which is the right call.
+
 - **T-061 — one rule, one implementation for E-5's CI guards** (PR #52,
   2026-09-19). Four rules in the `frontend/` suite were each written twice.
   `frontend/src/ci-workflow-pins.test.ts` is **deleted** — it was a behavioural
@@ -789,7 +822,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   spliced in by hand — CI's `Install` and `Lockfile unchanged` steps are what
   confirm bun accepts them, and a clean local `bun add` never happened. And the
   survey found `backend/app/levels.py:60` documenting a `levelWindow()` the
-  client does not have, now **T-057**.
+  client does not have — settled by **T-057** (PR #53), which also found the
+  same docstring's "three or four choices" promise was false at the top of the
+  scale.
 - **T-003 — CI: typecheck, lint and test on every PR** (PR #11, 2026-08-10). One
   job per package in `.github/workflows/ci.yml`, on `pull_request` and `push` to
   `main`: `bun install --frozen-lockfile`, a lockfile-drift check, then
