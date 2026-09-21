@@ -257,6 +257,40 @@ Reverted; `md5sum engineering-decisions.md` identical before and after (`eb12c76
 
 One note for the next cycle: CI was still `in_progress` on the previous head (`9f20d70`, a markdown-only run-log commit) while I reviewed; the tester's six-green evidence is on `6081cb5`. That is not why this went back, and the `question-bank` job had already reported `success` on `9f20d70`.
 
+## Round 8 — tester (round 3) — 2026-09-21
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-057 tester, round 3 — Status: `pass`. Next step: `reviewer`.** All three review findings are closed, in the two test files the reviewer named and nothing else; no source changed. All six CI jobs are `success` on the fix commit `e5d687d`, and all seven checks on `d693dcd`. Pushed to `claude/loving-franklin-su4qzl` (the brief's `Branch:` header) — head is now `a9c0533`, PR #53 still draft.
+
+**Independence caveat, stated because it matters:** this is an orchestrated run (`runs/T-057-level-window-docstring.md` exists), so `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01VNvekndCsNWvPYSNudz67b` — already in the Sessions table as `worker`. The Sessions-table check **did not pass and does not apply**. What I had is the weaker kind of independence: a fresh context window, resting on the orchestrator having spawned me correctly. I re-derived every mutation myself rather than trusting round 2's tables.
+
+**Findings, each reproduced before it was fixed**
+
+- **Finding 1 (blocking) — confirmed real.** With a throwaway `E-11` appended to the real `engineering-decisions.md`, `/home/user/geo-discovery-zone/frontend/src/level-window-claim.criteria.test.ts:141` failed `Expected: 10 / Received: 11` while `question-bank/src/region-vocabulary.test.ts` stayed green — criterion 10 satisfied in one suite, defeated in the other. Replaced `expect(numbers.at(-1)).toBe(10)` with "every number after `E-10`'s position is `> 10`", keeping `toContain(10)`, uniqueness and ascending order. With `E-11` present now: frontend 11 pass / 0 fail, question-bank 56 pass / 0 fail.
+- **Finding 2 (blocking).** The comment at `:135-137` claiming `region-vocabulary.test.ts` asserts the opposite was false on this head (`13cc373` removed those assertions). Replaced with a comment saying why the ceiling is deliberately absent, quoting `CLAUDE.md`'s "not gated" rule.
+- **Finding 3 (non-blocking).** `/home/user/geo-discovery-zone/frontend/src/components/screens.criteria.test.tsx:84` now passes `[16, 17, 18]` with `toHaveLength(3)` added, so its name and data agree.
+
+**Precedent for the fix shape:** `question-bank/src/highest-point-verify.test.ts:615-629` already loosened its own "E-8 is the highest-numbered entry" pin to `toContain(8)` + uniqueness, with a comment saying a later higher entry is not a failure. All three files now agree on one rule and none caps the file.
+
+**Ten mutations this session, every one reverted** (`md5sum engineering-decisions.md` = `eb12c7639c534ce1317427eeb0781b8c` throughout; `git status --short` clean afterwards):
+
+- R1 reinsert the banned "mirrors a client function" docstring sentence → 3 tests red across two suites (criteria 1, 2, 7)
+- R2 restore the pre-task window algorithm → 4 tests red, all at `L = 18.0` (criterion 4 is a genuine bug-fix test)
+- R3 `screens.tsx` fallback becomes a computed window → criterion 3 scan red
+- R4 append a well-formed `E-11` → **nothing red**, which is the point (was 1 red before the fix)
+- R5–R10 against `E-10`: heading renamed, number duplicated, an out-of-order `E-4` appended, `suggestedLevels` dropped, `frontend/src/lib/level.ts` dropped, `E-1` edited → each turned exactly the matching criterion-8 assertion red
+
+**Independent criterion checks (values from the brief and `openapi.yaml:1943`, not from the code):** my own sweep of all 37 half-integers `0.0…18.0` found zero violations of criteria 4 and 5; `level_window(17.5) == [16.5, 17.5, 18.0]`, `level_window(18.0) == [16.0, 17.0, 18.0]`, `level_window(6.0) == [5.0, 6.0, 7.0, 8.0]`. Backend 517 passed / 9 skipped, ruff clean. question-bank 1253 pass / 2 fail — both T-072, which I confirmed myself fails on `main` (`git diff --name-only 13a735f...origin/main` lists six `frontend/`+`backend/` files). Frontend 209 pass with one file unable to import, lint clean, typecheck 4 errors all in `UsMap.tsx`.
+
+**Honesty notes**
+
+- **Criterion 11 was not re-run this round.** Neither `engineering-decisions.md` nor `question-bank/src/region-vocabulary.test.ts` changed since round 2 verified its four mutations; my diff touches neither. R5–R10 exercise the same four shapes against `E-10`.
+- **`screens.criteria.test.tsx` cannot run in this sandbox** — `bun install --frozen-lockfile` 403s on `react-simple-maps`/`us-atlas`/`d3-*` from `europe-west1-npm.pkg.dev`. I did not stub them (criterion 14); `bun run typecheck` reads the file and reports no error in it, and the green `frontend (typecheck, lint, test)` CI job on `e5d687d` is what actually executes it.
+- **The new "nothing after E-10 is ≤ 10" loop is belt-and-braces**, not the sole guard for any shape — ascending order and uniqueness already catch the cases I could construct. I kept it because it states the criterion in its own words.
+- **Two rounds of findings are now closed.** A third blocking issue in the same file should go to a human under `process.md`'s two-round bound, not to another tester round. Amendment 1's judgement call (generalising a merged task's test without Dkaattae) is untouched by this round and already flagged for escalation in the `## Review` section.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-057-level-window-docstring.md` — Status, Next step, Sessions row and `### Verdict — round 3` all written and pushed.
+
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
 
