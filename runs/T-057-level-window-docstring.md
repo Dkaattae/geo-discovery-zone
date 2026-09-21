@@ -87,6 +87,65 @@ Observed twice, locally and in CI: `Expected: 9 / Received: 10`. This is a landm
 
 No source was edited except the 14 temporary mutations, every one reverted and confirmed with `git status` / `git diff`. No acceptance criterion was edited. No second PR or branch.
 
+## Round 4 — task-expander — 2026-09-21
+`Next step` on entry: `task-expander` → on exit: `worker`
+
+## TL;DR
+
+- **T-057's brief is amended and pushed; the task is unblocked and back with the `worker`.** The round-1 tester was right: criterion 8's `E-10` entry is forbidden by an assertion T-017 left behind, and the old Constraints excluded the file holding it.
+- **Amendment 1 widens the task to that one test file**, rewrites criterion 9, and adds criteria 10–14. Criteria 1–8 are unchanged and already verified passing on the branch — round 2 is one file of work.
+- **`Status: awaiting approval`, `Next step: worker`, `Approved: pending`.** The criteria changed, so the round-1 approval does not carry over.
+
+## What was wrong
+
+`question-bank/src/region-vocabulary.test.ts:327-341` pins `Math.max(...numbers)).toBe(9)` and `numbers.at(-1)).toBe(9)`. T-017's criterion 7 said *"engineering-decisions.md records the choice as **E-9**"* — a statement about where one entry goes, written when E-9 was newest. It got encoded as "nine is the maximum, for ever", so no future `E-n` can exist. That contradicts a standing rule in `CLAUDE.md`: *"`engineering-decisions.md` … **Not gated**; a task may add an entry when its criteria say so."*
+
+I confirmed by reading (no builds run, per the role's Bash limit): `engineering-decisions.md` already has `E-10` at line 486 from the round-1 worker, and `region-vocabulary.test.ts` is the **only** file in the tree that caps the number — `highest-point-verify.test.ts:616` and `curated/us-states.ts:63` merely mention E-9.
+
+## The judgement I made, and why I did not escalate
+
+I treated generalising a merged task's test as the expander's call, not Dkaattae's, and wrote the reasoning into both the brief and the PR body so the reviewer can overrule it in one comment:
+
+- T-017 is **merged and swept** — frozen criteria bind the task in flight; afterwards it leaves ordinary repo tests, which later tasks correct when they encode something untrue.
+- The file is a **test, not a loop file** — nowhere near `process.md`, `.claude/` or the workflows, so `G1` does not bite and this is not a `P-n` ticket.
+- **None of `process.md`'s four human gates** covers it: no dependency, no product call, no text a child reads.
+- Criterion 11 **bounds** the relaxation: four named mutations must still turn the suite red, so T-017's real intent is provably intact.
+
+Rejected alternative (the tester's second option): drop criterion 8 and record the decision elsewhere. That leaves the landmine armed for every task after this one and puts an engineering decision where nobody looks.
+
+## Criteria changes
+
+| # | Change |
+|---|---|
+| 1–8 | **Unchanged.** Restated verbatim; "keep satisfied", not "build" |
+| 9 | **Rewritten.** Used to say "whole suite" while listing only backend + frontend — which is how `question-bank` went unnoticed. Now names all six CI jobs from `ci.yml` and says how to report a suite this sandbox cannot run |
+| 10 | **New.** `engineering-decisions.md` can grow past `E-9`: the `question-bank` suite passes with `E-10`, and appending a well-formed `E-11` keeps it green (mutation, reverted) |
+| 11 | **New.** Four named mutations must still turn that file red — deleted `E-9` heading, duplicate `E-9`, `E-10` moved above `E-8`, `content.json` dropped from `E-9`. No `describe` deleted, no test skipped, T-017 criteria 1–6 and 8 blocks unedited |
+| 12 | **New.** No new dependency — eight named manifests/lockfiles byte-identical to `main` |
+| 13 | **New.** No test reaches the network or spawns a server for a pure function |
+| 14 | **New.** No result reported from a faked third-party module. This encodes the round-1 tester's refusal to stub `react-simple-maps`/`us-atlas`; the tester was right and the worker was not |
+
+12–14 were buried inside the old criterion 9; splitting them is bookkeeping, not new work.
+
+Also widened **Constraints** (adds `question-bank/src/region-vocabulary.test.ts`, for criteria 10–11 only, generalised not gutted), **Out of scope**, **Context** (the T-017 describe block, the `CLAUDE.md` rule, the six CI job line numbers), and the **Review checklist** (three new human checks, including the misnamed `screens.criteria.test.tsx:84`).
+
+## Also filed
+
+**T-072** in `tasks.md` — `question-bank/src/climate-kid-verify.test.ts:1129` runs `git diff --name-only 13a735f...HEAD` and already fails on `main` in a full clone; green in CI only because `actions/checkout` shallow-clones and the `else` branch swallows it. Found by the round-1 tester, out of scope here.
+
+## Push confirmed
+
+- Commit `5d943fd` — `T-057 expander: amend criteria so E-10 and a green suite can both hold`
+- `git log origin/claude/loving-franklin-su4qzl -1` returns `5d943fd`, so it landed on the brief's `Branch:` header
+- Diff touches **only** `tasks.md` and `tasks/T-057-level-window-docstring.md` (206 insertions, 16 deletions) — no source, tests or config
+- **PR #53** body replaced with the amended criteria; still draft
+
+## What a human owes this before the worker runs
+
+Replace `Approved: pending` with a name and date. The one judgement worth a minute is Amendment 1's: whether relaxing T-017's capped assertion is mine to decide.
+
+**Orchestrator note:** this run is unattended, so per `process.md` "moment 1 does not move — it disappears" under the orchestrator, the human review this section asks for did not happen. `Approved:` was stamped `orchestrator — 2026-09-21, unattended run (round 2 of criteria)` without reading whether Amendment 1's judgement call was sound — that is the recorded cost of this run, not a certification.
+
 ## Round 1 — task-expander — 2026-09-21
 `Next step` on entry: `(no brief)` → on exit: `worker`
 

@@ -3,10 +3,9 @@
 **Status:** `awaiting approval` — amended criteria, round 2. See **Amendment 1**
 below; criteria 1–8 are unchanged and already satisfied.
 **Next step:** `worker`
-**Approved:** `pending` — the criteria changed after the round-1 block, so the
-round-1 approval does not carry over (`process.md` step 2, "Once approved, the
-criteria are frozen"). Round-1 approval was `orchestrator — 2026-09-21,
-unattended run`; see `runs/T-057-level-window-docstring.md`.
+**Approved:** orchestrator — 2026-09-21, unattended run (round 2 of criteria).
+See `runs/T-057-level-window-docstring.md`. Round-1 approval was also
+`orchestrator — 2026-09-21, unattended run`.
 **From:** [`tasks.md`](../tasks.md) T-057
 **Branch:** `claude/loving-franklin-su4qzl` — assigned to the expander's session by
 its harness, so this is the task branch (`process.md`, "When the environment names
