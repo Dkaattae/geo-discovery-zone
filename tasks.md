@@ -18,7 +18,11 @@ prunes stops being read.
 `process-decisions.md`, `CLAUDE.md`, `.claude/` or the workflows are `P-n`
 tickets in [`process-tasks.md`](process-tasks.md), done by hand and never
 expanded into a brief. `run-loop.sh` G1 refuses to run them. A `T` task may still
-add to `engineering-decisions.md` when its criteria say so.
+add to `engineering-decisions.md` when its criteria say so — and since T-057
+(PR #53) that is actually possible: the assertions in
+`question-bank/src/region-vocabulary.test.ts` that pinned `E-9` as the highest
+entry for ever are generalised to uniqueness and ascending order, so filing
+`E-11` no longer turns a suite red. Do not reintroduce a ceiling.
 
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
@@ -153,37 +157,6 @@ schedule is Dkaattae's call, not a task the loop can make on its own
 updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
-
-### T-057 — `levels.py` claims to mirror a `levelWindow()` the client does not have · S · doing
-**Depends on:** —
-**Expanded 2026-09-21** into [`tasks/T-057-level-window-docstring.md`](tasks/T-057-level-window-docstring.md).
-**Amended 2026-09-21** after a `blocked` verdict: criterion 8's `E-10` entry is
-forbidden by a capped assertion T-017 left in
-`question-bank/src/region-vocabulary.test.ts`, so the task now also generalises
-that cap. Criteria 1–8 are already satisfied on the branch.
-The expander's survey settled the either/or in this entry: the client **does**
-have a level picker (`frontend/src/components/screens.tsx:366-425`), it renders
-the server's `suggestedLevels`, and only the *arithmetic* is server-only — so the
-docstring is false and nothing needs growing in the client. It also found that
-the "three or four choices" rule the docstring and `openapi.yaml:1943` both
-promise is untrue at the top of the scale: `level_window(18.0)` returns two.
-Found by T-004's worker while pinning the two level implementations together.
-`backend/app/levels.py:60` documents `level_window()` as mirroring
-`levelWindow()` in the client — there is no such function anywhere in
-`frontend/`, and `grep levelWindow frontend/` returns nothing. So either the
-client lost a level picker that the server still describes, or the docstring is
-describing a function that never existed. Either way the comment is false, and
-`fixtures/level-labels.json` deliberately covers only the functions both sides
-actually have.
-T-004 left a second, larger question in the same place and deliberately did not
-answer it: the session endpoints already return a `levelLabel` object, so the
-client may not need its own copy of the arithmetic at all. `fixtures/level-labels.json`
-now makes drift loud, which buys the time to decide it properly rather than
-forcing it.
-**Done when:** it is settled which of the two is true — the docstring is
-corrected, or the client grows the picker the server is sizing windows for — and
-`level_window`'s three-or-four-choices rule is documented wherever it really
-lives. Say in the same breath whether `frontend/src/lib/level.ts` keeps existing.
 
 ### T-072 — A guard test diffs against a fixed commit and fails on `main` · S · todo
 **Depends on:** —
