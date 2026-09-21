@@ -913,7 +913,11 @@ the "nine is the ceiling for ever" clause is gone.
 | `frontend`: `bun test --no-install src/level-window-claim.criteria.test.ts` | 11 pass, 0 fail |
 | `frontend`: `bun run lint` | clean, `--max-warnings 0` |
 | `frontend`: `bun run typecheck` | 4 errors, all `UsMap.tsx`, all from the two missing packages; none from this task's files |
-| CI on `de9581f` (branch head) | frontend ✅ · question-bank ✅ · backend ✅ · backend-postgres ✅ · integration ✅ · e2e ✅ |
+| CI on `de9581f` (branch head when I started) | frontend ✅ · question-bank ✅ · backend ✅ · backend-postgres ✅ · integration ✅ · e2e ✅ |
+| CI on `6081cb5` (the commit carrying this Verdict) | all seven checks `success`, including `Is a task waiting on a human?` |
+
+The only commit after `6081cb5` on this branch is the one that adds these two
+rows — a markdown-only change to this brief, touching no suite.
 
 **The two `question-bank` failures are not this task's**, and I confirmed that
 myself rather than taking the Handoff's word: `git diff --name-only
