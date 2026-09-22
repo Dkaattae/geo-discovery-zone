@@ -1,7 +1,7 @@
 # T-065 — Delete the stale suite-size counts, and stop them coming back
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — PR #57 is marked ready; Dkaattae merges.
 **Approved:** katechen150621@gmail.com — 2026-09-22, approved via chat on PR #57.
 **From:** [`tasks.md`](../tasks.md) T-065
 **Branch:** `claude/gifted-albattani-0vh9mr` — the branch this session was
@@ -20,6 +20,7 @@ you").
 | tester | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id, see Verdict) |
 | worker (round 2, fixing the tester's fail) | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (same id again — orchestrated run, see Handoff's round 2 note) |
 | tester (round 2) | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id, see Verdict round 2) |
+| reviewer | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id — independence rests on a fresh context only) |
 
 ## Goal
 
@@ -705,6 +706,11 @@ in words, c3, c4, c5, c8, c9), and each turned its matching test red.
 ## Review
 
 _Written by `reviewer`, only when it sends the PR back._
+
+**Not sent back — approved 2026-09-22.** No blocking findings. Four non-blocking
+findings and the disposition of every worker/tester flag are in PR #57's body;
+the two that need work went into `tasks.md` as an amendment to T-074, which
+already owns that file. This brief is deleted by the sweep in the next commit.
 
 ## Notes
 
