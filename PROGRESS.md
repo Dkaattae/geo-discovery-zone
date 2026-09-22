@@ -53,7 +53,7 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   schema**, one session per request, committed on return and rolled back on
   exception. `GEO_DATABASE_URL` chooses the backend and nothing else in the app
   names a dialect.
-- **SQLite and Postgres both supported and both tested** — the same 221 tests run
+- **SQLite and Postgres both supported and both tested** — the same suite runs
   against either, with 9 Postgres-only checks that skip on SQLite.
 - **Accounts and auth**: PBKDF2-SHA256 passwords (210k iterations), opaque bearer
   tokens stored as SHA-256 digests with a 12h TTL, another account's profile
@@ -62,9 +62,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   image serves those files next to the API — same origin, no CORS, hashed assets
   cached forever, SPA fallback that excludes `/api/v1` so a mistyped endpoint
   returns a problem document rather than an HTML page with a 200.
-- 221 unit and endpoint tests, including contract tests that walk `openapi.yaml`
-  in both directions, plus 30 integration tests and 13 browser tests against a
-  real stack.
+- Unit and endpoint tests, including contract tests that walk `openapi.yaml`
+  in both directions, plus integration tests and browser tests against a real
+  stack (`backend/integration/`, `e2e/`).
 - **The session commits before the response is sent** (`DbSessionMiddleware`).
   It used to commit after, which FastAPI runs *after the response has reached the
   client* — so `register` could answer 201 before the row existed and the very
@@ -91,9 +91,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   two consecutive correct.
 - Soft milestones at 5/10/20, a quit flow reporting places learned rather than a
   percentage (§3.6, §3.8), and no timers anywhere (§3.4).
-- 80 tests — 19 over the API client, 61 over level→grade/band display. Test
-  files are typechecked rather than excluded (`engineering-decisions.md` E-2) and CI fails
-  if they stop existing (E-3).
+- Tests cover the API client and level→grade/band display. Test files are
+  typechecked rather than excluded (`engineering-decisions.md` E-2) and CI
+  fails if they stop existing (E-3).
 - **The client's level labels and the server's are pinned to one another.**
   `frontend/src/lib/level.ts` and `backend/app/levels.py` are hand-copies; both
   suites now assert against the same committed table, `fixtures/level-labels.json`,
@@ -170,13 +170,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
-- 687 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
-  and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`, 96 by T-012 in
-  `state-animals.test.ts`, 148 by T-013 across `landmarks.test.ts` and
-  `landmarks-verify.test.ts`, 200 by T-014 across `climate-kid.test.ts` and
-  `climate-kid-verify.test.ts`). That figure
-  has now gone stale eleven times — T-065 replaces the hard-coded counts in this
-  file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
+- Tests cover the built bank across `data-us-states.test.ts` and
+  `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
+  `state-animals.test.ts` (T-012), `landmarks.test.ts` and
+  `landmarks-verify.test.ts` (T-013), and `climate-kid.test.ts` and
+  `climate-kid-verify.test.ts` (T-014) — run them all with
+  `cd question-bank && bun test`.
 
 ### Repo and process
 
@@ -247,12 +246,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   it no longer pins `ci.yml`'s size, so adding a CI step does not read as a
   violation. **Nothing automates the pins** — no Dependabot, no Renovate; T-060 is the
   open question about whether to add one.
-- **Integration tests** in `backend/integration/` — 30 black-box tests over HTTP
+- **Integration tests** in `backend/integration/` — black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
   one origin, content is public, a child's sitting works end to end, accounts
   cannot see each other's profiles, a restart is not a reset, and a write is
   durable by the time its response says so.
-- **End-to-end tests** in `e2e/` — 13 Playwright tests driving Chromium against
+- **End-to-end tests** in `e2e/` — Playwright tests driving Chromium against
   docker compose: sign in, make an explorer, play every quiz type the app
   offers, and come back to find the progress still there.
 - A root `README.md` covering what the app is, the stack, and how to run it.

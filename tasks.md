@@ -108,9 +108,9 @@ place, so nobody rebuilds it:
 
 | | |
 |---|---|
-| **Unit and endpoint tests** | 242 backend, 184 frontend, 687 question-bank |
-| **Integration tests** | 30 over HTTP against a real stack (`backend/integration/`) |
-| **End-to-end tests** | 13 in a browser against docker compose (`e2e/`) |
+| **Unit and endpoint tests** | `make -C backend test` (backend), `cd frontend && bun test`, `cd question-bank && bun test` |
+| **Integration tests** | over HTTP against a real stack (`backend/integration/`) |
+| **End-to-end tests** | in a browser against docker compose (`e2e/`) |
 | **CI** | six jobs on every PR: frontend, question-bank, backend, backend-postgres, integration, e2e |
 | **No network in tests** | enforced, not assumed: the four unit test steps run with all six proxy spellings pointed at `http://127.0.0.1:1` and a 15-minute timeout (T-005, PR #26). `integration` and `e2e` are deliberately unguarded |
 | **Databases** | SQLite and Postgres, same migrations, same suite |

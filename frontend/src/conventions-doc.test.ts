@@ -7,10 +7,12 @@ import { join } from "node:path";
  * session (`process.md` step 4). T-058 later added the describe blocks near
  * the bottom of this file, which check the same kind of claim in `README.md`
  * and a lockfile-attribution claim in `conventions.md`'s CI section — reusing
- * this file's helpers (`workflowJobs()` in particular) rather than adding a
- * third parser of `ci.yml` next to `ci-action-pinning.test.ts` (T-061 folded
- * the test file that used to duplicate it into this one; this file is not
- * part of that pair, so it stays a third parser, not a fourth).
+ * this file's helpers (`workflowJobs()` in particular) rather than adding
+ * another parser of `ci.yml` next to the ones that already exist —
+ * `ci-action-pinning.test.ts`, `lint-gate.test.ts` and
+ * `git-baseline-guard.criteria.test.ts` (T-061 folded the test file that used
+ * to duplicate this one's parsing into this file, so this file stays separate
+ * from that trio rather than growing a fifth).
  *
  * Every expected value here comes from the wording of a criterion in
  * `tasks/T-007-conventions-current.md` or `tasks/T-058-doc-claims-about-ci.md`,
@@ -584,9 +586,15 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
   // undo that. T-061 did not add a comparison between them; it only closed the
   // gap the survey found: `testCountClaims()` already had a test proving it is
   // not vacuous (`readme-test-count.criteria.test.ts:134-137`), and this
-  // pattern did not. The test below is that test's counterpart, so narrowing
-  // this pattern's reach (for example, back to only the Checks code block)
-  // goes red here too, not just on the other file's detector.
+  // pattern did not.
+  //
+  // T-065 criterion 11: the "not vacuous" test above proves the pattern can
+  // match, but not that the *scan* has to cover the whole file — and since
+  // T-062 README states no count anywhere, narrowing the assertion below from
+  // `readmeDoc` to just the Checks block currently stays green too (tried by
+  // hand, reverted). The "reach matters" test below is what actually backs the
+  // whole-file claim: a synthetic document, independent of what README says
+  // today, with a stale count placed outside the Checks block.
   const NUMBER_WORDS =
     "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen";
   const testCountPattern = new RegExp(
@@ -600,6 +608,38 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
 
   test("the pattern is not vacuous: it matches the sentence README.md used to state", () => {
     expect("The nine Postgres-only tests skip on SQLite, so nobody").toMatch(testCountPattern);
+  });
+
+  test("the pattern's reach matters: a stale count outside the Checks block would be missed by a narrower scan (T-065 #11)", () => {
+    // README currently states no count of tests at all (T-062), so scanning
+    // only the Checks code block passes just as vacuously as scanning the
+    // whole file today — that mutation was tried and it stayed green. This
+    // is the test that actually backs the claim above: built on a synthetic
+    // skeleton rather than lifted from readmeDoc, so it stays true regardless
+    // of what README happens to say, and it would catch a future PR that
+    // narrowed the assertion above from `readmeDoc` to just the Checks block.
+    const skeleton = [
+      "# Geo quiz",
+      "",
+      "## Checks",
+      "",
+      "```bash",
+      "make -C backend check",
+      "```",
+      "",
+      "## Layout",
+      "",
+      "The nine Postgres-only tests skip on SQLite.",
+      "",
+    ].join("\n");
+    const checksBlockOnly = codeBlock(sectionOf(skeleton.split("\n"), "## Checks"));
+    // `.match()`, not `.toMatch()`: `testCountPattern` carries the "g" flag,
+    // and `.toMatch()` runs it through `RegExp.prototype.test()`, which
+    // advances the pattern's shared `lastIndex` across calls — including the
+    // "not vacuous" test just above. `.match()` resets it each time, so these
+    // two assertions cannot pass for the wrong reason depending on test order.
+    expect(checksBlockOnly.match(testCountPattern)).toBeNull();
+    expect(skeleton.match(testCountPattern)).not.toBeNull();
   });
 });
 
