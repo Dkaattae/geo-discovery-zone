@@ -21,8 +21,9 @@ expanded into a brief. `run-loop.sh` G1 refuses to run them. A `T` task may stil
 add to `engineering-decisions.md` when its criteria say so — and since T-057
 (PR #53) that is actually possible: the assertions in
 `question-bank/src/region-vocabulary.test.ts` that pinned `E-9` as the highest
-entry for ever are generalised to uniqueness and ascending order, so filing
-`E-11` no longer turns a suite red. Do not reintroduce a ceiling.
+entry for ever are generalised to uniqueness and ascending order. T-072 (PR #55)
+filed `E-11` through the loop and no suite went red, so that is now demonstrated
+rather than expected; `E-12` is next. Do not reintroduce a ceiling.
 
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
@@ -43,7 +44,10 @@ after T-010 committed the 50-state bank and recorded the decision as `E-6`
 (PR #37). Swept again 2026-09-14, after T-011 gave all 50 states a curated fun
 fact (PR #41). Swept again 2026-09-18, after T-016 filled Alaska's
 `highest_point` (PR #47) — the T-012 to T-015 sweeps happened too, and are
-logged in `PROGRESS.md` rather than here._
+logged in `PROGRESS.md` rather than here. Swept again 2026-09-22, after T-072
+deleted the two criterion-19 diff guards (PR #55): T-070 (c) is closed and
+trimmed out of that entry, and T-073 is the fourth instance of the same defect,
+in `frontend/`._
 
 ## How this list is ordered
 
@@ -158,29 +162,35 @@ updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 
-### T-072 — A guard test diffs against a fixed commit and fails on `main` · S · doing
+### T-073 — The same expired-git-baseline guard, now in `frontend/` · S · todo
 **Depends on:** —
-**Expanded 2026-09-21** into [`tasks/T-072-guard-pinned-commit.md`](tasks/T-072-guard-pinned-commit.md)
-— written, but **not yet committed, pushed or opened as a PR**: that session
-could run no mutating git command (see the brief's `Fault:` line), so it is
-`blocked` on a person landing it. The brief takes in the sibling copy in `climate-kid.test.ts` as well —
-same defect, same ten lines, and its `origin/main...HEAD` range measures whatever
-the *current* branch changed — so this closes **T-070 (c)**. T-070 (a) and (b)
-survive and that entry should be trimmed, not deleted, when this merges.
-**New 2026-09-21, from T-057's round-1 tester.**
-`question-bank/src/climate-kid-verify.test.ts:1129` runs
-`git diff --name-only 13a735f...HEAD` and fails if anything under `frontend/`,
-`backend/` or `e2e/` has changed since that commit. Six such files have already
-changed, so the test fails on **`main`** in any full clone. It is green in CI
-only because `actions/checkout` shallow-clones and the missing-history `else`
-branch swallows the failure. That means it fails locally for every task from now
-on, for reasons unrelated to the task, and it is not really checking anything in
-CI either — the worst of both.
-**Done when:** the guard expresses what it meant (that this task's change did not
-reach into the app) without pinning a commit that ages, or is deleted with a note
-saying why. It behaves the same in a shallow clone and a full one — no silent
-`else` that turns the check off — and `question-bank`'s suite passes on `main` in
-a full clone.
+**New 2026-09-22, found by T-072's worker and confirmed by its tester and
+reviewer (PR #55).** `frontend/src/level-window-claim.criteria.test.ts:166-187`
+("no existing E-n entry was modified", T-057 criterion 8) is the **fourth**
+instance of the defect T-072 just deleted two of, and it is red on `origin/main`
+today. It takes everything in `engineering-decisions.md` above the `## E-10 — `
+heading and compares it against the **entire** file at the merge base — which
+only held while T-057 was in flight and E-10 was not yet on `main`. Now that
+T-057 has merged, the base file contains E-10 and the comparison can never
+match. Reproduced by this reviewer in a clean worktree of `origin/main`: 10 pass
+/ **1 fail**, identical on and off T-072's branch, so nothing about E-11 caused
+it.
+**Invisible in CI for the same reason as T-072's pair:** `if (base.exitCode !==
+0) return;` at `:171`, plus a shallow `actions/checkout`, so the test silently
+turns itself off and the `frontend` job is green while the assertion is red on
+any full clone.
+The honest endings are the same two T-072 had, and its `engineering-decisions.md`
+**E-11** is the precedent to read first: express the property without a git
+baseline that expires (the append-only rule is checkable against the *heading
+list*, which `question-bank/src/region-vocabulary.test.ts:318-351` already does
+for uniqueness and ascending order), or delete it and say why. **Do not** repair
+it by re-pinning to today's `main` — that is the move that produced all four
+instances.
+**Done when:** `frontend`'s suite is green in a full clone, no test in that file
+reaches a passing assertion because a spawned `git` command failed, and nothing
+in the repo asserts about `engineering-decisions.md` against a git range that
+ages. If the answer is to delete, the entry goes in `engineering-decisions.md`
+next to E-11.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
@@ -452,29 +462,24 @@ and `climate-kid-verify.test.ts:828` (rightly) forbid a test from spawning
 had to settle for grepping `build.ts`'s source for the absence of a field filter,
 with the real behaviour checked by hand and recorded in the PR. Returning captured
 stdout from the existing harness would make that a real test and costs a few lines.
-**(c) A third guard is task-scoped in the same way and is red on `origin/main`
-itself.** Added 2026-09-18 by T-017's reviewer (PR #49). `climate-kid-verify.test.ts`'s
-`"T-014 tester, criterion 19 — frontend/ and backend/ carry no change from this
-task"` diffs a hardcoded `13a735f`, which **predates the FastAPI backend's own
-addition**, so `backend/app/data/content.json` is in that range on the default
-branch: measured in a clean worktree at `f5b2382`, 1192 pass / **1 fail**. Its
-sibling in `climate-kid.test.ts` uses `origin/main...HEAD`, which is not scoped
-to T-014's commits either — it measures whatever the *current* branch changed, so
-every later task that legitimately adds a file under `backend/` or `frontend/`
-trips a guard written about a task that ended long ago. T-017 hit exactly this
-and had to add a named `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist to both copies
-to get past it. **Two things for whoever picks this up:** re-pin or re-scope both
-assertions to the commits they are actually about, and **delete the now-dead
-`ALLOWED_OUTSIDE_QUESTION_BANK` entry** — once T-017 merged, `backend/tests/test_region_vocabulary.py`
-is in `origin/main` and the entry is inert, but it will not remove itself and the
-next reader cannot tell a live exception from an expired one. Both are the same
-defect as (a): a task-scoped "nothing outside my package moved" assertion frozen
-into the permanent suite.
-**Done when:** the three guards no longer need a per-task exception (or the
-decision to keep them is written down in `engineering-decisions.md`), the two
-`climate-kid` copies of the criterion-19 assertion are green on the default
-branch and carry no expired allowlist entries, and a test can assert on the build
-report's printed warnings without spawning `build.ts`.
+**(c) is closed — T-072 did it (PR #55).** Both criterion-19 diff guards in
+`climate-kid.test.ts` and `climate-kid-verify.test.ts`, and the expired
+`ALLOWED_OUTSIDE_QUESTION_BANK` allowlist in each, are **deleted**, with the
+reasoning in `engineering-decisions.md` **E-11**. Nothing here is left to do, and
+E-11 is the precedent for how (a) should be written up whichever way it goes. Two
+related things stayed out of T-072's scope and belong to this entry:
+- **`highest-point-verify.test.ts:582-584`** (`if (base === null) return;`) —
+  another silent-`else` git path in this package. Not a pinned commit, so it is
+  not red anywhere, but it is a check that turns itself off on a shallow clone.
+- **`climate-kid.test.ts:538`'s `expect(status === 0 || status === 1).toBe(true)`**
+  in `"sample-data/us-state-co.json was not touched by this task"` — takes no
+  revision, so it needs no history and does not have T-072's defect, but the
+  disjunction would still swallow a broken `git`.
+**Done when:** the three digest guards no longer need a per-task exception (or the
+decision to keep them is written down in `engineering-decisions.md`), no test in
+`question-bank/src/` passes down a path taken because a spawned `git` failed, and
+a test can assert on the build report's printed warnings without spawning
+`build.ts`.
 
 ---
 

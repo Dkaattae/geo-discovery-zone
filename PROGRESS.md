@@ -303,6 +303,42 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-072 — a guard test diffed against a fixed commit and failed on `main`**
+  (PR #55, 2026-09-22). Two tests written for T-014's criterion 19 asserted
+  "nothing outside `question-bank/` moved in this task" by shelling out to
+  `git diff` against a range that was not T-014's — the literal commit `13a735f`
+  in `climate-kid-verify.test.ts`, which predates the FastAPI backend and so was
+  **red on `origin/main` itself** in any full clone, and `origin/main...HEAD` in
+  `climate-kid.test.ts`, which measured whatever branch happened to be checked
+  out. Both were invisible in CI because `actions/checkout` clones shallow and
+  both swallowed the missing history, so the package cost every task a local
+  failure and bought nothing in exchange. **Ending taken: deleted, not
+  replaced** — both guards, both `ALLOWED_OUTSIDE_QUESTION_BANK` allowlists and
+  the two tests that policed the allowlist are gone, recorded as
+  `engineering-decisions.md` **E-11**. No git-free replacement was written
+  because one already sat next to them (`climate-kid.test.ts:832`, a string
+  check on the file's own imports), and it survives untouched. Suite 1255 → 1251
+  in `question-bank`, and — the point of the task — **the same 1251 in a full
+  clone and in a real `--depth=1` clone**, where before it was 1254/1 fail full
+  and 1255/0 shallow.
+  *Where it differed from the brief:* nowhere in substance; all eleven criteria
+  met as written and the brief left both endings open. Three things are worth
+  carrying forward:
+  - **The tester committed no test file, deliberately.** Criterion 8 pinned the
+    branch diff to three named paths, so a new test file would have broken the
+    criterion it was verifying. Verification was by execution and mutation
+    instead — three mutations, each proven to redden the surviving coverage, in
+    a disposable shallow clone. That criteria shape is a template gap and went
+    to **P-6**, not to `tasks.md`.
+  - **A fourth instance of the same defect was found in `frontend/`** while
+    checking criterion 7 — `level-window-claim.criteria.test.ts`'s "no existing
+    E-n entry was modified", red on `origin/main` today and self-disabling on a
+    shallow clone. Filed as **T-073**; it is not this branch's doing and this
+    branch does not touch it.
+  - **`E-11` is the first `E-n` entry filed through the loop since T-057
+    generalised the region-vocabulary assertions.** Uniqueness and ascending
+    order held; no suite went red. The ceiling that bit T-057 is genuinely gone.
+
 - **T-057 — `levels.py`'s docstring claimed a client function that never
   existed** (PR #53, 2026-09-21). `level_window`'s docstring said it mirrored a
   `levelWindow()` in the client; no such function has ever existed. The
@@ -422,9 +458,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   - **The PR turned a passing test red and the first verdict did not see it**,
     because `climate-kid.test.ts`'s T-014 guard self-disables on a shallow clone
     and CI checks out shallow — so CI was green in two seconds while the test was
-    red on any full clone. Closed with a named, test-policed allowlist; the
-    underlying defect (task-scoped guards frozen into the permanent suite) went
-    to **T-070**. *The lesson is the checkout, not the guard:* a verdict measured
+    red on any full clone. Closed at the time with a named, test-policed
+    allowlist; the underlying defect (task-scoped guards frozen into the
+    permanent suite) went to **T-070** and was settled by **T-072** (PR #55),
+    which deleted both guards and the allowlist — see `engineering-decisions.md`
+    **E-11**. *The lesson is the checkout, not the guard:* a verdict measured
     on a shallow clone cannot see this class of failure at all.
   - **Four regions have one or two states** — `Great Basin` = NV, `Pacific` = HI,
     `Pacific West` = CA, `Southwest` = AZ + NM — so T-022 cannot draw same-region
@@ -907,6 +945,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `test-guidelines.md:209` and `PROGRESS.md:161` still quote suite sizes that
   nothing asserts and that are already wrong (T-065). `README.md`'s last one is
   closed (T-062, PR #50).
+- **A test still fails on `main` in a full clone and CI cannot see it.**
+  `frontend/src/level-window-claim.criteria.test.ts`'s "no existing E-n entry was
+  modified" compares `engineering-decisions.md` against a git baseline that
+  expired the moment T-057 merged, and self-disables on a shallow checkout
+  (T-073). `question-bank`'s two copies of this defect are closed (T-072, PR
+  #55); this is the fourth and last known one, plus two silent-`else` git paths
+  that are not red but do turn themselves off, listed under T-070.
 
 **Behaviour.**
 
