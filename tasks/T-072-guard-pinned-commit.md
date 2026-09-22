@@ -271,7 +271,7 @@ and both files named in full, in `engineering-decisions.md` E-11.
 | 8 | Nothing else changes | met | `git diff --stat` against `origin/main...HEAD` (before this commit) touches only `runs/`, `tasks.md`, `tasks/T-072-…md` from the expander's own commit; this worker's uncommitted diff touches exactly the three files listed above, nothing under `.github/`, `frontend/`, `backend/`, `e2e/`, `question-bank/data/`, `question-bank/sample-data/`, `openapi.yaml`, or any non-test file under `question-bank/src/` |
 | 9 | No new dependency, no test reaches a remote | met | `question-bank/package.json` and `bun.lock` show no diff (`git status --porcelain -- question-bank/package.json question-bank/bun.lock` empty); grepped both edited files for `git fetch`/`clone`/`ls-remote`/`remote update`/`fetch(`/`fetch =` — none |
 | 10 | `bun run typecheck` passes in `question-bank/` | met | `tsc --noEmit` — clean, no output |
-| 11 | CI green on the pushed head, all six jobs including shallow `question-bank` | **to confirm after push** — see below | six jobs confirmed present in `.github/workflows/ci.yml`: `frontend`, `question-bank`, `backend`, `backend-postgres`, `integration`, `e2e` |
+| 11 | CI green on the pushed head, all six jobs including shallow `question-bank` | met | Run [35675309302](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/35675309302) on commit `e401750` — `completed`/`success`. All six jobs green: `frontend (typecheck, lint, test)`, `question-bank (typecheck, test)`, `backend (lint, format, test)`, `backend (postgres)`, `integration (docker compose)`, `e2e (playwright)` |
 
 **What I deliberately did not do:**
 
