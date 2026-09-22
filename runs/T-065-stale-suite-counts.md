@@ -143,3 +143,53 @@ T-065 round 2 worker fix complete and pushed. Status: `awaiting verification`, N
 **Not done, deliberately:** did not touch `stale-suite-counts-guard.criteria.test.ts` (tester's output), did not touch `test-guidelines.md`/`PROGRESS.md`/`tasks.md` again (not in the tester's fault line), did not build the criterion-11 "scope-level test" alternative (flagged for reviewer: worth building if README ever gets a Checks-external stale count again).
 
 **Worth the tester's attention:** `$CLAUDE_CODE_REMOTE_SESSION_ID` this round is again `cse_01KkjXcoL82TkpiL7GbimiCh`, identical to every prior role including the previous tester — same orchestrated-run caveat noted in round 1's Handoff. The Sessions-table independence check proves nothing here; only a freshly spawned context is real.
+
+## Round 5 — tester — 2026-09-22
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-065 tester, round 2: PASS.** All 13 criteria are met, and the three problems from round 1 are fixed (criteria 7 and 11, plus the guard's handling of criterion 3). The brief now reads Status `pass`, Next step `reviewer`. The reviewer needs to know two things: in this sandbox `frontend` is not fully green, because of a failure that was already there before T-065, so CI on PR #57 has to show a clean run; and a few count phrasings still get past the guard. Both are written up in the brief.
+
+**How independent this check is:** weaker than a separate session. This is an orchestrated run (`runs/T-065-stale-suite-counts.md` exists), and every role, me included, shows the same session id, `cse_01KkjXcoL82TkpiL7GbimiCh`. So the Sessions check proves nothing. My only independence is being a newly spawned agent that did not see the work being done. That depends on the orchestrator having spawned me correctly, which I cannot check. I said this in the Verdict.
+
+**The guard and my own detector are no longer independent either.** The worker's new guard uses the same approach as the detector I wrote in round 1: same sentence splitting, same word cleanup, same 5-word window. So my tests that read the documents directly now agree with the guard by construction. The independent evidence this round comes from running the worker's actual guard file against edited copies of the real documents, and from a wider set of edits I wrote from the criteria.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1, 2, 4, 5 | met | My tests that read the documents directly pass. None of these documents changed since round 1 |
+| 3 | met | The doc says 9, and `test_postgres.py` has 9 tests. The guard stays green with no number, "the", or "nine". It goes red for 8 and for "twelve" |
+| 6 | met | Adding `# 223 tests today` to the real `test-guidelines.md` turns the guard red. Reverted |
+| 7 | met | Adding "thirty tests" above the heading in the real `PROGRESS.md` turns the guard red. On scratch copies, 19 more phrasings go red too, including "a hundred", "221 unit, endpoint and contract", "1,131", "twenty-one", a table row, a bold number and a count split across a line break |
+| 8 | met | The same sentences placed below the heading leave the suite green. The T-001, T-010 and T-014 figures are still there |
+| 9, 10, 13 | met | Advice lines present; the two README detectors are still separate; no lockfile or `package.json` changes; tests only read local files |
+| 11 | met, by the "correct the comment" option | Narrowing the README scan to the Checks block leaves `conventions-doc.test.ts` at 80/80 green. The rewritten comment now says exactly that |
+| 12 | met, apart from the pre-existing failure | `frontend` `bun test`: 295 pass, 1 fail / 1 error, all from `UsMap.tsx` failing to find `react-simple-maps` (the sandbox's registry 403s it). Typecheck shows only the same `UsMap` errors. Lint is clean. `question-bank`: 1251 pass, typecheck clean. **I could not see a fully green `frontend` run; CI must show it.** |
+
+**Deliberate breakages, all reverted:**
+- Cutting the guard's number words down to one–nineteen: red.
+- Shrinking its word window to 1: red.
+- Splitting on every newline: red.
+- Making it ignore spelled-out numbers: red.
+- Narrowing the README scan in `conventions-doc.test.ts`: nothing in that file went red, which is what the corrected comment now says. The only reds were lint failures from my longer mutated line.
+
+**Phrasings the guard still misses (in the brief, not counted as failures):**
+- "a dozen tests"
+- "1.1k tests"
+- "Frontend tests: 286." (number after the word)
+- "286 test cases" (singular "test")
+- more than 5 words between the number and "tests"
+- "nine-hundred-odd tests"
+- a wrong compound number before "Postgres-only" (e.g. "twenty-one")
+
+**Notes for the reviewer:**
+- **Advice wording is pinned exactly.** A future rewording of the three advice lines would turn the suite red, although criterion 9 allows rewording. My own test pins them the same way.
+- **Wrong header comment.** The guard's header still says the verifying session wrote it; the worker did.
+
+**My changes:** `frontend/src/stale-suite-counts-guard.criteria.test.ts` now has 42 tests, up from 33, all green. The new ones cover more criterion-7 phrasings, the criterion-8 cases below the heading, and criterion 3 with the number written in words. I also corrected the file's header comment. The brief has the round-2 Verdict, a new Sessions row, Status `pass`, Next step `reviewer`, and a cleared Fault line.
+
+**Commit:** `e3a611b` "T-065 tester: verdict — pass (round 2)", pushed to `origin/claude/gifted-albattani-0vh9mr`. After fetching, the remote shows `e3a611b`, and the working tree is clean.
+
+Files:
+- `/home/user/geo-discovery-zone/tasks/T-065-stale-suite-counts.md`
+- `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts-guard.criteria.test.ts`
+- `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts.criteria.test.ts` (the worker's guard, not modified)
+- `/home/user/geo-discovery-zone/frontend/src/conventions-doc.test.ts` (not modified)
