@@ -186,6 +186,29 @@ while you are there, and check whether the prettier version is pinned — an
 unpinned formatter is how this happens.
 **Done when:** `bunx prettier --check` is clean in `question-bank/`, the
 formatter version is pinned, and CI fails on a badly-formatted file.
+**Skipped by the expander, 2026-09-22:** "the formatter version is pinned" and
+"CI fails on a badly-formatted file" both require `prettier` as a devDependency
+of `question-bank/` — `bunx` resolves from the network, and that job installs
+behind the dead proxy (T-005), so an unpinned `bunx prettier` cannot run there at
+all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
+"Packages"), the same wall T-066 is waiting at, and prettier already being a
+`frontend/` devDependency does not settle it. Unblocks the moment that call is
+recorded here; T-065 was taken instead.
+
+### T-074 — Three READMEs state suite sizes nothing checks · S · todo
+**Depends on:** T-065
+**New 2026-09-22, found while surveying T-065.** The same drift, in three files
+T-065's brief deliberately leaves alone: `backend/README.md` ("221 tests", "28
+tests"), `backend/integration/README.md` ("28 tests", "221 tests", "23 tests",
+"5 restart tests") and `e2e/README.md` ("13 Playwright tests"). The integration
+suite is 30, not 28, so two of these are already wrong in the tree.
+They were split out rather than folded in because they are a harder case than
+T-065's three files: all three also carry prose that mentions *a* test without
+claiming a suite size ("one test"), so whatever guard T-065 lands has to
+distinguish the two before it can be pointed here. Do this after T-065, reusing
+its detector rather than writing a fourth.
+**Done when:** none of the three states a number of tests, and the same guard
+that holds `test-guidelines.md` and `PROGRESS.md` covers them.
 
 ---
 
@@ -217,6 +240,15 @@ why not.
 **Done when:** the committed bank can be refreshed from live Wikidata on a
 schedule without a human running the pipeline by hand, and a stale bank is
 visible (a PR, an alert, or both) rather than silent.
+**Skipped by the expander, 2026-09-22:** two calls inside it are Dkaattae's, and
+neither can be guessed into an acceptance criterion. **One** — a scheduled
+workflow that opens PRs needs `contents: write` and `pull-requests: write` on a
+job that runs unattended against a live external source, which is the same "turn
+a bot loose to open PRs on a schedule" decision T-060 is already waiting on.
+**Two** — it deliberately reverses T-005: every existing CI job runs with all six
+proxy spellings on a dead loopback, and this one must reach Wikidata. Both are
+answerable in a line here; until then the criteria would be a guess. T-065 was
+taken instead.
 
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
 **Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
@@ -242,9 +274,23 @@ criterion 2 banned from anything tracked under `sample-data/`, and
 `us-state-co.json`, `index.json` and that README.
 **Done when:** `sample-data/` is deleted, or this task is dropped with the reason
 it turned out still to earn its place.
+**Skipped by the expander, 2026-09-22 — and its `Depends on: —` is wrong.** The
+entry's own precondition is "kept until the committed bank is shown to work end
+to end", and nothing serves the committed bank yet: **T-040** is the loader and
+has not run, so the app still serves the hand-copied `content.json`. Deleting
+`sample-data/` now would be acting before the condition this entry names, and
+"dropped because it still earns its place" cannot be settled either while the
+thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
+instead.
 
-### T-065 — Refresh the stale suite-size counts, and stop them going stale · S · todo
+### T-065 — Refresh the stale suite-size counts, and stop them going stale · S · doing
 **Depends on:** —
+**Expanded 2026-09-22** into [`tasks/T-065-stale-suite-counts.md`](tasks/T-065-stale-suite-counts.md),
+PR #57. The brief settles the open question the way this entry recommends —
+delete the figures — and scopes the guard to `test-guidelines.md` and
+`PROGRESS.md` above `## Completed tasks`, with `tasks.md`'s §A table as a
+one-time removal. Three README files found stale while surveying are **T-074**,
+not this task.
 `test-guidelines.md:209` (`# 19 tests today`) still quotes a count that is
 already wrong and will be wrong again. `question-bank` alone went 19 → 209 in
 T-010, and the number moved **three times inside that one PR** — each round of
