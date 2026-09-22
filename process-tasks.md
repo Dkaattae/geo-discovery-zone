@@ -210,3 +210,45 @@ the loop: hand-written PR, reviewed by Dkaattae.
 `tester` verdict, or refuses to start and says why — and the case where it
 cannot is written down somewhere a reader of a `pass` can find it, instead of
 being reconstructed from a brief's Notes section after the fact.
+
+### P-6 — A brief that pins its own diff leaves the tester nowhere to commit · S · todo
+**Depends on:** —
+**New 2026-09-22, raised by T-072's tester and carried over by its reviewer
+(PR #55).** T-072's criterion 8 read "excluding the brief and the sweep files,
+the branch's diff against the default branch touches only these three paths" —
+a reasonable anti-drift criterion, and one that **forecloses the tester's own
+deliverable**: committing a test file would have broken the criterion the test
+was written to verify. T-072 got away with it because criteria 4 and 11 happened
+to be *written as procedures* ("commit a throwaway probe, run the suite, revert
+before reporting"; "report the CI run's id"), so the tester could verify by
+execution and mutation and record the commands. That was luck rather than
+design, and the next brief of this shape will strand its tester.
+
+Three things to settle, all of them in loop files:
+
+- **`tasks/TEMPLATE.md` should say how a diff-pinning criterion coexists with
+  step 4** — either the criterion names the tester's test file as an expected
+  path, or it says explicitly that verification is by executed procedure and the
+  Verdict carries the commands. Silence is what produced the bind.
+- **`runs/` belongs in the "excluding" list**, next to `tasks/`, `tasks.md` and
+  `PROGRESS.md`. Under an orchestrated run it is *always* in the branch diff and
+  is never the worker's — T-072's reviewer had to reason it back to the
+  orchestrator's own commits by attribution to clear criterion 8. `process.md`
+  step 6 already makes this concession for the sweep files; it should make the
+  same one here.
+- **Reverting a probe commit needs a documented safe sequence.** T-072's worker
+  reverted its criterion-4 probe with `git reset --hard HEAD~1` and lost its own
+  uncommitted edits with it — self-reported, and cheap to redo, but `reset` is
+  deliberately *not* in `.claude/settings.json`'s allowlist (D-13), so the one
+  destructive verb a role reached for is the one no role is supposed to have.
+  Briefs are now asking for probe-then-revert as a verification procedure, so
+  the sequence should be written down where the role reads it (`worker.md`,
+  `tester.md`) using verbs the allowlist grants — commit the probe alone and
+  `git revert` it, rather than resetting a tree that holds other work.
+
+**This is a process-file change** (`tasks/TEMPLATE.md`, `process.md`,
+`.claude/agents/worker.md` and `tester.md`), so G1 forbids running it through the
+loop: hand-written PR, reviewed by Dkaattae.
+**Done when:** a brief can pin its diff without trapping its tester, `runs/` is
+named as an expected diff path for orchestrated runs, and no role's documented
+procedure calls for a git verb the allowlist withholds.
