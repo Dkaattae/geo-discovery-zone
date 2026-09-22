@@ -1,8 +1,8 @@
 # T-073 — The same expired-git-baseline guard, now in `frontend/`
 
-**Status:** `pass`
-**Next step:** `reviewer` — finding 1 is fixed and re-verified after committing.
-See `## Verdict — round 2`.
+**Status:** `approved`
+**Next step:** `human` — PR #56 marked ready for review. Dkaattae merges (D-4).
+See `## Review — round 2`.
 **Approved:** orchestrator — 2026-09-22, unattended run. See `runs/T-073-frontend-git-baseline-guard.md`.
 **From:** [`tasks.md`](../tasks.md) T-073 (§A Foundations)
 **Branch:** `claude/task-t073-orchestrator-2ek0bi` — harness-assigned to this
@@ -21,6 +21,7 @@ the reviewer approves.
 | tester | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run, see Verdict |
 | reviewer | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run (D-3) |
 | tester (round 2) | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run, see Verdict — round 2 |
+| reviewer (round 2) | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run (D-3) |
 
 ## Goal
 
@@ -702,3 +703,98 @@ defect from the defect.
 **Rounds used:** this is the first fail→fix→verify round on T-073 and it came from
 the reviewer rather than from a failing criterion, so the two-round escalation
 bound in `process.md` step 4 is not close.
+
+## Review — round 2
+
+Written by `reviewer`, 2026-09-22. **Status: approved. PR #56 marked ready, no
+escalation note.**
+
+**TL;DR:** Finding 1 is genuinely fixed, and I re-verified it myself on the
+committed tree rather than taking the Verdict's word for it. `bun test` in
+`frontend/` is **223 pass / 1 fail / 1 error** here, the one failure being this
+sandbox's missing `react-simple-maps` package — and **all six CI jobs are green
+on the head commit `eea13da`**, which settles that gap: in an environment that
+can install, frontend typecheck, lint and test all pass. Findings 2 and 3 are
+disposed of. The PR is ready for Dkaattae to merge.
+
+### Finding 1 — fixed, re-verified independently
+
+The fix is `codeOf()` at `git-baseline-guard.criteria.test.ts:74-122`: a comment
+stripper that blanks comment characters to spaces while preserving newlines and
+offsets, so every scan reads code and not prose. The sample argument list that
+tripped the scan is also gone from the doc comments, so the file does not lean on
+the stripper alone to stay honest about itself. **Neither of the two escapes I
+ruled out was taken** — the criterion-4 throw assertion is intact, and the guard
+file is still in `REPO_TEST_FILES` and scans itself.
+
+What I ran, on the pushed tree at `eea13da` with the guard file tracked:
+
+| Check | Result |
+|---|---|
+| `bun test` in `frontend/` | **223 pass / 1 fail / 1 error** — only `screens.criteria.test.tsx` / `Cannot find package 'react-simple-maps'` |
+| `bun test` on the two criteria files | **25 pass / 0 fail** |
+| Mutation M2 (`trackedFiles`' throw → `return []`) | **2 fail** — both criterion-4 tests red, which is exactly what I asked for |
+| A real `["git", "merge-base", "HEAD", "origin/main"]` added **in code** to `lint-gate.test.ts` | **3 fail** — criterion 3 catches it |
+| The same list added **in a comment** | **15 pass / 0 fail** — prose is not flagged |
+| `bun run lint` in `frontend/` | clean, exit 0, zero warnings |
+| `bun run typecheck` in `frontend/` | fails on `UsMap.tsx` only (`TS2307` ×2 plus two downstream implicit-`any`) |
+| `bun test` in `question-bank/` | **1251 pass / 0 fail** |
+| `uv run pytest` in `backend/` | **517 passed, 9 skipped** |
+| CI on `eea13da` | **six jobs, all `success`**, including `frontend (typecheck, lint, test)` |
+
+Every mutation was reverted; `git status --short` is clean.
+
+### Finding 2 — closed, no change
+
+The guard still scans `question-bank/`, `backend/` and `e2e/` from `frontend`'s
+suite, as I said it could. Criterion 5 is repo-wide and there is no repo-level
+suite. Recorded in `PROGRESS.md` so the surprise lands on a reader rather than on
+a future `question-bank` task.
+
+### Finding 3 — closed, line added
+
+`:207-212` now documents the 400-character proximity heuristic and its
+false-positive mode, and says the right response to a future trip is to
+reconsider the rule rather than contort the call. That is what I asked for.
+
+### One observation, deliberately not filed as a task
+
+`codeOf`'s doc comment claims "the failure mode is scanning too much, never too
+little". That is very nearly true and not quite: a regex literal with an
+unescaped `//` inside a character class — `/[//]/` — would blank the rest of that
+line. No such literal exists in the repo, the consequence is one under-scanned
+line rather than a wrong assertion, and a `tasks.md` entry for an over-precise
+sentence in a test comment would make the queue longer without making it more
+useful. Recorded here instead.
+
+### Envelope check (`process.md` step 6)
+
+Every item holds, so the PR is marked **ready with no escalation note**:
+
+- tester returned **pass**; suite, typecheck and lint green in CI on the head
+  commit, and green locally apart from the demonstrated environment gap;
+- nothing outside Constraints — the six files are the brief, `runs/` (the
+  orchestrator's log), `tasks.md`, `engineering-decisions.md` and two test files
+  under `frontend/src/`;
+- no dependency added; `frontend/package.json` and `frontend/bun.lock` untouched;
+- `openapi.yaml`, migrations and `geoquizdataplan.md` untouched;
+- **no text a child will read** — `engineering-decisions.md` is developer prose;
+- no product decision settled. E-12 is an engineering decision the brief's own
+  criterion 8(b) authorised.
+
+### Lanes, re-checked for round 2
+
+`20bae0f` (tester) touches only the test file; `391e260` (tester) only the brief;
+`eea13da` (orchestrator) only `runs/`. The round-1 irregularity stands unchanged
+and is **not** blocking: `1472a68` is the orchestrator committing the worker's
+source edits because the worker's session ended without committing them. The
+content is the worker's and nothing was authored out of lane, but it is a gap in
+the loop rather than in this task — filed as **P-7** in `process-tasks.md`.
+
+### Swept
+
+Brief deleted, `tasks.md`'s T-073 entry deleted, `PROGRESS.md` updated. Queue
+trimmed: T-070 amended (the defect family is now down to its two named
+leftovers, and the new guard file is the shape to extend); T-065 amended (the
+frontend figure moved again, which is its argument, not a new task). Loop gaps to
+`process-tasks.md`: **P-4** amended with this cycle's recurrence, **P-7** added.
