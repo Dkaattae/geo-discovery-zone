@@ -587,3 +587,57 @@ is wanted again. The honest version needs either a deeper `fetch-depth` in
 — a manifest of files each task's own commits are expected to touch, checked
 against `git status` at PR time rather than against history baked into the
 test file.
+
+---
+
+## E-12 — The "no existing E-n entry was modified" test is deleted, not re-pinned
+
+**2026-09-22 (T-073).** `frontend/src/level-window-claim.criteria.test.ts`
+carried a test, written for T-057 criterion 8, that read this file's content
+at `git merge-base HEAD origin/main` and compared everything before the
+`## E-10 — ` heading against the whole of `engineering-decisions.md` at that
+commit. It held only while T-057 was in flight and E-10 was not yet on `main`;
+once E-10 merged, the merge-base copy of the file already contained E-10 (and
+later E-11), so the "everything before E-10" slice of the merge-base copy and
+of the working copy stopped matching by construction — the test could never
+pass again, on any branch, because the file it was diffing against now
+contained the very entry it was trying to prove hadn't been added yet.
+
+This was the fourth instance of the defect E-11 closes two of: a git baseline
+fixed at the task that wrote it, silently defused in CI because
+`actions/checkout@v5` runs with no `fetch-depth` (`.github/workflows/ci.yml:24`)
+so `origin/main` is simply absent, and both `git` calls (`merge-base`, `show`)
+escaped through a bare `return` on non-zero exit instead of failing. Green in
+CI, red in any full clone, for the same reason as the two E-11 deleted.
+
+**Decided: delete the test, not re-pin its baseline to today's `main`.**
+Re-pinning is what produced all four instances — each one worked until the
+next merge past its fixed point, then failed forever after. A self-relative
+range (comparing against the parent commit, say) was considered and rejected
+for the same reason E-11 rejected it for the diff guards: once a task merges,
+"has anything changed since commit X" stops meaning what the test's author
+meant by it and starts meaning "has any later task touched this file," which
+is not a property worth gating every subsequent task on. Raising `fetch-depth`
+in `ci.yml` to make the comparison resolvable in CI is out of reach for a `T`
+task (`process.md`, "Work on the loop itself never enters the loop"); E-11
+already rejected this route for the same defect.
+
+**What survives.** The property this test partially stood in for — the file
+only ever grows, entries are never renumbered or reordered — is still asserted
+git-free, and was already asserted git-free before this task, by the
+heading-list checks two tests above it in the same file (`E-n` numbers unique,
+ascending, nothing after E-10 is ≤ 10) and by the same shape in
+`question-bank/src/region-vocabulary.test.ts:318-351` for E-9. What is lost is
+strictly narrower: whether an *existing* entry's body text was edited in
+place, as opposed to only appended to. No git-free test in this repo asserts
+that today, for E-10 or for any other entry, because the only way to assert it
+without a git baseline is to pin a hash or a copy of each entry's prior text
+inside the test itself — which is exactly the same expiring-baseline shape
+this task exists to remove, just moved from a git call into a string literal.
+
+**Revisit when** a real "entries are never edited in place" check is wanted
+again. The honest version needs either the same deeper `fetch-depth` E-11's
+"Revisit when" already named, or a hash of each entry's body recorded next to
+it in the file at the time it is filed — a per-entry checksum, checked at PR
+time by the reviewer reading the diff rather than by a test that ages the
+moment history moves past it.

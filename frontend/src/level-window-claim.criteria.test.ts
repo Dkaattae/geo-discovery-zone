@@ -163,26 +163,15 @@ describe("T-057 criterion 8 — engineering-decisions.md records the level-windo
     expect(sites.filter((site) => body.includes(site)).length).toBeGreaterThan(0);
   });
 
-  test("no existing E-n entry was modified", () => {
-    // Compared against the base of the branch where the history is present. In
-    // a shallow clone the base blob is unavailable, and the structural checks
-    // above are what remains — recorded in the Verdict from a full clone.
-    const base = Bun.spawnSync(["git", "merge-base", "HEAD", "origin/main"], { cwd: REPO_ROOT });
-    if (base.exitCode !== 0) return;
-    const sha = base.stdout.toString().trim();
-    const before = Bun.spawnSync(["git", "show", `${sha}:engineering-decisions.md`], {
-      cwd: REPO_ROOT,
-    });
-    if (before.exitCode !== 0) return;
-    const previous = before.stdout.toString();
-    const cut = decisions.indexOf("\n## E-10 — ");
-    expect(cut).toBeGreaterThan(-1);
-    // Everything before E-10 has to be byte-identical to what was there, up to
-    // the `---` this file puts between entries — appending a separator is not
-    // modifying the entry above it.
-    const withoutTrailingSeparator = (text: string) => text.replace(/\s*(?:---\s*)?$/, "");
-    expect(withoutTrailingSeparator(decisions.slice(0, cut))).toBe(
-      withoutTrailingSeparator(previous),
-    );
-  });
+  // "no existing E-n entry was modified" was checked here by diffing this file
+  // against `origin/main`'s merge base — a git baseline that expired the moment
+  // E-10 merged (the comparison target became the file it was supposed to be
+  // compared against) and silently asserted nothing in a shallow clone, since
+  // both `git` calls escaped through a bare `return` on non-zero exit. It was
+  // the fourth instance of the defect E-11 deleted two of; removed the same way
+  // rather than re-pinned to a newer commit, which would only reproduce it a
+  // fifth time. See `engineering-decisions.md` E-12. The append-only property
+  // this test partially stood in for — no two E-n numbers collide, and nothing
+  // after E-10 is numbered ≤ 10 — is still asserted above, git-free, and stays
+  // green at any clone depth.
 });
