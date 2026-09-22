@@ -47,7 +47,9 @@ fact (PR #41). Swept again 2026-09-18, after T-016 filled Alaska's
 logged in `PROGRESS.md` rather than here. Swept again 2026-09-22, after T-072
 deleted the two criterion-19 diff guards (PR #55): T-070 (c) is closed and
 trimmed out of that entry, and T-073 is the fourth instance of the same defect,
-in `frontend/`._
+in `frontend/`. Swept again 2026-09-22, after T-073 deleted the fourth instance
+(PR #56): **every known red-on-`main` git baseline is now gone**, T-070 is down
+to its two silent-`git` leftovers, and T-065 gained one more stale figure._
 
 ## How this list is ordered
 
@@ -163,39 +165,6 @@ updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
 **Passed over again 2026-09-22** for the same reason; T-073 was taken.
-
-### T-073 — The same expired-git-baseline guard, now in `frontend/` · S · **doing**
-**Depends on:** —
-**In flight 2026-09-22:** expanded into
-[`tasks/T-073-frontend-git-baseline-guard.md`](tasks/T-073-frontend-git-baseline-guard.md),
-ten criteria, PR #56.
-**New 2026-09-22, found by T-072's worker and confirmed by its tester and
-reviewer (PR #55).** `frontend/src/level-window-claim.criteria.test.ts:166-187`
-("no existing E-n entry was modified", T-057 criterion 8) is the **fourth**
-instance of the defect T-072 just deleted two of, and it is red on `origin/main`
-today. It takes everything in `engineering-decisions.md` above the `## E-10 — `
-heading and compares it against the **entire** file at the merge base — which
-only held while T-057 was in flight and E-10 was not yet on `main`. Now that
-T-057 has merged, the base file contains E-10 and the comparison can never
-match. Reproduced by this reviewer in a clean worktree of `origin/main`: 10 pass
-/ **1 fail**, identical on and off T-072's branch, so nothing about E-11 caused
-it.
-**Invisible in CI for the same reason as T-072's pair:** `if (base.exitCode !==
-0) return;` at `:171`, plus a shallow `actions/checkout`, so the test silently
-turns itself off and the `frontend` job is green while the assertion is red on
-any full clone.
-The honest endings are the same two T-072 had, and its `engineering-decisions.md`
-**E-11** is the precedent to read first: express the property without a git
-baseline that expires (the append-only rule is checkable against the *heading
-list*, which `question-bank/src/region-vocabulary.test.ts:318-351` already does
-for uniqueness and ascending order), or delete it and say why. **Do not** repair
-it by re-pinning to today's `main` — that is the move that produced all four
-instances.
-**Done when:** `frontend`'s suite is green in a full clone, no test in that file
-reaches a passing assertion because a spawned `git` command failed, and nothing
-in the repo asserts about `engineering-decisions.md` against a git range that
-ages. If the answer is to delete, the entry goes in `engineering-decisions.md`
-next to E-11.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
@@ -333,6 +302,12 @@ own entry:
   different files one clause apart. After T-061 there are three `ci.yml` parsers
   in total (`ci-action-pinning`, `conventions-doc`, `lint-gate`), so the ordinal
   no longer says anything. One sentence.
+**Amended 2026-09-22 by T-073's reviewer (PR #56), one line, no new work.** The
+`frontend` figure in this file's §A table moved again — it says **184**, T-061
+made it 198, and T-073 (one test deleted, fifteen added) makes a real run
+**223**. That is the eighth time the same figure has been wrong and the second
+time in a row nobody refreshed it. It is not a new task; it is this entry's
+argument getting stronger, and the answer stays **delete the figure**.
 **Done when:** the counts match a real run, and either a test asserts them
 against the suite or the numbers are replaced by something that cannot rot (a
 command to run, not a figure).
@@ -480,6 +455,20 @@ related things stayed out of T-072's scope and belong to this entry:
   in `"sample-data/us-state-co.json was not touched by this task"` — takes no
   revision, so it needs no history and does not have T-072's defect, but the
   disjunction would still swallow a broken `git`.
+**Amended 2026-09-22 by T-073's reviewer (PR #56).** T-073 deleted the fourth and
+last red-on-`main` instance and recorded it as `engineering-decisions.md` **E-12**,
+so **those two bullets are the whole of what remains of this family** — neither is
+red anywhere, both only turn themselves off. Two things landed that make them
+cheaper to close than they were:
+- **`frontend/src/git-baseline-guard.criteria.test.ts` is the shape to extend, not
+  to re-invent.** It already asserts repo-wide that no test hands
+  `engineering-decisions.md` to `git`, and asserts *within `frontend/src/`* that
+  every `git` call uses a working-tree subcommand and throws on a non-zero exit.
+  Widening that second scan to `question-bank/src/` is most of what this half
+  needs; its `codeOf()` stripper and 400-character throw heuristic come with it,
+  including the documented false-positive mode at `:207-212`.
+- **E-11 and E-12 are now two worked examples of the write-up**, so (a)'s decision
+  has a house style to follow whichever way it goes.
 **Done when:** the three digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md`), no test in
 `question-bank/src/` passes down a path taken because a spawned `git` failed, and

@@ -119,6 +119,26 @@ same line. Worth considering alongside it: whether the driver should run
 reminder — and is what CI already does one step later, which is how this one was
 actually caught.
 
+**It happened again, 2026-09-22, in T-073 (PR #56) — and this time it cost a
+review round.** Same shape, other end of the repo: the tester's new
+`frontend/src/git-baseline-guard.criteria.test.ts` builds its scan list from
+`git ls-files`, ran green while **untracked**, and went red the moment it was
+committed and entered its own scan. The Verdict said "223 pass / 1 fail"; the
+pushed tree was 222/2. The reviewer caught it, the tester fixed and re-verified
+after committing, and the second Verdict was correct.
+
+Two things that reads on differently from T-014:
+
+- **A reminder would probably not have caught this one.** The tester was already
+  careful — it ran the whole suite, both clone depths, and fifteen mutations. What
+  it could not do is run a suite over a file it had not yet added. **The driver
+  running `bun test` on the pushed tree is the version of this fix that works**,
+  and the recurrence is the argument for preferring it to the sentence.
+- **Under the orchestrator there is no driver to do it**, so the relayed path needs
+  the sentence anyway, in `.claude/agents/tester.md` and `worker.md`: the run whose
+  numbers go in the report is made after `git add`, and a `git ls-files` scan sees
+  a different repository on either side of it.
+
 **This is a process-file change** (`.claude/agents/*.md`, `process.md`,
 `.claude/loop/run-loop.sh`), so G1 forbids running it through the loop:
 hand-written PR, reviewed by Dkaattae.
@@ -252,3 +272,42 @@ loop: hand-written PR, reviewed by Dkaattae.
 **Done when:** a brief can pin its diff without trapping its tester, `runs/` is
 named as an expected diff path for orchestrated runs, and no role's documented
 procedure calls for a git verb the allowlist withholds.
+
+### P-7 — A role that ends without committing leaves the orchestrator holding source · S · todo
+**Depends on:** —
+**New 2026-09-22, from T-073's reviewer (PR #56).** T-073's `worker` session ended
+with its `engineering-decisions.md` E-12 entry and its test edit sitting
+**uncommitted in the worktree**. The orchestrator committed them itself —
+`1472a68`, "T-073 worker: checkpoint mid-step (orchestrator commit, uncommitted
+worker output)" — and then spawned the worker again to write the Handoff.
+
+Nothing was lost and no text was authored out of lane: the content is the
+worker's, and the commit message says so plainly rather than disguising it. But
+two rules bent at once, and both are load-bearing:
+
+- **`process.md`'s role table gives the orchestrator `runs/` and the brief's
+  `Approved:` line, and explicitly never source.** A relay that can `git add` a
+  source file it has not read is a relay that can ship one, and "it was already in
+  the worktree" is not a distinction the tool enforces.
+- **`process.md` "After an agent finishes" ends every role with commit, push,
+  confirm.** A role that returns without doing that is the D-8 failure shape one
+  step earlier: work that exists but is not where the next role will look.
+
+**The question to settle is what the orchestrator does when a spawned role
+returns with a dirty worktree.** Three candidates, and the ticket is picking one:
+commit it as the orchestrator does today, with the honesty of the current message
+but a rule that permits it; **re-spawn the same role with "you left work
+uncommitted" and let it commit its own** — closest to the current role model;
+or **halt with `Status: blocked`**, which is safest and costs a run. Worth
+checking alongside: whether the four role prompts and `run-loop.sh`'s per-step
+endings should say that returning with uncommitted work is itself a failure, and
+whether the driver should refuse to advance while `git status` is dirty — which
+is a real gate rather than a reminder, and is the same argument P-4 makes.
+
+**This is a process-file change** (`.claude/agents/orchestrator.md`, the other
+role files, `process.md`, `.claude/loop/run-loop.sh`), so G1 forbids running it
+through the loop: hand-written PR, reviewed by Dkaattae. A `D-n` entry belongs
+with it — the three options above are a real choice, not a tidy-up.
+**Done when:** the orchestrator has a written answer for a role that returns
+dirty, that answer does not require it to touch source, and every role is told
+that ending with uncommitted work is a failed step rather than a handoff.
