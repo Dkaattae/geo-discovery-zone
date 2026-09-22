@@ -142,7 +142,8 @@ package does not have.
 **Skipped by the expander, 2026-09-19:** the first half is a dependency decision
 reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
 for it without guessing the answer. Unblocks the moment that call is recorded
-here; T-061 was taken instead.
+here; T-061 was taken instead. **Passed over again 2026-09-22** for the same
+reason; T-073 was taken.
 
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
 **Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
@@ -161,9 +162,13 @@ schedule is Dkaattae's call, not a task the loop can make on its own
 updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
+**Passed over again 2026-09-22** for the same reason; T-073 was taken.
 
-### T-073 — The same expired-git-baseline guard, now in `frontend/` · S · todo
+### T-073 — The same expired-git-baseline guard, now in `frontend/` · S · **doing**
 **Depends on:** —
+**In flight 2026-09-22:** expanded into
+[`tasks/T-073-frontend-git-baseline-guard.md`](tasks/T-073-frontend-git-baseline-guard.md),
+ten criteria, PR #56.
 **New 2026-09-22, found by T-072's worker and confirmed by its tester and
 reviewer (PR #55).** `frontend/src/level-window-claim.criteria.test.ts:166-187`
 ("no existing E-n entry was modified", T-057 criterion 8) is the **fourth**
