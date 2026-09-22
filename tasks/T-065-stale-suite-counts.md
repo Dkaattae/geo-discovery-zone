@@ -1,7 +1,7 @@
 # T-065 — Delete the stale suite-size counts, and stop them coming back
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** katechen150621@gmail.com — 2026-09-22, approved via chat on PR #57.
 **From:** [`tasks.md`](../tasks.md) T-065
 **Branch:** `claude/gifted-albattani-0vh9mr` — the branch this session was
@@ -9,7 +9,7 @@ assigned. Every later role pushes here, not to `task/T-065-*`
 (`CLAUDE.md` "Branches", `process.md` "When the environment names the branch for
 you").
 **PR:** #57, opened draft at expand time from the branch above.
-**Fault:** the worker's guard misses counts it should catch ("thirty tests", "a hundred tests", "221 unit, endpoint and contract tests"; criterion 7), fails a document criterion 3 explicitly allows, and the corrected criterion-11 comment still claims a test binds the README scan scope when none does — worker-owned.
+**Fault:**
 
 **Sessions:**
 
@@ -19,6 +19,7 @@ you").
 | worker | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh |
 | tester | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id, see Verdict) |
 | worker (round 2, fixing the tester's fail) | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (same id again — orchestrated run, see Handoff's round 2 note) |
+| tester (round 2) | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id, see Verdict round 2) |
 
 ## Goal
 
@@ -502,6 +503,115 @@ caveat as round 1's Handoff — worth the next tester's attention.
 ## Verdict
 
 _Written by `tester`._
+
+### Round 2 — pass
+
+**TL;DR: pass.** All 13 criteria hold. The three round-1 faults are fixed:
+- **Criterion 7:** the guard now catches "thirty tests", "a hundred tests" and
+  "221 unit, endpoint and contract tests".
+- **Criterion 3:** "states no number" now passes.
+- **Criterion 11:** the comment now claims only what the tests bind.
+
+Next is the **reviewer**. Two things need attention there:
+- **`frontend` is not fully green in this sandbox.** One pre-existing failure,
+  `UsMap.tsx` / `react-simple-maps`, sits outside T-065's diff. CI on PR #57 has
+  to show a clean run.
+- **Some count phrasings still get past the guard.** They are listed below and
+  are not counted against the criteria.
+
+**Independence: weaker than a separate session.** This run is orchestrated:
+`runs/T-065-stale-suite-counts.md` exists, and every role shares
+`cse_01KkjXcoL82TkpiL7GbimiCh`, mine included. The Sessions check therefore
+proves nothing. My independence comes only from being a freshly spawned agent
+with its own context. I did not watch the work happen or see the worker's
+reasoning. That depends on the orchestrator having spawned me correctly, not on
+anything I can check myself.
+
+**The guard and my detector are no longer independent.** The worker's round-2
+`hasSuiteCountClaim` uses the same clause splitter, token stripping and 5-word
+window as my round-1 `countClaims`. So my direct-read tests agree with the guard
+by construction. The independent signal this round came from two places:
+- **The harness**, which runs the worker's guard file against edited copies of
+  the real documents.
+- **A wider battery of edits** written from the criteria.
+
+#### Per criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | Docs unchanged since round 1. My `criterion 1:` tests pass. The `test-guidelines.md` diff from `7524e5c` only strips the two comments |
+| 2 | met | My `criterion 2:` tests pass. The guard's own test passes |
+| 3 | met | Doc says `9`, and `test_postgres.py` has 9 `def test_`. On a scratch copy, the guard stays **green** for `with Postgres-only`, `with the Postgres-only` and `with nine Postgres-only`. It goes **red** for `8` and `twelve`. Round 1's red test now passes. I added harness tests for the `nine` / `twelve` cases |
+| 4 | met | My `criterion 4:` tests pass |
+| 5 | met | My `criterion 5:` tests pass. `tasks.md` is unchanged since round 1 |
+| 6 | met | Real file: `# 223 tests today` added, then the full `frontend` suite run. Result: 279 pass, 8 fail, including the guard's own "no digit or spelled-out suite-size claim" test. Reverted, back to baseline. On scratch copies, `The frontend suite has 223 tests.` and `# sixty-five tests today` also turn the guard red |
+| 7 | met | Real file: `The integration suite has thirty tests.` added above the heading, then the full suite run. The guard's own test went red (280 pass, 7 fail). Reverted. The scratch-copy battery also turned the guard red for all of these above the heading: `9` / `nine` / `Nine tests cover…` / `thirty` / `a hundred` / `221 unit, endpoint and contract` / `1,131` / `eleven hundred` / `twenty-one` / `twenty one` / `- **Frontend:** 286 tests` / `\| Frontend \| 286 tests \|` / `**286** tests` / `` `286` tests `` / `13 end-to-end browser journey tests` / `Over 1000 tests` / `~1100 tests` / a count wrapped across a line break / a count appended inside the real line-57 bullet |
+| 8 | met | Real file: `thirty tests` added **below** the heading, then the full suite run: 286 pass, only the pre-existing failure. On scratch copies, `9` / `nine` / `thirty` / the comma-list sentence all stay green below the heading. The T-001, T-010 and T-014 figures are still present |
+| 9 | met | The three advice lines are present and the suite is green. See the note on rewording below |
+| 10 | met | `testCountPattern` and `testCountClaims()` are still two separate definitions, and neither imports the other. By inspection, no new assertion checks a package total |
+| 11 | met (comment route) | Mutation: I narrowed `conventions-doc.test.ts:625` from `readmeDoc` to `codeBlock(sectionOf(readmeDoc.split("\n"), "## Checks"))`. `conventions-doc.test.ts` stayed 80/80 green. The only full-suite reds were `lint-gate`'s, caused by my mutated line breaking prettier's line length, not by any scope check. The rewritten comment at `:591-616` now says exactly that: no test binds the scope. The test at `:631` claims only that the pattern is scope-agnostic, which is true. Criterion 11's "either the comment is corrected…" branch is met |
+| 12 | met except a pre-existing sandbox limit | `frontend` `bun test`: 295 pass, 1 fail / 1 error. The failure is `Cannot find package 'react-simple-maps'` from `UsMap.tsx`. `typecheck` shows only the same 4 `UsMap.tsx` errors. `lint` is clean. `question-bank`: 1251 pass, typecheck clean. Round 1 reproduced the `UsMap` failure on base `7524e5c`. T-065's diff does not touch `UsMap.tsx`, `package.json` or any lockfile. **Not verified here: a fully green `frontend` run. CI must show it** |
+| 13 | met | The diff from `7524e5c` touches only `PROGRESS.md`, `test-guidelines.md`, `tasks.md`, two new `frontend/src/*.test.ts`, `conventions-doc.test.ts`, the brief and the run log. There is no lockfile or `package.json` change. The guard reads four local files. My harness's subprocess has all proxy variables set to `127.0.0.1:1` |
+
+#### Mutations this round (all reverted; `git status` clean apart from my test file)
+
+| Mutation | Result |
+|---|---|
+| Guard: vocabulary cut to units only | guard's self-tests red → harness "passes on unedited copies" red ✔ |
+| Guard: 5-word window cut to 1 | same, red ✔ |
+| Guard: clause splitter replaced by split-on-every-newline | new harness case `runs 286\n  tests` red ✔ |
+| Guard: `numberIn` ignores unit words | new harness case "wrong Postgres-only number in words" red ✔ |
+| `conventions-doc.test.ts:625` narrowed to Checks block | no scope test red, which matches the corrected comment (c11) |
+| Real-file c6 / c7 / c8 edits | see table above |
+
+#### Tests added this round
+
+Added to `frontend/src/stale-suite-counts-guard.criteria.test.ts`: 42 tests
+now, up from 33, all green.
+- **Criterion 7 harness cases:** `twenty-one`, `eleven hundred`, a table row,
+  a bold number, and a count wrapped across a line break.
+- **Criterion 8 harness cases:** `thirty` and the comma-list sentence below the
+  heading.
+- **Criterion 3 harness cases:** the right number in words stays green, a wrong
+  number in words goes red.
+- **Header comment:** corrected, because it still named the removed
+  `suiteCountPattern`.
+
+#### Residual gaps: not counted against any criterion, recorded for the reviewer
+
+These edits above the heading leave the guard **green**:
+- `a dozen tests`: "dozen" is a collective noun rather than a numeral.
+- `1.1k tests`: an abbreviation.
+- `Frontend tests: 286.`: the number comes after the word. Round 1 already
+  treated this shape as out of scope.
+- `286 test cases`: singular "test". Also already treated as out of scope in
+  round 1.
+- `1131 fast, isolated, deterministic, offline, well-named unit tests`: more
+  than 5 words between the number and "tests".
+- `nine-hundred-odd tests`.
+
+Criterion 7 names digits and spelled-out numerals, and the guard catches every
+natural shape of those I tried. A reviewer who reads "in words" more broadly may
+disagree about `a dozen`. On the criterion-3 side, a **wrong** compound number
+such as `twenty-one Postgres-only` passes the guard, because `numberIn` returns
+`null` for compounds. Criterion 3 constrains the document, not the guard, and
+the document is right.
+
+#### Notes for the reviewer (not criteria)
+
+- **Criterion 9: the guard pins the advice wording exactly.** It checks that
+  `"at least one test"` etc. are present, so a future rewording turns it red,
+  although the criterion says rewording is allowed. My own criterion-9 test pins
+  them the same way. "Survives in some wording" cannot be checked mechanically
+  without pinning *a* wording, so I do not count it as a fault.
+- **Stale guard header, still unfixed from round 1.**
+  `stale-suite-counts.criteria.test.ts:6-7` says the file was "written out as
+  assertions by the verifying session". The worker wrote it.
+- **Round 1's test-name note is resolved.** The test at `:298` still asserts
+  only `> 0`, but it is now named "the real count … is nonzero", which is what
+  it checks.
+
+### Round 1 — fail
 
 **TL;DR: fail — round 1.** The documents are right: criteria 1, 2, 4, 5, 8, 9,
 10 and 13 hold. **The guard is not.** It lets through number words past

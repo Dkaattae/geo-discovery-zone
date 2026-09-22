@@ -10,9 +10,12 @@ import { dirname, join } from "node:path";
  * Two kinds of check live here:
  *
  * - **Direct reads of the three documents** (criteria 1-5, 8, 9), with a count
- *   detector written independently of `stale-suite-counts.criteria.test.ts`'s
- *   `suiteCountPattern` so the two can disagree. It tokenises and knows the
- *   whole family of English number words, not a fixed list that stops early.
+ *   detector written by the tester in round 1, independently of the worker's
+ *   round-1 `suiteCountPattern`. It tokenises and knows the whole family of
+ *   English number words, not a fixed list that stops early. The worker's
+ *   round-2 guard (`hasSuiteCountClaim`) adopted the same clause-and-token
+ *   shape, so the two no longer disagree much; the harness below, which runs
+ *   the guard itself against edited documents, is the independent signal.
  *
  * - **The guard, run against edited copies of the documents** (criteria 3, 6,
  *   7, 8). Criteria 6-8 are phrased as "with the file edited like this, a test
@@ -356,6 +359,12 @@ describe("criterion 7: a count added above 'Completed tasks' turns the guard red
     "The backend suite has a hundred tests.",
     // The sentence T-065 deleted from PROGRESS.md, with a list comma in it.
     "The backend has 221 unit, endpoint and contract tests.",
+    // Round 2 additions: other ordinary ways a count gets written back.
+    "The repo has twenty-one tests.",
+    "The repo has eleven hundred tests.",
+    "| Frontend | 286 tests |",
+    "The frontend suite now runs **286** tests.",
+    "The frontend suite runs 286\n  tests on every PR.",
   ]) {
     test(`"${sentence}" above the heading fails the guard`, () => {
       expect(guardPassesWith("PROGRESS.md", aboveHistory(sentence))).toBe(false);
@@ -367,6 +376,8 @@ describe("criterion 8: the same sentence below 'Completed tasks' leaves the guar
   for (const sentence of [
     "The frontend suite has 9 tests.",
     "The frontend suite has nine tests.",
+    "The integration suite has thirty tests.",
+    "The backend has 221 unit, endpoint and contract tests.",
   ]) {
     test(`"${sentence}" below the heading passes the guard`, () => {
       expect(guardPassesWith("PROGRESS.md", belowHistory(sentence))).toBe(true);
@@ -385,6 +396,19 @@ describe("criterion 3: both halves of the either/or keep the guard green", () =>
   test("stating a wrong Postgres-only number fails the guard", () => {
     const edit = (doc: string) =>
       doc.replace("with 9 Postgres-only checks", "with 8 Postgres-only checks");
+    expect(guardPassesWith("PROGRESS.md", edit)).toBe(false);
+  });
+
+  test("stating the right Postgres-only number in words passes the guard", () => {
+    const edit = (doc: string) =>
+      doc.replace("with 9 Postgres-only checks", "with nine Postgres-only checks");
+    expect(edit(progressDoc)).not.toBe(progressDoc);
+    expect(guardPassesWith("PROGRESS.md", edit)).toBe(true);
+  });
+
+  test("stating a wrong Postgres-only number in words fails the guard", () => {
+    const edit = (doc: string) =>
+      doc.replace("with 9 Postgres-only checks", "with twelve Postgres-only checks");
     expect(guardPassesWith("PROGRESS.md", edit)).toBe(false);
   });
 });
