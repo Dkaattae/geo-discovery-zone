@@ -1,7 +1,7 @@
 # T-072 — A guard test diffs against a fixed commit and fails on `main`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** `Kate, 2026-09-21`
 **From:** [`tasks.md`](../tasks.md) T-072
 **Branch:** `claude/upbeat-volta-mw29cv` — the branch this session was assigned by
@@ -26,6 +26,7 @@ process note, not a task fault — see `runs/between-tasks.md`.
 |---|---|---|
 | task-expander | 2026-09-21 | f1d2ba19-012c-4156-b7fb-31cedc4687e0 |
 | worker | 2026-09-22 | cse_01A7CH7z2vsiAspj8xWEBTCj |
+| tester | 2026-09-22 | cse_01A7CH7z2vsiAspj8xWEBTCj (orchestrated — see Verdict, "What kind of independence this verdict has") |
 
 ## Goal
 
@@ -347,7 +348,179 @@ origin/claude/upbeat-volta-mw29cv -1`.
 
 ## Verdict
 
-Written by `tester`.
+**Pass.** All eleven criteria hold, independently checked. The `question-bank`
+suite is **1251 pass / 0 fail** in a full clone *and* **1251 pass / 0 fail** in a
+shallow one — identical, which is the whole point of the task — against
+`origin/main`'s **1254 pass / 1 fail** full / **1255 pass / 0 fail** shallow.
+Nothing new regresses; the two frontend failures the worker flagged are present
+on `origin/main` unchanged. **Next step: `reviewer`.**
+
+**No new test file was committed, deliberately.** Criterion 8 restricts the
+branch's diff to three named paths plus the brief, so adding one would have
+broken the criterion it was verifying — and the criteria are frozen. The brief
+anticipates this: criterion 4 is written as an executed procedure ("commit a
+throwaway … then revert the probe before reporting"), and criterion 11 as an
+observation of CI. Verification is therefore by **execution and mutation**, with
+every command and its output recorded below. Flagged for the expander under
+"Two things for whoever writes the next brief of this shape".
+
+### What kind of independence this verdict has
+
+**Weaker than a separate session, and the brief should say so plainly.** This is
+an orchestrated run (`runs/T-072-guard-pinned-commit.md` exists), so every role
+shares one session id: `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_01A7CH7z2vsiAspj8xWEBTCj`, which is already in the Sessions table as
+`worker`. **The Sessions-table check did not pass and is not being claimed as
+passing.** What is real is that this is a freshly spawned agent with its own
+context window: it never saw the worker's transcript or reasoning, and read only
+the brief, the repo and the committed docs. That rests on the orchestrator having
+spawned the role correctly rather than on anything checkable from here
+(`process.md`, "Spawning, and the isolation it must not cost").
+
+### Criteria
+
+| # | Criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | suite green in a full clone | **pass** | `git rev-parse --is-shallow-repository` → `false`; `origin/main` (`c967fd2`) and `13a735f` both resolve locally; `bun test` in `question-bank/` → **1251 pass, 0 fail**, 15 files |
+| 2 | no test passes because history is missing | **pass** | Both named paths deleted. No `git` subprocess remains anywhere in `climate-kid-verify.test.ts`; the only two left in `climate-kid.test.ts` are `ls-files` (throws on failure, `:164`) and a working-tree `diff --name-only --` (no revision). See the caveat below |
+| 3 | no hard-coded commit id passed to git | **pass** | Every `git` spawn under `question-bank/src/` enumerated: only `ls-files`, `check-ignore`, `diff --name-only --`, and `show origin/main:<path>` (symbolic, allowed). `13a735f` survives only at `climate-kid-verify.test.ts:26`, `:157`, `:1113` — all comments, explicitly out of scope. Hex scan hits only `BASELINE_DIGESTS` (out of scope) and decimal populations in `fixtures/us-states.sparql.json` |
+| 4 | guard no longer measures somebody else's diff | **pass** | Probed **all three** paths the criterion names, not just `backend/`: committed `backend/tests/test_t072_probe.py`, `frontend/src/t072-probe.ts`, `e2e/t072-probe.txt` in a detached worktree at the branch head → the two files gave **199 pass, 0 fail**, and the *whole* package gave **1251 pass, 0 fail**. Same probe on `origin/main` turns **both** old guards red (below) |
+| 5 | no expired exception left behind | **pass** | `ALLOWED_OUTSIDE_QUESTION_BANK` returns zero hits across `question-bank/src/`; the three tests that policed it are gone. `test_region_vocabulary.py` survives only as prose in `region-vocabulary.test.ts:20` |
+| 6 | the coverage that was not the defect survives | **pass** | `PINNED` and `FLOORS` are **byte-identical** to `origin/main` (no `+`/`-` line in the diff touches either block); same eight filenames, same numbers, 16 generated tests, all green. `"nothing outside question-bank/ is touched by this task's own new test file"` present at `:832`. All three proved live by mutation (below) |
+| 7 | the decision is written down once, as `E-11` | **pass** | Headings run `E-1 … E-11`, unique and ascending, `E-11` at `:529` immediately after `E-10`. The diff contains exactly **one** `-` line — the `--- a/` header — so it is a pure append and no existing body moved. Entry names both file paths, states "delete, not repair" and why, and states the three pinned-digest baselines are T-070's and untouched |
+| 8 | nothing else changes | **pass, with one named exception** | The worker's implementation commit `e401750` touches exactly `engineering-decisions.md` + the two test files + the brief. No `.github/`, no `frontend/`, `backend/`, `e2e/`, `question-bank/data/`, `sample-data/`, `openapi.yaml`, no non-test source. **Exception: `runs/`** — see below |
+| 9 | no new dependency, no test reaches a remote | **pass** | `git diff origin/main...HEAD -- question-bank/package.json question-bank/bun.lock` is empty; `package.json` declares no `dependencies` and exactly `@types/bun` + `typescript`. No `git fetch`/`clone`/`ls-remote`/`remote update`, no `fetch(`, no assignment to `fetch` in either file. Every suite run below was executed with all six proxy vars at `http://127.0.0.1:1` |
+| 10 | `bun run typecheck` passes | **pass** | `tsc --noEmit` clean, exit 0, in both the full clone and the shallow one |
+| 11 | CI green on the pushed head, incl. the shallow job | **pass** | Run **[35675701598](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/35675701598)** on `4dbd111` — `completed`/`success`, **all six jobs**: `frontend`, `question-bank (typecheck, test)`, `backend`, `backend (postgres)`, `integration`, `e2e`. Independently reproduced locally (below) |
+
+### The defect, measured from both sides
+
+The premise and the repair, in one table. Every cell is a `bun test` run in
+`question-bank/` with the network proxied to `127.0.0.1:1`:
+
+| | full clone | shallow clone (`--depth=1`, what CI gets) |
+|---|---|---|
+| `origin/main` (`c967fd2`) | 1254 pass / **1 fail** | 1255 pass / 0 fail — **both guards vacuous** |
+| branch head (`4dbd111`) | **1251 pass / 0 fail** | **1251 pass / 0 fail** |
+
+- **The shallow clone was made for real**, not simulated: `git clone --depth=1`,
+  after which `git rev-parse origin/main` and `git cat-file -e 13a735f` both
+  fail — exactly the state `actions/checkout@v5` at `fetch-depth: 1` leaves.
+- **The counts reconcile.** 1255 − 4 = 1251: one deleted test in
+  `climate-kid-verify.test.ts`, three in `climate-kid.test.ts`.
+- **The `origin/main` failure is the `13a735f` guard**, and it reports twelve
+  paths under `backend/` and `frontend/` that have nothing to do with T-014 —
+  `backend/app/levels.py`, `frontend/src/ci-action-pinning.test.ts` and so on.
+  That is criterion 1's "red on the default branch itself", reproduced.
+- **Criterion 4, from the other side.** The same three probe files committed on
+  top of `origin/main` turn **both** guards red (`2 fail`), naming
+  `backend/tests/test_t072_probe.py`. On the branch head the same probe gives
+  `0 fail`. The guard demonstrably did measure somebody else's diff, and
+  demonstrably no longer does.
+
+### Mutation — proving the surviving coverage is not a tautology
+
+Criterion 6 says the tests that were not the defect must still pass. Passing is
+cheap; these had to be shown to still *fail on breakage*. **All three mutations
+were made in a disposable `--depth=1` clone under the scratchpad, never in the
+repository** — `git status --porcelain` in `/home/user/geo-discovery-zone` was
+empty before and after. Each was reverted and the clone verified clean.
+
+| Mutation | Expected to kill | Result |
+|---|---|---|
+| **M1** — delete one `test()` block from `normalize.test.ts` (14 → 13) | the two per-file floors for that file | **2 fail**, exactly: `normalize.test.ts still declares at least 14 tests and 31 expectations` (`FLOORS`) and `… at least its 14 tests and 31 expectations` (`PINNED`). Nothing else moved |
+| **M2** — prepend `import { something } from "../../frontend/src/lib/level";` to `climate-kid.test.ts` | the surviving structural guard at `:832` | **1 fail**: `nothing outside question-bank/ is touched by this task's own new test file` |
+| **M3** — rename the `## E-11 —` heading to `## E-9 —` | criterion 7's enforcement in `region-vocabulary.test.ts` | **2 fail**: `E-9 is the next number … no other entry claims it` and `the entries run in ascending order` |
+
+M2 matters most: it is the test the worker kept *instead of* writing a
+replacement, and the whole "delete, don't replace" argument in E-11 rests on it
+being a real check. It is.
+
+### Findings that are not failures
+
+- **Criterion 8 and `runs/`.** The branch diff also touches
+  `runs/T-072-guard-pinned-commit.md`, `runs/between-tasks.md`,
+  `runs/ledger.tsv` and `runs/transcripts/…json`, which criterion 8's exclusion
+  list (`tasks/`, `tasks.md`, `PROGRESS.md`) does not cover. **None of it is the
+  worker's**: per-commit attribution puts it in `27c47ab`/`38dcf53` (the
+  driver's own checkpoint) and `4dbd111` (`T-072 orchestrator:`), and
+  `process.md`'s role table assigns `runs/` to the orchestrator. This is the
+  same shape as process.md's note that a swept PR always touches `tasks.md` and
+  `PROGRESS.md` without any brief listing them. Recorded, not counted against
+  the work.
+- **A weak assertion of the same family survives at `climate-kid.test.ts:538`.**
+  `expect(status === 0 || status === 1).toBe(true)` in `"sample-data/us-state-co.json`
+  `was not touched by this task"`. It is **not** one of the two paths criterion 2
+  names, it is unchanged by this branch, and it does not suffer the defect —
+  `git diff --name-only -- <path>` takes no revision and needs no history, and
+  there is no conditional, so no assertion is reached *because* git failed. It
+  is still a disjunction that would swallow a broken `git`. **For T-070**, with
+  `highest-point-verify.test.ts:582-584`.
+- **The worker's flagged frontend failure is confirmed, and is genuinely
+  pre-existing.** `frontend/src/level-window-claim.criteria.test.ts`'s `"no
+  existing E-n entry was modified"` fails identically on `origin/main`
+  (`208 pass / 2 fail / 1 error`) and on this branch (`208 pass / 2 fail /
+  1 error`) — **the same numbers**, so this branch adds nothing. The failure
+  diff is E-10's own body, not E-11's: the test compares everything above
+  `## E-10 — ` against the *entire* file at the merge-base, which only held
+  while T-057 was in flight and E-10 was not yet on `main`. Third instance of
+  this exact defect shape, and it is invisible in CI for the same reason as the
+  other two (`if (base.exitCode !== 0) return;` at `:171`, and CI clones
+  shallow). **Recommend a small follow-up task, sized like T-072.** The `1 error`
+  in both counts is `react-simple-maps` missing from this sandbox's
+  `node_modules`, not a repository defect.
+- **Constraint neighbours all hold.** `climate-kid-verify.test.ts` carries no
+  `.skip`/`.todo`/`.skipIf`/`xtest` and 140 `expect(` calls (needs > 10);
+  `climate-kid.test.ts` carries 109. The `region` neutralisation, the
+  dead-loopback proxy exception and the `top_crops` invariants are all untouched
+  and green inside the 1251.
+
+### Two things for whoever writes the next brief of this shape
+
+Neither blocks the merge; both are for `task-expander`, at the template.
+
+1. **Criterion 8 forecloses the tester's own deliverable.** A criterion that
+   pins the branch diff to N paths leaves the tester nowhere to commit a test,
+   which forces either a self-defeating commit or verification by executed
+   procedure. This brief got away with it because criteria 4 and 11 were
+   *written* as procedures — but that was luck, not design. Say it explicitly,
+   or leave the tester a path.
+2. **`runs/` belongs in the "excluding" list**, next to `tasks/`, `tasks.md` and
+   `PROGRESS.md`. Under an orchestrated run it is always in the diff and never
+   the worker's.
+
+### Exactly what was run
+
+From `/home/user/geo-discovery-zone`, all with
+`HTTP_PROXY=HTTPS_PROXY=ALL_PROXY=http://127.0.0.1:1` and their lowercase forms:
+
+```
+git fetch origin main                                  # origin/main = c967fd2
+cd question-bank && bun test                           # 1251 pass, 0 fail
+cd question-bank && bun run typecheck                  # exit 0
+
+# origin/main, full clone, in a scratch worktree
+bun test                                               # 1254 pass, 1 fail
+
+# criterion 4, branch head + probes under backend/ frontend/ e2e/
+bun test src/climate-kid.test.ts src/climate-kid-verify.test.ts   # 199 pass, 0 fail
+bun test                                               # 1251 pass, 0 fail
+
+# criterion 4, same probe on origin/main
+bun test src/climate-kid.test.ts src/climate-kid-verify.test.ts   # 201 pass, 2 fail
+
+# shallow, what CI sees
+git clone --depth=1 -b claude/upbeat-volta-mw29cv …    # origin/main, 13a735f both absent
+bun test                                               # 1251 pass, 0 fail
+bun run typecheck                                      # exit 0
+git clone --depth=1 -b main …  && bun test             # 1255 pass, 0 fail (guards vacuous)
+
+# regression check outside the package
+cd frontend && bun test                                # 208 pass, 2 fail, 1 error — same on origin/main
+```
+
+Scratch worktrees and clones were removed; `git worktree list` shows only the
+repository and `git status --porcelain` is empty.
 
 ## Review
 
