@@ -1,7 +1,7 @@
 # T-073 — The same expired-git-baseline guard, now in `frontend/`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-09-22, unattended run. See `runs/T-073-frontend-git-baseline-guard.md`.
 **From:** [`tasks.md`](../tasks.md) T-073 (§A Foundations)
 **Branch:** `claude/task-t073-orchestrator-2ek0bi` — harness-assigned to this
@@ -17,6 +17,7 @@ the reviewer approves.
 |---|---|---|
 | task-expander | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` |
 | worker | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` |
+| tester | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run, see Verdict |
 
 ## Goal
 
@@ -354,7 +355,99 @@ orchestrator's session-reuse is systematic (not a one-off), that is a
 
 ## Verdict
 
-Written by `tester`.
+Written by `tester`, 2026-09-22. **Status: pass.**
+
+**TL;DR:** All ten criteria hold. The defect is gone: on `origin/main` (`393b6ae`)
+this environment reproduces **2 fail** in `frontend`'s suite — the expired
+git-baseline test *and* an unrelated missing-package failure — and on this branch
+only the second remains, at both clone depths, with identical test names and
+outcomes. Fifteen new tests in `frontend/src/git-baseline-guard.criteria.test.ts`
+cover criteria 3, 4, 5 and 8, each proven to go red under a deliberate mutation;
+criterion 7's seven claims are proven live by seven more mutations against the
+existing tests. **Criterion 1's "exits 0" half cannot be fully certified here** —
+`frontend/node_modules` is missing `react-simple-maps`, which this sandbox's npm
+mirror refuses — and that shortfall is demonstrated, not assumed, to pre-date the
+branch.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | **pass, modulo one environment-only failure** | Full clone (`refs/remotes/origin/main` = `393b6ae`): `bun test` in `frontend/` → **223 pass / 1 fail / 1 error**. The predicted failure (`level-window-claim.criteria.test.ts:166`) is gone. The remaining one is `src/components/screens.criteria.test.tsx` failing to load `UsMap.tsx` (`Cannot find package 'react-simple-maps'`). Proven pre-existing and unrelated: a worktree at `393b6ae` sharing the same `node_modules` gives **208 pass / 2 fail / 1 error** — the same `react-simple-maps` error *plus* `no existing E-n entry was modified`. So the branch removes exactly one failure and adds none. |
+| 2 | pass | `git update-ref -d refs/remotes/origin/main`, rerun: **223 pass / 1 fail / 1 error**, and the junit test-name/outcome sets from the two runs are **byte-identical** (223 cases, `identical: True`). Nothing appears, disappears, skips or changes outcome with clone depth. **The ref was restored** to `393b6aee60902941c0d6499768fb6b60c7d3e94a` and re-verified with `git rev-parse`. |
+| 3 | pass | New tests: every `git` argument list under `frontend/src` uses a working-tree-only subcommand (`ls-files`/`status`/`check-ignore`), is handed no `HEAD`, `origin/…`, range or sha, and no literal sha reaches `git`. Only one such call exists today — `trackedFiles`' `git ls-files` (`:39-45`). The comment left at `:166-176` names the deleted revision comparison in prose; the scan reads argument lists, not prose, deliberately (see "One nuance" below). |
+| 4 | pass | Static: no `exitCode !== 0 … return` branch survives under `frontend/src`, and every `git` call there is followed by a throw. Dynamic (mutation M3): breaking the surviving call so `git` exits non-zero makes `level-window-claim.criteria.test.ts` **error out** (`git ls-files failed: unknown option`), never pass. |
+| 5 | pass | Repo-wide over 45 tracked test files in `frontend/`, `question-bank/`, `backend/` and `e2e/`: no `<rev>:engineering-decisions.md` literal, and no `git` argument list anywhere takes that file. I also read all 20 textual occurrences by hand — every one is a `readFileSync` of the working tree. `highest-point-verify.test.ts:584`'s `git show origin/main:${path}` (T-070's, out of scope) resolves over question-bank data paths and `package.json`/`bun.lock`; it never names this file. |
+| 6 | pass | `git diff --name-only origin/main...HEAD` is five files: the brief, the run log, `tasks.md`, `engineering-decisions.md` and the one test file — the diff only **removes** a git-revision assertion. No "nothing else moved" guard was added by the worker, and none by me: criteria 9 and 10 are diff-shaped, so I verified them by observation and deliberately wrote no test for them (a test for either would be the fifth instance). |
+| 7 | pass, (a)–(g) each mutation-proven | All seven still assert and pass in `level-window-claim.criteria.test.ts` (10 pass / 0 fail). Each was broken on purpose and the matching test went red — M6–M13 below. |
+| 8 | pass, ending **(b)** | The claim is gone from the test file, and `engineering-decisions.md` gained **E-12**, numbered above E-11 and appended after it. New tests assert: an entry numbered > 11 exists after E-11's offset, numbers stay unique and ascending, the entry names `frontend/src/level-window-claim.criteria.test.ts` and the removed test `"no existing E-n entry was modified"`, says why deletion beat re-pinning, and carries a `**Revisit when**` paragraph as E-11 does. Deliberately **not** "E-12 is the highest" — `tasks.md:26` forbids reintroducing a ceiling, so a later E-13 will not turn this red. No re-pinning to a newer commit, ref or range appears anywhere. |
+| 9 | pass | `.github/workflows/ci.yml` is absent from `git diff --name-only origin/main...HEAD`. Verified by observation, not by a test (criterion 6). |
+| 10 | pass | `frontend/package.json` and `frontend/bun.lock` are absent from the same diff, as is every other manifest and lockfile. My new test file adds no dependency and spawns only `git ls-files` against the local repo; the full suite was run with `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` pointed at `http://127.0.0.1:1`, CI's own network-fails-closed shape (`test-guidelines.md:72`). |
+
+**Suite, typecheck, lint — everything, not just the new tests:**
+
+- `frontend` — `bun test`: **223 pass / 1 fail / 1 error** (the `react-simple-maps`
+  failure above, on both this branch and `origin/main`).
+- `frontend` — `bun run lint`: **clean, exit 0, zero warnings**, with the new file.
+- `frontend` — `bun run typecheck`: **fails on `UsMap.tsx` only** — `TS2307` for
+  `react-simple-maps` and `us-atlas/states-10m.json` plus two implicit-`any`
+  errors downstream of them. Same missing package; no error in any file this task
+  or this verification touched.
+- `question-bank` — `bun test`: **1251 pass / 0 fail**. Unaffected by E-12's append.
+- `backend` — `uv run pytest`: **517 passed, 9 skipped**.
+
+**Mutations made, and reverted.** Every one was applied, run, and restored; the
+working tree was confirmed clean afterwards (`git status --short` shows only the
+new test file).
+
+| # | Mutation | Result |
+|---|---|---|
+| M1 | Added `["git", "merge-base", "HEAD", "origin/main"]` to `lint-gate.test.ts` | Criterion 3's subcommand and revision tests both red |
+| M2 | Replaced `trackedFiles`' throw with `if (proc.exitCode !== 0) return []` | Criterion 4's two tests red |
+| M3 | Added a bogus flag so `git ls-files` exits non-zero | `level-window-claim.criteria.test.ts` errors out — it cannot pass on a failed `git` |
+| M4 | Added a `git show origin/main:engineering-decisions.md` call to `region-vocabulary.test.ts` | Criterion 5's two tests red |
+| M5a/b/c | Deleted E-12 · renumbered it as a duplicate `E-11` · removed its `Revisit when` | 5 red · 5 red · 1 red |
+| M6 | Removed `suggestedLevels` from E-10's body | 7(g) red |
+| M7 | Wrote the banned client function name into `conventions.md` | 7(a) red |
+| M8 | Changed `screens.tsx`'s `const options = …` expression | 7(c) red |
+| M9 | Added a list-returning export to `lib/level.ts` | 7(d) red |
+| M10 | Renumbered `## E-9` to `## E-99` so the numbers stop ascending | 7(f) red |
+| M11 | Made a third non-test module mention `suggestedLevels` | 7(b) red |
+| M12 | Stripped the `screens.tsx:NN` call site from E-10 | 7(g) red |
+| M13 | Renamed the `## E-10 —` heading | 7(e) red, plus three dependants |
+
+**One nuance, recorded rather than ruled on by me.** Criterion 3's enumeration
+ends "…or names a literal commit sha". Read on its own, that also condemns
+`frontend/src/ci-action-pinning.test.ts:169-170`, which holds two 40-hex literals
+(`bunSha`, `checkoutSha`). They are E-5 action pins compared against `ci.yml`'s
+text, are never handed to `git`, pre-date this task by many cycles, and are
+excluded both by the brief's own definition of "resolves a git revision"
+("passing a commit, ref, range or merge base to `git`") and by criterion 3's
+"*Today only `:170` and `:173` do*". So: criterion 3 passes, and my test asserts
+the narrower property the definition names — no sha reaches `git`.
+
+**Two things for the reviewer, neither blocking:**
+
+- **The unrelated failure was not filed in `tasks.md`.** Criterion 1 says to name
+  such a failure in the Handoff *and* file it; the worker named it and argued it
+  is an environment fact rather than a repo defect. I checked and agree:
+  `react-simple-maps`, `@types/react-simple-maps` and `us-atlas` are declared in
+  `frontend/package.json` and present in `bun.lock` on `main`, CI installs with
+  network before its proxy-blocked `Test` step, and nothing in the repo could fix
+  a mirror that returns 403. A `tasks.md` entry is the reviewer's call; it is not
+  mine to write (`process.md`'s role table).
+- **Independence, honestly stated.** This is an orchestrated run
+  (`runs/T-073-frontend-git-baseline-guard.md` exists), so every spawned role
+  shares one session id: mine is `cse_01Rpu7pnkLevs6ixvYy6r7zH`, the same value
+  already in the `task-expander` and `worker` rows. **The Sessions-table check
+  therefore did not pass and I am not claiming it did.** My independence is the
+  weaker kind `process.md` describes: a freshly spawned agent with its own
+  context window that never saw the worker's reasoning or transcript, reading
+  only the committed brief and repo. It rests on the orchestrator having spawned
+  me correctly, which I cannot verify myself. The worker's flagged
+  session-collision question is the same fact, and it is a `process-tasks.md`
+  question about the loop, not a T-073 defect.
+
+**Files I added:** `frontend/src/git-baseline-guard.criteria.test.ts` (15 tests).
+No source file was edited — every mutation above was temporary and reverted.
 
 ## Notes
 
