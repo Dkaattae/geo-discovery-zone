@@ -1,7 +1,7 @@
 # T-072 — A guard test diffs against a fixed commit and fails on `main`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** `Kate, 2026-09-21`
 **From:** [`tasks.md`](../tasks.md) T-072
 **Branch:** `claude/upbeat-volta-mw29cv` — the branch this session was assigned by
@@ -25,6 +25,7 @@ process note, not a task fault — see `runs/between-tasks.md`.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-21 | f1d2ba19-012c-4156-b7fb-31cedc4687e0 |
+| worker | 2026-09-22 | cse_01A7CH7z2vsiAspj8xWEBTCj |
 
 ## Goal
 
@@ -227,8 +228,122 @@ Everything below is a real defect, and none of it belongs in this branch.
 
 ## Handoff
 
-Written by `worker` before the tester runs. Always written, even if nothing was
-built.
+**Ending taken: deleted, not replaced.** Both guards are gone outright, along
+with their allowlists and the tests that policed those allowlists. No
+git-free replacement check was added, because one already existed next to
+each deleted test (`climate-kid.test.ts:832`, "nothing outside
+question-bank/ is touched by this task's own new test file" — a pure string
+check on the file's own imports, no subprocess) and it is untouched. Reasoning
+and both files named in full, in `engineering-decisions.md` E-11.
+
+**Files changed, and only these three plus the brief:**
+
+- `question-bank/src/climate-kid.test.ts` — inside `describe("T-014
+  criterion 19 — nothing already verified is weakened")`, deleted
+  `ALLOWED_OUTSIDE_QUESTION_BANK`, `outsideQuestionBank`, and the three tests
+  built on them (`"frontend/ and backend/ are untouched by this task"`, `"the
+  allowlist is one named file..."`, `"the allowed file is a test file..."`).
+  Left in place: the `PINNED` floor loop and `"nothing outside
+  question-bank/ is touched by this task's own new test file"`. Replaced the
+  deleted block with a one-paragraph comment pointing at E-11.
+- `question-bank/src/climate-kid-verify.test.ts` — inside `describe("T-014
+  tester, criterion 19 — nothing already verified is weakened")`, deleted
+  `ALLOWED_OUTSIDE_QUESTION_BANK` and `"frontend/ and backend/ carry no
+  change from this task"` (the `13a735f` diff). Left in place: the `FLOORS`
+  loop and every other test in the file, including `BASELINE_DIGESTS` and its
+  neutralisations (T-070's, untouched). Same one-paragraph pointer comment.
+- `engineering-decisions.md` — appended `## E-11 — …` after `E-10`, pure
+  append (verified below). Names both file paths, states the ending taken and
+  why, and states that the three pinned-digest baselines are T-070's and
+  untouched here.
+
+**Criteria, one at a time:**
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| 1 | `question-bank` suite green in a full clone | met | Unshallowed the repo (`git fetch --unshallow`), fetched `origin/main`, ran `bun test` in `question-bank/`: **1251 pass, 0 fail** (down from 1253 pass / 2 fail because 4 tests were deleted total — 2 that were failing and 2 policing tests that were passing; 1253 − 2 = 1251, and the 2 failures are gone) |
+| 2 | No test passes down a git-history-missing path | met | Both named paths (`climate-kid-verify.test.ts:1139-1141`'s exit-code disjunction, `climate-kid.test.ts:880-882`'s `stdout.trim()` fallback) are deleted along with the tests they lived in |
+| 3 | No hard-coded commit id passed to `git` | met | `grep` over `question-bank/src` for hex(7+) in a git-spawn position (`grep -n 'git",\s*"[a-f0-9]{7,}\|...'`) — no matches anywhere in the package, not just the two files. `13a735f` survives only in comments (climate-kid-verify.test.ts's module docstring, unrelated to `BASELINE_DIGESTS`, and my own new E-11-pointer comment) — comments are explicitly outside this criterion |
+| 4 | Guard no longer measures somebody else's diff | met | Did the brief's own probe: committed a throwaway `backend/tests/test_t072_probe.py`, ran `bun test src/climate-kid.test.ts src/climate-kid-verify.test.ts` in `question-bank/` — **0 failures** (199 pass), then reverted the probe (`git reset --hard HEAD~1` + confirmed `git status` clean) |
+| 5 | No expired exception left behind | met | `ALLOWED_OUTSIDE_QUESTION_BANK` is deleted from both files, not merely edited, and both policing tests for it in `climate-kid.test.ts` are deleted with it |
+| 6 | Surviving coverage still exists and passes | met | `climate-kid.test.ts:832`'s import test is untouched; the `PINNED` (`climate-kid.test.ts`) and `FLOORS` (`climate-kid-verify.test.ts`) loops — eight filenames, same numbers — are untouched and all pass (part of the 1251) |
+| 7 | E-11 written once, append-only, after E-10 | met | `git diff engineering-decisions.md` shows a pure addition after the last line of E-10 (`... level.ts is what would be deleted once they had one.`) — no line above that point touched |
+| 8 | Nothing else changes | met | `git diff --stat` against `origin/main...HEAD` (before this commit) touches only `runs/`, `tasks.md`, `tasks/T-072-…md` from the expander's own commit; this worker's uncommitted diff touches exactly the three files listed above, nothing under `.github/`, `frontend/`, `backend/`, `e2e/`, `question-bank/data/`, `question-bank/sample-data/`, `openapi.yaml`, or any non-test file under `question-bank/src/` |
+| 9 | No new dependency, no test reaches a remote | met | `question-bank/package.json` and `bun.lock` show no diff (`git status --porcelain -- question-bank/package.json question-bank/bun.lock` empty); grepped both edited files for `git fetch`/`clone`/`ls-remote`/`remote update`/`fetch(`/`fetch =` — none |
+| 10 | `bun run typecheck` passes in `question-bank/` | met | `tsc --noEmit` — clean, no output |
+| 11 | CI green on the pushed head, all six jobs including shallow `question-bank` | **to confirm after push** — see below | six jobs confirmed present in `.github/workflows/ci.yml`: `frontend`, `question-bank`, `backend`, `backend-postgres`, `integration`, `e2e` |
+
+**What I deliberately did not do:**
+
+- **Did not widen `fetch-depth` in `ci.yml`.** Out of reach for a `T` task
+  per `process.md` and the brief's own Constraints; noted as the real fix in
+  E-11's "Revisit when".
+- **Did not touch T-070's scope** — `BASELINE_DIGESTS` in
+  `landmarks-verify.test.ts`, `climate-kid-verify.test.ts`,
+  `top-crops-verify.test.ts`, or any of the four neutralisations
+  (`withEmptyTopCrops`, `withoutAlaskaHighestPoint`, the `climate_kid`
+  strip, Colorado's exemption). Confirmed by grep: no diff touches those
+  constants or the neutralisation code.
+- **Did not fix `highest-point-verify.test.ts:582-584`**, the same class of
+  silent-`else` git-path defect the brief names as out of scope — left for
+  T-070.
+- **Did not run `prettier --write`** over either edited file; matched
+  surrounding style by hand (the deleted blocks' indentation and quoting
+  style carried over into the replacement comments).
+- **Did not touch `PROGRESS.md:176-177` or `test-guidelines.md:209`** (test
+  counts), per Out of scope.
+- **Did not touch any `climate_kid` phrase or bank file.** No diff under
+  `question-bank/data/` or `question-bank/src/curated/`.
+
+**A pre-existing, unrelated failure I found and did not fix — flagged for
+`tasks.md`, not this branch.** While confirming criterion 7 I ran
+`frontend/src/level-window-claim.criteria.test.ts`, which has its own test
+("no existing E-n entry was modified") built the same way as the two guards
+this task deletes: it diffs `engineering-decisions.md` at the merge-base
+against `origin/main` and assumes the merge-base predates `## E-10 — `
+existing at all (true only while T-057, which added E-10, was in flight). Now
+that T-057 has merged and E-10 is on `origin/main`, the merge-base already
+contains E-10, so the test's hard assumption (`decisions.slice(0, cut)`
+should equal the *entire* previous file) breaks structurally — **independent
+of this task's changes.** Confirmed by stashing all three of my edits and
+re-running: it fails identically on the unmodified branch head
+(`6eec097`). This is the same class of defect T-072 exists to fix
+(`process.md`, "when reality disagrees with the plan"), in a fourth file this
+brief's Constraints do not cover (`frontend/`, owned by T-057 not T-072). I
+did not touch it — out of scope by the brief's own Constraints (`frontend/`
+is explicitly named as untouched) — and I am not adding a `tasks.md` entry
+myself, since that is the reviewer's sweep step, not the worker's; flagging
+it here is the record for whoever picks that up. **Owner: reviewer, at sweep,
+or task-expander for a small T-0xx if the reviewer judges it needs its own
+task — my recommendation is the latter, since it is the same defect shape as
+this one and worth naming rather than silently re-discovering later.**
+
+Separately, `frontend/`'s local `bun test` also shows 3 pre-existing
+failures/1 error unrelated to any of the above — `bun install` in this
+sandbox got 403s from the package proxy on `d3-transition`, `d3-drag`,
+`d3-interpolate` and `react-simple-maps` never installed, so `UsMap.tsx`
+fails to resolve it. That is a sandbox network limitation, not a repository
+defect — noted so the tester does not chase it, but not otherwise acted on
+since `frontend/` is out of scope for this branch.
+
+**How to run what I touched:**
+
+```
+cd question-bank
+bun install
+bun run typecheck
+bun test                              # full suite, needs a full clone
+bun test src/climate-kid.test.ts src/climate-kid-verify.test.ts   # the two edited files alone
+```
+
+For criterion 1's full-clone requirement in a shallow checkout:
+`git fetch --unshallow origin` (or at minimum `git fetch origin main`) before
+running the suite.
+
+**Push status:** committed and pushed to `claude/upbeat-volta-mw29cv` (this
+session was assigned that branch and it matches the brief's `Branch:`
+header — no divergence to resolve). Confirmed landed with `git log
+origin/claude/upbeat-volta-mw29cv -1`.
 
 ## Verdict
 
@@ -244,6 +359,28 @@ Written by `reviewer`, and only when it sends the PR back.
   both criterion-19 copies and the expired allowlist entry. T-070 (a) and (b)
   survive it and the queue entry should be trimmed rather than deleted when this
   merges.
+- **Worker's own note: "deleted" was the obvious ending, not a close call.**
+  The brief left both endings open, but a replacement check would have had to
+  invent a new way to answer "did this task touch something outside its own
+  package" without git — and that answer already existed, one test away, doing
+  exactly that with a string match on the file's own imports rather than a
+  subprocess. Writing a second version of the same idea would have been the
+  kind of manufactured work the process asks not to do.
+- **A near-miss worth recording:** while reverting the criterion-4 probe file I
+  ran `git reset --hard HEAD~1` with my edits to the two test files still
+  uncommitted, and it discarded them along with the probe commit — `reset
+  --hard` clears the whole working tree, not just the last commit. Caught
+  immediately by `git status --porcelain` showing clean when it should not
+  have, and the edits were quick to redo since they were mechanical deletions.
+  Worth a general note: prefer `git commit`-then-`git revert`, or stage the
+  probe alone and `git reset HEAD~1 --soft` plus `rm`, when other uncommitted
+  work is sitting in the same tree.
+- **Found but not fixed: `frontend/src/level-window-claim.criteria.test.ts`'s
+  "no existing E-n entry was modified" test is now failing on `origin/main`
+  itself**, independent of this task — see the Handoff's flagged paragraph.
+  Same defect shape as T-072's own subject (a guard whose git baseline
+  assumption expired once its own task merged), in a file this brief does not
+  own. Recommend a small follow-up task, sized like this one.
 - **What a person has to do before the `worker` can start**, in order, from
   `/home/user/geo-discovery-zone` on branch `claude/upbeat-volta-mw29cv`:
 

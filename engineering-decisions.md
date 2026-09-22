@@ -523,3 +523,67 @@ that broke its own three-or-four rule at the top of the scale).
 **Revisit when** T-004's label-formatting question is actually picked up — at
 that point this entry's three call sites are exactly what would need a home on
 the server, and `level.ts` is what would be deleted once they had one.
+
+---
+
+## E-11 — The two `origin/main...HEAD` / `13a735f` diff guards are deleted, not repaired
+
+**2026-09-22 (T-072).** `question-bank/src/climate-kid.test.ts` and
+`question-bank/src/climate-kid-verify.test.ts` each carried a test, written for
+T-014's criterion 19 ("nothing already verified is weakened"), that shelled out
+to `git diff --name-only` against a git range fixed at the task that wrote it —
+`origin/main...HEAD` in the first, the literal commit `13a735f` in the second —
+and asserted that nothing under `frontend/` or `backend/` appeared in the
+result. Both were broken by construction, in two different ways:
+
+- **`climate-kid-verify.test.ts`'s copy was already red on `origin/main` itself**,
+  in any full clone: `13a735f` predates the FastAPI backend, so
+  `backend/app/data/content.json` and everything else added since show up in
+  the diff every time, on every branch, including `main`'s own head. Its
+  docstring said as much and named `runs/T-057-level-window-docstring.md`
+  (1253 pass / 2 fail on a full clone) as the measurement.
+- **`climate-kid.test.ts`'s copy measured whichever task happened to be
+  running**, not T-014: `origin/main...HEAD` is `main` to *this* branch, so
+  every later task that legitimately touched `frontend/` or `backend/` tripped
+  a guard written about a task that had ended months of commits earlier. The
+  file grew a hand-maintained `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist to
+  paper over this, one entry per task that hit it (T-017's
+  `backend/tests/test_region_vocabulary.py` was the one live entry, and it had
+  already merged and gone stale on `origin/main` by the time this task ran).
+
+**Neither failure showed up in CI**, which is the actual defect this closes:
+`.github/workflows/ci.yml`'s `question-bank (typecheck, test)` job checks out
+with `actions/checkout@v5` and no `fetch-depth`, so the clone is shallow and
+`origin/main` and `13a735f` are both simply absent. Both tests swallowed that
+silently — one by treating a non-zero or empty `git` result as a pass, the
+other by accepting exit code 0, 1 *or* 128 as sufficient — so CI reported green
+while asserting nothing.
+
+**Decided: delete both tests and their allowlist, rather than widen
+`fetch-depth` or rewrite the range to be self-relative.** Raising
+`fetch-depth` in `ci.yml` is out of reach for a `T` task (`process.md`, "Work
+on the loop itself never enters the loop" — workflow changes are `P-n`
+tickets, done by hand). A range that resolved itself at run time (a computed
+merge-base, say) was considered and rejected: the property both tests were
+trying to check — "this file imports nothing from outside the package" for
+the structural half of criterion 19 — already has a git-free test right next
+to the deleted one (`climate-kid.test.ts`'s "nothing outside question-bank/ is
+touched by this task's own new test file"), and it survives this change
+untouched. The diff-based half was T-014-specific bookkeeping wearing a
+permanent-suite disguise; once a task merges, a diff against a fixed point in
+its history stops meaning "what did T-014 touch" and starts meaning "what has
+every subsequent task touched," which is not a thing worth gating every task
+after T-014 on.
+
+**What this does not touch.** The pinned-digest baselines in
+`landmarks-verify.test.ts`, `climate-kid-verify.test.ts` (`BASELINE_DIGESTS`)
+and `top-crops-verify.test.ts`, and their accumulated per-task
+neutralisations, are a different defect — T-070's, not this one's — and
+nothing about them changed here.
+
+**Revisit when** a real cross-package "nothing outside my package moved" check
+is wanted again. The honest version needs either a deeper `fetch-depth` in
+`ci.yml` (a `P-n` ticket) or a check that does not depend on git range at all
+— a manifest of files each task's own commits are expected to touch, checked
+against `git status` at PR time rather than against history baked into the
+test file.
