@@ -1,7 +1,7 @@
 # T-065 — Delete the stale suite-size counts, and stop them coming back
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `worker`
 **Approved:** katechen150621@gmail.com — 2026-09-22, approved via chat on PR #57.
 **From:** [`tasks.md`](../tasks.md) T-065
 **Branch:** `claude/gifted-albattani-0vh9mr` — the branch this session was
@@ -9,7 +9,7 @@ assigned. Every later role pushes here, not to `task/T-065-*`
 (`CLAUDE.md` "Branches", `process.md` "When the environment names the branch for
 you").
 **PR:** #57, opened draft at expand time from the branch above.
-**Fault:**
+**Fault:** the worker's guard misses counts it should catch ("thirty tests", "a hundred tests", "221 unit, endpoint and contract tests"; criterion 7), fails a document criterion 3 explicitly allows, and the corrected criterion-11 comment still claims a test binds the README scan scope when none does — worker-owned.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ you").
 |---|---|---|
 | task-expander | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh |
 | worker | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh |
+| tester | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id, see Verdict) |
 
 ## Goal
 
@@ -389,6 +390,95 @@ cd question-bank && bun test && bun run typecheck              # fully green
 ## Verdict
 
 _Written by `tester`._
+
+**TL;DR: fail — round 1.** The documents are right: criteria 1, 2, 4, 5, 8, 9,
+10 and 13 hold. **The guard is not.** It lets through number words past
+"twenty" and a count with a comma list in it (criterion 7). It also fails on a
+document criterion 3 allows. Criterion 11's rewritten comment still claims a
+test binds the README scan's scope, and mutation shows none does. Back to the
+**worker**. Four of my tests are red on purpose and stay as the regression tests.
+
+**Independence: weaker than a separate session.** This is an orchestrated run
+(`runs/T-065-stale-suite-counts.md` exists), and every role shares
+`cse_01KkjXcoL82TkpiL7GbimiCh`. The Sessions check therefore proves nothing. My
+independence rests only on being a freshly spawned agent with its own context:
+I did not see the work happen or the worker's reasoning. That depends on the
+orchestrator having spawned me correctly, not on anything I can verify myself.
+
+### Per criterion
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `criterion 1: …` tests (independent tokeniser, whole file; fenced block names both commands) |
+| 2 | met | `criterion 2: …` tests — no claim above the heading; each named figure absent |
+| 3 | **doc met, guard wrong** | the doc's `9` = the 9 `def test_` in `test_postgres.py`. The guard, though, **fails on the "states no number" half**: the edit `with Postgres-only checks` turns it red, because its regex takes the word `with` as the number (`stale-suite-counts.criteria.test.ts:193`) and `numberIn("with")` is `null` ≠ 9. Its own comment on `:195` says that branch handles "no number"; the branch is unreachable while any word precedes `Postgres-only`. **Red test:** `criterion 3: both halves … > stating no Postgres-only number at all passes the guard` |
+| 4 | met | `criterion 4: …` four tests; each mutated away → red |
+| 5 | met | `criterion 5: …` three row tests |
+| 6 | met | real-file mutation (`# 223 tests today`) → guard red; reverted → green. Also harness test `criterion 6: …` |
+| 7 | **not met** | `9 tests` and `nine tests` are caught. These are **not**: `thirty tests`, `a hundred tests` (the pattern's number words stop at `twenty`), and `221 unit, endpoint and contract tests` (the comma breaks the `(\s+word){0,3}` run). "Thirty" is the integration suite's real size spelled out. The third is the sentence this task deleted, with a comma. All three were confirmed on the real `PROGRESS.md` with a full-suite run: 249 pass, only the pre-existing failure, reverted. **Red tests:** the three `criterion 7: … fails the guard` cases for those sentences |
+| 8 | met | same sentence below the heading, digits and words → full suite 249 pass (only the pre-existing failure). History below the heading is byte-identical to `7524e5c`. The T-001/T-010/T-014 figures are present |
+| 9 | met | `criterion 9: …` tests; rewording the advice away → red |
+| 10 | met | two separate definitions, neither imports the other (`criterion 10: …`). By inspection, no test asserts a package total. `question-bank`'s `climate-kid.test.ts:822` / `landmarks.test.ts:758` assert per-file **floors** (pre-existing, T-013/T-014), not totals |
+| 11 | **not met** | Mutation: I changed `conventions-doc.test.ts:606` from `readmeDoc` to `codeBlock(readmeSection("## Checks"))` and ran the full suite: **249 pass, nothing new red**. So the "scope-level test" route is not taken. The comment route is not met either. The new comment says the "reach matters" test "would catch a future PR that narrowed the assertion above from `readmeDoc` to just the Checks block" (`:619-620`), and says it "actually backs the whole-file claim" (`:595-597`). It does neither: it builds a synthetic document and checks `codeBlock`/`sectionOf` against it, never the scan on `:606`. No automated test is left for this one, because criterion 11 allows either route and a test that demands red would rule out the comment route |
+| 12 | met except a pre-existing sandbox limit | `frontend` lint clean. `question-bank`: 1251 pass, typecheck clean. `frontend` `bun test` / `typecheck` fail only on `UsMap.tsx`'s `react-simple-maps` / `us-atlas`, which this sandbox's registry 403s. The base commit `7524e5c`, run in a worktree, shows the identical failure (223 pass, 1 fail, 1 error; the same 4 TS errors), so T-065 did not cause it. **Not verified: a fully green `frontend` run.** CI on PR #57 has to show it. I could not install those packages (the permission layer refused fetching them from another registry) and did not try to get around that |
+| 13 | met | no `package.json`, `bun.lock` or `uv.lock` in the diff from `7524e5c`; nothing under `backend/`, `question-bank/`, `e2e/` or `.github/` changed. The guard does local reads only. My harness spawns a local `bun` with all six proxy variables set to `127.0.0.1:1` |
+
+### What the worker needs to fix
+
+- **Criterion 7.** The guard has to catch spelled-out counts beyond twenty
+  (tens, `hundred`, `thousand`), and counts whose words are separated by
+  commas.
+- **Criterion 3.** "States no number" has to pass the guard.
+- **Criterion 11.** Either make narrowing the scan on `conventions-doc.test.ts:606`
+  turn a test red, or rewrite the comments at `:591-597` and `:614-620` so they
+  claim only what the tests actually bind.
+
+### Tests added
+
+`frontend/src/stale-suite-counts-guard.criteria.test.ts`, 33 tests, of which 4
+are red and must stay red until the fix:
+
+- **Direct reads** for criteria 1-5, 8, 9 and 10. They use my own tokenising
+  detector, written from the criteria rather than from the worker's
+  `suiteCountPattern`.
+- **A harness** for criteria 3, 6, 7 and 8. It copies the worker's guard and the
+  four files it reads into a temp dir, applies one edit, and runs `bun test` on
+  the copy in a subprocess. It never writes the real repo files. The guard is the
+  only `frontend` test that reads `PROGRESS.md`.
+
+Full-suite result with the file in place: **278 pass, 5 fail**. The 5 are the
+4 intentional ones above plus the pre-existing `UsMap` failure. Lint is clean,
+and typecheck shows only the pre-existing `UsMap` errors.
+
+### Mutations made (all reverted; `git status` clean apart from the new test file)
+
+On the worker's guard, each run against the **full `frontend` suite**
+(baseline: 249 pass, 1 pre-existing failure):
+
+| Mutation | Result |
+|---|---|
+| `test-guidelines.md`: `# 223 tests today` | guard red (c6) ✔ |
+| `PROGRESS.md` above heading: `9 tests` / `nine tests` / `eleven hundred tests` / `twenty-one tests` / `1,131 tests` / `The e2e suite: 13 tests.` | guard red ✔ |
+| same, `thirty tests` / `a hundred tests` / `221 unit, endpoint and contract tests` | **stayed green** ✘ (c7) |
+| same, `Tests: 1131 across the repo.` / `250 test cases` | stayed green. Noted, not counted against c7 |
+| below heading: `9 tests` / `nine tests` | whole suite green ✔ (c8) |
+| `9 Postgres-only` → `8` / `twelve` | guard red ✔ (c3) |
+| `9 Postgres-only` → no number | **guard red** ✘ (c3 permits this) |
+| drop `backend/integration/` / API client / SQLite+Postgres from PROGRESS | matching c4 test red ✔ |
+| `242` or `30` back into the §A rows | matching c5 test red ✔ |
+| drop the `cd frontend && bun test` line | c1 test red ✔ |
+| reword "at least one test" away | c9 test red ✔ |
+| `conventions-doc.test.ts:606` narrowed to the Checks block | **nothing red** ✘ (c11). With a count also added to README outside Checks, only `readme-test-count.criteria.test.ts` went red, not `conventions-doc.test.ts` |
+
+On my own direct tests: I made one mutation per criterion (c1, c2 in digits and
+in words, c3, c4, c5, c8, c9), and each turned its matching test red.
+
+### Notes for the reviewer (not criteria)
+
+- The guard's header (`stale-suite-counts.criteria.test.ts:6-7`) says it was
+  "written out as assertions by the verifying session". The worker wrote it.
+- `stale-suite-counts.criteria.test.ts:202`'s test name says "is what it was
+  surveyed as", but the test only asserts `> 0`.
 
 ## Review
 
