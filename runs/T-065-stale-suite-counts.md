@@ -116,3 +116,30 @@ Criterion 11 has no automated test. It allows either fixing the comment or addin
 Files:
 - `/home/user/geo-discovery-zone/tasks/T-065-stale-suite-counts.md`
 - `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts-guard.criteria.test.ts`
+
+## Round 4 — worker — 2026-09-22
+`Next step` on entry: `worker` → on exit: `tester`
+
+T-065 round 2 worker fix complete and pushed. Status: `awaiting verification`, Next step: `tester`.
+
+**TL;DR:** fixed all three worker-owned faults from the tester's fail verdict. Guard now catches "thirty tests"/"a hundred tests"/comma-separated lists (criterion 7), correctly treats "no number before Postgres-only" as passing (criterion 3), and the criterion-11 comment in `conventions-doc.test.ts` no longer overclaims what its test binds. Verified against the tester's own untouched harness (33/33 pass, including the 4 that were red) plus full suite runs.
+
+**Branch:** `claude/gifted-albattani-0vh9mr` — pushed as commit `bb8dc39`, confirmed landed (`git log origin/claude/gifted-albattani-0vh9mr -1` shows it).
+
+**Files changed:**
+- `frontend/src/stale-suite-counts.criteria.test.ts` — replaced the fixed-length regex chain with a clause-and-token scanner (`hasSuiteCountClaim`, `isNumberToken`, `clauses`) that has no word-list ceiling and tolerates commas between the number and "tests". Fixed the Postgres-only check to only treat an actually-recognised number token as a stated number (was matching any preceding word).
+- `frontend/src/conventions-doc.test.ts` — rewrote the criterion-11 comment block (~lines 591-616) and its test's own comment to accurately describe that the synthetic-skeleton test proves the pattern is scope-agnostic but does **not** bind or protect the real `readmeDoc.match(...)` assertion's scope. Took the "correct the comment" branch of criterion 11's either/or rather than building a new scope-binding harness, since README currently has nothing outside the Checks block to lose and the criterion explicitly allows this route.
+- `tasks/T-065-stale-suite-counts.md` — added a "Round 2" Handoff subsection with full rationale and verification evidence, a new worker Sessions row, two new Notes entries, and updated Status/Next step.
+
+**Verification run this session:**
+- `frontend/src/stale-suite-counts.criteria.test.ts` alone: 29/29 pass
+- `frontend/src/stale-suite-counts-guard.criteria.test.ts` (tester's file, untouched): 33/33 pass, all 4 previously-red now green
+- `cd frontend && bun test`: 286 pass, 1 fail, 1 error — same single pre-existing `UsMap.tsx`/`react-simple-maps` sandbox limitation as round 1 (reconfirmed via `git stash`: unstashed tree shows the same failure plus the 4 fixed tests going red)
+- `cd frontend && bun run lint`: clean (had to `eslint --fix` one prettier issue in my own new code)
+- `cd frontend && bun run typecheck`: same 4 pre-existing `UsMap.tsx` errors only
+- `cd question-bank && bun test && bun run typecheck`: 1251/1251 pass, typecheck clean
+- `git diff --stat` against the previous commit: only the two test files changed, no lockfiles, nothing under `backend/`, `question-bank/`, `e2e/`, `.github/`
+
+**Not done, deliberately:** did not touch `stale-suite-counts-guard.criteria.test.ts` (tester's output), did not touch `test-guidelines.md`/`PROGRESS.md`/`tasks.md` again (not in the tester's fault line), did not build the criterion-11 "scope-level test" alternative (flagged for reviewer: worth building if README ever gets a Checks-external stale count again).
+
+**Worth the tester's attention:** `$CLAUDE_CODE_REMOTE_SESSION_ID` this round is again `cse_01KkjXcoL82TkpiL7GbimiCh`, identical to every prior role including the previous tester — same orchestrated-run caveat noted in round 1's Handoff. The Sessions-table independence check proves nothing here; only a freshly spawned context is real.
