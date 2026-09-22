@@ -303,6 +303,37 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-073 — the fourth and last expired git baseline, in `frontend/`** (PR #56,
+  2026-09-22). `level-window-claim.criteria.test.ts`'s "no existing E-n entry was
+  modified" (T-057 criterion 8) compared everything above the `## E-10 — ` heading
+  against the **whole** of `engineering-decisions.md` at the merge base — a
+  comparison that could never match once E-10 itself merged, and that silently
+  asserted nothing in CI because both `git` calls escaped through a bare `return`
+  on a shallow checkout. **Ending taken: deleted, not re-expressed** — the same
+  call T-072 made, recorded as `engineering-decisions.md` **E-12**. The reasoning
+  is worth keeping: a git-free check of *body-text* immutability needs a pinned
+  hash or copy of each entry inside the test, which is the same expiring baseline
+  moved from a `git` call into a string literal. What survives is the narrower
+  git-free property that was already there — `E-n` numbers unique, ascending,
+  nothing after E-10 ≤ 10. `frontend` goes 209 → 223 tests and is now **identical
+  at any clone depth**; every known red-on-`main` baseline in this repo is gone.
+  *Where it differed from the brief:* nothing in substance — all ten criteria met,
+  and the brief deliberately left both endings open. Three things to carry forward:
+  - **The review cost a round, to the same defect P-4 describes.** The tester's new
+    guard file scans tracked files via `git ls-files` and was verified while still
+    **untracked**, so it excluded itself; the moment it was committed, a sample
+    argument list in its own doc comment tripped its own criterion-4 scan. Fixed by
+    making every scan read code rather than prose (`codeOf()`, a comment stripper),
+    and by deleting the sample. **P-4 amended** with the recurrence.
+  - **A `frontend` test now asserts repo-wide facts.** `git-baseline-guard.criteria.test.ts`
+    scans `question-bank/`, `backend/` and `e2e/` too, because criterion 5 is
+    repo-wide and there is no repo-level suite. A git-revision call added in
+    `question-bank/` will turn **`frontend`'s** suite red. Deliberate, and recorded
+    here so it surprises a reader rather than a future task.
+  - **The worker's session ended without committing its source edits**, and the
+    orchestrator committed them (`1472a68`). No text was authored out of lane, but
+    the orchestrator holds no source in `process.md`'s role table. Filed as **P-7**.
+
 - **T-072 — a guard test diffed against a fixed commit and failed on `main`**
   (PR #55, 2026-09-22). Two tests written for T-014's criterion 19 asserted
   "nothing outside `question-bank/` moved in this task" by shelling out to
@@ -945,13 +976,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `test-guidelines.md:209` and `PROGRESS.md:161` still quote suite sizes that
   nothing asserts and that are already wrong (T-065). `README.md`'s last one is
   closed (T-062, PR #50).
-- **A test still fails on `main` in a full clone and CI cannot see it.**
-  `frontend/src/level-window-claim.criteria.test.ts`'s "no existing E-n entry was
-  modified" compares `engineering-decisions.md` against a git baseline that
-  expired the moment T-057 merged, and self-disables on a shallow checkout
-  (T-073). `question-bank`'s two copies of this defect are closed (T-072, PR
-  #55); this is the fourth and last known one, plus two silent-`else` git paths
-  that are not red but do turn themselves off, listed under T-070.
+- **No test fails on `main` in a full clone any more.** All four known expired
+  git baselines are gone: `question-bank`'s two with T-072 (PR #55, `E-11`) and
+  `frontend`'s one with T-073 (PR #56, `E-12`). What remains of the family is two
+  silent-`else` git paths in `question-bank/` that are not red but do turn
+  themselves off on a shallow clone — `highest-point-verify.test.ts:582-584` and
+  `climate-kid.test.ts:538`, both listed under T-070.
+  `frontend/src/git-baseline-guard.criteria.test.ts` is the standing guard: it
+  asserts repo-wide that no test hands `engineering-decisions.md` to `git`, and
+  within `frontend/src/` that every `git` call reads only the working tree and
+  throws on a non-zero exit. It is a `frontend` test asserting repo-wide facts,
+  so a violation added in another package reddens `frontend`'s suite.
 
 **Behaviour.**
 
