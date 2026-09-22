@@ -1,8 +1,8 @@
 # T-073 — The same expired-git-baseline guard, now in `frontend/`
 
-**Status:** `changes requested`
-**Next step:** `tester` — fix finding 1 (the new test file fails against itself
-now that it is tracked). See `## Review`.
+**Status:** `pass`
+**Next step:** `reviewer` — finding 1 is fixed and re-verified after committing.
+See `## Verdict — round 2`.
 **Approved:** orchestrator — 2026-09-22, unattended run. See `runs/T-073-frontend-git-baseline-guard.md`.
 **From:** [`tasks.md`](../tasks.md) T-073 (§A Foundations)
 **Branch:** `claude/task-t073-orchestrator-2ek0bi` — harness-assigned to this
@@ -20,6 +20,7 @@ the reviewer approves.
 | worker | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` |
 | tester | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run, see Verdict |
 | reviewer | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run (D-3) |
+| tester (round 2) | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run, see Verdict — round 2 |
 
 ## Goal
 
@@ -589,3 +590,115 @@ rather than a task of its own.
 The brief stays, `tasks.md` keeps its T-073 entry and nothing was logged in
 `PROGRESS.md`: the task is not done, and sweeping would delete these findings.
 PR #56 stays **draft**.
+
+## Verdict — round 2
+
+Written by `tester`, 2026-09-22, after the reviewer's finding 1. **Status: pass.**
+
+**TL;DR:** Finding 1 is fixed and the fix was verified **after** committing, which
+is the check that missed it last time. `bun test` in `frontend/` is now **223 pass
+/ 1 fail / 1 error** with the guard file tracked — down from 222/2/1 — and the
+single remaining failure is the pre-existing `react-simple-maps` module-load gap,
+demonstrated (not assumed) to be there on `origin/main` too. All ten criteria
+hold; sixteen mutations, including the reviewer's named M2, were applied and
+reverted.
+
+**What changed this round.** One file:
+`frontend/src/git-baseline-guard.criteria.test.ts`. No source file was edited.
+
+- **The scans read code, not prose.** A new `codeOf(source)` blanks every comment
+  — each comment character replaced by a space, newlines kept, so offsets and line
+  numbers still match the file on disk — and `read()` returns that. `gitCalls`,
+  the criterion-4 throw scan and the criterion-5 `<rev>:<path>` scan all read it.
+- **`engineering-decisions.md` is read raw** (`readRaw`), because it is prose and
+  `codeOf` is a source stripper. Criterion 8's assertions are about what the entry
+  says.
+- **The sample argument list is gone from the doc comments** as well, so the file
+  does not rely solely on the stripper to stay honest about itself.
+- **Finding 3 got its line.** The 400-character proximity heuristic is now
+  commented with its false-positive mode: a correct call whose error handling
+  lives in a helper will trip it, and the right response then is to reconsider the
+  rule, not contort the call.
+
+**Neither escape the review ruled out was taken.** The criterion-4 throw assertion
+is intact, and the guard file is **not** excluded from its own scan — it is in
+`REPO_TEST_FILES`, scans itself, and passes because its only `git` argument list
+is real code with a throw two lines below it.
+
+| Finding | Verdict | Evidence |
+|---|---|---|
+| **1 — blocking** | **fixed** | Reproduced first at `629c8c1`: 222 pass / **2 fail** / 1 error, the guard file flagging its own doc comment. After the fix, committed as `20bae0f` and then re-run: **223 pass / 1 fail / 1 error**, the remaining failure being `react-simple-maps` only. |
+| 2 — not blocking | unchanged, by design | The guard still scans `question-bank/`, `backend/` and `e2e/` from `frontend`'s suite. Criterion 5 is repo-wide and there is no repo-level suite; the review requested no change. |
+| 3 — not blocking | line added | The heuristic and its false-positive mode are now documented at the test that uses it. |
+
+**Criteria, re-verified this round (not carried over):**
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | **pass, modulo one environment-only failure** | Full clone (`refs/remotes/origin/main` = `393b6ae`): `bun test` in `frontend/` → **223 pass / 1 fail / 1 error**, with the guard file **tracked and committed**. The failure is `src/components/screens.criteria.test.tsx` failing to load `UsMap.tsx` (`Cannot find package 'react-simple-maps'`). Proven pre-existing: a `git worktree` at `393b6ae` sharing this `node_modules` gives **208 pass / 2 fail / 1 error** — the same `react-simple-maps` failure *plus* `no existing E-n entry was modified`. The branch removes exactly one failure and adds none. |
+| 2 | pass | `git update-ref -d refs/remotes/origin/main`, rerun: **223 pass / 1 fail / 1 error**, and the junit test-name/outcome sets from the two runs are **identical** (223 cases, `identical: True`, compared programmatically). **The ref was restored** to `393b6aee60902941c0d6499768fb6b60c7d3e94a` and re-verified with `git rev-parse`. |
+| 3 | pass | Guard tests, now reading code only: every `git` argument list under `frontend/src` uses a working-tree subcommand (`ls-files`/`status`/`check-ignore`), none is handed a `HEAD`, `origin/…`, range or sha, and no 40-hex literal reaches `git`. Only one such call exists — `trackedFiles`' `git ls-files` (`level-window-claim.criteria.test.ts:39-45`). Mutation-proven twice (M1, M14). |
+| 4 | pass | Static: no `exitCode !== 0 … return` survives under `frontend/src`, and every `git` call is followed by a throw. Dynamic: M3 makes `git ls-files` exit non-zero and `level-window-claim.criteria.test.ts` **errors out** (`git ls-files failed: unknown option`) — it cannot reach a passing assertion. M2, the reviewer's named check, turns both criterion-4 tests red. |
+| 5 | pass | Repo-wide over every tracked test file in `frontend/`, `question-bank/`, `backend/` and `e2e/`: no `<rev>:engineering-decisions.md` literal in code, and no `git` argument list takes that file. M4 proves it red. `highest-point-verify.test.ts:584` (T-070's, out of scope) resolves over question-bank data paths, never this file. |
+| 6 | pass | `git diff --name-only origin/main...HEAD` is six files: the brief, the run log, `tasks.md`, `engineering-decisions.md` and two test files. The diff only **removes** a git-revision assertion. No "nothing else moved" guard was added. The guard file holds the strings `"origin/"` and `HEAD` inside a *detector predicate* — patterns it searches for, never arguments handed to `git`; its own criterion-3 test would flag them if they ever were. |
+| 7 | pass, (a)–(g) each mutation-proven again | `level-window-claim.criteria.test.ts` is 10 pass / 0 fail, and M6–M13 below each turned the matching test red. |
+| 8 | pass, ending **(b)** | E-12 is present, numbered above E-11, appended after it, names the file and the removed test, says why deletion beat re-pinning, and carries a `**Revisit when**` paragraph. Deliberately **not** "E-12 is the highest" (`tasks.md:26`: do not reintroduce a ceiling). M5a/b/c prove the five assertions bite. |
+| 9 | pass | `.github/workflows/ci.yml` is absent from `git diff --name-only origin/main...HEAD`. Verified by observation, not by a test — a test for it would be criterion 6's fifth instance. |
+| 10 | pass | `frontend/package.json` and `frontend/bun.lock` absent from the same diff, as is every other manifest and lockfile. The guard file spawns only `git ls-files` against the local repo; every suite run above had `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` pointed at `http://127.0.0.1:1`, CI's fail-closed shape (`test-guidelines.md:72`). |
+
+**Whole suite, typecheck, lint — all of it, after the commit:**
+
+- `frontend` — `bun test`: **223 pass / 1 fail / 1 error** (`react-simple-maps`,
+  present on `origin/main` too).
+- `frontend` — `bun run lint`: **clean, exit 0, zero warnings**.
+- `frontend` — `bun run typecheck`: **fails on `UsMap.tsx` only** — `TS2307` for
+  `react-simple-maps` and `us-atlas/states-10m.json`, plus two implicit-`any`
+  errors downstream. No error in any file this task or this verification touched.
+- `question-bank` — `bun test`: **1251 pass / 0 fail**.
+- `backend` — `uv run pytest`: **517 passed, 9 skipped**.
+
+**Mutations, all applied, run and reverted.** `git status --short` afterwards
+showed only the guard test file; no worktree and no ref change was left behind.
+
+| # | Mutation | Result |
+|---|---|---|
+| M1 | `["git", "merge-base", "HEAD", "origin/main"]` added to `lint-gate.test.ts` | criterion 3's subcommand and revision tests red (3 red) |
+| M2 | `trackedFiles`' throw replaced by a bare `return []` | **both** criterion-4 tests red — the reviewer's named check |
+| M3 | bogus flag so `git ls-files` exits non-zero | `level-window-claim.criteria.test.ts` errors out; cannot pass on a failed `git` |
+| M4 | `["git", "show", "origin/main:engineering-decisions.md"]` added to `region-vocabulary.test.ts` | criterion 5's two tests red |
+| M5a/b/c | E-12 deleted · renumbered a duplicate `E-11` · `Revisit when` removed | 5 red · 5 red · 1 red |
+| M6 | `suggestedLevels` renamed out of E-10's body | 7(g) red |
+| M7 | the banned client function name written into `conventions.md` | 7(a) red |
+| M8 | `screens.tsx`'s `const options = …` expression changed | 7(c) red |
+| M9 | a list-returning export added to `lib/level.ts` | 7(d) red |
+| M10 | `## E-9` renumbered `## E-99` so the numbers stop ascending | 7(f) red |
+| M11 | a third non-test module (`lib/api/client.ts`) reads `suggestedLevels` | 7(b) red |
+| M12 | the `screens.tsx:NN` call sites stripped from E-10 | 7(g) red |
+| M13 | the `## E-10 —` heading renamed | 7(e) red, plus three dependants |
+| **M14** | a revision call written **on the same line after a block comment** | criterion 3 red — the stripper blanks comments without swallowing the code beside them |
+| **M15** | the same argument list written **in a comment**, not code | **stays green (15 pass / 0 fail)** — prose recording a removal is not an invocation, which is the whole of the fix |
+
+M14 and M15 are the pair that matters for finding 1: together they show the scan
+lost nothing it used to catch and gained the ability to tell a record of the
+defect from the defect.
+
+**Two things for the reviewer, neither blocking:**
+
+- **The `react-simple-maps` failure is still unfiled in `tasks.md`.** Unchanged
+  from round 1, and the review already disposed of it: the packages are declared
+  in `frontend/package.json` and present in `bun.lock`; this sandbox's
+  `node_modules` simply lacks them because the npm mirror refuses them. Filing
+  `tasks.md` entries is the reviewer's lane, not mine.
+- **Independence, honestly stated, again.** This is an orchestrated run
+  (`runs/T-073-frontend-git-baseline-guard.md` exists), so every spawned role
+  shares one session id — mine is `cse_01Rpu7pnkLevs6ixvYy6r7zH`, the value
+  already in all four rows. **The Sessions-table check did not pass and I am not
+  claiming it did.** My independence is the weaker kind `process.md` describes: a
+  freshly spawned agent with its own context window, which never saw the worker's
+  or the previous tester's transcript and read only the committed brief and repo.
+  It rests on the orchestrator having spawned me correctly, which I cannot verify
+  myself. `process-decisions.md` D-3 already records this as accepted.
+
+**Rounds used:** this is the first fail→fix→verify round on T-073 and it came from
+the reviewer rather than from a failing criterion, so the two-round escalation
+bound in `process.md` step 4 is not close.
