@@ -50,17 +50,86 @@ const isTestFile = (path: string) =>
 const REPO_TEST_FILES = trackedFiles(["."]).filter(isTestFile);
 const FRONTEND_TEST_FILES = REPO_TEST_FILES.filter((path) => path.startsWith("frontend/src/"));
 
-const read = (path: string) => readFileSync(join(REPO_ROOT, path), "utf8");
+const readRaw = (path: string) => readFileSync(join(REPO_ROOT, path), "utf8");
 
-/** One `git` argument list found in source: for `["git", "ls-files", …]`,
- * `args` is everything after `git` — `["ls-files", …]`. */
+/**
+ * The file's source with every comment blanked out — each comment character
+ * replaced by a space, newlines kept, so offsets and line numbers still line up
+ * with the file on disk. Every scan below reads this rather than the raw text.
+ *
+ * Prose is documentation, not an invocation. A comment recording which revision
+ * a deleted test used to resolve — `level-window-claim.criteria.test.ts:166-176`
+ * is exactly that — must not be flagged as the defect it records, or the honest
+ * way to remove one of these looks identical to leaving it in.
+ *
+ * This is also how this file stopped failing against itself: on its first round
+ * a sample argument list written in one of its own doc comments matched the
+ * criterion-4 scan the moment the file became tracked and entered `git ls-files`
+ * output. Blanking comments fixes the class; excluding this file from its own
+ * scan would only have hidden it.
+ *
+ * Conservative by construction: anything it cannot classify stays in the scanned
+ * text, so the failure mode is scanning too much, never too little.
+ */
+function codeOf(source: string): string {
+  let out = "";
+  let index = 0;
+  let quote: string | null = null;
+  while (index < source.length) {
+    const char = source[index]!;
+    const next = source[index + 1];
+    if (quote !== null) {
+      out += char;
+      if (char === "\\") {
+        out += next ?? "";
+        index += 2;
+        continue;
+      }
+      if (char === quote) quote = null;
+      index += 1;
+      continue;
+    }
+    if (char === "\\") {
+      // An escape outside a string: a regex literal's `\/`, which must not be
+      // read as half of a `//`.
+      out += char + (next ?? "");
+      index += 2;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") {
+      quote = char;
+      out += char;
+      index += 1;
+      continue;
+    }
+    if (char === "/" && next === "/") {
+      while (index < source.length && source[index] !== "\n") {
+        out += " ";
+        index += 1;
+      }
+      continue;
+    }
+    if (char === "/" && next === "*") {
+      const end = source.indexOf("*/", index + 2);
+      const stop = end === -1 ? source.length : end + 2;
+      for (; index < stop; index += 1) out += source[index] === "\n" ? "\n" : " ";
+      continue;
+    }
+    out += char;
+    index += 1;
+  }
+  return out;
+}
+
+const read = (path: string) => codeOf(readRaw(path));
+
+/** One `git` argument list found in source. `args` is everything after the
+ * leading `git` element. */
 type GitCall = { file: string; args: string[] };
 
 /**
- * Every argument list literal whose first element is `git`. Only argument
- * lists, never prose: a comment explaining which revision a deleted test used
- * to resolve is documentation, not an invocation, and flagging it would make
- * the honest record of a removal look like the defect it records.
+ * Every argument list literal whose first element is `git`, read from code
+ * only.
  */
 function gitCalls(files: string[]): GitCall[] {
   const calls: GitCall[] = [];
@@ -135,6 +204,12 @@ describe("T-073 criterion 4 — no test in frontend/src can pass because git fai
     expect(offenders).toEqual([]);
   });
 
+  // A proximity heuristic: the throw has to sit within 400 characters of the
+  // call. It will flag a correct call whose error handling lives in a helper or
+  // further away, which is a false-positive mode worth knowing about — the
+  // defect it guards has recurred four times, so the trip-wire earns its keep,
+  // but a future call that trips it wants the rule reconsidered rather than the
+  // call contorted.
   test("every git call is followed by a throw on a non-zero exit", () => {
     const missing: string[] = [];
     for (const file of callers) {
@@ -172,7 +247,9 @@ describe("T-073 criterion 5 — nothing in the repo compares engineering-decisio
 });
 
 describe("T-073 criterion 8(b) — the deleted claim is recorded in engineering-decisions.md", () => {
-  const decisions = read(DECISIONS);
+  // Raw, not `read`: `engineering-decisions.md` is prose, and `codeOf` above is
+  // a source-code stripper. Every assertion here is about what the entry says.
+  const decisions = readRaw(DECISIONS);
   const headings = [...decisions.matchAll(/^## E-(\d+) — .+$/gm)];
   const numbers = headings.map((match) => Number(match[1]));
 
