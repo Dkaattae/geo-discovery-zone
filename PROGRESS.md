@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-09-18_
+_Last updated: 2026-09-22_
 
 ## In one paragraph
 
@@ -193,6 +193,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   relative link points at a file that
   exists (T-007 for `conventions.md`, T-058 for `README.md`). A doc that goes
   stale now fails a test instead of misleading the next session.
+- **The top-level docs state no suite sizes.** `test-guidelines.md`, this
+  file's status sections and `tasks.md`'s §A table name a command or a directory
+  instead (three package READMEs still do, T-074), and `frontend/src/stale-suite-counts.criteria.test.ts` fails if a
+  count comes back, in digits or words (T-065). Per-task figures in the history
+  below are left alone on purpose: they record what a PR did, which does not rot.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
   task between the other four and reads none of their work.
@@ -301,6 +306,33 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-065 — the stale suite-size counts are deleted, and guarded** (PR #57,
+  2026-09-22). `test-guidelines.md`'s two `# N tests today` comments, six figures
+  in this file's status sections and the figures in three rows of `tasks.md`'s
+  §A table are gone, replaced by the command or directory each suite lives in. A new guard,
+  `frontend/src/stale-suite-counts.criteria.test.ts`, fails when a digit or number
+  word sits within five words before the plural "tests" in `test-guidelines.md` or
+  above `## Completed tasks` here. `PROGRESS.md`'s "9 Postgres-only checks"
+  stays, because it is right and the guard checks it against
+  `backend/tests/test_postgres.py`. *Where it differed from the brief:*
+  - **It took two rounds.** The first guard was a fixed-length regex. It missed
+    number words past "twenty" and a count with a list comma in it, and it failed
+    on the "states no number" case criterion 3 allows. Round 2 replaced it with a
+    token scan inside each clause.
+  - **Criterion 11 took the comment route.** No test binds `conventions-doc.test.ts`'s
+    README scan to the whole file. The comment now says so. README is still
+    covered whole-file by `readme-test-count.criteria.test.ts`.
+  - **Known gaps in the guard, accepted:** "a dozen tests", "Frontend tests: 286"
+    (the number after the word), "286 test cases" (singular) and more than five
+    words between the number and "tests". Every stale figure this task deleted
+    had the "N … tests" shape the guard catches.
+  - **The full `frontend` suite could not go green in the sandbox** (the
+    `react-simple-maps` 403 again). CI went green on all six jobs, and CI is what
+    closed criterion 12.
+  - **Left for T-074:** the guard does not scan `## Known gaps` or `## Next`,
+    which are live status but sit below `## Completed tasks`. Its header also
+    names the wrong author.
 
 - **T-073 — the fourth and last expired git baseline, in `frontend/`** (PR #56,
   2026-09-22). `level-window-claim.criteria.test.ts`'s "no existing E-n entry was
@@ -972,9 +1004,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
   `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
   `README.md` (T-058, PR #35) — both now fail a test rather than drift.
-- `test-guidelines.md:209` and `PROGRESS.md:161` still quote suite sizes that
-  nothing asserts and that are already wrong (T-065). `README.md`'s last one is
-  closed (T-062, PR #50).
+- Three READMEs still state suite sizes that nothing checks, and two of those
+  figures are already wrong: `backend/README.md`, `backend/integration/README.md`
+  and `e2e/README.md` (T-074). The root `README.md`, `test-guidelines.md` and
+  this file's status sections state none, and a test holds them there (T-062, PR
+  #50; T-065, PR #57).
 - **No test fails on `main` in a full clone any more.** All four known expired
   git baselines are gone: `question-bank`'s two with T-072 (PR #55, `E-11`) and
   `frontend`'s one with T-073 (PR #56, `E-12`). What remains of the family is two

@@ -49,7 +49,9 @@ deleted the two criterion-19 diff guards (PR #55): T-070 (c) is closed and
 trimmed out of that entry, and T-073 is the fourth instance of the same defect,
 in `frontend/`. Swept again 2026-09-22, after T-073 deleted the fourth instance
 (PR #56): **every known red-on-`main` git baseline is now gone**, T-070 is down
-to its two silent-`git` leftovers, and T-065 gained one more stale figure._
+to its two silent-`git` leftovers, and T-065 gained one more stale figure. Swept again 2026-09-22, after T-065 deleted
+the stale suite-size counts and guarded them (PR #57): T-074 is smaller and
+unblocked, T-047 lost its count clause, and T-064 now depends on T-040._
 
 ## How this list is ordered
 
@@ -116,6 +118,7 @@ place, so nobody rebuilds it:
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
 | **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
+| **Test counts in docs** | none stated in `README.md`, `test-guidelines.md`, `PROGRESS.md`'s status sections or this table, and a test fails if one comes back (T-062, PR #50; T-065, PR #57). Name a command or a directory instead |
 | **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
 
 What is missing from that picture is below.
@@ -196,7 +199,7 @@ all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
 recorded here; T-065 was taken instead.
 
 ### T-074 — Three READMEs state suite sizes nothing checks · S · todo
-**Depends on:** T-065
+**Depends on:** — (T-065 landed in PR #57)
 **New 2026-09-22, found while surveying T-065.** The same drift, in three files
 T-065's brief deliberately leaves alone: `backend/README.md` ("221 tests", "28
 tests"), `backend/integration/README.md` ("28 tests", "221 tests", "23 tests",
@@ -209,6 +212,20 @@ distinguish the two before it can be pointed here. Do this after T-065, reusing
 its detector rather than writing a fourth.
 **Done when:** none of the three states a number of tests, and the same guard
 that holds `test-guidelines.md` and `PROGRESS.md` covers them.
+**Smaller since T-065 (PR #57), and two things added by its reviewer.** The
+detector to reuse is `hasSuiteCountClaim()` in
+`frontend/src/stale-suite-counts.criteria.test.ts`, and the "one test" problem
+above is already solved by it: it only fires on the *plural* "tests", so the
+singular advice survives without rewording. While in that file:
+- **Its header misattributes it.** `:5-7` says it was "written out as assertions
+  by the verifying session"; the worker wrote it. The tester flagged this twice
+  and it was never fixed. One sentence.
+- **Its `PROGRESS.md` boundary leaves two live sections unguarded.** It scans only
+  *above* `## Completed tasks`, but `## Known gaps in what is done` and `## Next`
+  sit *below* that heading and are current status, not history. Neither states a
+  count today. Scan those two sections as well, or say in the guard why not.
+**Done when (added):** the guard also covers `PROGRESS.md`'s `## Known gaps in
+what is done` and `## Next` sections, and its header names the right author.
 
 ---
 
@@ -251,7 +268,7 @@ answerable in a line here; until then the criteria would be a guess. T-065 was
 taken instead.
 
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
-**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
+**Depends on:** T-040 (corrected by T-065's reviewer, per the expander's note below)
 Split out of T-010's Q3: `sample-data/` (one committed state, with its own
 README) stays alongside the full 50-state commit for now, on purpose — kept
 until the committed bank is shown to work end to end. Once that is proven, it is
@@ -282,81 +299,6 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 "dropped because it still earns its place" cannot be settled either while the
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
-
-### T-065 — Refresh the stale suite-size counts, and stop them going stale · S · doing
-**Depends on:** —
-**Expanded 2026-09-22** into [`tasks/T-065-stale-suite-counts.md`](tasks/T-065-stale-suite-counts.md),
-PR #57. The brief settles the open question the way this entry recommends —
-delete the figures — and scopes the guard to `test-guidelines.md` and
-`PROGRESS.md` above `## Completed tasks`, with `tasks.md`'s §A table as a
-one-time removal. Three README files found stale while surveying are **T-074**,
-not this task.
-`test-guidelines.md:209` (`# 19 tests today`) still quotes a count that is
-already wrong and will be wrong again. `question-bank` alone went 19 → 209 in
-T-010, and the number moved **three times inside that one PR** — each round of
-worker and tester added tests, and each round left a doc naming the previous
-figure. T-010's sweep corrected `PROGRESS.md`'s bullet and this file's coverage
-table to 209 by hand, which is the third hand-correction and the argument for
-this task: **prefer removing the figures to refreshing them again.** T-011 made
-it the fourth and fifth: 209 → 243, corrected by hand in the same two places
-again (PR #41), and T-012 the sixth and seventh: 243 → 339, corrected by hand in
-those same two places a third time (PR #42), and T-013 the eighth and ninth:
-339 → 487, corrected by hand in those same two places a fourth time (PR #43), and
-T-014 the tenth and eleventh: 487 → 687, corrected by hand in those same two
-places a **fifth** time (PR #44). Five hand-corrections of the same two figures
-is no longer evidence that this task is worth doing — it is evidence that nobody
-will stop doing it by choice.
-**T-015 (PR #46) broke the pattern in the worse direction: 687 → 1131, and
-nobody corrected it.** Its Out of scope named this task and deliberately left the
-figures stale rather than hand-fixing them a sixth time. So
-`PROGRESS.md:173` (cited as `:161` before the file grew) and
-`test-guidelines.md:209` are now *wrong in the tree*,
-not merely fragile — the first says 687 against a real 1131, the second still
-says 19. That is the outcome this entry predicted, it is the cheapest it will
-ever be to fix, and it settles the open question in favour of **deleting the
-figures**: a number that five sweeps refreshed and the sixth abandoned is not a
-number anyone is maintaining.
-This is
-exactly the drift `frontend/src/conventions-doc.test.ts` was built to catch
-(T-007, T-058), and neither `test-guidelines.md` nor `tasks.md` is covered by it.
-**Smaller since T-062 (PR #50):** `README.md` is out of scope here — it now
-states no count of tests at all — and T-062 left the shape to copy,
-`testCountPattern` — since T-061 (PR #52) at
-`frontend/src/conventions-doc.test.ts:592`, not `:562` — which catches
-digits and spelled-out numbers anywhere in a file. Pointing it at
-`test-guidelines.md` and `PROGRESS.md` after deleting their figures is most of
-this task.
-**Amended 2026-09-19 by T-061's reviewer (PR #52).** Three things to pick up
-while you are already inside `conventions-doc.test.ts`, none of them worth their
-own entry:
-- **The `frontend` figure in this file's §A table is stale again** — it says 184
-  and a real run is now **198** (T-061 deleted a four-test file and added three
-  tests). Same argument as the rest of this entry: delete the figure rather than
-  refresh it a seventh time.
-- **A comment at `conventions-doc.test.ts:587-589` overstates its own test.** It
-  says narrowing `testCountPattern`'s reach "back to only the Checks code block"
-  goes red at the test below. It would not: that test feeds a literal string to
-  the *pattern*, so it binds the pattern, not the *scope* the pattern is applied
-  over at `:598`. Restricting `:598` to `codeBlock(section("## Checks"))` leaves
-  it green. Found by T-061's tester; the criterion it was written for is met, the
-  parenthetical example is wrong. Fix the sentence, or add the scope-level test
-  it describes — the second is the better answer if this entry ends up pointing
-  the pattern at two more files.
-- **That file's header comment now counts parsers oddly.** It says this file
-  "stays a third parser, not a fourth" and that T-061 "folded the test file that
-  used to duplicate it into this one", where "this one" and "this file" mean
-  different files one clause apart. After T-061 there are three `ci.yml` parsers
-  in total (`ci-action-pinning`, `conventions-doc`, `lint-gate`), so the ordinal
-  no longer says anything. One sentence.
-**Amended 2026-09-22 by T-073's reviewer (PR #56), one line, no new work.** The
-`frontend` figure in this file's §A table moved again — it says **184**, T-061
-made it 198, and T-073 (one test deleted, fifteen added) makes a real run
-**223**. That is the eighth time the same figure has been wrong and the second
-time in a row nobody refreshed it. It is not a new task; it is this entry's
-argument getting stronger, and the answer stays **delete the figure**.
-**Done when:** the counts match a real run, and either a test asserts them
-against the suite or the numbers are replaced by something that cannot rot (a
-command to run, not a figure).
 
 ### T-067 — `climate_koppen` is declared and never emitted · S · todo
 **Depends on:** —
@@ -879,18 +821,16 @@ per-test isolation, `httpx.ASGITransport` for endpoint tests with no socket,
 contract tests that walk `openapi.yaml` in both directions, and mutation testing
 used to check the tests rather than the code. This is the same job T-002 did for
 `question-bank`: correct the guidance against the tests that actually got written.
-While there: line 198's `cd frontend && bun test # 65 tests today` went stale
-inside the very PR that wrote it (T-004 finished at 80). A count that is wrong
-after every task is worth dropping rather than maintaining.
+**Smaller since T-065 (PR #57):** the frontend and question-bank count comments
+are gone from the command block, and a guard stops them coming back.
 **Also, found by T-005's reviewer (PR #26):** the "No network in tests, ever"
 paragraph now ships a copy-pasteable block for reproducing CI's dead-proxy guard
 locally, and it omits `uv sync` — on a cold checkout the reader's first `uv run
 pytest` fails for a reason that has nothing to do with the guard. One line, and
 it belongs here rather than in T-005 because T-047 already owns correcting this
 file.
-**Done when:** the section describes the real suite, the marker is gone, the
-frontend line either carries a true number or no number, and the dead-proxy
-reproduction block runs from a cold checkout.
+**Done when:** the section describes the real suite, the marker is gone, and the
+dead-proxy reproduction block runs from a cold checkout.
 
 ---
 
