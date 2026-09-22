@@ -1,7 +1,7 @@
 # T-065 — Delete the stale suite-size counts, and stop them coming back — run log
 
 **Task:** T-065 · **Branch:** `claude/gifted-albattani-0vh9mr` · **PR:** #57
-**Started:** 2026-09-22 · **Outcome:** in progress
+**Started:** 2026-09-22 · **Outcome:** ready for merge
 
 ## Approved — 2026-09-22
 Recorded on the brief: `katechen150621@gmail.com — 2026-09-22, approved via chat on PR #57.`
@@ -193,3 +193,46 @@ Files:
 - `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts-guard.criteria.test.ts`
 - `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts.criteria.test.ts` (the worker's guard, not modified)
 - `/home/user/geo-discovery-zone/frontend/src/conventions-doc.test.ts` (not modified)
+
+## Round 6 — reviewer — 2026-09-22
+`Next step` on entry: `reviewer` → on exit: `human` (PR marked ready; brief swept and deleted)
+
+**I approved T-065 with nothing blocking. PR #57 is marked ready for review, with no escalation note.** Dkaattae merges it; I did not merge. The sweep went into the same PR and is pushed to `claude/gifted-albattani-0vh9mr`. The remote head is `31cd0bd`, which matches my local HEAD.
+
+- **CI:** all six jobs passed on the tester's head (`6b79cbe`). Those passes are what settle criterion 12, because this sandbox still can't install `react-simple-maps` (the same known 403), so the full `frontend` suite can't pass here.
+- **CI on the sweep commit (`31cd0bd`) was still running when I stopped.** That commit only changes `tasks.md`, `PROGRESS.md` and deletes the brief. Locally the four doc-guard files pass (167 tests), the full `frontend` suite fails only on the `UsMap.tsx` 403, `frontend` lint is clean, and `question-bank` passes.
+- **Brief status:** the brief is deleted, as the sweep requires. The commit before the sweep (`4d77653`) set it to `Status: approved`, `Next step: human`, and added my Sessions row and a note under Review.
+
+**Pre-review checks**
+- **PR state:** it was open and still draft, not merged.
+- **Every role's work is in the PR:** each role in the Sessions table has a commit in it.
+- **Each role stayed in its lane:**
+  - the expander changed only `tasks/` and `tasks.md`;
+  - the tester changed only its own test file and the brief;
+  - the worker changed only the files the Constraints list;
+  - the `runs/` commits are the orchestrator's run log.
+
+**Four findings, none blocking**
+1. **The guard's header names the wrong author.** `frontend/src/stale-suite-counts.criteria.test.ts:5-7` says the verifying session wrote it; the worker did. Added to T-074.
+2. **The guard skips two sections of `PROGRESS.md` that describe the present.** It only scans above `## Completed tasks`, but `## Known gaps in what is done` and `## Next` sit below that heading. Neither states a count today. Added to T-074.
+3. **One new test in `frontend/src/conventions-doc.test.ts` proves very little.** It only shows the regex matches text it is given. Its comment says so honestly, so I accepted it.
+4. **`testCountPattern` can misfire if another `.toMatch()` is added.** It has the `g` flag, and I confirmed that bun's `.toMatch()` moves its `lastIndex` between calls. There is only one such call today and the hazard is commented next to the pattern, so I accepted it with no task.
+
+The PR body settles every flag the worker and tester raised, with a reason for each.
+
+**Sweep**
+- **Brief deleted:** `tasks/T-065-stale-suite-counts.md`.
+- **`tasks.md`:**
+  - the T-065 entry is deleted;
+  - T-074 is unblocked and carries findings 1 and 2;
+  - T-047 lost its test-count clause, which this PR settled;
+  - T-064's `Depends on:` now reads T-040. The expander's note already said so, but the header still read `—`;
+  - the §A table has a new "Test counts in docs" row;
+  - the "Last swept" line is updated.
+- **`PROGRESS.md`:** T-065 is logged under Completed tasks, including where it differed from the brief. The "Repo and process" and "Known gaps" sections are updated, and the date is bumped.
+
+**Caveat:** every role in this orchestrated run shares one session id, mine included. So the independence check proves nothing here; each role's independence rests only on starting with a fresh context.
+
+## Ended
+
+**Outcome: ready for merge.** The reviewer approved with no blocking findings; PR #57 is marked ready for review and swept. No escalation. The orchestrator stops here per its one-task rule — `Next step: human` (merge) is outside its authority (`process-decisions.md` D-4).
