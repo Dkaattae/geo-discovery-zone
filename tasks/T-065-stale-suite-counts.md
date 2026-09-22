@@ -1,7 +1,7 @@
 # T-065 — Delete the stale suite-size counts, and stop them coming back
 
-**Status:** `fail`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** katechen150621@gmail.com — 2026-09-22, approved via chat on PR #57.
 **From:** [`tasks.md`](../tasks.md) T-065
 **Branch:** `claude/gifted-albattani-0vh9mr` — the branch this session was
@@ -18,6 +18,7 @@ you").
 | task-expander | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh |
 | worker | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh |
 | tester | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (orchestrated run; shared id, see Verdict) |
+| worker (round 2, fixing the tester's fail) | 2026-09-22 | cse_01KkjXcoL82TkpiL7GbimiCh (same id again — orchestrated run, see Handoff's round 2 note) |
 
 ## Goal
 
@@ -387,6 +388,117 @@ cd frontend && bun test && bun run lint && bun run typecheck   # 249/250, see ab
 cd question-bank && bun test && bun run typecheck              # fully green
 ```
 
+### Round 2 (this session) — fixing the tester's fail
+
+**TL;DR:** all three findings in the tester's Verdict are fixed. `frontend/src/stale-suite-counts.criteria.test.ts` (the guard) now catches spelled-out counts past twenty and comma-separated lists, correctly treats "no number before Postgres-only" as passing, and `conventions-doc.test.ts`'s criterion-11 comment no longer claims a test binds the README scan's scope when none does. Verified against both the round-1 guard's own tests and the tester's independent harness (`stale-suite-counts-guard.criteria.test.ts`, left untouched, all 33 now pass). Full suites green modulo the same pre-existing sandbox limitation from round 1.
+
+**What changed, and why each fix addresses the tester's evidence:**
+
+- **`frontend/src/stale-suite-counts.criteria.test.ts` (criterion 7)** — replaced the
+  fixed-length regex chain (`suiteCountPattern`, `(?:\s+[a-zA-Z][a-zA-Z-]*){0,3}`)
+  with a clause-and-token scanner (`hasSuiteCountClaim`, `isNumberToken`,
+  `clauses`). Root cause of the miss: a regex built from literal `\s+word`
+  repetitions can't cross a comma ("221 unit, endpoint and contract tests" —
+  the `,` after "unit" isn't whitespace, so the chain breaks) and its number
+  alternation was a fixed word list that stopped at "twenty" (`NUMBER_WORDS`
+  never had "thirty", "hundred", etc.). The new scanner tokenises each clause
+  on whitespace (stripping leading/trailing punctuation per token, so a
+  trailing comma no longer breaks anything) and walks backward from every
+  "tests" token looking for *any* token that states a number — digit or word,
+  with the word set now including tens (twenty…ninety) and scales
+  (hundred, thousand). A compound like "two hundred" or "a hundred" is caught
+  because "hundred" alone is in the set; nothing needs to parse the whole
+  numeral. Clause boundaries (sentence end, blank line, or a new list
+  item/heading/table row) stop a number at the end of one bullet from being
+  read as modifying an unrelated "tests" that opens the next — verified this
+  matters against the *real* docs, not just a hypothetical: `PROGRESS.md`
+  carries "...an HTML page with a 200.\n- Unit and endpoint tests..." and
+  `test-guidelines.md` carries "...twelve. Split by behaviour.\n- **Tests that
+  depend...**" — both would have been false positives under a naive
+  no-boundary window scan, and both are now covered by a regression test.
+- **Same file (criterion 3)** — the Postgres-only check used to match
+  `/\b([a-zA-Z]+|\d+)\s+Postgres-only\b/i`, whose first alternative
+  (`[a-zA-Z]+`) captures *any* preceding word, not just a number word. On
+  "with Postgres-only checks" it captured `"with"`, and `numberIn("with")`
+  being `null` made the equality assertion `expect(null).toBe(9)` fail —
+  exactly backwards, since "states no number at all" is the case criterion 3
+  explicitly allows. Fixed by capturing the immediately preceding word with a
+  plain `\S+` and only treating it as a stated number when `numberIn()`
+  actually recognises it as one (digit string or a single unit/tens word);
+  anything else — "with", "the" — now correctly falls through as "no number
+  stated" rather than a bogus mismatch. Added a dedicated harness-level
+  regression (`stale-suite-counts-guard.criteria.test.ts`'s own version of
+  this check already covered it and now passes; I added the equivalent
+  direct-read assertions to the guard file itself so the guard doesn't rely
+  solely on the tester's file to catch a regression here).
+- **`frontend/src/conventions-doc.test.ts` (criterion 11)** — took the "correct
+  the comment" branch of the disjunction rather than building the "scope-level
+  test" branch. The tester's mutation proved the existing "reach matters" test
+  never touches the real assertion (`readmeDoc.match(testCountPattern)` at the
+  line the comment was about) — it only runs the pattern against a synthetic
+  skeleton, so narrowing the real scan's scope to just the Checks block
+  currently turns nothing red (confirmed again this round, same mutation, same
+  result: green). Rewrote both the describe-block comment and the test's own
+  comment to say exactly that: what the synthetic test does prove (the pattern
+  has no built-in notion of "Checks block only" — matching depends purely on
+  the text handed to it) and what it does not prove (that the real,
+  whole-file scan at that assertion is protected against being narrowed). Also
+  named what *would* close that gap if it mattered later — a
+  `stale-suite-counts.criteria.test.ts`-style harness that edits a copy of the
+  real `README.md` and runs the real assertion against it — without building
+  it, since criterion 11's own text offers "correct the comment" as a
+  complete, sufficient alternative and README currently has nothing left
+  outside the Checks block to lose. I considered building the harness instead
+  (more thorough) but the comment-correction route is what the criterion
+  explicitly allows, is much less code for the same guarantee the criterion
+  asks for today, and doesn't add a speculative harness against a scope that
+  isn't exercised by any current content in README.md. Flagging for the
+  reviewer: if a future task adds a Checks-external count claim to README.md,
+  building that harness at that point closes the gap properly instead of
+  speculatively now.
+- Ran `bunx eslint --fix` on my own new guard-file edit once (a single
+  prettier formatting violation on an array literal); no other files touched
+  by that command.
+
+**Verified, this session:**
+- `frontend/src/stale-suite-counts.criteria.test.ts` alone: 29/29 pass.
+- `frontend/src/stale-suite-counts-guard.criteria.test.ts` (the tester's file,
+  untouched): 33/33 pass — including all four that were red in round 1
+  (criterion 7's three new cases, criterion 3's "no number" case).
+- `cd frontend && bun test`: 286 pass, 1 fail, 1 error — the same single
+  pre-existing `UsMap.tsx` / `react-simple-maps` sandbox failure from round 1
+  (confirmed again by `git stash`-ing this round's diff and re-running: 278
+  pass, 5 fail, 1 error on the unstashed tree — the same 4 tester-added red
+  tests plus the same UsMap failure, popped back after).
+- `cd frontend && bun run lint`: clean, 0 problems.
+- `cd frontend && bun run typecheck`: same 4 pre-existing `UsMap.tsx` errors
+  only (`Cannot find module 'react-simple-maps'`, `'us-atlas/...'`, two
+  implicit-any errors that follow from those missing types).
+- `cd question-bank && bun test && bun run typecheck`: 1251/1251 pass,
+  typecheck clean.
+- `git diff --stat`: only `frontend/src/conventions-doc.test.ts` and
+  `frontend/src/stale-suite-counts.criteria.test.ts` changed. No `bun.lock`,
+  `uv.lock`, or any file under `backend/`, `question-bank/`, `e2e/` or
+  `.github/` touched. No new dependency.
+
+**What I deliberately did not do, again:**
+- Did not touch `stale-suite-counts-guard.criteria.test.ts` (the tester's
+  file) — it is the tester's output, not mine to edit, and it now passes
+  unmodified against the fixed guard.
+- Did not build the criterion-11 "scope-level test" branch — see above.
+- Did not touch `test-guidelines.md`, `PROGRESS.md`, or `tasks.md` again —
+  round 1's edits to those three documents were not in the tester's fault
+  line, and the tester's per-criterion table already marked 1, 2, 4, 5, 8, 9,
+  10, 13 met.
+
+**A repeated oddity, same as round 1:** `$CLAUDE_CODE_REMOTE_SESSION_ID` for
+this round is again `cse_01KkjXcoL82TkpiL7GbimiCh` — identical to every prior
+role's recorded session, including the tester's. This is an orchestrated run
+(`runs/T-065-stale-suite-counts.md`), so the Sessions table cannot prove
+independence between rounds the way it's meant to; I did not carry over any
+reasoning from the earlier rounds beyond what is written in this file. Same
+caveat as round 1's Handoff — worth the next tester's attention.
+
 ## Verdict
 
 _Written by `tester`._
@@ -509,3 +621,20 @@ _Written by `reviewer`, only when it sends the PR back._
   but if the tester's environment has the same restriction, it's worth a P-n
   ticket about the sandbox's package allowlist rather than repeatedly
   rediscovering it per task.
+- **A fixed-length regex chain (`(?:\s+word){0,N}`) is the wrong shape for
+  "a number within a few words of a plural noun" once the vocabulary or the
+  punctuation around it is open-ended** — round 1's guard used exactly that
+  shape and a hand-picked number-word list, and both limits it hit (a comma
+  breaking the whitespace-only chain, a word list that stopped at "twenty")
+  are inherent to that shape, not one-off bugs. Round 2 replaced it with
+  tokenise-then-walk-backward-from-the-anchor-word, which has no such ceiling.
+  Worth remembering for the next guard of this kind: prefer a token scan over
+  a regex repetition count whenever the thing you're matching for is
+  open-ended (English numerals, in this case).
+- **The tester's own harness (`stale-suite-counts-guard.criteria.test.ts`)
+  turned out to be exactly the right regression suite for this fix** — I
+  changed nothing in it and all 33 of its tests, including the 4 that were
+  red, passed against the corrected guard on the first run. That is a good
+  sign for the loop's shape generally: a tester's red tests staying in the
+  tree is what let this round confirm the fix without re-deriving the
+  tester's own reasoning from scratch.

@@ -26,6 +26,18 @@ import { join } from "node:path";
  * — criterion 10 keeps those two as they are, and this file guards three
  * different documents that neither of them reads.
  *
+ * Round 2 (tester verdict, `tasks/T-065-stale-suite-counts.md`): round 1's
+ * regex-only detector missed spelled-out counts past "twenty" ("thirty
+ * tests", "a hundred tests") and a count with a list comma in it ("221 unit,
+ * endpoint and contract tests"), because a fixed-length `\s+word` regex chain
+ * can't cross a comma or a number word it never listed. It also flagged
+ * `PROGRESS.md:57`'s "no number stated" case as a mismatch, because its
+ * Postgres-only regex captured *any* preceding word (`with`, `the`) as if it
+ * were the number, rather than only a token that actually is one. Both are
+ * fixed below by scanning tokenised clauses for a genuine number token —
+ * digit or word, no fixed word-count ceiling — rather than matching a rigid
+ * regex shape.
+ *
  * Local file reads only; no network (`test-guidelines.md`, "No network in
  * tests, ever").
  */
@@ -36,7 +48,12 @@ const progressDoc = readFileSync(join(REPO_ROOT, "PROGRESS.md"), "utf8");
 const tasksDoc = readFileSync(join(REPO_ROOT, "tasks.md"), "utf8");
 const postgresTestSource = readFileSync(join(REPO_ROOT, "backend/tests/test_postgres.py"), "utf8");
 
-const NUMBER_WORDS = [
+// Number-word vocabulary: units one-nineteen, tens, and the scale words that
+// turn a two-word numeral into "hundred"/"thousand" tests. A compound like
+// "two hundred" or "twenty-one" is recognised because at least one of its
+// parts is in this set — the scanner below only needs one number token
+// inside its window, not a full numeral parse.
+const UNITS = [
   "one",
   "two",
   "three",
@@ -56,40 +73,71 @@ const NUMBER_WORDS = [
   "seventeen",
   "eighteen",
   "nineteen",
-  "twenty",
 ];
+const TENS = ["twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+const SCALES = ["hundred", "thousand"];
+const NUMBER_WORDS = new Set([...UNITS, ...TENS, ...SCALES]);
+
+/** True when a bare, punctuation-stripped word states some number, digit or spelled out. */
+function isNumberToken(word: string): boolean {
+  if (word.length === 0) return false;
+  if (/^\d[\d,]*$/.test(word)) return true;
+  return word.split("-").every((part) => NUMBER_WORDS.has(part));
+}
+
+/** The number a single digit token or a single unit/tens word states, or `null`. */
+function numberIn(word: string): number | null {
+  const clean = word.replace(/,/g, "");
+  if (/^\d+$/.test(clean)) return Number(clean);
+  const unitIndex = UNITS.indexOf(word);
+  if (unitIndex >= 0) return unitIndex + 1;
+  const tensIndex = TENS.indexOf(word);
+  if (tensIndex >= 0) return (tensIndex + 2) * 10;
+  return null;
+}
 
 /**
- * A claim that a suite has some number of tests — a digit or spelled-out
- * number, then the *plural* word "tests" within a few words. Deliberately
- * plural-only: `test-guidelines.md`'s own advice uses the singular ("at least
- * one test", "exactly one test red", "One test, twelve assertions") to talk
- * about a single test, not a suite's size, and criterion 9 requires those
- * three to survive untouched. Requiring "tests" rather than "tests?" is what
- * keeps this pattern from ever looking at them — see the "distinguishes
- * advice from a count" test below, which pins that on purpose rather than by
- * accident.
+ * Split prose into clauses that a claim cannot cross: a sentence end, a
+ * blank line, or the start of a new list item, heading or table row. Without
+ * this, a number that ends one bullet reads as if it modified an unrelated
+ * "tests" that starts the next — exactly the shape both `test-guidelines.md`
+ * ("...twelve. Split by behaviour.\n- **Tests that depend...") and
+ * `PROGRESS.md` ("...an HTML page with a 200.\n- Unit and endpoint tests...")
+ * carry today.
  */
-// No "g" flag: `toMatch()` runs this through `RegExp.prototype.test()`, which
-// advances a global/sticky regex's `lastIndex` across calls — the same shared
-// object is reused by every `test()` below, and a global flag here made the
-// second `.toMatch()` call in a block silently start mid-string and miss.
-const suiteCountPattern = new RegExp(
-  `\\b(?:\\d+|${NUMBER_WORDS.join("|")})\\b(?:\\s+[a-zA-Z][a-zA-Z-]*){0,3}\\s+tests\\b`,
-  "i",
-);
+function clauses(text: string): string[] {
+  return text.split(/[.!?;:](?=\s)|\n\s*\n|\n(?=\s*(?:[-*#|]|\d+\.)\s)/);
+}
 
-/** The number a token states, digits or spelled out, or `null` if it is not one. */
-function numberIn(token: string): number | null {
-  const word = token.toLowerCase().replace(/[^a-z0-9-]/g, "");
-  if (/^\d+$/.test(word)) return Number(word);
-  const index = NUMBER_WORDS.indexOf(word);
-  return index < 0 ? null : index + 1;
+/**
+ * True when some clause of `text` puts a number — digit or spelled out, of
+ * any size — within a few words before the *plural* word "tests". Plural
+ * only: `test-guidelines.md`'s own advice uses the singular ("at least one
+ * test", "exactly one test red", "One test, twelve assertions") to talk about
+ * a single test, not a suite's size, and criterion 9 requires those three to
+ * survive untouched. There is no fixed-length regex chain here, so a list
+ * comma between the number and "tests" ("221 unit, endpoint and contract
+ * tests") does not break the scan the way it broke round 1's regex.
+ */
+function hasSuiteCountClaim(text: string): boolean {
+  for (const clause of clauses(text)) {
+    const words = clause
+      .split(/\s+/)
+      .map((raw) => raw.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""))
+      .filter((word) => word.length > 0);
+    for (let i = 0; i < words.length; i++) {
+      if (words[i] !== "tests") continue;
+      for (let back = 1; back <= 5 && i - back >= 0; back++) {
+        if (isNumberToken(words[i - back]!)) return true;
+      }
+    }
+  }
+  return false;
 }
 
 /** Actual number of test functions in `backend/tests/test_postgres.py`. */
 function postgresTestFunctionCount(): number {
-  return (postgresTestSource.match(/^def test_/gm) ?? []).length;
+  return (postgresTestSource.match(/^(async )?def test_/gm) ?? []).length;
 }
 
 const COMPLETED_TASKS_HEADING = "## Completed tasks";
@@ -134,40 +182,70 @@ describe("test-guidelines.md states no suite-size count (T-065 criteria 1, 6, 9)
   });
 
   test("no digit or spelled-out suite-size claim survives anywhere in test-guidelines.md", () => {
-    expect(guidelinesDoc.match(suiteCountPattern)).toBeNull();
+    expect(hasSuiteCountClaim(guidelinesDoc)).toBe(false);
   });
 
-  test("the pattern is not vacuous: it matches the comments test-guidelines.md used to carry", () => {
-    expect("cd question-bank && bun test    # 19 tests today").toMatch(suiteCountPattern);
-    expect("cd frontend      && bun test    # 65 tests today").toMatch(suiteCountPattern);
+  test("the detector is not vacuous: it catches the comments test-guidelines.md used to carry", () => {
+    expect(hasSuiteCountClaim("cd question-bank && bun test    # 19 tests today")).toBe(true);
+    expect(hasSuiteCountClaim("cd frontend      && bun test    # 65 tests today")).toBe(true);
   });
 
-  test("the pattern also catches a spelled-out count, not only digits", () => {
-    expect("cd frontend && bun test    # nine tests today").toMatch(suiteCountPattern);
+  test("it also catches counts a fixed-length regex chain would miss (T-065 criterion 7)", () => {
+    // Words past "twenty": tens, "a hundred", "two hundred".
+    expect(hasSuiteCountClaim("cd frontend && bun test    # nine tests today")).toBe(true);
+    expect(hasSuiteCountClaim("The integration suite has thirty tests.")).toBe(true);
+    expect(hasSuiteCountClaim("The backend suite has a hundred tests.")).toBe(true);
+    expect(hasSuiteCountClaim("The backend suite has two hundred tests.")).toBe(true);
+    // A comma-separated list between the number and "tests" — the exact
+    // sentence T-065 deleted from PROGRESS.md.
+    expect(hasSuiteCountClaim("The backend has 221 unit, endpoint and contract tests.")).toBe(true);
+    // A digit numeral with a thousands comma in it.
+    expect(hasSuiteCountClaim("1,131 tests across the repo.")).toBe(true);
   });
 
-  test("criterion 9: the three singular 'a test' pieces of advice survive, untouched by the guard", () => {
+  test("criterion 9: the three singular 'a test' pieces of advice survive, untouched by the detector", () => {
     const advice = ["at least one test", "exactly one test red", "One test, twelve assertions"];
     for (const phrase of advice) {
       expect(guidelinesDoc).toContain(phrase);
-      expect(phrase).not.toMatch(suiteCountPattern);
+      expect(hasSuiteCountClaim(phrase)).toBe(false);
     }
+  });
+
+  test("a number does not carry forward from an unrelated, earlier bullet or sentence (T-065 criterion 7 regression)", () => {
+    // The shape both real docs carry today: a number ends one clause, an
+    // unrelated plural "tests" opens the next.
+    expect(
+      hasSuiteCountClaim(
+        "...rather than an HTML page with a 200.\n- Unit and endpoint tests, including",
+      ),
+    ).toBe(false);
+    expect(
+      hasSuiteCountClaim(
+        "**One test, twelve assertions.** When it fails you learn one thing instead of\n  twelve. Split by behaviour.\n- **Tests that depend on each other's order.**",
+      ),
+    ).toBe(false);
   });
 });
 
 describe("PROGRESS.md states no suite-size count above 'Completed tasks' (T-065 criteria 2, 4, 7)", () => {
   test("no digit or spelled-out suite-size claim survives above the heading", () => {
-    expect(progressStatus().match(suiteCountPattern)).toBeNull();
+    expect(hasSuiteCountClaim(progressStatus())).toBe(false);
   });
 
-  test("the pattern is not vacuous: it matches sentences PROGRESS.md used to state", () => {
-    expect("the same 221 tests run against either").toMatch(suiteCountPattern);
-    expect("687 tests (19 pre-existing, 190 added by T-010").toMatch(suiteCountPattern);
-    expect("30 black-box tests over HTTP").toMatch(suiteCountPattern);
+  test("the detector is not vacuous: it catches sentences PROGRESS.md used to state", () => {
+    expect(hasSuiteCountClaim("the same 221 tests run against either")).toBe(true);
+    expect(hasSuiteCountClaim("687 tests (19 pre-existing, 190 added by T-010")).toBe(true);
+    expect(hasSuiteCountClaim("30 black-box tests over HTTP")).toBe(true);
+    expect(hasSuiteCountClaim("13 Playwright tests")).toBe(true);
   });
 
-  test("the pattern also catches a spelled-out count above the heading, not only digits", () => {
-    expect("the frontend suite now runs nine tests").toMatch(suiteCountPattern);
+  test("it also catches a spelled-out count above the heading, including past twenty and with a list comma", () => {
+    expect(hasSuiteCountClaim("the frontend suite now runs nine tests")).toBe(true);
+    expect(hasSuiteCountClaim("the integration suite is thirty tests today")).toBe(true);
+    expect(hasSuiteCountClaim("the backend has a hundred tests")).toBe(true);
+    expect(
+      hasSuiteCountClaim("221 unit, endpoint and contract tests plus 30 integration tests"),
+    ).toBe(true);
   });
 
   test("criterion 4: the backend suite is still said to run against SQLite and Postgres", () => {
@@ -189,17 +267,35 @@ describe("PROGRESS.md states no suite-size count above 'Completed tasks' (T-065 
 });
 
 describe("PROGRESS.md:57's Postgres-only count matches reality, or states none (T-065 criterion 3)", () => {
-  test("the number before 'Postgres-only', if any, equals the real count of test functions", () => {
-    const match = progressStatus().match(/\b([a-zA-Z]+|\d+)\s+Postgres-only\b/i);
-    if (match === null) {
-      // No number stated at all is the other half of criterion 3's "either/or".
-      expect(match).toBeNull();
-      return;
-    }
-    expect(numberIn(match[1]!)).toBe(postgresTestFunctionCount());
+  test("'Postgres-only' is still mentioned above the heading", () => {
+    expect(progressStatus()).toMatch(/Postgres-only\b/i);
   });
 
-  test("the real count this criterion binds against is what it was surveyed as", () => {
+  test("a digit or number word immediately before 'Postgres-only' equals the real count; anything else states no number, which criterion 3 also allows", () => {
+    const match = progressStatus().match(/(\S+)\s+Postgres-only\b/i);
+    expect(match).not.toBeNull();
+    const word = match![1]!.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "");
+    const stated = numberIn(word);
+    if (stated === null) {
+      // e.g. "with Postgres-only checks" — no number stated at all, the
+      // other half of criterion 3's "either/or". A non-number word like
+      // "with" must NOT be mistaken for the count.
+      return;
+    }
+    expect(stated).toBe(postgresTestFunctionCount());
+  });
+
+  test("the detector is not vacuous: a wrong number before 'Postgres-only' would not equal the real count", () => {
+    expect(numberIn("eight")).not.toBe(postgresTestFunctionCount());
+    expect(numberIn("8")).not.toBe(postgresTestFunctionCount());
+  });
+
+  test("a genuinely non-numeric word before 'Postgres-only' states no number", () => {
+    expect(numberIn("with")).toBeNull();
+    expect(numberIn("the")).toBeNull();
+  });
+
+  test("the real count this criterion binds against is nonzero", () => {
     // Guards the test above against a vacuous pass if test_postgres.py ever
     // lost every `def test_` function.
     expect(postgresTestFunctionCount()).toBeGreaterThan(0);
@@ -238,6 +334,7 @@ describe("tasks.md's §A Foundations table states no suite-size count (T-065 cri
       for (const figure of staleFigures) {
         expect(row).not.toMatch(new RegExp(`\\b${figure}\\b`));
       }
+      expect(hasSuiteCountClaim(row ?? "")).toBe(false);
     });
   }
 

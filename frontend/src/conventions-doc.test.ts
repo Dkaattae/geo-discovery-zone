@@ -588,13 +588,32 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
   // not vacuous (`readme-test-count.criteria.test.ts:134-137`), and this
   // pattern did not.
   //
-  // T-065 criterion 11: the "not vacuous" test above proves the pattern can
-  // match, but not that the *scan* has to cover the whole file — and since
-  // T-062 README states no count anywhere, narrowing the assertion below from
-  // `readmeDoc` to just the Checks block currently stays green too (tried by
-  // hand, reverted). The "reach matters" test below is what actually backs the
-  // whole-file claim: a synthetic document, independent of what README says
-  // today, with a stale count placed outside the Checks block.
+  // T-065 criterion 11 (round 2 — round 1's version of this comment claimed
+  // more than the test below actually binds, per the tester's verdict): the
+  // "not vacuous" test above proves `testCountPattern` can match something.
+  // It does not prove the assertion just below ("no digit or spelled-out
+  // count ... anywhere in README.md", scanning the whole `readmeDoc`) has to
+  // stay scanning the whole file rather than narrow to just the Checks
+  // block. As of T-062, README states no count of tests anywhere, so
+  // narrowing that assertion from `readmeDoc` to `codeBlock(sectionOf(...,
+  // "## Checks"))` currently leaves every test in this file green too (tried
+  // by hand: nothing goes red) — there is nothing stale left outside Checks
+  // for a narrower scan to miss, so no test can currently distinguish the two
+  // scopes against the real file.
+  //
+  // The test below does not close that gap. It runs `testCountPattern`
+  // against a synthetic skeleton built from scratch, never against the real
+  // assertion above, so it would stay green even if that assertion's scope
+  // were narrowed tomorrow. What it does show, and all it claims to show, is
+  // narrower: the pattern itself carries no notion of "Checks block only" —
+  // whether it matches depends solely on the text handed to it, not on where
+  // in README.md that text came from. That is why scanning `readmeDoc` (the
+  // whole file) above is a deliberate choice, not an accident of the
+  // pattern's shape — but the choice itself is presently unguarded. If a
+  // future README states a stale count outside the Checks block, catching
+  // that is what would need a new test built the way `stale-suite-counts.
+  // criteria.test.ts` tests `PROGRESS.md`'s scope boundary: by editing a copy
+  // of the real file and running the real assertion against it.
   const NUMBER_WORDS =
     "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen";
   const testCountPattern = new RegExp(
@@ -610,14 +629,15 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
     expect("The nine Postgres-only tests skip on SQLite, so nobody").toMatch(testCountPattern);
   });
 
-  test("the pattern's reach matters: a stale count outside the Checks block would be missed by a narrower scan (T-065 #11)", () => {
-    // README currently states no count of tests at all (T-062), so scanning
-    // only the Checks code block passes just as vacuously as scanning the
-    // whole file today — that mutation was tried and it stayed green. This
-    // is the test that actually backs the claim above: built on a synthetic
-    // skeleton rather than lifted from readmeDoc, so it stays true regardless
-    // of what README happens to say, and it would catch a future PR that
-    // narrowed the assertion above from `readmeDoc` to just the Checks block.
+  test("the pattern has no built-in Checks-block scope: it matches or not based only on the text it is given (T-065 #11)", () => {
+    // This does NOT exercise or bind the real assertion above
+    // (`readmeDoc.match(testCountPattern)`) — see the comment above the
+    // describe block for what that means and does not mean. It shows only
+    // that `testCountPattern` itself is scope-agnostic: fed the whole
+    // skeleton it matches the stale count; fed just the Checks block (where
+    // that count never appears) it does not. Built on a synthetic skeleton
+    // rather than lifted from readmeDoc, so this stays true regardless of
+    // what README happens to say today.
     const skeleton = [
       "# Geo quiz",
       "",
