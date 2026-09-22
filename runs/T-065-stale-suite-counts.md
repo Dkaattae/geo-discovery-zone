@@ -76,3 +76,43 @@ T-065 worker done. Pushed commit 984db19 to origin/claude/gifted-albattani-0vh9m
 Full detail, file-by-file reasoning, and the exact mutation-testing steps are in `tasks/T-065-stale-suite-counts.md`'s `## Handoff` and `## Notes` sections — that's the tester's entire briefing, per process.md step 3.
 
 Files touched: `test-guidelines.md`, `PROGRESS.md`, `tasks.md`, `frontend/src/conventions-doc.test.ts`, `frontend/src/stale-suite-counts.criteria.test.ts` (new), `tasks/T-065-stale-suite-counts.md`.
+
+## Round 3 — tester — 2026-09-22
+`Next step` on entry: `tester` → on exit: `worker`
+
+**T-065 tester verdict: fail (round 1). Next step: `worker`.** The document edits are correct, but the worker's guard isn't. It misses spelled-out counts above twenty and counts with a comma in them (criterion 7), and it rejects a document that criterion 3 explicitly allows. Criterion 11 isn't met either: the rewritten comment still claims a test that doesn't exist. My commit `6708214` is pushed to `claude/gifted-albattani-0vh9mr`, and the local HEAD matches `origin`.
+
+**Independence is weaker than a separate session.** This is an orchestrated run (`runs/T-065-stale-suite-counts.md` exists), and every role shares session `cse_01KkjXcoL82TkpiL7GbimiCh`, so the Sessions check proves nothing. My independence rests only on being a freshly spawned agent that didn't see the work or the worker's reasoning. That depends on the orchestrator having spawned me correctly, which I can't verify. The Verdict says this.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1, 2, 4, 5, 9 | met | Direct tests with my own detector. I broke each criterion once on purpose and its test went red. |
+| 3 | document met, guard wrong | The "9" is correct: `test_postgres.py` has 9 test functions. But removing the number, which criterion 3 allows, turns the guard red: its regex at `stale-suite-counts.criteria.test.ts:193` reads the word "with" as the number. |
+| 6 | met | Adding `# 223 tests today` to the real `test-guidelines.md` turns the guard red. |
+| 7 | **not met** | "9 tests" and "nine tests" are caught. `thirty tests`, `a hundred tests` and `221 unit, endpoint and contract tests` all stay green in a full-suite run. The number words stop at "twenty", and a comma breaks the match. |
+| 8 | met | The same sentence below the heading leaves the whole suite green. The history section is byte-identical to the base commit `7524e5c`. |
+| 10, 13 | met | No test asserts a package total, the two README detectors stay separate, and no lockfile, package or network change. |
+| 11 | **not met** | I narrowed the README scan at `conventions-doc.test.ts:606` to the Checks block and nothing went red. The new comments at `:591-597` and `:614-620` still say the synthetic "reach matters" test would catch that narrowing, and it doesn't. |
+| 12 | met except one pre-existing failure | `frontend` lint is clean; `question-bank` has 1251 passing tests and a clean typecheck. `frontend`'s `bun test` and typecheck fail only on `UsMap.tsx`, whose map packages this sandbox's registry refuses to serve (403). The base commit fails the same way. |
+
+**Not verified: a fully green `frontend` run.** The permission layer refused my attempt to fetch the missing packages from another registry, and I didn't try to get around it. CI on PR #57 has to show that.
+
+**Tests added:** `frontend/src/stale-suite-counts-guard.criteria.test.ts`, 33 tests.
+- **Direct reads** of the three documents, using a detector I wrote from the criteria, not from the worker's pattern.
+- **A harness** that copies the guard and the files it reads into a temp directory, makes one edit, and runs `bun test` on the copy with all proxies pointed at a dead port. It never writes the real repo files.
+- **Four tests are red on purpose** and stay as regression tests: the three criterion 7 sentences and the criterion 3 "no number" case.
+- Full `frontend` suite with the file in place: 278 pass, 5 fail (those 4 plus the `UsMap` one). Lint is clean.
+
+Criterion 11 has no automated test. It allows either fixing the comment or adding a test, and a test that demands red would rule out the comment fix. The evidence is recorded as a mutation result instead.
+
+**Mutations:** every one was reverted. `git status` was clean apart from my new file, and the temp directories and base worktree are removed. The full table is in the brief's Verdict.
+
+**Two notes for the reviewer (not criteria):**
+- The guard's header says the tester wrote it; the worker did.
+- `stale-suite-counts.criteria.test.ts:202`'s test name promises more than its `> 0` assertion checks.
+
+**Brief updates:** Status `fail`, Next step `worker`, the Fault line filled in, and a tester row added to Sessions.
+
+Files:
+- `/home/user/geo-discovery-zone/tasks/T-065-stale-suite-counts.md`
+- `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts-guard.criteria.test.ts`
