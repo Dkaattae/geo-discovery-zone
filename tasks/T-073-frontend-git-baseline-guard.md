@@ -1,7 +1,8 @@
 # T-073 — The same expired-git-baseline guard, now in `frontend/`
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — fix finding 1 (the new test file fails against itself
+now that it is tracked). See `## Review`.
 **Approved:** orchestrator — 2026-09-22, unattended run. See `runs/T-073-frontend-git-baseline-guard.md`.
 **From:** [`tasks.md`](../tasks.md) T-073 (§A Foundations)
 **Branch:** `claude/task-t073-orchestrator-2ek0bi` — harness-assigned to this
@@ -18,6 +19,7 @@ the reviewer approves.
 | task-expander | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` |
 | worker | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` |
 | tester | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run, see Verdict |
+| reviewer | 2026-09-22 | `cse_01Rpu7pnkLevs6ixvYy6r7zH` — same id: orchestrated run (D-3) |
 
 ## Goal
 
@@ -469,3 +471,121 @@ No source file was edited — every mutation above was temporary and reverted.
   deliberately reusing a session or a bug in how the row was stamped; either
   way it is outside a worker's authority to fix and is named for whoever
   reads this next.
+
+## Review
+
+Written by `reviewer`, 2026-09-22. **Status: changes requested.
+Next step: `tester`, finding 1.**
+
+**TL;DR:** The worker's change is good and I would approve it on its own — the
+deletion is the right call, E-12 records it honestly, and the file it touches is
+10 pass / 0 fail at both clone depths. **The blocker is the tester's own new test
+file:** `frontend/src/git-baseline-guard.criteria.test.ts` fails against itself
+now that it is committed, because its scan reads `git ls-files` and it was
+verified while still untracked. `bun test` in `frontend/` is **red on this
+branch**, so criterion 1 does not hold as committed.
+
+### Finding 1 — blocking. The new guard test fails on the committed branch
+
+**File:** `frontend/src/git-baseline-guard.criteria.test.ts:55` (the offending
+text) and `:138-150` (the test that flags it).
+
+Reproduced on `claude/task-t073-orchestrator-2ek0bi` at `58dc2d4`, in a full
+clone with `refs/remotes/origin/main` = `393b6ae`:
+
+```
+(fail) T-073 criterion 4 — no test in frontend/src can pass because git failed
+       > every git call is followed by a throw on a non-zero exit
++   "frontend/src/git-baseline-guard.criteria.test.ts: [\"git\", \"ls-files\", …]"
+```
+
+`bun test` in `frontend/`: **222 pass / 2 fail / 1 error**. One of those two
+failures is this test; the other is the pre-existing `react-simple-maps` gap
+(finding 4 below), so the branch as committed has **one new failure of its own**.
+
+**Why the Verdict did not see it.** `REPO_TEST_FILES` at `:50` comes from
+`git ls-files`, which lists **tracked** files. The tester ran the suite before
+committing the new file, so the file excluded itself from its own scan. The
+moment it was committed it entered the file list, and the `["git", "ls-files",
+…]` written in prose in the doc comment at `:55` matched the argument-list regex
+at `:142` with no `throw` in the following 400 characters.
+
+That is also the nuance the Verdict records at "One nuance": the scan is
+described as reading argument lists and not prose, and this is a prose example of
+an argument list. The self-exclusion is the more important half — a scan that
+enumerates tracked files cannot be trusted until it has been run with itself
+tracked.
+
+**What would make it acceptable:** `bun test` in `frontend/` shows **no failure
+other than the `react-simple-maps` one**, run on a branch where
+`git-baseline-guard.criteria.test.ts` is already committed — and the criterion-4
+tests still go red under the Verdict's own mutation M2 (replacing `trackedFiles`'
+throw with a bare `return`). Fixing it by dropping the criterion-4 "throw"
+assertion, or by excluding the guard file from its own scan, would not be
+acceptable: the first loses the assertion, the second reintroduces the blind spot
+that hid this. Narrowing the scan so it reads code rather than comments, or not
+writing an example argument list in a comment, both work.
+
+**Re-run the whole suite after committing, not before.** Every scan in this repo
+that starts from `git ls-files` has this property.
+
+### Finding 2 — not blocking. The guard file is a frontend test asserting repo-wide facts
+
+`frontend/src/git-baseline-guard.criteria.test.ts:153-172` scans
+`question-bank/`, `backend/` and `e2e/` test files, so a git-revision comparison
+added in `question-bank/` turns **`frontend`'s** suite red. Criterion 5 is
+repo-wide and there is no repo-level suite, so there was nowhere better; the
+precedent (`level-window-claim.criteria.test.ts` scanning all tracked files) is
+the same shape. Recorded so the surprise lands on a reader rather than on a
+future `question-bank` task. No change requested.
+
+### Finding 3 — not blocking. The criterion-4 heuristic is brittle by construction
+
+`:138-150` asserts "an `exitCode !== 0` and a `throw` appear within 400
+characters after a `git` argument list". It found a real defect once (this one),
+and it will also flag a correctly-written call whose error handling sits in a
+helper or more than 400 characters away. Acceptable for a defect that has now
+recurred four times, but it is a trip-wire with a false-positive mode, and
+finding 1 is its first false positive. Worth a line in whatever fixes finding 1
+rather than a task of its own.
+
+### Worker and tester flags — all disposed of here
+
+| Flag | Raised by | Disposition |
+|---|---|---|
+| Criterion 8: ending (a) vs (b) | worker | **(b) accepted.** A git-free check of *body-text* immutability needs a pinned copy or hash inside the test, which is the same expiring baseline in a new place. E-12 says so in "What survives"; that is the right record and closes the question. |
+| `react-simple-maps` failure not filed in `tasks.md` | worker, endorsed by tester | **Agreed, no task filed.** `react-simple-maps`, `@types/react-simple-maps` and `us-atlas` are declared in `frontend/package.json:49,62,69` and present in `bun.lock`; `frontend/node_modules` in this sandbox simply does not contain them, and `tsc` fails only on `UsMap.tsx` for the same reason. Nothing in the repo can fix a mirror that returns 403. If it ever reproduces on a machine that *can* install, that is a new task. |
+| Session-id collision across all four rows | worker, tester | **Known and accepted, no action.** `process-decisions.md` D-3 and "Known weaknesses" already record that every role in an orchestrated run shares one id and that the Sessions check degrades to attestation. Both roles said so plainly instead of claiming the check passed, which is the behaviour the entry asks for. Not a T-073 defect; if it is to be escalated, it is a `process-tasks.md` `P-n` ticket done by hand. |
+| Criterion 3 vs the literal shas in `ci-action-pinning.test.ts:169-170` | tester | **Agreed: criterion 3 passes.** The brief defines "resolves a git revision" as passing something to `git`, and those two shas are E-5 action pins compared against `ci.yml`'s text. The test asserting "no sha reaches `git`" is the right reading. |
+
+### What I checked and found clean
+
+- **The worker's change fits.** The deletion matches E-11/PR #55's precedent
+  exactly; the replacement comment at `level-window-claim.criteria.test.ts:166-176`
+  explains what was removed and points at E-12 instead of leaving a silent gap.
+  E-12 is in E-11's voice and shape, appended after it, no existing `## E-n`
+  heading touched. No re-pinning anywhere.
+- **Scope.** The diff is six files: the brief, `runs/`, `tasks.md`,
+  `engineering-decisions.md`, the edited test and the new test — all inside
+  Constraints. `ci.yml`, `openapi.yaml`, the plan, migrations,
+  `frontend/package.json` and `frontend/bun.lock` are untouched; no dependency
+  added; no text a child reads.
+- **Lanes.** The expander's commit (`5d1872b`) touches only `tasks.md` and
+  `tasks/`; the tester's (`3310d0b`) only a test file and the brief. One
+  irregularity, **not blocking and not the worker's fault**: `1472a68`, "T-073
+  worker: checkpoint mid-step (orchestrator commit, uncommitted worker output)",
+  is the orchestrator committing the worker's `engineering-decisions.md` and test
+  edits because the worker's session ended without committing them. The content is
+  the worker's and no role's text was authored out of lane, but `process.md`'s
+  role table does not give the orchestrator source files, and a worker that does
+  not commit is the failure D-8 is about. A loop question for
+  `process-tasks.md`, by hand — not a `T` task, and not something to fix here.
+- **`bun run lint` in `frontend/`** — clean, exit 0, zero warnings.
+- **`bun run typecheck` in `frontend/`** — fails only on `UsMap.tsx`, the
+  environment gap above.
+
+### Not swept
+
+The brief stays, `tasks.md` keeps its T-073 entry and nothing was logged in
+`PROGRESS.md`: the task is not done, and sweeping would delete these findings.
+PR #56 stays **draft**.
