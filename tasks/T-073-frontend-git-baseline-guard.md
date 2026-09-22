@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-09-22, unattended run. See `runs/T-073-frontend-git-baseline-guard.md`.
 **From:** [`tasks.md`](../tasks.md) T-073 (§A Foundations)
 **Branch:** `claude/task-t073-orchestrator-2ek0bi` — harness-assigned to this
 session, already at `origin/main`'s tip `393b6ae`. This line is the authority
