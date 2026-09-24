@@ -8,7 +8,7 @@
 assigned. Every later role pushes here, not to `task/T-074-*`
 (`CLAUDE.md` "Branches", `process.md` "When the environment names the branch for
 you").
-**PR:** #NN, opened draft at expand time from the branch above.
+**PR:** #58, opened draft at expand time from the branch above.
 **Fault:**
 
 **Sessions:**
@@ -134,9 +134,10 @@ locator once a file moves.
 
 12. **The READMEs are checked by the same detector as the other docs.** The
     count-claim check applied to the three READMEs is the same function the
-    guard applies to `test-guidelines.md` and `PROGRESS.md`. No second
-    implementation of count-claim detection is added anywhere under
-    `frontend/src/`. T-065's criterion-10 test ("the two README detectors stay
+    guard applies to `test-guidelines.md` and `PROGRESS.md`. The worker's
+    commits add no second implementation of count-claim detection. (This binds
+    the guard, not the tester: an independent detector written *to verify* this
+    task, as T-065's tester wrote one, is not a violation.) T-065's criterion-10 test ("the two README detectors stay
     two", `stale-suite-counts-guard.criteria.test.ts:271`) still passes
     unmodified.
 
@@ -190,12 +191,14 @@ locator once a file moves.
     subprocess a test spawns runs with every proxy variable pointed at a dead
     loopback port, as `guardPassesWith` does today.
 
-22. **The diff stays inside its files.** Outside `tasks/T-074-readme-suite-counts.md`,
-    the only files changed are `backend/README.md`,
-    `backend/integration/README.md`, `e2e/README.md`, and test files under
-    `frontend/src/`. Nothing under `backend/app/`, `backend/tests/`,
-    `question-bank/`, `.github/`, `.claude/`, `openapi.yaml`, `PROGRESS.md` or
-    `tasks.md` changes.
+22. **The worker's and tester's commits stay inside their files.** Outside
+    `tasks/T-074-readme-suite-counts.md`, the only files those commits change
+    are `backend/README.md`, `backend/integration/README.md`, `e2e/README.md`,
+    and test files under `frontend/src/`. They change nothing under
+    `backend/app/`, `backend/tests/`, `question-bank/`, `.github/`, `.claude/`,
+    and they leave `openapi.yaml`, `PROGRESS.md` and `tasks.md` alone. (The
+    expander's and reviewer's own edits to `tasks.md` and `PROGRESS.md` are
+    expected bookkeeping, per `process.md` step 6, and are not counted here.)
 
 ## Out of scope
 
