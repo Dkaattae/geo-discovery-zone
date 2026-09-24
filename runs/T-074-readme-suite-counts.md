@@ -1,7 +1,7 @@
 # T-074 — Three READMEs state suite sizes nothing checks — run log
 
 **Task:** T-074 · **Branch:** `claude/happy-knuth-slmllf` · **PR:** #58
-**Started:** 2026-09-24 · **Outcome:** in progress
+**Started:** 2026-09-24 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-09-24
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -104,3 +104,65 @@ The run paused at the step-2 gate after round 1 because a human was present; the
 **For the reviewer:**
 - **Unlisted e2e edit:** the worker changed the `e2e/README.md` heading `## Two things these tests found` to `## Two things the suite found`, which the brief did not list. Criterion 6 ("anywhere") requires it, since "Two … tests" is a count claim. I judged it within "removing a number"; the wording is the reviewer's call.
 - **Replacement wording:** the prose that replaced the removed figures is also for the reviewer.
+
+## Round 4 — reviewer — 2026-09-24
+`Next step` on entry: `reviewer` → on exit: `human` (brief then swept)
+
+**TL;DR: I approved T-074, so PR #58 is ready for review with no escalation. The sweep is committed and pushed to `claude/happy-knuth-slmllf`, and the branch head is `6f890ba`, the same locally and on the remote. Next: Dkaattae merges. I did not merge.**
+
+**Checks before the review:**
+- **PR state:** #58 was open and still draft, and nothing had merged it.
+- **Every role's work is in the PR:**
+  - expander: `6578acc`, `163262f`
+  - worker: `36a5c84`
+  - tester: `10d4603`, `9dbe081`
+  - orchestrator: its `runs/` log
+- **Nothing is stranded on another branch.**
+- **Lanes:**
+  - The expander touched only `tasks/` and `tasks.md`.
+  - The worker touched the three READMEs, two `frontend/src` test files and the brief.
+  - The tester added one test file and edited the brief. It touched no source.
+
+**Review:**
+- **The diff is minimal and fits the file it extends.** It reuses `hasSuiteCountClaim()` and `isNumberToken()`, and a missing heading throws, as the rest of that file already does.
+- **The READMEs are still true.** Each number was replaced by naming the suite.
+- **Speed:** the three guard-related test files run together in under two seconds.
+
+**Worker flags, all decided:**
+- **e2e heading renamed:** accepted. It is the minimum edit criterion 6 forces.
+- **Heading lookup matches whole lines only:** accepted. Criterion 16 needs it.
+- **Replacement wording:** accepted.
+- **Shared session id:** already a documented known weakness in `.claude/agents/README.md` and `process-decisions.md`, so I filed nothing.
+
+**Non-blocking, not filed:** three lines were not re-wrapped after editing (`backend/integration/README.md:18` and `:54`, and the guard's header comment). They render the same and lint passes.
+
+**Envelope (why there is no escalation):**
+- The tester returned pass.
+- CI on the pre-sweep head `84293cf`: frontend, backend, backend-postgres and question-bank all succeeded. integration and e2e were still running when I marked the PR ready.
+- CI has not finished on the new head `6f890ba` either. Its `mergeable_state` was `unstable`, which means checks were still pending.
+- There is no dependency, no change to `openapi.yaml`, a migration or the plan, no text a child reads, and no product decision.
+
+**My local run after the sweep:**
+- **Guard and doc tests:** 214 pass across five files.
+- **Full frontend suite:** 342 pass and 1 fail. The failure is `react-simple-maps` failing to install in this sandbox, the same failure as on the base commit.
+- **Lint:** clean.
+- **question-bank:** 0 failures.
+
+**Commits I pushed:**
+- **`621e625`** adds the `## Review` section to the brief, sets Status to `approved` and Next step to `human`, and adds the reviewer row to the Sessions table.
+- **`6f890ba`** is the sweep:
+  - It deletes `tasks/T-074-readme-suite-counts.md`.
+  - It removes T-074 from `tasks.md`, adds a sweep note there, and updates the §A "Test counts in docs" row to list the three READMEs and the Known-gaps and Next sections.
+  - It adds a T-074 entry under Completed tasks in `PROGRESS.md`, updates the status bullet there, and removes the now-closed Known-gaps bullet.
+- **Queue:** no other task depended on T-074. A rough scan of the other live `.md` files found no further count claims.
+
+**PR body:** rewritten with the TL;DR, the review, a criterion-by-criterion table of what verified each, and what was deliberately not done.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-074-readme-suite-counts.md (deleted; the review section is preserved at `621e625`)
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/58
+
+## Run ended
+The reviewer approved and marked PR #58 ready. The orchestrator stops here; merging is Dkaattae's.
