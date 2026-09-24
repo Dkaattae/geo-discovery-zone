@@ -68,3 +68,39 @@ The run paused at the step-2 gate after round 1 because a human was present; the
 - **Tester, with the reviewer able to overturn:** decide whether the e2e heading rename counts as "removing a number" or as rewording the brief did not allow.
 - **Orchestrator or human:** the Sessions table shows the same session id for the expander and the worker. `$CLAUDE_CODE_REMOTE_SESSION_ID` returns the orchestrator's id inside subagents, so the tester's row will not show a separate session either.
 - **Needs no action:** `PROGRESS.md` needed no edit. The widened scan passes on the file as it is.
+
+## Round 3 — tester — 2026-09-24
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-074 tester verdict: pass. All 22 criteria hold.** The Status is `pass` and the Next step is `reviewer`. I pushed to `claude/happy-knuth-slmllf` and the push landed: local and origin are both at `9dbe081`. All 7 CI checks, including `frontend (typecheck, lint, test)`, succeeded on the tester's test commit `10d4603`. The only later commit, `9dbe081`, edits nothing but the brief.
+
+**My independence is weaker than a separate session would give.** This run is orchestrated, and `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_01VbP99X5Wcy9gLq5di9UETL`) is the same id the expander and worker recorded. So the session-id check proves nothing here. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. The Verdict says this, and my Sessions row is marked as orchestrated with a shared id.
+
+**What I added:**
+- **`/home/user/geo-discovery-zone/frontend/src/readme-suite-counts.criteria.test.ts`** has 38 tests, one set per criterion. It contains:
+  - its own count-claim detector, written from the brief's definition (criterion 12 allows a verifying detector);
+  - its own harness that runs the guard against edited scratch copies, with all proxy variables pointed at a dead loopback port.
+- **The Verdict section** in `/home/user/geo-discovery-zone/tasks/T-074-readme-suite-counts.md`, with a table giving criterion, verdict and evidence.
+
+**Evidence:**
+- **Criteria 9–11 and 13–16 (the guard on edited copies):** every edit gives the result the brief expects:
+  - red for each restored claim, word-count and list-comma sentence, and Postgres-only number;
+  - red when a count goes into Known gaps, after `## Next`, or at the end of the file;
+  - green at both edges of the history section;
+  - red for six different heading renames.
+- **Mutations to the guard:** I made 8 and reverted all of them; the tree is clean.
+  - **6 caught by a named criterion test:** the README check stubbed out (9 tests went red), the scan stopping before `## Next` (criterion 14 went red), the scan skipping Known gaps (criterion 13 went red), and the Postgres-only file loop blanked (criterion 11 went red).
+  - **1 caught by my history-edge tests:** a scan that starts at `## Completed tasks` turned the control and both criterion-15 tests red.
+  - **1 weak mutation:** a substring fallback for the heading lookup was caught by the guard's own `\n## Next\n` slice assertion rather than a change I could see in my own results.
+- **Mutations to the READMEs:** restoring a count, or the old e2e heading, turned my direct-read tests for criteria 1, 2, 5 and 6 red.
+- **Criterion 18:** the T-065 harness diff adds 4 lines to `GUARD_INPUTS` and removes none. The number of tests is 28 before and 28 after.
+- **Criteria 20 and 22:** the worker's commit touches only the 3 READMEs, 2 test files under `frontend/src` and the brief. No manifest or lockfile changed.
+- **Criterion 19 (the full gate):**
+  - **Lint:** exits 0 locally.
+  - **`bun test` locally:** 342 pass, 1 fail. The failure is `Cannot find package 'react-simple-maps'`, because the sandbox cannot install that package; it is the same on the base commit.
+  - **Typecheck locally:** its only errors are in `UsMap.tsx`, from the same missing packages.
+  - **CI:** passes on the tester's test commit `10d4603`.
+
+**For the reviewer:**
+- **Unlisted e2e edit:** the worker changed the `e2e/README.md` heading `## Two things these tests found` to `## Two things the suite found`, which the brief did not list. Criterion 6 ("anywhere") requires it, since "Two … tests" is a count claim. I judged it within "removing a number"; the wording is the reviewer's call.
+- **Replacement wording:** the prose that replaced the removed figures is also for the reviewer.
