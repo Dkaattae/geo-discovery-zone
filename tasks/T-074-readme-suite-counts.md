@@ -1,7 +1,7 @@
 # T-074 — Three READMEs state suite sizes nothing checks
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** katechen150621@gmail.com — 2026-09-24, approved via chat in the orchestrator session. See `runs/T-074-readme-suite-counts.md`.
 **From:** [`tasks.md`](../tasks.md) T-074
 **Branch:** `claude/happy-knuth-slmllf`. This is the branch this session was
@@ -17,6 +17,7 @@ you").
 |---|---|---|
 | task-expander | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL |
 | worker | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL |
+| tester | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL (orchestrated; shared id, see Verdict) |
 
 ## Goal
 
@@ -400,6 +401,52 @@ bun test && bun run typecheck && bun run lint
 ```
 
 ## Verdict
+
+**TL;DR: pass.** All 22 criteria hold. The tester's 38 new tests pass, and 8 guard mutations each turned the matching test red. Lint is clean. The full `bun test` and `typecheck` fail locally only on `react-simple-maps`/`us-atlas`, which cannot be installed in this sandbox (the same failure is on the base commit). CI's `frontend (typecheck, lint, test)` job is green on the worker's head `335ca51`. **Next: reviewer.**
+
+**Independence is weaker than a separate session.** This run is orchestrated (`runs/T-074-readme-suite-counts.md` exists), and `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01VbP99X5Wcy9gLq5di9UETL`, the same id the expander and worker recorded. So the session-id check proves nothing here. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's conversation or reasoning. That depends on the orchestrator having spawned me correctly, which I cannot verify.
+
+**Tests added:** `frontend/src/readme-suite-counts.criteria.test.ts` (38 tests). It has its own count-claim detector, written from the brief's definition. Criterion 12 allows a verifying detector. It also has its own scratch-copy harness. Every edit runs the guard in a `bun` subprocess with all six proxy variables set to `http://127.0.0.1:1`, and each edit helper throws if the edit changed nothing.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1, 4, 6 | pass | tester detector finds no claim in any of the three READMEs. Mutation: restoring `221 tests` in `backend/README.md`, or `## Two things these tests found` in e2e, turns them red |
+| 2 | pass | no number word or digit before `Postgres-only`. Restoring `9 Postgres-only` turns it red |
+| 3 | pass | the five targets are in the first bash block, and the `make -C backend test` line has `SQLite` and `skip` |
+| 5 | pass | intro has `over HTTP` and ``never import `app` ``. Known limits has `restart tests` and `skip`. Mutating `restart tests skip` turns it red |
+| 7 | pass | e2e intro has `Playwright` and `Chromium` |
+| 8 | pass | both singular sentences are present. The guard is green on unedited copies (control test) |
+| 9a/b/c | pass | each restored claim: guard red |
+| 10 | pass | `thirty tests` and `221 unit, endpoint and contract tests` appended to each README: red ×6 |
+| 11 | pass | `(9 …)` and `(nine Postgres-only ones skip)` with no tests count: red ×2 |
+| 12 | pass | review: the README describe block calls `hasSuiteCountClaim()`. `wordsBeforePostgresOnly()` only pulls the word before `Postgres-only` and reuses `isNumberToken`, so it does not detect count claims. The T-065 criterion-10 test passes unmodified. Mutation M1 (README assertion replaced with `expect(false)`) turned all 9 of criteria 9–10 red, so the READMEs depend on that one detector |
+| 13 | pass | red. M8 (scan starts at `## Next`) turns this test red |
+| 14 | pass | after `## Next` and as the last line of the file: red. M6 (scan stops at `## Next`) turns both red |
+| 15 | pass | after `## Completed tasks` and on the line just before Known gaps: green. The three history figures are present |
+| 16 | pass | Known gaps renamed to `## Known gaps`, `## Gaps` or `… (live)`, and `## Next` renamed to `## Up next`, `## Next steps` or `## Nxt`: all red |
+| 17 | pass | the header credits T-065's `worker`, names T-074, and no longer contains "by the verifying session" |
+| 18 | pass | the harness diff is +4 lines (`GUARD_INPUTS` only), with 0 removed. `test(` count is 28 before and 28 after. All harness tests pass |
+| 19 | pass (via CI) | lint exits 0 locally. `bun test` locally: 342 pass, 1 fail (`Cannot find package 'react-simple-maps'`). `typecheck` errors are only in `UsMap.tsx`. `frontend/package.json`, `bun.lock` and `src/components` are unchanged since the base `d4a4da1`. CI frontend job on `335ca51`: success |
+| 20 | pass | `git diff d4a4da1 HEAD` touches no manifest or lockfile |
+| 21 | pass | both harnesses spawn with dead-loopback proxies. The guard reads local files only |
+| 22 | pass | the worker commit `36a5c84` touches exactly the 3 READMEs, 2 `frontend/src` tests and the brief. `tasks.md` changed only in the expander's `6578acc`. The tester commit adds one `frontend/src` test file and edits the brief |
+
+**Mutations to the guard (all reverted with `git checkout`, and the tree is clean):**
+
+| # | Mutation | Result |
+|---|---|---|
+| M1 | README check → `expect(false).toBe(false)` | criteria 9a–c and 10 ×6 red |
+| M2 | `progressLiveTail()` returns `""` | guard's own slice test red (control + 15 red) |
+| M3 | live tail starts at `## Completed tasks` | control + 15 red (the history is scanned) |
+| M4 | Postgres-only regex never matches | guard's own non-vacuity test red |
+| M5 | heading lookup falls back to substring | caught by the guard's `\n## Next\n` slice assertion. 16 still red, so no test of mine went green |
+| M6 | live scan stops before `## Next` | criterion 14 ×2 red |
+| M7 | Postgres-only real-file loop reads `""` | criterion 11 ×2 red |
+| M8 | live scan skips Known gaps | criterion 13 red |
+
+**On the worker's unlisted edit** (`e2e/README.md` heading `## Two things these tests found` → `## Two things the suite found`): criterion 6 says "no count claim anywhere". "Two … tests" is within five words in one clause, so the heading had to change. The edit removes the plural "tests" and nothing else, so it is within "removing a number needs". The prose call is the reviewer's.
+
+**Not verified here:** CI on the tester's own commit. That commit only adds a test file, and I checked it after pushing (see the run report).
 
 ## Notes
 
