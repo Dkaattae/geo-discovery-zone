@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-09-18_
+_Last updated: 2026-09-22_
 
 ## In one paragraph
 
@@ -53,7 +53,7 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   schema**, one session per request, committed on return and rolled back on
   exception. `GEO_DATABASE_URL` chooses the backend and nothing else in the app
   names a dialect.
-- **SQLite and Postgres both supported and both tested** — the same 221 tests run
+- **SQLite and Postgres both supported and both tested** — the same suite runs
   against either, with 9 Postgres-only checks that skip on SQLite.
 - **Accounts and auth**: PBKDF2-SHA256 passwords (210k iterations), opaque bearer
   tokens stored as SHA-256 digests with a 12h TTL, another account's profile
@@ -62,9 +62,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   image serves those files next to the API — same origin, no CORS, hashed assets
   cached forever, SPA fallback that excludes `/api/v1` so a mistyped endpoint
   returns a problem document rather than an HTML page with a 200.
-- 221 unit and endpoint tests, including contract tests that walk `openapi.yaml`
-  in both directions, plus 30 integration tests and 13 browser tests against a
-  real stack.
+- Unit and endpoint tests, including contract tests that walk `openapi.yaml`
+  in both directions, plus integration tests and browser tests against a real
+  stack (`backend/integration/`, `e2e/`).
 - **The session commits before the response is sent** (`DbSessionMiddleware`).
   It used to commit after, which FastAPI runs *after the response has reached the
   client* — so `register` could answer 201 before the row existed and the very
@@ -91,9 +91,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   two consecutive correct.
 - Soft milestones at 5/10/20, a quit flow reporting places learned rather than a
   percentage (§3.6, §3.8), and no timers anywhere (§3.4).
-- 80 tests — 19 over the API client, 61 over level→grade/band display. Test
-  files are typechecked rather than excluded (`engineering-decisions.md` E-2) and CI fails
-  if they stop existing (E-3).
+- Tests cover the API client and level→grade/band display. Test files are
+  typechecked rather than excluded (`engineering-decisions.md` E-2) and CI
+  fails if they stop existing (E-3).
 - **The client's level labels and the server's are pinned to one another.**
   `frontend/src/lib/level.ts` and `backend/app/levels.py` are hand-copies; both
   suites now assert against the same committed table, `fixtures/level-labels.json`,
@@ -170,13 +170,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
-- 687 tests (19 pre-existing, 190 added by T-010 across `data-us-states.test.ts`
-  and `committed-bank.test.ts`, 34 by T-011 in `fun-facts.test.ts`, 96 by T-012 in
-  `state-animals.test.ts`, 148 by T-013 across `landmarks.test.ts` and
-  `landmarks-verify.test.ts`, 200 by T-014 across `climate-kid.test.ts` and
-  `climate-kid-verify.test.ts`). That figure
-  has now gone stale eleven times — T-065 replaces the hard-coded counts in this
-  file, `tasks.md` and `test-guidelines.md` with something that cannot rot.
+- Tests cover the built bank across `data-us-states.test.ts` and
+  `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
+  `state-animals.test.ts` (T-012), `landmarks.test.ts` and
+  `landmarks-verify.test.ts` (T-013), and `climate-kid.test.ts` and
+  `climate-kid-verify.test.ts` (T-014) — run them all with
+  `cd question-bank && bun test`.
 
 ### Repo and process
 
@@ -194,6 +193,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   relative link points at a file that
   exists (T-007 for `conventions.md`, T-058 for `README.md`). A doc that goes
   stale now fails a test instead of misleading the next session.
+- **The top-level docs state no suite sizes.** `test-guidelines.md`, this
+  file's status sections and `tasks.md`'s §A table name a command or a directory
+  instead (three package READMEs still do, T-074), and `frontend/src/stale-suite-counts.criteria.test.ts` fails if a
+  count comes back, in digits or words (T-065). Per-task figures in the history
+  below are left alone on purpose: they record what a PR did, which does not rot.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
   task between the other four and reads none of their work.
@@ -247,12 +251,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   it no longer pins `ci.yml`'s size, so adding a CI step does not read as a
   violation. **Nothing automates the pins** — no Dependabot, no Renovate; T-060 is the
   open question about whether to add one.
-- **Integration tests** in `backend/integration/` — 30 black-box tests over HTTP
+- **Integration tests** in `backend/integration/` — black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
   one origin, content is public, a child's sitting works end to end, accounts
   cannot see each other's profiles, a restart is not a reset, and a write is
   durable by the time its response says so.
-- **End-to-end tests** in `e2e/` — 13 Playwright tests driving Chromium against
+- **End-to-end tests** in `e2e/` — Playwright tests driving Chromium against
   docker compose: sign in, make an explorer, play every quiz type the app
   offers, and come back to find the progress still there.
 - A root `README.md` covering what the app is, the stack, and how to run it.
@@ -302,6 +306,33 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-065 — the stale suite-size counts are deleted, and guarded** (PR #57,
+  2026-09-22). `test-guidelines.md`'s two `# N tests today` comments, six figures
+  in this file's status sections and the figures in three rows of `tasks.md`'s
+  §A table are gone, replaced by the command or directory each suite lives in. A new guard,
+  `frontend/src/stale-suite-counts.criteria.test.ts`, fails when a digit or number
+  word sits within five words before the plural "tests" in `test-guidelines.md` or
+  above `## Completed tasks` here. `PROGRESS.md`'s "9 Postgres-only checks"
+  stays, because it is right and the guard checks it against
+  `backend/tests/test_postgres.py`. *Where it differed from the brief:*
+  - **It took two rounds.** The first guard was a fixed-length regex. It missed
+    number words past "twenty" and a count with a list comma in it, and it failed
+    on the "states no number" case criterion 3 allows. Round 2 replaced it with a
+    token scan inside each clause.
+  - **Criterion 11 took the comment route.** No test binds `conventions-doc.test.ts`'s
+    README scan to the whole file. The comment now says so. README is still
+    covered whole-file by `readme-test-count.criteria.test.ts`.
+  - **Known gaps in the guard, accepted:** "a dozen tests", "Frontend tests: 286"
+    (the number after the word), "286 test cases" (singular) and more than five
+    words between the number and "tests". Every stale figure this task deleted
+    had the "N … tests" shape the guard catches.
+  - **The full `frontend` suite could not go green in the sandbox** (the
+    `react-simple-maps` 403 again). CI went green on all six jobs, and CI is what
+    closed criterion 12.
+  - **Left for T-074:** the guard does not scan `## Known gaps` or `## Next`,
+    which are live status but sit below `## Completed tasks`. Its header also
+    names the wrong author.
 
 - **T-073 — the fourth and last expired git baseline, in `frontend/`** (PR #56,
   2026-09-22). `level-window-claim.criteria.test.ts`'s "no existing E-n entry was
@@ -973,9 +1004,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
   `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
   `README.md` (T-058, PR #35) — both now fail a test rather than drift.
-- `test-guidelines.md:209` and `PROGRESS.md:161` still quote suite sizes that
-  nothing asserts and that are already wrong (T-065). `README.md`'s last one is
-  closed (T-062, PR #50).
+- Three READMEs still state suite sizes that nothing checks, and two of those
+  figures are already wrong: `backend/README.md`, `backend/integration/README.md`
+  and `e2e/README.md` (T-074). The root `README.md`, `test-guidelines.md` and
+  this file's status sections state none, and a test holds them there (T-062, PR
+  #50; T-065, PR #57).
 - **No test fails on `main` in a full clone any more.** All four known expired
   git baselines are gone: `question-bank`'s two with T-072 (PR #55, `E-11`) and
   `frontend`'s one with T-073 (PR #56, `E-12`). What remains of the family is two

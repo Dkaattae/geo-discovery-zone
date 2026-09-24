@@ -206,8 +206,8 @@ testing tool. Report which mutations were made and what each one did.
 ### `question-bank/` and `frontend/` — `bun test`
 
 ```bash
-cd question-bank && bun test    # 19 tests today
-cd frontend      && bun test    # 65 tests today
+cd question-bank && bun test
+cd frontend      && bun test
 ```
 
 Tests live next to what they test: `src/normalize.test.ts` beside

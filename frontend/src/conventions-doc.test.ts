@@ -7,10 +7,12 @@ import { join } from "node:path";
  * session (`process.md` step 4). T-058 later added the describe blocks near
  * the bottom of this file, which check the same kind of claim in `README.md`
  * and a lockfile-attribution claim in `conventions.md`'s CI section — reusing
- * this file's helpers (`workflowJobs()` in particular) rather than adding a
- * third parser of `ci.yml` next to `ci-action-pinning.test.ts` (T-061 folded
- * the test file that used to duplicate it into this one; this file is not
- * part of that pair, so it stays a third parser, not a fourth).
+ * this file's helpers (`workflowJobs()` in particular) rather than adding
+ * another parser of `ci.yml` next to the ones that already exist —
+ * `ci-action-pinning.test.ts`, `lint-gate.test.ts` and
+ * `git-baseline-guard.criteria.test.ts` (T-061 folded the test file that used
+ * to duplicate this one's parsing into this file, so this file stays separate
+ * from that trio rather than growing a fifth).
  *
  * Every expected value here comes from the wording of a criterion in
  * `tasks/T-007-conventions-current.md` or `tasks/T-058-doc-claims-about-ci.md`,
@@ -584,9 +586,34 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
   // undo that. T-061 did not add a comparison between them; it only closed the
   // gap the survey found: `testCountClaims()` already had a test proving it is
   // not vacuous (`readme-test-count.criteria.test.ts:134-137`), and this
-  // pattern did not. The test below is that test's counterpart, so narrowing
-  // this pattern's reach (for example, back to only the Checks code block)
-  // goes red here too, not just on the other file's detector.
+  // pattern did not.
+  //
+  // T-065 criterion 11 (round 2 — round 1's version of this comment claimed
+  // more than the test below actually binds, per the tester's verdict): the
+  // "not vacuous" test above proves `testCountPattern` can match something.
+  // It does not prove the assertion just below ("no digit or spelled-out
+  // count ... anywhere in README.md", scanning the whole `readmeDoc`) has to
+  // stay scanning the whole file rather than narrow to just the Checks
+  // block. As of T-062, README states no count of tests anywhere, so
+  // narrowing that assertion from `readmeDoc` to `codeBlock(sectionOf(...,
+  // "## Checks"))` currently leaves every test in this file green too (tried
+  // by hand: nothing goes red) — there is nothing stale left outside Checks
+  // for a narrower scan to miss, so no test can currently distinguish the two
+  // scopes against the real file.
+  //
+  // The test below does not close that gap. It runs `testCountPattern`
+  // against a synthetic skeleton built from scratch, never against the real
+  // assertion above, so it would stay green even if that assertion's scope
+  // were narrowed tomorrow. What it does show, and all it claims to show, is
+  // narrower: the pattern itself carries no notion of "Checks block only" —
+  // whether it matches depends solely on the text handed to it, not on where
+  // in README.md that text came from. That is why scanning `readmeDoc` (the
+  // whole file) above is a deliberate choice, not an accident of the
+  // pattern's shape — but the choice itself is presently unguarded. If a
+  // future README states a stale count outside the Checks block, catching
+  // that is what would need a new test built the way `stale-suite-counts.
+  // criteria.test.ts` tests `PROGRESS.md`'s scope boundary: by editing a copy
+  // of the real file and running the real assertion against it.
   const NUMBER_WORDS =
     "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen";
   const testCountPattern = new RegExp(
@@ -600,6 +627,39 @@ describe("no unstated test-suite size survives anywhere in README (T-058 #8, T-0
 
   test("the pattern is not vacuous: it matches the sentence README.md used to state", () => {
     expect("The nine Postgres-only tests skip on SQLite, so nobody").toMatch(testCountPattern);
+  });
+
+  test("the pattern has no built-in Checks-block scope: it matches or not based only on the text it is given (T-065 #11)", () => {
+    // This does NOT exercise or bind the real assertion above
+    // (`readmeDoc.match(testCountPattern)`) — see the comment above the
+    // describe block for what that means and does not mean. It shows only
+    // that `testCountPattern` itself is scope-agnostic: fed the whole
+    // skeleton it matches the stale count; fed just the Checks block (where
+    // that count never appears) it does not. Built on a synthetic skeleton
+    // rather than lifted from readmeDoc, so this stays true regardless of
+    // what README happens to say today.
+    const skeleton = [
+      "# Geo quiz",
+      "",
+      "## Checks",
+      "",
+      "```bash",
+      "make -C backend check",
+      "```",
+      "",
+      "## Layout",
+      "",
+      "The nine Postgres-only tests skip on SQLite.",
+      "",
+    ].join("\n");
+    const checksBlockOnly = codeBlock(sectionOf(skeleton.split("\n"), "## Checks"));
+    // `.match()`, not `.toMatch()`: `testCountPattern` carries the "g" flag,
+    // and `.toMatch()` runs it through `RegExp.prototype.test()`, which
+    // advances the pattern's shared `lastIndex` across calls — including the
+    // "not vacuous" test just above. `.match()` resets it each time, so these
+    // two assertions cannot pass for the wrong reason depending on test order.
+    expect(checksBlockOnly.match(testCountPattern)).toBeNull();
+    expect(skeleton.match(testCountPattern)).not.toBeNull();
   });
 });
 
