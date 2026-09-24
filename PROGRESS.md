@@ -195,8 +195,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   stale now fails a test instead of misleading the next session.
 - **The top-level docs state no suite sizes.** `test-guidelines.md`, this
   file's status sections and `tasks.md`'s §A table name a command or a directory
-  instead (three package READMEs still do, T-074), and `frontend/src/stale-suite-counts.criteria.test.ts` fails if a
-  count comes back, in digits or words (T-065). Per-task figures in the history
+  instead, as do `backend/README.md`, `backend/integration/README.md` and
+  `e2e/README.md`, and `frontend/src/stale-suite-counts.criteria.test.ts` fails if a
+  count comes back, in digits or words (T-065, T-074). It also scans this file's
+  Known-gaps and Next sections, below the history. Per-task figures in the history
   below are left alone on purpose: they record what a PR did, which does not rot.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
@@ -306,6 +308,22 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-074 — the package READMEs state no suite sizes, and the guard covers
+  them** (PR #58, 2026-09-24). The figures in `backend/README.md`,
+  `backend/integration/README.md` and `e2e/README.md` are gone, each replaced
+  by naming the suite. T-065's guard now checks those three files with the same
+  `hasSuiteCountClaim()`, checks that no number precedes `Postgres-only` in
+  `backend/README.md`, and scans this file from `## Known gaps in what is done`
+  to the end; a renamed heading throws rather than shrinking the scan. Its
+  header now credits the worker. *Where it differed from the brief:*
+  - **A fourth claim the survey missed.** `e2e/README.md`'s heading "Two things
+    these tests found" is a count claim to the detector; it became "Two things
+    the suite found".
+  - **The sandbox could not run the full `frontend` gate** (the
+    `react-simple-maps` 403 again); CI's frontend job closed criterion 19.
+  - **Shared session id** across every role, as in any orchestrated run; the
+    tester said so rather than claiming the id check passed.
 
 - **T-065 — the stale suite-size counts are deleted, and guarded** (PR #57,
   2026-09-22). `test-guidelines.md`'s two `# N tests today` comments, six figures
@@ -1004,11 +1022,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
   `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
   `README.md` (T-058, PR #35) — both now fail a test rather than drift.
-- Three READMEs still state suite sizes that nothing checks, and two of those
-  figures are already wrong: `backend/README.md`, `backend/integration/README.md`
-  and `e2e/README.md` (T-074). The root `README.md`, `test-guidelines.md` and
-  this file's status sections state none, and a test holds them there (T-062, PR
-  #50; T-065, PR #57).
 - **No test fails on `main` in a full clone any more.** All four known expired
   git baselines are gone: `question-bank`'s two with T-072 (PR #55, `E-11`) and
   `frontend`'s one with T-073 (PR #56, `E-12`). What remains of the family is two

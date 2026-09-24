@@ -1,6 +1,6 @@
 # `e2e/` — the app in a browser, against the real stack
 
-13 Playwright tests that drive Chromium through the app the way a child and a
+Playwright tests that drive Chromium through the app the way a child and a
 grown-up would: sign in, make an explorer, play a quiz, answer, come back later.
 
 ```bash
@@ -48,7 +48,7 @@ exception is `data-variant` on `Button`, which says what a button *is* rather
 than what it looks like; picking the answers out by Tailwind classes would break
 on any restyle.
 
-## Two things these tests found
+## Two things the suite found
 
 **A real bug, on the first run.** `POST /auth/register` answered `201 Created`
 before the row was committed, so the app's very next request — exchanging those

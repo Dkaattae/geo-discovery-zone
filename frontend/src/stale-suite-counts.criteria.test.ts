@@ -3,8 +3,15 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * T-065's acceptance criteria, written out as assertions by the verifying
- * session (`process.md` step 4).
+ * T-065's acceptance criteria, written out as assertions by T-065's `worker`
+ * (`process.md` step 3). T-065's tester wrote its own, separate harness in `stale-suite-counts-guard.criteria.test.ts`,
+ * which runs this file against edited copies of the documents it reads.
+ *
+ * Extended by T-074's `worker` (`tasks/T-074-readme-suite-counts.md`) to
+ * cover `backend/README.md`, `backend/integration/README.md` and
+ * `e2e/README.md` with the same detector, a Postgres-only number check on
+ * `backend/README.md`, and `PROGRESS.md`'s `## Known gaps in what is done`
+ * and `## Next` sections down to the end of the file.
  *
  * T-065's route is deletion, not refresh: `test-guidelines.md`, `PROGRESS.md`
  * (above its "Completed tasks" history) and `tasks.md`'s §A Foundations table
@@ -47,6 +54,11 @@ const guidelinesDoc = readFileSync(join(REPO_ROOT, "test-guidelines.md"), "utf8"
 const progressDoc = readFileSync(join(REPO_ROOT, "PROGRESS.md"), "utf8");
 const tasksDoc = readFileSync(join(REPO_ROOT, "tasks.md"), "utf8");
 const postgresTestSource = readFileSync(join(REPO_ROOT, "backend/tests/test_postgres.py"), "utf8");
+// T-074: three READMEs that used to state suite sizes.
+const READMES = ["backend/README.md", "backend/integration/README.md", "e2e/README.md"] as const;
+const readmeDocs: Record<(typeof READMES)[number], string> = Object.fromEntries(
+  READMES.map((path) => [path, readFileSync(join(REPO_ROOT, path), "utf8")]),
+) as Record<(typeof READMES)[number], string>;
 
 // Number-word vocabulary: units one-nineteen, tens, and the scale words that
 // turn a two-word numeral into "hundred"/"thousand" tests. A compound like
@@ -154,6 +166,44 @@ function progressHistory(): string {
   const index = progressDoc.indexOf(`\n${COMPLETED_TASKS_HEADING}`);
   if (index < 0) throw new Error(`PROGRESS.md has no "${COMPLETED_TASKS_HEADING}" heading`);
   return progressDoc.slice(index);
+}
+
+const KNOWN_GAPS_HEADING = "## Known gaps in what is done";
+const NEXT_HEADING = "## Next";
+
+/** Index of `heading` as a whole line in PROGRESS.md, or throw — a renamed heading must fail loudly. */
+function progressHeadingIndex(heading: string): number {
+  const match = new RegExp(
+    `\\n${heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[ \\t]*(?=\\n|$)`,
+  ).exec(progressDoc);
+  if (!match) throw new Error(`PROGRESS.md has no "${heading}" heading`);
+  return match.index;
+}
+
+/**
+ * PROGRESS.md from the "Known gaps in what is done" heading to the end of the
+ * file — live status that sits *below* the history (T-074 criteria 13-16).
+ * Both headings must exist, in order, after "Completed tasks", or this throws:
+ * the guard must never pass because it scanned an empty or wrong slice.
+ */
+function progressLiveTail(): string {
+  const history = progressDoc.indexOf(`\n${COMPLETED_TASKS_HEADING}`);
+  if (history < 0) throw new Error(`PROGRESS.md has no "${COMPLETED_TASKS_HEADING}" heading`);
+  const gaps = progressHeadingIndex(KNOWN_GAPS_HEADING);
+  const next = progressHeadingIndex(NEXT_HEADING);
+  if (!(history < gaps && gaps < next)) {
+    throw new Error(
+      `PROGRESS.md headings out of order: expected "${COMPLETED_TASKS_HEADING}", then "${KNOWN_GAPS_HEADING}", then "${NEXT_HEADING}"`,
+    );
+  }
+  return progressDoc.slice(gaps);
+}
+
+/** The bare words immediately before each "Postgres-only" in `text`, punctuation stripped. */
+function wordsBeforePostgresOnly(text: string): string[] {
+  return [...text.matchAll(/(\S+)\s+Postgres-only\b/gi)].map((m) =>
+    m[1]!.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""),
+  );
 }
 
 const FOUNDATIONS_HEADING = "## A. Foundations";
@@ -350,5 +400,73 @@ describe("tasks.md's §A Foundations table states no suite-size count (T-065 cri
 
   test("the End-to-end tests row still names e2e/", () => {
     expect(rows["End-to-end tests"]).toContain("e2e/");
+  });
+});
+
+describe("the three READMEs state no suite-size count (T-074 criteria 1, 4, 6, 8, 12)", () => {
+  for (const path of READMES) {
+    test(`${path}: no digit or spelled-out suite-size claim anywhere`, () => {
+      expect(hasSuiteCountClaim(readmeDocs[path])).toBe(false);
+    });
+  }
+
+  test("the detector is not vacuous: it catches the sentences the READMEs used to state", () => {
+    expect(hasSuiteCountClaim("make -C backend test             # 221 tests on SQLite")).toBe(true);
+    expect(
+      hasSuiteCountClaim(
+        "make -C backend test-integration # 28 tests against a real docker compose stack",
+      ),
+    ).toBe(true);
+    expect(
+      hasSuiteCountClaim(
+        "28 tests that talk to a running server over HTTP and never import `app`.",
+      ),
+    ).toBe(true);
+    expect(hasSuiteCountClaim("That is the right shape for 221 tests and it is")).toBe(true);
+    expect(hasSuiteCountClaim("23 tests pass that way; the 5 restart tests skip")).toBe(true);
+    expect(hasSuiteCountClaim("13 Playwright tests that drive Chromium")).toBe(true);
+  });
+
+  test("criterion 8: the singular prose survives, and is not a count claim", () => {
+    expect(readmeDocs["e2e/README.md"]).toContain("one test with a loop rather");
+    expect(readmeDocs["backend/integration/README.md"]).toContain(
+      "Every test makes its own account",
+    );
+    expect(hasSuiteCountClaim("That is why it is one test with a loop rather")).toBe(false);
+    expect(hasSuiteCountClaim("**Every test makes its own account.**")).toBe(false);
+  });
+});
+
+describe("backend/README.md states no number of Postgres-only tests (T-074 criterion 2)", () => {
+  test("no 'Postgres-only' has a digit or number word immediately before it", () => {
+    for (const word of wordsBeforePostgresOnly(readmeDocs["backend/README.md"])) {
+      expect(isNumberToken(word)).toBe(false);
+    }
+  });
+
+  test("the check is not vacuous: it catches the number the README used to state, digits or words", () => {
+    expect(wordsBeforePostgresOnly("(9 Postgres-only ones skip)").map(isNumberToken)).toEqual([
+      true,
+    ]);
+    expect(wordsBeforePostgresOnly("(nine Postgres-only ones skip)").map(isNumberToken)).toEqual([
+      true,
+    ]);
+    expect(wordsBeforePostgresOnly("a Postgres-only regression").map(isNumberToken)).toEqual([
+      false,
+    ]);
+  });
+});
+
+describe("PROGRESS.md's Known gaps and Next sections state no suite-size count (T-074 criteria 13-16)", () => {
+  test("no count claim from 'Known gaps in what is done' to the end of the file", () => {
+    expect(hasSuiteCountClaim(progressLiveTail())).toBe(false);
+  });
+
+  test("the scanned slice is the real one: it starts at 'Known gaps', contains 'Next', and runs to the end", () => {
+    const tail = progressLiveTail();
+    expect(tail.startsWith(`\n${KNOWN_GAPS_HEADING}`)).toBe(true);
+    expect(tail).toContain(`\n${NEXT_HEADING}\n`);
+    expect(progressDoc.endsWith(tail)).toBe(true);
+    expect(progressHistory().endsWith(tail)).toBe(true);
   });
 });

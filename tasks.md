@@ -51,7 +51,10 @@ in `frontend/`. Swept again 2026-09-22, after T-073 deleted the fourth instance
 (PR #56): **every known red-on-`main` git baseline is now gone**, T-070 is down
 to its two silent-`git` leftovers, and T-065 gained one more stale figure. Swept again 2026-09-22, after T-065 deleted
 the stale suite-size counts and guarded them (PR #57): T-074 is smaller and
-unblocked, T-047 lost its count clause, and T-064 now depends on T-040._
+unblocked, T-047 lost its count clause, and T-064 now depends on T-040. Swept
+again 2026-09-24, after T-074 deleted the suite sizes from the three package
+READMEs and widened the same guard to them (PR #58): nothing else in the queue
+was waiting on it._
 
 ## How this list is ordered
 
@@ -118,7 +121,7 @@ place, so nobody rebuilds it:
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
 | **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
-| **Test counts in docs** | none stated in `README.md`, `test-guidelines.md`, `PROGRESS.md`'s status sections or this table, and a test fails if one comes back (T-062, PR #50; T-065, PR #57). Name a command or a directory instead |
+| **Test counts in docs** | none stated in `README.md`, `test-guidelines.md`, `backend/README.md`, `backend/integration/README.md`, `e2e/README.md`, `PROGRESS.md`'s status, Known-gaps and Next sections, or this table, and a test fails if one comes back (T-062, PR #50; T-065, PR #57; T-074, PR #58). Name a command or a directory instead |
 | **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
 
 What is missing from that picture is below.
@@ -148,7 +151,7 @@ package does not have.
 reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
 for it without guessing the answer. Unblocks the moment that call is recorded
 here; T-061 was taken instead. **Passed over again 2026-09-22** for the same
-reason; T-073 was taken.
+reason; T-073 was taken. **And again 2026-09-24**; T-074 was taken.
 
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
 **Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
@@ -167,7 +170,8 @@ schedule is Dkaattae's call, not a task the loop can make on its own
 updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
-**Passed over again 2026-09-22** for the same reason; T-073 was taken.
+**Passed over again 2026-09-22** for the same reason; T-073 was taken. **And
+again 2026-09-24**; T-074 was taken.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
@@ -196,36 +200,8 @@ behind the dead proxy (T-005), so an unpinned `bunx prettier` cannot run there a
 all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
 "Packages"), the same wall T-066 is waiting at, and prettier already being a
 `frontend/` devDependency does not settle it. Unblocks the moment that call is
-recorded here; T-065 was taken instead.
-
-### T-074 — Three READMEs state suite sizes nothing checks · S · todo
-**Depends on:** — (T-065 landed in PR #57)
-**New 2026-09-22, found while surveying T-065.** The same drift, in three files
-T-065's brief deliberately leaves alone: `backend/README.md` ("221 tests", "28
-tests"), `backend/integration/README.md` ("28 tests", "221 tests", "23 tests",
-"5 restart tests") and `e2e/README.md` ("13 Playwright tests"). The integration
-suite is 30, not 28, so two of these are already wrong in the tree.
-They were split out rather than folded in because they are a harder case than
-T-065's three files: all three also carry prose that mentions *a* test without
-claiming a suite size ("one test"), so whatever guard T-065 lands has to
-distinguish the two before it can be pointed here. Do this after T-065, reusing
-its detector rather than writing a fourth.
-**Done when:** none of the three states a number of tests, and the same guard
-that holds `test-guidelines.md` and `PROGRESS.md` covers them.
-**Smaller since T-065 (PR #57), and two things added by its reviewer.** The
-detector to reuse is `hasSuiteCountClaim()` in
-`frontend/src/stale-suite-counts.criteria.test.ts`, and the "one test" problem
-above is already solved by it: it only fires on the *plural* "tests", so the
-singular advice survives without rewording. While in that file:
-- **Its header misattributes it.** `:5-7` says it was "written out as assertions
-  by the verifying session"; the worker wrote it. The tester flagged this twice
-  and it was never fixed. One sentence.
-- **Its `PROGRESS.md` boundary leaves two live sections unguarded.** It scans only
-  *above* `## Completed tasks`, but `## Known gaps in what is done` and `## Next`
-  sit *below* that heading and are current status, not history. Neither states a
-  count today. Scan those two sections as well, or say in the guard why not.
-**Done when (added):** the guard also covers `PROGRESS.md`'s `## Known gaps in
-what is done` and `## Next` sections, and its header names the right author.
+recorded here; T-065 was taken instead. **Passed over again 2026-09-24** for the
+same reason; T-074 was taken.
 
 ---
 

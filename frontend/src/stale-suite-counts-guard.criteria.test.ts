@@ -289,6 +289,10 @@ const GUARD_INPUTS = [
   "PROGRESS.md",
   "tasks.md",
   "backend/tests/test_postgres.py",
+  // T-074: the guard now also reads these three READMEs.
+  "backend/README.md",
+  "backend/integration/README.md",
+  "e2e/README.md",
 ];
 const DEAD = "http://127.0.0.1:1";
 const scratchRoots: string[] = [];
