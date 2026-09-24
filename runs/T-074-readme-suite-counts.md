@@ -37,3 +37,34 @@
 Recorded on the brief: `katechen150621@gmail.com — 2026-09-24, approved via chat in the orchestrator session.`
 The run paused at the step-2 gate after round 1 because a human was present; the user replied
 "approved, go ahead", and that approval is what is recorded here.
+
+## Round 2 — worker — 2026-09-24
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR:** T-074 is built and pushed. The commit `36a5c84` is on `origin/claude/happy-knuth-slmllf` (checked with `git log origin/... -1`). The brief now reads Status `awaiting verification`, Next step `tester`. I ran all 18 edit checks for criteria 9–16 against scratch copies of the repo, and every one came out red or green as the brief expects. Lint passes. `bun test` and typecheck each have one failure, and it is not from this task: two map packages will not install in this sandbox, and the base commit fails the same way. The tester needs to confirm the full gate in CI.
+
+**Files changed**
+- `/home/user/geo-discovery-zone/backend/README.md`: removed `221 tests`, `9 Postgres-only`, `28 tests`. The five make targets are still there, and the `test` line still says `SQLite` and `skip`.
+- `/home/user/geo-discovery-zone/backend/integration/README.md`: removed `28 tests`, `221 tests`, `23 tests … the 5 restart tests`. The text the criteria require is still there.
+- `/home/user/geo-discovery-zone/e2e/README.md`:
+  - Removed `13 Playwright tests`.
+  - **Renamed a heading the brief did not list.** `## Two things these tests found` became `## Two things the suite found`, because the detector reads that heading as a count claim. Without the rename, criterion 6 fails. Nothing links to the old heading.
+- `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts.criteria.test.ts` (the guard):
+  - The header now credits T-065's worker and names T-074 (criterion 17).
+  - It checks the three READMEs with the existing `hasSuiteCountClaim()` (criterion 12, no second detector).
+  - It checks that no `Postgres-only` in `backend/README.md` has a number right before it. This reuses `isNumberToken()`.
+  - It scans `PROGRESS.md` from `## Known gaps in what is done` to the end of the file. If either heading is renamed or moved out of order, the guard fails.
+- `/home/user/geo-discovery-zone/frontend/src/stale-suite-counts-guard.criteria.test.ts`: the three READMEs are added to `GUARD_INPUTS`. No test in it was changed.
+- `/home/user/geo-discovery-zone/tasks/T-074-readme-suite-counts.md`: Handoff, Notes, the Sessions row and Status are filled in.
+
+**Gate**
+- **Lint:** exits 0.
+- **`bun test`:** 304 pass, 1 fail. The failure is `Cannot find package 'react-simple-maps'`.
+- **Typecheck:** every error is in `UsMap.tsx`.
+- **Why:** `bun install --frozen-lockfile` gets a 403. The lockfile pins some packages to `europe-west1-npm.pkg.dev/lovable-core-prod`, and this sandbox cannot reach it. The base commit shows the same failure. I did not work around it.
+
+**Decisions for others**
+- **Tester:** confirm the full gate in CI on PR #58.
+- **Tester, with the reviewer able to overturn:** decide whether the e2e heading rename counts as "removing a number" or as rewording the brief did not allow.
+- **Orchestrator or human:** the Sessions table shows the same session id for the expander and the worker. `$CLAUDE_CODE_REMOTE_SESSION_ID` returns the orchestrator's id inside subagents, so the tester's row will not show a separate session either.
+- **Needs no action:** `PROGRESS.md` needed no edit. The widened scan passes on the file as it is.
