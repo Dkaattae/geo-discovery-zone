@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted
 
 **Status:** `blocked`
-**Next step:** `human`
+**Next step:** `task-expander`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **From:** [`tasks.md`](../tasks.md) T-067
 **Branch:** `claude/next-task-queue-30m5cr`
@@ -60,6 +60,18 @@ undercuts the entry's premise that "the plan shows a field that does not exist".
 as a plan for world scope. For US states it is no longer what happened, because
 T-014 hand-curated `climate_kid` with no codes. The queue entry does not ask for
 this, so the default is **leave it alone** unless you say otherwise.
+
+### Answer — katechen150621@gmail.com, 2026-09-24 (given in chat, written in by the orchestrator)
+
+> Do not need to care about the openapi contract, once backend and front built,
+> backend is the source of truth. Please note somewhere. You can delete the row.
+
+- **Option A**: delete `climate_koppen` everywhere, `openapi.yaml` included.
+  The contract is not a reason to keep it.
+- **The §1.9 `Köppen climate` row**: delete it too.
+- **Record the rule** where later tasks will find it: once the backend and
+  frontend are built, the backend is the source of truth, and `openapi.yaml`
+  follows it rather than constraining it.
 
 ## Goal
 

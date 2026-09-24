@@ -41,3 +41,9 @@ My commits touch only those two files, and nothing was built or run beyond git. 
 The header reads `Status: blocked`, `Next step: human`. What the expander asked for, quoted:
 "Dkaattae has to decide between deleting `climate_koppen` or emitting it, because the field turns out to be part of the API contract."
 A human picks option A, B or C (and answers the §1.9 sub-question) under "Question for a human" in `tasks/T-067-climate-koppen.md`, sets `Next step: task-expander`, commits, and starts a new run.
+
+## Answered — 2026-09-24
+The human answered in chat; the orchestrator wrote it into the brief verbatim under
+"Question for a human" and set `Next step: task-expander`. Quoted:
+"Do not need to care about the openapi contract, once backend and front built, backend is the source of truth. Please note somewhere. You can delete the row. Please resume."
+**Outcome:** in progress
