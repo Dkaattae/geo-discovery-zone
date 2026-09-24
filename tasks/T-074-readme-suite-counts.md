@@ -1,7 +1,7 @@
 # T-074 — Three READMEs state suite sizes nothing checks
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #58)
 **Approved:** katechen150621@gmail.com — 2026-09-24, approved via chat in the orchestrator session. See `runs/T-074-readme-suite-counts.md`.
 **From:** [`tasks.md`](../tasks.md) T-074
 **Branch:** `claude/happy-knuth-slmllf`. This is the branch this session was
@@ -18,6 +18,7 @@ you").
 | task-expander | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL |
 | worker | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL |
 | tester | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL (orchestrated; shared id, see Verdict) |
+| reviewer | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL (orchestrated; shared id) |
 
 ## Goal
 
@@ -464,3 +465,35 @@ bun test && bun run typecheck && bun run lint
   integration suite", "the unit and endpoint tests", "Everything else passes".
   In each case I kept the sentence and swapped the number for a noun. **Owner:
   reviewer, for prose.**
+
+## Review
+
+**TL;DR: approved, no escalation.** The diff does what the brief asks and nothing
+more. Every role's commit is in PR #58, each role stayed in its lane, and CI's
+frontend job is green on the head. PR marked ready; Dkaattae merges.
+
+- **Every role's work is in the PR.** Expander `6578acc`/`163262f` (brief,
+  `tasks.md`), worker `36a5c84`, tester `10d4603`/`9dbe081`, orchestrator run log
+  in `runs/`. Nothing is stranded on another branch.
+- **Lanes.** Expander: `tasks/` and `tasks.md` only. Worker: the three READMEs,
+  two `frontend/src` test files, the brief. Tester: one new `frontend/src` test
+  file and the brief. No source touched by the tester.
+- **Fits the codebase.** The guard extension reuses `hasSuiteCountClaim()` and
+  `isNumberToken()`, follows the file's existing "throw if the heading is
+  missing" idiom, and adds non-vacuity checks in the same style as T-065's.
+  The three guard-related files run in under two seconds together.
+- **Docs are true.** Each replacement names the suite instead of sizing it; no
+  README now says anything false.
+
+**Worker flags, disposed:**
+
+- **`e2e/README.md` heading `## Two things these tests found` -> `## Two things the suite found`.** Accepted. It is the minimum edit criterion 6 forces, and nothing links the old anchor.
+- **Whole-line heading match in `progressHeadingIndex()`.** Accepted. A substring match would let `## Next steps` silently move the scan, which criterion 16 exists to prevent.
+- **Replacement wording.** Accepted as is. "the unit and endpoint tests" (integration README) is a slightly narrower description of `backend/tests/` than the old number implied, but not false.
+- **Shared session id across roles.** Not a new finding: already recorded as a known weakness in `.claude/agents/README.md` ("Real independence, weaker evidence") and `process-decisions.md`. No ticket filed.
+
+**Non-blocking, not filed:** `backend/integration/README.md:18` and `:54` and
+the guard's header comment were not re-wrapped after the edit (lines run past
+80 columns). Markdown renders identically and prettier/eslint pass; a task for it
+would cost more than it fixes.
+
