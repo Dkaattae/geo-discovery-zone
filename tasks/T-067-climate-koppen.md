@@ -5,7 +5,7 @@
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **From:** [`tasks.md`](../tasks.md) T-067
 **Branch:** `claude/next-task-queue-30m5cr`
-**PR:** opened draft at expand time, built from the branch above. It **stays
+**PR:** #60, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:** the queue entry recommends deleting the field because "nothing in `openapi.yaml` exposes it". That is false (`openapi.yaml:1477`), so delete-or-emit is now a contract decision the expander cannot make — question below, owned by human.
 
