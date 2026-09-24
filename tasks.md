@@ -148,7 +148,7 @@ package does not have.
 reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
 for it without guessing the answer. Unblocks the moment that call is recorded
 here; T-061 was taken instead. **Passed over again 2026-09-22** for the same
-reason; T-073 was taken.
+reason; T-073 was taken. **And again 2026-09-24**; T-074 was taken.
 
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
 **Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
@@ -167,7 +167,8 @@ schedule is Dkaattae's call, not a task the loop can make on its own
 updated to match.
 **Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
 is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
-**Passed over again 2026-09-22** for the same reason; T-073 was taken.
+**Passed over again 2026-09-22** for the same reason; T-073 was taken. **And
+again 2026-09-24**; T-074 was taken.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
@@ -196,9 +197,10 @@ behind the dead proxy (T-005), so an unpinned `bunx prettier` cannot run there a
 all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
 "Packages"), the same wall T-066 is waiting at, and prettier already being a
 `frontend/` devDependency does not settle it. Unblocks the moment that call is
-recorded here; T-065 was taken instead.
+recorded here; T-065 was taken instead. **Passed over again 2026-09-24** for the
+same reason; T-074 was taken.
 
-### T-074 — Three READMEs state suite sizes nothing checks · S · todo
+### T-074 — Three READMEs state suite sizes nothing checks · S · doing
 **Depends on:** — (T-065 landed in PR #57)
 **New 2026-09-22, found while surveying T-065.** The same drift, in three files
 T-065's brief deliberately leaves alone: `backend/README.md` ("221 tests", "28
