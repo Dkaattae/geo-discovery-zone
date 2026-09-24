@@ -310,6 +310,12 @@ and still plausible, since a bulk download needs no key.
 **Done when:** `climate_koppen` is either emitted by a build or gone from
 `types.ts` and from the plan's example, nothing describes a field that does not
 exist, and §1.9's US-crops row names the source the code actually uses.
+**Expanded and blocked 2026-09-24** (`tasks/T-067-climate-koppen.md`): this entry
+says "nothing in `openapi.yaml` exposes it", which is false.
+`openapi.yaml:1477` declares `Entity.climateKoppen` and `backend/app/models.py:155`
+declares `climate_koppen`, so deleting the field is a contract change. The brief
+asks Dkaattae to choose between deleting it everywhere, deleting it from the
+pipeline only, or emitting it.
 
 ### T-068 — US livestock/poultry per state, separate from crops · S · todo
 **Depends on:** — (**T-015 landed, PR #46**, and settled the pattern this
