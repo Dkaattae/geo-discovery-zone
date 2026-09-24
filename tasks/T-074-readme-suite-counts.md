@@ -446,7 +446,7 @@ bun test && bun run typecheck && bun run lint
 
 **On the worker's unlisted edit** (`e2e/README.md` heading `## Two things these tests found` → `## Two things the suite found`): criterion 6 says "no count claim anywhere". "Two … tests" is within five words in one clause, so the heading had to change. The edit removes the plural "tests" and nothing else, so it is within "removing a number needs". The prose call is the reviewer's.
 
-**Not verified here:** CI on the tester's own commit. That commit only adds a test file, and I checked it after pushing (see the run report).
+**CI on the tester's commit `10d4603`:** all 7 checks succeeded, including `frontend (typecheck, lint, test)`, so criterion 19's gate is green where the map packages install.
 
 ## Notes
 
