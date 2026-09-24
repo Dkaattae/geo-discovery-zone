@@ -316,6 +316,10 @@ says "nothing in `openapi.yaml` exposes it", which is false.
 declares `climate_koppen`, so deleting the field is a contract change. The brief
 asks Dkaattae to choose between deleting it everywhere, deleting it from the
 pipeline only, or emitting it.
+**Unblocked and re-expanded 2026-09-24:** the answer was option A, delete it
+everywhere including `openapi.yaml`, plus delete §1.9's `Köppen climate` row, and
+record that once the backend and frontend are built, the backend is the source of
+truth (to become E-14). The brief is awaiting approval.
 
 ### T-068 — US livestock/poultry per state, separate from crops · S · todo
 **Depends on:** — (**T-015 landed, PR #46**, and settled the pattern this
