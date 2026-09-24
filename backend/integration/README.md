@@ -1,6 +1,6 @@
 # `integration/` — the tests that need a real stack
 
-28 tests that talk to a running server over HTTP and never import `app`.
+Tests that talk to a running server over HTTP and never import `app`.
 
 ```bash
 make -C backend test-integration                          # builds and runs docker compose
@@ -15,7 +15,7 @@ not a broken build.
 ## Why they exist
 
 `backend/tests/` runs the app in-process, against a database it builds itself.
-That is the right shape for 221 tests and it is structurally unable to tell you
+That is the right shape for the unit and endpoint tests and it is structurally unable to tell you
 whether the `Dockerfile` builds, whether the compose healthcheck orders startup
 correctly, whether the frontend bundle made it into the image, or whether a
 child's progress is still there tomorrow. Those claims live here.
@@ -51,7 +51,7 @@ a developer is already running is neither reused nor destroyed.
 - **The compose path has never executed.** These were written and verified
   against a server running the same shape by hand — Postgres, the built frontend
   bundle, the same code — because the environment they were written in has no
-  Docker daemon. 23 tests pass that way; the 5 restart tests skip, and their
+  Docker daemon. Everything else passes that way; the restart tests skip, and their
   assertions were reproduced manually against a real process restart and a real
   Postgres bounce. The first CI run on a machine with a daemon is the real
   verification (`tasks.md` T-049).

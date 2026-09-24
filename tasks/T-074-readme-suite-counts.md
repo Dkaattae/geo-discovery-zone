@@ -1,7 +1,7 @@
 # T-074 — Three READMEs state suite sizes nothing checks
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** katechen150621@gmail.com — 2026-09-24, approved via chat in the orchestrator session. See `runs/T-074-readme-suite-counts.md`.
 **From:** [`tasks.md`](../tasks.md) T-074
 **Branch:** `claude/happy-knuth-slmllf`. This is the branch this session was
@@ -16,6 +16,7 @@ you").
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL |
+| worker | 2026-09-24 | cse_01VbP99X5Wcy9gLq5di9UETL |
 
 ## Goal
 
@@ -274,6 +275,145 @@ locator once a file moves.
 
 ## Handoff
 
+**TL;DR:** the counts are gone from all three READMEs, and the T-065 guard now
+scans those READMEs and `PROGRESS.md` from `## Known gaps in what is done` to the
+end of the file. I ran all 18 edit criteria (9–16) against scratch copies and
+each came out as the brief expects. Lint is clean. `bun test` and `typecheck`
+each show one failure, the same one on the base commit: `react-simple-maps` and
+`us-atlas` cannot be installed here (see "Gate" below).
+
+**The Sessions table shows the same session id for the expander and the
+worker** (`cse_01VbP99X5Wcy9gLq5di9UETL`). That is the orchestrator's session id
+passed down; `$CLAUDE_CODE_REMOTE_SESSION_ID` returned it for this subagent too.
+The tester should still run in a fresh context. **Owner: orchestrator/human**, to
+decide whether per-subagent ids are recordable at all.
+
+### Files changed
+
+- **`backend/README.md`**
+  - `:10` is now `# the suite on SQLite (the Postgres-only ones skip)`.
+  - `:12` is now `# the integration suite against a real docker compose stack`.
+- **`backend/integration/README.md`**
+  - `:3`: `28 tests that talk…` became `Tests that talk…`.
+  - `:18`: `for 221 tests` became `for the unit and endpoint tests`.
+  - `:54`: `23 tests pass that way; the 5 restart tests skip` became
+    `Everything else passes that way; the restart tests skip`.
+- **`e2e/README.md`**
+  - `:3`: `13 Playwright tests…` became `Playwright tests…`.
+  - `:51`: the heading `## Two things these tests found` became
+    `## Two things the suite found`. **This is a change the brief did not
+    list.** The detector reads that heading as a count claim ("two" is three
+    words before "tests"), so criterion 6 could not pass without it. I kept
+    "Two" and dropped "tests". Nothing links to the old anchor (checked with
+    grep).
+- **`frontend/src/stale-suite-counts.criteria.test.ts`** (the guard)
+  - **Header (criterion 17):** now says T-065's `worker` wrote it and that
+    T-074's `worker` extended it. The phrase "by the verifying session" is gone.
+  - **Three READMEs added:** new `READMES` / `readmeDocs`. Each README is
+    checked with the existing `hasSuiteCountClaim()`. There is no second
+    detector (criterion 12).
+  - **`wordsBeforePostgresOnly()` + `isNumberToken()`:** checks that no
+    `Postgres-only` in `backend/README.md` has a number right before it
+    (criterion 2). It reuses the existing number-token predicate and does not
+    detect count claims.
+  - **`progressLiveTail()`:** returns the slice from `\n## Known gaps in what is
+    done` to EOF, which includes `## Next` and `### Deferred on purpose`.
+    `progressHeadingIndex()` requires each heading as a whole line, so renaming
+    either one throws, and the test calling it goes red. It also throws unless
+    the order is Completed tasks < Known gaps < Next.
+  - **New tests:** three `describe` blocks. Each checks the real files and
+    also has a check that the detector is not vacuous.
+  - **Existing tests:** none changed.
+- **`frontend/src/stale-suite-counts-guard.criteria.test.ts`** (T-065's
+  harness): added the three READMEs to `GUARD_INPUTS` and nothing else. No test
+  was renamed, skipped or changed (criterion 18). Without this change, "the guard
+  passes on unedited copies" would fail on load in the scratch tree.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1, 4, 6 | README edits above; the guard's `the three READMEs state no suite-size count` block |
+| 2 | `backend/README.md:10`; guard's `backend/README.md states no number of Postgres-only tests` block |
+| 3, 5, 7 | the surrounding text is unchanged: five `make` targets; `SQLite` + `skip` on the `test` line; `over HTTP` / ``never import `app` `` in the intro; `restart tests` / `skip` in Known limits; `Playwright` / `Chromium` in the e2e intro |
+| 8 | text untouched; guard's `criterion 8` test |
+| 9–11 | guard README block + Postgres-only block (run with scratch copies, see below) |
+| 13–16 | guard's `PROGRESS.md's Known gaps and Next sections` block, `progressLiveTail()` |
+| 15 | the history is still unscanned: `progressLiveTail()` starts at the Known gaps heading, so the line just above it is outside the slice |
+| 17 | guard header |
+| 12, 18, 20, 21, 22 | no new detector, no harness test edited, no dependency or lockfile changes, no network, only the listed files touched |
+
+### Scratch-copy check, criteria 9–16 (worker's own run, not committed)
+
+I ran a throwaway script with the same method as `guardPassesWith()`: copy the
+files, apply one edit, run the guard with the proxies pointed at a dead port.
+Results:
+
+| Edit | Expected | Got |
+|---|---|---|
+| 9a, 9b, 9c | red | red, red, red |
+| 10: `thirty tests` / `221 unit, endpoint and contract tests` × 3 READMEs | red | red × 6 |
+| 11: `(9 Postgres-only ones skip)` / `(nine …)` | red | red, red |
+| 13: after the Known gaps heading | red | red |
+| 14: after the `## Next` heading / as the last line of the file | red | red, red |
+| 15: after `## Completed tasks` / the line just before Known gaps | green | green, green |
+| 16: Known gaps → `## Known gaps`; `## Next` → `## Up next` | red | red, red |
+
+**`PROGRESS.md` needed no edit.** The widened scan is green on the tree as it
+stands, which matches the brief's survey.
+
+### Gate (criterion 19)
+
+- **`bun run lint`:** exits 0. Prettier had reflowed my new lines; I ran
+  `eslint --fix` on the two test files.
+- **`bun test`:** 304 pass, 1 fail. The failure is
+  `Cannot find package 'react-simple-maps'` from `src/components/UsMap.tsx`.
+  The base commit gives the same failure (checked with `git stash`: 295 pass,
+  1 fail).
+- **`bun run typecheck`:** every error is in `src/components/UsMap.tsx`
+  (`us-atlas/states-10m.json`, `react-simple-maps`).
+- **Why the gate is red:** `bun install --frozen-lockfile` gets a 403. For a
+  few packages, `bun.lock` pins tarball URLs on
+  `europe-west1-npm.pkg.dev/lovable-core-prod/...`, and this sandbox cannot
+  reach that host. I did not work around it, because that would mean changing
+  the lockfile or `node_modules` sources.
+- **Tester:** run the gate somewhere those packages install (CI on PR #58). If
+  it fails there too, it is a separate `tasks.md` entry, not this task. **Owner:
+  tester, then reviewer.**
+
+### Not done, on purpose
+
+- **The two other README detectors:** not touched (out of scope; T-065
+  criterion 10).
+- **`tasks.md` and `PROGRESS.md` bookkeeping:** left for the reviewer's sweep
+  (criterion 22).
+- **Other docs:** I grepped `question-bank/README.md`, `frontend/README.md`,
+  `conventions.md` and `README.md` for obvious count claims and found none. That
+  was a rough regex, not the guard's detector. Nothing was filed.
+
+### How to run
+
+```bash
+cd frontend
+bun test src/stale-suite-counts.criteria.test.ts src/stale-suite-counts-guard.criteria.test.ts
+bun test && bun run typecheck && bun run lint
+```
+
 ## Verdict
 
 ## Notes
+
+- **Surprise: `e2e/README.md`'s `## Two things these tests found` heading is a
+  count claim to the detector.** The survey did not find it. I changed it to
+  `## Two things the suite found` rather than weaken the detector (criterion 12
+  forbids a second detector, and criterion 6 says "anywhere"). **Owner: tester
+  to confirm this reads as removing a number rather than rewording beyond it;
+  reviewer to overturn if not.**
+- **Decided: the renamed-heading check matches whole lines, not a substring.**
+  A substring `indexOf("## Next")` would still match `## Nextish` or
+  `## Next steps`, so the scan would quietly move instead of failing. Criterion
+  16 asks for a loud failure. **Owner: tester (criterion 16).**
+- **Replacement wording for the removed figures:** "the suite", "the
+  integration suite", "the unit and endpoint tests", "Everything else passes".
+  In each case I kept the sentence and swapped the number for a noun. **Owner:
+  reviewer, for prose.**

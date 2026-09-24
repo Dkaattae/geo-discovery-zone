@@ -7,9 +7,9 @@ against and a restart is not a reset.
 
 ```bash
 make -C backend dev              # http://127.0.0.1:8000/api/v1/... — docs at /docs
-make -C backend test             # 221 tests on SQLite (9 Postgres-only ones skip)
+make -C backend test             # the suite on SQLite (the Postgres-only ones skip)
 make -C backend test-postgres    # the same suite against a real Postgres server
-make -C backend test-integration # 28 tests against a real docker compose stack
+make -C backend test-integration # the integration suite against a real docker compose stack
 make -C backend check            # lint + format check + tests, what CI runs
 make -C backend help             # every target
 ```
