@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** katechen150621@gmail.com — 2026-09-24, approved via chat in the orchestrator session. See `runs/T-074-readme-suite-counts.md`.
 **From:** [`tasks.md`](../tasks.md) T-074
 **Branch:** `claude/happy-knuth-slmllf`. This is the branch this session was
 assigned. Every later role pushes here, not to `task/T-074-*`

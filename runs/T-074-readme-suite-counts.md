@@ -33,6 +33,7 @@
 
 **Nothing blocked:** no dependency and no product decision is needed. The recommended worker model is Sonnet.
 
-## Halted — awaiting brief approval
-The brief header reads `Approved: pending`. A human is present in this session, so the
-orchestrator is asking for approval rather than stamping `orchestrator — unattended run`.
+## Approved — 2026-09-24
+Recorded on the brief: `katechen150621@gmail.com — 2026-09-24, approved via chat in the orchestrator session.`
+The run paused at the step-2 gate after round 1 because a human was present; the user replied
+"approved, go ahead", and that approval is what is recorded here.
