@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted — run log
 
 **Task:** T-067 · **Branch:** `claude/next-task-queue-30m5cr` · **PR:** #60
-**Started:** 2026-09-24 · **Outcome:** halted — needs human
+**Started:** 2026-09-24 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-24
 `Next step` on entry: `—` (no brief existed) → on exit: `human`
@@ -46,4 +46,31 @@ A human picks option A, B or C (and answers the §1.9 sub-question) under "Quest
 The human answered in chat; the orchestrator wrote it into the brief verbatim under
 "Question for a human" and set `Next step: task-expander`. Quoted:
 "Do not need to care about the openapi contract, once backend and front built, backend is the source of truth. Please note somewhere. You can delete the row. Please resume."
-**Outcome:** in progress
+
+## Round 2 — task-expander — 2026-09-24
+`Next step` on entry: `task-expander` → on exit: `worker`
+
+**T-067 is re-expanded for option A and waiting on human approval.** I rewrote the criteria from the human's answer, committed, and pushed; the commit is on the remote (`c6b788e`, and the remote branch points at the same commit). Draft PR #60 now has the new title and the new criteria as its body. Next step is a human writing their name and date in `Approved:`, then the worker.
+
+**The brief now asks for:**
+- **Criteria 1–5, the field is gone:** `climate_koppen` / `climateKoppen` removed from `question-bank/src/types.ts`, `openapi.yaml` and `backend/app/models.py`. Every neighbouring property stays unchanged.
+- **Criteria 6–12, the plan:** the key comes out of the §1.4 example, the §1.9 `Köppen climate` row is deleted, and the `US crops` row names hand-curation and points at E-7 instead of USDA NASS / "Free key". The `world crops` row stays byte-identical, and no other plan line changes.
+- **Criterion 13, one dangling comment:** a comment in `question-bank/src/curated/us-states.ts:80` points readers to the deleted §1.9 row ("map Köppen codes yourself"). It has to go; no data or code line in that file changes.
+- **Criteria 14–17, the decisions:** E-13 records the deletion. E-14 records the rule "once backend and frontend are built, the backend is the source of truth; `openapi.yaml` follows it". `conventions.md:15` gets a pointer to E-14.
+- **Criteria 18–23, nothing else moves:** no data file changes, no dependency or lockfile changes, all three test suites and the typechecks pass, and no test reaches the network.
+- **Review checklist:** a human reads the prose in the `US crops` row, E-13 and E-14.
+
+**Things the approver should know:**
+- **Two criteria go beyond the literal answer:** 13 (the `us-states.ts` comment) and 17 (the `conventions.md` pointer). They are flagged in the brief's Notes and need approving along with the rest.
+- **`CLAUDE.md` is not updated.** It still calls `openapi.yaml` "the frontend/backend contract — change it deliberately and say so", and it is gated by `run-loop.sh` G1, so I put it in Out of scope. If the human wants E-14 reflected there, that is a `process-tasks.md` ticket done by hand.
+- **Approval is still `pending` on purpose.** The answer came from katechen150621@gmail.com, but the standing permissions in `CLAUDE.md` name Dkaattae. Either way, `Approved:` needs a human's name and date before the worker can start.
+
+**Commit contents:** only `tasks/T-067-climate-koppen.md` and `tasks.md`, where I added an "unblocked and re-expanded" note to the T-067 entry. I left `PROGRESS.md` alone because nothing in it is about T-067. I ran no builds or tests.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-067-climate-koppen.md
+- /home/user/geo-discovery-zone/tasks.md
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/60
+
+## Paused — 2026-09-24
+A human is present, so the run waits at the step-2 gate for approval of the brief.
