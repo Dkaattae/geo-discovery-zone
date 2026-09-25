@@ -126,7 +126,9 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-066 — `question-bank` has no `lint`, and briefs keep asking for it · S · todo
+### T-066 — `question-bank` has no `lint`, and briefs keep asking for it · S · doing
+**Expanded 2026-09-25** into `tasks/T-066-question-bank-eslint.md` (full brief,
+not light — its criteria run past four).
 **Depends on:** —
 **New 2026-09-14, found by T-011's tester and confirmed by its reviewer (PR #41).**
 T-011's criterion 13 required "`bun test`, `bun run typecheck` and `bun run lint`
@@ -156,6 +158,9 @@ reason; T-073 was taken. **And again 2026-09-24**; T-074 was taken.
 devDependency, with a `lint` script, a config, and the lockfile committed with it
 (`CLAUDE.md` "Packages"). The dependency decision this entry was waiting on is
 made; the task is unblocked.
+**Re-routed 2026-09-25:** typescript-eslint refuses `typescript@7`, so the worker
+blocked; katechen150621@gmail.com answered "go with oxlint". The brief was
+re-expanded for oxlint and awaits fresh approval.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
