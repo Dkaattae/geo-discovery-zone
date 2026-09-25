@@ -1,8 +1,8 @@
-# T-066 — `question-bank/` gets eslint and a `lint` gate
+# T-066 — `question-bank/` gets oxlint and a `lint` gate
 
-**Status:** `answered — criteria need rewriting`
-**Next step:** `task-expander`
-**Approved:** katechen150621@gmail.com — 2026-09-25, in chat during an orchestrated run. See `runs/T-066-question-bank-eslint.md`.
+**Status:** `awaiting approval`
+**Next step:** `worker`
+**Approved:** `pending` — re-expanded for oxlint after the human answer below; the round-1 approval (katechen150621@gmail.com, 2026-09-25) covered the eslint criteria and does not carry over.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
 the harness, branched from `origin/main` at `01a32eb`. Every later role pushes
@@ -16,197 +16,246 @@ here (`CLAUDE.md` "Branches").
 |---|---|---|
 | task-expander | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | worker | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
+| task-expander (re-expand, oxlint) | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 
 ## Goal
 
 Briefs touching `question-bank/` keep requiring `bun run lint`, and the package
-has never had one (T-011 criterion 13). The dependency decision is made —
-katechen150621@gmail.com, 2026-09-25: "add eslint" (recorded in `tasks.md`
-T-066) — so give the package a real lint gate that fails on warnings, runs in
-CI, and is documented where the next brief writer will see it.
+has never had one (T-011 criterion 13). Give it a real lint gate that fails on
+warnings, runs in CI, and is documented where the next brief writer will see
+it. The linter is **oxlint**: typescript-eslint refuses to load against this
+package's `typescript@7` (round 1's Handoff, below), and
+katechen150621@gmail.com answered on 2026-09-25: "go with oxlint" (recorded
+under "Human answer" below).
 
 ## What is already true, and what is not
 
-Surveyed on `01a32eb`. **None of the deliverable exists yet**, and two things in
-the repo actively pin its absence — the worker has to change both:
+Re-surveyed at `543c2af` (branch head; source identical to branch point
+`01a32eb` — round 1 reverted everything it tried). **None of the deliverable
+exists yet**:
 
-- `question-bank/package.json` has `build`, `build:sample`, `typecheck` — no
-  `lint`, no eslint in `devDependencies`, no eslint config in the package.
-- `.github/workflows/ci.yml:118-121` (question-bank job) carries a comment
-  "No lint step: question-bank has no eslint config and no eslint dependency…",
-  and there is no Lint step between Typecheck and Test.
+- `question-bank/package.json` has `build`, `build:sample`, `typecheck`. It has
+  no `lint` script and no linter in `devDependencies`.
+- `.github/workflows/ci.yml:118-121` (question-bank job, named
+  `question-bank (typecheck, test)`) carries a comment "No lint step:
+  question-bank has no eslint config and no eslint dependency…". There is no
+  Lint step between Typecheck and Test.
 - **`frontend/src/lint-gate.test.ts:155`** (T-006 criterion 7) asserts
-  `expect(ciYml).toMatch(/No lint step[\s\S]*?#11/)`. Removing that comment turns
-  this existing test red; it is expected to be updated in this task (criterion 11).
-- `conventions.md` "Commands", question-bank block, names `bun run typecheck` but
-  no `lint`. `frontend/src/conventions-doc.test.ts` already checks that every
-  `bun run <script>` named there is a real script, so a named `lint` is checked
-  for free once it exists.
-- `question-bank/` pins `typescript` `^7.0.2`; `frontend/` is on `^5.8.3`. See
-  Constraints — this is the one place the task can turn into a second dependency
-  question.
+  `expect(ciYml).toMatch(/No lint step[\s\S]*?#11/)`. Removing that comment
+  turns this existing test red. It is expected to change in this task
+  (criterion 13).
+- `conventions.md` "Commands", question-bank block (lines ~59–66), names
+  `bun run typecheck` and `bun test` but no `lint`.
+  `frontend/src/conventions-doc.test.ts` already checks that every
+  `bun run <script>` named there is a real script.
+- **Three `eslint-disable-next-line` comments already exist**, none with a
+  reason: `question-bank/src/sinks/db.ts:30` and `:39`
+  (`@typescript-eslint/no-unused-vars`), and `question-bank/src/build.ts:83`
+  (`no-fallthrough`). oxlint honours `eslint-disable` directives as well as its
+  own `oxlint-disable`. Criterion 10 covers these three.
+- **No explicit `any` in `question-bank/src/`.** A grep for `: any`, `as any`,
+  `<any>` and `any[]` finds nothing, so criterion 5 should not force source
+  edits.
+- `question-bank/` pins `typescript` `^7.0.2`. oxlint parses TypeScript with its
+  own Rust parser and does not import the `typescript` package. That is why it
+  was chosen, and why criterion 15 can still hold.
 
 ## Acceptance criteria
 
 "Run `bun run lint`" below always means from `question-bank/`, via the
-package's own script, not by invoking eslint directly.
+package's own script, not by invoking oxlint directly.
 
 **The gate exists and is clean**
 
 1. `question-bank/package.json` `scripts` has a key `lint`, and `bun run lint`
    exits 0 on the committed tree.
-2. On the committed tree, `bun run lint`'s combined stdout and stderr contain
-   neither the word `warning` nor eslint's problem summary (`✖`) — zero
-   problems, not merely an exit code that happened to be 0.
+2. On the committed tree, `bun run lint`'s output reports **zero warnings and
+   zero errors** (oxlint's summary line, e.g. `Found 0 warnings and 0 errors`).
+   An exit code of 0 alone is not enough.
+3. The linter that `bun run lint` runs is oxlint, and it is the one installed in
+   `question-bank/node_modules`. The script does not use `bunx`, `npx` or any
+   other on-demand download.
 
-**It fails when it should — each checked with a temporary probe file under
-`question-bank/src/` that is removed afterwards**
+**It fails when it should. Check each with a temporary probe file under
+`question-bank/src/`, removed afterwards.**
 
-3. **A warning alone fails the script.** A probe producing exactly one eslint
-   warning and no error (for example an unused `// eslint-disable-next-line`
-   directive, which eslint 9 reports as a warning by default) makes
-   `bun run lint` exit non-zero. The limit lives in the `lint` script itself, so
-   local and CI verdicts agree (the same rule as `engineering-decisions.md` E-4).
 4. **A core JavaScript rule is on.** A probe containing a `debugger;` statement
-   makes `bun run lint` exit non-zero (`no-debugger`, in `@eslint/js`'s
-   recommended set).
+   makes `bun run lint` exit non-zero (`eslint/no-debugger`).
 5. **A TypeScript rule is on.** A probe whose only problem is an explicit `any`
    annotation (`const x: any = 1; export { x };`) makes `bun run lint` exit
-   non-zero (`@typescript-eslint/no-explicit-any`, in typescript-eslint's
-   recommended set). This is what shows the TypeScript files are actually parsed
-   as TypeScript rather than skipped or linted as JavaScript.
-6. **Coverage reaches every `.ts` file under `src/`, tests included.** The
-   `debugger;` probe of criterion 4 fails the script at each of three
-   locations, checked separately: `src/<probe>.ts`, `src/<probe>.test.ts`, and
-   one directory deeper, `src/sinks/<probe>.ts`.
-7. **Formatting is not this gate's job.** A probe that is lint-clean but
-   deliberately mis-formatted for prettier (for example single quotes, no
-   semicolons, a 150-column line) leaves `bun run lint` at exit 0. Prettier
-   drift in this package is T-071's, and 22 files currently fail it; a lint
-   gate that enforced formatting would either be red on `main` or would drag
-   T-071's reformat into this diff.
+   non-zero (`typescript/no-explicit-any`). This mirrors `frontend/`'s
+   typescript-eslint recommended set. oxlint does not enable this rule by
+   default, so it has to be switched on deliberately.
+6. **A warning alone fails the script.** Add extra arguments to one
+   `bun run lint` run so that a single rule is enabled at warning severity,
+   using oxlint's `-W <rule>`. Pick a rule the committed config does not
+   configure, and use a probe that violates only that rule. For example, `-W
+   eqeqeq` with `export const f = (a: number) => a == 1;`, if `eqeqeq` is not
+   already configured. The run exits non-zero. The warning limit lives in the
+   `lint` script itself, so local and CI verdicts agree (the same rule as
+   `engineering-decisions.md` E-4). The tester names the rule it used in the
+   Verdict.
+7. **Coverage reaches every `.ts` file under `src/`, tests included.** Run the
+   `debugger;` probe from criterion 4 at each of three locations separately:
+   `src/<probe>.ts`, `src/<probe>.test.ts`, and one directory deeper,
+   `src/sinks/<probe>.ts`. Each one makes the script fail.
+8. **Formatting is not this gate's job.** A probe that is lint-clean but
+   deliberately mis-formatted for prettier leaves `bun run lint` at exit 0. For
+   example: single quotes, no semicolons, a 150-column line. Prettier drift in
+   this package belongs to T-071.
 
 **No behaviour moves**
 
-8. `bun test` and `bun run typecheck` pass in `question-bank/`, and `bun test`,
-   `bun run typecheck` and `bun run lint` pass in `frontend/`.
-9. No file under `question-bank/data/` or `question-bank/sample-data/` differs
-   from the branch point `01a32eb`. Any source edits made to satisfy the new
-   rules change no committed output.
-10. Every `eslint-disable` comment (any form: `eslint-disable`,
-    `eslint-disable-line`, `eslint-disable-next-line`) under
-    `question-bank/src/` carries an eslint description after ` -- ` stating why.
-    Zero such comments also satisfies this. Likewise every rule the config sets
-    to `"off"` or `"warn"` has a comment beside it saying why.
+9. In `question-bank/`, `bun test` and `bun run typecheck` pass. In
+   `frontend/`, `bun test`, `bun run typecheck` and `bun run lint` pass.
+10. **Every lint-suppression comment under `question-bank/src/` states why.**
+    This covers `eslint-disable` and `oxlint-disable` in every form: file-wide,
+    `-line` and `-next-line`. Each one carries a reason, either after ` -- ` on
+    the same line or in a comment on the line directly above it. The three
+    existing directives listed in the survey are included. Having zero such
+    comments also satisfies this criterion.
+11. **Every rule or category the lint config turns off or down to warning has
+    a reason recorded beside it.** Put the reason in the config file as a
+    comment. If the chosen config format does not allow comments, put it in
+    `question-bank/README.md`.
+12. No file under `question-bank/data/` or `question-bank/sample-data/` differs
+    from the branch point `01a32eb`.
 
 **CI runs it**
 
-11. `.github/workflows/ci.yml`'s `question-bank` job has a step whose `run:` is
-    exactly `bun run lint`, carrying the same `if:` condition as that job's
+13. `.github/workflows/ci.yml`'s `question-bank` job has a step whose `run:` is
+    exactly `bun run lint`. It carries the same `if:` condition as that job's
     Typecheck step (`${{ !cancelled() && steps.install.outcome == 'success' }}`),
     so a red lint does not hide a red test. The job's `name:` reflects that it
     now lints.
-12. `ci.yml` no longer states that `question-bank` has no lint step, no eslint
-    config or no eslint dependency, and `frontend/src/lint-gate.test.ts` no
-    longer asserts that it does. The rest of that file's criterion-7 test (no
-    "brief's Handoff" in `ci.yml`) and its criterion-6 test (no `--max-warnings`
-    anywhere in `ci.yml`) still hold and still run.
-13. `bun run lint` exits 0 on the committed tree with all six proxy variables
-    (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and their lowercase forms) set to
-    `http://127.0.0.1:1` — the lint needs no network, so it cannot depend on a
-    `bunx` download.
+14. `ci.yml` no longer states that `question-bank` has no lint step, no lint
+    config or no linter dependency. `frontend/src/lint-gate.test.ts` no longer
+    asserts that it does. Two tests in that file still hold and still run: the
+    rest of the criterion-7 test (no "brief's Handoff" in `ci.yml`) and the
+    criterion-6 test (`run: bun run lint` is present and there is no
+    `--max-warnings` anywhere in `ci.yml`).
+15. `bun run lint` exits 0 on the committed tree with all six proxy variables
+    set to `http://127.0.0.1:1`: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and
+    their lowercase forms.
 
-**Dependencies — the approved one and nothing else**
+**Dependencies: exactly the approved one**
 
-14. Every package added to `question-bank/package.json` is in
-    `devDependencies`, and the added set is a subset of `eslint`, `@eslint/js`,
-    `typescript-eslint`, `globals`. No `dependencies` key is added. In
-    particular, no `eslint-plugin-prettier`, `eslint-config-prettier` or
-    `prettier` (T-071), and no config loader such as `jiti`.
-15. `question-bank/package.json`'s existing `typescript` and `@types/bun`
-    entries are byte-for-byte unchanged.
-16. `question-bank/bun.lock` is committed alongside, and `bun install
-    --frozen-lockfile` in `question-bank/` leaves `bun.lock` unchanged — the
-    same thing CI's "Lockfile unchanged" step checks.
-17. `frontend/package.json` and `frontend/bun.lock` do not change.
+16. The only package added to `question-bank/package.json` is `oxlint`, and it
+    is in `devDependencies`. No `dependencies` key is added. Specifically, none
+    of these is added: `eslint`, `@eslint/js`, `typescript-eslint`, `globals`,
+    `oxlint-tsgolint` (type-aware linting), anything prettier (T-071), or
+    `biome`. oxlint's own platform-binary packages (`@oxlint/*`) may appear in
+    `bun.lock` as its optional dependencies, but not in `package.json`.
+17. `question-bank/package.json`'s existing `typescript` and `@types/bun`
+    entries are byte-for-byte unchanged, and no `trustedDependencies`,
+    `overrides` or `resolutions` key is added.
+18. `question-bank/bun.lock` is committed alongside the change, and
+    `bun install --frozen-lockfile` in `question-bank/` leaves `bun.lock`
+    unchanged. This is the same thing CI's "Lockfile unchanged" step checks.
+19. `frontend/package.json` and `frontend/bun.lock` do not change.
+20. No eslint config file exists in `question-bank/`. That means no
+    `eslint.config.*` and no `.eslintrc*`.
 
 **Written where a brief writer will trip over it**
 
-18. `conventions.md` "Commands", in the question-bank block, names
+21. `conventions.md` "Commands", in the question-bank block, names
     `bun run lint`.
-19. None of `conventions.md`, `README.md`, `question-bank/README.md`,
+22. `conventions.md` or `question-bank/README.md` says that `question-bank/`
+    lints with **oxlint, not eslint**. That way nobody writing a brief assumes
+    the frontend's eslint config or rule names apply there.
+23. None of `conventions.md`, `README.md`, `question-bank/README.md`,
     `test-guidelines.md` or `ci.yml` says or implies that `question-bank/` has
-    no lint or no eslint. (`PROGRESS.md`'s Completed-tasks history, which
-    records the state at the time, is exempt.)
+    no lint. `PROGRESS.md`'s Completed-tasks history is exempt, because it
+    records the state at the time.
+24. **`engineering-decisions.md` gains entry `E-15`** recording four things:
+    - `question-bank/` lints with oxlint while `frontend/` uses eslint.
+    - Why: typescript-eslint throws on `typescript` 7, and oxlint does not
+      depend on the `typescript` package.
+    - What was rejected: side-by-side TS 6/7, downgrading TS, and waiting.
+    - What would change it: typescript-eslint supporting TS 7
+      (typescript-eslint issue #10940), or `frontend/` moving to oxlint.
+
+    No existing `E-n` entry is modified.
 
 ## Out of scope
 
-- **Prettier in `question-bank/`** — formatting the 22 drifted files, pinning
-  prettier, a format gate in CI, `eslint-plugin-prettier`. All of it is T-071.
-  Criterion 7 exists to keep this line clean.
-- **Type-aware linting** (`parserOptions.project`, `recommendedTypeChecked`).
-  The recommended, non-type-checked sets are the bar; tightening further is a
-  later task.
-- **Refactoring beyond what the rules demand.** If recommended rules flag
-  existing code, fix the minimum; do not restructure.
-- **Linting anything outside `question-bank/src/`** as a requirement — the
-  config file itself, `data/`, fixtures JSON. Allowed, not required.
-- **`frontend/`'s eslint config and the frontend lint gate** — untouched,
-  except the one assertion in `lint-gate.test.ts` criterion 12 names.
-- **Other stale text in `ci.yml`** (e.g. the backend job's test count comment)
-  — not this task's; file it in `tasks.md` if it matters.
-- **An `engineering-decisions.md` entry** — not required. Allowed if the worker
-  makes a choice that could reasonably have gone the other way (see
-  Constraints on TypeScript 7); `E-15` is next.
+- **Prettier in `question-bank/`.** Formatting the 22 drifted files, pinning
+  prettier and a format gate in CI all belong to T-071. Criterion 8 keeps this
+  line clean. So does `oxfmt`, or any other formatter.
+- **Type-aware linting** (`--type-aware`, `oxlint-tsgolint`). It would add a
+  dependency that was not approved.
+- **Moving `frontend/` to oxlint**, or touching its eslint config. The one
+  exception is the `lint-gate.test.ts` assertion that criterion 14 names.
+- **Choosing a large rule set.** The bar is oxlint's default `correctness`
+  rules plus `typescript/no-explicit-any`. Enabling more is allowed, but it is
+  not required. If it forces source edits, the diff has to justify them.
+- **Refactoring beyond what the rules demand.** Fix the minimum.
+- **Linting anything outside `question-bank/src/`** (config files, `data/`,
+  fixtures JSON). This is allowed but not required.
+- **Other stale text in `ci.yml`**, such as the backend job's test-count
+  comment. It is not this task's. File it in `tasks.md` if it matters.
 
 ## Constraints
 
-- **Files expected to change:** `question-bank/package.json`,
-  `question-bank/bun.lock`, a new eslint config in `question-bank/`,
-  `.github/workflows/ci.yml`, `frontend/src/lint-gate.test.ts`,
-  `conventions.md`; source files under `question-bank/src/` only where the new
-  rules require a fix. Anything else needs a reason in the Handoff.
-- **Dependencies:** the approval is "add eslint", read as the minimum stack
-  that lets eslint lint TypeScript — the set in criterion 14, mirroring what
-  `frontend/` already uses. `bun add -d` only; never npm/yarn/pnpm.
-- **TypeScript 7 is the known risk. Stop and ask rather than work around it.**
-  `question-bank/` is on `typescript` `^7.0.2`; typescript-eslint's parser
-  imports the `typescript` package. If the approved packages cannot lint this
-  package with its current TypeScript, the fix is **not** yours to pick:
-  downgrading or adding a second `typescript`, adding a different parser, or
-  anything outside criterion 14 is a new dependency decision (`CLAUDE.md`
-  "Packages"). Write the question into this brief, set `Status: blocked`,
-  `Next step: human`, commit, push, stop.
-- **No `--max-warnings` in `ci.yml`** — the limit goes in the script
-  (criterion 3; `lint-gate.test.ts` criterion 6 enforces it repo-wide).
+- **Files expected to change:**
+  - `question-bank/package.json` and `question-bank/bun.lock`
+  - an oxlint config in `question-bank/`, if one is used
+  - `.github/workflows/ci.yml`
+  - `frontend/src/lint-gate.test.ts`
+  - `conventions.md`, and `question-bank/README.md` if criterion 11 or 22
+    lands there
+  - `engineering-decisions.md`
+  - source under `question-bank/src/`, only where the new rules or criterion 10
+    require it
+  - test files the worker or tester adds
+
+  Anything else needs a reason in the Handoff.
+- **Dependency:** `oxlint` only, via `bun add -d` in `question-bank/`. Never
+  npm, yarn or pnpm. Committing the lockfile with it is required (`CLAUDE.md`
+  "Packages").
+- **Stop and ask rather than work around the dependency.** Stop in any of these
+  cases:
+  - oxlint cannot be installed without a lifecycle script that bun blocks.
+  - Its binary does not run on the CI runner (linux x64) or offline.
+  - Criteria 4–6 cannot be met with `oxlint` alone.
+
+  Any fix would be a new dependency or package-config decision. Write the
+  question into this brief, set `Status: blocked`, `Next step: human`, then
+  commit, push and stop.
+- **No `--max-warnings` in `ci.yml`.** The warning limit goes in the script
+  (criterion 6). `lint-gate.test.ts` criterion 6 enforces this across the repo.
 - **No network in tests** (`test-guidelines.md`). Tests that shell out to
-  `bun run lint` are fine; `bunx` fetching anything is not.
-- **Probe files never stay in the tree**, including when a test fails midway —
-  clean up in `afterEach`, as `frontend/src/lint-gate.test.ts` does.
-- Not gated by `run-loop.sh` G1: `.github/workflows/` is outside
-  `GATED_PATHS`, and T-005/T-006/T-008 changed `ci.yml` through the loop.
+  `bun run lint` are fine. Anything that fetches is not.
+- **Probe files never stay in the tree**, including when a test fails midway.
+  Clean up in `afterEach`, as `frontend/src/lint-gate.test.ts` does.
+- Not gated by `run-loop.sh` G1: `.github/workflows/` and
+  `engineering-decisions.md` are outside `GATED_PATHS`.
 
 ## Context
 
 Required reading for the worker and the tester.
 
-- **`tasks.md` T-066** — the entry and the recorded answer ("add eslint").
-- **`tasks.md` T-071** — the neighbouring prettier task this must not absorb.
-- **`engineering-decisions.md` E-4** — why the warning limit lives in the
-  script, not the workflow.
-- **`frontend/eslint.config.js`** — the house shape (flat config,
-  `tseslint.config(...)`, `js.configs.recommended` +
-  `tseslint.configs.recommended`). Drop the React plugins and the prettier
-  plugin; they do not apply here.
-- **`frontend/src/lint-gate.test.ts`** — the probe-file pattern (`runLint()`
+- **Round 1's Handoff, below:** why eslint was abandoned. It includes the exact
+  typescript-eslint error.
+- **"Human answer — 2026-09-25", below:** the decision this brief implements.
+- **`tasks.md` T-066**, the entry. **T-071**, the prettier task this must not
+  absorb.
+- **`engineering-decisions.md` E-4:** why the warning limit lives in the
+  script. **E-14:** the most recent entry, the shape to follow for E-15.
+- **`frontend/src/lint-gate.test.ts`:** the probe-file pattern (`runLint()`
   via `bun run lint`, `writeProbe`, `afterEach` cleanup) to reuse for
-  criteria 3–7, and lines 142–157 for criteria 11–12.
-- **`.github/workflows/ci.yml`** — `question-bank` job, lines ~92–137; the
+  criteria 4–8. Lines 142–157 are the ones criteria 13–14 affect.
+- **`.github/workflows/ci.yml`:** the `question-bank` job, lines ~92–137. The
   `frontend` job's Lint step (line ~55) is the shape to copy.
 - **`conventions.md`** "Commands", and `frontend/src/conventions-doc.test.ts`
-  criterion 9 (`bunScriptsIn`), which reads it.
-- **`test-guidelines.md`** — "No network in tests, ever".
-- **`CLAUDE.md`** "Packages" — lockfile committed with the dependency.
+  (`bunScriptsIn`), which reads it.
+- **`question-bank/src/sinks/db.ts:30,39`** and
+  **`question-bank/src/build.ts:83`:** the existing suppression comments that
+  criterion 10 covers.
+- **`test-guidelines.md`:** "No network in tests, ever".
+- **oxlint's CLI:** `oxlint --help` from the installed binary. It documents
+  `-W`/`-D`/`-A`, `--deny-warnings` and `--max-warnings`, and the
+  `.oxlintrc.json` config.
 
 ## Handoff
 
@@ -292,6 +341,15 @@ _Written by `tester`._
   picks a route from the Handoff table. Then **task-expander** rewrites
   criteria 14/15 to match, and the brief goes back through approval before a
   worker runs again.
+- **task-expander, 2026-09-25 (re-expand):** criteria rewritten for oxlint per
+  the human answer. The eslint-specific criteria (14's package set, the
+  eslint-9 unused-directive probe) are gone. The warning probe is now `-W <rule>`
+  (criterion 6). Criterion 2 checks the reported counts, not the absence of the
+  word "warning", because oxlint's clean summary contains "warnings". New:
+  criteria 3, 11, 20, 22 and 24 (the E-15 entry). The file keeps its `-eslint`
+  name so the links from `runs/` and `tasks.md` still resolve. The Handoff
+  above is round 1's. The next worker writes its round-2 Handoff beneath it
+  and does not rewrite it.
 
 ## Human answer — 2026-09-25
 
