@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets eslint and a `lint` gate — run log
 
 **Task:** T-066 · **Branch:** `claude/relaxed-pascal-ff0fgq` · **PR:** #62
-**Started:** 2026-09-25 · **Outcome:** in progress
+**Started:** 2026-09-25 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-25
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -38,3 +38,34 @@
 The orchestrator's unattended self-stamp was refused by the session's permission
 check. A human was present, so the brief was approved by katechen150621@gmail.com
 in chat ("approved, go ahead with the worker") and recorded as such in `Approved:`.
+
+## Round 2 — worker — 2026-09-25
+`Next step` on entry: `worker` → on exit: `human`
+
+**T-066 is blocked and needs a human.** typescript-eslint won't load against `question-bank/`'s `typescript@^7.0.2`, so no config built from the four approved packages can lint the TypeScript files (criterion 5 can't pass). None of the task was built. The brief says to stop here rather than work around it, so I did. The only commit is the brief update: Status `blocked`, Next step `human`, my Sessions row, Handoff and Notes. It's `d8e1dcf` on `claude/relaxed-pascal-ff0fgq`, and `git log origin/claude/relaxed-pascal-ff0fgq -1` shows it, so the push landed.
+
+**What happened**
+- **Install:** `bun add -d eslint @eslint/js typescript-eslint globals` installed eslint 10.11.0, @eslint/js 10.0.1, typescript-eslint 8.70.1 and globals 17.12.0. bun warned `incorrect peer dependency "typescript@7.0.2"`.
+- **Run:** with a minimal config (the same shape as `frontend/`'s), eslint failed while loading typescript-eslint with `Error: typescript-eslint does not support TS 7.0.`
+- **This is a hard stop, not a warning.** typescript-eslint deliberately throws when TypeScript's major version is 7 or higher, and it only supports TypeScript `>=4.8.4 <6.1.0`. TypeScript 7 also doesn't ship the compiler API that typescript-eslint parses with.
+- **Reverted:** `package.json` and `bun.lock` are restored, the config file is deleted, `bun install --frozen-lockfile` reported no changes, and the tree is clean. No code or dependency change is committed.
+
+**Decision needed (katechen150621@gmail.com)**
+
+The options are in a table in the brief's Handoff. Each one is a new dependency decision, and A–C also mean `task-expander` rewrites criteria 14/15 and the brief is approved again:
+
+| Option | What it means | Conflicts with |
+|---|---|---|
+| **A. Run TS 6 and TS 7 side by side** | `typescript` goes to `^6`; TS 7 stays as the type-checker under an alias such as `@typescript/native`. This is what the error message and typescript-eslint's own setup point to. | criteria 14 and 15 |
+| **B. Downgrade to TS 5.8 or 6** | Matches `frontend/`, which is on `^5.8.3`. Smallest diff. | criterion 15 |
+| **C. Use a different linter or parser** | For example oxlint or biome. | criterion 14 and the "add eslint" answer |
+| **D. Wait** | Park T-066 until typescript-eslint supports TS 7 (their issue #10940). | none, but nothing ships |
+
+**For the expander when the brief is rewritten:** `bun add` installs eslint 10, while `frontend/` is on eslint 9, and criterion 3 describes eslint 9's default behaviour. Decide whether to pin `eslint@^9`.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-066-question-bank-eslint.md
+
+## Halted
+`Status: blocked`, `Next step: human`, set by the worker. A human has to choose
+between options A–D above (the worker's words, quoted). The orchestrator does
+not answer it.
