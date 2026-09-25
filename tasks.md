@@ -152,6 +152,10 @@ reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
 for it without guessing the answer. Unblocks the moment that call is recorded
 here; T-061 was taken instead. **Passed over again 2026-09-22** for the same
 reason; T-073 was taken. **And again 2026-09-24**; T-074 was taken.
+**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "add eslint". Give `question-bank/` eslint as a
+devDependency, with a `lint` script, a config, and the lockfile committed with it
+(`CLAUDE.md` "Packages"). The dependency decision this entry was waiting on is
+made; the task is unblocked.
 
 ### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
 **Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
@@ -202,6 +206,9 @@ all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
 `frontend/` devDependency does not settle it. Unblocks the moment that call is
 recorded here; T-065 was taken instead. **Passed over again 2026-09-24** for the
 same reason; T-074 was taken.
+**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "allow prettier". `prettier` may be added
+as a pinned devDependency of `question-bank/`, lockfile committed with it. The
+dependency decision this entry was waiting on is made; the task is unblocked.
 
 ---
 
@@ -242,6 +249,13 @@ a bot loose to open PRs on a schedule" decision T-060 is already waiting on.
 proxy spellings on a dead loopback, and this one must reach Wikidata. Both are
 answerable in a line here; until then the criteria would be a guess. T-065 was
 taken instead.
+**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "scheduled job monthly run, have write
+access and open a pr". **One:** yes — a monthly scheduled workflow may have
+`contents: write` and `pull-requests: write` and open a PR with the diff.
+**Two** is answered by implication rather than in words: a monthly live refresh
+has to reach Wikidata, so that one job runs without the dead-proxy guard; every
+other CI job stays offline (T-005). The expander should confirm this reading
+with the human if the brief leans on it harder than that. The task is unblocked.
 
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
 **Depends on:** T-040 (corrected by T-065's reviewer, per the expander's note below)
