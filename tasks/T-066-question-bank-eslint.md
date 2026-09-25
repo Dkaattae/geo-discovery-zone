@@ -7,7 +7,7 @@
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
 the harness, branched from `origin/main` at `01a32eb`. Every later role pushes
 here (`CLAUDE.md` "Branches").
-**PR:** #PR_PLACEHOLDER, opened draft at expand time, built from the branch above.
+**PR:** #62, opened draft at expand time, built from the branch above.
 **Fault:**
 
 **Sessions:**
