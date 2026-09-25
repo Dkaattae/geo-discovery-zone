@@ -251,8 +251,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   `frontend/src/ci-action-pinning.test.ts` turns red if `ci.yml` stops obeying
   it — since T-061 (PR #52) that is the **only** file implementing the rule, and
   it no longer pins `ci.yml`'s size, so adding a CI step does not read as a
-  violation. **Nothing automates the pins** — no Dependabot, no Renovate; T-060 is the
-  open question about whether to add one.
+  violation. **Nothing automates the pins** — no Dependabot, no Renovate, and that is
+  now deliberate: T-060 (enable one) was dropped on 2026-09-25 by
+  katechen150621@gmail.com, who does not want automation given new ways to open
+  PRs. E-5's pointer to "the `tasks.md` entry this task adds" is stale for that
+  reason.
 - **Integration tests** in `backend/integration/` — black-box tests over HTTP
   that import nothing from `app`: the image serves the frontend and the API on
   one origin, content is public, a child's sitting works end to end, accounts
