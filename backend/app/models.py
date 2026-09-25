@@ -152,7 +152,6 @@ class Entity(Schema):
     area_rank: int | None = None
     area_km2: float | None = None
     borders: list[str] | None = None
-    climate_koppen: list[str] | None = None
     climate_kid: str | None = None
     top_crops: list[str] | None = None
     animals: list[str] | None = None

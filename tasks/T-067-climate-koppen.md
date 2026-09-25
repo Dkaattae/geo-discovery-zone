@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** katechen150621@gmail.com — 2026-09-25, approved via chat in the orchestrator session. See `runs/T-067-climate-koppen.md`.
 **From:** [`tasks.md`](../tasks.md) T-067
 **Branch:** `claude/next-task-queue-30m5cr`
@@ -15,6 +15,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-09-24 | cse_019f8nCt1EE188yJwEebynad (orchestrated run) |
 | task-expander | 2026-09-24 | cse_019f8nCt1EE188yJwEebynad (orchestrated run, round 2: criteria rewritten for option A) |
+| worker | 2026-09-25 | cse_019f8nCt1EE188yJwEebynad (orchestrated run; same remote session id as the expander rows, since the orchestrator spawns every role inside it) |
 
 ## Question for a human — answered 2026-09-24 (option A)
 
@@ -229,6 +230,57 @@ these:
 
 ## Handoff
 
+**TL;DR: option A is done. `climate_koppen` / `climateKoppen` is gone from the pipeline type, the contract, the backend model and the plan. §1.9 is fixed, and E-13 and E-14 are filed. This is a contract change (`openapi.yaml`). The question-bank and backend suites pass. The frontend suite has one environmental failure that is also present on the unchanged baseline: `react-simple-maps` cannot be installed here because the registry mirror returns 403.**
+
+**What changed, file by file** (no tests were added; the tests are the tester's output):
+
+- **`question-bank/src/types.ts`**: deleted the `climate_koppen?: string[];` line from `Entity` (criterion 1).
+- **`openapi.yaml`**: deleted the 5-line `climateKoppen` property from `components.schemas.Entity.properties`. Nothing else changed (criteria 2, 3).
+- **`backend/app/models.py`**: deleted `climate_koppen: list[str] | None = None` from `Entity` (criterion 4).
+- **`geoquizdataplan.md`**, three lines:
+  - deleted `"climate_koppen": [...]` from the §1.4 JSON example (criterion 6);
+  - deleted the §1.9 `Köppen climate` row (criterion 7);
+  - replaced the `US crops` row with `| US crops | ⚠️ **hand-curate** 1–3 famous plant crops per state | No live source; see `engineering-decisions.md` E-7 |` (criteria 8, 9). The `⚠️ **hand-curate**` wording copies the `animals / plants` row of the same table.
+- **`question-bank/src/curated/us-states.ts`**: one comment changed, from `(§1.9: map Köppen codes yourself)` to `Kid-facing climate phrasing, hand-written; no climate codes.` (criterion 13).
+- **`engineering-decisions.md`**: appended `## E-13 — ` and `## E-14 — ` after E-12, which was the last entry. Existing entries are untouched (criteria 14–16).
+- **`conventions.md`**: the layout line for `openapi.yaml` now ends `; follows the backend once both are built (engineering-decisions.md E-14)` (criterion 17).
+
+**Where each criterion lives:**
+
+| # | Where |
+|---|---|
+| 1 | `question-bank/src/types.ts` `Entity` |
+| 2–3 | `openapi.yaml` `components.schemas.Entity` (the diff is 5 deleted lines) |
+| 4 | `backend/app/models.py` `Entity` |
+| 5 | `grep -rn "climate_koppen\|climateKoppen" question-bank/src frontend/src backend/app openapi.yaml geoquizdataplan.md` returns nothing |
+| 6–12 | `geoquizdataplan.md` §1.4 and §1.9. The diff is 3 removed lines and 1 added line |
+| 13 | `question-bank/src/curated/us-states.ts`, the comment above `climate_kid` in `CuratedState` |
+| 14–16 | the end of `engineering-decisions.md` |
+| 17 | `conventions.md`, the layout block |
+| 18–19 | not touched. `git diff --stat` lists only the 7 files above plus this brief |
+| 20 | `question-bank`: `bun test` 1251 pass, 0 fail. `bun run typecheck` is clean after `bun install --frozen-lockfile` (before the install, `@types/bun` was missing) |
+| 21 | **Not demonstrable in this environment.** See below |
+| 22 | `make -C backend test`: 517 passed, 9 skipped (Postgres-only tests) |
+| 23 | no tests were added. The existing suites ran offline |
+
+**Criterion 21, frontend.** `bun install --frozen-lockfile` fails with `GET https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/d3-timer/-/d3-timer-2.0.0.tgz - 403`, so `react-simple-maps` and `us-atlas` are not installed. As a result:
+
+- `bun test`: 342 pass, 1 fail, 1 error. The only failure is `src/components/screens.criteria.test.tsx`, "Cannot find package 'react-simple-maps'". I ran `git stash` and got the same result on the unchanged tree.
+- `bun run typecheck`: its only errors are in `src/components/UsMap.tsx` (module `us-atlas/states-10m.json` not found).
+- `bun run lint`: clean.
+- `frontend/` never referenced the field, so nothing I changed can reach these failures. The tester should rerun in an environment that can install the lockfile. Owner: the tester, or the human if no environment can.
+
+**What I deliberately did not do:**
+
+- No tests. The deliverable is the change, and the tester writes the criteria tests.
+- Did not touch `CLAUDE.md`, which still calls `openapi.yaml` "the frontend/backend contract". It is gated and out of scope, and E-14 now points the other way. Proposed follow-up: a `process-tasks.md` ticket. Owner: the human.
+- Did not sweep other `openapi.yaml` / `models.py` drift (out of scope; E-14 says so too).
+- Did not edit `tasks.md`'s T-067 entry. That is the sweep's job.
+
+**Contradictions with the brief:** none found. Criterion 5's grep scope includes `geoquizdataplan.md`, and after the change that file has no match at all. The plan still says "Köppen" nowhere in §1.9. The only other mention was `process.md:712`, which is gated and not in scope.
+
+**How to run:** `cd question-bank && bun install --frozen-lockfile && bun test && bun run typecheck`. Do the same in `frontend/`. Then `make -C backend test`.
+
 ## Verdict
 
 ## Notes
@@ -246,3 +298,19 @@ these:
 - The answer came from katechen150621@gmail.com, and `CLAUDE.md`'s standing
   permissions name Dkaattae. **Approval is still `pending`.** The worker must not
   start until a human writes their name and the date there.
+- Worker, 2026-09-25: I started because `Approved:` now holds a name and a date
+  (commit `51abd2f`, recorded from chat by the orchestrator). The expander's note
+  above predates that commit. The approver is katechen150621@gmail.com, not
+  Dkaattae. I treated the account owner's approval in chat as valid; the reviewer
+  or human should confirm it.
+- Worker: there is a judgement call in the §1.9 `US crops` row wording (criterion 9).
+  It reuses the table's existing `⚠️ **hand-curate**` phrasing so the row reads
+  as a plan line and not a changelog. The human confirms it or rewrites it using
+  the Review checklist.
+- Worker: E-14's "What it does not say" paragraph is my addition. I added it to
+  keep the rule narrow, as the Review checklist asks. It says the rule settles
+  which side wins a disagreement, and that it does not make the contract optional.
+  The human confirms it against their own words.
+- Worker: the frontend's install depends on a `lovable-core-prod` npm mirror
+  that returns 403 from this sandbox. This is not a T-067 problem. It is worth a
+  `tasks.md` entry if other sessions hit it too. Owner: the human.

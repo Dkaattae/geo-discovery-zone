@@ -641,3 +641,71 @@ again. The honest version needs either the same deeper `fetch-depth` E-11's
 it in the file at the time it is filed — a per-entry checksum, checked at PR
 time by the reviewer reading the diff rather than by a test that ages the
 moment history moves past it.
+
+---
+
+## E-13 — `climate_koppen` is deleted everywhere, the contract included
+
+**2026-09-25 (T-067).** `climate_koppen` (`climateKoppen` in the contract) is
+removed from all four places that declared it:
+
+- `question-bank/src/types.ts`, the pipeline's `Entity` interface;
+- `openapi.yaml`, `components.schemas.Entity.properties.climateKoppen`;
+- `backend/app/models.py`, the served `Entity` model;
+- `geoquizdataplan.md` §1.4, the entity example.
+
+The `Köppen climate` row of the plan's §1.9 source table is deleted too, and
+the one comment that cited it (on `climate_kid` in
+`question-bank/src/curated/us-states.ts`) no longer does.
+
+**This is a contract change, made deliberately.** Removing an optional
+property from `openapi.yaml`'s `Entity` schema is a change to the
+frontend/backend contract (`CLAUDE.md`: "change it deliberately and say so").
+Nothing on either side read or wrote the field, so no client or response
+changes shape.
+
+**Why delete rather than keep or emit.** The field was never emitted: no
+query, no `normalize.ts` path, no tracked data file and nothing in
+`frontend/` produced or read it, and the backend model declared it without
+ever populating it. `climate_kid` is the shipped form. T-014 hand-curated it as
+kid-facing phrasing with no climate codes in it, and the tests for that field
+forbid the codes outright. Keeping the field in the contract only as "not yet
+sourced" was option B and was declined. Emitting it (option C) needs a source
+this repo does not have: Wikidata's Köppen coverage is thin for US states, and
+the Beck et al. raster would be new data and probably a new dependency. The
+human chose deletion everywhere in their answer on T-067 (2026-09-24),
+together with deleting the §1.9 row.
+
+**Revisit when** world-scope climate data is actually sourced, for example
+when world countries are built and a Köppen source is chosen for them. Then
+the field comes back as a new, deliberate addition to the pipeline, the
+backend and the contract together, not as a revival of this unused
+declaration.
+
+---
+
+## E-14 — Once the backend and frontend are built, the backend is the source of truth
+
+**2026-09-25 (T-067).** Once the backend and the frontend are both built, the
+backend is the source of truth for the API's shape. `openapi.yaml` follows the
+backend rather than constraining it. When the two disagree, the fix is to
+bring `openapi.yaml` in line with what the backend serves, not to hold a
+backend change back because the contract says otherwise.
+
+**Where this came from.** It is the human's rule, given in their answer on
+T-067 (2026-09-24): "Do not need to care about the openapi contract, once
+backend and front built, backend is the source of truth. Please note
+somewhere." T-067's own contract change (E-13) was the first decision made
+under it.
+
+**What it does not say.** It does not make `openapi.yaml` optional or stale by
+design. A change to it is still deliberate and still said out loud, and the
+backend's contract check (`backend/tests/conftest.py`, `assert_matches`: no
+response key the contract leaves undeclared) still holds. The rule settles
+which side wins a disagreement. It is not a sweep of existing drift, and it
+does not address the period before both halves are built.
+
+**Revisit when** a consumer outside this repo depends on `openapi.yaml`, for
+example a second client or a published API. At that point the contract has a
+reader the backend cannot see, and it would need to constrain the backend
+again.

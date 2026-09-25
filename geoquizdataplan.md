@@ -48,7 +48,6 @@ Build one entity row per place. For the US that's 50 states + ~100 cities. For t
   "population_rank": 21,
   "area_rank": 8,
   "borders": ["us-state-wy", "us-state-ne", "us-state-ks", "..."],
-  "climate_koppen": ["BSk", "Dfb", "ET"],
   "climate_kid": "dry and cold in the mountains, drier plains to the east",
   "top_crops": ["corn", "wheat", "hay"],
   "state_animal": "Rocky Mountain bighorn sheep",
@@ -251,9 +250,8 @@ Rules that keep these good:
 | names, capitals, population, borders, continent | **Wikidata SPARQL** (`query.wikidata.org`) | CC0. One query gets all countries. |
 | US state facts, state symbols | Wikidata + Census | |
 | flags | Wikimedia Commons / `flagcdn.com` | Public domain mostly |
-| Köppen climate | Wikidata, or Beck et al. climate raster | Map codes → kid-friendly phrasing yourself |
 | world crops | **FAOSTAT** bulk download | Free, needs aggregation to "top 3" |
-| US crops | **USDA NASS Quick Stats API** | Free key |
+| US crops | ⚠️ **hand-curate** 1–3 famous plant crops per state | No live source; see `engineering-decisions.md` E-7 |
 | city coordinates & population | Wikidata, or SimpleMaps World Cities basic (free tier) | |
 | animals / plants | ⚠️ **hand-curate** | Wikidata coverage is genuinely poor here. Budget for this. |
 | river length, peak elevation, lake area | Wikidata | Good coverage. Cross-check the top 10 by hand. |

@@ -46,7 +46,6 @@ export interface Entity {
   area_rank?: number | null;
   /** Entity ids, not names. */
   borders?: string[];
-  climate_koppen?: string[];
   climate_kid?: string;
   top_crops?: string[];
   state_animal?: string;

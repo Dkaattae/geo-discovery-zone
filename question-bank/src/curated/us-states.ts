@@ -77,7 +77,7 @@ export interface CuratedState {
    * serves. See that comment for provenance (T-017).
    */
   region: string;
-  /** Kid-facing climate phrasing (§1.9: map Köppen codes yourself). */
+  /** Kid-facing climate phrasing, hand-written; no climate codes. */
   climate_kid?: string;
   /** §1.9 flags animals as hand-curate — left blank rather than guessed. */
   state_animal?: string;
