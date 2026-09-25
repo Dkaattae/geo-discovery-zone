@@ -276,41 +276,6 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-067 — `climate_koppen` is declared and never emitted · S · todo
-**Depends on:** —
-**New 2026-09-17, carried over by T-014's reviewer (PR #44)** because T-014's Out
-of scope said the gap was a sweep entry rather than a commit there.
-`Entity.climate_koppen` exists (`question-bank/src/types.ts:49`) and
-`geoquizdataplan.md` §1.4's entity example prints it, but no query produces it and
-no tracked file carries the key — so the plan shows a field the pipeline has never
-emitted. T-014 filled `climate_kid` for all 50 states by hand precisely because
-the codes are not on disk to translate from (plan §1.9), which means the raw codes
-now buy the app nothing a child would see. Two honest endings: **delete the field
-and correct §1.4's example**, or **emit it** and say what reads it. Deleting looks
-right — nothing in `openapi.yaml` exposes it and `climate_kid` is the shipped
-version — but it edits the plan's example, so it is a deliberate call rather than
-a tidy-up.
-**If this one ends by *emitting* the field, it hits the pinned-digest wall —
-read T-070 first.** Deleting the field touches no tracked file and avoids it
-entirely, which is one more small argument for that ending.
-**A second, smaller plan correction rides here (T-015's reviewer, PR #46)**,
-because it is the same one-line kind of deliberate plan edit and is not worth its
-own entry: **`geoquizdataplan.md:256` still lists US crops as coming from the
-"USDA NASS Quick Stats API", notes "Free key", and is now false.** T-015
-considered that route and rejected it — no key exists in the repo, the
-environment or CI secrets, no agent can register for one (signup form plus
-email), and CI runs with all six proxy spellings on a dead loopback, so a live
-fetch cannot run there by design. `top_crops` ships hand-curated instead, on
-`CuratedState`, and the full reasoning is already written down in
-`engineering-decisions.md` **E-7**. The plan's *reasoning* is what is wrong, not
-a detail: it prices the route at "free key" when the real cost is a human action
-outside the loop. Correct the row to say hand-curated, pointing at E-7. **Leave
-the `world crops | FAOSTAT` row alone** — that one is untouched, still unbuilt,
-and still plausible, since a bulk download needs no key.
-**Done when:** `climate_koppen` is either emitted by a build or gone from
-`types.ts` and from the plan's example, nothing describes a field that does not
-exist, and §1.9's US-crops row names the source the code actually uses.
-
 ### T-068 — US livestock/poultry per state, separate from crops · S · todo
 **Depends on:** — (**T-015 landed, PR #46**, and settled the pattern this
 inherits.)
@@ -369,7 +334,7 @@ read T-070 first.** This is the first queued task that *changes* a value rather
 than adding a key, which none of the existing neutralisations handle.
 
 ### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
-**Depends on:** — (blocks nothing, but **T-067, T-068 and T-069 all hit it**)
+**Depends on:** — (blocks nothing, but **T-068 and T-069 both hit it**; T-067 ended by deleting its field and never touched the bank)
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.

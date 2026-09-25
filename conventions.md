@@ -12,7 +12,7 @@ question-bank/   Wikidata → entity JSON pipeline (TypeScript, bun)
 e2e/             Playwright end-to-end suite, run against a real docker compose stack (TypeScript, bun)
 fixtures/        data shared across languages and suites — see "Shared fixtures" below
 tasks/           brief for the task in flight; empty when nothing is
-openapi.yaml     the contract between frontend and backend
+openapi.yaml     the contract between frontend and backend; follows the backend once both are built (engineering-decisions.md E-14)
 ```
 
 ### Shared fixtures

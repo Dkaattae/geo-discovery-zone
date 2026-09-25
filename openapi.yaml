@@ -1474,11 +1474,6 @@ components:
           description: Entity ids, not names.
           items:
             type: string
-        climateKoppen:
-          type: array
-          items:
-            type: string
-          example: ["BSk", "Dfb", "ET"]
         climateKid:
           type: string
           example: dry and cold in the mountains, drier plains to the east
