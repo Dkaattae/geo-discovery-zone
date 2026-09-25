@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets eslint and a `lint` gate — run log
 
 **Task:** T-066 · **Branch:** `claude/relaxed-pascal-ff0fgq` · **PR:** #62
-**Started:** 2026-09-25 · **Outcome:** halted — needs human
+**Started:** 2026-09-25 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-25
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -69,3 +69,7 @@ Brief: /home/user/geo-discovery-zone/tasks/T-066-question-bank-eslint.md
 `Status: blocked`, `Next step: human`, set by the worker. A human has to choose
 between options A–D above (the worker's words, quoted). The orchestrator does
 not answer it.
+
+## Resumed — 2026-09-25
+katechen150621@gmail.com answered in chat: "go with oxlint". Recorded in the
+brief under `## Human answer`; `Next step` set to `task-expander`.

@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets eslint and a `lint` gate
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `answered — criteria need rewriting`
+**Next step:** `task-expander`
 **Approved:** katechen150621@gmail.com — 2026-09-25, in chat during an orchestrated run. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
@@ -292,3 +292,14 @@ _Written by `tester`._
   picks a route from the Handoff table. Then **task-expander** rewrites
   criteria 14/15 to match, and the brief goes back through approval before a
   worker runs again.
+
+## Human answer — 2026-09-25
+
+katechen150621@gmail.com, in chat, answering the worker's blocked question:
+
+> go with oxlint
+
+That is the worker's option C, using oxlint as the linter for `question-bank/` in
+place of eslint and typescript-eslint. `frontend/` is not part of this answer.
+The brief's criteria must be rewritten for it and approved again before the
+worker runs.
