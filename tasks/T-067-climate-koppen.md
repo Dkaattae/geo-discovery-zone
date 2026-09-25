@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #60; escalated: contract, plan, approver identity)
 **Approved:** katechen150621@gmail.com — 2026-09-25, approved via chat in the orchestrator session. See `runs/T-067-climate-koppen.md`.
 **From:** [`tasks.md`](../tasks.md) T-067
 **Branch:** `claude/next-task-queue-30m5cr`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-09-24 | cse_019f8nCt1EE188yJwEebynad (orchestrated run, round 2: criteria rewritten for option A) |
 | worker | 2026-09-25 | cse_019f8nCt1EE188yJwEebynad (orchestrated run; same remote session id as the expander rows, since the orchestrator spawns every role inside it) |
 | tester | 2026-09-25 | cse_019f8nCt1EE188yJwEebynad (orchestrated run; same id as every row above, so the id check proves nothing. Independence rests on being a freshly spawned agent, not on a separate session) |
+| reviewer | 2026-09-25 | cse_019f8nCt1EE188yJwEebynad (orchestrated run; shared id, as above) |
 
 ## Question for a human — answered 2026-09-24 (option A)
 
@@ -427,3 +428,62 @@ bypass, so I did not pursue it. Nothing tracked was changed by the attempt.
 - Worker: the frontend's install depends on a `lovable-core-prod` npm mirror
   that returns 403 from this sandbox. This is not a T-067 problem. It is worth a
   `tasks.md` entry if other sessions hit it too. Owner: the human.
+
+## Review
+
+**TL;DR: approved and escalated.** The diff does exactly what option A asked,
+every role's work is in PR #60, and CI is green on every job. It escalates
+because it edits `openapi.yaml` and `geoquizdataplan.md`, and because the brief
+was approved by katechen150621@gmail.com rather than Dkaattae. The PR is marked
+ready. Dkaattae merges after reading the three items at the top of the PR body.
+
+- **Every role's work is in the PR.** Expander `ad59555`/`aaa758d`/`c6b788e`,
+  worker `132b429`, tester `4ae0484`, human answers and CI confirmation
+  `228888a`/`51abd2f`/`8059790`, orchestrator logs in `runs/`. Nothing is
+  stranded on another branch.
+- **Lanes.** Expander: `tasks/` and `tasks.md` only. Worker: the seven files
+  in Constraints plus the brief. Tester: two new test files plus the brief, no
+  source touched. Nothing outside Constraints. No dependency or lockfile change.
+- **Fits the codebase.** Deletions only, in four files, plus one comment. The
+  new §1.9 `US crops` row reuses the table's own `⚠️ **hand-curate**` idiom.
+  E-13/E-14 follow the E-11/E-12 house style (date and task, reason, Revisit when).
+- **Docs are true.** No remaining mention of the field outside
+  `engineering-decisions.md` and tests. `conventions.md` points at E-14.
+  `PROGRESS.md`'s layout line is reconciled in the sweep.
+- **Honesty.** The tester said plainly that criterion 21 could not be run
+  here, and a human closed it from CI. The shared session id is disclosed, not
+  claimed as independence.
+- **CI on head `8059790`:** `frontend`, `question-bank`, `backend (lint, format,
+  test)` and `backend (postgres)` all green. The human confirmed earlier that
+  every job was green on the worker and tester commits.
+
+**Worker and tester flags, disposed:**
+
+- **Approver is katechen150621@gmail.com, not Dkaattae.** Accepted for the
+  loop's purposes: it is the account the orchestrated session runs under, and
+  the same approver has been accepted on T-074 (PR #58, merged). The PR body
+  escalates it anyway, so Dkaattae confirms it at merge.
+- **§1.9 `US crops` wording.** Accepted. It reads as a plan line, not a
+  changelog, and it copies the neighbouring `animals / plants` row.
+- **E-14's "What it does not say" paragraph.** Kept, and escalated for the
+  human to confirm. It narrows the rule to "which side wins a disagreement" and
+  keeps "a change is still deliberate and said out loud". That is consistent
+  with `CLAUDE.md` as it stands today, but it is the worker's wording, not the
+  human's ("Do not need to care about the openapi contract"). The human
+  settles the final wording in **P-8** (the `CLAUDE.md` edit), and E-14 is
+  amended there if it differs.
+- **Frontend install 403s in the sandbox.** This is now the sixth task where
+  the tester could not close the frontend gate without a human reading CI.
+  Filed as **P-9** in `process-tasks.md`.
+- **`CLAUDE.md` still calls `openapi.yaml` "the contract"** (human instruction,
+  2026-09-25). Filed as **P-8**, at the head of `process-tasks.md`. Not a finding
+  against T-067.
+
+**Non-blocking, not filed:** `climate-koppen.criteria.test.ts` says its
+source "never contains the literal", but the type-level check on line 38 does
+spell `"climate_koppen"`. Test files are exempt under criterion 5, and nothing
+depends on the claim. It would cost more as a task than it is worth.
+
+**Queue changes in the sweep:** T-067 deleted from `tasks.md`. T-070's
+`Depends on` no longer lists T-067, because deletion touched no data file.
+P-8 and P-9 added to `process-tasks.md`.
