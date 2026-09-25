@@ -2,8 +2,10 @@
 
 Kids' geography quiz. `frontend/` React + TanStack Start (bun), `question-bank/`
 Wikidata → JSON pipeline (bun), `api/` FastAPI + Postgres (uv, not built yet),
-`tasks/` brief for the task in flight, `openapi.yaml` the frontend/backend
-contract — change it deliberately and say so.
+`tasks/` brief for the task in flight, `openapi.yaml` a description of the API
+that follows the backend. It is not a contract to protect: the backend is the
+source of truth, and when the two differ you update `openapi.yaml` to match,
+with no ceremony (`engineering-decisions.md` E-14).
 
 ## Docs
 

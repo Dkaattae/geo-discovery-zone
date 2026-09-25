@@ -152,26 +152,10 @@ reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
 for it without guessing the answer. Unblocks the moment that call is recorded
 here; T-061 was taken instead. **Passed over again 2026-09-22** for the same
 reason; T-073 was taken. **And again 2026-09-24**; T-074 was taken.
-
-### T-060 — Enable Dependabot (or Renovate) for GitHub Actions · S · todo
-**Depends on:** — (T-008 landed in PR #34; this is its follow-on, not its blocker)
-T-008's `engineering-decisions.md` E-5 pins `oven-sh/setup-bun` and
-`astral-sh/setup-uv` in `ci.yml` to a commit SHA, with `actions/checkout` and
-`actions/upload-artifact` staying on their major tags — and states plainly that
-nothing in the repo notices when a pinned SHA goes stale or a watched tag moves,
-because `.github/` holds only `workflows/` and no dependency bot exists. E-5
-recommends closing that gap with Dependabot or Renovate scoped to
-`package-ecosystem: "github-actions"`, but turning a bot loose to open PRs on a
-schedule is Dkaattae's call, not a task the loop can make on its own
-(`CLAUDE.md` "Packages").
-**Done when:** Dkaattae has decided whether to enable it, and — if yes —
-`.github/dependabot.yml` (or the Renovate equivalent) exists, is scoped to
-`github-actions`, and E-5's "no mechanism exists in the repo today" sentence is
-updated to match.
-**Skipped by the expander, 2026-09-19:** the whole task is the decision, and it
-is Dkaattae's. Nothing to expand until it is answered; T-061 was taken instead.
-**Passed over again 2026-09-22** for the same reason; T-073 was taken. **And
-again 2026-09-24**; T-074 was taken.
+**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "add eslint". Give `question-bank/` eslint as a
+devDependency, with a `lint` script, a config, and the lockfile committed with it
+(`CLAUDE.md` "Packages"). The dependency decision this entry was waiting on is
+made; the task is unblocked.
 
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
@@ -202,6 +186,9 @@ all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
 `frontend/` devDependency does not settle it. Unblocks the moment that call is
 recorded here; T-065 was taken instead. **Passed over again 2026-09-24** for the
 same reason; T-074 was taken.
+**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "allow prettier". `prettier` may be added
+as a pinned devDependency of `question-bank/`, lockfile committed with it. The
+dependency decision this entry was waiting on is made; the task is unblocked.
 
 ---
 
@@ -212,37 +199,42 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-063 — Periodic pipeline to refresh the committed 50-state data · M · todo
+### T-063 — A one-command live refresh of the 50-state data, run monthly by a Claude routine · M · todo
 **Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
-Split out of T-010's Q1: once `question-bank/data/` is committed, it goes stale
-against Wikidata unless something regenerates and diffs it on a schedule. Design
-and build that refresh (likely a scheduled CI job that reruns the pipeline live
-and opens a PR with the diff — `.github/workflows/ci.yml`'s existing jobs run
-offline on purpose, per T-005, so this is a new one). Explicitly out of scope for
-T-010 itself.
+**Reshaped 2026-09-25 by katechen150621@gmail.com, in chat (option B).** The
+earlier plan was a scheduled GitHub Actions workflow with `contents: write` and
+`pull-requests: write` that reached Wikidata from CI. **That is not wanted:** CI
+stays fully offline (T-005) and gains no write permissions. Instead:
+- **This task** builds one command in `question-bank/` that reruns the pipeline
+  live, writes the bank, and prints a **readable change summary**: per state,
+  per field, old value → new value, plus files added or removed. "No change" must
+  be an explicit, machine-checkable outcome (an exit code or a single line), so
+  the caller can do nothing when nothing moved.
+- **After it lands**, a monthly Claude Code routine (a scheduled cloud session,
+  not CI) runs that command and opens a PR **only when the bank changed**, with
+  the summary as the PR body. A human reviews and merges it. Setting the routine
+  up is a chat step, not part of this task's diff. The cloud environment reaches
+  `query.wikidata.org` and `en.wikipedia.org` (both returned HTTP 200,
+  2026-09-25).
+
 **One thing it must not miss, found by T-011's reviewer (PR #41):** the live
 Wikipedia pass (`build.ts`, `if (args.funFacts)`) drafts a fact for **every**
 entity with a `wikipedia_title`, with no check for whether that state already has
 a curated one. All 50 do now, so a live run writes a 50-draft
-`fun-facts.review.json` of which every entry is already answered. Nothing is
-corrupted — the drafts never touch entity output, `normalize.ts` reads the
-curated table — but a scheduled refresh that dumps 50 redundant drafts in front
-of a human each time is noise that will get ignored, which is the failure mode
-this task exists to avoid. Skip states that already carry a curated fact, or say
-why not.
-**Done when:** the committed bank can be refreshed from live Wikidata on a
-schedule without a human running the pipeline by hand, and a stale bank is
-visible (a PR, an alert, or both) rather than silent.
-**Skipped by the expander, 2026-09-22:** two calls inside it are Dkaattae's, and
-neither can be guessed into an acceptance criterion. **One** — a scheduled
-workflow that opens PRs needs `contents: write` and `pull-requests: write` on a
-job that runs unattended against a live external source, which is the same "turn
-a bot loose to open PRs on a schedule" decision T-060 is already waiting on.
-**Two** — it deliberately reverses T-005: every existing CI job runs with all six
-proxy spellings on a dead loopback, and this one must reach Wikidata. Both are
-answerable in a line here; until then the criteria would be a guess. T-065 was
-taken instead.
+`fun-facts.review.json` of which every entry is already answered. Skip states
+that already carry a curated fact, or say why not — a monthly PR full of 50
+redundant drafts is noise that gets ignored. Drafts still land `reviewed: false`
+and never ship (`CLAUDE.md` "Content rules").
 
+**Why the summary matters:** a live refresh can bring in a wrong value as easily
+as a right one — T-069's feet-under-a-metres-key is exactly that shape. The
+summary is what lets a human catch it in the PR, so it names values, not just
+file names.
+**Done when:** one command refreshes the committed bank from live Wikidata and
+prints a per-state, per-field change summary; an unchanged bank is reported as
+unchanged and writes nothing; no redundant fun-fact drafts are produced for
+curated states; tests cover the summary and the no-change path offline, through
+the existing transport seam, with no network.
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
 **Depends on:** T-040 (corrected by T-065's reviewer, per the expander's note below)
 Split out of T-010's Q3: `sample-data/` (one committed state, with its own
@@ -727,9 +719,10 @@ stops someone reading the questions either. It is a **product** problem: the app
 is built so a wrong answer is not a failure, and an answer key one tap away
 undercuts that more than it enables cheating.
 
-Flipping the default is a contract change (`CLAUDE.md`: change `openapi.yaml`
-deliberately and say so). An integration test asserts the current behaviour on
-purpose, and it is the test to update when this is decided.
+Flipping the default changes `openapi.yaml` too, which since E-14 (amended by
+P-8) is just a file to update to match the backend, not a contract to defend.
+The decision here is the product one. An integration test asserts the current
+behaviour on purpose, and it is the test to update when this is decided.
 **Done when:** the default is decided, `openapi.yaml` and the implementation
 agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
 whichever way it went.
