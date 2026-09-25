@@ -22,7 +22,7 @@ run live — nothing connects it to the app yet. That bridge is §D of
 frontend/       the TanStack Start app (question loop, map, profiles)
 backend/        the FastAPI API, and the server that serves the built app
 question-bank/  build-time data pipeline (Wikidata → entity JSON)
-openapi.yaml    the contract, implemented by backend/ and consumed by frontend/
+openapi.yaml    the contract, implemented by backend/ and consumed by frontend/; follows backend/ (E-14)
 Dockerfile      Node build stage → Python runtime, one image
 docker-compose.yml  the same image plus a Postgres
 ```
@@ -308,6 +308,25 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-067 — `climate_koppen` is deleted everywhere, the contract included, and
+  §1.9 is corrected** (PR #60, 2026-09-25). The never-emitted field is gone from
+  `question-bank/src/types.ts`, `openapi.yaml` (`Entity.climateKoppen`),
+  `backend/app/models.py` and the plan's §1.4 example. §1.9 lost its `Köppen
+  climate` row, and its `US crops` row now says hand-curated and points at E-7
+  instead of the USDA NASS "free key" route. `engineering-decisions.md` gained
+  **E-13** (the deletion) and **E-14** (once the backend and frontend are built,
+  the backend is the source of truth and `openapi.yaml` follows it).
+  *Where it differed from the brief:*
+  - **The queue entry's premise was false.** It said nothing in `openapi.yaml`
+    exposed the field, but `openapi.yaml` and `models.py` both declared it. That
+    turned a tidy-up into a contract decision, and the run halted for the human
+    before any criteria were written. The answer was option A plus a new rule,
+    E-14.
+  - **The frontend gate halted the run a second time** (the `react-simple-maps`
+    403 again). The human closed criterion 21 from CI. Filed as **P-9**.
+  - **`CLAUDE.md` still states the old contract rule.** It is gated, so the edit
+    is **P-8**, at the head of `process-tasks.md`.
 
 - **T-074 — the package READMEs state no suite sizes, and the guard covers
   them** (PR #58, 2026-09-24). The figures in `backend/README.md`,

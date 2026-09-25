@@ -22,6 +22,28 @@ other.
 
 ---
 
+### P-8 — `CLAUDE.md` still calls `openapi.yaml` the contract the backend follows · S · todo
+**Depends on:** —
+**New 2026-09-25, from T-067's reviewer (PR #60), at the human's request; do
+this one next.** T-067 filed `engineering-decisions.md` **E-14**: once the
+backend and frontend are both built, the backend is the source of truth and
+`openapi.yaml` follows it rather than constraining it. `CLAUDE.md`'s opening
+paragraph still says `openapi.yaml` is "the frontend/backend contract — change
+it deliberately and say so", which now reads the other way round. Every session
+loads `CLAUDE.md` first, so until it changes, E-14 is the rule on paper and the
+old rule in practice. `conventions.md` already points at E-14; `CLAUDE.md` is
+gated (`run-loop.sh` G1), so no loop role could make this edit.
+
+**Settle the wording with the human while doing it.** E-14's "What it does not
+say" paragraph is the worker's, not the human's: it keeps "a change to
+`openapi.yaml` is still deliberate and said out loud". The human's own words were
+"Do not need to care about the openapi contract". Whichever the human confirms
+goes into `CLAUDE.md`, and E-14 is amended to match if it differs. Also check
+`PROGRESS.md`'s layout line and `tasks.md` T-053 ("a contract change (`CLAUDE.md`:
+change `openapi.yaml` deliberately …)"), which quote the old wording.
+**Done when:** `CLAUDE.md` describes `openapi.yaml` the way E-14 does and points at
+E-14, and E-14 and `CLAUDE.md` do not disagree.
+
 ### P-1 — A halted role never says who should resume it · S · todo
 **Depends on:** —
 Found during T-006's orchestrated run, 2026-08-28. When a role halts it writes
@@ -311,3 +333,29 @@ with it — the three options above are a real choice, not a tidy-up.
 **Done when:** the orchestrator has a written answer for a role that returns
 dirty, that answer does not require it to touch source, and every role is told
 that ending with uncommitted work is a failed step rather than a handoff.
+
+### P-9 — The frontend gate cannot close in the agent sandbox · S · todo
+**Depends on:** —
+**New 2026-09-25, from T-067's reviewer (PR #60).** In the agent sandbox,
+`bun install --frozen-lockfile` in `frontend/` gets a 403 from the
+`lovable-core-prod` npm mirror for the `react-simple-maps` / `us-atlas` family.
+So `screens.criteria.test.tsx` cannot load and `bun run typecheck` fails in
+`UsMap.tsx` on the unchanged tree. `PROGRESS.md` records it on T-057, T-062,
+T-065 and T-074, and T-067 makes five. Each time,
+the tester cannot return `pass` on the whole suite, and a human (or a later
+role) closes the gate by reading CI's `frontend` job. On T-067 that cost a full
+run halt (tester `blocked` → human → restart). The tester was right to refuse a
+workaround; T-067's tester tried a rewritten lockfile against
+`registry.npmjs.org`, and the sandbox's permission classifier correctly refused
+it as a registry bypass.
+
+**The question is where the gate should close.** Candidates: let the tester
+read the PR's CI check runs as the frontend evidence when it cannot install
+(`mcp__github__pull_request_read` `get_check_runs`), and write that into
+`process.md` step 4 and the tester's definition; or fix the mirror, which is
+outside this repo. The first keeps the rule "no pass without the whole suite"
+while naming CI as a valid witness. Do not let a role stub the packages.
+**This is a process-file change** (`process.md`, `.claude/agents/tester.md`), so it
+is done by hand.
+**Done when:** a task whose only red is the sandbox's frontend install can reach
+`pass` without a run halt, on evidence the brief records, and nothing is stubbed.
