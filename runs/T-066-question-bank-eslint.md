@@ -73,3 +73,39 @@ not answer it.
 ## Resumed — 2026-09-25
 katechen150621@gmail.com answered in chat: "go with oxlint". Recorded in the
 brief under `## Human answer`; `Next step` set to `task-expander`.
+
+## Round 3 — task-expander — 2026-09-25
+`Next step` on entry: `task-expander` → on exit: `worker`
+
+**TL;DR:** I rewrote the T-066 brief for oxlint, as you asked ("go with oxlint"). It is committed and pushed to `claude/relaxed-pascal-ff0fgq`: `e6bccc1`, and local HEAD matches the remote. **Next step: you re-approve the brief, then the worker runs.** The earlier approval covered the eslint criteria, so I set `Approved:` back to `pending`.
+
+**Header now reads**
+- **Status:** `awaiting approval`
+- **Next step:** `worker`
+- **Approved:** `pending`
+- **Sessions:** a new re-expand row
+- **Title:** changed to "oxlint". The filename keeps `-eslint` so the existing links from `runs/` and `tasks.md` still work.
+
+**What changed in the criteria (24 in total)**
+- **Only one new dependency:** `oxlint`, as a dev dependency (criterion 16). eslint, typescript-eslint, globals and the type-aware add-on `oxlint-tsgolint` are all excluded. The `typescript@^7.0.2` entry must stay byte-for-byte unchanged (criterion 17).
+- **Warnings must fail the lint.** The test runs `bun run lint` once with an extra `-W <rule>` flag against a sample file that breaks only that rule; the run must exit non-zero (criterion 6). This replaces the old eslint-9-only check.
+- **Clean output is judged by the counts** — zero warnings, zero errors — not by the word "warning" being absent, because oxlint's clean summary line contains "warnings" (criterion 2).
+- **The explicit-`any` rule must be switched on deliberately** (criterion 5), because oxlint leaves it off by default. There are no explicit `any`s in `question-bank/src/` today, so this should not force source edits.
+- **New criteria:**
+  - 3: the script uses the locally installed oxlint, never a download.
+  - 11: every rule turned off or down to a warning gets a written reason.
+  - 20: no eslint config file in the package.
+  - 22: the docs say the package lints with oxlint, not eslint.
+  - 24: a new `engineering-decisions.md` entry, E-15, explains why this package uses oxlint while `frontend/` uses eslint.
+- **Existing comments that switch off lint checks** have no stated reason today: `question-bank/src/sinks/db.ts:30,39` and `question-bank/src/build.ts:83`. Criterion 10 requires a reason on each.
+- **The worker stops and asks you** if installing oxlint needs a blocked install script, if the binary won't run on CI or offline, or if the criteria can't be met with oxlint alone.
+
+**Other changes**
+- **`tasks.md` T-066:** I added a line recording the switch to oxlint.
+- **Round 1's Handoff is left untouched.** The next worker adds its own below it.
+- **PR #62:** retitled, and its body now holds the new criteria: https://github.com/Dkaattae/geo-discovery-zone/pull/62
+- **Scope of my commit:** it touches only `tasks/` and `tasks.md`.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks/T-066-question-bank-eslint.md
+- /home/user/geo-discovery-zone/tasks.md
