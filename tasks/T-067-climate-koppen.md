@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** katechen150621@gmail.com — 2026-09-25, approved via chat in the orchestrator session. See `runs/T-067-climate-koppen.md`.
 **From:** [`tasks.md`](../tasks.md) T-067
 **Branch:** `claude/next-task-queue-30m5cr`
@@ -75,6 +75,24 @@ this, so the default is **leave it alone** unless you say otherwise.
 - **Record the rule** where later tasks will find it: once the backend and
   frontend are built, the backend is the source of truth, and `openapi.yaml`
   follows it rather than constraining it.
+
+### Instruction from a human — katechen150621@gmail.com, 2026-09-25 (given in chat, written in by the orchestrator)
+
+> Ci all green. When calling reviewer, ask it to add a D task editing Claude.md
+> file. Make it the next task. This task ignore openapi contract.
+
+- **Criterion 21 is confirmed by a human.** Every CI job on PR #60 is green,
+  `frontend (typecheck, lint, test)` included. That resolves the tester's
+  `blocked`, so `Status` is now `pass` and `Next step` is `reviewer`.
+- **For the reviewer:** add a task to `process-tasks.md` that edits `CLAUDE.md`
+  to match E-14. `CLAUDE.md` currently calls `openapi.yaml` "the frontend/backend
+  contract — change it deliberately and say so"; after E-14 the backend is the
+  source of truth and `openapi.yaml` follows it. Put it at the head of that queue
+  so it is the next process task. It is done by hand, not by this loop, because
+  `CLAUDE.md` is gated (G1).
+- **For this task, ignore the `openapi.yaml` contract.** Removing
+  `climateKoppen` from it is intended, and the stale `CLAUDE.md` wording is not
+  a finding against T-067.
 
 ## Goal
 

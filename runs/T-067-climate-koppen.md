@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted — run log
 
 **Task:** T-067 · **Branch:** `claude/next-task-queue-30m5cr` · **PR:** #60
-**Started:** 2026-09-24 · **Outcome:** halted — needs human
+**Started:** 2026-09-24 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-24
 `Next step` on entry: `—` (no brief existed) → on exit: `human`
@@ -164,4 +164,9 @@ The brief `/home/user/geo-discovery-zone/tasks/T-067-climate-koppen.md` now has 
 The header reads `Status: blocked`, `Next step: human`. What the tester asked for, quoted:
 "A human needs to check that the `frontend` CI job on PR #60 is green [...] If it's green, set Next step to `reviewer`."
 At halt, the `frontend (typecheck, lint, test)` check on PR #60 was still `in_progress` (question-bank had passed).
+
+## Answered — 2026-09-25
+The human replied in chat; the orchestrator wrote it into the brief verbatim and set `Status: pass`, `Next step: reviewer`. Quoted:
+"Ci all green. When calling reviewer, ask it to add a D task editing Claude.md file. Make it the next task. This task ignore openapi contract."
+The instruction reaches the reviewer through the brief, not the spawn prompt, which stays the fixed template.
 
