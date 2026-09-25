@@ -1,7 +1,7 @@
 # T-067 — `climate_koppen` is declared and never emitted — run log
 
 **Task:** T-067 · **Branch:** `claude/next-task-queue-30m5cr` · **PR:** #60
-**Started:** 2026-09-24 · **Outcome:** in progress
+**Started:** 2026-09-24 · **Outcome:** ready for merge (escalated)
 
 ## Round 1 — task-expander — 2026-09-24
 `Next step` on entry: `—` (no brief existed) → on exit: `human`
@@ -169,4 +169,46 @@ At halt, the `frontend (typecheck, lint, test)` check on PR #60 was still `in_pr
 The human replied in chat; the orchestrator wrote it into the brief verbatim and set `Status: pass`, `Next step: reviewer`. Quoted:
 "Ci all green. When calling reviewer, ask it to add a D task editing Claude.md file. Make it the next task. This task ignore openapi contract."
 The instruction reaches the reviewer through the brief, not the spawn prompt, which stays the fixed template.
+
+## Round 5 — reviewer — 2026-09-25
+`Next step` on entry: `reviewer` → on exit: `human (merge PR #60)` (brief then deleted by the sweep)
+
+**TL;DR: I approved T-067 and escalated it. PR #60 is marked ready for review, not merged. Dkaattae has to look at three items at the top of the PR body before merging. The sweep is done and pushed to `claude/next-task-queue-30m5cr`, and the remote head `294fbc8` matches local.**
+
+**Why it escalates** (the PR body lists these first):
+1. **Contract and plan edits.** The PR removes `Entity.climateKoppen` from `openapi.yaml` and edits `geoquizdataplan.md` §1.4 and §1.9. Both are outside the reviewer's envelope.
+2. **E-14's wording is the worker's.** Its "What it does not say" paragraph keeps "a change to `openapi.yaml` is still deliberate and said out loud". The human's words were "Do not need to care about the openapi contract". The human confirms it here or settles it in P-8.
+3. **Approver identity.** The brief was approved by katechen150621@gmail.com in chat, not by Dkaattae. The same approver was accepted on T-074 (PR #58, merged).
+
+**Review:**
+- **Every role's commit is in the PR.** Expander, worker, tester, the human-answer commits and the orchestrator logs are all on this branch. Nothing is stranded on another branch.
+- **Lanes held.** The expander touched only `tasks/` and `tasks.md`. The worker touched only the seven Constraint files plus the brief. The tester added two new test files plus the brief and touched no source. No dependency or lockfile changed.
+- **The diff is good.** It is deletions plus one comment. The new `US crops` row reuses the table's own hand-curate idiom, and E-13/E-14 follow the house style of the existing entries.
+- **No blocking findings.** One cosmetic nit, not filed: the new question-bank test file claims it never spells the field name, but line 38 does.
+- **Every worker flag is decided.** The US-crops wording is accepted. The E-14 paragraph is escalated and deferred to P-8. The approver identity is escalated. The npm 403 is filed as P-9.
+
+**CI on the previous head `8059790`:** `frontend`, `question-bank`, `backend (lint, format, test)` and `backend (postgres)` are green. When I checked, `e2e` and `integration` were still running. The human had earlier confirmed every job green on the worker and tester commits. CI has not finished on the new head `294fbc8`.
+
+**My own test run after the sweep:**
+- **`question-bank`:** 1289 pass, 0 fail.
+- **`frontend`:** 342 pass, 1 fail. The fail is the known `react-simple-maps` 403 in this sandbox.
+- **One unexplained failure.** My first of three frontend runs showed 2 fails, and I could not identify the second. It did not recur in two reruns. The sweep touched no code.
+
+**Sweep (commit `294fbc8`; the review itself is in `59f2068`):**
+- **Deleted** the brief `tasks/T-067-climate-koppen.md` and T-067's entry in `tasks.md`.
+- **T-070:** its `Depends on` line no longer lists T-067, because the deletion never touched the data files.
+- **`PROGRESS.md`:** added a Completed-tasks entry for T-067. The layout line for `openapi.yaml` now points at E-14.
+- **`process-tasks.md`, P-8 (new, at the head of the queue, as the human asked):** edit `CLAUDE.md` to match E-14, and settle E-14's wording while doing it.
+- **`process-tasks.md`, P-9 (new):** the frontend gate cannot close in the agent sandbox because of the npm mirror 403. `PROGRESS.md` records it on T-057, T-062, T-065 and T-074, and T-067 makes five. My review commit's brief text says "sixth"; that is a miscount, and the PR body says so.
+
+The brief carried `Status: approved` and `Next step: human (merge PR #60)` in the review commit. The sweep then deleted it, as on T-074.
+
+**Files:**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- https://github.com/Dkaattae/geo-discovery-zone/pull/60
+
+## Ended — 2026-09-25
+The reviewer approved, marked PR #60 ready, and escalated three items for the human to check before merge. The run ends here; no role merges.
 
