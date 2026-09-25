@@ -126,7 +126,9 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-066 — `question-bank` has no `lint`, and briefs keep asking for it · S · todo
+### T-066 — `question-bank` has no `lint`, and briefs keep asking for it · S · doing
+**Expanded 2026-09-25** into `tasks/T-066-question-bank-eslint.md` (full brief,
+not light — its criteria run past four).
 **Depends on:** —
 **New 2026-09-14, found by T-011's tester and confirmed by its reviewer (PR #41).**
 T-011's criterion 13 required "`bun test`, `bun run typecheck` and `bun run lint`
