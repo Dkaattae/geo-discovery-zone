@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
+**Approved:** katechen150621@gmail.com — 2026-09-25, approved via chat in the orchestrator session. See `runs/T-067-climate-koppen.md`.
 **From:** [`tasks.md`](../tasks.md) T-067
 **Branch:** `claude/next-task-queue-30m5cr`
 **PR:** #60, opened draft at expand time, built from the branch above. It **stays

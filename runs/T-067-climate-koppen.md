@@ -74,3 +74,7 @@ Files:
 
 ## Paused — 2026-09-24
 A human is present, so the run waits at the step-2 gate for approval of the brief.
+
+## Approved — 2026-09-25
+Recorded on the brief: `katechen150621@gmail.com — 2026-09-25, approved via chat in the orchestrator session.`
+The user replied "Approved" after reading the round-2 summary; that is what is recorded here.
