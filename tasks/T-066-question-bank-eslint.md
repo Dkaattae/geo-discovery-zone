@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets eslint and a `lint` gate
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `blocked`
+**Next step:** `human`
 **Approved:** katechen150621@gmail.com — 2026-09-25, in chat during an orchestrated run. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
@@ -15,6 +15,7 @@ here (`CLAUDE.md` "Branches").
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
+| worker | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 
 ## Goal
 
@@ -211,8 +212,83 @@ Required reading for the worker and the tester.
 
 _Written by `worker`._
 
+**TL;DR — blocked on the risk the Constraints section named. typescript-eslint
+refuses to load against `typescript@7.0.2`, so no config built from the
+approved set can satisfy criterion 5. Nothing is committed except this brief.
+A human has to pick a dependency route (below), then the brief goes back to
+`task-expander` because every route but D conflicts with criterion 14 or 15.**
+
+**What I did**
+
+- `bun add -d eslint @eslint/js typescript-eslint globals` in `question-bank/`
+  resolved to `eslint@10.11.0`, `@eslint/js@10.0.1`, `typescript-eslint@8.70.1`,
+  `globals@17.12.0`. bun warned `incorrect peer dependency "typescript@7.0.2"`
+  twice.
+- I wrote a minimal flat config (`js.configs.recommended` +
+  `tseslint.configs.recommended`, `files: ["**/*.ts"]`, node globals) and ran
+  `./node_modules/.bin/eslint src`. It failed while loading the config:
+
+  ```
+  typescript-eslint does not support TS 7.0.
+  Please see https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0 to run typescript-eslint using the TS 6 API.
+  See also https://github.com/typescript-eslint/typescript-eslint/issues/10940 for tracking typescript-eslint's support for TS >=7.1
+  Error: typescript-eslint does not support TS 7.0.
+      at Object.<anonymous> (.../node_modules/typescript-eslint/dist/index.js:52:11)
+  ```
+
+- **It is a hard check, not a warning.** `typescript-eslint/dist/index.js`
+  reads `require("typescript").versionMajorMinor` and throws when the major is
+  7 or more. The peer range of `typescript-eslint` and
+  `@typescript-eslint/typescript-estree` is `>=4.8.4 <6.1.0`. There is also
+  nothing to parse with: `typescript@7`'s main export is `lib/version.cjs`,
+  which exports only the version strings, not the compiler API the parser
+  uses.
+- **Reverted all of it.** `git checkout -- package.json bun.lock`, deleted the
+  config, `bun install --frozen-lockfile` reported no changes. `git status`
+  was clean apart from this brief. Branch point `01a32eb` is untouched.
+
+**Files changed:** only `tasks/T-066-question-bank-eslint.md`: Status, Next
+step, Sessions row, this Handoff, Notes.
+
+**Criteria:** none are implemented. I did not try to build around criterion 5.
+Linting `.ts` without typescript-eslint cannot parse TypeScript syntax. The
+Constraints section also says to stop here, not work around it.
+
+**The decision a human has to make.** Each route below needs a new dependency
+decision (`CLAUDE.md` "Packages"). Routes A–C also need criteria 14 and/or 15
+re-expanded and re-approved.
+
+| Route | What it means | Criteria it conflicts with |
+|---|---|---|
+| **A. Side-by-side, as Microsoft's TS 7 post recommends** | `typescript` goes to `^6.0` (for typescript-eslint). TS 7 stays as the type-checker under an alias, e.g. `"@typescript/native": "npm:typescript@^7.0.2"`, which is what typescript-eslint's own devDependencies do. `typecheck` points at that alias's `tsc`. | 15 (the `typescript` entry changes), 14 (adds a package outside the set) |
+| **B. Downgrade `question-bank/` to TS 5.8/6.0** | Match `frontend/` (`^5.8.3`). This gives up TS 7's type-checker in this package. | 15 |
+| **C. A different TS-capable parser or linter** | For example oxlint or biome instead of eslint. | 14, and the "add eslint" answer itself |
+| **D. Wait** | Park T-066 until typescript-eslint supports TS 7 (issue #10940). Briefs keep failing to find `bun run lint` in the meantime. | none, but nothing ships |
+
+The worker does not recommend a route. A is the one that fits the error
+message and upstream's own setup. B is the smallest diff.
+
+**Minor, for the expander on re-expansion:** `bun add` picks up **eslint 10**,
+while `frontend/` is on eslint 9. Criterion 3 describes the eslint 9 default
+for unused disable directives. The expander should decide whether to pin
+`eslint@^9` to match `frontend/`, or check that eslint 10 still reports this as
+a warning.
+
+**How to reproduce:** in `question-bank/`, run
+`bun add -d eslint @eslint/js typescript-eslint globals`, add any
+`eslint.config.js` that imports `typescript-eslint`, and run
+`./node_modules/.bin/eslint src`. Then revert with
+`git checkout -- package.json bun.lock`.
+
 ## Verdict
 
 _Written by `tester`._
 
 ## Notes
+
+- **worker, 2026-09-25:** the brief called this risk correctly. The failure is
+  an explicit version guard in typescript-eslint, not a soft
+  peer-dependency mismatch. Owner: **a human (katechen150621@gmail.com)**
+  picks a route from the Handoff table. Then **task-expander** rewrites
+  criteria 14/15 to match, and the brief goes back through approval before a
+  worker runs again.
