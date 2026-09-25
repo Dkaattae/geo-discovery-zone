@@ -78,3 +78,44 @@ A human is present, so the run waits at the step-2 gate for approval of the brie
 ## Approved — 2026-09-25
 Recorded on the brief: `katechen150621@gmail.com — 2026-09-25, approved via chat in the orchestrator session.`
 The user replied "Approved" after reading the round-2 summary; that is what is recorded here.
+
+## Round 3 — worker — 2026-09-25
+`Next step` on entry: `worker` → on exit: `tester`
+
+T-067 is built, committed and pushed. I deleted `climate_koppen` everywhere with option A, and that includes the `openapi.yaml` contract. The question-bank and backend suites pass. The frontend suite has one failure: a package that cannot be installed in this sandbox. The same failure happens on the unchanged tree. **Status: `awaiting verification`, Next step: `tester`.**
+
+- **Pushed:** `origin/claude/next-task-queue-30m5cr` is at `132b429` ("T-067 worker: delete climate_koppen everywhere (contract change), fix §1.9, file E-13/E-14"). The commit message says plainly that this is a contract change.
+- **Approval:** I started because `Approved:` has a name and date (commit `51abd2f`), even though Status still said `awaiting approval`. The approver is katechen150621@gmail.com, not Dkaattae. I noted in the brief that the reviewer or human should confirm this counts.
+
+**Files changed:**
+- `/home/user/geo-discovery-zone/question-bank/src/types.ts`: removed the field from `Entity` (criterion 1).
+- `/home/user/geo-discovery-zone/openapi.yaml`: removed the 5-line `climateKoppen` property (criteria 2–3).
+- `/home/user/geo-discovery-zone/backend/app/models.py`: removed the field from `Entity` (criterion 4).
+- `/home/user/geo-discovery-zone/geoquizdataplan.md` (criteria 6–9):
+  - removed the key from the §1.4 example;
+  - deleted the §1.9 `Köppen climate` row;
+  - the `US crops` row now reads `| US crops | ⚠️ **hand-curate** 1–3 famous plant crops per state | No live source; see `engineering-decisions.md` E-7 |`.
+- `/home/user/geo-discovery-zone/question-bank/src/curated/us-states.ts`: only the comment on `climate_kid` changed (criterion 13).
+- `/home/user/geo-discovery-zone/engineering-decisions.md`: added E-13 and E-14 after E-12 (criteria 14–16).
+- `/home/user/geo-discovery-zone/conventions.md`: the `openapi.yaml` layout line now points at E-14 (criterion 17).
+- `/home/user/geo-discovery-zone/tasks/T-067-climate-koppen.md`: my Sessions row, the Handoff with a criterion → location table, Notes, and the Status/Next step update.
+
+**Test results:**
+
+| Suite | Result |
+|---|---|
+| question-bank | `bun test` 1251 pass, 0 fail. `bun run typecheck` clean after `bun install --frozen-lockfile` |
+| backend | `make -C backend test` 517 passed, 9 skipped (tests that need Postgres) |
+| frontend | `bun test` 342 pass, 1 fail, 1 error. `bun run lint` clean |
+
+- **Frontend failure (criterion 21 not shown here):** the install gets a 403 from the `lovable-core-prod` npm mirror, so `react-simple-maps` and `us-atlas` are missing.
+  - The failing test is `screens.criteria.test.tsx`. The typecheck errors are only in `UsMap.tsx`.
+  - `git stash` gives the same result on the unchanged tree.
+  - The tester needs to re-run criterion 21 somewhere the lockfile installs.
+- **No tests added.** The criteria tests are the tester's job. No lockfile or data file changed.
+
+**Flagged in the brief, each with an owner:**
+- **`US crops` row wording** (criterion 9): the human confirms it via the Review checklist.
+- **E-14's "What it does not say" paragraph:** I added it to keep the rule narrow. The human confirms it matches their words.
+- **`CLAUDE.md` still calls `openapi.yaml` the contract:** it is gated, so this needs a `process-tasks.md` ticket, owned by the human.
+- **The npm mirror 403:** possibly worth a `tasks.md` entry. Owner: the human.
