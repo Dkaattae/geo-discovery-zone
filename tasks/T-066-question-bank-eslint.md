@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** katechen150621@gmail.com — 2026-09-25, in chat during an orchestrated run. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
 the harness, branched from `origin/main` at `01a32eb`. Every later role pushes
