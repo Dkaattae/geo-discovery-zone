@@ -698,12 +698,18 @@ backend and front built, backend is the source of truth. Please note
 somewhere." T-067's own contract change (E-13) was the first decision made
 under it.
 
-**What it does not say.** It does not make `openapi.yaml` optional or stale by
-design. A change to it is still deliberate and still said out loud, and the
-backend's contract check (`backend/tests/conftest.py`, `assert_matches`: no
-response key the contract leaves undeclared) still holds. The rule settles
-which side wins a disagreement. It is not a sweep of existing drift, and it
-does not address the period before both halves are built.
+**What it does not say.** It is not a sweep of existing drift, and it does not
+address the period before both halves are built.
+
+**Amended 2026-09-25 (P-8), by katechen150621@gmail.com: the `openapi.yaml`
+contract does not matter.** This paragraph used to add that "a change to it is
+still deliberate and still said out loud". That was T-067's worker's wording,
+not the human's, and it is withdrawn. A change to `openapi.yaml` needs no
+special care, no announcement and no escalation. It is kept in step with the
+backend because the backend's contract check (`backend/tests/conftest.py`,
+`assert_matches`: no response key the contract leaves undeclared) fails
+otherwise, which makes it a file to update, not a promise to defend.
+`CLAUDE.md`'s opening paragraph says the same.
 
 **Revisit when** a consumer outside this repo depends on `openapi.yaml`, for
 example a second client or a published API. At that point the contract has a

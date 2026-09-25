@@ -312,6 +312,14 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **P-8 — `CLAUDE.md` no longer calls `openapi.yaml` a contract** (by hand,
+  2026-09-25). Its opening paragraph now says `openapi.yaml` follows the backend
+  and is updated to match it with no ceremony. E-14's "What it does not say"
+  paragraph is amended to the human's own words ("the openapi contract does not
+  matter"), dropping the worker's "still deliberate and said out loud", and
+  T-053 no longer cites the old rule. No `D-n` entry: the rule is about the
+  code, so it lives in E-14.
+
 - **T-067 — `climate_koppen` is deleted everywhere, the contract included, and
   §1.9 is corrected** (PR #60, 2026-09-25). The never-emitted field is gone from
   `question-bank/src/types.ts`, `openapi.yaml` (`Entity.climateKoppen`),
@@ -329,7 +337,7 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   - **The frontend gate halted the run a second time** (the `react-simple-maps`
     403 again). The human closed criterion 21 from CI. Filed as **P-9**.
   - **`CLAUDE.md` still states the old contract rule.** It is gated, so the edit
-    is **P-8**, at the head of `process-tasks.md`.
+    was **P-8**, done by hand the same day.
 
 - **T-074 — the package READMEs state no suite sizes, and the guard covers
   them** (PR #58, 2026-09-24). The figures in `backend/README.md`,

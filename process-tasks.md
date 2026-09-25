@@ -22,28 +22,6 @@ other.
 
 ---
 
-### P-8 — `CLAUDE.md` still calls `openapi.yaml` the contract the backend follows · S · todo
-**Depends on:** —
-**New 2026-09-25, from T-067's reviewer (PR #60), at the human's request; do
-this one next.** T-067 filed `engineering-decisions.md` **E-14**: once the
-backend and frontend are both built, the backend is the source of truth and
-`openapi.yaml` follows it rather than constraining it. `CLAUDE.md`'s opening
-paragraph still says `openapi.yaml` is "the frontend/backend contract — change
-it deliberately and say so", which now reads the other way round. Every session
-loads `CLAUDE.md` first, so until it changes, E-14 is the rule on paper and the
-old rule in practice. `conventions.md` already points at E-14; `CLAUDE.md` is
-gated (`run-loop.sh` G1), so no loop role could make this edit.
-
-**Settle the wording with the human while doing it.** E-14's "What it does not
-say" paragraph is the worker's, not the human's: it keeps "a change to
-`openapi.yaml` is still deliberate and said out loud". The human's own words were
-"Do not need to care about the openapi contract". Whichever the human confirms
-goes into `CLAUDE.md`, and E-14 is amended to match if it differs. Also check
-`PROGRESS.md`'s layout line and `tasks.md` T-053 ("a contract change (`CLAUDE.md`:
-change `openapi.yaml` deliberately …)"), which quote the old wording.
-**Done when:** `CLAUDE.md` describes `openapi.yaml` the way E-14 does and points at
-E-14, and E-14 and `CLAUDE.md` do not disagree.
-
 ### P-1 — A halted role never says who should resume it · S · todo
 **Depends on:** —
 Found during T-006's orchestrated run, 2026-08-28. When a role halts it writes

@@ -719,9 +719,10 @@ stops someone reading the questions either. It is a **product** problem: the app
 is built so a wrong answer is not a failure, and an answer key one tap away
 undercuts that more than it enables cheating.
 
-Flipping the default is a contract change (`CLAUDE.md`: change `openapi.yaml`
-deliberately and say so). An integration test asserts the current behaviour on
-purpose, and it is the test to update when this is decided.
+Flipping the default changes `openapi.yaml` too, which since E-14 (amended by
+P-8) is just a file to update to match the backend, not a contract to defend.
+The decision here is the product one. An integration test asserts the current
+behaviour on purpose, and it is the test to update when this is decided.
 **Done when:** the default is decided, `openapi.yaml` and the implementation
 agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
 whichever way it went.
