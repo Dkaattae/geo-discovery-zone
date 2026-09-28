@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets eslint and a `lint` gate — run log
 
 **Task:** T-066 · **Branch:** `claude/relaxed-pascal-ff0fgq` · **PR:** #62
-**Started:** 2026-09-25 · **Outcome:** in progress
+**Started:** 2026-09-25 · **Outcome:** ready for merge — escalated to a human
 
 ## Round 1 — task-expander — 2026-09-25
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -191,3 +191,59 @@ Files:
 - In the criterion 11 test I chose to forbid `-A`/`-W` flags in the script, since a relaxation there has nowhere to carry a reason.
 
 Files: `/home/user/geo-discovery-zone/question-bank/src/lint-gate.test.ts`, `/home/user/geo-discovery-zone/tasks/T-066-question-bank-eslint.md` (Verdict, Status, Next step, Sessions row).
+
+## Round 6 — reviewer — 2026-09-28
+`Next step` on entry: `reviewer` → on exit: `human` (brief swept at `d182d08`; last header at `382eb61`)
+
+**I approved T-066 and escalated it.** PR #62 is marked ready for review (no longer draft), but its body opens with a note asking you not to merge it until a person has looked at two things:
+- **A new dependency:** `oxlint`, added to `question-bank/`'s dev dependencies. katechen150621@gmail.com approved it in chat, but my rules send every new dependency to a person at merge time.
+- **Test files changed outside the brief's allowed list:** 8 older tests that pin the package's dependency list, plus 3 small fixes the new lint rules forced. All are justified in the worker's handoff.
+
+Nothing blocks. The sweep is committed and pushed to `claude/relaxed-pascal-ff0fgq`; the remote head matches my local HEAD at `d182d08`. **Next step: a human merges, or doesn't.** I did not merge.
+
+**Checks before reviewing**
+- **PR state:** open and not merged when I started.
+- **Every role's work is in the PR:** each role in the Sessions table has a commit on this branch.
+- **Each role stayed in its lane:** the expander's commits touched only `tasks.md` and `tasks/`. The tester's touched only `question-bank/src/lint-gate.test.ts` and the brief.
+- **Frontend half of criterion 9:** read off PR #62's CI on `7ad85c9`. The `frontend`, `question-bank` and both backend jobs passed. `integration` and `e2e` were still running when I marked the PR ready, and the PR body says so. The diff doesn't touch anything they test, but check they are green before merging.
+- **Re-ran in `question-bank/`:**
+  - `bun run lint` reports `Found 0 warnings and 0 errors.`
+  - `bun run typecheck` is clean.
+  - `bun test`: 1320 pass, 0 fail.
+- **Re-ran in `frontend/`:** the tests that read the docs and `ci.yml` (conventions, lint-gate, suite counts, git-baseline guard): 231 pass, 0 fail, after the sweep edits.
+
+**Findings (none block)**
+1. **Eight tests pin `question-bank/`'s dependency list by hand**, so every new dependency means editing all eight. I added this to T-071 (prettier) rather than opening a new task, because T-071 will hit these tests next and has to settle it anyway.
+2. **`highest-point-verify.test.ts` allows `oxlint` by name.** Once PR #62 merges that exception is redundant but harmless. It goes into the same T-071 note.
+3. **T-071 said the question-bank CI job "runs typecheck and test only".** That is no longer true, and I corrected it in `tasks.md`.
+4. **`engineering-decisions.md:555` still uses the old job name.** I left it as history, since criterion 24 forbids editing old entries.
+
+**Worker flags, decided**
+- **`--report-unused-disable-directives`: kept.** It matches eslint 9's default in `frontend/`.
+- **Deleting the three dead `eslint-disable` comments instead of annotating them: accepted.** oxlint reported that none of them suppressed anything.
+- **`--format default`: accepted.** Without it, oxlint drops the summary line criterion 2 checks whenever it runs under an AI agent.
+- **Editing the eight pin tests:** accepted. None of them got weaker: each still fails on any new dependency other than `oxlint`.
+
+**Commits**
+- **`382eb61`:** adds a `## Review` section and a reviewer row to the Sessions table in the brief. It also sets Status to `approved — ready for review, escalated (…)` and Next step to `human`.
+- **`d182d08` (sweep):**
+  - deletes the brief;
+  - removes T-066 from `tasks.md`;
+  - amends T-071;
+  - adds a Completed-tasks entry and a "Question bank" bullet to `PROGRESS.md`.
+
+  The brief no longer exists at the head. The Status and Review sections survive in `382eb61`.
+
+**PR body:** holds the escalation note, all 24 criteria verbatim with what verified each, the files outside the Constraints, the findings, and what was deliberately not done. One small inaccuracy there: the code change in the three test files shows as `m[1]!`; the real change is `m![1]!`.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-066-question-bank-eslint.md (deleted; last version at `382eb61`)
+- https://github.com/Dkaattae/geo-discovery-zone/pull/62
+
+## Ended — 2026-09-28
+The reviewer marked PR #62 ready and escalated it. No role merges; the PR is a
+human's to merge. Path: expander → (human approval) → worker (blocked) →
+(human answer: oxlint) → expander → (human approval) → worker → tester (pass) →
+reviewer (approve, escalated).
