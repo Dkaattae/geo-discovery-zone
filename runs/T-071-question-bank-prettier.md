@@ -36,3 +36,7 @@ After my last read the brief was changed on disk by something else. I did not re
 ## Paused at the step-2 gate — 2026-09-28
 A human is present in the orchestrator session, so the run waits for their approval
 of the brief rather than recording an unattended stamp.
+
+## Approved — 2026-09-28
+Recorded on the brief: `katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session.`
+The user replied "approved, go ahead", and that approval is what is recorded here.
