@@ -7,8 +7,9 @@
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
 the harness, branched from `origin/main` at `374a713`. Every later role pushes
 here (`CLAUDE.md` "Branches").
-**PR:** opened draft at expand time, built from the branch above — number in the
-Sessions note below once known.
+**PR:** #63, opened draft at expand time, built from the branch above. It stays
+draft until the reviewer approves it. The PR body condenses the criteria; where
+they differ, this brief's wording is authoritative.
 **Fault:**
 
 **Sessions:**
