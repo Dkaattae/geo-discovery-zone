@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — re-expanded for oxlint after the human answer below; the round-1 approval (katechen150621@gmail.com, 2026-09-25) covered the eslint criteria and does not carry over.
+**Approved:** katechen150621@gmail.com — 2026-09-28, in chat, for the oxlint re-expansion (round 3). The round-1 approval covered the eslint criteria only. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
 the harness, branched from `origin/main` at `01a32eb`. Every later role pushes
