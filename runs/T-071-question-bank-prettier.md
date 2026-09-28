@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** in progress
+**Started:** 2026-09-28 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -225,3 +225,42 @@ an unattended orchestrator stamp.
 The user replied "approved, send the tester in" to the Test change request raised in `1972f18`.
 Stamped on the brief as a person's approval of the whole request (not an orchestrator stamp); header set to
 `Status: awaiting verification`, `Next step: tester`. The orchestrator did not open the request's rows.
+
+## Round 6 — tester — 2026-09-28
+`Next step` on entry: `tester` → on exit: `human` (verdict: `blocked` — 2 of 2 under G3)
+
+**T-071 tester: blocked, next step human.** The harness refused the approved test edits. I made none of them and the tree is clean. The approved request also missed three count floors. Those are added as rows 14–16 and are not approved yet.
+
+**Needed from a person:**
+- **Approve rows 14–16** in `## Test change request`.
+- **Apply rows 1–16 exactly**, either by hand or by allowing the edits in a session you are watching.
+- **Commit** as `T-071: apply approved test change request (human)`.
+- **Set Next step to `tester`**, so a fresh tester re-runs criteria 11 and 16 and the full suite.
+
+**What happened:**
+- **Approval I acted on:** a person's (katechen150621@gmail.com, relayed through the orchestrator session). It covers rows 1–13, the request raised in `1972f18`.
+- **First refusal:** I ran one script to delete the approved blocks (rows 1–7). The classifier refused it: "Permission for this action was denied by the Claude Code auto mode classifier. Reason: [CI Bypass]."
+- **Second refusal:** a follow-up `bun test` run, only to record the current state, was refused as well: "Reason: [Security Test Removal]."
+- **No workaround attempted:** I did not try any other route. `git status` is clean, so nothing was deleted or modified.
+- **Three missed floors:** `climate-kid.test.ts` pins `state-animals.test.ts` at 43 tests and `landmarks.test.ts` at 53. `landmarks.test.ts` pins `state-animals.test.ts` at 43. Both files hold exactly those counts today (43 and 53), so once rows 5 and 6 each remove a test, these three go red.
+  - The fix is the same as rows 11–13: lower each floor by exactly 1, with expects unchanged.
+  - The "Introduced" column for rows 14–16 is approximate. The harness refused commands before I could run `git log -S`.
+- **Criteria status:** 17 of 19 are met, but I could not re-run anything in this run. That evidence comes from the previous tester's run at `1972f18`, and no source has changed since (`6776c70` touched only the brief). Criteria 11 and 16 still wait on rows 1–16.
+
+**Independence:** this is an orchestrated run, and the session id `cse_01KmyHhDTUDHHNBeuqPkeiKW` matches every other row in the Sessions table. So the session check proves nothing. My independence rests only on being a freshly spawned subagent.
+
+**Brief updates:**
+- Header: Status `blocked`, Next step `human`, and a new Fault line.
+- The Test changes line notes that rows 14–16 are requested and not yet approved.
+- New Sessions row.
+- New Verdict subsection at the top of `## Verdict`.
+- Rows 14–16 added to `## Test change request`.
+
+**Push:** `757c520` is on `origin/claude/nice-euler-247a4f`, confirmed by rev-parse after fetch.
+
+File: /home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md
+
+## Halted — G3 — 2026-09-28
+Second `blocked` verdict on this task (rounds 4 and 6), so the round bound halts the run. Both were the
+harness refusing test edits, not the criteria. A human must approve rows 14–16, apply rows 1–16 (by hand,
+or in a session a person is watching), commit, and set `Next step: tester`.
