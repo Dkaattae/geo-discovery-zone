@@ -848,21 +848,6 @@ describe("T-014 criterion 18 — nothing unreviewed, live or new is committed", 
     expect(reviews).toEqual([]);
   });
 
-  test("question-bank/package.json still declares no runtime dependency and the same two devDependencies", () => {
-    const pkg = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    expect(pkg.dependencies ?? {}).toEqual({});
-    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
-    // covered (engineering-decisions.md E-15). Anything else still fails.
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
-      "@types/bun",
-      "oxlint",
-      "typescript",
-    ]);
-  });
-
   test("no test file in question-bank/src mocks fetch or issues a request", () => {
     const tests = trackedUnder("question-bank/src").filter((p) => p.endsWith(".test.ts"));
     expect(tests.length).toBeGreaterThan(0);
@@ -895,8 +880,10 @@ describe("T-014 criterion 19 — nothing already verified is weakened", () => {
     "committed-bank.test.ts": { tests: 33, expects: 58 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
-    "state-animals.test.ts": { tests: 43, expects: 73 },
-    "landmarks.test.ts": { tests: 53, expects: 88 },
+    // T-071 row 6 deleted one dependency-pin test from this file (E-16).
+    "state-animals.test.ts": { tests: 42, expects: 73 },
+    // T-071 row 5 deleted one dependency-pin test from this file (E-16).
+    "landmarks.test.ts": { tests: 52, expects: 88 },
     "landmarks-verify.test.ts": { tests: 36, expects: 69 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },

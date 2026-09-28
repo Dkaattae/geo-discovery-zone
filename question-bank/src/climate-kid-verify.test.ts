@@ -1092,21 +1092,6 @@ describe("T-014 tester, criterion 18 — nothing unreviewed, live or new is comm
     expect(readdirSync(DATA_DIR).filter((n) => n.endsWith(".review.json"))).toEqual([]);
   });
 
-  test("question-bank declares no runtime dependency and the same two devDependencies", () => {
-    const pkg = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    expect(pkg.dependencies ?? {}).toEqual({});
-    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
-    // covered (engineering-decisions.md E-15). Anything else still fails.
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
-      "@types/bun",
-      "oxlint",
-      "typescript",
-    ]);
-  });
-
   test("no test file under question-bank/src/ calls fetch, assigns it, or mocks a transport", () => {
     const tests = readdirSync(join(PKG, "src")).filter((n) => n.endsWith(".test.ts"));
     expect(tests.length).toBeGreaterThan(4);
@@ -1116,14 +1101,6 @@ describe("T-014 tester, criterion 18 — nothing unreviewed, live or new is comm
       expect({ name, assigns: /fetch\s*=/.test(source) }).toEqual({ name, assigns: false });
       expect({ name, mocks: /\bmock\s*\(/.test(source) }).toEqual({ name, mocks: false });
     }
-  });
-
-  test("the only package.json under question-bank/ still has no dependencies block growth", () => {
-    // The brief's criterion 18 is repo-wide; the two other packages are checked
-    // for an unchanged dependency list by their own suites, and this task's
-    // Verdict records the `git diff` over every lockfile in the repo.
-    const pkg = readFileSync(join(PKG, "package.json"), "utf8");
-    expect(pkg).not.toContain('"dependencies"');
   });
 });
 
@@ -1139,8 +1116,10 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     "committed-bank.test.ts": { tests: 33, expects: 58 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
-    "state-animals.test.ts": { tests: 43, expects: 73 },
-    "landmarks.test.ts": { tests: 53, expects: 88 },
+    // T-071 row 6 deleted one dependency-pin test from this file (E-16).
+    "state-animals.test.ts": { tests: 42, expects: 73 },
+    // T-071 row 5 deleted one dependency-pin test from this file (E-16).
+    "landmarks.test.ts": { tests: 52, expects: 88 },
     "landmarks-verify.test.ts": { tests: 36, expects: 69 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },

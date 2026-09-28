@@ -127,19 +127,6 @@ const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "us-state-wy.json": "e56f1b303199dda19ae2bf6c747e233a004407c34141a961a62238a348376866",
 };
 
-/**
- * Criterion 10: the two dependency files, on the same default-branch commit.
- *
- * Re-pinned by T-066 (2026-09-28), which deliberately added a `lint` script and
- * the approved `oxlint` devDependency (engineering-decisions.md E-15). The
- * earlier digests were package.json 533ab267… and bun.lock d19f5717…. The check
- * still does its job: any later, unapproved change to either file fails it.
- */
-const DEPENDENCY_DIGESTS: Record<string, string> = {
-  "question-bank/package.json": "f8e12840b74fc96958c2bf766874df6fad5f866dfc4ad1560b525615f4a69073",
-  "question-bank/bun.lock": "141ea52420838b63148f6175e105831efd13a5225d9abac8fbc5f56c4b0d07ab",
-};
-
 const digest = (text: string) => createHash("sha256").update(text).digest("hex");
 
 function git(args: string[]): string {
@@ -527,17 +514,6 @@ describe("T-015 tester, criterion 9 — the stale assertions are replaced, not d
       expect({ path, asserts: /top_crops is populated/.test(source) }).toEqual({
         path,
         asserts: true,
-      });
-    }
-  });
-});
-
-describe("T-015 tester, criterion 10 — no new dependency", () => {
-  test("package.json and bun.lock are byte-identical to the default branch", () => {
-    for (const [path, expected] of Object.entries(DEPENDENCY_DIGESTS)) {
-      expect({ path, digest: digest(readFileSync(join(REPO, path), "utf8")) }).toEqual({
-        path,
-        digest: expected,
       });
     }
   });

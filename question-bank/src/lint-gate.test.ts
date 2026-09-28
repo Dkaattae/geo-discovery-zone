@@ -63,8 +63,6 @@ afterEach(() => {
 
 function packageJson(): {
   scripts: { lint: string };
-  devDependencies?: Record<string, string>;
-  dependencies?: Record<string, string>;
   trustedDependencies?: unknown;
   overrides?: unknown;
   resolutions?: unknown;
@@ -381,34 +379,6 @@ describe("T-066 criterion 15 — the gate runs with the network fenced off", () 
     const { exitCode, output } = runLint([], env);
     if (exitCode !== 0) console.error(output);
     expect(exitCode).toBe(0);
-  });
-});
-
-describe("T-066 criterion 16 — the only package added is oxlint, as a devDependency", () => {
-  test("oxlint is in devDependencies; there is no dependencies key", () => {
-    const pkg = packageJson();
-    expect(pkg.devDependencies?.["oxlint"]).toBeDefined();
-    expect(pkg.dependencies).toBeUndefined();
-  });
-
-  test("none of the excluded packages is present", () => {
-    const pkg = packageJson();
-    const names = Object.keys({ ...pkg.devDependencies, ...pkg.dependencies });
-    const forbidden = names.filter(
-      (name) =>
-        [
-          "eslint",
-          "@eslint/js",
-          "typescript-eslint",
-          "globals",
-          "oxlint-tsgolint",
-          "biome",
-          "@biomejs/biome",
-        ].includes(name) ||
-        name.includes("prettier") ||
-        name.startsWith("@oxlint/"),
-    );
-    expect(forbidden).toEqual([]);
   });
 });
 

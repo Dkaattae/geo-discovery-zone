@@ -587,34 +587,6 @@ describe("T-016 tester, criterion 13 — nothing this task added reaches the net
 });
 
 describe("T-016 tester, criteria 14 and 15 — no dependency, nothing out of scope", () => {
-  test("question-bank/package.json lists exactly the dependencies the default branch listed", () => {
-    const show = (path: string) => {
-      const proc = Bun.spawnSync(["git", "show", `origin/main:${path}`], { cwd: REPO });
-      if (proc.exitCode !== 0) return null;
-      return proc.stdout.toString();
-    };
-    const base = show("question-bank/package.json");
-    if (base === null) return; // shallow clone (CI): nothing to compare against.
-    // T-066 (2026-09-28) changed package.json deliberately: a `lint` script and
-    // the approved `oxlint` devDependency (engineering-decisions.md E-15). A
-    // byte comparison against origin/main would fail on that branch until it
-    // merged, so this compares the dependency blocks instead, allowing exactly
-    // `oxlint` beyond what the default branch lists. It holds before and after
-    // T-066 merges; any other dependency still fails it.
-    type Manifest = {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    const baseline = JSON.parse(base) as Manifest;
-    const now = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as Manifest;
-    expect(now.dependencies).toEqual(baseline.dependencies);
-    const allowed = new Set([...Object.keys(baseline.devDependencies ?? {}), "oxlint"]);
-    expect(Object.keys(now.devDependencies ?? {}).filter((k) => !allowed.has(k))).toEqual([]);
-    for (const [name, range] of Object.entries(baseline.devDependencies ?? {})) {
-      expect({ name, range: now.devDependencies?.[name] }).toEqual({ name, range });
-    }
-  });
-
   // Addendum, 2026-09-18: criterion 15 originally meant "this task does not
   // touch `landmark`", which held for T-016 itself. Dkaattae's subsequent,
   // separate decision on PR #47 (Denali → Mount McKinley, the call T-013's

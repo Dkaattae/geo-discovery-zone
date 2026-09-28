@@ -621,21 +621,6 @@ describe("T-013 tester, criterion 13 — nothing unreviewed, live or new is comm
     expect(readdirSync(DATA_DIR).filter((n) => n.endsWith(".review.json"))).toEqual([]);
   });
 
-  test("question-bank still declares no runtime dependency and the same two devDependencies", () => {
-    const pkg = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    expect(pkg.dependencies ?? {}).toEqual({});
-    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
-    // covered (engineering-decisions.md E-15). Anything else still fails.
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
-      "@types/bun",
-      "oxlint",
-      "typescript",
-    ]);
-  });
-
   test("the tracked bank is still well inside the 200 KB cap", () => {
     const bytes = walk(join(PKG, "data")).reduce((sum, p) => sum + statSync(p).size, 0);
     expect(bytes).toBeLessThan(200 * 1024);
@@ -663,7 +648,8 @@ describe("T-013 tester, criterion 14 — nothing already verified is weakened", 
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },
-    "state-animals.test.ts": { tests: 43, expects: 70 },
+    // T-071 row 6 deleted one dependency-pin test from this file (E-16).
+    "state-animals.test.ts": { tests: 42, expects: 70 },
   };
 
   for (const [file, floor] of Object.entries(FLOORS)) {

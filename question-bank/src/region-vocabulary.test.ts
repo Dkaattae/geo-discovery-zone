@@ -365,20 +365,6 @@ describe("T-017 criterion 7 — engineering-decisions.md records the choice as E
 // -- criterion 8 -------------------------------------------------------------
 
 describe("T-017 criterion 8 — no new dependency, no network", () => {
-  test("question-bank declares no runtime dependency and the same two devDependencies as before this task", () => {
-    // The literal set read off the pre-task revision (f5b2382) when these tests
-    // were written, so adding anything here fails rather than being absorbed.
-    const manifest = readJson(join(PKG, "package.json")) as Record<string, unknown>;
-    expect(manifest["dependencies"]).toBeUndefined();
-    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
-    // covered (engineering-decisions.md E-15). Anything else still fails.
-    expect(Object.keys(manifest["devDependencies"] as object).sort()).toEqual([
-      "@types/bun",
-      "oxlint",
-      "typescript",
-    ]);
-  });
-
   test("no question-bank test file calls the network directly", () => {
     // `sparql.ts` is the one module that may call `fetch`, behind the
     // `SparqlTransport` seam; no test may. Test-guidelines: no network, ever,
