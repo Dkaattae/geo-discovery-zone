@@ -60,7 +60,7 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, new tests, the brief's Handoff | acceptance criteria, **any test that existed before the task** |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict and Test change request; existing tests **only as a human approved** | source, acceptance criteria |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
-| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line, the header's test-change approval | source, tests, criteria, any role's signed section |
+| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line | source, tests, criteria, any role's signed section |
 
 **Only the orchestrator has the `Agent` tool**, and only so it can spawn the other
 four — see "Spawning, and the isolation it must not cost" below. The four step
@@ -500,30 +500,35 @@ Passing includes the whole suite plus typecheck and lint — not only the new te
 
 **Stale or wrong tests go through the tester, and through a person.** When the
 task's own change has made an existing test stale, the tester is the only role
-that may delete or modify it, and it does so in two passes:
+that may delete or modify it. It asks the way the `task-expander` asks (D-15):
 
 1. **Raise.** It verifies everything else, then fills in the brief's `## Test
    change request`: each test, the commit and task that introduced it, why the
    change made it stale, delete or modify, and for a modify what it becomes. It
    sets the header's `Test changes: requested`, `Status: test changes
-   requested` and `Next step: human`, then pushes and stops without touching
-   those tests. The push notifies you through `blocked-run-notice.yml`, as for
-   any halt.
-2. **Approve.** Either you do it, deciding row by row and writing `Test changes:
-   approved — <name>, <date>`, or, in an unattended run, the orchestrator stamps
-   `approved — orchestrator, <date>, unattended run` without reading the rows.
-   That is the same kind of stamp as its `Approved:` line, and it is logged in
-   `runs/`. The driver (`run-loop.sh`) does not stamp. It halts on `Next step:
-   human` and waits for you.
-3. **Act.** A fresh tester makes exactly the approved changes and names each one
-   in the Verdict, with the approval line quoted.
+   requested` and `Next step: human`, and pushes without touching those tests.
+   The push is the record, and it notifies you through
+   `blocked-run-notice.yml`, as for any halt.
+2. **Ask, if you are there.** In a session you are attending, the tester then
+   asks you directly, row by row. It records your answer in each row's
+   Decision and the header's `Test changes: approved — <name>, <date>`, applies
+   exactly the approved rows in that same session, and finishes verifying.
+3. **Halt, if you are not.** Under `run-loop.sh` or the orchestrator it stops
+   after the push. **To resume, start a tester in a session you are attending**,
+   not a subagent and not a run. It picks up the request already in the brief,
+   asks you to approve or confirm it, and carries on from step 2.
 
-An orchestrator's stamp is not a person's approval. The reviewer escalates that
-PR and copies the request's rows into its body, so you see them before the merge.
+Nobody approves on your behalf. The orchestrator does not stamp or relay a test
+change approval, even when you are in its session. T-071 showed that the harness
+refuses edits made on an approval that reached the tester only as text in the
+brief. The same edits went through when you gave the instruction in the session
+making them. If the harness still refuses, the tester halts and you make the
+approved edits by hand from the rows.
+
 A modified test must pin the new behaviour as hard as the old one pinned the old.
 A count floor drops by exactly the number of approved deletions from its file,
 as its own row. Red CI caused by a stale test sends the task to the tester, not
-the worker. The rest is in `.claude/agents/tester.md` and D-14.
+the worker. The rest is in `.claude/agents/tester.md`, D-14 and D-15.
 
 ### 5. Ship
 
@@ -584,7 +589,7 @@ make. Escalation happens on an approved, ready PR.
 The envelope: tester passed, suite green, nothing outside
 the brief's Constraints, no new dependency, nothing touching `openapi.yaml`, a
 migration or the plan, **no text a child will read**, and no pre-existing test
-deleted or modified under an orchestrator's stamp rather than a person's (D-14). Anything else escalates
+deleted or modified without a person's approval (D-14, D-15). Anything else escalates
 to you, and escalating is a normal outcome rather than a failure. Content for
 children always comes to a human — a test can confirm its shape, only a person
 can confirm its substance.
@@ -637,7 +642,8 @@ written into the brief rather than disguised.
 **Moments 2 to 5 are unchanged**, but they arrive differently: a spawned role
 cannot ask you anything, so instead of a question it writes the question into the
 brief, sets `Status: blocked`, and stops. The orchestrator halts and quotes it.
-You answer, and restart the run. The reviewer's envelope (D-4) does not widen — a
+You answer, and restart the run. Moment 5 is the exception: you answer it to a
+tester in a session you are attending, not in the brief (D-15). The reviewer's envelope (D-4) does not widen — a
 relayed run merges exactly the same set of changes unattended as a manual one,
 which since D-4's amendment is none: **every run ends at a PR waiting for you.**
 
@@ -649,9 +655,11 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
 4. **An escalation** — from the reviewer when the change falls outside its
    envelope, or from the tester after two failed verify rounds.
 5. **A test change request.** The tester wants to delete or modify a test that
-   existed before the task (step 4, D-14). You are notified either way. In an
-   unattended run the orchestrator may stamp it and carry on, like moment 1, and
-   the reviewer then escalates the PR so the rows still reach you before merge.
+   existed before the task (step 4, D-14). If you are in its session it asks you
+   there and carries on once you answer, as the expander does. Unattended, the
+   run halts and **you resume it by starting a tester in a session you are
+   attending**, which asks you and applies what you approve. Unlike moment 1,
+   the orchestrator never approves this one for you (D-15).
 
 A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that a PR is ready for you.
@@ -686,6 +694,13 @@ brief is the resume point:
 A **fresh** agent reads the brief including your answer. It never saw the session
 that asked, which is exactly the property that makes the tester's verdict worth
 something — see [`.claude/agents/README.md`](.claude/agents/README.md).
+
+**One exception: a test change request.** Do not answer it in the brief and
+start a run. Start the `tester` step in a session you are attending, and answer
+it there. The harness does not trust an approval that reaches a spawned role only
+as text in a file (T-071, D-15). The attended tester asks you, applies what you
+approve and finishes verifying. After that, a run can carry on from its `Next
+step`.
 
 ## One task at a time
 
