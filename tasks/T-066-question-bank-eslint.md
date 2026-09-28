@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets oxlint and a `lint` gate
 
-**Status:** `verified — pass (frontend half of criterion 9 to be read off PR #62 CI)`
-**Next step:** `reviewer`
+**Status:** `approved — ready for review, escalated (new dependency; test files outside Constraints)`
+**Next step:** `human` — Dkaattae merges PR #62, or not
 **Approved:** katechen150621@gmail.com — 2026-09-28, in chat, for the oxlint re-expansion (round 3). The round-1 approval covered the eslint criteria only. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
@@ -19,6 +19,7 @@ here (`CLAUDE.md` "Branches").
 | task-expander (re-expand, oxlint) | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | worker (round 2, oxlint) | 2026-09-28 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | tester (orchestrated; fresh agent, shared session id) | 2026-09-28 | cse_01YTpStg8yzQNkWGJJbUnMAP |
+| reviewer (orchestrated; fresh agent, shared session id) | 2026-09-28 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 
 ## Goal
 
@@ -557,6 +558,60 @@ check.
   `01a32eb`, which CI's shallow checkout lacks, and mean nothing after merge.
 - **Criterion 9's frontend half needs PR #62's `frontend` CI job to be green**
   before merge. I could not see CI (no `gh` here).
+
+## Review
+
+_Written by `reviewer`._
+
+**TL;DR — approved, escalated. The work is good and small where it matters;
+PR #62 is marked ready with an escalation note because a dependency (`oxlint`,
+human-approved) was added and eight test files outside the Constraints changed.
+Nothing blocks. Next: a human merges.**
+
+**Checks before reviewing**
+- **PR open, draft, not merged.** Every Sessions row has a commit on this branch:
+  expander `66fde1b`/`e6bccc1`, worker `d8e1dcf`/`fb6926d`, tester `23a0576`.
+- **Lanes held.** Expander commits touch only `tasks.md` and `tasks/`; the
+  tester's touches only `question-bank/src/lint-gate.test.ts` and the brief;
+  `runs/` commits are the orchestrator's log.
+- **Criterion 9, frontend half: closed.** PR #62 CI on `7ad85c9`:
+  `frontend (typecheck, lint, test)` success, `question-bank (typecheck, lint,
+  test)` success, both backend jobs success.
+- **Re-run here:** `question-bank/` `bun run lint` → `Found 0 warnings and 0
+  errors.`; `typecheck` clean; `bun test` 1320 pass / 0 fail.
+
+**Findings (none block)**
+
+| # | Finding | Disposition |
+|---|---|---|
+| 1 | **Eight tests pin question-bank's dependency set** (six key-set pins, `top-crops-verify`'s digests, `highest-point-verify`'s manifest check). Every new devDependency edits all eight, by hand. | **Amended T-071**, which adds `prettier` and hits all eight next: list them in its survey and decide whether to fold them into one check. |
+| 2 | `highest-point-verify.test.ts` now allows `oxlint` by name on top of `origin/main`'s set. After merge the baseline already has it, so that allowance is dead weight — harmless, not wrong. | Folded into the T-071 amendment (same family). |
+| 3 | T-071's entry says the question-bank CI job "runs typecheck and test only". No longer true. | **Amended T-071** in the sweep. |
+| 4 | `engineering-decisions.md:555` still names `question-bank (typecheck, test)`. | **Accepted as history.** It describes E-11's context at the time; criterion 24 forbids editing old entries. |
+
+**The worker's and tester's flags, disposed**
+- **`--report-unused-disable-directives`: kept.** It is what found that all
+  three old directives were dead, and it stops criterion 10 rotting. eslint 9
+  (frontend) reports unused directives by default, so this matches, not exceeds.
+- **Deleting the three dead directives instead of annotating them: accepted.**
+  oxlint reported each as suppressing nothing; `process.exit` is `never`, so
+  `build.ts` has no real fallthrough.
+- **`--format default`: accepted.** Without it criterion 2 is unobservable from
+  any agent session (tester's M11). E-15 records why.
+- **The eight dependency-pin edits: not a weakening.** Each still fails on any
+  dependency other than `oxlint`; the top-crops old digests are kept in a comment.
+- **Criterion 23's phrase heuristic, criterion 11's no-`-A`/`-W` reading: accepted**
+  as written.
+
+**Envelope (why escalated)**
+- **A dependency was added** (`oxlint`, devDependency, plus `@oxlint/binding-*`
+  optional binaries in `bun.lock`). Approved in chat 2026-09-25; the merge still
+  goes to a person.
+- **Files outside the Constraints**: the eight dependency-pin test files above,
+  plus the three `.toUpperCase()` / `endsWith` edits the new correctness rules
+  forced. All justified in the round-2 Handoff.
+- Otherwise inside: tester pass, CI green, no `openapi.yaml`, migration or plan
+  change, no child-facing text, no product decision.
 
 ## Notes
 
