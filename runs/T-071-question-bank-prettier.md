@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** halted — needs human
+**Started:** 2026-09-28 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -130,3 +130,7 @@ Header on exit: `Status: blocked`, `Next step: human`. The harness refused the p
 a recorded approval in the brief does not clear it. A human must make the removal by hand (or allow
 the action in an attended session), and must decide on the worker's proposal to lower three
 test-count floors by 1.
+
+## Resumed — 2026-09-28
+The user answered in the orchestrator session: "only testers can delete tests. workers cannot. if the tests is stale or wrong in ci, send tester in to fix it."
+Recorded in the brief under a second `## Human decision`; header set to `Status: awaiting verification`, `Next step: tester`.

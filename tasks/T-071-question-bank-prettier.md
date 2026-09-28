@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
@@ -381,3 +381,14 @@ given by katechen150621@gmail.com in the orchestrator session, quoted verbatim:
 The deletion of the per-file dependency-pin tests that this brief consolidates into
 one shared check is approved by a human, including the related describe block the
 worker's Handoff identified. `Next step` is set back to `worker`.
+
+## Human decision — 2026-09-28 (second)
+
+Answer to the worker's second blocked question, given by katechen150621@gmail.com in
+the orchestrator session, quoted verbatim:
+
+> only testers can delete tests. workers cannot. if the tests is stale or wrong in ci, send tester in to fix it.
+
+This supersedes the first decision's route: the worker does not delete tests. Removing
+or adjusting tests that this task makes stale or wrong is the tester's job. `Next step`
+is set to `tester`.
