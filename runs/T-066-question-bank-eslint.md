@@ -158,3 +158,36 @@ Files:
 - /home/user/geo-discovery-zone/conventions.md
 - /home/user/geo-discovery-zone/question-bank/README.md
 - /home/user/geo-discovery-zone/engineering-decisions.md
+
+## Round 5 — tester — 2026-09-28
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-066 verdict: pass.** All 24 criteria hold on the branch. The frontend half of criterion 9 is the exception: I couldn't observe it here, so the reviewer needs to confirm PR #62's `frontend` CI job is green before merge. The brief now reads Status `verified — pass (…)` and Next step `reviewer`. My commit is `23a0576` on `claude/relaxed-pascal-ff0fgq`, and after a fetch the local HEAD and the remote branch match.
+
+**Independence:** this is an orchestrated run (`runs/T-066-question-bank-eslint.md` exists), so every role shares session id `cse_01YTpStg8yzQNkWGJJbUnMAP` and the Sessions-table check proves nothing. My independence rests only on being a freshly spawned agent that never saw the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+**What I did**
+- **Handoff checked:** it exists, and every file it names is on the branch.
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/lint-gate.test.ts`, 31 tests mapped to criteria 1–8, 10, 11, 13–17 and 20–24.
+  - The probes shell out to `bun run lint` and are removed in `afterEach`.
+  - **Criterion 6 used `-W eqeqeq`** with the probe `a == 1`. The tests confirm the config doesn't set `eqeqeq` and that the probe is clean without `-W`.
+- **Checked by hand (no permanent test):** criteria 12, 17, 18 and 19. They compare against the branch point `01a32eb`, which CI's shallow checkout doesn't have. All four are clean.
+- **13 mutations, all reverted:**
+  - Each one turned the matching test red, e.g. dropping `--deny-warnings` (criterion 6), dropping `no-explicit-any` (5), ignoring tests and `sinks/` (7), switching to `bunx` (3), and dropping `--format default` (2).
+  - The first attempt at the `if:` mutation (M8) changed the frontend job's matching step by mistake and stayed green. That was correct behaviour. Redone on the question-bank step, it went red.
+  - One control mutation, an `off` rule with a reason comment, correctly stayed green.
+
+**Test results**
+- **question-bank:** `bun test` 1320 pass / 0 fail, and the same with all six proxy variables set. `typecheck` and `lint` are clean (`Found 0 warnings and 0 errors.`).
+- **frontend, passing:** `bun run lint` exits 0 and `lint-gate.test.ts` is 8/0.
+- **frontend, failing for reasons outside this task:** full `bun test` is 342 pass / 1 fail, and `typecheck` has 4 errors. Every one is in the untouched `src/components/UsMap.tsx`: `react-simple-maps` and `us-atlas` are missing from `node_modules`. `bun install --frozen-lockfile` fails with a 403 from the registry, and I had no `gh` to read CI.
+
+**Changes I had to make to my own test file**
+- **It must pass the new lint gate:** it lives in `src/`, so it is linted too. Two `unicorn(prefer-string-starts-ends-with)` warnings made me swap regexes for `startsWith`.
+- **It must not repeat the dead-loopback address:** the older T-014/T-015 tests allow that literal in exactly one file. My test imports `DEAD_PROXY` from `offline-rebuild.ts` instead and asserts its values match criterion 15.
+
+**For the reviewer**
+- The criterion 23 test is a phrase search, so it catches the known wording but not every paraphrase.
+- In the criterion 11 test I chose to forbid `-A`/`-W` flags in the script, since a relaxation there has nowhere to carry a reason.
+
+Files: `/home/user/geo-discovery-zone/question-bank/src/lint-gate.test.ts`, `/home/user/geo-discovery-zone/tasks/T-066-question-bank-eslint.md` (Verdict, Status, Next step, Sessions row).
