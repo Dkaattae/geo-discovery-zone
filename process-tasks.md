@@ -337,3 +337,29 @@ while naming CI as a valid witness. Do not let a role stub the packages.
 is done by hand.
 **Done when:** a task whose only red is the sandbox's frontend install can reach
 `pass` without a run halt, on evidence the brief records, and nothing is stubbed.
+
+### P-10 — Only the tester may delete or modify tests a task has made stale · S · doing
+**Depends on:** —
+**New 2026-09-28, from T-071 (PR #63).** T-071's brief asked for nine
+dependency-pin tests to be removed, because the task adds the dependency they
+pin as absent. The worker tried twice and the tester once. The harness's
+auto-mode classifier refused all three as "Security Test Removal", even with a
+human approval written in the brief. The task halted `blocked` / `human`, and
+no rule said which role, if any, was allowed to finish it. Two older count
+floors (43 and 53) would also go red once the pins were gone, and nothing said
+whether lowering them counts as weakening.
+
+The human's ruling: only testers delete tests, workers never do, and stale or
+wrong tests in CI go to the tester. They then added a condition: a person
+approves each change first, given what the test is, when it was introduced, why
+it is stale, and what it becomes.
+
+**This is a process-file change** (`.claude/agents/worker.md`, `tester.md`,
+`README.md`, `process.md`, `tasks/TEMPLATE.md`, `process-decisions.md`), done
+by hand. D-14 records it.
+**Done when:** the worker is told it never changes a pre-existing test and lists
+stale ones in its Handoff; the tester raises a Test change request with those
+five facts per test, halts for a person's decision, then makes exactly the
+approved changes and names them in the Verdict; the brief template carries the
+request; count floors have a written rule; and the permission side has been put
+to Dkaattae rather than settled in the repo.

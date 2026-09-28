@@ -117,12 +117,35 @@ was built** — the tester starts cold and this is the only message it gets.
 - What was deliberately not done, and why
 - Anything found that contradicts the brief
 - How to run what was touched
+- **Tests made stale**: existing tests this change breaks by design (file, test
+  name, why, and the delete or modify you propose), or "none". The worker never
+  changes them itself.
 
 ## Verdict
 
 Written by `tester`: pass, fail or blocked, which criterion, what was observed,
 and — for a task whose deliverable is tests — which mutations were made and what
-each one did.
+each one did. It also names every existing test deleted or modified, with the
+reason and the approved Test change request row it came from.
+
+## Test change request
+
+Delete this section when no test that existed before the task needs to change.
+Written by `tester` **only**, and only for tests the task's own change has made
+stale or wrong (`.claude/agents/tester.md`, D-14). The worker lists candidates
+under **Tests made stale** in its Handoff; it never fills this in. Raising it
+sets `Status: blocked`, `Next step: human`. **No test here changes until a
+person fills in Decision.**
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/x.test.ts` › … › "…" | `abc1234`, T-0xx: … | criterion N changes … | delete / modify | new name, and exactly what it asserts | *(human)* approved / refused — name, date |
+
+A count floor that drops because of a deletion above is its own **modify** row,
+lowered by exactly the approved deletions from that file.
+
+**Approved by:** *(human: name and date, once every row has a Decision; then set
+`Next step: tester`)*
 
 ## Review
 

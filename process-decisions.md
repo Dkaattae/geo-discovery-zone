@@ -693,3 +693,83 @@ needs a git verb outside the ten listed — `stash`, say, for a worker that
 must set aside unrelated changes — add that one verb, not `git:*`. If
 `bun`/`make` gain a new check CLAUDE.md "Tests" starts requiring, the same
 rule applies: add the command, not a wildcard over the directory.
+
+## D-14 — Only the tester changes an existing test, and only after a person approves it
+
+**2026-09-28.** P-10. T-071 (question-bank prettier) needed a set of
+hand-written dependency-pin tests removed, because the task itself adds a
+dependency those tests pinned as absent. The brief told the worker to remove
+them. The worker tried twice and the tester once, and the harness's auto-mode
+permission classifier refused all three as "Security Test Removal", including
+after a human approval had been written into the brief. The task halted at
+`blocked` / `human`, with nobody allowed to finish it.
+
+The human's ruling, verbatim (katechen150621@gmail.com, 2026-09-28): *"only
+testers can delete tests. workers cannot. if the tests is stale or wrong in ci,
+send tester in to fix it."* And, the same day, when asked to confirm: *"tester
+can delete and modify stale or wrong tests. but with permission. it has to raise
+it to me, with what is the test, when was it introduced, why it needs to
+delete/modify/stale, and what is it going to be, if changing it."*
+
+**Decided:**
+
+- **The worker never deletes or modifies a test that existed before the task**,
+  even when the brief asks. It lists each one it has made stale under **Tests
+  made stale** in its Handoff and hands off as usual. It does not halt over
+  this. Tests it added on the branch stay its own.
+- **The tester is the only role that may, and only in two passes.** First it
+  raises a `## Test change request` in the brief (template in
+  `tasks/TEMPLATE.md`), one row per test: what the test is, when it was
+  introduced and by which task, why the task's change made it stale or wrong,
+  whether to delete or modify it, and what it becomes. It halts `blocked` /
+  `human` without touching them. After a person has written a decision on each
+  row, a fresh tester makes exactly the approved changes and names each one in
+  its Verdict.
+- **"Stale" means the task's own change made it so.** A test red because the
+  code is wrong is still a **fail**, and one at odds with a criterion is still
+  **blocked**. Red CI from a stale test goes to the tester, not the worker.
+- **Never a route to green.** A modified test pins the new behaviour as hard as
+  the old one pinned the old. The tester still never edits source.
+- **Count floors.** A "nothing weakened" test that pins a file's test count is
+  itself an existing test. When approved deletions drop the count, the floor is
+  lowered as its own **modify** row, by **exactly** the number of approved
+  deletions from that file and no further. For T-071 that is 43 → 42
+  (`state-animals.test.ts`) and 53 → 52 (`landmarks.test.ts`). Lowering it any
+  further, or to make room for a deletion nobody approved, is weakening. That way
+  the floor keeps doing its job: it catches every lost test except the ones a
+  person signed off.
+
+**Why the tester and not the worker.** The worker built the change, so letting
+it pick which checks on that change may go is grading its own work, the thing
+the role split exists to stop (D-3). The tester has no stake in the change
+passing. **Why a person as well.** A deleted test is invisible in the
+green run that follows it. Keeping it or dropping it is a judgement about what
+the project protects, and the one reader who can make that call is the human
+who owns the queue. It costs a halt per task that needs it, which is rare. The
+two passes are also what makes it one halt rather than several: the tester
+verifies everything else before raising.
+
+**Not settled: the harness.** The classifier that refused T-071 sits outside
+this repo and reads no brief, so a written approval in the brief is not
+something it can see. This entry does **not** add a permission rule to
+`.claude/settings.json`. Whether one would help is Dkaattae's call: this ticket
+asked before adding any, and D-13's verb-only allowlist stays as it is. Until
+then, when an approved edit is refused, the tester records the refusal and
+halts, and the person makes the approved edits by hand from the request's rows
+or allows them in a session they are watching. The request is written so that
+either works in a few minutes.
+
+**Also not settled: enforcement.** Nothing mechanical checks that a worker
+commit deletes no pre-existing test, or that the tester's deletions match
+approved rows. The reviewer is the natural place (a `git diff main
+--diff-filter=D -- '*.test.*'` read against the request), but `reviewer.md` was
+outside this ticket. If this rule is broken once, that check belongs in
+`reviewer.md` and in `run-loop.sh` as a gate.
+
+**What would make this worth revisiting.** If test change requests become
+frequent enough that the halt costs more than the review is worth, a
+standing approval for a narrow class could be written here instead. Pins of
+the form "package X is absent", when the brief adds X, would be one such
+class. Or if the classifier keeps refusing approved edits, the choice is
+between a scoped permission rule and doing these edits by hand as a routine
+step.

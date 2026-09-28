@@ -24,9 +24,12 @@ each and are deliberately unable to do the others' jobs; the fifth drives them.
   and the draft PR. Writes only `tasks/T-0xx-slug.md`, `tasks.md` and
   `PROGRESS.md`; never source, tests or configuration.
 - **`worker`** (inherits the session model) — implements the approved brief on
-  that branch. Cannot edit the acceptance criteria.
+  that branch. Cannot edit the acceptance criteria, and cannot delete or modify a
+  test that existed before the task.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
-  edit source to make a test pass, and cannot edit the criteria either.
+  edit source to make a test pass, and cannot edit the criteria either. The only
+  role that may delete or modify an existing test the task has made stale, and
+  only once a human has approved each one (D-14).
 - **`reviewer`** (opus) — judges quality rather than correctness. On approve it
   sweeps, then marks the PR ready for a person to merge, flagging it when the
   change falls outside a narrow envelope;
@@ -54,8 +57,8 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | Role | Tools | May write | Must never write |
 |---|---|---|---|
 | `task-expander` | Read, Grep, Glob, Write, Edit, Bash, PR-open | `tasks/`, `tasks.md`, `PROGRESS.md` | source, tests, config |
-| `worker` | Read, Grep, Glob, Write, Edit, Bash | source, tests, the brief's Handoff | acceptance criteria |
-| `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict | source, acceptance criteria |
+| `worker` | Read, Grep, Glob, Write, Edit, Bash | source, new tests, the brief's Handoff | acceptance criteria, **any test that existed before the task** |
+| `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict and Test change request; existing tests **only as a human approved** | source, acceptance criteria |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
 | `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line | source, tests, criteria, any role's signed section |
 
@@ -434,6 +437,12 @@ You may write tests as you go — you should, for anything you are unsure of. Th
 does not replace step 4: your tests know what you built, and the point of step 4
 is a check that does not.
 
+**Existing tests are not the worker's to change**, even when the brief says to
+remove one. When the change makes a test that was already there stale or wrong,
+the worker leaves it red and lists it in the Handoff under **Tests made stale**:
+the file and test name, why, and the delete or modify it proposes. Then it hands
+off to the tester as usual. It does not halt over this. See D-14.
+
 ### 4. Verify — in a fresh session
 
 Hand off to a **new session with no memory of the work**. That isolation is the
@@ -488,6 +497,22 @@ and escalate to a human. Three rounds means the brief is wrong, not the code, an
 the loop cannot tell the difference on its own.
 
 Passing includes the whole suite plus typecheck and lint — not only the new tests.
+
+**Stale or wrong tests go through the tester, and through a person.** When the
+task's own change has made an existing test stale, the tester is the only role
+that may delete or modify it, and it does so in two passes:
+
+1. **Raise.** It verifies everything else, then fills in the brief's `## Test
+   change request`: each test, the commit and task that introduced it, why the
+   change made it stale, delete or modify, and for a modify what it becomes. It
+   sets `blocked` / `human` and stops without touching those tests.
+2. **Act.** After a person has written a decision on each row, a fresh tester
+   makes exactly the approved changes and names each one in the Verdict.
+
+A modified test must pin the new behaviour as hard as the old one pinned the old.
+A count floor drops by exactly the number of approved deletions from its file,
+as its own row. Red CI caused by a stale test sends the task to the tester, not
+the worker. The rest is in `.claude/agents/tester.md` and D-14.
 
 ### 5. Ship
 
@@ -589,7 +614,7 @@ released and there is no follow-up PR for three line changes.
 
 ## Where the loop stops for a human
 
-Four moments, and only four. Everything else runs to completion.
+Five moments, and only five. Everything else runs to completion.
 
 **Under the `orchestrator`, moment 1 does not move — it disappears.** Nobody
 approves the brief; the orchestrator records `Approved: orchestrator — <date>,
@@ -597,7 +622,7 @@ unattended run` without having read the criteria, because reading them is exactl
 what keeps it safe (D-3). That is the entire cost of a relayed run, and it is
 written into the brief rather than disguised.
 
-**Moments 2, 3 and 4 are unchanged**, but they arrive differently: a spawned role
+**Moments 2 to 5 are unchanged**, but they arrive differently: a spawned role
 cannot ask you anything, so instead of a question it writes the question into the
 brief, sets `Status: blocked`, and stops. The orchestrator halts and quotes it.
 You answer, and restart the run. The reviewer's envelope (D-4) does not widen — a
@@ -611,6 +636,9 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
    data, whether to commit generated output.
 4. **An escalation** — from the reviewer when the change falls outside its
    envelope, or from the tester after two failed verify rounds.
+5. **A test change request.** The tester wants to delete or modify a test that
+   existed before the task. Each row needs your decision before it does
+   (step 4, D-14).
 
 A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that a PR is ready for you.
