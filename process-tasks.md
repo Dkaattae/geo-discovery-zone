@@ -354,12 +354,51 @@ wrong tests in CI go to the tester. They then added a condition: a person
 approves each change first, given what the test is, when it was introduced, why
 it is stale, and what it becomes.
 
+Then, the same day: the approval works like the brief's `Approved:` line. The
+orchestrator may stamp it in an unattended run, provided it is recorded and the
+person is notified through what already exists.
+
 **This is a process-file change** (`.claude/agents/worker.md`, `tester.md`,
-`README.md`, `process.md`, `tasks/TEMPLATE.md`, `process-decisions.md`), done
-by hand. D-14 records it.
-**Done when:** the worker is told it never changes a pre-existing test and lists
-stale ones in its Handoff; the tester raises a Test change request with those
-five facts per test, halts for a person's decision, then makes exactly the
-approved changes and names them in the Verdict; the brief template carries the
-request; count floors have a written rule; and the permission side has been put
-to Dkaattae rather than settled in the repo.
+`orchestrator.md`, `reviewer.md`, `README.md`, `process.md`,
+`tasks/TEMPLATE.md`, `process-decisions.md`), done by hand. D-14 records it.
+**Done when:**
+- the worker is told it never changes a pre-existing test and lists stale ones
+  in its Handoff;
+- the tester raises a Test change request with those five facts per test and a
+  `Test changes: requested` header line, then acts only on `approved`, and names
+  every change in the Verdict;
+- a person, or the orchestrator's unread stamp in an unattended run, can
+  approve; the stamp is logged in `runs/`, the push notifies the person, and the
+  reviewer escalates;
+- the brief template carries the request and the header line;
+- count floors have a written rule;
+- the permission side has been put to Dkaattae rather than settled in the repo.
+
+### P-11 — Gate a worker commit that deletes or modifies a pre-existing test · S · todo
+**Depends on:** P-10
+**New 2026-09-28, asked for by the human while reviewing P-10:** *"worker should
+not delete/change tests, and should be gated. that is a later task."* P-10 made
+it a written rule (`worker.md`, D-14) and a reviewer check that reads the diff.
+Neither stops a worker commit mechanically, and D-14 says a rule a role applies
+to itself is the weak kind.
+
+The likely shape is a check in `run-loop.sh` after every `worker` step, next to
+the existing G5-style checks. List the test files the step's commits deleted or
+modified (`git diff --name-only --diff-filter=DM <before>..HEAD` filtered to
+test paths), keep only those present on `origin/main`, and halt if any remain.
+The orchestrator's G5 gets the same check in words. Also worth settling:
+
+- **How to tell a test file.** At least `*.test.ts`, `*.test.tsx` and
+  `backend/tests/test_*.py`; better, one pattern `conventions.md` states.
+- **What "modified" covers.** A worker adding a new `it(...)` to an existing test
+  file is allowed, so the gate may need to compare test names rather than
+  paths, or allow additions and flag removals.
+- **A matching check for the tester.** Its deletions should match the approved
+  request's rows.
+
+**This is a process-file change** (`.claude/loop/run-loop.sh`,
+`.claude/loop/test-gates.sh`, `.claude/agents/orchestrator.md`, `process.md`), so it
+is done by hand.
+**Done when:** a worker step that deletes or rewrites a test already on `main`
+stops the driver with a message naming the test, `test-gates.sh` covers it, and
+adding a new test to an existing file still passes.

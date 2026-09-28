@@ -60,7 +60,7 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, new tests, the brief's Handoff | acceptance criteria, **any test that existed before the task** |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict and Test change request; existing tests **only as a human approved** | source, acceptance criteria |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
-| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line | source, tests, criteria, any role's signed section |
+| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line, the header's test-change approval | source, tests, criteria, any role's signed section |
 
 **Only the orchestrator has the `Agent` tool**, and only so it can spawn the other
 four — see "Spawning, and the isolation it must not cost" below. The four step
@@ -505,10 +505,21 @@ that may delete or modify it, and it does so in two passes:
 1. **Raise.** It verifies everything else, then fills in the brief's `## Test
    change request`: each test, the commit and task that introduced it, why the
    change made it stale, delete or modify, and for a modify what it becomes. It
-   sets `blocked` / `human` and stops without touching those tests.
-2. **Act.** After a person has written a decision on each row, a fresh tester
-   makes exactly the approved changes and names each one in the Verdict.
+   sets the header's `Test changes: requested`, `Status: test changes
+   requested` and `Next step: human`, then pushes and stops without touching
+   those tests. The push notifies you through `blocked-run-notice.yml`, as for
+   any halt.
+2. **Approve.** Either you do it, deciding row by row and writing `Test changes:
+   approved — <name>, <date>`, or, in an unattended run, the orchestrator stamps
+   `approved — orchestrator, <date>, unattended run` without reading the rows.
+   That is the same kind of stamp as its `Approved:` line, and it is logged in
+   `runs/`. The driver (`run-loop.sh`) does not stamp. It halts on `Next step:
+   human` and waits for you.
+3. **Act.** A fresh tester makes exactly the approved changes and names each one
+   in the Verdict, with the approval line quoted.
 
+An orchestrator's stamp is not a person's approval. The reviewer escalates that
+PR and copies the request's rows into its body, so you see them before the merge.
 A modified test must pin the new behaviour as hard as the old one pinned the old.
 A count floor drops by exactly the number of approved deletions from its file,
 as its own row. Red CI caused by a stale test sends the task to the tester, not
@@ -572,7 +583,8 @@ make. Escalation happens on an approved, ready PR.
 **Flag for a decision outside the envelope**; inside it, mark ready with no note.
 The envelope: tester passed, suite green, nothing outside
 the brief's Constraints, no new dependency, nothing touching `openapi.yaml`, a
-migration or the plan, and **no text a child will read**. Anything else escalates
+migration or the plan, **no text a child will read**, and no pre-existing test
+deleted or modified under an orchestrator's stamp rather than a person's (D-14). Anything else escalates
 to you, and escalating is a normal outcome rather than a failure. Content for
 children always comes to a human — a test can confirm its shape, only a person
 can confirm its substance.
@@ -637,8 +649,9 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
 4. **An escalation** — from the reviewer when the change falls outside its
    envelope, or from the tester after two failed verify rounds.
 5. **A test change request.** The tester wants to delete or modify a test that
-   existed before the task. Each row needs your decision before it does
-   (step 4, D-14).
+   existed before the task (step 4, D-14). You are notified either way. In an
+   unattended run the orchestrator may stamp it and carry on, like moment 1, and
+   the reviewer then escalates the PR so the rows still reach you before merge.
 
 A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that a PR is ready for you.

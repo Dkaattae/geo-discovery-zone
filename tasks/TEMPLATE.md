@@ -1,11 +1,12 @@
 # T-0xx — <title>
 
 **Status:** `expanding` → `awaiting approval` → `working` → `awaiting verification`
-→ `pass` / `fail` / `blocked` → `awaiting review` → `changes requested` →
-`merged` / `escalated`
+→ `pass` / `fail` / `blocked` / `test changes requested` → `awaiting review` →
+`changes requested` → `merged` / `escalated`
 **Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
 `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
+**Test changes:** `none` — the tester sets `requested` when it raises a Test change request; a person replaces it with `approved — <name>, <date>`, or the orchestrator with `approved — orchestrator, <date>, unattended run` (D-14)
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `task/T-0xx-slug` — **replace this with the branch actually used.**
 Created by `task-expander`, shared by every role, and this line is what they read
@@ -134,18 +135,22 @@ Delete this section when no test that existed before the task needs to change.
 Written by `tester` **only**, and only for tests the task's own change has made
 stale or wrong (`.claude/agents/tester.md`, D-14). The worker lists candidates
 under **Tests made stale** in its Handoff; it never fills this in. Raising it
-sets `Status: blocked`, `Next step: human`. **No test here changes until a
-person fills in Decision.**
+sets `Status: test changes requested`, `Next step: human` and the header's
+`Test changes: requested`. **No test here changes until the header reads
+`approved`.** A person may decide row by row. An unattended orchestrator
+approves the whole request without reading it, the same way it stamps
+`Approved:`, and the reviewer then escalates the PR so a person sees it before
+merge.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `src/x.test.ts` › … › "…" | `abc1234`, T-0xx: … | criterion N changes … | delete / modify | new name, and exactly what it asserts | *(human)* approved / refused — name, date |
+| 1 | `src/x.test.ts` › … › "…" | `abc1234`, T-0xx: … | criterion N changes … | delete / modify | new name, and exactly what it asserts | approved / refused — *(a person; blank under an orchestrator's approval)* |
 
 A count floor that drops because of a deletion above is its own **modify** row,
 lowered by exactly the approved deletions from that file.
 
-**Approved by:** *(human: name and date, once every row has a Decision; then set
-`Next step: tester`)*
+To approve by hand: fill in Decision on each row, set the header's `Test
+changes:` to `approved — <name>, <date>`, and set `Next step: tester`.
 
 ## Review
 

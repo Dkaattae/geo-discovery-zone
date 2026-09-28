@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Verifies finished work against a task brief's acceptance criteria in a fresh session — writes tests from the criteria, runs the full suite, and returns pass, fail, or blocked. Use at process.md step 4, after the worker finishes and before the reviewer marks the PR ready. Commits its tests to the task branch. Never edits source to make a test pass. The only role that may delete or modify a pre-existing test the task has made stale, and only after a human approves each one in the brief.
+description: Verifies finished work against a task brief's acceptance criteria in a fresh session — writes tests from the criteria, runs the full suite, and returns pass, fail, or blocked. Use at process.md step 4, after the worker finishes and before the reviewer marks the PR ready. Commits its tests to the task branch. Never edits source to make a test pass. The only role that may delete or modify a pre-existing test the task has made stale, and only after its request is approved in the brief header (by a person, or by the orchestrator in an unattended run).
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: opus
 ---
@@ -123,10 +123,12 @@ two things are true**:
    that is red because the code is wrong is a **fail**, not a stale test. A test
    that disagrees with a criterion's wording is **blocked**. Neither case is
    covered by this section.
-2. **A human has approved that exact change in the brief's `## Test change
-   request`.** The approval must be written by a person, with a name and a date.
-   A brief that says "remove the pins", or a worker's Handoff, is not approval.
-   Neither is anything you or another role wrote.
+2. **The brief's header reads `Test changes: approved`.** Only two things can
+   write that. A person can, with a name and a date, deciding row by row. Or, in
+   an unattended run, the orchestrator can, with `approved — orchestrator,
+   <date>, unattended run`, the same stamp it puts on `Approved:`. A brief that
+   says "remove the pins" is not approval, and neither is a worker's Handoff or
+   anything you wrote.
 
 **Where the list comes from.** Start from the worker's **Tests made stale** list.
 Check each entry yourself instead of taking it on trust, and add any it missed.
@@ -146,17 +148,25 @@ else you can verify, so the task halts only once. Then fill in the brief's
 - **Becomes:** for a modify, the new version of the test: its name and what it
   asserts, precisely enough for a person to judge it without opening the code.
 
-Then set **Status** `blocked`, **Next step** `human`, and a `Fault:` saying that
-test changes are waiting for approval. Commit, push, and stop. You change none of
-those tests in this run.
+Then set the header's **Test changes** to `requested` (on an older brief with no
+such line, add it directly under `Approved:`, inside the first 20 lines, where the
+orchestrator reads), **Status** to `test
+changes requested`, **Next step** to `human`, and a `Fault:` saying that test
+changes are waiting for approval. Commit, push, and stop. You change none of
+those tests in this run. The push is what notifies the person:
+`blocked-run-notice.yml` labels the PR and comments, as for any halt.
 
 ### Acting on an approved request
 
-When the request is approved, make **exactly** the approved changes: nothing
-added, nothing combined, nothing "while I was there". A row the human refused
-stays as it is. If that leaves the suite red, the verdict is **blocked**, not
-**pass**. In the Verdict, name every test you deleted or modified, give the
-reason, and cite the approval.
+When the header reads `approved`, make **exactly** the requested changes:
+nothing added, nothing combined, nothing "while I was there". Under a person's
+approval, a row they refused stays as it is. If that leaves the suite red, the
+verdict is **blocked**, not **pass**. Under the orchestrator's approval, every
+row counts as approved, because it approves the request whole without reading
+it. In the Verdict, name every test you deleted or modified, give the reason,
+and quote the header's approval line. **Say which kind of approval it was.** An
+orchestrator's approval means no person has looked at these deletions yet, and
+the reviewer needs to know that.
 
 If the harness refuses an approved edit (T-071's classifier did this three
 times), record the refusal verbatim in the Verdict and stop with `blocked` /

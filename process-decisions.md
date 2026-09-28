@@ -709,7 +709,11 @@ testers can delete tests. workers cannot. if the tests is stale or wrong in ci,
 send tester in to fix it."* And, the same day, when asked to confirm: *"tester
 can delete and modify stale or wrong tests. but with permission. it has to raise
 it to me, with what is the test, when was it introduced, why it needs to
-delete/modify/stale, and what is it going to be, if changing it."*
+delete/modify/stale, and what is it going to be, if changing it."* And then:
+*"oh it is like the task expander approval. so orchestrator can come in and auto
+approve it. but needs to note it somewhere. copy whatever in there already. like
+send me an email, stuff. and yes, worker should not delete/change tests, and
+should be gated. that is a later task."*
 
 **Decided:**
 
@@ -721,10 +725,23 @@ delete/modify/stale, and what is it going to be, if changing it."*
   raises a `## Test change request` in the brief (template in
   `tasks/TEMPLATE.md`), one row per test: what the test is, when it was
   introduced and by which task, why the task's change made it stale or wrong,
-  whether to delete or modify it, and what it becomes. It halts `blocked` /
-  `human` without touching them. After a person has written a decision on each
-  row, a fresh tester makes exactly the approved changes and names each one in
+  whether to delete or modify it, and what it becomes. It sets a new header
+  line, `Test changes: requested`, with `Status: test changes requested` and
+  `Next step: human`, and pushes without touching the tests. A fresh tester
+  makes the changes only once that line reads `approved`, and names each one in
   its Verdict.
+- **Approval works like the brief's `Approved:` line.** A person approves row by
+  row, with a name and date. In an unattended run the orchestrator may stamp
+  `approved — orchestrator, <date>, unattended run` without reading the rows,
+  recognising the request from the header alone, so D-3's blindness holds. It
+  logs the stamp in `runs/`. The driver does not stamp: it halts on `Next step:
+  human`, as it does for every other human stop.
+- **The person is told either way, by what already exists.** The tester's
+  push sets `Next step: human`, so `blocked-run-notice.yml` labels the PR and
+  comments, and GitHub notifies (emails) the owner. An orchestrator stamp also
+  takes the PR out of the reviewer's routine envelope. The reviewer escalates it
+  and copies the request's rows into the PR body, because the sweep deletes the
+  brief. So nothing a person has not seen merges without a person.
 - **"Stale" means the task's own change made it so.** A test red because the
   code is wrong is still a **fail**, and one at odds with a criterion is still
   **blocked**. Red CI from a stale test goes to the tester, not the worker.
@@ -745,9 +762,10 @@ the role split exists to stop (D-3). The tester has no stake in the change
 passing. **Why a person as well.** A deleted test is invisible in the
 green run that follows it. Keeping it or dropping it is a judgement about what
 the project protects, and the one reader who can make that call is the human
-who owns the queue. It costs a halt per task that needs it, which is rare. The
-two passes are also what makes it one halt rather than several: the tester
-verifies everything else before raising.
+who owns the queue. **Why the orchestrator may still stamp it.** That is the
+trade D-1 already made for criteria: an unattended run does not stop for a
+person, and it says honestly that nobody looked. The person's check moves to
+the merge, where the reviewer's escalation puts the rows in front of them.
 
 **Not settled: the harness.** The classifier that refused T-071 sits outside
 this repo and reads no brief, so a written approval in the brief is not
@@ -759,12 +777,10 @@ halts, and the person makes the approved edits by hand from the request's rows
 or allows them in a session they are watching. The request is written so that
 either works in a few minutes.
 
-**Also not settled: enforcement.** Nothing mechanical checks that a worker
-commit deletes no pre-existing test, or that the tester's deletions match
-approved rows. The reviewer is the natural place (a `git diff main
---diff-filter=D -- '*.test.*'` read against the request), but `reviewer.md` was
-outside this ticket. If this rule is broken once, that check belongs in
-`reviewer.md` and in `run-loop.sh` as a gate.
+**Also not settled: a mechanical gate.** The reviewer now checks, by reading
+the diff, that deleted or modified pre-existing tests match the request's rows
+and come only from `tester` commits. But nothing stops a worker commit
+mechanically. The human wants that gated, as a later ticket: P-11.
 
 **What would make this worth revisiting.** If test change requests become
 frequent enough that the halt costs more than the review is worth, a
