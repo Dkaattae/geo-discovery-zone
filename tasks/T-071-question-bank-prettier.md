@@ -1,9 +1,9 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `human`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
-**Test changes:** approved — katechen150621@gmail.com, 2026-09-28, all rows of the request raised in `1972f18`, approved via chat in the orchestrator session ("approved, send the tester in"). See `runs/T-071-question-bank-prettier.md`.
+**Test changes:** approved — katechen150621@gmail.com, 2026-09-28, all rows of the request raised in `1972f18`, approved via chat in the orchestrator session ("approved, send the tester in"). See `runs/T-071-question-bank-prettier.md`. Rows 14–16 (added 2026-09-28 by the third tester): requested, not yet approved.
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
 the harness, branched from `origin/main` at `374a713`. Every later role pushes
@@ -11,7 +11,7 @@ here (`CLAUDE.md` "Branches").
 **PR:** #63, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it. The PR body condenses the criteria; where
 they differ, this brief's wording is authoritative.
-**Fault:** test changes are waiting for approval: nine dependency-pin tests plus one more pin and three count floors that this task makes stale (see `## Test change request`); owner: a person, or the orchestrator's stamp.
+**Fault:** the harness's auto-mode classifier refused the approved test edits (rows 1–13) twice ("CI Bypass", then "Security Test Removal"), so a person must apply them by hand or allow them in a watched session; rows 14–16 (three more count floors the request missed) also need approval. Owner: a person (see `## Verdict`).
 
 **Sessions:**
 
@@ -22,6 +22,7 @@ they differ, this brief's wording is authoritative.
 | worker (resumed after the human decision) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (again a subagent inside the orchestrator's session) |
 | tester | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
 | tester (after P-10) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
+| tester (acting on approved request) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict) |
 
 ## Goal
 
@@ -374,6 +375,52 @@ cd ../frontend && bun test src/conventions-doc.test.ts
 
 ## Verdict
 
+### Third tester run (acting on the approved request), 2026-09-28
+
+**TL;DR: blocked. The harness refused the approved edits, and I made none of them.**
+The request also missed three count floors, which will go red once the edits land.
+A person has to (1) approve rows 14–16 below and (2) apply rows 1–16 by hand, or
+allow them in a session they are watching.
+
+- **Status:** `blocked`. **Next step:** `human`.
+- **Approval I acted on:** the header reads "approved — katechen150621@gmail.com,
+  2026-09-28, all rows of the request raised in `1972f18`, approved via chat in the
+  orchestrator session". That is a **person's** approval, relayed by the
+  orchestrator. It covers rows 1–13 only.
+- **Harness refusal, verbatim.** I ran one script to delete the approved test blocks
+  (rows 1–7). The classifier refused it: "Permission for this action was denied by
+  the Claude Code auto mode classifier. Reason: [CI Bypass]." Then I tried to run
+  `bun test` in `question-bank/` to record the current state. It refused that too:
+  "Permission for this action was denied by the Claude Code auto mode classifier.
+  Reason: [Security Test Removal]." Per my role I did not try the same edit through
+  any other tool. `git status` is clean, so **no test was deleted or modified** in
+  this run.
+- **New finding: three more floors this task makes stale.** The request listed the
+  `FLOORS` in `climate-kid-verify.test.ts` and `landmarks-verify.test.ts`. It missed
+  two identical `PINNED` tables. `climate-kid.test.ts` pins `state-animals.test.ts`
+  at `tests: 43` and `landmarks.test.ts` at `tests: 53`, and `landmarks.test.ts`
+  pins `state-animals.test.ts` at `tests: 43`. Today those files hold exactly 43 and
+  53 `test(` lines. Rows 5 and 6 remove one each, so these three tests go red too.
+  They are rows 14–16 below. Each lowers its floor by exactly one, by the same rule
+  as rows 11–13.
+- **What stands from the previous run:** 17 of 19 criteria met, and the
+  `prettier-gate.test.ts` evidence is below. Criteria 11 and 16 wait on rows 1–16.
+  I could not re-run anything in this run, so that evidence dates from the
+  previous tester's run at `1972f18`. No source has changed since then:
+  `6776c70` touched only the brief.
+- **How a person unblocks it:** apply rows 1–16 exactly (the Handoff's "Removal to
+  make" and the request table give file, describe and name), commit as
+  `T-071: apply approved test change request (human)`, and set Next step to
+  `tester`. A fresh tester then re-runs criteria 11 and 16 and the full suite.
+  Alternatively, allow the edits in a watched session and re-run the tester.
+
+**Independence.** This is an orchestrated run (`runs/T-071-question-bank-prettier.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01KmyHhDTUDHHNBeuqPkeiKW`, the
+same id as every other row, so the session check proves nothing. My independence
+rests only on being a freshly spawned subagent that never saw the worker's context.
+
+### Second tester run (after P-10)
+
 **TL;DR: test changes requested, and no other finding.** Every criterion that does
 not depend on the stale pins holds: 18 of 19, checked by 21 new tests in
 `question-bank/src/prettier-gate.test.ts` or by hand. Criteria **11 and 16** cannot
@@ -455,6 +502,13 @@ exactly one file (`dependency-set.test.ts`, E-16).
 | 11 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 19 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `775671c`, T-014 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. | |
 | 12 | same file and describe › `FLOORS["landmarks.test.ts"]` | `775671c`, T-014 tester: count floor | Row 5 removes 1 test from a file at exactly 53. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | |
 | 13 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 14 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `8b5bb81`, T-013 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 70 }`, with a comment citing T-071 row 6. | |
+
+| 14 | `src/climate-kid.test.ts` › "T-014 criterion 19 — nothing already verified is weakened" › `PINNED["state-animals.test.ts"]` | T-014 worker (`bc544e3` era; `git log -S` not run: the harness refused commands in this run), count floor | Row 6 removes 1 test from a file at exactly 43. Missed by the original request. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. | |
+| 15 | same file and describe › `PINNED["landmarks.test.ts"]` | as row 14 | Row 5 removes 1 test from a file at exactly 53. Missed by the original request. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | |
+| 16 | `src/landmarks.test.ts` › its "nothing already verified is weakened" describe (the `PINNED` table near line 763) › `PINNED["state-animals.test.ts"]` | T-013/T-014 era, count floor | Row 6 removes 1 test from a file at exactly 43. Missed by the original request. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. | |
+
+Rows 14–16 were added 2026-09-28 by the third tester and are **not** covered by the
+header's approval, which names the request raised in `1972f18`.
 
 No other floor moves. `landmarks-verify.test.ts` sits at 37 tests, 73 expects,
 against a floor of 36 and 69 in `climate-kid-verify.test.ts`. After row 4 it has
