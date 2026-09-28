@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** halted — needs human
+**Started:** 2026-09-28 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -171,3 +171,10 @@ rule, and decide on lowering three test-count floors by 1.
 The user asked for a process ticket letting the tester delete or modify tests a task has made stale,
 done first in a new session: P-10, session `session_01GWJfsxWd6kBKYaKc33mNkd`, its own PR against `main`.
 T-071 stays `blocked` / `human` until P-10 merges; then a fresh tester is sent in.
+
+## Resumed after P-10 — 2026-09-28
+The user said in the orchestrator session: "P-10 is merged, send the tester in on T-071".
+Merged `origin/main` (`a1db177`, PR #64 — P-10) into the task branch so the tester runs under the new
+rules (D-14: the tester raises a Test change request; nothing is deleted until it is approved).
+Header set to `Status: awaiting verification`, `Next step: tester`, and `Test changes: none` added
+(the brief predates the field). Blocked verdicts so far: 1 of 2 (G3).
