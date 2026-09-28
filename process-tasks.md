@@ -430,6 +430,31 @@ detail.
 The human's ask: make the tester raise questions the way the expander does, and
 come back to them afterwards.
 
+**Amended 2026-09-28 by the human, in T-071's orchestrator session:** *"Even
+human not present, it gets the answer should update the status to next role
+after blocked, and resume."* and *"It could be the orchestrator gets the answer.
+It should update the status."* So an answer resumes the run by itself:
+
+- **Whoever receives the answer records it and moves the header on.** That is
+  the role in its own session, or the orchestrator when the person answers in
+  its chat. It writes the answer into the brief with the person's name and
+  date, sets `Status` and `Next step` to the role that should carry on, and that
+  role starts. Nobody has to edit the header by hand and then start a run.
+  `process.md`'s "Answering does not resume anything" goes.
+- **The halted role names who resumes it.** This folds in P-1: every halt writes
+  a `Resume with: <role>` line, and answering promotes it into `Next step`. The
+  orchestrator copies it; it never works out the role from the question (D-3,
+  G0 unchanged).
+- **The unattended case needs a receiver too.** Decide what picks up an answer
+  given on the PR with nobody in a session, for example a workflow on an owner's
+  PR comment, or the next orchestrator or `run-loop.sh` run treating an answered
+  brief as runnable, and record the choice in D-15.
+- **The harness has to allow it.** On T-071 the orchestrator's commit of exactly
+  this header update was refused twice ("Auto-Mode Bypass"), even with the
+  person's instruction in the same chat. A written rule alone will not get past
+  that. Propose the narrowest permission rule that would, and ask the human
+  before adding it.
+
 **This is a process-file change** (`.claude/agents/tester.md`,
 `orchestrator.md`, `README.md`, `process.md`, `tasks/TEMPLATE.md`,
 `process-decisions.md`), done by hand. D-15 records it.
@@ -440,7 +465,14 @@ come back to them afterwards.
 - an unattended tester still halts with `test changes requested` / `human`, and
   it is written down that an **attended** tester session resumes it, not a
   subagent;
-- the orchestrator no longer stamps or relays a test change approval, and still
-  never reads the request;
+- when the person answers in the orchestrator's chat, the orchestrator records
+  the answer in the brief (name, date), sets `Status` / `Next step` to the halted
+  role's `Resume with:`, commits, and spawns that role, and it still never
+  reads the request or decides the role itself;
+- an answer given with nobody in a session also resumes the run, by the route
+  D-15 records;
+- every halt writes `Resume with:` (P-1 folded in), and `process.md` no longer
+  says answering resumes nothing;
 - D-15 records the choice and what would change it;
-- no permission rule was added to `.claude/settings.json`.
+- any permission rule this needs was proposed to the human, and added only with
+  their yes.
