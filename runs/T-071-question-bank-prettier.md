@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** in progress
+**Started:** 2026-09-28 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -134,3 +134,35 @@ test-count floors by 1.
 ## Resumed — 2026-09-28
 The user answered in the orchestrator session: "only testers can delete tests. workers cannot. if the tests is stale or wrong in ci, send tester in to fix it."
 Recorded in the brief under a second `## Human decision`; header set to `Status: awaiting verification`, `Next step: tester`.
+
+## Round 4 — tester — 2026-09-28
+`Next step` on entry: `tester` → on exit: `human` (verdict: `blocked` — 1 of 2 under G3)
+
+**T-071 is blocked and needs a human. I didn't test anything.** The harness's permission check stopped me from deleting the stale dependency tests, the same way it stopped the worker twice. The brief now reads **Status: `blocked`**, **Next step: `human`**. My verdict is pushed to `claude/nice-euler-247a4f` as `4ae2b47`, and the remote head matches it.
+
+**What happened:**
+- **The deletion was refused.** Following the second human decision, I tried to delete the pin tests the worker listed in its Handoff. The harness refused it as "Security Test Removal".
+- **The next command was refused too.** It only checked that the format check catches a badly formatted file, including with the proxies pointed at a dead address (criteria 4–6 and 10). The refusal says not to pursue the same outcome another way, so I stopped there.
+- **Nothing was left half-done.** The working tree is clean: no partial deletion and no leftover probe files.
+
+**Needed from a human (katechen150621@gmail.com / Dkaattae), one of:**
+1. **Delete the tests by hand.** Use the "Removal to make" list in the brief's Handoff. That is the nine pins, plus a tenth in `climate-kid-verify.test.ts` and the T-066 criterion 16 `describe` block in `lint-gate.test.ts`. You also need to decide whether to lower three "nothing weakened" floors by 1 (43→42, 53→52); without that, three floor tests go red. Commit, then set Next step to `tester`.
+2. **Add a harness permission rule** that lets the tester edit `question-bank/src/*.test.ts` for this task, then run the tester again.
+
+This isn't a problem with the acceptance criteria, so it doesn't go back to `task-expander`.
+
+**What I did establish:**
+- **The Handoff's work is on the branch.** Prettier is pinned at exactly `3.9.6` with a `format:check` script, `.prettierrc` has the four settings, the CI job has a `Format` step, and `src/dependency-set.test.ts` exists.
+- **`bun install --frozen-lockfile` passes** and leaves `bun.lock` unchanged.
+- **`bun test` in `question-bank/`: 1315 pass, 9 fail.** The 9 failures are the pins waiting to be deleted.
+- **Not verified:** criteria 1–10, 12–15 and 17–19. No tests were written and no mutations were run.
+- **Not met:** criteria 11 and 16 can't pass until the pins are gone.
+
+**Independence:** this is an orchestrated run, so my session id matches the expander and worker rows and the Sessions-table check proves nothing. My only independence is being a freshly spawned subagent that never saw the worker's context. That is weaker than a separate session, and the Verdict says so.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md`
+
+## Halted — 2026-09-28
+Header on exit: `Status: blocked`, `Next step: human`. The harness refused the test deletion for the
+tester as well (third refusal across roles). A human must delete the tests by hand or add a permission
+rule, and decide on lowering three test-count floors by 1.
