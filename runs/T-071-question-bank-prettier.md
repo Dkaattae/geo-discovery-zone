@@ -178,3 +178,45 @@ Merged `origin/main` (`a1db177`, PR #64 — P-10) into the task branch so the te
 rules (D-14: the tester raises a Test change request; nothing is deleted until it is approved).
 Header set to `Status: awaiting verification`, `Next step: tester`, and `Test changes: none` added
 (the brief predates the field). Blocked verdicts so far: 1 of 2 (G3).
+
+## Round 5 — tester — 2026-09-28
+`Next step` on entry: `tester` → on exit: `human` (Status `test changes requested`, Test changes `requested`)
+
+**T-071: test changes requested, and nothing else is wrong.** 17 of the 19 criteria hold. The other two, 11 and 16, can only hold once 10 stale dependency-pin tests are deleted and 3 test-count floors are each lowered by 1. The rules say those tests can't change until someone approves the request, so I changed none of them. Pushed as `1972f18` to `claude/nice-euler-247a4f`; the remote head matches.
+
+- **Header:** Status `test changes requested`, Next step `human`, Test changes `requested`. The Fault line says approval is pending. I added a Sessions row "tester (after P-10)".
+- **What's needed:** approval of the 13 rows in the brief's `## Test change request`, either by a person row by row or by the orchestrator's stamp for an unattended run. After that, a fresh tester makes exactly those edits and re-runs criteria 11 and 16.
+- **No fail and no blocked criterion.** Nothing goes back to the worker or to task-expander.
+
+**Independence:** this is an orchestrated run, and my session id (`cse_01KmyHhDTUDHHNBeuqPkeiKW`) matches the expander and worker rows. The session-id check therefore proves nothing. My independence rests only on being a freshly spawned subagent that never saw the worker's context, which is weaker evidence than a separate session. The Verdict says so.
+
+**What I verified**
+
+| Criteria | How | Result |
+|---|---|---|
+| 1–10, 12, 17–19 | 21 new tests in `question-bank/src/prettier-gate.test.ts`. They run the real `bun run format:check` (script name taken from `ci.yml`) against temporary probe files, including once with all six proxy variables pointed at a dead port. | Pass. Each test went red under a deliberate break aimed at it: printWidth 80, a top-level-only glob, `--write`, a `.prettierignore`, a `prettier-ignore` line, a `^` range, dropping `!cancelled()` from the CI step, adding an `execSync` import. All reverted. |
+| 14 | By hand: for each of the 16 files in reformat commit `6536170`, the file before the commit, run through the pinned prettier, compared with `cmp` to the committed file. | 16/16 byte-identical. The commit adds, deletes and renames nothing. |
+| 15 | By hand: diff against `374a713` of `data/`, `sample-data/` and `src/fixtures/`. | Empty. |
+| 2 | By hand: frozen install. | `bun.lock` unchanged. |
+| 13 | By hand: prettier pin changed to a `^` range. | 4 tests red. |
+| 11 | By hand, in a full clone (the working repo is shallow): three changes to `package.json` (add `left-pad`, remove `oxlint`, add a `dependencies` key). | Not met yet. Each change fails tests in 11 files, not one. Every failure outside the shared check is a request row. |
+| 16 | Full suites and checks. | Not met yet. Question-bank: typecheck and lint are clean; `bun test` is 1336 pass / 9 fail, and all 9 are request rows. Frontend: see below. |
+
+**The 13 request rows**
+- **Rows 1–10 delete** the Handoff's pins. Row 2, the `climate-kid-verify` test "no dependencies block growth", wasn't in the brief's survey table; it only fails when a `dependencies` key is added.
+- **Rows 11–13 lower count floors by exactly 1:** `state-animals` 43→42 in `climate-kid-verify` and in `landmarks-verify`, and `landmarks` 53→52 in `climate-kid-verify`. I checked the expectation counts and they stay above their floors, so those don't move.
+
+**Two things for whoever picks this up next**
+- **I removed one of my own tests.** My first draft also pinned the four-name dependency set in `prettier-gate.test.ts`. That made it one more file failing under criterion 11, which requires every failure to be in one file.
+- **The frontend suite needs a re-run in a clean environment.** Here it gave 340 pass / 3 fail:
+  - The npm mirror refused `d3-drag` (403), so `react-simple-maps` never installed.
+  - Two lint tests timed out at 5 s, although `bun run lint` on its own takes 4.5 s and exits 0.
+  - No frontend file changed in this task, and `conventions-doc.test.ts` passes 80/80.
+
+Files:
+- /home/user/geo-discovery-zone/question-bank/src/prettier-gate.test.ts
+- /home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md
+
+## Paused for a Test change request — 2026-09-28 (raised in `1972f18`)
+A human is present in the orchestrator session, so the request waits for their approval rather than
+an unattended orchestrator stamp.
