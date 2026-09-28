@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** halted — needs human
+**Started:** 2026-09-28 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -87,3 +87,8 @@ Header on exit: `Status: blocked`, `Next step: human`. The worker asked:
 What a human has to decide: whether the nine per-file dependency-pin tests may be deleted
 (the brief's consolidation into one shared check), and by which route. The orchestrator does
 not answer this and does not perform the removal itself.
+
+## Resumed — 2026-09-28
+The user answered in the orchestrator session: "approved, delete the pins and resume the worker".
+Recorded in the brief under `## Human decision`; header set to `Status: working`, `Next step: worker`.
+The orchestrator did not perform the deletion; a fresh worker carries on from the brief.
