@@ -13,19 +13,22 @@ person who used to sit between the steps.
 | `task-expander` | 2 | the brief, the branch, the draft PR | whether the current code passes |
 | `worker` | 3 | source, data, docs, new tests | the verification tests |
 | `tester` | 4 | tests, the Verdict | — (starts cold, by design) |
+| `reviewer` | 6 | review, sweep, marks PR ready | — (never reviews its own work) |
+| `orchestrator` | — | `runs/`, the `Approved:` line | **all of the above's work** |
 
 **Only the tester touches a test that existed before the task**, and only after a
-person approves it. When a task's change makes an existing test stale, the worker
-leaves it red and lists it in its Handoff. The tester raises a `## Test change
-request` in the brief and halts, and the push notifies you. Then you decide each
-row, or, unattended, the orchestrator stamps the header's `Test changes:` line
-unread, exactly as it stamps `Approved:`. A fresh tester makes the changes. An
-orchestrator's stamp makes the reviewer escalate, so the rows reach you before
-merge. The worker never deletes one, even when the brief
-asks. So the role that built the change is never the one that decides which
-checks on it can go. See `process-decisions.md` D-14.
-| `reviewer` | 6 | review, sweep, marks PR ready | — (never reviews its own work) |
-| `orchestrator` | — | `runs/`, the `Approved:` line, the `Test changes:` stamp | **all of the above's work** |
+person approves it in the tester's own session. When a task's change makes an
+existing test stale, the worker leaves it red and lists it in its Handoff. The
+tester raises a `## Test change request` in the brief and pushes, which notifies
+you. If you are in its session, it asks you there, applies what you approve, and
+carries on, the way the expander asks. If it is a spawned subagent or a driven
+step, it halts. **You resume it by starting a tester in a session you are
+attending**, never by answering in the brief for a subagent to act on. The
+orchestrator never approves one, even with you in its session: on T-071 the
+harness refused every edit made on an approval that reached the tester as text
+in a file. The worker never deletes a test, even when the brief asks. So the role
+that built the change is never the one that decides which checks on it can go.
+See `process-decisions.md` D-14 and D-15.
 
 ## Where the human used to stand
 

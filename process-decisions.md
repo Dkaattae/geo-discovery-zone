@@ -696,6 +696,10 @@ rule applies: add the command, not a wildcard over the directory.
 
 ## D-14 — Only the tester changes an existing test, and only after a person approves it
 
+> **Partly superseded by D-15 (2026-09-28).** The orchestrator no longer stamps
+> or relays a test change approval. A person approves in the tester's own
+> session. The rest of D-14 stands.
+
 **2026-09-28.** P-10. T-071 (question-bank prettier) needed a set of
 hand-written dependency-pin tests removed, because the task itself adds a
 dependency those tests pinned as absent. The brief told the worker to remove
@@ -789,3 +793,81 @@ the form "package X is absent", when the brief adds X, would be one such
 class. Or if the classifier keeps refusing approved edits, the choice is
 between a scoped permission rule and doing these edits by hand as a routine
 step.
+
+## D-15 — A test change request is approved in the tester's own session
+
+**2026-09-28.** P-12. D-14 had the tester always halt on a test change request,
+even with a person in its session. The approval was then written into the brief
+header, by the person or by the orchestrator's stamp, and a **fresh** tester was
+spawned to act on it. The `task-expander` works the other way. When a person is
+present it asks in its own session and carries on. It halts with `blocked` /
+`human` only when nobody is there to ask (D-11).
+
+On T-071 the tester's way failed at every step that ran through a file. The
+auto-mode permission classifier refused a fresh subagent tester's approved
+deletions twice ("CI Bypass", "Security Test Removal"). It also refused the
+orchestrator's edit stamping a person's approval into the header ("Auto-Mode
+Bypass"). The same deletions went through when the person gave the instruction
+directly in the session making them (`e478c8f` on `claude/nice-euler-247a4f`).
+The human asked why the tester differs from the expander, and asked for it to
+raise questions the same way and come back to them afterwards.
+
+**Decided:**
+
+- **An attended tester asks, like the expander.** It still writes the request
+  into the brief and pushes, so there is a record and a notice. Then it asks the
+  person in its own session, row by row. It records their answer in each row's
+  Decision and in `Test changes: approved — <name>, <date>`, quotes them in the
+  Verdict, applies exactly the approved rows in that session, and finishes
+  verifying.
+- **An unattended tester halts**, as in D-14, with `test changes requested` /
+  `human`. **What resumes it is a tester in a session a person is attending**:
+  option (a) of P-12. It finds the request in the brief, rechecks the rows, and
+  asks the person. That is true even if they already wrote Decision in the brief,
+  so the approval is theirs to the tester and not text in a file.
+- **The orchestrator's stamp is dropped**: option (b) of P-12. The orchestrator
+  halts on a test change request like any `Next step: human`. It does not stamp
+  it, and it does not relay a person's approval into a subagent even when the
+  person is in its session. It tells them to run the tester step attended. It
+  still recognises the request from three header values and never opens it, so
+  D-3's blindness is unchanged.
+- **By hand stays the fallback.** If the harness refuses the edits even in an
+  attended session, the tester records the refusal and halts, and the person
+  makes the approved edits from the rows.
+
+**Why (a).** It is the only route shown to work. The harness judges an action
+against the instruction the session was given. "Delete these tests" from a
+person in the session is an instruction. "The header says approved" is a claim
+in a file the agent could have written itself, and the classifier treats it as
+one. It is also the expander's route, so the loop has one rule for asking
+instead of two.
+
+**Why drop (b) rather than keep it with its known risk.** Every observed use
+failed. The one stamp attempted was refused. The subagent testers that acted on
+file-based approval were refused. Each refusal cost a `blocked` round, and T-071
+reached its G3 bound on exactly those. A route that always halts one step later
+than a plain halt is strictly worse than the plain halt. It also cost an
+unattended run nothing to drop: the stamp never got an unattended run past the
+edits. This does go back on part of the human's P-10 ruling that the
+orchestrator may auto-approve, like `Approved:`. That ruling assumed the stamp
+would be acted on, and on this harness it is not.
+
+**What it costs.** A test change request always needs a person in a live
+session before it can move. An unattended run with one stops until that
+happens. The attended tester raises and applies in the same session, which is
+fine for independence: it is still not the worker's session, and D-14's
+separation was never between raising and applying.
+
+**Not settled, and not done here.** No permission rule was added to
+`.claude/settings.json` (D-13, and the ticket asked not to without asking
+first). `blocked-run-notice.yml`'s comment still gives the generic resume steps
+("answer in the brief, set `Next step` back, start a run"). For a test change
+request, that should say "start the tester step in a session you attend". It is
+a small change to a workflow, left for a follow-up.
+
+**What would make this worth revisiting.** A permission rule, or a harness
+feature, that lets a spawned subagent make edits a person approved elsewhere.
+With that in place, (b) could come back, and the orchestrator could stamp again
+the way it stamps `Approved:`. Test it on one real request before writing it
+back in. Or the reverse: if the classifier starts refusing attended testers too,
+the by-hand route stops being a fallback and becomes the rule.

@@ -402,3 +402,45 @@ is done by hand.
 **Done when:** a worker step that deletes or rewrites a test already on `main`
 stops the driver with a message naming the test, `test-gates.sh` covers it, and
 adding a new test to an existing file still passes.
+
+### P-12 — A test change request is approved in the tester's own session, the way the expander asks · S · doing
+**Depends on:** P-10
+**New 2026-09-28, from T-071 (branch `claude/nice-euler-247a4f`).** The human
+asked what happens after a role raises something to a person and gets the
+answer, and why the tester differs from the task-expander. The two differed like
+this:
+
+- **The task-expander** asks in its own session when a person is present, gets
+  the answer, and carries on in that session. It halts with `blocked` / `human`
+  only when nobody is there to ask (`run-loop.sh`, an orchestrator subagent).
+- **The tester** (P-10) always halted with `test changes requested` / `human`,
+  even with a person sitting in the session. The approval was then written into
+  the brief header, by the person or by the orchestrator's stamp, and a **fresh**
+  tester was spawned to act on it.
+
+On T-071 that difference was fatal. The auto-mode permission classifier refused
+the fresh subagent tester's approved deletions ("CI Bypass", "Security Test
+Removal"), and refused the orchestrator's edit stamping the approval into the
+header ("Auto-Mode Bypass"). An approval that exists only as text in a file the
+agent could have written is not something the classifier trusts. The same edits
+went through when the person gave the instruction directly in the session making
+them (`e478c8f`). `runs/T-071-question-bank-prettier.md`, rounds 2–6, has the
+detail.
+
+The human's ask: make the tester raise questions the way the expander does, and
+come back to them afterwards.
+
+**This is a process-file change** (`.claude/agents/tester.md`,
+`orchestrator.md`, `README.md`, `process.md`, `tasks/TEMPLATE.md`,
+`process-decisions.md`), done by hand. D-15 records it.
+**Done when:**
+- an attended tester records the request in the brief, pushes, asks the person in
+  its own session, and on their answer records it and applies exactly the approved
+  rows in that same session;
+- an unattended tester still halts with `test changes requested` / `human`, and
+  it is written down that an **attended** tester session resumes it, not a
+  subagent;
+- the orchestrator no longer stamps or relays a test change approval, and still
+  never reads the request;
+- D-15 records the choice and what would change it;
+- no permission rule was added to `.claude/settings.json`.
