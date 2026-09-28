@@ -63,6 +63,7 @@ bun run build              # live: query.wikidata.org → data/us-states/
 bun run build -- --offline --out data/us-states   # offline: recorded fixture → same path, byte-identical
 bun run build:sample       # offline replay of the recorded fixture → sample-data/
 bun run typecheck
+bun run lint               # oxlint, not eslint (E-15); fails on any warning
 bun test
 
 # e2e — full user journeys against a real docker compose stack

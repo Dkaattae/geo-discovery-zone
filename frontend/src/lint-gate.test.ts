@@ -151,7 +151,8 @@ describe("criterion 7 — the dead cross-reference to T-003's brief is gone", ()
   test('ci.yml no longer says "see the brief\'s Handoff"', () => {
     const ciYml = readFileSync(join(FRONTEND_ROOT, "../.github/workflows/ci.yml"), "utf8");
     expect(ciYml).not.toContain("brief's Handoff");
-    // the clause was repointed rather than deleted outright
-    expect(ciYml).toMatch(/No lint step[\s\S]*?#11/);
+    // This test also asserted the question-bank job's "No lint step ... #11"
+    // comment. T-066 gave question-bank a real lint step and removed that
+    // comment, so that half of the assertion went with it.
   });
 });

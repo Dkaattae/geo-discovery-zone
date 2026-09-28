@@ -449,7 +449,7 @@ describe("T-014 tester, criterion 4 — a fragment, not a sentence", () => {
       const question = `Which state is ${value}?`;
       const statement = `${name} is ${value}.`;
       expect({ file, question: /\?\?|\.\?/.test(question) }).toEqual({ file, question: false });
-      expect({ file, statement: /\.\.$/.test(statement) }).toEqual({ file, statement: false });
+      expect({ file, statement: statement.endsWith("..") }).toEqual({ file, statement: false });
       expect({ file, startsLower: /^Which state is [a-z]/.test(question) }).toEqual({
         file,
         startsLower: true,
@@ -1013,7 +1013,13 @@ describe("T-014 tester, criterion 18 — nothing unreviewed, live or new is comm
       devDependencies?: Record<string, string>;
     };
     expect(pkg.dependencies ?? {}).toEqual({});
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual(["@types/bun", "typescript"]);
+    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
+    // covered (engineering-decisions.md E-15). Anything else still fails.
+    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
+      "@types/bun",
+      "oxlint",
+      "typescript",
+    ]);
   });
 
   test("no test file under question-bank/src/ calls fetch, assigns it, or mocks a transport", () => {

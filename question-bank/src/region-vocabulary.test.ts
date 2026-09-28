@@ -370,8 +370,11 @@ describe("T-017 criterion 8 — no new dependency, no network", () => {
     // were written, so adding anything here fails rather than being absorbed.
     const manifest = readJson(join(PKG, "package.json")) as Record<string, unknown>;
     expect(manifest["dependencies"]).toBeUndefined();
+    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
+    // covered (engineering-decisions.md E-15). Anything else still fails.
     expect(Object.keys(manifest["devDependencies"] as object).sort()).toEqual([
       "@types/bun",
+      "oxlint",
       "typescript",
     ]);
   });

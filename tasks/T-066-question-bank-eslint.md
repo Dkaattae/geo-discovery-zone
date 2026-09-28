@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets oxlint and a `lint` gate
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** katechen150621@gmail.com — 2026-09-28, in chat, for the oxlint re-expansion (round 3). The round-1 approval covered the eslint criteria only. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
@@ -17,6 +17,7 @@ here (`CLAUDE.md` "Branches").
 | task-expander | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | worker | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | task-expander (re-expand, oxlint) | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
+| worker (round 2, oxlint) | 2026-09-28 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 
 ## Goal
 
@@ -329,6 +330,149 @@ a warning.
 `./node_modules/.bin/eslint src`. Then revert with
 `git checkout -- package.json bun.lock`.
 
+### Round 2 Handoff (oxlint) — worker, 2026-09-28
+
+**TL;DR — built. `bun run lint` in `question-bank/` runs the local oxlint
+1.86.0 over `src/`, fails on any warning, and is clean on the committed tree
+(`Found 0 warnings and 0 errors.`). CI runs it; docs and E-15 are written.
+Two things the brief did not foresee: eight older question-bank tests pinned
+the dependency set, and I could not run the `frontend/` suite locally (its
+registry is blocked here). Next: tester.**
+
+**Files changed**
+
+- **`question-bank/package.json`**: `lint` script
+  `oxlint --deny-warnings --report-unused-disable-directives --format default src`,
+  and `oxlint ^1.86.0` in `devDependencies` (via `bun add -d oxlint`). Nothing
+  else in it moved.
+- **`question-bank/bun.lock`**: oxlint plus its `@oxlint/binding-*` optional
+  platform packages. `bun install --frozen-lockfile` reports no changes.
+  `bun pm untrusted` reports 0 packages with blocked scripts.
+- **`question-bank/.oxlintrc.json`** (new, JSONC): oxlint's defaults plus
+  `"typescript/no-explicit-any": "error"`. It turns nothing off and nothing
+  down to warning, and says so in a comment.
+- **`question-bank/src/sinks/db.ts`, `src/build.ts`**: the three
+  `eslint-disable-next-line` comments are **deleted, not annotated**. oxlint
+  reports all three as `Unused eslint-disable directive (no problems were
+  reported)`, so they suppressed nothing. Criterion 10 now holds with zero
+  directives under `src/`.
+- **`src/landmarks.test.ts`, `src/state-animals.test.ts`,
+  `src/climate-kid.test.ts`**: `(x.match(re)?.[1] as string).toUpperCase()`
+  becomes `x.match(re)![1]!.toUpperCase()`. That fixes
+  `eslint(no-unsafe-optional-chaining)` (a correctness rule) and keeps the
+  same behaviour: a non-matching filename still throws a TypeError.
+- **`src/climate-kid-verify.test.ts:452`**: `/\.\.$/.test(statement)` becomes
+  `statement.endsWith("..")` (`unicorn(prefer-string-starts-ends-with)`). The
+  meaning is identical.
+- **Eight older tests pinned the dependency set. The brief did not list
+  these.** They are in `climate-kid-verify`, `climate-kid`,
+  `landmarks-verify`, `landmarks`, `state-animals`, `region-vocabulary`,
+  `highest-point-verify` and `top-crops-verify` (`.test.ts`). Each one asserts
+  "exactly `@types/bun` + `typescript`", or a byte/digest match of
+  `package.json`/`bun.lock`. Criteria 9 and 16 cannot both hold unless these
+  change, so:
+  - The six set pins now expect `@types/bun`, `oxlint`, `typescript`, with a
+    comment naming T-066/E-15.
+  - `top-crops-verify`'s `DEPENDENCY_DIGESTS` is re-pinned to the new bytes.
+    The old digests are kept in a comment.
+  - `highest-point-verify`'s byte comparison against `origin/main` becomes a
+    comparison of dependency blocks: same `dependencies`, same ranges for
+    every baseline devDependency, and nothing new except `oxlint`. A byte
+    comparison would stay red on this branch until merge. The new check holds
+    both before and after the merge.
+  - Every one of these still fails on any other new dependency.
+- **`.github/workflows/ci.yml`**: the job is now named
+  `question-bank (typecheck, lint, test)`. There is a new `Lint` step between
+  Typecheck and Test, with `run: bun run lint` and the Typecheck step's `if:`.
+  The "No lint step … #11" comment is replaced by one pointing at E-15, E-4
+  and T-071.
+- **`frontend/src/lint-gate.test.ts`**: the
+  `toMatch(/No lint step[\s\S]*?#11/)` line is removed, with a comment saying
+  why. The "brief's Handoff" check and the criterion-6 test are untouched.
+- **`conventions.md`**: the question-bank Commands block now has
+  `bun run lint  # oxlint, not eslint (E-15); fails on any warning`.
+- **`question-bank/README.md`**: `bun run lint` is added to "Run it", plus a
+  paragraph saying the package lints with **oxlint, not eslint**, and why.
+- **`engineering-decisions.md`**: new **E-15** at the end, with the four
+  required points. No existing entry was edited.
+
+**Criteria: where each one lives, and what I observed**
+
+| # | Where | Observed (by me, this session) |
+|---|---|---|
+| 1, 2 | `package.json` `lint` | exit 0, `Found 0 warnings and 0 errors.` |
+| 3 | script calls bare `oxlint`, so bun resolves `node_modules/.bin/oxlint` | no bunx/npx |
+| 4 | default `correctness` | `debugger;` probe: exit 1, `eslint(no-debugger)` |
+| 5 | `.oxlintrc.json` | `any` probe: exit 1, `typescript(no-explicit-any)` |
+| 6 | `--deny-warnings` in the script | `bun run lint -W eqeqeq` + `a == 1` probe: exit 1; the same probe without `-W` exits 0 (`eqeqeq` is not configured) |
+| 7 | positional `src` | `debugger;` at `src/x.ts`, `src/x.test.ts`, `src/sinks/x.ts`: all exit 1 |
+| 8 | oxlint has no formatting rules in the default set | single quotes, no semicolons, 150+ col: exit 0 |
+| 9 | — | question-bank: `bun test` 1289 pass / 0 fail, `typecheck` ok. **frontend: see below** |
+| 10 | zero directives under `src/` | `grep -rn 'lint-disable' question-bank/src` is empty |
+| 11 | `.oxlintrc.json` comment | nothing is turned off or down |
+| 12 | — | `git diff --quiet 01a32eb -- question-bank/data question-bank/sample-data` is clean |
+| 13, 14 | `ci.yml`, `lint-gate.test.ts` | lint-gate criteria 6 and 7 tests pass |
+| 15 | — | all six proxy vars set to `http://127.0.0.1:1`: exit 0 |
+| 16, 17 | `package.json` diff | only `oxlint` added; `typescript`/`@types/bun` lines untouched |
+| 18 | `bun.lock` | frozen install reports no changes |
+| 19 | — | `git diff 01a32eb -- frontend/package.json frontend/bun.lock` is empty |
+| 20 | — | no eslint config in `question-bank/` |
+| 21–23 | `conventions.md`, `question-bank/README.md`, `ci.yml` | see note on criterion 23 below |
+| 24 | `engineering-decisions.md` E-15 | — |
+
+**Why `--format default` is in the script.** oxlint notices when it is running
+under an AI agent (`AI_AGENT`/`CLAUDECODE` in this session's environment). In
+that case it switches to a terse format that **drops the `Found N warnings
+and M errors.` line** that criterion 2 reads. I confirmed this by running with
+`env -u AI_AGENT -u CLAUDECODE`. Pinning the format makes the output the same
+for a human, CI and an agent. The tester will be in an agent session, so
+without this flag criterion 2 would have been unobservable.
+
+**Why `--report-unused-disable-directives`.** Every directive that existed
+turned out to be dead. With this flag plus `--deny-warnings`, a stale one
+fails the gate, so criterion 10 cannot silently rot. Owner: the reviewer can
+drop it if it seems stricter than the brief asked. It is not required by any
+criterion.
+
+**What I could not run: the `frontend/` suite, typecheck and lint (criterion
+9, frontend half).** `frontend/node_modules` does not exist in this sandbox.
+`bun install --frozen-lockfile` fails with
+`403` on `europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/internmap/...`
+(that is the registry `frontend/bun.lock` records). I did not try another
+registry route. What I did run from `frontend/`, since it needs no
+dependencies:
+`bun test src/conventions-doc.test.ts src/ci-action-pinning.test.ts src/git-baseline-guard.criteria.test.ts`
+gave 110 pass / 0 fail, and the lint-gate criterion 6 and 7 tests gave
+2 pass. The rest of `lint-gate.test.ts` shells out to eslint and could not
+run here. The only frontend file I touched is `lint-gate.test.ts`, and only by
+deleting one assertion. Owner: **the tester** verifies criterion 9's frontend
+half in an environment that can install, or reads it off PR #62's CI
+`frontend` job.
+
+**Criterion 23, not fixed on purpose.**
+- `engineering-decisions.md:555` (an older E-entry) still names the job
+  `question-bank (typecheck, test)`. Criterion 24 forbids modifying existing
+  E-entries, and `engineering-decisions.md` is not in criterion 23's list.
+- `tasks.md:137` is T-066's own entry, which describes the problem.
+Owner: the reviewer. Accept both as history, or file a follow-up in
+`tasks.md`.
+
+**Deliberately not done**
+- No prettier and no formatting (T-071).
+- No type-aware linting.
+- No rules beyond defaults plus `no-explicit-any`.
+- No permanent test file for criteria 4–8. I ran them as throwaway probes,
+  all removed, and `git status` is clean of probes. Regression tests for the
+  gate are the tester's output.
+
+**How to run**
+```bash
+cd question-bank && bun install --frozen-lockfile
+bun run lint                      # Found 0 warnings and 0 errors.
+bun run lint -W eqeqeq            # with a probe containing `a == 1`: exits 1
+bun run typecheck && bun test     # 1289 pass
+```
+
 ## Verdict
 
 _Written by `tester`._
@@ -350,6 +494,21 @@ _Written by `tester`._
   name so the links from `runs/` and `tasks.md` still resolve. The Handoff
   above is round 1's. The next worker writes its round-2 Handoff beneath it
   and does not rewrite it.
+- **worker, 2026-09-28 (round 2):**
+  - **oxlint installed cleanly**: no lifecycle scripts, and the linux-x64
+    binary runs offline. None of the Constraints' stop conditions fired.
+  - **All three existing eslint directives were dead under oxlint**, so I
+    deleted them rather than annotating them.
+  - **The brief's survey missed eight older tests that pin question-bank's
+    dependency set.** I updated them as the minimum that lets criteria 9 and
+    16 coexist (details in the Handoff). Owner: **the reviewer** confirms that
+    this is not weakening them. The next brief that adds a question-bank
+    dependency will hit the same pins, so **task-expander** should list them
+    in that brief's survey.
+  - **oxlint's agent-detected output format** hides the summary line;
+    `--format default` pins it. This surprised me.
+  - **The frontend suite could not run here** (registry 403). Owner:
+    **tester** / PR CI.
 
 ## Human answer — 2026-09-25
 

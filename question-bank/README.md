@@ -22,7 +22,18 @@ bun run build            # live: query.wikidata.org → data/us-states/
 bun run build -- --offline --out data/us-states   # offline refresh of the committed bank
 bun run build -- --states CO,VT --out data/subset
 bun run typecheck
+bun run lint             # oxlint over src/, tests included; any warning fails
 ```
+
+**This package lints with oxlint, not eslint.** `frontend/` uses eslint with
+typescript-eslint, but typescript-eslint refuses to load against this package's
+`typescript@7`, and oxlint does not depend on the `typescript` package at all
+(`E-15` in [`engineering-decisions.md`](../engineering-decisions.md)). So the
+frontend's eslint config and rule names do not apply here. The config is
+[`.oxlintrc.json`](.oxlintrc.json): oxlint's default `correctness` rules plus
+`typescript/no-explicit-any`. Suppression comments are written
+`// oxlint-disable-next-line <rule> -- <reason>`; the script reports unused
+ones, so a stale directive fails the gate too.
 
 The offline refresh is deterministic: it takes `built_at` from the fixture's own
 `_fixture.captured_at` instead of wall clock, so running it twice in a row

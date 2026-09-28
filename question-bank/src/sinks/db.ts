@@ -27,7 +27,6 @@ import type { Entity, EntitySink } from "../types";
 export class DbSink implements EntitySink {
   readonly name = "db";
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(private readonly connectionUrl: string) {}
 
   async open(): Promise<void> {
@@ -36,7 +35,6 @@ export class DbSink implements EntitySink {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async write(_entities: Entity[]): Promise<void> {
     throw new Error("DbSink is not implemented yet.");
   }

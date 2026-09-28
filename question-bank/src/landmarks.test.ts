@@ -161,7 +161,7 @@ function trackedStateFiles(): { postal: string; file: string; entity: TrackedEnt
     .sort();
   if (files.length !== 50) throw new Error(`expected 50 entity files, found ${files.length}`);
   return files.map((file) => ({
-    postal: (file.match(/^us-state-([a-z]{2})\.json$/)?.[1] as string).toUpperCase(),
+    postal: file.match(/^us-state-([a-z]{2})\.json$/)![1]!.toUpperCase(),
     file,
     entity: JSON.parse(readFileSync(join(DATA_DIR, file), "utf8")) as TrackedEntity,
   }));
@@ -707,7 +707,13 @@ describe("T-013 criterion 13 — nothing unreviewed, live or new is committed", 
       devDependencies?: Record<string, string>;
     };
     expect(pkg.dependencies ?? {}).toEqual({});
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual(["@types/bun", "typescript"]);
+    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
+    // covered (engineering-decisions.md E-15). Anything else still fails.
+    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
+      "@types/bun",
+      "oxlint",
+      "typescript",
+    ]);
   });
 
   test("no test file in question-bank/src mocks fetch or issues a request", () => {
