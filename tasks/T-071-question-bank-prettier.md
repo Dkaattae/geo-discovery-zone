@@ -1,9 +1,9 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
-**Test changes:** `requested`
+**Test changes:** approved — katechen150621@gmail.com, 2026-09-28, all rows of the request raised in `1972f18`, approved via chat in the orchestrator session ("approved, send the tester in"). See `runs/T-071-question-bank-prettier.md`.
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
 the harness, branched from `origin/main` at `374a713`. Every later role pushes

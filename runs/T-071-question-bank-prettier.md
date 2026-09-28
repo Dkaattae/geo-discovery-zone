@@ -220,3 +220,8 @@ Files:
 ## Paused for a Test change request — 2026-09-28 (raised in `1972f18`)
 A human is present in the orchestrator session, so the request waits for their approval rather than
 an unattended orchestrator stamp.
+
+## Test changes approved by a human — 2026-09-28
+The user replied "approved, send the tester in" to the Test change request raised in `1972f18`.
+Stamped on the brief as a person's approval of the whole request (not an orchestrator stamp); header set to
+`Status: awaiting verification`, `Next step: tester`. The orchestrator did not open the request's rows.
