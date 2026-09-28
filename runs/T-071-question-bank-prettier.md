@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** in progress
+**Started:** 2026-09-28 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -92,3 +92,41 @@ not answer this and does not perform the removal itself.
 The user answered in the orchestrator session: "approved, delete the pins and resume the worker".
 Recorded in the brief under `## Human decision`; header set to `Status: working`, `Next step: worker`.
 The orchestrator did not perform the deletion; a fresh worker carries on from the brief.
+
+## Round 3 — worker — 2026-09-28
+`Next step` on entry: `worker` → on exit: `human`
+
+**T-071 is blocked again, on the same step: deleting the nine per-file dependency pins.** The harness's permission classifier refused that deletion a second time ("Security Test Removal"), even with the human approval now written into the brief. A decision recorded in a file doesn't clear the harness's check, so I didn't route around it. Everything else is built and pushed. The brief now reads **Status: `blocked`**, **Next step: `human`**.
+
+**What a person has to do (Dkaattae / katechen150621@gmail.com), one of:**
+- **Do it by hand.** Make the removal using the exact list in the brief's Handoff ("Removal to make"), which is about ten minutes of work. Commit it, then set Next step to `worker` (or to `tester` if the suite is green).
+- **Allow the action.** Approve it in an attended session or add a harness permission rule, then re-run the worker.
+
+**Pushed to `claude/nice-euler-247a4f`** (`git log origin/claude/nice-euler-247a4f` shows `8ca6d9f` at the head):
+- **`505cfe9`:**
+  - A `Format` step in the `question-bank` CI job (`bun run format:check`, same `if:` as Typecheck/Lint/Test), and the "Formatting is not checked yet" comment is gone.
+  - The shared check, new file `question-bank/src/dependency-set.test.ts` (4 tests, all pass).
+  - `conventions.md` no longer says `bunx prettier` and lists `bun run format:check` under Commands.
+  - New `## E-16` entry in `engineering-decisions.md`.
+- **`8ca6d9f`:** the Handoff, my Sessions row, and the Status change.
+- **Earlier, from the first round:** `b2f4294` pins prettier at exactly 3.9.6 and adds the config; `6536170` is the reformat commit.
+
+**Test results in `question-bank/`:**
+- **Pass:** typecheck, lint and the format check (exit 0).
+- **`bun test`:** 1315 pass, 9 fail. The 9 failures are exactly the pins still waiting to be removed.
+
+**Things the brief did not foresee:**
+- **A tenth pin.** In `climate-kid-verify.test.ts`, the test "the only package.json under question-bank/ still has no dependencies block growth" also pins the dependency set. If it stays, criterion 11(b) fails in two files, so it has to go with the other nine.
+- **Test-count floors will go red.** Two older "nothing weakened" tests require `state-animals.test.ts` to keep at least 43 tests and `landmarks.test.ts` at least 53, and both files have exactly that many today. Removing the pins drops each by one, which turns 3 floor tests red. I propose lowering those three floors by exactly 1, with a comment citing T-071 and E-16. Whoever does the removal should confirm that, then the reviewer.
+
+**Findings for the reviewer and tester:**
+- **Frontend formatting:** prettier flags 4 frontend files: `AGENTS.md`, `README.md`, `src/routes/README.md`, `src/styles.css`. The reviewer decides whether that becomes a queue entry.
+- **Frontend environment was incomplete here.** `bun install` got a 403 from the npm mirror on `d3-ease`, so frontend typecheck fails in `UsMap.tsx`, and `bun test` had 1 timing-sensitive lint-gate failure. `conventions-doc.test.ts`, the one frontend test this task can affect, is 80/80. This task changes no frontend file, so the tester should re-run `frontend/` in a clean environment for criterion 16.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md`
+
+## Halted — 2026-09-28
+Header on exit: `Status: blocked`, `Next step: human`. The harness refused the pin removal twice;
+a recorded approval in the brief does not clear it. A human must make the removal by hand (or allow
+the action in an attended session), and must decide on the worker's proposal to lower three
+test-count floors by 1.
