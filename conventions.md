@@ -33,8 +33,10 @@ fields are declared `field?: T | undefined`, not `field?: T` — the latter fail
 to typecheck when assigned a possibly-undefined value.
 
 **Formatting** is prettier at 100 columns, double quotes, semicolons, trailing
-commas everywhere. `bun run format` in `frontend/`; `question-bank/` uses the
-same settings via `bunx prettier`. Python is `ruff format`.
+commas everywhere. `bun run format` in `frontend/` and in `question-bank/`,
+each with its own `.prettierrc` holding those four settings; `question-bank/`
+pins prettier to an exact version and CI runs its `bun run format:check` (E-16).
+Python is `ruff format`.
 
 **Alembic owns the database schema.** The pipeline emits JSON and a Python
 loader writes it; nothing else creates tables (plan §5.3). `DbSink` in
@@ -64,6 +66,7 @@ bun run build -- --offline --out data/us-states   # offline: recorded fixture �
 bun run build:sample       # offline replay of the recorded fixture → sample-data/
 bun run typecheck
 bun run lint               # oxlint, not eslint (E-15); fails on any warning
+bun run format:check       # pinned prettier over src/**/*.ts (E-16); `bun run format` rewrites
 bun test
 
 # e2e — full user journeys against a real docker compose stack

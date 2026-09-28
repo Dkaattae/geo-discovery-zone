@@ -754,3 +754,53 @@ when it detects it is running under an AI agent, and that format drops the
 #10940), at which point one linter across both packages is possible again; or
 if `frontend/` moves to oxlint, at which point the split disappears the other
 way.
+
+---
+
+## E-16 — `question-bank/` is formatted by prettier pinned to an exact version; one test file holds the dependency set
+
+**2026-09-28 (T-071).** Two decisions, taken together because the second was
+the price of the first.
+
+**(a) prettier, exact.** `question-bank/`'s formatter is **prettier**, a
+devDependency pinned to an exact version (`3.9.6`, no `^`), with its four
+settings in `question-bank/.prettierrc` — the same four as
+`frontend/.prettierrc` and `conventions.md` "Code". `bun run format` rewrites
+`src/**/*.ts`; `bun run format:check` checks it, and CI's `question-bank` job
+runs that script as its Format step. The glob lives in the script, not in
+`ci.yml`, so a local run and CI check the same files (E-4). JSON under
+`data/`, `sample-data/` and `src/fixtures/` is deliberately outside the glob:
+the committed bank is reproduced byte-for-byte by the offline rebuild (E-6),
+and a formatter must not be a second writer of it. The human approved the
+dependency on 2026-09-25 ("allow prettier"). Before this, the package had no
+config and ran `bunx prettier` on whatever version the network served, with
+prettier's own defaults — which is how it drifted.
+
+**Why exact.** Prettier changes its output between minor and even patch
+releases. With a range, two machines — or CI and a laptop — can resolve
+different versions and disagree about the same file, and a format gate that
+flips on a lockfile refresh is noise. An exact pin means a format change only
+ever arrives through a deliberate version bump, in its own commit. `frontend/`
+still uses `^3.7.3`; aligning it is not this decision.
+
+**(b) One dependency-set check, not nine.** Nine test files
+(`climate-kid-verify`, `climate-kid`, `landmarks-verify`, `landmarks`,
+`state-animals`, `region-vocabulary`, `top-crops-verify` via its
+`DEPENDENCY_DIGESTS`, `highest-point-verify` via a diff against `origin/main`,
+and `lint-gate`'s T-066 criterion 16 block, which forbade any package named
+`prettier`) each pinned `question-bank/`'s dependency set by hand, so every
+approved addition had to edit all nine — T-066 did, for `oxlint`. They are
+replaced by **`question-bank/src/dependency-set.test.ts`**: the approved
+devDependency set, no `dependencies` / optional / peer keys, prettier's exact
+pin, and `bun.lock` resolving that same version. It reads only the working
+tree — no `git` — so a shallow CI checkout gets the same verdict as a full
+clone, unlike `highest-point-verify`'s copy, which returned early there. As in
+E-11 and E-12, the removed tests are deleted rather than repaired: what they
+guarded is still guarded, in one place. `lint-gate.test.ts`'s T-066
+criterion 17 test (no `trustedDependencies` / `overrides` / `resolutions`) is
+not a dependency-set pin and stays.
+
+**Revisit when** a prettier upgrade is wanted — bump the exact version, run
+`bun run format`, and commit the result alone — or when `frontend/` gets a CI
+format check, at which point the two packages' prettier versions should be
+aligned deliberately rather than by accident.
