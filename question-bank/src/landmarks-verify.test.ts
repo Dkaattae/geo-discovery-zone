@@ -605,7 +605,13 @@ describe("T-013 tester, criterion 13 — nothing unreviewed, live or new is comm
       devDependencies?: Record<string, string>;
     };
     expect(pkg.dependencies ?? {}).toEqual({});
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual(["@types/bun", "typescript"]);
+    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
+    // covered (engineering-decisions.md E-15). Anything else still fails.
+    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
+      "@types/bun",
+      "oxlint",
+      "typescript",
+    ]);
   });
 
   test("the tracked bank is still well inside the 200 KB cap", () => {

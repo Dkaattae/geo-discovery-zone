@@ -80,7 +80,6 @@ function parseArgs(argv: string[]): Args {
       case "-h":
         printHelp();
         process.exit(0);
-      // eslint-disable-next-line no-fallthrough
       default:
         if (flag?.startsWith("--")) throw new Error(`unknown flag: ${flag}`);
     }

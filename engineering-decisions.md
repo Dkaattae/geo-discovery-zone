@@ -715,3 +715,42 @@ otherwise, which makes it a file to update, not a promise to defend.
 example a second client or a published API. At that point the contract has a
 reader the backend cannot see, and it would need to constrain the backend
 again.
+
+---
+
+## E-15 — `question-bank/` lints with oxlint; `frontend/` stays on eslint
+
+**2026-09-28 (T-066).** `question-bank/`'s `bun run lint` runs **oxlint**
+(`oxlint --deny-warnings --report-unused-disable-directives --format default
+src`, config in `question-bank/.oxlintrc.json`). `frontend/` keeps eslint with
+typescript-eslint. The two packages use different linters on purpose, and rule
+names from one do not apply to the other.
+
+**Why.** `question-bank/` pins `typescript` `^7.0.2`. typescript-eslint throws
+while loading against it (`typescript-eslint does not support TS 7.0.`): a hard
+version guard in `typescript-eslint/dist/index.js`, not a peer-dependency
+warning, and TS 7's package no longer exports the compiler API the parser needs.
+Without typescript-eslint, eslint cannot parse TypeScript. oxlint parses
+TypeScript with its own Rust parser and never imports the `typescript` package,
+so the TS 7 pin does not matter to it. The human chose it on 2026-09-25 ("go
+with oxlint").
+
+**What was rejected.**
+- **Side-by-side TS 6 and TS 7**: `typescript@^6` for typescript-eslint, TS 7
+  under an alias for `tsc`. Microsoft's TS 7 post recommends it. It changes the
+  `typescript` entry and adds a second compiler to keep in step.
+- **Downgrading `question-bank/` to TS 5.8/6.0** to match `frontend/`. It gives
+  up TS 7's checker in this package just to satisfy a linter.
+- **Waiting** for typescript-eslint to support TS 7. Every brief touching
+  `question-bank/` kept asking for a `bun run lint` that did not exist.
+
+**Same rules as E-4.** The warning limit lives in the script
+(`--deny-warnings`), not in `ci.yml`, so a local run and CI agree.
+`--format default` is pinned because oxlint switches to a terser output format
+when it detects it is running under an AI agent, and that format drops the
+`Found N warnings and M errors.` summary line.
+
+**Revisit when** typescript-eslint supports TS 7 (typescript-eslint issue
+#10940), at which point one linter across both packages is possible again; or
+if `frontend/` moves to oxlint, at which point the split disappears the other
+way.

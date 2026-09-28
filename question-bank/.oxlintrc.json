@@ -1,0 +1,15 @@
+{
+  // oxlint, not eslint: typescript-eslint refuses to load against this
+  // package's typescript@7 (engineering-decisions.md E-15).
+  //
+  // The base is oxlint's default: the `correctness` category, with its default
+  // plugins (eslint, typescript, unicorn, oxc). Nothing here turns a rule or
+  // category off or down to warning. `bun run lint` adds --deny-warnings, so
+  // any warning fails the gate.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    // Not in oxlint's default set; switched on to match frontend/'s
+    // typescript-eslint recommended config (T-066 criterion 5).
+    "typescript/no-explicit-any": "error"
+  }
+}
