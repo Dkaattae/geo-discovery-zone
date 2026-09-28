@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it — run log
 
 **Task:** T-071 · **Branch:** `claude/nice-euler-247a4f` · **PR:** #63
-**Started:** 2026-09-28 · **Outcome:** in progress
+**Started:** 2026-09-28 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-28
 `Next step` on entry: `—` (no brief existed) → on exit: `worker`
@@ -40,3 +40,50 @@ of the brief rather than recording an unattended stamp.
 ## Approved — 2026-09-28
 Recorded on the brief: `katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session.`
 The user replied "approved, go ahead", and that approval is what is recorded here.
+
+## Round 2 — worker — 2026-09-28
+`Next step` on entry: `worker` → on exit: `human`
+
+**T-071 is blocked and only partly built. It needs a human.** The harness's permission classifier ("Security Test Removal") refused my step to delete the nine hand-pinned dependency tests, even though the brief says to consolidate them. I did not try to get around it. The brief now says Status `blocked`, Next step `human`, and I pushed it. `origin/claude/nice-euler-247a4f` shows `80ecee5` as its latest commit.
+
+**Needed from Dkaattae:**
+- **Either** allow the pin removal (approve it in an attended session, or add a permission rule) and set Next step back to `worker`.
+- **Or** remove the nine pins by hand and hand the rest back to the worker.
+- **Not a criteria problem.** The task-expander isn't needed.
+
+**Done and pushed:**
+
+| Commit | What it does |
+|---|---|
+| `b2f4294` | Pins `prettier` to exactly `3.9.6` (the version frontend's lockfile resolves) in `question-bank/package.json`, updates `bun.lock`, adds `question-bank/.prettierrc` with the four documented settings, and adds `format` and `format:check` scripts. Both scripts run on `"src/**/*.ts"` so the JSON fixtures are never formatted. |
+| `6536170` | The reformat commit for criterion 14: `bun run format` output only, 16 existing `.ts` files. |
+| `80ecee5` | Adds the Handoff, my Sessions row and the blocked status to the brief. |
+
+**Test results after the reformat:** `bun test` in `question-bank/` gives 1311 pass, 9 fail.
+- **The 9 failures** are exactly the nine dependency pins. They fail because `prettier` was added, and will keep failing until the pins are removed.
+- **No other test broke** under the reformat.
+- **Not run:** typecheck, lint and the frontend suite.
+
+**Not started:**
+- Removing the nine pins.
+- The shared check, planned as a new `question-bank/src/dependency-set.test.ts`.
+- The CI `bun run format:check` step and the Lint-step comment in `ci.yml`.
+- `conventions.md`, and the E-16 entry in `engineering-decisions.md`.
+- Counting the files frontend's prettier flags, for the reviewer.
+
+After the first denial, the classifier also refused a plain read of `conventions.md` and `engineering-decisions.md`, so I stopped rather than keep testing it.
+
+**Two notes for whoever resumes:**
+- **Criterion 11 needs a tenth test gone.** `lint-gate.test.ts`'s whole "T-066 criterion 16" describe block has to go, including the "oxlint is in devDependencies; there is no dependencies key" test. Otherwise criterion 11 (a) and (b) fail in two files, not one.
+- **The Sessions row shares the expander's session id** (`cse_01KmyHhDTUDHHNBeuqPkeiKW`), because I ran as a subagent inside that session. It's recorded as such in the table.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md`
+
+## Halted — 2026-09-28
+Header on exit: `Status: blocked`, `Next step: human`. The worker asked:
+> **Either** allow the pin removal (approve it in an attended session, or add a permission rule) and set Next step back to `worker`.
+> **Or** remove the nine pins by hand and hand the rest back to the worker.
+
+What a human has to decide: whether the nine per-file dependency-pin tests may be deleted
+(the brief's consolidation into one shared check), and by which route. The orchestrator does
+not answer this and does not perform the removal itself.
