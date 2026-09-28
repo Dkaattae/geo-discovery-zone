@@ -126,7 +126,7 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
+### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · doing
 **Depends on:** —
 **New 2026-09-18, from T-017's reviewer (PR #49).** `bunx prettier --check
 "src/**/*.ts"` in `question-bank/` flags **22 files**, including ones no recent
@@ -177,6 +177,9 @@ buy if it stays small.
 Also: `question-bank/`'s lint is **oxlint** (E-15), not eslint, so
 `eslint-config-prettier` has no role here, and oxlint's default rules do not
 conflict with prettier (T-066 criterion 8 checked a mis-formatted probe lints clean).
+**Expanded 2026-09-28** into `tasks/T-071-question-bank-prettier.md`. The survey
+found a **ninth** pin — `lint-gate.test.ts` (T-066 criterion 16) forbids any
+devDependency named `*prettier*` — and the brief takes the shared-check option.
 
 ---
 
