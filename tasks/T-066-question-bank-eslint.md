@@ -1,7 +1,7 @@
 # T-066 — `question-bank/` gets oxlint and a `lint` gate
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass (frontend half of criterion 9 to be read off PR #62 CI)`
+**Next step:** `reviewer`
 **Approved:** katechen150621@gmail.com — 2026-09-28, in chat, for the oxlint re-expansion (round 3). The round-1 approval covered the eslint criteria only. See `runs/T-066-question-bank-eslint.md`.
 **From:** [`tasks.md`](../tasks.md) T-066
 **Branch:** `claude/relaxed-pascal-ff0fgq` — assigned to the expander's session by
@@ -18,6 +18,7 @@ here (`CLAUDE.md` "Branches").
 | worker | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | task-expander (re-expand, oxlint) | 2026-09-25 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 | worker (round 2, oxlint) | 2026-09-28 | cse_01YTpStg8yzQNkWGJJbUnMAP |
+| tester (orchestrated; fresh agent, shared session id) | 2026-09-28 | cse_01YTpStg8yzQNkWGJJbUnMAP |
 
 ## Goal
 
@@ -476,6 +477,86 @@ bun run typecheck && bun test     # 1289 pass
 ## Verdict
 
 _Written by `tester`._
+
+**TL;DR — pass. All 24 criteria hold on `168377f` + the tester's test file.
+`question-bank/src/lint-gate.test.ts` (31 tests) covers every criterion that a
+permanent test can; 13 deliberate mutations each turned the matching test red
+and were reverted. One caveat: `frontend/` `bun test` and `bun run typecheck`
+cannot go green in this sandbox (two packages missing, registry 403), so the
+reviewer must read the frontend half of criterion 9 off PR #62's CI.**
+
+**Independence.** This is an orchestrated run (`runs/T-066-question-bank-eslint.md`
+exists), so every role shares session id `cse_01YTpStg8yzQNkWGJJbUnMAP` and the
+Sessions-table check proves nothing. My independence rests only on being a
+freshly spawned agent with its own context: I did not see the worker's
+conversation or reasoning. That is weaker than a separate session, because it
+depends on the orchestrator having spawned me correctly, not on anything I can
+check.
+
+**Criteria**
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | test `criterion 1`: `lint` key present, `bun run lint` exits 0 |
+| 2 | pass | test `criterion 2`: output matches `Found 0 warnings and 0 errors` |
+| 3 | pass | tests `criterion 3`: script starts with `oxlint`, no bunx/npx/dlx; `bun run lint --version` prints the version in `question-bank/node_modules/oxlint/package.json` (1.86.0) |
+| 4 | pass | `debugger;` probe → non-zero, `no-debugger` in output |
+| 5 | pass | `const x: any = 1; export { x };` → non-zero, `no-explicit-any` |
+| 6 | pass | **rule used: `eqeqeq`** via `bun run lint -W eqeqeq`, probe `export const f = (a: number) => a == 1;`. Config and script do not configure `eqeqeq`; the probe exits 0 without `-W`; with it, output names `eqeqeq`, reports 0 errors, exits non-zero |
+| 7 | pass | `debugger;` probe at `src/x.ts`, `src/x.test.ts`, `src/sinks/x.ts` → each non-zero, output names the probe |
+| 8 | pass | single quotes, no semicolons, odd spacing, 150+ column line → exit 0 |
+| 9 | pass (question-bank); **not observable here (frontend)** | question-bank: `bun test` 1320 pass / 0 fail (also with the six proxy vars set), `typecheck` clean, `lint` clean. frontend: `bun run lint` exit 0; `lint-gate.test.ts` 8 pass / 0 fail; full `bun test` 342 pass / 1 fail and `typecheck` 4 errors, **all in `src/components/UsMap.tsx`** (untouched): `Cannot find package 'react-simple-maps'` / `'us-atlas/states-10m.json'`. `bun install --frozen-lockfile` in `frontend/` fails with 403 from `europe-west1-npm.pkg.dev/...` — the packages are absent from `node_modules`, not broken by this diff (the only frontend change is `lint-gate.test.ts`) |
+| 10 | pass | test `criterion 10`: zero directives under `src/`; the scanner accepts ` -- reason` or a comment line above |
+| 11 | pass | tests `criterion 11`: `.oxlintrc.json` has no off/warn rule or category; the script has no `-A`/`-W` |
+| 12 | pass | by hand: `git diff --quiet 01a32eb -- question-bank/data question-bank/sample-data` → clean |
+| 13 | pass | test `criterion 13`: question-bank job step `run: bun run lint`, same `if:` as Typecheck (asserted literally), job name contains `lint` |
+| 14 | pass | tests `criterion 14`: no "No lint step"/"no eslint config"/"no eslint dependency" in `ci.yml`; `frontend/src/lint-gate.test.ts` lost the `toMatch(/No lint step…/)` and keeps the `brief's Handoff`, `run: bun run lint` and `--max-warnings` assertions (those tests pass) |
+| 15 | pass | test `criterion 15`: exit 0 with the six vars from `offline-rebuild.ts`'s `DEAD_PROXY` (asserted to be `http://127.0.0.1:1` ×6) |
+| 16 | pass | tests `criterion 16`: `oxlint` in devDependencies, no `dependencies`, none of the excluded names; by hand, `git diff 01a32eb -- question-bank/package.json` adds only `oxlint` and the `lint` script |
+| 17 | pass | test: no `trustedDependencies`/`overrides`/`resolutions`; by hand, the `typescript` and `@types/bun` lines are unchanged in the diff |
+| 18 | pass | by hand: `bun.lock` tracked; `bun install --frozen-lockfile` → "no changes", `git diff --exit-code -- bun.lock` clean |
+| 19 | pass | by hand: `git diff --quiet 01a32eb -- frontend/package.json frontend/bun.lock` → clean |
+| 20 | pass | test `criterion 20`: no `eslint.config.*`/`.eslintrc*` under `question-bank/` (node_modules excluded) |
+| 21 | pass | test: the `# question bank` section of `conventions.md`'s Commands block has a `bun run lint` line |
+| 22 | pass | test: "oxlint, not eslint" in `conventions.md` / `question-bank/README.md` |
+| 23 | pass | test `criterion 23`: phrase scan of the five named files (incl. the old job name). Heuristic; see below |
+| 24 | pass | tests `criterion 24`: `## E-15` has the split, the TS 7 throw and the "no `typescript` package" reason, the three rejected options, `#10940` and "frontend moves to oxlint". By hand: `git diff 01a32eb -- engineering-decisions.md` has zero removed lines |
+
+**Mutations** (each applied, the file run, then reverted with `git checkout`; `git status` clean apart from the new test file afterwards)
+
+| Mutation | Went red |
+|---|---|
+| M1 drop `--deny-warnings` | 6 (and 4, 7, since `debugger` is a warning without it) |
+| M2 drop `typescript/no-explicit-any` from config | 5 |
+| M3 `ignorePatterns` for `**/*.test.ts` and `src/sinks/**` | 7 (the two affected locations) |
+| M4 script → `bunx oxlint …` | 3 |
+| M5 `categories.correctness: off`, no comment | 4, 7, 11 |
+| M6 `eqeqeq: warn`, no comment | 6 (config check, clean-probe check), 11 |
+| M6b `no-empty: off` **with** a same-line comment (control) | nothing — 11 correctly accepts a reason |
+| M7 bare `// eslint-disable-next-line no-debugger` in `src/types.ts` | 10 (plus 1, 2, 8, 15 via `--report-unused-disable-directives`) |
+| M8 question-bank Lint step `if: ${{ success() }}` | 13 (first attempt hit the frontend job's identical step and stayed green, correctly; redone on line 122) |
+| M9 old job name + "No lint step" comment back | 13, 14, 23 |
+| M10 remove the `conventions.md` lint line | 21 |
+| M11 drop `--format default` | 2 (in this agent session oxlint drops the summary line) |
+| M12 rename `## E-15` | 24 (all four) |
+| M13 restore the `toMatch(/No lint step…#11/)` assertion | 14 |
+
+**Notes for the reviewer**
+
+- **The test file had to fit two existing guards.** It lints clean under the new
+  gate itself (it lives in `src/`), and it imports `DEAD_PROXY` from
+  `offline-rebuild.ts` instead of spelling the loopback literal, because T-014/T-015
+  tests pin that literal to exactly one file.
+- **Criterion 23's test is a phrase heuristic** (`no lint`, `no linter`,
+  `no eslint`, `not linted`, the old job name, …). It catches the known wording,
+  not every paraphrase.
+- **Criterion 11's script check is my reading**: `-A`/`-W` in the script would
+  relax rules with nowhere to put a reason, so the test forbids them. The
+  current script has none.
+- **Criteria 12, 17, 18, 19 are not permanent tests**: they compare against
+  `01a32eb`, which CI's shallow checkout lacks, and mean nothing after merge.
+- **Criterion 9's frontend half needs PR #62's `frontend` CI job to be green**
+  before merge. I could not see CI (no `gh` here).
 
 ## Notes
 
