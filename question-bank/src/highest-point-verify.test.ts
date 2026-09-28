@@ -135,7 +135,8 @@ const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "us-state-wi.json": "cee9689d0071eebcdbd45ba1a84b0d8c0fc7ed7678225adbeaa5183ed4046bb7",
   "us-state-wv.json": "63d390aee0a350e51f3bc07ad4cb6bd29fdeffb0048ef245497a0fa293b4813d",
   "us-state-wy.json": "4c2aff03fe94762eac25f355dd73567e13e5b08278ca307518e7d30c92cf1507",
-  "sample-data/us-state-co.json": "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
+  "sample-data/us-state-co.json":
+    "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
 };
 
 /** T-017: the region field is dropped before hashing — see DEFAULT_BRANCH_DIGESTS above. */
@@ -476,7 +477,14 @@ describe("T-016 tester, criterion 10 — the pinned digest guards were not weake
             /replace\(\s*ALASKA_HIGHEST_POINT_LINE/.test(line),
         );
       for (const line of removals) {
-        expect({ guard, line, gatedOnAlaska: line.includes("us-state-ak.json") || /file === "us-state-ak/.test(line) || /^\s*file === /.test(line) }).toEqual({
+        expect({
+          guard,
+          line,
+          gatedOnAlaska:
+            line.includes("us-state-ak.json") ||
+            /file === "us-state-ak/.test(line) ||
+            /^\s*file === /.test(line),
+        }).toEqual({
           guard,
           line,
           gatedOnAlaska: true,

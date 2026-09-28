@@ -82,7 +82,9 @@ describe("criterion 8 — the committed bank matches an offline rebuild", () => 
   });
 
   test("a second offline rebuild would leave the tracked files untouched (population_rank and area_rank are fully assigned)", () => {
-    const populationRanks = expected.map((e) => e.population_rank).sort((a, b) => (a ?? 0) - (b ?? 0));
+    const populationRanks = expected
+      .map((e) => e.population_rank)
+      .sort((a, b) => (a ?? 0) - (b ?? 0));
     const areaRanks = expected.map((e) => e.area_rank).sort((a, b) => (a ?? 0) - (b ?? 0));
 
     expect(populationRanks).toEqual(Array.from({ length: 50 }, (_, i) => i + 1));

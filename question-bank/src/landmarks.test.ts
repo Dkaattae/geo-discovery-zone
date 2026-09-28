@@ -545,7 +545,10 @@ describe("T-013 criterion 9 — nothing but landmark moves in the bank (tree-sha
 
   test("all 50 tracked files still carry a non-empty state_animal", () => {
     for (const { file, entity } of trackedStateFiles()) {
-      expect({ file, hasAnimal: typeof entity.state_animal === "string" && entity.state_animal.length > 0 }).toEqual({
+      expect({
+        file,
+        hasAnimal: typeof entity.state_animal === "string" && entity.state_animal.length > 0,
+      }).toEqual({
         file,
         hasAnimal: true,
       });
@@ -563,7 +566,10 @@ describe("T-013 criterion 9 — nothing but landmark moves in the bank (tree-sha
         inRange: true,
       });
       expect(curatedCrops.has(postal)).toBe(true);
-      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curatedCrops.get(postal) as string[] });
+      expect({ file, topCrops: arr }).toEqual({
+        file,
+        topCrops: curatedCrops.get(postal) as string[],
+      });
     }
   });
 
@@ -616,7 +622,9 @@ describe("T-013 criterion 10 — Colorado's landmark is unchanged", () => {
   });
 
   test("the tracked Colorado file carries exactly Rocky Mountain National Park", () => {
-    const entity = JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as TrackedEntity;
+    const entity = JSON.parse(
+      readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
+    ) as TrackedEntity;
     expect(entity.landmark).toBe("Rocky Mountain National Park");
   });
 });

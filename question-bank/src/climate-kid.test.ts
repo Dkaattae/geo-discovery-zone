@@ -129,25 +129,85 @@ const INTERCHANGEABLE_GROUPS: Record<string, string[]> = {
 
 /** Criterion 7's 31 Köppen class codes, matched as a whole word, case-sensitively. */
 const KOPPEN_CODES = [
-  "Af", "Am", "Aw", "As",
-  "BWh", "BWk", "BSh", "BSk",
-  "Csa", "Csb", "Csc", "Cwa", "Cwb", "Cwc", "Cfa", "Cfb", "Cfc",
-  "Dsa", "Dsb", "Dsc", "Dsd", "Dwa", "Dwb", "Dwc", "Dwd", "Dfa", "Dfb", "Dfc", "Dfd",
-  "ET", "EF",
+  "Af",
+  "Am",
+  "Aw",
+  "As",
+  "BWh",
+  "BWk",
+  "BSh",
+  "BSk",
+  "Csa",
+  "Csb",
+  "Csc",
+  "Cwa",
+  "Cwb",
+  "Cwc",
+  "Cfa",
+  "Cfb",
+  "Cfc",
+  "Dsa",
+  "Dsb",
+  "Dsc",
+  "Dsd",
+  "Dwa",
+  "Dwb",
+  "Dwc",
+  "Dwd",
+  "Dfa",
+  "Dfb",
+  "Dfc",
+  "Dfd",
+  "ET",
+  "EF",
 ];
 
 /** Criterion 8, verbatim and case-insensitive. */
 const GEOGRAPHER_WORDS = [
-  "arid", "subtropical", "subarctic", "temperate", "oceanic", "continental",
-  "steppe", "tundra", "mediterranean", "precipitation", "humidity", "latitude",
-  "elevation", "climate zone", "biome", "annual", "average",
+  "arid",
+  "subtropical",
+  "subarctic",
+  "temperate",
+  "oceanic",
+  "continental",
+  "steppe",
+  "tundra",
+  "mediterranean",
+  "precipitation",
+  "humidity",
+  "latitude",
+  "elevation",
+  "climate zone",
+  "biome",
+  "annual",
+  "average",
 ];
 
 /** Criterion 9, verbatim and case-insensitive. */
 const WEATHER_WORDS = [
-  "hot", "cold", "cool", "warm", "wet", "dry", "rain", "snow", "sun", "wind",
-  "storm", "humid", "mild", "freez", "ice", "icy", "fog", "breez", "chill",
-  "damp", "muggy", "sticky", "frost",
+  "hot",
+  "cold",
+  "cool",
+  "warm",
+  "wet",
+  "dry",
+  "rain",
+  "snow",
+  "sun",
+  "wind",
+  "storm",
+  "humid",
+  "mild",
+  "freez",
+  "ice",
+  "icy",
+  "fog",
+  "breez",
+  "chill",
+  "damp",
+  "muggy",
+  "sticky",
+  "frost",
 ];
 
 /** Criterion 5's unit/number words, case-insensitive (digits and ° checked separately). */
@@ -303,7 +363,7 @@ describe("T-014 criterion 4 — a fragment that slots into a sentence, not a sen
     }
   });
 
-  test("no phrase contains ; : ( ) / \" * | or the substring http", () => {
+  test('no phrase contains ; : ( ) / " * | or the substring http', () => {
     for (const { file, value } of trackedPhrases()) {
       expect({ file, value, punctuation: FORBIDDEN_PUNCTUATION.test(value) }).toEqual({
         file,
@@ -318,7 +378,7 @@ describe("T-014 criterion 4 — a fragment that slots into a sentence, not a sen
     }
   });
 
-  test('both of T-026\'s sentence frames read grammatically for Colorado\'s phrase', () => {
+  test("both of T-026's sentence frames read grammatically for Colorado's phrase", () => {
     const co = HANDOFF_TABLE["CO"] as string;
     expect(`Which state is ${co}?`).toBe(
       "Which state is dry and cold in the mountains, drier plains to the east?",
@@ -629,10 +689,27 @@ describe("T-014 criterion 15 — nothing but climate_kid moves in the bank (tree
 
   test("no tracked entity file has grown a key outside the schema this task may touch", () => {
     const allowed = new Set([
-      "id", "type", "scope", "name", "capital", "geometry_id", "region",
-      "centroid", "population", "population_rank", "area_km2", "area_rank",
-      "borders", "climate_kid", "state_animal", "landmark", "highest_point",
-      "highest_point_m", "top_crops", "fun_facts", "sources",
+      "id",
+      "type",
+      "scope",
+      "name",
+      "capital",
+      "geometry_id",
+      "region",
+      "centroid",
+      "population",
+      "population_rank",
+      "area_km2",
+      "area_rank",
+      "borders",
+      "climate_kid",
+      "state_animal",
+      "landmark",
+      "highest_point",
+      "highest_point_m",
+      "top_crops",
+      "fun_facts",
+      "sources",
     ]);
     for (const { file, entity } of trackedStateFiles()) {
       const unexpected = Object.keys(entity).filter((k) => !allowed.has(k));
@@ -662,9 +739,10 @@ describe("T-014 criterion 16 — the duplicated test harness is decided, not def
     expect(tests.length).toBeGreaterThan(0);
     for (const path of tests) {
       const source = readFileSync(join(REPO, path), "utf8");
-      expect({ path, spawnsBuild: /spawnSync\(\s*\[\s*["']bun["'][^]*?build\.ts/.test(source) }).toEqual(
-        { path, spawnsBuild: false },
-      );
+      expect({
+        path,
+        spawnsBuild: /spawnSync\(\s*\[\s*["']bun["'][^]*?build\.ts/.test(source),
+      }).toEqual({ path, spawnsBuild: false });
     }
   });
 

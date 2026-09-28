@@ -105,7 +105,10 @@ describe("criteria 1, 3, 4 — every tracked file carries a plain, non-empty hig
         postal: state.postal,
         type: "string",
       });
-      expect({ postal: state.postal, empty: (entity.highest_point as string).length === 0 }).toEqual({
+      expect({
+        postal: state.postal,
+        empty: (entity.highest_point as string).length === 0,
+      }).toEqual({
         postal: state.postal,
         empty: false,
       });

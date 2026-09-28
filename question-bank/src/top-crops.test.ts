@@ -41,7 +41,8 @@ function trackedStateFiles(): string[] {
     .filter(Boolean)
     .map((p) => p.split("/").pop() as string)
     .sort();
-  if (paths.length !== 50) throw new Error(`expected 50 tracked state files, found ${paths.length}`);
+  if (paths.length !== 50)
+    throw new Error(`expected 50 tracked state files, found ${paths.length}`);
   return paths;
 }
 

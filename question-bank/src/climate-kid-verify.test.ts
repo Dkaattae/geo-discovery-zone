@@ -94,7 +94,11 @@ const HANDOFF: Record<string, [string, number, number]> = {
   ID: ["warm dry summers and cold snowy winters, especially high in the mountains", 73, 12],
   IL: ["hot humid summers, cold snowy winters, and strong storms every spring", 69, 11],
   IN: ["warm sticky summers, icy cold winters, and plenty of storms each spring", 71, 12],
-  IA: ["hot humid summers and freezing cold winters, with strong winds across the open fields", 85, 14],
+  IA: [
+    "hot humid summers and freezing cold winters, with strong winds across the open fields",
+    85,
+    14,
+  ],
   KS: ["hot dry summers and cold windy winters, with sudden storms sweeping the plains", 78, 13],
   KY: ["warm humid summers and cool winters, with occasional snow and ice storms", 72, 12],
   LA: ["hot muggy summers most of the year, mild winters, and occasional powerful storms", 80, 13],
@@ -106,7 +110,11 @@ const HANDOFF: Record<string, [string, number, number]> = {
   MS: ["hot muggy summers nearly all year, with mild winters and frequent thunderstorms", 79, 12],
   MO: ["hot humid summers and cold winters, with sudden storms and occasional ice", 73, 12],
   MT: ["cold snowy winters in the mountains, hot dry summers out on the plains", 70, 13],
-  NE: ["hot windy summers and freezing cold winters, with sudden storms across the open plains", 86, 14],
+  NE: [
+    "hot windy summers and freezing cold winters, with sudden storms across the open plains",
+    86,
+    14,
+  ],
   NV: ["hot dry summers, cold winters, and very little rain any time of year", 68, 13],
   NH: ["cold snowy winters, especially high in the mountains, and warm summers below", 76, 12],
   NJ: ["hot humid summers and cold snowy winters, with occasional storms along the shore", 80, 13],
@@ -128,8 +136,16 @@ const HANDOFF: Record<string, [string, number, number]> = {
   VA: ["hot humid summers near the coast, colder and snowier out in the mountains", 73, 13],
   WA: ["wet mild winters and dry summers near the coast, drier and hotter to the east", 77, 15],
   WV: ["warm humid summers and cold snowy winters, especially high in the hills", 71, 12],
-  WI: ["bitterly cold snowy winters and warm humid summers, right in the middle of the country", 86, 15],
-  WY: ["cold snowy winters high in the mountains, and hot dry summers down in the valleys below", 87, 16],
+  WI: [
+    "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
+    86,
+    15,
+  ],
+  WY: [
+    "cold snowy winters high in the mountains, and hot dry summers down in the valleys below",
+    87,
+    16,
+  ],
 };
 
 /** Criterion 17's interchangeable-climate groups, transcribed from the Handoff. */
@@ -229,11 +245,37 @@ const BASELINE_DIGESTS: Record<string, string> = {
 
 /** Criterion 7's 31 Köppen class codes, matched as whole words, case-sensitively. */
 const KOPPEN_CODES = [
-  "Af", "Am", "Aw", "As",
-  "BWh", "BWk", "BSh", "BSk",
-  "Csa", "Csb", "Csc", "Cwa", "Cwb", "Cwc", "Cfa", "Cfb", "Cfc",
-  "Dsa", "Dsb", "Dsc", "Dsd", "Dwa", "Dwb", "Dwc", "Dwd", "Dfa", "Dfb", "Dfc", "Dfd",
-  "ET", "EF",
+  "Af",
+  "Am",
+  "Aw",
+  "As",
+  "BWh",
+  "BWk",
+  "BSh",
+  "BSk",
+  "Csa",
+  "Csb",
+  "Csc",
+  "Cwa",
+  "Cwb",
+  "Cwc",
+  "Cfa",
+  "Cfb",
+  "Cfc",
+  "Dsa",
+  "Dsb",
+  "Dsc",
+  "Dsd",
+  "Dwa",
+  "Dwb",
+  "Dwc",
+  "Dwd",
+  "Dfa",
+  "Dfb",
+  "Dfc",
+  "Dfd",
+  "ET",
+  "EF",
 ];
 
 /** Criterion 5's unit words (digits and `°` are checked separately). */
@@ -241,16 +283,50 @@ const UNIT_WORDS = ["celsius", "fahrenheit", "degrees", "inches", "millimetres",
 
 /** Criterion 8's 17 geographer's words, case-insensitive substrings. */
 const GEOGRAPHER_WORDS = [
-  "arid", "subtropical", "subarctic", "temperate", "oceanic", "continental",
-  "steppe", "tundra", "mediterranean", "precipitation", "humidity", "latitude",
-  "elevation", "climate zone", "biome", "annual", "average",
+  "arid",
+  "subtropical",
+  "subarctic",
+  "temperate",
+  "oceanic",
+  "continental",
+  "steppe",
+  "tundra",
+  "mediterranean",
+  "precipitation",
+  "humidity",
+  "latitude",
+  "elevation",
+  "climate zone",
+  "biome",
+  "annual",
+  "average",
 ];
 
 /** Criterion 9's 23 weather words, case-insensitive substrings. */
 const WEATHER_WORDS = [
-  "hot", "cold", "cool", "warm", "wet", "dry", "rain", "snow", "sun", "wind",
-  "storm", "humid", "mild", "freez", "ice", "icy", "fog", "breez", "chill",
-  "damp", "muggy", "sticky", "frost",
+  "hot",
+  "cold",
+  "cool",
+  "warm",
+  "wet",
+  "dry",
+  "rain",
+  "snow",
+  "sun",
+  "wind",
+  "storm",
+  "humid",
+  "mild",
+  "freez",
+  "ice",
+  "icy",
+  "fog",
+  "breez",
+  "chill",
+  "damp",
+  "muggy",
+  "sticky",
+  "frost",
 ];
 
 /** Criterion 4's forbidden characters, written out one by one from the text. */
@@ -304,9 +380,10 @@ function phrases(): { postal: string; file: string; value: string }[] {
 
 const wordsOf = (v: string) => v.split(/\s+/).filter(Boolean);
 const wholeWord = (haystack: string, needle: string, caseSensitive: boolean) =>
-  new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, caseSensitive ? "" : "i").test(
-    haystack,
-  );
+  new RegExp(
+    `\\b${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+    caseSensitive ? "" : "i",
+  ).test(haystack);
 
 const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap((name) => {
@@ -338,9 +415,11 @@ describe("T-014 tester, criterion 1 — all fifty are filled, and none is a plac
   });
 
   test("the filled set is exactly the 50 curated states — no state is silently blank", () => {
-    expect(phrases().map(({ postal }) => postal).sort()).toEqual(
-      CURATED_US_STATES.map((s) => s.postal).sort(),
-    );
+    expect(
+      phrases()
+        .map(({ postal }) => postal)
+        .sort(),
+    ).toEqual(CURATED_US_STATES.map((s) => s.postal).sort());
   });
 });
 
@@ -426,7 +505,7 @@ describe("T-014 tester, criterion 4 — a fragment, not a sentence", () => {
     }
   });
 
-  test("no phrase contains any of ; : ( ) / \" * | or the substring http", () => {
+  test('no phrase contains any of ; : ( ) / " * | or the substring http', () => {
     for (const { file, value } of phrases()) {
       const hits = FORBIDDEN_CHARS.filter((c) => value.includes(c));
       expect({ file, value, hits }).toEqual({ file, value, hits: [] });
@@ -635,9 +714,10 @@ describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", ()
 
   test("an offline rebuild reproduces every tracked path byte-for-byte", () => {
     for (const name of PATHS) {
-      expect({ name, same: first.get(name) === readFileSync(join(DATA_DIR, name), "utf8") }).toEqual(
-        { name, same: true },
-      );
+      expect({
+        name,
+        same: first.get(name) === readFileSync(join(DATA_DIR, name), "utf8"),
+      }).toEqual({ name, same: true });
     }
   });
 
@@ -791,7 +871,10 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
         inRange: true,
       });
       expect(curatedCrops.has(postal)).toBe(true);
-      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curatedCrops.get(postal) as string[] });
+      expect({ file, topCrops: arr }).toEqual({
+        file,
+        topCrops: curatedCrops.get(postal) as string[],
+      });
     }
   });
 
@@ -996,10 +1079,12 @@ describe("T-014 tester, criterion 18 — nothing unreviewed, live or new is comm
     const files = [...walk(join(PKG, "data")), ...walk(join(PKG, "sample-data"))];
     expect(files.length).toBeGreaterThan(51);
     for (const path of files) {
-      expect({ path, unreviewed: readFileSync(path, "utf8").includes('reviewed": false') }).toEqual({
-        path,
-        unreviewed: false,
-      });
+      expect({ path, unreviewed: readFileSync(path, "utf8").includes('reviewed": false') }).toEqual(
+        {
+          path,
+          unreviewed: false,
+        },
+      );
     }
   });
 
@@ -1075,11 +1160,7 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
   }
 
   test("the rewritten climate_kid-coverage assertions still pin an exact set, not a count", () => {
-    for (const name of [
-      "state-animals.test.ts",
-      "landmarks.test.ts",
-      "landmarks-verify.test.ts",
-    ]) {
+    for (const name of ["state-animals.test.ts", "landmarks.test.ts", "landmarks-verify.test.ts"]) {
       const source = readFileSync(join(PKG, "src", name), "utf8");
       expect({ name, exact: /^\s*expect\(named\)\.toEqual\(/m.test(source) }).toEqual({
         name,
@@ -1111,7 +1192,9 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     const source = readFileSync(join(PKG, "src/offline-rebuild.ts"), "utf8");
     expect(source).toContain("exitCode !== 0");
     expect(source).toContain("throw new Error");
-    expect(() => rebuildOffline(join(PKG, "src/does-not-exist.ts"), ["index.json"], "t014-neg-")).toThrow();
+    expect(() =>
+      rebuildOffline(join(PKG, "src/does-not-exist.ts"), ["index.json"], "t014-neg-"),
+    ).toThrow();
   });
 
   /**

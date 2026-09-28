@@ -239,13 +239,18 @@ describe("T-010 criterion 10 — the ignore rules match the decision, both direc
   });
 
   test("a non-bank output path under question-bank/data/ is still ignored", () => {
-    expect(git(["check-ignore", "-q", "question-bank/data/subset/us-state-co.json"]).status).toBe(0);
+    expect(git(["check-ignore", "-q", "question-bank/data/subset/us-state-co.json"]).status).toBe(
+      0,
+    );
   });
 });
 
 describe("T-010 criteria 11–16 — the rules and the docs say the same thing", () => {
   const read = (path: string) => readFileSync(join(REPO, path), "utf8");
-  const e6 = read("engineering-decisions.md").split(/^## /m).find((s) => s.startsWith("E-6")) ?? "";
+  const e6 =
+    read("engineering-decisions.md")
+      .split(/^## /m)
+      .find((s) => s.startsWith("E-6")) ?? "";
 
   test("criterion 11 — no shipped file still asserts the bank is not stored in git", () => {
     for (const path of [
@@ -359,7 +364,9 @@ describe("T-010 round 2 — criterion 14: the fun-fact home E-6 names survives a
   });
 
   test("E-6 says whether that home is a build input or built output", () => {
-    expect(designations.join(" ").toLowerCase()).toMatch(/build input|built output|build \*input\*/);
+    expect(designations.join(" ").toLowerCase()).toMatch(
+      /build input|built output|build \*input\*/,
+    );
   });
 
   test("the rebuild really does overwrite the bank directory, so the test above has teeth", () => {
@@ -379,13 +386,15 @@ describe("T-010 round 2 — criterion 10: a live run's unreviewed draft cannot b
   // rules"; criterion 10's "a path that is not part of the committed bank … is
   // still ignored".
   test("question-bank/data/us-states/fun-facts.review.json is ignored", () => {
-    expect(git(["check-ignore", "-q", "question-bank/data/us-states/fun-facts.review.json"]).status)
-      .toBe(0);
+    expect(
+      git(["check-ignore", "-q", "question-bank/data/us-states/fun-facts.review.json"]).status,
+    ).toBe(0);
   });
 
   test("any *.review.json in the bank directory is ignored", () => {
-    expect(git(["check-ignore", "-q", "question-bank/data/us-states/anything.review.json"]).status)
-      .toBe(0);
+    expect(
+      git(["check-ignore", "-q", "question-bank/data/us-states/anything.review.json"]).status,
+    ).toBe(0);
   });
 
   test("the 51 tracked bank paths are still not ignored", () => {
@@ -409,25 +418,34 @@ describe("T-010 round 2 — criteria 11 and 15: a doc that credits a test names 
     const body = readFileSync(join(REPO, doc), "utf8");
     const flat = flatten(body);
     // Only attributions about T-010's own criteria: `<file>.test.ts` … "…criteri(a|on)…".
-    const claims = [...flat.matchAll(/`?([\w.-]+\.test\.ts)`?([^"“]{0,200})["“]([^"”]{10,160})["”]/g)]
+    const claims = [
+      ...flat.matchAll(/`?([\w.-]+\.test\.ts)`?([^"“]{0,200})["“]([^"”]{10,160})["”]/g),
+    ]
       .filter((m) => /criteri(a|on)/i.test(m[3] ?? ""))
       .map((m) => ({ file: m[1] as string, quoted: m[3] as string }));
 
     test(`${doc} — every test it credits with a criterion exists and contains that claim`, () => {
       for (const { file, quoted } of claims) {
-        const matches = git(["ls-files", "--", `*/${file}`, file]).stdout.split("\n").filter(Boolean);
+        const matches = git(["ls-files", "--", `*/${file}`, file])
+          .stdout.split("\n")
+          .filter(Boolean);
         expect({ doc, file, tracked: matches.length > 0 }).toEqual({ doc, file, tracked: true });
         const sources = matches.map((p) => flatten(readFileSync(join(REPO, p), "utf8")));
-        expect({ doc, file, quoted, found: sources.some((s) => s.includes(flatten(quoted).trim())) })
-          .toEqual({ doc, file, quoted, found: true });
+        expect({
+          doc,
+          file,
+          quoted,
+          found: sources.some((s) => s.includes(flatten(quoted).trim())),
+        }).toEqual({ doc, file, quoted, found: true });
       }
     });
   }
 
   test("at least one such attribution exists, so the loop above is not vacuous", () => {
     const all = DOCS.map((doc) => flatten(readFileSync(join(REPO, doc), "utf8"))).join(" ");
-    expect([...all.matchAll(/`?[\w.-]+\.test\.ts`?[^"“]{0,200}["“][^"”]{10,160}["”]/g)].length)
-      .toBeGreaterThan(0);
+    expect(
+      [...all.matchAll(/`?[\w.-]+\.test\.ts`?[^"“]{0,200}["“][^"”]{10,160}["”]/g)].length,
+    ).toBeGreaterThan(0);
   });
 });
 

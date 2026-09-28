@@ -202,7 +202,8 @@ function stateFiles(): { postal: string; file: string; raw: string; entity: Enti
   const names = readdirSync(DATA_DIR)
     .filter((n) => /^us-state-[a-z]{2}\.json$/.test(n))
     .sort();
-  if (names.length !== 50) throw new Error(`expected 50 entity files on disk, found ${names.length}`);
+  if (names.length !== 50)
+    throw new Error(`expected 50 entity files on disk, found ${names.length}`);
   return names.map((file) => {
     const raw = readFileSync(join(DATA_DIR, file), "utf8");
     return {
@@ -273,9 +274,10 @@ describe("T-013 tester, criterion 2 — a blank is an absent key, not an empty o
     const placeholders = ["", "none", "unknown", "n/a", "na", "tbd", "null", "-"];
     for (const { file, value } of filled()) {
       expect({ file, type: typeof value }).toEqual({ file, type: "string" });
-      expect({ file, placeholder: placeholders.includes(String(value).trim().toLowerCase()) }).toEqual(
-        { file, placeholder: false },
-      );
+      expect({
+        file,
+        placeholder: placeholders.includes(String(value).trim().toLowerCase()),
+      }).toEqual({ file, placeholder: false });
     }
   });
 });
@@ -291,9 +293,21 @@ describe("T-013 tester, criterion 3 — every value is a name a child could be s
   test("every shipped value is 4–48 characters, trimmed, single-spaced, and free of newlines and tabs", () => {
     for (const { file, value } of filled()) {
       expect({ file, value, ok: withinLength(value) }).toEqual({ file, value, ok: true });
-      expect({ file, value, trimmed: value === value.trim() }).toEqual({ file, value, trimmed: true });
-      expect({ file, value, doubled: value.includes("  ") }).toEqual({ file, value, doubled: false });
-      expect({ file, value, control: /[\n\t]/.test(value) }).toEqual({ file, value, control: false });
+      expect({ file, value, trimmed: value === value.trim() }).toEqual({
+        file,
+        value,
+        trimmed: true,
+      });
+      expect({ file, value, doubled: value.includes("  ") }).toEqual({
+        file,
+        value,
+        doubled: false,
+      });
+      expect({ file, value, control: /[\n\t]/.test(value) }).toEqual({
+        file,
+        value,
+        control: false,
+      });
     }
   });
 
@@ -349,7 +363,8 @@ describe("T-013 tester, criterion 5 — no two states share a landmark, and none
     for (const a of all) {
       for (const b of all) {
         if (a.postal === b.postal) continue;
-        if (b.key.includes(a.key)) collisions.push(`${a.postal} "${a.key}" ⊂ ${b.postal} "${b.key}"`);
+        if (b.key.includes(a.key))
+          collisions.push(`${a.postal} "${a.key}" ⊂ ${b.postal} "${b.key}"`);
       }
     }
     expect(collisions).toEqual([]);
@@ -397,15 +412,19 @@ describe("T-013 tester, criterion 7 — the bank is built, not hand-edited", () 
     expect(names).toHaveLength(51);
     const rebuilt = rebuildOffline(BUILD_SCRIPT, names, "t013-tester-");
     for (const name of names) {
-      expect({ name, same: rebuilt.get(name) === readFileSync(join(DATA_DIR, name), "utf8") }).toEqual(
-        { name, same: true },
-      );
+      expect({
+        name,
+        same: rebuilt.get(name) === readFileSync(join(DATA_DIR, name), "utf8"),
+      }).toEqual({ name, same: true });
     }
   });
 
   test("sources.built_at is still the pinned capture instant in all 50 files", () => {
     for (const { file, entity } of stateFiles()) {
-      expect({ file, builtAt: entity.sources?.built_at }).toEqual({ file, builtAt: PINNED_BUILT_AT });
+      expect({ file, builtAt: entity.sources?.built_at }).toEqual({
+        file,
+        builtAt: PINNED_BUILT_AT,
+      });
     }
   });
 });
@@ -504,9 +523,10 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
 
   test("all 50 still carry a non-empty state_animal", () => {
     for (const { file, entity } of stateFiles()) {
-      expect({ file, ok: typeof entity.state_animal === "string" && entity.state_animal.length > 0 }).toEqual(
-        { file, ok: true },
-      );
+      expect({
+        file,
+        ok: typeof entity.state_animal === "string" && entity.state_animal.length > 0,
+      }).toEqual({ file, ok: true });
     }
   });
 });
@@ -515,9 +535,9 @@ describe("T-013 tester, criterion 10 — Colorado's landmark is unchanged", () =
   test("the plan's §1.4 example string is what the table, the bank and the sample all carry", () => {
     const expected = "Rocky Mountain National Park";
     expect(CURATED_US_STATES.find((s) => s.postal === "CO")?.landmark).toBe(expected);
-    expect((JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as Entity).landmark).toBe(
-      expected,
-    );
+    expect(
+      (JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as Entity).landmark,
+    ).toBe(expected);
     expect((JSON.parse(readFileSync(SAMPLE, "utf8")) as Entity).landmark).toBe(expected);
   });
 });
@@ -588,10 +608,12 @@ describe("T-013 tester, criterion 13 — nothing unreviewed, live or new is comm
     const files = [...walk(join(PKG, "data")), ...walk(join(PKG, "sample-data"))];
     expect(files.length).toBeGreaterThan(51);
     for (const path of files) {
-      expect({ path, unreviewed: readFileSync(path, "utf8").includes('reviewed": false') }).toEqual({
-        path,
-        unreviewed: false,
-      });
+      expect({ path, unreviewed: readFileSync(path, "utf8").includes('reviewed": false') }).toEqual(
+        {
+          path,
+          unreviewed: false,
+        },
+      );
     }
   });
 

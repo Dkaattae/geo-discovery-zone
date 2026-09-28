@@ -114,7 +114,10 @@ Build US state entity records from Wikidata.
  * that is what lets the offline path use a fixed, meaningful `built_at`
  * instead of wall clock, so two offline builds are byte-identical (criterion 6).
  */
-function fixtureTransport(path: string, capture: { capturedAt?: string | undefined }): SparqlTransport {
+function fixtureTransport(
+  path: string,
+  capture: { capturedAt?: string | undefined },
+): SparqlTransport {
   return async () => {
     const raw = JSON.parse(await readFile(path, "utf8")) as SparqlResults & {
       _fixture?: { captured_at?: string };
@@ -167,9 +170,10 @@ async function main() {
   // wall clock, so replaying the same fixture twice produces byte-identical
   // output (criterion 6). A fixture with no `_fixture.captured_at` falls back
   // to wall clock, same as a live run.
-  const builtAt = args.offline && fixtureCapture.capturedAt
-    ? new Date(fixtureCapture.capturedAt).toISOString()
-    : undefined;
+  const builtAt =
+    args.offline && fixtureCapture.capturedAt
+      ? new Date(fixtureCapture.capturedAt).toISOString()
+      : undefined;
 
   const { entities, warnings, unmatched } = normalizeUsStates(rows, {
     ...(args.states === "all" ? {} : { only: args.states }),

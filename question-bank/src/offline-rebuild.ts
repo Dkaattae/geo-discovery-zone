@@ -58,9 +58,7 @@ export function rebuildOffline(
       env: { ...process.env, ...DEAD_PROXY },
     });
     if (proc.exitCode !== 0) {
-      throw new Error(
-        `offline rebuild exited ${proc.exitCode}: ${proc.stderr?.toString() ?? ""}`,
-      );
+      throw new Error(`offline rebuild exited ${proc.exitCode}: ${proc.stderr?.toString() ?? ""}`);
     }
     const files = new Map<string, string>();
     for (const name of fileNames) files.set(name, readFileSync(join(out, name), "utf8"));

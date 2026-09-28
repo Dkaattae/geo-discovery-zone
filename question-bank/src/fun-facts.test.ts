@@ -106,7 +106,13 @@ function referenceOpener(name: string): RegExp {
 }
 
 /** Criterion 4: adult-reference vocabulary, banned case-insensitively. */
-const BANNED_WORDS = ["Köppen", "subregion", "per capita", "metropolitan statistical area", "census"];
+const BANNED_WORDS = [
+  "Köppen",
+  "subregion",
+  "per capita",
+  "metropolitan statistical area",
+  "census",
+];
 
 describe("T-011 criterion 1 — every state is accounted for, and no blank is silent", () => {
   test("each of the 50 tracked files has a fun_facts key whose value is an array", () => {
@@ -156,7 +162,7 @@ describe("T-011 criterion 2 — every fact is shaped like a FunFact, and every o
     }
   });
 
-  test("reviewed is the boolean true on every fact, never the string \"true\"", () => {
+  test('reviewed is the boolean true on every fact, never the string "true"', () => {
     for (const { file, fact } of allFacts()) {
       expect({ file, reviewed: fact.reviewed }).toEqual({ file, reviewed: true });
       expect({ file, type: typeof fact.reviewed }).toEqual({ file, type: "boolean" });
@@ -170,8 +176,10 @@ describe("T-011 criterion 2 — every fact is shaped like a FunFact, and every o
     ];
     expect(paths.length).toBeGreaterThan(51);
     for (const path of paths) {
-      expect({ path, hasUnreviewed: readFileSync(join(REPO, path), "utf8").includes('reviewed": false') })
-        .toEqual({ path, hasUnreviewed: false });
+      expect({
+        path,
+        hasUnreviewed: readFileSync(join(REPO, path), "utf8").includes('reviewed": false'),
+      }).toEqual({ path, hasUnreviewed: false });
     }
   });
 });
@@ -228,11 +236,15 @@ describe("T-011 criterion 4 — no fact is unrewritten reference prose", () => {
   test("the reference-opener regex matches the lead-sentence form it is written for", () => {
     // Guards the loop below: a regex that matched nothing would prove nothing.
     const opener = referenceOpener("Colorado");
-    expect(opener.test("Colorado is a landlocked state in the Mountain West subregion.")).toBe(true);
+    expect(opener.test("Colorado is a landlocked state in the Mountain West subregion.")).toBe(
+      true,
+    );
     expect(opener.test("Colorado is a U.S. state in the Western United States.")).toBe(true);
     expect(opener.test("Colorado is a state of the union.")).toBe(true);
     // Criterion 4: "Facts that start 'Texas is the biggest…' are fine."
-    expect(referenceOpener("Texas").test("Texas is the biggest state in the lower 48.")).toBe(false);
+    expect(referenceOpener("Texas").test("Texas is the biggest state in the lower 48.")).toBe(
+      false,
+    );
   });
 
   test("no text matches the Wikipedia lead-sentence opener for its own state", () => {
@@ -279,9 +291,15 @@ describe("T-011 criterion 6 — every fact is attributable", () => {
   test("every source_url is a non-empty absolute https:// URL", () => {
     for (const { file, fact } of allFacts()) {
       const url = fact.source_url;
-      expect({ file, nullish: url === null || url === undefined }).toEqual({ file, nullish: false });
+      expect({ file, nullish: url === null || url === undefined }).toEqual({
+        file,
+        nullish: false,
+      });
       expect({ file, empty: (url as string).length === 0 }).toEqual({ file, empty: false });
-      expect({ file, https: (url as string).startsWith("https://") }).toEqual({ file, https: true });
+      expect({ file, https: (url as string).startsWith("https://") }).toEqual({
+        file,
+        https: true,
+      });
       expect({ file, protocol: new URL(url as string).protocol }).toEqual({
         file,
         protocol: "https:",
@@ -353,18 +371,22 @@ describe("T-011 criterion 10 — nothing unreviewed, live or new is committed", 
   });
 
   test("a *.review.json in the bank directory is still ignored", () => {
-    expect(git(["check-ignore", "-q", "question-bank/data/us-states/fun-facts.review.json"]).status)
-      .toBe(0);
-    expect(git(["check-ignore", "-q", "question-bank/data/us-states/anything.review.json"]).status)
-      .toBe(0);
+    expect(
+      git(["check-ignore", "-q", "question-bank/data/us-states/fun-facts.review.json"]).status,
+    ).toBe(0);
+    expect(
+      git(["check-ignore", "-q", "question-bank/data/us-states/anything.review.json"]).status,
+    ).toBe(0);
   });
 
   test("the 51 bank paths are still tracked and still not ignored", () => {
     const paths = trackedUnder("question-bank/data/us-states");
     expect(paths).toHaveLength(51);
     for (const path of paths) {
-      expect({ path, ignored: git(["check-ignore", "--no-index", "-q", path]).status === 0 })
-        .toEqual({ path, ignored: false });
+      expect({
+        path,
+        ignored: git(["check-ignore", "--no-index", "-q", path]).status === 0,
+      }).toEqual({ path, ignored: false });
     }
   });
 });
@@ -384,7 +406,9 @@ describe("T-011 criterion 11 — the docs this change falsifies are true again",
 
   test("11(a) — sample-data/README.md no longer says nothing has reached an entity's fun-fact field", () => {
     const readme = flat(read("question-bank/sample-data/README.md"));
-    expect(readme).not.toMatch(/nothing (reaches|has reached|reached) an entity's fun.?[Ff]act field/i);
+    expect(readme).not.toMatch(
+      /nothing (reaches|has reached|reached) an entity's fun.?[Ff]act field/i,
+    );
     expect(readme).not.toMatch(/until then nothing reaches/i);
   });
 
