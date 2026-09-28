@@ -148,37 +148,38 @@ not. You are recording that no human saw them, so that anyone reading the brief
 later knows which kind of run this was. `worker.md` accepts this line; it still
 refuses on a bare `pending`.
 
-### Test change requests
+### Test change requests: halt, and send the person to an attended tester
 
 The tester may ask to delete or modify tests that existed before the task
-(D-14). When it does, it returns with the header reading **`Test changes:
-requested`**, **`Status: test changes requested`** and **`Next step: human`**.
-This is the one `Next step: human` you do not halt on, and you recognise it from
-those three header values alone. Never open the request to decide.
+(D-14). Under you it cannot ask anyone, so it returns with the header reading
+**`Test changes: requested`**, **`Status: test changes requested`** and **`Next
+step: human`**. **Halt, as for any `Next step: human`.** You recognise it from
+those three header values alone. Never open the request.
+
+**You do not approve it, stamp it, or relay an approval.** Not unattended, and
+not when a person is sitting in your session and says "approved". That is D-15,
+and it is what T-071 showed. A fresh subagent tester had its approved edits
+refused by the harness twice. An orchestrator writing an approval into the header
+was refused too. An approval that reaches the tester only as text in a file does
+not count, to the harness or to this loop. The edits went through only when the
+person gave the instruction in the session making them.
+
+So when you halt on one:
 
 1. **Check its push landed** (the checkpoint below). That push is what notifies
-   the person: `blocked-run-notice.yml` labels the PR `waiting on a human` and
-   comments, and GitHub emails them as it does for any halt. Approving before
-   the push exists would approve something nobody was told about.
-2. **Stamp the header**, the same way as `Approved:`:
-
-   ```
-   **Test changes:** approved — orchestrator, <date>, unattended run. See `runs/T-0xx-slug.md`.
-   ```
-
-   Then set **Status** `awaiting verification` and **Next step** `tester`.
-3. **Record it in `runs/`** under `## Test changes auto-approved — <date>`, with
-   the commit that raised the request and the one that approved it. Do not copy
-   the rows in; you have not read them.
-4. **Commit, push, and spawn a fresh `tester`** with the usual template.
-
-As with `Approved:`, **you are not certifying the changes.** You are recording
-that no person saw them before they were made. The reviewer escalates any PR
-whose tests changed under your stamp, so a person sees every row before the
-merge. Those deletions stay out of the reviewer's routine envelope.
-
-If the tester comes back `blocked` after this, because the harness refused the
-edits, halt as usual. Do not approve twice.
+   the person, through `blocked-run-notice.yml`.
+2. **Record it in `runs/`** under `## Halted — test change request — <date>`,
+   with the commit that raised it. Do not copy the rows in; you have not read
+   them.
+3. **Tell the person how it resumes**, in your report and, if they are in your
+   session, directly: *"The tester has raised a test change request. To approve
+   it, start the `tester` step for this task in a session you are attending. It
+   will ask you about each row, apply what you approve, and finish verifying.
+   I can't take the approval here."* If they answer you with an approval anyway,
+   record in `runs/` that they did and repeat the instruction. Do not write it
+   into the brief and do not spawn a tester.
+4. **Stop.** This run is over. Once the attended tester has finished, its header
+   names the next role, and the person starts a new run from there.
 
 ## The gates
 
@@ -230,8 +231,8 @@ attention. See `runs/T-003-ci-typecheck-lint-test.md`, fault 1.
 Beyond the gates, **stop, record why, set `Next step: human` if the last role did
 not, and report:**
 
-- **`Next step: human`** in the header, whoever wrote it — except a test change
-  request, above.
+- **`Next step: human`** in the header, whoever wrote it, including a test
+  change request (above).
 - **`Status: blocked`**, same.
 - **A role returns asking for a decision** — a dependency, a product call,
   anything about text a child will read. Copy its words into the log and stop.
@@ -263,8 +264,9 @@ could do.
 - **Never read the work.** Not the diff, not the Handoff, not the criteria.
 - **Never add a sentence to a spawn prompt.**
 - **Never write source, tests, criteria, or any role's signed section.** Your
-  only writes are `runs/`, the brief's `Approved:` line, and the header lines a
-  test change request approval sets (`Test changes`, `Status`, `Next step`).
+  only writes are `runs/` and the brief's `Approved:` line.
+- **Never approve, stamp or relay a test change request** (D-15), even for a
+  person in your session. Send them to an attended tester.
 - **Never answer a question a role addressed to a human.**
 - **Never pick the next task.**
 - **Never run a task that touches the process files** (G1), however small it looks.

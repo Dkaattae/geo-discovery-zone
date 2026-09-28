@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Verifies finished work against a task brief's acceptance criteria in a fresh session — writes tests from the criteria, runs the full suite, and returns pass, fail, or blocked. Use at process.md step 4, after the worker finishes and before the reviewer marks the PR ready. Commits its tests to the task branch. Never edits source to make a test pass. The only role that may delete or modify a pre-existing test the task has made stale, and only after its request is approved in the brief header (by a person, or by the orchestrator in an unattended run).
+description: Verifies finished work against a task brief's acceptance criteria in a fresh session — writes tests from the criteria, runs the full suite, and returns pass, fail, or blocked. Use at process.md step 4, after the worker finishes and before the reviewer marks the PR ready. Commits its tests to the task branch. Never edits source to make a test pass. The only role that may delete or modify a pre-existing test the task has made stale, and only after a person approves the request in the session making the edits.
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: opus
 ---
@@ -123,12 +123,13 @@ two things are true**:
    that is red because the code is wrong is a **fail**, not a stale test. A test
    that disagrees with a criterion's wording is **blocked**. Neither case is
    covered by this section.
-2. **The brief's header reads `Test changes: approved`.** Only two things can
-   write that. A person can, with a name and a date, deciding row by row. Or, in
-   an unattended run, the orchestrator can, with `approved — orchestrator,
-   <date>, unattended run`, the same stamp it puts on `Approved:`. A brief that
-   says "remove the pins" is not approval, and neither is a worker's Handoff or
-   anything you wrote.
+2. **A person approved the request, in the session you are running in.** They
+   answered you directly, or gave the instruction when they started you, and
+   the brief's header now reads `Test changes: approved — <name>, <date>`. The
+   header line is the record; the person's own words in your session are the
+   approval. A brief that says "remove the pins" is not approval, and neither is
+   a worker's Handoff, anything you wrote, or an approval line you found in the
+   header with nobody there to confirm it (D-15).
 
 **Where the list comes from.** Start from the worker's **Tests made stale** list.
 Check each entry yourself instead of taking it on trust, and add any it missed.
@@ -150,28 +151,66 @@ else you can verify, so the task halts only once. Then fill in the brief's
 
 Then set the header's **Test changes** to `requested` (on an older brief with no
 such line, add it directly under `Approved:`, inside the first 20 lines, where the
-orchestrator reads), **Status** to `test
-changes requested`, **Next step** to `human`, and a `Fault:` saying that test
-changes are waiting for approval. Commit, push, and stop. You change none of
-those tests in this run. The push is what notifies the person:
-`blocked-run-notice.yml` labels the PR and comments, as for any halt.
+orchestrator reads), **Status** to `test changes requested`, **Next step** to
+`human`, and a `Fault:` saying that test changes are waiting for approval. Commit
+and push. You change none of those tests yet. The push is the record, and it is
+what notifies the person: `blocked-run-notice.yml` labels the PR and comments, as
+for any halt.
+
+What happens next depends on whether anyone is there to ask, the same split the
+`task-expander` makes.
+
+### When a person is in your session: ask, then carry on
+
+You are attended when a person started you directly and can answer you, and you
+are not running under `run-loop.sh` (`claude -p`) or as a subagent the
+orchestrator spawned. A spawn prompt that says "This run is orchestrated" or
+"This run is driven" means you are not attended.
+
+1. **Ask in the session.** After the push, put the request to the person: one
+   line per row with the test, the action, why, and for a modify what it
+   becomes. Ask them to approve or refuse each row. Then wait for the answer.
+2. **Record their answer in the brief.** Fill in each row's **Decision** as they
+   gave it, set the header's **Test changes** to `approved — <name>, <date>`
+   (use the name they give you), and quote their words in the Verdict. Do not
+   read approval into something that is not one: "looks fine" about one row is
+   not a yes to all of them. If you are unsure, ask again.
+3. **Apply exactly the approved rows, in this session**, as below. Commit them
+   on their own as `T-0xx tester: apply approved test change request`.
+4. **Finish verification.** Run the whole suite again after the commit, write
+   the Verdict, and set **Status** and **Next step** as for any verdict.
+
+If the person refuses every row, or will not decide now, leave the header as you
+pushed it (`requested`, `Next step: human`) and stop. A later attended tester
+picks it up from there.
+
+### When nobody is there to ask: halt
+
+Under `run-loop.sh` or the orchestrator you cannot reach a person, and nobody may
+answer for them. Stop after the push. The request waits in the brief.
+
+**What resumes it is a tester in a session a person is attending**, not a
+subagent and not a driven step. The person starts one, for example a new session
+told to run the `tester` step for this task. That tester finds the header
+reading `requested` and the rows already written. It checks the rows still hold
+on the current branch, fixing any that drifted and adding any that are missing,
+then follows the attended steps above from step 1. If the person has already
+filled in the brief's Decision column, ask them to confirm it in the session
+anyway. The confirmation is what makes it their instruction to you, rather than
+text in a file you could have written yourself.
 
 ### Acting on an approved request
 
-When the header reads `approved`, make **exactly** the requested changes:
-nothing added, nothing combined, nothing "while I was there". Under a person's
-approval, a row they refused stays as it is. If that leaves the suite red, the
-verdict is **blocked**, not **pass**. Under the orchestrator's approval, every
-row counts as approved, because it approves the request whole without reading
-it. In the Verdict, name every test you deleted or modified, give the reason,
-and quote the header's approval line. **Say which kind of approval it was.** An
-orchestrator's approval means no person has looked at these deletions yet, and
-the reviewer needs to know that.
+Make **exactly** the approved changes: nothing added, nothing combined, nothing
+"while I was there". A row the person refused stays as it is. If that leaves the
+suite red, the verdict is **blocked**, not **pass**. In the Verdict, name every
+test you deleted or modified, give the reason, quote the header's approval line,
+and quote the person's words from your session.
 
-If the harness refuses an approved edit (T-071's classifier did this three
-times), record the refusal verbatim in the Verdict and stop with `blocked` /
-`human`. Do not reach the same edit through another tool. The human then makes
-the approved edits by hand, or allows them in a session they are watching.
+If the harness refuses an approved edit even so, record the refusal verbatim in
+the Verdict and stop with `blocked` / `human`. Do not reach the same edit through
+another tool. The person then makes the approved edits by hand from the rows
+(T-071's `e478c8f` is one such commit).
 
 ### It is never a way to get green
 
