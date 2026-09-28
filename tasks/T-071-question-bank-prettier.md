@@ -1,9 +1,9 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
 the harness, branched from `origin/main` at `374a713`. Every later role pushes
@@ -11,7 +11,7 @@ here (`CLAUDE.md` "Branches").
 **PR:** #63, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it. The PR body condenses the criteria; where
 they differ, this brief's wording is authoritative.
-**Fault:**
+**Fault:** test changes are waiting for approval: nine dependency-pin tests plus one more pin and three count floors that this task makes stale (see `## Test change request`); owner: a person, or the orchestrator's stamp.
 
 **Sessions:**
 
@@ -21,6 +21,7 @@ they differ, this brief's wording is authoritative.
 | worker | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (same remote session id as the expander: the orchestrator spawned this worker as a subagent inside that session) |
 | worker (resumed after the human decision) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (again a subagent inside the orchestrator's session) |
 | tester | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
+| tester (after P-10) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
 
 ## Goal
 
@@ -373,42 +374,94 @@ cd ../frontend && bun test src/conventions-doc.test.ts
 
 ## Verdict
 
-**TL;DR: blocked, not tested. The harness classifier refused the tester too.**
-The second human decision sent the removal of the stale dependency pins to the
-tester. The harness's auto-mode classifier refused that edit in this session
-("Security Test Removal"), just as it refused the worker twice. It then also
-refused the next command, which only ran the format-check probes for criteria
-4–6 and 10. No agent can clear this. **A human has to delete the pins in an
-attended session, or add a permission rule.**
+**TL;DR: test changes requested, and no other finding.** Every criterion that does
+not depend on the stale pins holds: 18 of 19, checked by 21 new tests in
+`question-bank/src/prettier-gate.test.ts` or by hand. Criteria **11 and 16** cannot
+hold until 10 stale pin tests are deleted and 3 count floors lowered, and that
+needs approval first (D-14). The rows are in `## Test change request` below. I
+changed none of those tests in this run.
 
-- **Status:** `blocked`. **Next step:** `human`.
-- **Needed from a human (katechen150621@gmail.com / Dkaattae), one of:**
-  1. **Do the removal by hand.** Use the worker's "Removal to make" list in the
-     Handoff: nine tests plus the tenth in `climate-kid-verify.test.ts` and the
-     T-066 criterion 16 `describe` in `lint-gate.test.ts`. Also decide the three
-     test-count floors the Handoff describes (43→42, 53→52). Commit, then set
-     Next step to `tester`.
-  2. **Add a harness permission rule** that allows the tester to edit
-     `question-bank/src/*.test.ts` on this task, then re-run the tester.
-- **Not a criteria problem.** Nothing here goes to `task-expander`.
+- **Status:** `test changes requested`. **Next step:** `human`. **Test changes:** `requested`.
+- **Needed:** approval of the 13 rows below. A person can decide row by row, or the
+  orchestrator can stamp the request under its unattended-run rule. Then a fresh
+  tester makes exactly those edits and re-runs criteria 11 and 16.
+- **No fail, no blocked criterion.** Nothing goes back to the worker or to
+  `task-expander`.
 
 **Independence.** This is an orchestrated run: `runs/T-071-question-bank-prettier.md`
-exists, and `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_01KmyHhDTUDHHNBeuqPkeiKW`)
-matches the expander and worker rows. So the Sessions-table check proves
-nothing. My independence rests only on being a freshly spawned subagent that
-never saw the worker's context. That is weaker than a separate session.
+exists, and `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01KmyHhDTUDHHNBeuqPkeiKW`, the
+same id as the expander and worker rows. So the Sessions-table check proves nothing.
+My independence rests only on being a freshly spawned subagent that never saw the
+worker's context. That is weaker evidence than a separate session. Expected values
+came from the criteria. I read the implementation for entry points only: the script
+name and file paths.
 
-**What was and was not established**
+### Criteria
 
-| Item | State |
-|---|---|
-| Branch head matches the Handoff | Confirmed. `package.json` has `"prettier": "3.9.6"` and the `format:check` script. `.prettierrc` has the four settings. `ci.yml` has a `Format` step (`bun run format:check`, same `if:` as Typecheck/Lint/Test). `src/dependency-set.test.ts` exists. |
-| `bun install --frozen-lockfile` | Exit 0; no change to `bun.lock`. |
-| `bun test` in `question-bank/` at `2adae2c` | **1315 pass / 9 fail.** The 9 failures are the dependency pins the Handoff lists. The tenth (`climate-kid-verify.test.ts` "no dependencies block growth") passes today but would fail under criterion 11(b). |
-| Criteria 1–10, 12–15, 17–19 | **Not verified.** No tests written, no mutations run. The classifier refused the probe run before I started. |
-| Criteria 11, 16 | **Not met on the branch head.** They cannot be met until the pins are removed. That removal is now the human's to make. |
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `prettier-gate.test.ts` "criterion 1". Mutation `3.9.6` → `^3.9.6` turns it red. |
+| 2 | met | "criterion 2" (every `prettier@` entry in `bun.lock` equals the pin). `bun install --frozen-lockfile`: exit 0, and `git status` shows `bun.lock` unchanged. |
+| 3 | met | "criterion 3": `prettier.resolveConfig` for **every** `.ts` under `src/`, with defaults applied, gives 100/true/false/"all". The config file resolves inside `question-bank/`. Mutation `printWidth` 80 turns it red. |
+| 4 | met | "criterion 4": `bun run format:check` (script name read from ci.yml's step) exits 0. |
+| 5, 6 | met | Probes `src/t071-probe.ts` and `src/sinks/t071-probe.ts`, each containing `const  x = {a:1}`: the check exits non-zero and names the file, then exits 0 once the probe is removed. Mutation glob `src/*.ts` turns the nested probe red. |
+| 7 | met | No `.prettierignore` in `src/`, `question-bank/` or the repo root, and no ignore directive line. Coverage: the real script run with `--use-tabs --no-semi` flags **every** `.ts` under `src/`, through its own globs and ignore files (`.gitignore` included). Mutations: a `.prettierignore` with `src/queries/` turns 2 tests red, and a `// prettier-ignore` probe turns 1 red. |
+| 8 | met | "criterion 8": the step `run` is exactly `bun run format:check`, the script uses `--check` and not `--write`, and its `if:` equals that of Typecheck, Lint and Test. Mutations: `--write` in the script turns 9 red; removing `!cancelled() &&` from the Format `if:` turns the `if:` test red. |
+| 9 | met | Test: no comment in the job says formatting is not checked. By hand: `git diff 374a713 HEAD -- ci.yml` touches only the question-bank job (one comment line trimmed, the Format step added). |
+| 10 | met | "criterion 10": criteria 4 and 5 hold with `DEAD_PROXY` (all six variables). |
+| 11 | **not met yet: stale pins** | By hand, in a **full** clone (`is-shallow-repository` = false). With `left-pad` added, failures spread across **11 files**. With `oxlint` removed, 11 files. With a `dependencies` key, 11 files. The shared check `dependency-set.test.ts` fails in every case. Everything else failing is a request row below, apart from my own first draft's duplicate pin, which I removed (see note). |
+| 12 | met | `dependency-set.test.ts` passes, 4/4. Test "criterion 12": the file imports no process-spawning API, runs no `git`, and reads only `package.json`/`bun.lock` under `QB_ROOT`. Mutation: an added `execSync` import turns it red. |
+| 13 | met | By hand: `^3.9.6` turns red 2 tests in `dependency-set.test.ts` and 2 in `prettier-gate.test.ts`. |
+| 14 | met | By hand: `6536170` is 16 × `M`, all `question-bank/src/**/*.ts`, with nothing added, deleted or renamed. For each file, parent content piped through the pinned `node_modules/.bin/prettier --stdin-filepath` with the head's `.prettierrc` is byte-identical (`cmp`) to the committed content: **16/16**. |
+| 15 | met | By hand: `git diff --stat 374a713 HEAD -- question-bank/data question-bank/sample-data question-bank/src/fixtures` is empty. |
+| 16 | **not met yet: stale pins** | question-bank: typecheck 0, lint 0 (0 warnings), `bun test` **1336 pass / 9 fail**, and the 9 failures are rows 1, 3–10 below. frontend: `conventions-doc.test.ts` 80/80. The full frontend `bun test` gave 340 pass / 3 fail, all environmental: the npm mirror returned 403 on `d3-drag-2.0.0.tgz`, so `react-simple-maps` is missing, and two lint-gate tests hit the 5 s timeout while `bun run lint` alone takes 4.5 s and exits 0. No frontend file differs between `374a713` and HEAD. **Re-run the frontend in a clean environment** before the final pass. |
+| 17 | met | "criterion 17": no `trustedDependencies`, `overrides` or `resolutions` key. The four-name set is pinned by the shared check. |
+| 18 | met | "criterion 18": `bunx prettier` is absent, and the `## Commands` block has `bun run format:check`, the same script as CI. |
+| 19 | met | "criterion 19": `## E-16` directly follows E-15 and names prettier, exact, why, the nine and `dependency-set.test.ts`. By hand: `git diff 374a713 HEAD -- engineering-decisions.md` deletes 0 lines. |
 
-The working tree was left clean: no partial removal, no probe files.
+**Mutations** (all reverted; `git status` clean apart from the new test file) are
+shown inline above. None of the 21 tests stayed green under the mutation aimed at it.
+
+**Note on criterion 11 and my own tests.** My first draft also pinned the
+four-name set in `prettier-gate.test.ts`, which made it an eleventh file failing
+on `left-pad`. I removed that test. Criterion 12's "passes on the head" is now
+evidenced by the shared check's own run, not by a second copy of the set.
+
+**Run with:** `cd question-bank && bun test src/prettier-gate.test.ts` (21 pass,
+about 15 s, spawns the format script 7 times).
+
+## Test change request
+
+Raised by the tester, 2026-09-28. The Handoff's "Removal to make" list was checked
+independently. I confirmed each row by running criterion 11's three mutations in a
+full clone and recording which tests failed, and by counting `test(` lines against
+the floors. I added nothing beyond the Handoff's list except the floor rows, which
+the Handoff proposed but did not list as rows. Every deleted test pins
+`question-bank/`'s dependency set, which criterion 11 requires to be pinned in
+exactly one file (`dependency-set.test.ts`, E-16).
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 18 — nothing unreviewed, live or new is committed" › "question-bank declares no runtime dependency and the same two devDependencies" | `775671c`, T-014 tester: no new dependency | Pins devDependencies to `@types/bun`/`oxlint`/`typescript`, so it fails today on `prettier` and fails under all three criterion 11 mutations. Criterion 11 requires one file. | delete | — | |
+| 2 | `src/climate-kid-verify.test.ts` › same describe › "the only package.json under question-bank/ still has no dependencies block growth" | `775671c`, T-014 tester: no runtime dependency | Passes today, but fails under criterion 11(b) (`dependencies` key), making a second failing file. Not in the brief's survey table. | delete | — | |
+| 3 | `src/climate-kid.test.ts` › "T-014 criterion 18 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `bc544e3`, T-014 worker: no new dependency | As row 1. | delete | — | |
+| 4 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 13 — nothing unreviewed, live or new is committed" › "question-bank still declares no runtime dependency and the same two devDependencies" | `8b5bb81`, T-013 tester: no new dependency | As row 1. | delete | — | |
+| 5 | `src/landmarks.test.ts` › "T-013 criterion 13 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `93fc433`, T-013 worker: no new dependency | As row 1. | delete | — | |
+| 6 | `src/state-animals.test.ts` › "T-012 criterion 11 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `17ddab1`, T-012 tester: no new dependency | As row 1. | delete | — | |
+| 7 | `src/region-vocabulary.test.ts` › "T-017 criterion 8 — no new dependency, no network" › "question-bank declares no runtime dependency and the same two devDependencies as before this task" | `e4fc36b`, T-017 tester: no new dependency | As row 1. | delete | — | |
+| 8 | `src/top-crops-verify.test.ts` › "T-015 tester, criterion 10 — no new dependency" › "package.json and bun.lock are byte-identical to the default branch", **with** the `DEPENDENCY_DIGESTS` constant and its docstring, which only this test uses | `313d72d`, T-015 tester: no new dependency, by sha256 | Its digests fail on any change to either file, including this task's approved one. The bank digests in the same file (T-070) are **not** part of this row. | delete | — | |
+| 9 | `src/highest-point-verify.test.ts` › "T-016 tester, criteria 14 and 15 — no dependency, nothing out of scope" › "question-bank/package.json lists exactly the dependencies the default branch listed" | `34a174a`, T-016 tester: no new dependency vs `origin/main`, allowing `oxlint` | Fails on `prettier`, and spawns `git` (criterion 12's design moves the check off git). The Alaska-landmark test in the same describe stays. | delete | — | |
+| 10 | `src/lint-gate.test.ts` › "T-066 criterion 16 — the only package added is oxlint, as a devDependency" › both tests: "oxlint is in devDependencies; there is no dependencies key" and "none of the excluded packages is present" (the whole `describe`) | `23a0576`, T-066 tester: only oxlint was added, no eslint or prettier | The second test forbids any name containing `prettier`, so it fails today. The first fails under criterion 11(a) and (b). Any `packageJson()` type fields left unused go with them. | delete | — | |
+| 11 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 19 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `775671c`, T-014 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. | |
+| 12 | same file and describe › `FLOORS["landmarks.test.ts"]` | `775671c`, T-014 tester: count floor | Row 5 removes 1 test from a file at exactly 53. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | |
+| 13 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 14 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `8b5bb81`, T-013 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 70 }`, with a comment citing T-071 row 6. | |
+
+No other floor moves. `landmarks-verify.test.ts` sits at 37 tests, 73 expects,
+against a floor of 36 and 69 in `climate-kid-verify.test.ts`. After row 4 it has
+36 and 71, so it still holds.
+
+To approve by hand: fill in Decision on each row, set the header's `Test
+changes:` to `approved — <name>, <date>`, and set `Next step: tester`.
 
 ## Human decision — 2026-09-28
 
