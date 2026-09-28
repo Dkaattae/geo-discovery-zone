@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `working`
-**Next step:** `worker`
+**Status:** `blocked`
+**Next step:** `human`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
@@ -18,6 +18,7 @@ they differ, this brief's wording is authoritative.
 |---|---|---|
 | task-expander | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW |
 | worker | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (same remote session id as the expander: the orchestrator spawned this worker as a subagent inside that session) |
+| worker (resumed after the human decision) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (again a subagent inside the orchestrator's session) |
 
 ## Goal
 
@@ -264,55 +265,109 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
-**TL;DR — blocked, partially built.** Prettier is pinned and `question-bank/src`
-is reformatted (commits `b2f4294`, `6536170`). The next step — deleting the nine
-hand-pinned dependency tests the brief tells this task to consolidate — was
-**refused by the harness's permission classifier ("Security Test Removal")**,
-and the worker may not route around that. A human must either grant that
-permission and re-run the worker, or make the removal by hand.
+**TL;DR: blocked again, on the same single step.** Everything except removing the
+nine dependency pins is now built and pushed. The harness's permission
+classifier refused that removal a **second time** ("Security Test Removal"), even
+though the human decision below is recorded in the brief. A decision written
+into a file by the orchestrator does not clear the harness's permission check,
+and the worker may not route around it. A human has to **make the removal by
+hand** (the exact edit list is below and takes about ten minutes) or **add a
+permission rule** and re-run the worker.
 
-- **Needed from a human (owner: Dkaattae):** allow the worker to remove the nine
-  dependency-set pins listed in the survey table (brief "Constraints" already
-  scopes this), e.g. by approving the action in an attended session or adding a
-  permission rule; then set Next step back to `worker`. Alternatively do the
-  removal yourself and hand the rest back to the worker.
-- **Not a criteria problem.** Nothing here needs `task-expander`; the criteria
-  are fine as written.
+- **Needed from a human (owner: Dkaattae / katechen150621@gmail.com):** either
+  (1) apply the "Removal to make" list below yourself, commit as
+  `T-071: remove the nine dependency pins (human)`, and set Next step to
+  `worker` for the Handoff refresh, or straight to `tester` if the suite is
+  green; or (2) allow the action in an attended session or in the harness
+  settings, then re-run the worker.
+- **Not a criteria problem.** The criteria are fine as written. This does not
+  need to go to `task-expander`.
 
-### Done so far
+### Commits on the branch
 
 | Commit | What |
 |---|---|
-| `b2f4294` | `question-bank/package.json`: `devDependencies.prettier` = `3.9.6` (exact, via `bun add -d --exact`; same version frontend's lock resolves), scripts `format` (`prettier --write "src/**/*.ts"`) and `format:check` (`prettier --check "src/**/*.ts"`). `question-bank/bun.lock` updated. New `question-bank/.prettierrc` with the four settings from `frontend/.prettierrc`. |
-| `6536170` | **Reformat commit (criterion 14)** — output of `bun run format` only; 16 existing `src/**/*.ts` files modified, nothing added/deleted/renamed. |
+| `b2f4294` | `question-bank/package.json`: `devDependencies.prettier` = `3.9.6` (exact, via `bun add -d --exact`; the same version frontend's lock resolves), plus the `format` (`prettier --write "src/**/*.ts"`) and `format:check` (`prettier --check "src/**/*.ts"`) scripts. Updated `question-bank/bun.lock`. New `question-bank/.prettierrc` with the four settings from `frontend/.prettierrc`. |
+| `6536170` | **The reformat commit (criterion 14).** Output of `bun run format` only. It modifies 16 existing `src/**/*.ts` files and adds, deletes or renames nothing. |
+| `505cfe9` | `ci.yml` `question-bank` job: new `Format` step, `run: bun run format:check`, with the same `if:` as Typecheck, Lint and Test. The Lint comment's "Formatting is not checked yet (T-071)" is gone, and no other job changed. New `question-bank/src/dependency-set.test.ts` (the shared check). `conventions.md`: `bunx prettier` is removed, and the Commands block lists `bun run format:check`. `engineering-decisions.md`: new `## E-16` after E-15, with no existing entry touched. |
 
-- The glob `src/**/*.ts` (not `src`) is deliberate: `src/fixtures/*.json` must
-  not be formatted (criterion 15).
-- After the reformat, `bun test` in `question-bank/` gave **1311 pass, 9 fail** —
-  the nine failures are exactly the nine dependency pins (they reject the word
-  `prettier` / the new manifest bytes). **No source-scanning test broke** under
-  the reformat.
+### Criteria: where each lives
 
-### Not done (blocked behind the removal)
+| # | Where | State |
+|---|---|---|
+| 1, 2 | `question-bank/package.json` `"prettier": "3.9.6"`; `bun.lock` resolves `prettier@3.9.6` | done |
+| 3 | `question-bank/.prettierrc` | done |
+| 4–7, 10 | script `format:check` = `prettier --check "src/**/*.ts"`; no `.prettierignore`; no ignore directives | done. Exits 0 on `505cfe9`. Seen failing on an unformatted `src/dependency-set.test.ts` before I formatted it. The tester still needs to check probes, the nested probe and the dead proxy. |
+| 8, 9 | `.github/workflows/ci.yml`, `Format` step | done |
+| 11, 12 | `question-bank/src/dependency-set.test.ts` | **the check exists and passes (4/4), but 11 fails until the nine pins are removed.** Today any change to the dependency set fails in up to 10 files. |
+| 13 | `dependency-set.test.ts` "prettier is pinned to an exact version" (`/^3\.\d+\.\d+$/`) | done |
+| 14 | `6536170` | done |
+| 15 | untouched: the glob is `src/**/*.ts`, so no JSON gets formatted | done |
+| 16 | question-bank typecheck and lint exit 0. `bun test` is **1315 pass / 9 fail**, and the 9 are exactly the pins. | **blocked on the removal** |
+| 17 | package.json | done |
+| 18 | `conventions.md` | done |
+| 19 | `engineering-decisions.md` E-16. Its part (b) describes the end state ("replaced by `dependency-set.test.ts`"), which is true only once the removal lands. | done, conditional on the removal |
 
-- Removing the nine pins; writing the shared check (planned as a new
-  `question-bank/src/dependency-set.test.ts`: key set = the four, no
-  `dependencies` key, `prettier` matches `^\d+\.\d+\.\d+$`, `bun.lock` resolves
-  the same version; no `git`). Note for whoever resumes: `lint-gate.test.ts`'s
-  whole "T-066 criterion 16" describe must go, including its "oxlint is in
-  devDependencies; there is no dependencies key" test, or criterion 11 (a)/(b)
-  fails in two files.
-- CI step (`bun run format:check`), the Lint-step comment in `ci.yml`,
-  `conventions.md`, `engineering-decisions.md` E-16, the frontend prettier
-  count for the reviewer. None started; the classifier also refused the next
-  read of the docs after the first denial, so the worker stopped rather than
-  keep probing.
+### Removal to make (the blocked step), exact
+
+Delete these tests and change nothing else in their files:
+
+1. `climate-kid-verify.test.ts`: test `"question-bank declares no runtime dependency and the same two devDependencies"`, **and** test `"the only package.json under question-bank/ still has no dependencies block growth"`. The second one is **not in the survey table**. It asserts `package.json` has no `"dependencies"` text, so leaving it in makes criterion 11(b) fail in two files. It is a dependency-set pin in all but name.
+2. `climate-kid.test.ts`: test `"question-bank/package.json still declares no runtime dependency and the same two devDependencies"`.
+3. `landmarks-verify.test.ts`: test `"question-bank still declares no runtime dependency and the same two devDependencies"`.
+4. `landmarks.test.ts`: the same-named test as in 2.
+5. `state-animals.test.ts`: the same-named test as in 2.
+6. `region-vocabulary.test.ts`: test `"question-bank declares no runtime dependency and the same two devDependencies as before this task"`.
+7. `top-crops-verify.test.ts`: the `DEPENDENCY_DIGESTS` constant and its docstring, and the test `"package.json and bun.lock are byte-identical to the default branch"`. Leave the bank digests alone (they belong to T-070).
+8. `highest-point-verify.test.ts`: test `"question-bank/package.json lists exactly the dependencies the default branch listed"`, plus any helper only it uses.
+9. `lint-gate.test.ts`: the whole `describe("T-066 criterion 16 — …")` block (both tests). Also drop `devDependencies` / `dependencies` from its `packageJson()` type if nothing else reads them, or oxlint may flag them as unused.
+
+**Test-count floors: a knock-on the brief did not foresee.** Two T-014/T-013
+"nothing weakened" tests count `test(` lines per file:
+`climate-kid-verify.test.ts` `FLOORS` has `state-animals.test.ts: 43` and
+`landmarks.test.ts: 53`, and `landmarks-verify.test.ts` `FLOORS` has
+`state-animals.test.ts: 43`. Those files currently hold **exactly** 43 and 53
+tests, so removing one pin from each drops them below their floors and turns 3
+floor tests red. Expectation floors still hold (76 ≥ 73 and 91 ≥ 88 after
+removal). **What I propose:** lower those three `tests` floors by exactly 1
+(43→42, 53→52), each with a comment citing T-071/E-16. The floors exist to
+catch *unapproved* deletion, and this deletion is approved. **Who confirms:**
+the human making the removal, then the reviewer. The alternative, padding
+the files with a replacement test to keep the count, would be manufacturing
+a test to satisfy a counter.
+
+### Not done, and why
+
+- **The nine removals and the floor adjustment** are blocked, as above.
+- **PROGRESS.md** was not touched: that is the reviewer's sweep, and it is out of
+  scope.
+
+### Findings for the reviewer
+
+- **Frontend prettier check:** `prettier --check .` in `frontend/` (its own
+  3.9.6) flags **4 files**: `AGENTS.md`, `README.md`, `src/routes/README.md`,
+  `src/styles.css`. None is a `.ts`/`.tsx` file. **Owner: reviewer**, to file a
+  queue entry or not.
+- **Frontend environment in this session was incomplete.** `bun install
+  --frozen-lockfile` in `frontend/` got a 403 from the npm mirror on
+  `d3-ease-2.0.0.tgz`, so `react-simple-maps` is missing and `bun run typecheck`
+  fails in `UsMap.tsx`. `bun test` in `frontend/` gave 342 pass / 1 fail (one
+  lint-gate test; a timing-sensitive `bun run lint` test that also failed with
+  5 more on a first cold run). `src/conventions-doc.test.ts`, the one frontend
+  test this task can affect, is **80/80 pass**. This task changes no frontend
+  file. **Owner: tester**, to re-run `frontend/` in a clean environment for
+  criterion 16.
 
 ### How to run
 
-`cd question-bank && bun install --frozen-lockfile && bun run format:check && bun test`
-— `format:check` exits 0 at `6536170`; `bun test` fails the nine pins until
-they are removed.
+```bash
+cd question-bank && bun install --frozen-lockfile
+bun run format:check      # exit 0 at 505cfe9
+bun run typecheck && bun run lint
+bun test                  # 1315 pass / 9 fail until the pins are removed; then expect 3 floor failures unless the floors are adjusted
+bun test src/dependency-set.test.ts   # 4 pass
+cd ../frontend && bun test src/conventions-doc.test.ts
+```
 
 ## Verdict
 
