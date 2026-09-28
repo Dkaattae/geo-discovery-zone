@@ -264,3 +264,13 @@ File: /home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md
 Second `blocked` verdict on this task (rounds 4 and 6), so the round bound halts the run. Both were the
 harness refusing test edits, not the criteria. A human must approve rows 14–16, apply rows 1–16 (by hand,
 or in a session a person is watching), commit, and set `Next step: tester`.
+
+## Halted — test change request — 2026-09-28
+P-12 merged (PR #65, `30d565c`) and was merged into this branch. Under it (D-15) the orchestrator
+does not stamp or relay a test change approval, even for a person in its session. The request was
+raised in `1972f18` (rows 1–13) and `757c520` (rows 14–16). The person approved all rows in the
+orchestrator's chat and the rows were applied at their direction in `e478c8f`; the brief header
+still reads `blocked` / `human` because the orchestrator's attempts to record that were refused by
+the harness, and D-15 now forbids it anyway. Resumes by an attended `tester` session.
+P-12's amendment (`2f9e42d`: an answer resumes the run; the orchestrator updates the status) is in
+`process-tasks.md` but not yet implemented; P-12 stays `doing`.
