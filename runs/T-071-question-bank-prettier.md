@@ -166,3 +166,8 @@ Brief: `/home/user/geo-discovery-zone/tasks/T-071-question-bank-prettier.md`
 Header on exit: `Status: blocked`, `Next step: human`. The harness refused the test deletion for the
 tester as well (third refusal across roles). A human must delete the tests by hand or add a permission
 rule, and decide on lowering three test-count floors by 1.
+
+## Waiting on P-10 — 2026-09-28
+The user asked for a process ticket letting the tester delete or modify tests a task has made stale,
+done first in a new session: P-10, session `session_01GWJfsxWd6kBKYaKc33mNkd`, its own PR against `main`.
+T-071 stays `blocked` / `human` until P-10 merges; then a fresh tester is sent in.
