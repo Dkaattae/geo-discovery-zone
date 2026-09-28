@@ -126,49 +126,14 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-066 — `question-bank` has no `lint`, and briefs keep asking for it · S · doing
-**Expanded 2026-09-25** into `tasks/T-066-question-bank-eslint.md` (full brief,
-not light — its criteria run past four).
-**Depends on:** —
-**New 2026-09-14, found by T-011's tester and confirmed by its reviewer (PR #41).**
-T-011's criterion 13 required "`bun test`, `bun run typecheck` and `bun run lint`
-pass in `question-bank/` and in `frontend/`". There is no `lint` script in
-`question-bank/package.json` — only `build`, `build:sample` and `typecheck` — and
-`.github/workflows/ci.yml` says why in a comment: the package has no eslint config
-and no eslint dependency, and adding either is a dependency decision the loop may
-not make on its own (`CLAUDE.md` "Packages"). So the criterion named a check that
-has never existed, the tester could neither run it nor fail it, and the next brief
-touching this package will write the same clause again.
-Two halves, and the second is the cheap one:
-- **The decision** is Dkaattae's: give `question-bank/` eslint (a dependency), or
-  record that `typecheck` is deliberately the whole gate there.
-- **Either way, write it where a brief writer will trip over it** —
-  `conventions.md`'s command table, which
-  `frontend/src/conventions-doc.test.ts` already checks against the three
-  `package.json` files, so a `lint` script added later cannot go undocumented.
-**Done when:** `bun run lint` either exists in `question-bank/` or is documented
-as deliberately absent, and nothing in the repo's docs implies a command the
-package does not have.
-**Skipped by the expander, 2026-09-19:** the first half is a dependency decision
-reserved for Dkaattae (`CLAUDE.md` "Packages"), so no criterion can be written
-for it without guessing the answer. Unblocks the moment that call is recorded
-here; T-061 was taken instead. **Passed over again 2026-09-22** for the same
-reason; T-073 was taken. **And again 2026-09-24**; T-074 was taken.
-**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "add eslint". Give `question-bank/` eslint as a
-devDependency, with a `lint` script, a config, and the lockfile committed with it
-(`CLAUDE.md` "Packages"). The dependency decision this entry was waiting on is
-made; the task is unblocked.
-**Re-routed 2026-09-25:** typescript-eslint refuses `typescript@7`, so the worker
-blocked; katechen150621@gmail.com answered "go with oxlint". The brief was
-re-expanded for oxlint and awaits fresh approval.
-
 ### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
 **Depends on:** —
 **New 2026-09-18, from T-017's reviewer (PR #49).** `bunx prettier --check
 "src/**/*.ts"` in `question-bank/` flags **22 files**, including ones no recent
 task has touched (`build.ts`, `sparql.ts`, `normalize.ts`). It is pre-existing
-drift, not any one task's doing — but `question-bank`'s CI job runs typecheck and
-test only, so nothing catches it and nothing stops it growing.
+drift, not any one task's doing — but `question-bank`'s CI job runs typecheck,
+lint and test, and its linter is oxlint with no formatting rules (T-066, E-15), so
+nothing catches it and nothing stops it growing.
 
 The cost is already being paid task by task: T-017's worker deliberately did not
 run `prettier --write` on the files it edited, because doing so reformatted
@@ -194,6 +159,24 @@ same reason; T-074 was taken.
 **Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "allow prettier". `prettier` may be added
 as a pinned devDependency of `question-bank/`, lockfile committed with it. The
 dependency decision this entry was waiting on is made; the task is unblocked.
+**Amended 2026-09-28 by T-066's reviewer (PR #62).** Adding `prettier` will turn
+**eight existing tests red**, because they pin `question-bank/`'s dependency set
+by hand. T-066 hit all eight when it added `oxlint`, and edited each:
+- **Key-set pins** ("exactly `@types/bun`, `oxlint`, `typescript`") in
+  `climate-kid-verify`, `climate-kid`, `landmarks-verify`, `landmarks`,
+  `state-animals` and `region-vocabulary` (`.test.ts`).
+- **`top-crops-verify.test.ts` `DEPENDENCY_DIGESTS`**: sha256 of `package.json`
+  and `bun.lock`, re-pinned by T-066.
+- **`highest-point-verify.test.ts`**: compares the dependency blocks with
+  `origin/main`'s and allows `oxlint` by name beyond them. Once PR #62 merges,
+  that name is redundant.
+List all eight in this brief's survey. Then decide, and say which in the brief:
+edit all eight again, or replace them with one shared "the approved dependency
+set" check that the next addition changes in one place. The second is the better
+buy if it stays small.
+Also: `question-bank/`'s lint is **oxlint** (E-15), not eslint, so
+`eslint-config-prettier` has no role here, and oxlint's default rules do not
+conflict with prettier (T-066 criterion 8 checked a mis-formatted probe lints clean).
 
 ---
 

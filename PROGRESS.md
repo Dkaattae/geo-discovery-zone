@@ -107,6 +107,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - **Run live against Wikidata**: 50 states, every core field populated, zero
   warnings. Ranks verified against reality — California first by population,
   Alaska first by area, Rhode Island fiftieth.
+- **Linted by oxlint, not eslint** (T-066, E-15): `bun run lint` fails on any
+  warning, locally and in CI. typescript-eslint cannot load against the
+  package's `typescript@7`. Formatting is still ungated (T-071).
 - Curated override table for the things Wikidata is bad at: FIPS join keys,
   regions, animals, kid-facing climate phrasing (§1.7, §1.9). Wikidata's FIPS is
   cross-checked; mismatches warn rather than silently win.
@@ -311,6 +314,21 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-066 — `question-bank/` gets oxlint and a `lint` gate** (PR #62,
+  2026-09-28). `bun run lint` runs the local oxlint over `src/` (tests included)
+  with `--deny-warnings --report-unused-disable-directives --format default`;
+  the config is oxlint's `correctness` defaults plus `typescript/no-explicit-any`.
+  CI's question-bank job gained a Lint step; `conventions.md`, the package README
+  and **E-15** record why it is oxlint and not eslint. **Where reality differed:**
+  the approved route was eslint, but typescript-eslint hard-refuses
+  `typescript@7`, so the worker blocked and the human chose oxlint (a second
+  approval round). All three existing `eslint-disable` comments turned out to
+  suppress nothing and were deleted. Eight older tests pinned the dependency set
+  and had to be edited, which the brief's survey missed (now noted on T-071).
+  oxlint drops its summary line when it detects an AI agent, hence
+  `--format default`. The frontend suite could not install in the sandbox
+  (registry 403); its half of "no behaviour moves" was read off PR #62's CI.
 
 - **P-8 — `CLAUDE.md` no longer calls `openapi.yaml` a contract** (by hand,
   2026-09-25). Its opening paragraph now says `openapi.yaml` follows the backend
