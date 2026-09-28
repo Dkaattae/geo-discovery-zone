@@ -11,10 +11,21 @@ person who used to sit between the steps.
 | Role | Step | Writes | Never sees |
 |---|---|---|---|
 | `task-expander` | 2 | the brief, the branch, the draft PR | whether the current code passes |
-| `worker` | 3 | source, data, docs | the verification tests |
+| `worker` | 3 | source, data, docs, new tests | the verification tests |
 | `tester` | 4 | tests, the Verdict | — (starts cold, by design) |
+
+**Only the tester touches a test that existed before the task**, and only after a
+person approves it. When a task's change makes an existing test stale, the worker
+leaves it red and lists it in its Handoff. The tester raises a `## Test change
+request` in the brief and halts, and the push notifies you. Then you decide each
+row, or, unattended, the orchestrator stamps the header's `Test changes:` line
+unread, exactly as it stamps `Approved:`. A fresh tester makes the changes. An
+orchestrator's stamp makes the reviewer escalate, so the rows reach you before
+merge. The worker never deletes one, even when the brief
+asks. So the role that built the change is never the one that decides which
+checks on it can go. See `process-decisions.md` D-14.
 | `reviewer` | 6 | review, sweep, marks PR ready | — (never reviews its own work) |
-| `orchestrator` | — | `runs/`, the `Approved:` line | **all of the above's work** |
+| `orchestrator` | — | `runs/`, the `Approved:` line, the `Test changes:` stamp | **all of the above's work** |
 
 ## Where the human used to stand
 

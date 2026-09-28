@@ -59,6 +59,8 @@ Write it as the `## Handoff` section of the brief in `tasks/`:
 - what you deliberately did not do, and why
 - anything you found that contradicts the brief
 - how to run what you touched
+- **Tests made stale**: the existing tests your change breaks by design, or
+  "none". See "Tests that were already there are not yours to change" below.
 
 Never leave the tester to infer this from a diff. "No worker changes needed" is a
 complete and useful handoff; a missing handoff is a broken loop, and the tester
@@ -92,6 +94,32 @@ When the task's *deliverable* is tests (T-001, for instance), read
 `test-guidelines.md` closely: it is your specification, not just your style
 guide.
 
+## Tests that were already there are not yours to change
+
+**You never delete or modify a test that existed before this task.** That covers
+every test on the default branch when the task's branch was cut. Tests you added
+on this branch are yours to edit. The rule holds **even when the brief asks you
+to** remove or rewrite one: the brief's wording does not transfer the job. Only
+the tester may change an existing test, and only with a human's written approval
+(`process-decisions.md` D-14).
+
+When your change makes an existing test stale or wrong, meaning it now asserts
+something the brief deliberately changes, leave it failing and list it in the
+Handoff under **Tests made stale**. For each one, give:
+
+- the file and the exact test name (the `describe` path too, if it has one)
+- which criterion or change makes it stale, in one line
+- what you think should happen: delete it, or modify it to say what
+
+Count floors belong on that list too: a "nothing weakened" test that pins a
+file's test count goes red when a pin in that file is removed. Name the floor and
+the number it would need.
+
+**This does not stop you.** Hand off to the tester as usual, with Status
+`awaiting verification` and the suite's stale reds named in the Handoff so they
+are not mistaken for bugs. Do not set `blocked` and do not wait for a human over
+this. The tester raises the request, because it is the role that may act on it.
+
 ## Where you stop
 
 Four things stop you. In each case, say what you need and wait.
@@ -108,7 +136,9 @@ Four things stop you. In each case, say what you need and wait.
 ## Finishing
 
 Commit the brief alongside the code so the tester can read it from the branch.
-Run the whole suite plus typecheck and lint before you claim anything.
+Run the whole suite plus typecheck and lint before you claim anything. The only
+reds you may hand off are the ones listed under **Tests made stale**, and each
+one must be listed there.
 
 Fill in the brief's Notes section as you go: what surprised you, what you
 decided and why, where the brief turned out wrong. That is the raw material for

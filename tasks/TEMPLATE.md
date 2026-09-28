@@ -1,11 +1,12 @@
 # T-0xx — <title>
 
 **Status:** `expanding` → `awaiting approval` → `working` → `awaiting verification`
-→ `pass` / `fail` / `blocked` → `awaiting review` → `changes requested` →
-`merged` / `escalated`
+→ `pass` / `fail` / `blocked` / `test changes requested` → `awaiting review` →
+`changes requested` → `merged` / `escalated`
 **Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
 `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
+**Test changes:** `none` — the tester sets `requested` when it raises a Test change request; a person replaces it with `approved — <name>, <date>`, or the orchestrator with `approved — orchestrator, <date>, unattended run` (D-14)
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `task/T-0xx-slug` — **replace this with the branch actually used.**
 Created by `task-expander`, shared by every role, and this line is what they read
@@ -117,12 +118,39 @@ was built** — the tester starts cold and this is the only message it gets.
 - What was deliberately not done, and why
 - Anything found that contradicts the brief
 - How to run what was touched
+- **Tests made stale**: existing tests this change breaks by design (file, test
+  name, why, and the delete or modify you propose), or "none". The worker never
+  changes them itself.
 
 ## Verdict
 
 Written by `tester`: pass, fail or blocked, which criterion, what was observed,
 and — for a task whose deliverable is tests — which mutations were made and what
-each one did.
+each one did. It also names every existing test deleted or modified, with the
+reason and the approved Test change request row it came from.
+
+## Test change request
+
+Delete this section when no test that existed before the task needs to change.
+Written by `tester` **only**, and only for tests the task's own change has made
+stale or wrong (`.claude/agents/tester.md`, D-14). The worker lists candidates
+under **Tests made stale** in its Handoff; it never fills this in. Raising it
+sets `Status: test changes requested`, `Next step: human` and the header's
+`Test changes: requested`. **No test here changes until the header reads
+`approved`.** A person may decide row by row. An unattended orchestrator
+approves the whole request without reading it, the same way it stamps
+`Approved:`, and the reviewer then escalates the PR so a person sees it before
+merge.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/x.test.ts` › … › "…" | `abc1234`, T-0xx: … | criterion N changes … | delete / modify | new name, and exactly what it asserts | approved / refused — *(a person; blank under an orchestrator's approval)* |
+
+A count floor that drops because of a deletion above is its own **modify** row,
+lowered by exactly the approved deletions from that file.
+
+To approve by hand: fill in Decision on each row, set the header's `Test
+changes:` to `approved — <name>, <date>`, and set `Next step: tester`.
 
 ## Review
 

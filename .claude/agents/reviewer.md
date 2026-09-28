@@ -155,6 +155,13 @@ telling them. **Ready** means *this is routine, merge it when you get to it*.
 - no dependency was added;
 - no change to `openapi.yaml`, a database migration, or `geoquizdataplan.md`;
 - no text that a child will read — fun facts, prompts, explanations, reveals;
+- no test that existed before the task was deleted or modified, unless a
+  **person** approved it: the header's `Test changes:` names them, not
+  `orchestrator`. Under an orchestrator's stamp, escalate and copy the brief's
+  Test change request table into the PR body. The sweep deletes the brief, and
+  the PR is the only place left where a person can read those rows (D-14).
+  Whoever approved them, check that the diff's deleted and modified pre-existing
+  tests match the request's rows and come only from `tester` commits;
 - no product decision was settled along the way;
 - the diff is small enough that you can hold all of it at once, and nothing in it
   surprised you.
