@@ -1,7 +1,7 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `human`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
@@ -19,6 +19,7 @@ they differ, this brief's wording is authoritative.
 | task-expander | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW |
 | worker | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (same remote session id as the expander: the orchestrator spawned this worker as a subagent inside that session) |
 | worker (resumed after the human decision) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (again a subagent inside the orchestrator's session) |
+| tester | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
 
 ## Goal
 
@@ -370,6 +371,43 @@ cd ../frontend && bun test src/conventions-doc.test.ts
 ```
 
 ## Verdict
+
+**TL;DR: blocked, not tested. The harness classifier refused the tester too.**
+The second human decision sent the removal of the stale dependency pins to the
+tester. The harness's auto-mode classifier refused that edit in this session
+("Security Test Removal"), just as it refused the worker twice. It then also
+refused the next command, which only ran the format-check probes for criteria
+4–6 and 10. No agent can clear this. **A human has to delete the pins in an
+attended session, or add a permission rule.**
+
+- **Status:** `blocked`. **Next step:** `human`.
+- **Needed from a human (katechen150621@gmail.com / Dkaattae), one of:**
+  1. **Do the removal by hand.** Use the worker's "Removal to make" list in the
+     Handoff: nine tests plus the tenth in `climate-kid-verify.test.ts` and the
+     T-066 criterion 16 `describe` in `lint-gate.test.ts`. Also decide the three
+     test-count floors the Handoff describes (43→42, 53→52). Commit, then set
+     Next step to `tester`.
+  2. **Add a harness permission rule** that allows the tester to edit
+     `question-bank/src/*.test.ts` on this task, then re-run the tester.
+- **Not a criteria problem.** Nothing here goes to `task-expander`.
+
+**Independence.** This is an orchestrated run: `runs/T-071-question-bank-prettier.md`
+exists, and `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_01KmyHhDTUDHHNBeuqPkeiKW`)
+matches the expander and worker rows. So the Sessions-table check proves
+nothing. My independence rests only on being a freshly spawned subagent that
+never saw the worker's context. That is weaker than a separate session.
+
+**What was and was not established**
+
+| Item | State |
+|---|---|
+| Branch head matches the Handoff | Confirmed. `package.json` has `"prettier": "3.9.6"` and the `format:check` script. `.prettierrc` has the four settings. `ci.yml` has a `Format` step (`bun run format:check`, same `if:` as Typecheck/Lint/Test). `src/dependency-set.test.ts` exists. |
+| `bun install --frozen-lockfile` | Exit 0; no change to `bun.lock`. |
+| `bun test` in `question-bank/` at `2adae2c` | **1315 pass / 9 fail.** The 9 failures are the dependency pins the Handoff lists. The tenth (`climate-kid-verify.test.ts` "no dependencies block growth") passes today but would fail under criterion 11(b). |
+| Criteria 1–10, 12–15, 17–19 | **Not verified.** No tests written, no mutations run. The classifier refused the probe run before I started. |
+| Criteria 11, 16 | **Not met on the branch head.** They cannot be met until the pins are removed. That removal is now the human's to make. |
+
+The working tree was left clean: no partial removal, no probe files.
 
 ## Human decision — 2026-09-28
 
