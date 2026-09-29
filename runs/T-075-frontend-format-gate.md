@@ -1,7 +1,7 @@
 # T-075 — `frontend/` gets a pinned prettier and a CI format gate — run log
 
 **Task:** T-075 · **Branch:** `claude/dazzling-hawking-13k700` · **PR:** #66
-**Started:** 2026-09-29 · **Outcome:** in progress
+**Started:** 2026-09-29 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-09-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -122,3 +122,32 @@ Files:
 **For the reviewer:** the worker's point about `frontend/README.md` stands. Prettier flattened the unfenced code and diagram blocks in its source text. Criterion 15 allows this, and the handoff leaves the follow-up to the reviewer at the sweep.
 
 No test changes were requested and no source was edited.
+
+## Round 4 — reviewer — 2026-09-29
+`Next step` on entry: `reviewer` → on exit: `human`
+
+**T-075 is approved but not swept, and PR #66 is still draft. Status is `blocked` and Next step is `human`.** The permission classifier refused the sweep: deleting the brief and editing `tasks.md` and `PROGRESS.md` ("Modify Shared Resources"). I did not try another route to the same edits. The sweep has to go into the PR before it is marked ready, so I left it draft. **Needed:** a person applies the sweep written in the brief's `## Review` → "What is blocked", or re-runs the reviewer with that permission, then marks #66 ready. Nothing needs escalating; this would otherwise be a routine ready.
+
+**Pushed:** commit `e3a9b62` to `claude/dazzling-hawking-13k700`. I confirmed it is on origin after a fetch. It adds a reviewer row to Sessions, sets Status and Next step, and adds the `## Review` section. I also posted the verdict as a comment on PR #66: https://github.com/Dkaattae/geo-discovery-zone/pull/66#issuecomment-5899320889
+
+**Review**
+- **All roles' work is in the PR:** commits from the expander, worker and tester are all on the brief's branch, plus the orchestrator's run log under `runs/`.
+- **Each role stayed in its lane (D-7):** the expander touched only `tasks.md` and `tasks/`. The tester touched only its test file and the brief. The worker touched exactly the files the Constraints list.
+- **The work itself:** it matches the `question-bank` job's pattern and adds nothing beyond the brief. `conventions.md` and E-17 describe what shipped, and nothing was hidden: no `prettier-ignore`, and the tester's own red CI run was reported and fixed.
+- **Nothing blocks.** How I settled each open point:
+  - **`frontend/README.md` source flattened by prettier (worker's flag):** new task **T-076**, to fence those blocks and restore their content from `6d1b5df^`. Not a send-back, because criterion 15 required exactly prettier's output.
+  - **Where the Format step sits (worker's flag):** kept between Lint and Test, the same order as the `question-bank` job.
+  - **Lovable rewriting `AGENTS.md`:** added to **T-044**, which already covers Lovable.
+  - **The criterion-2 test hardcodes `3.9.6`:** noted only. The next prettier bump will need a Test change request for it.
+- **Routine-merge checklist:** every condition holds.
+  - **CI:** green in all six jobs on `5a0faba`. The run on head `c6c7d14`, which only changes `runs/`, was still in progress when I reviewed.
+  - **Dependencies:** none added. The prettier re-pin was approved in the brief.
+  - **Contract and content:** nothing touches `openapi.yaml`, a migration or the plan, and there is no text a child will read.
+  - **Tests and decisions:** `Test changes: none`, and no product decision was made.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks/T-075-frontend-format-gate.md (the `## Review` section holds the sweep to apply by hand)
+- /home/user/geo-discovery-zone/tasks.md and /home/user/geo-discovery-zone/PROGRESS.md (the sweep targets; unchanged)
+
+## Halted — 2026-09-29
+The reviewer approved but set `Status: blocked`, `Next step: human`: its sweep (delete the brief, edit `tasks.md` and `PROGRESS.md`) was refused by the permission classifier. A human has to apply the sweep in the brief's `## Review` → "What is blocked" (or re-run the reviewer with that permission), then mark PR #66 ready. The orchestrator does not apply it: that write is outside its role.
