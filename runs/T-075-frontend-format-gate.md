@@ -50,3 +50,42 @@ worker has not been spawned.
 
 ## Resumed — approved by Dkaattae — 2026-09-29
 Dkaattae approved the brief in the orchestrator's session ("approved, Dkaattae — go ahead with the worker"). `Approved:` line set to their name.
+
+## Round 2 — worker — 2026-09-29
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR:** T-075 is built as the brief describes and pushed to `claude/dazzling-hawking-13k700`. `git log origin/claude/dazzling-hawking-13k700 -1` shows `7d6d34f`. Status is `awaiting verification` and Next step is `tester`. No tests were made stale. I have not seen the CI result on the head commit (criterion 14): `gh` isn't installed here, so the tester has to check it on PR #66.
+
+**Commits**
+- **`6d1b5df` (formatting only, criteria 15–17):** reformats `frontend/AGENTS.md`, `frontend/README.md`, `frontend/src/routes/README.md` and `frontend/src/styles.css`. Each file is exactly the output of prettier 3.9.6 `--write` with `frontend/.prettierrc`. No `.ts`, `.tsx`, `.js` or `.mjs` file is touched.
+- **`7d6d34f` (everything else):**
+  - `frontend/package.json`: prettier `^3.7.3` → `3.9.6`, plus a new `"format:check": "prettier --check ."` script.
+  - `frontend/bun.lock`: only the specifier on line 80 changed. The lock already resolved 3.9.6.
+  - `.github/workflows/ci.yml`: a Format step in the `frontend` job, placed between Lint and Test, with the same `if:` as Typecheck/Lint/Test.
+  - `conventions.md`: the Formatting paragraph and a new line in the `# frontend` Commands block.
+  - `engineering-decisions.md`: E-17 appended right after E-16.
+  - The brief: Sessions row, Status, Handoff and Notes.
+
+**Checked here**
+- **Probes (criteria 5–7, 10):** `format:check` exits 0 on the branch. Each of the seven probe paths makes it exit 1 and name the probe, and after `bun run format` it exits 0 again. It also exits 0 with all six proxy variables pointed at a dead proxy.
+- **Lockfile:** running `bun install --lockfile-only` on a scratch copy rewrote `bun.lock` byte-for-byte, so the lock matches the new specifier.
+- **`frontend/` lint:** passes.
+- **`question-bank/`:** 1334 tests pass; typecheck, lint and format:check pass.
+
+**Blocked by the sandbox**
+- **Install fails:** `bun install --frozen-lockfile` in `frontend/` returns 403 on some tarballs (d3-*, `react-simple-maps`), as the brief predicted.
+- **Typecheck:** 4 errors, all in `UsMap.tsx`, all from `react-simple-maps` not being installed.
+- **Tests:** `bun test` gives 342 pass, 1 fail and 1 error, all from `screens.criteria.test.tsx` failing to import the same missing package. `main` fails the same way here.
+- **So CI is the evidence for criteria 14 and 18.**
+
+**Decision for the reviewer:** `frontend/README.md` has TypeScript interfaces and a "9. Screens" diagram that aren't in code fences. Prettier removed their indentation and scrambled the diagram's column alignment in the source file. The rendered page looked flat before too. Criterion 15 and the brief's "no prettier-ignore" rule left me no other option in that commit. I suggest a follow-up that wraps those blocks in code fences; the reviewer should add it to `tasks.md` at the sweep, or reject it. The Handoff has the details.
+
+**Session id:** the worker row shows `cse_018Nxo8DLTPmamkPxrMGkzpY`, which is also the expander's. The tester must run in a different session.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-075-frontend-format-gate.md
+- /home/user/geo-discovery-zone/frontend/package.json
+- /home/user/geo-discovery-zone/frontend/bun.lock
+- /home/user/geo-discovery-zone/.github/workflows/ci.yml
+- /home/user/geo-discovery-zone/conventions.md
+- /home/user/geo-discovery-zone/engineering-decisions.md
