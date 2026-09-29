@@ -1,7 +1,7 @@
 # T-075 — `frontend/` gets a pinned prettier and a CI format gate
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `blocked`
+**Next step:** `human` — the review approves the work, but the sweep was refused by the harness's permission classifier; a person applies it (see `## Review`, "What is blocked"), then marks PR #66 ready
 **Approved:** Dkaattae — 2026-09-29 (given in the orchestrator's session). See `runs/T-075-frontend-format-gate.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-075
@@ -19,6 +19,7 @@ draft until the reviewer approves it.
 | task-expander | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY |
 | worker | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY (same id as the expander's: the orchestrated run spawns both inside one harness session) |
 | tester | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY (same id again: orchestrated run, see `runs/T-075-frontend-format-gate.md`; independence is a freshly spawned agent's context, not a separate session — see Verdict) |
+| reviewer | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY (same id again, orchestrated run; freshly spawned agent) |
 
 ## Goal
 
@@ -362,6 +363,35 @@ for a fresh approval.
 **Tests made stale:** none. The worker listed none, and the full frontend and question-bank suites are green apart from the sandbox import failure above, which main shows too.
 
 **Noted for the reviewer, not a criterion:** the worker's point about `frontend/README.md` stands. Prettier flattened its unfenced interface, formula and "Screens" diagram blocks in the source text. It is allowed by criterion 15, and the owner is the reviewer (sweep).
+
+## Review
+
+**TL;DR — approved, not swept, PR left draft.** The work is good and inside the envelope (no escalation needed). The sweep (delete this brief, edit `tasks.md` and `PROGRESS.md`) was refused by the harness's permission classifier ("Modify Shared Resources"), so this session stopped short of it. PR #66 stays **draft** because `process.md` step 6 has the sweep ride in the PR before it is marked ready. **Needed: a person applies the sweep below (or re-runs the reviewer with that permission), then marks #66 ready.**
+
+**Every role's work is in the PR.** Sessions rows: expander, worker, tester; commits from each are on `claude/dazzling-hawking-13k700` (`33a6819`/`0b34fe4`; `6d1b5df`/`7d6d34f`; `121c2b7`/`5a0faba`/`52e2f09`), plus orchestrator run-log commits under `runs/`.
+
+**Lanes (D-7).** Expander touched only `tasks.md` and `tasks/`. Tester touched only `frontend/src/format-gate.criteria.test.ts` and this brief. Worker touched exactly the Constraints' file list. Orchestrator touched only `runs/` and the `Approved:` line.
+
+**Findings — none blocks.**
+
+1. **Fits the codebase.** `format`/`format:check` pair, the CI step, its comment and `if:` mirror the `question-bank` job exactly; E-17 follows E-16's shape. Nothing beyond the brief.
+2. **Docs true.** `conventions.md` Formatting and Commands, and E-17, describe what shipped. E-16's stale "`^3.7.3`" line is left, as Out of scope says.
+3. **Honesty intact.** No `prettier-ignore`, `.prettierignore` untouched, the reformat commit verified byte-for-byte by the tester, the tester's own red CI on `121c2b7` reported and fixed rather than hidden.
+4. **`frontend/README.md` source flattened (worker's flag) — decided: new task T-076**, not a send-back. It is the design brief the app is built to (root `README.md` links it), and prettier stripped the indentation of its unfenced interfaces/formula/states list and scrambled the "9. Screens" diagram in source. Criterion 15 required exactly prettier's output in that commit, so the worker could not do otherwise; the rendered page was already flat. Fix: fence those blocks with their `6d1b5df^` content. Nothing in the queue owns it, hence a new entry.
+5. **Format step between Lint and Test (worker's flag) — decided: keep.** Same order as the `question-bank` job.
+6. **Lovable/`AGENTS.md` risk — amend T-044**, which already owns Lovable, rather than a new task.
+7. **Criterion 2's test names `3.9.6` literally** (`format-gate.criteria.test.ts`), so a future prettier bump must edit that test through a Test change request. Matches the criterion text; noted in PROGRESS, no task.
+
+**Envelope (step 3):** tester pass; CI green on `5a0faba` in all six jobs (CI on `c6c7d14`, a `runs/`-only commit, was in progress at review time); no file outside Constraints except `runs/` (orchestrator log); no dependency added (re-pin approved in the brief); no `openapi.yaml`/migration/plan; no child-facing text; `Test changes: none`; no product decision. **Mark ready with no escalation note.**
+
+**What is blocked — the sweep, to apply by hand:**
+
+- Delete `tasks/T-075-frontend-format-gate.md`.
+- `tasks.md`: delete the `### T-075` entry; replace "What is missing from that picture is below." with a line saying nothing in section A is queued since T-075 (PR #66); add a **Formatting** row to section A's table (prettier pinned to one exact version in both packages, CI `format:check` in both; T-071/E-16, T-075/E-17); append a 2026-09-29 sweep sentence to "_Last swept_".
+- `tasks.md`: new **T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier · S · todo**, at the top of section F, per finding 4. Done when: each block fenced with its pre-`6d1b5df` content and `bun run format:check` exits 0.
+- `tasks.md` T-044: add that `frontend/AGENTS.md` is now under CI's frontend Format step, so a reconnected Lovable rewriting it unformatted turns CI red; settle there (reformat after sync, or ignore it with a line in E-17).
+- `PROGRESS.md` "Completed tasks", above T-071: T-075, PR #66 — prettier `^3.7.3` → `3.9.6` exact (one lockfile line), `format:check` over `.`, CI Format step, four files reformatted in `6d1b5df`, E-17. Where reality differed: survey held exactly; README flattening (T-076); tester's self-matching criterion-9 test fixed in `5a0faba`; criterion-2 test pins `3.9.6` literally; frontend suite evidenced by CI (sandbox 403).
+- `PROGRESS.md` "Done › Frontend": a "Formatted by prettier pinned exact (T-075, E-17)" bullet, like question-bank's.
 
 ## Notes
 
