@@ -185,7 +185,7 @@ describe("T-075 tester, criterion 7 — the writer and the check cover the same 
   }
 });
 
-describe("T-075 tester, criterion 9 — no prettier-ignore directive in tracked frontend files", () => {
+describe("T-075 tester, criterion 9 — no ignore directive for prettier in tracked frontend files", () => {
   test("no tracked file under frontend/ contains the directive, in any comment syntax", () => {
     // Assembled from halves so this file does not contain the string it scans for.
     const directive = "prettier" + "-ignore";
