@@ -126,7 +126,7 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-075 — `frontend/` has no format gate, and four of its files are already out of prettier · S · todo
+### T-075 — `frontend/` has no format gate, and four of its files are already out of prettier · S · doing
 **Depends on:** —
 **New 2026-09-29, from T-071's reviewer (PR #63).** T-071 gated `question-bank/`
 with an exact-pinned prettier and a CI Format step (E-16). `frontend/` has the same
@@ -145,6 +145,9 @@ child, so no content rule applies.
 **Done when:** `bun run format:check` in `frontend/` exits 0, CI's `frontend` job
 runs it, and `frontend/package.json` pins prettier to the same exact version as
 `question-bank/`.
+**Expanded 2026-09-29** into `tasks/T-075-frontend-format-gate.md`. The survey
+found `.ts`/`.tsx` already gated through `eslint-plugin-prettier` in the lint, and
+`bun.lock` already resolving `3.9.6`; the brief picks the glob `.` and adds E-17.
 
 ---
 
