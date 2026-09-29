@@ -127,20 +127,6 @@ const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "us-state-wy.json": "e56f1b303199dda19ae2bf6c747e233a004407c34141a961a62238a348376866",
 };
 
-/**
- * Criterion 10: the two dependency files, on the same default-branch commit.
- *
- * Re-pinned by T-066 (2026-09-28), which deliberately added a `lint` script and
- * the approved `oxlint` devDependency (engineering-decisions.md E-15). The
- * earlier digests were package.json 533ab267… and bun.lock d19f5717…. The check
- * still does its job: any later, unapproved change to either file fails it.
- */
-const DEPENDENCY_DIGESTS: Record<string, string> = {
-  "question-bank/package.json":
-    "f8e12840b74fc96958c2bf766874df6fad5f866dfc4ad1560b525615f4a69073",
-  "question-bank/bun.lock": "141ea52420838b63148f6175e105831efd13a5225d9abac8fbc5f56c4b0d07ab",
-};
-
 const digest = (text: string) => createHash("sha256").update(text).digest("hex");
 
 function git(args: string[]): string {
@@ -156,7 +142,8 @@ function trackedStateFileNames(): string[] {
     .filter(Boolean)
     .map((p) => p.split("/").pop() as string)
     .sort();
-  if (names.length !== 50) throw new Error(`expected 50 tracked state files, found ${names.length}`);
+  if (names.length !== 50)
+    throw new Error(`expected 50 tracked state files, found ${names.length}`);
   return names;
 }
 
@@ -191,7 +178,8 @@ const curatedByPostal = new Map(CURATED_US_STATES.map((s) => [s.postal, s] as co
 function allCropStrings(): { where: string; value: string }[] {
   const out: { where: string; value: string }[] = [];
   for (const state of CURATED_US_STATES) {
-    for (const crop of state.top_crops ?? []) out.push({ where: `curated:${state.postal}`, value: crop });
+    for (const crop of state.top_crops ?? [])
+      out.push({ where: `curated:${state.postal}`, value: crop });
   }
   for (const { file, entity } of trackedStates()) {
     for (const crop of cropsOf(entity)) out.push({ where: file, value: crop });
@@ -267,7 +255,9 @@ describe("T-015 tester, criterion 1 — one to three non-blank crops in every tr
     }
     const total = [...byLength.values()].reduce((sum, files) => sum + files.length, 0);
     expect(total).toBe(50);
-    expect([...byLength.keys()].sort()).toEqual([...byLength.keys()].filter((n) => n >= 1 && n <= 3).sort());
+    expect([...byLength.keys()].sort()).toEqual(
+      [...byLength.keys()].filter((n) => n >= 1 && n <= 3).sort(),
+    );
   });
 });
 
@@ -291,7 +281,9 @@ describe("T-015 tester, criterion 2 — register", () => {
   test("the register checks run over every string in both places, not an empty list", () => {
     const strings = allCropStrings();
     expect(strings.filter((s) => s.where.startsWith("curated:")).length).toBeGreaterThanOrEqual(50);
-    expect(strings.filter((s) => !s.where.startsWith("curated:")).length).toBeGreaterThanOrEqual(50);
+    expect(strings.filter((s) => !s.where.startsWith("curated:")).length).toBeGreaterThanOrEqual(
+      50,
+    );
   });
 });
 
@@ -366,7 +358,10 @@ describe("T-015 tester, criterion 5 — the curated table is the source", () => 
   test("each tracked file's array equals its curated entry's — same strings, same order", () => {
     for (const { file, postal, entity } of trackedStates()) {
       const curated = curatedByPostal.get(postal);
-      expect({ file, hasCuratedEntry: curated !== undefined }).toEqual({ file, hasCuratedEntry: true });
+      expect({ file, hasCuratedEntry: curated !== undefined }).toEqual({
+        file,
+        hasCuratedEntry: true,
+      });
       expect({ file, crops: cropsOf(entity) }).toEqual({
         file,
         crops: curated?.top_crops as string[],
@@ -380,9 +375,10 @@ describe("T-015 tester, criterion 5 — the curated table is the source", () => 
     expect(multi.length).toBeGreaterThan(0);
     for (const { file, postal, entity } of multi) {
       const reversed = [...(curatedByPostal.get(postal)?.top_crops ?? [])].reverse();
-      expect({ file, equalsReversed: JSON.stringify(cropsOf(entity)) === JSON.stringify(reversed) }).toEqual(
-        { file, equalsReversed: false },
-      );
+      expect({
+        file,
+        equalsReversed: JSON.stringify(cropsOf(entity)) === JSON.stringify(reversed),
+      }).toEqual({ file, equalsReversed: false });
     }
   });
 });
@@ -393,7 +389,8 @@ describe("T-015 tester, criterion 6 — two offline rebuilds agree with each oth
   test("top_crops survives two consecutive offline rebuilds byte-identically", () => {
     const first = rebuildOffline(BUILD_SCRIPT, names(), "t015-verify-a-");
     const second = rebuildOffline(BUILD_SCRIPT, names(), "t015-verify-b-");
-    const block = (raw: string) => raw.match(TOP_CROPS_BLOCK)?.[0] ?? raw.match(/^ {2}"top_crops": .*$/m)?.[0];
+    const block = (raw: string) =>
+      raw.match(TOP_CROPS_BLOCK)?.[0] ?? raw.match(/^ {2}"top_crops": .*$/m)?.[0];
     for (const file of names()) {
       const a = first.get(file) as string;
       const b = second.get(file) as string;
@@ -427,7 +424,8 @@ describe("T-015 tester, criterion 7 — no new network or environment surface", 
     const hosts = new Set<string>();
     for (const path of nonTestSources()) {
       const source = readFileSync(join(REPO, path), "utf8");
-      for (const match of source.matchAll(/https?:\/\/([a-zA-Z0-9.-]+)/g)) hosts.add(match[1] as string);
+      for (const match of source.matchAll(/https?:\/\/([a-zA-Z0-9.-]+)/g))
+        hosts.add(match[1] as string);
     }
     // `github.com` is the contact URL inside the User-Agent string
     // (`sparql.ts`), never a request target; `www.wikidata.org` is the entity
@@ -490,7 +488,10 @@ describe("T-015 tester, criterion 9 — the stale assertions are replaced, not d
     for (const path of suites()) {
       const lines = readFileSync(join(REPO, path), "utf8").split("\n");
       lines.forEach((line, i) => {
-        if (/topCrops:\s*\[\s*\]/.test(line) && !/parsed\[|restore|baseline/i.test(lines[i - 1] ?? "")) {
+        if (
+          /topCrops:\s*\[\s*\]/.test(line) &&
+          !/parsed\[|restore|baseline/i.test(lines[i - 1] ?? "")
+        ) {
           offenders.push({ path, line: line.trim() });
         }
       });
@@ -510,17 +511,9 @@ describe("T-015 tester, criterion 9 — the stale assertions are replaced, not d
         path,
         mentionsCurated: true,
       });
-      expect({ path, asserts: /top_crops is populated/.test(source) }).toEqual({ path, asserts: true });
-    }
-  });
-});
-
-describe("T-015 tester, criterion 10 — no new dependency", () => {
-  test("package.json and bun.lock are byte-identical to the default branch", () => {
-    for (const [path, expected] of Object.entries(DEPENDENCY_DIGESTS)) {
-      expect({ path, digest: digest(readFileSync(join(REPO, path), "utf8")) }).toEqual({
+      expect({ path, asserts: /top_crops is populated/.test(source) }).toEqual({
         path,
-        digest: expected,
+        asserts: true,
       });
     }
   });
@@ -675,7 +668,10 @@ describe("T-015 tester, criterion 14 — provenance recorded in two places", () 
   ] as const) {
     test(`${label} says the values are hand-picked by a human, not from a live source`, () => {
       const text = read();
-      expect({ label, handPicked: /hand-(picked|curated)/i.test(text) }).toEqual({ label, handPicked: true });
+      expect({ label, handPicked: /hand-(picked|curated)/i.test(text) }).toEqual({
+        label,
+        handPicked: true,
+      });
       expect({ label, notNass: /not[^.]{0,60}(USDA NASS|NASS-derived)/i.test(text) }).toEqual({
         label,
         notNass: true,
@@ -696,14 +692,20 @@ describe("T-015 tester, criterion 14 — provenance recorded in two places", () 
 
     test(`${label} says plant crops only, livestock tracked by T-068`, () => {
       const text = read();
-      expect({ label, plantOnly: /plant crops only|plant\b/i.test(text) }).toEqual({ label, plantOnly: true });
+      expect({ label, plantOnly: /plant crops only|plant\b/i.test(text) }).toEqual({
+        label,
+        plantOnly: true,
+      });
       expect({ label, t068: text.includes("T-068") }).toEqual({ label, t068: true });
     });
 
     test(`${label} says the curated strings are themselves the reviewed kid-facing text`, () => {
       const text = read();
       expect({ label, reviewed: /reviewed/i.test(text) }).toEqual({ label, reviewed: true });
-      expect({ label, contentRules: /CLAUDE\.md/.test(text) }).toEqual({ label, contentRules: true });
+      expect({ label, contentRules: /CLAUDE\.md/.test(text) }).toEqual({
+        label,
+        contentRules: true,
+      });
     });
   }
 

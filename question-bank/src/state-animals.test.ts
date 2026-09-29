@@ -232,7 +232,7 @@ describe("T-012 criterion 1 — every state is accounted for, and no blank is si
 });
 
 describe("T-012 criterion 2 — a blank is an absent key, not an empty one", () => {
-  test("no tracked file carries state_animal as an empty string, null or \"unknown\"", () => {
+  test('no tracked file carries state_animal as an empty string, null or "unknown"', () => {
     for (const { file, entity } of trackedStateFiles()) {
       const value = entity.state_animal;
       if (value === undefined) continue;
@@ -386,9 +386,7 @@ describe("T-012 criterion 5 — the text lives in the build input, not in built 
   });
 
   test("no tracked file carries a curated value belonging to a state that does not declare it", () => {
-    const declared = new Map(
-      CURATED_US_STATES.map((s) => [s.postal, s.state_animal] as const),
-    );
+    const declared = new Map(CURATED_US_STATES.map((s) => [s.postal, s.state_animal] as const));
     for (const { postal, file, value } of trackedAnimals()) {
       expect({ file, declaredByItsOwnRow: declared.get(postal) === value }).toEqual({
         file,
@@ -400,10 +398,12 @@ describe("T-012 criterion 5 — the text lives in the build input, not in built 
   test("the curated source file contains each shipped string verbatim", () => {
     const source = readFileSync(join(PKG, "src/curated/us-states.ts"), "utf8");
     for (const { file, value } of trackedAnimals()) {
-      expect({ file, verbatim: source.includes(`state_animal: ${JSON.stringify(value)}`) }).toEqual({
-        file,
-        verbatim: true,
-      });
+      expect({ file, verbatim: source.includes(`state_animal: ${JSON.stringify(value)}`) }).toEqual(
+        {
+          file,
+          verbatim: true,
+        },
+      );
     }
   });
 });
@@ -616,7 +616,10 @@ describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () 
         inRange: true,
       });
       expect(curatedCrops.has(postal)).toBe(true);
-      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curatedCrops.get(postal) as string[] });
+      expect({ file, topCrops: arr }).toEqual({
+        file,
+        topCrops: curatedCrops.get(postal) as string[],
+      });
     }
   });
 
@@ -627,13 +630,7 @@ describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () 
     expect(Object.keys(index).sort()).toEqual(["count", "entities"]);
     expect(index.count).toBe(50);
     for (const entry of index.entities) {
-      expect(Object.keys(entry).sort()).toEqual([
-        "geometry_id",
-        "id",
-        "name",
-        "scope",
-        "type",
-      ]);
+      expect(Object.keys(entry).sort()).toEqual(["geometry_id", "id", "name", "scope", "type"]);
     }
   });
 
@@ -744,21 +741,6 @@ describe("T-012 criterion 11 — nothing unreviewed, live or new is committed", 
       p.endsWith(".review.json"),
     );
     expect(reviews).toEqual([]);
-  });
-
-  test("question-bank/package.json still declares no runtime dependency and the same two devDependencies", () => {
-    const pkg = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    expect(pkg.dependencies ?? {}).toEqual({});
-    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
-    // covered (engineering-decisions.md E-15). Anything else still fails.
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
-      "@types/bun",
-      "oxlint",
-      "typescript",
-    ]);
   });
 
   test("no test file in question-bank/src mocks fetch or issues a request", () => {

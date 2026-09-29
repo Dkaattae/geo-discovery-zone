@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join, relative } from "node:path";
 import { DEAD_PROXY } from "./offline-rebuild";
 
@@ -55,8 +63,6 @@ afterEach(() => {
 
 function packageJson(): {
   scripts: { lint: string };
-  devDependencies?: Record<string, string>;
-  dependencies?: Record<string, string>;
   trustedDependencies?: unknown;
   overrides?: unknown;
   resolutions?: unknown;
@@ -96,7 +102,11 @@ function stripJsonComments(text: string): string {
 
 const OXLINTRC = join(QB_ROOT, ".oxlintrc.json");
 
-function oxlintConfig(): { rules?: Record<string, unknown>; categories?: Record<string, unknown>; overrides?: { rules?: Record<string, unknown> }[] } {
+function oxlintConfig(): {
+  rules?: Record<string, unknown>;
+  categories?: Record<string, unknown>;
+  overrides?: { rules?: Record<string, unknown> }[];
+} {
   if (!existsSync(OXLINTRC)) return {};
   return JSON.parse(stripJsonComments(readFileSync(OXLINTRC, "utf8")));
 }
@@ -161,7 +171,9 @@ describe("T-066 criterion 3 — the linter is the locally installed oxlint, not 
   });
 
   test("the oxlint the script runs is the one in question-bank/node_modules", () => {
-    const installed = JSON.parse(readFileSync(join(QB_ROOT, "node_modules/oxlint/package.json"), "utf8")) as {
+    const installed = JSON.parse(
+      readFileSync(join(QB_ROOT, "node_modules/oxlint/package.json"), "utf8"),
+    ) as {
       version: string;
     };
     // `bun run lint --version` appends --version to the script's own oxlint
@@ -197,9 +209,10 @@ describe("T-066 criterion 6 — a warning alone fails the script", () => {
 
   test("the committed config does not configure eqeqeq", () => {
     const config = oxlintConfig();
-    const configured = [config.rules ?? {}, ...(config.overrides ?? []).map((o) => o.rules ?? {})].some((rules) =>
-      Object.keys(rules).some((key) => key === RULE || key.endsWith(`/${RULE}`)),
-    );
+    const configured = [
+      config.rules ?? {},
+      ...(config.overrides ?? []).map((o) => o.rules ?? {}),
+    ].some((rules) => Object.keys(rules).some((key) => key === RULE || key.endsWith(`/${RULE}`)));
     expect(configured).toBe(false);
     expect(packageJson().scripts.lint).not.toContain(RULE);
   });
@@ -239,7 +252,12 @@ describe("T-066 criterion 8 — formatting is not this gate's job", () => {
     const longLine = `export const longLine = '${"x".repeat(150)}'`;
     writeProbe(
       "src/__probe_t066_format.ts",
-      ["export const single = 'quoted'", "export function   spaced( a:number ){return a+1}", longLine, ""].join("\n"),
+      [
+        "export const single = 'quoted'",
+        "export function   spaced( a:number ){return a+1}",
+        longLine,
+        "",
+      ].join("\n"),
     );
     const { exitCode, output } = runLint();
     if (exitCode !== 0) console.error(output);
@@ -250,7 +268,9 @@ describe("T-066 criterion 8 — formatting is not this gate's job", () => {
 describe("T-066 criterion 10 — every lint-suppression comment under src/ states why", () => {
   test("each eslint-/oxlint-disable directive has a ` -- ` reason or a comment line directly above", () => {
     // Built by concatenation so this file does not match its own pattern.
-    const directive = new RegExp("(?://|/\\*)\\s*(?:es|ox)lint-" + "disable(?:-next-line|-line)?\\b");
+    const directive = new RegExp(
+      "(?://|/\\*)\\s*(?:es|ox)lint-" + "disable(?:-next-line|-line)?\\b",
+    );
     const unexplained: string[] = [];
     for (const file of tsFilesUnder(join(QB_ROOT, "src"))) {
       const lines = readFileSync(file, "utf8").split("\n");
@@ -260,7 +280,10 @@ describe("T-066 criterion 10 — every lint-suppression comment under src/ state
         const rest = line.slice(match.index + match[0].length);
         if (/\s--\s+\S/.test(rest)) return;
         const above = (lines[i - 1] ?? "").trim();
-        const aboveIsReason = /^(\/\/|\/\*|\*)/.test(above) && !directive.test(above) && above.replace(/^(\/\/|\/\*|\*)\s*/, "").length > 0;
+        const aboveIsReason =
+          /^(\/\/|\/\*|\*)/.test(above) &&
+          !directive.test(above) &&
+          above.replace(/^(\/\/|\/\*|\*)\s*/, "").length > 0;
         if (aboveIsReason) return;
         unexplained.push(`${relative(QB_ROOT, file)}:${i + 1}: ${line.trim()}`);
       });
@@ -343,32 +366,19 @@ describe("T-066 criterion 15 — the gate runs with the network fenced off", () 
     // The repo's one copy of the dead-loopback proxy (T-014 criterion 16 pins
     // it to offline-rebuild.ts), checked here against the criterion's wording.
     const dead = ["http:/", ["127", "0", "0", "1"].join(".") + ":1"].join("/");
-    expect(Object.keys(DEAD_PROXY).sort()).toEqual(["ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "all_proxy", "http_proxy", "https_proxy"]);
+    expect(Object.keys(DEAD_PROXY).sort()).toEqual([
+      "ALL_PROXY",
+      "HTTPS_PROXY",
+      "HTTP_PROXY",
+      "all_proxy",
+      "http_proxy",
+      "https_proxy",
+    ]);
     for (const value of Object.values(DEAD_PROXY) as string[]) expect(value).toBe(dead);
     const env = { ...process.env, ...DEAD_PROXY };
     const { exitCode, output } = runLint([], env);
     if (exitCode !== 0) console.error(output);
     expect(exitCode).toBe(0);
-  });
-});
-
-describe("T-066 criterion 16 — the only package added is oxlint, as a devDependency", () => {
-  test("oxlint is in devDependencies; there is no dependencies key", () => {
-    const pkg = packageJson();
-    expect(pkg.devDependencies?.["oxlint"]).toBeDefined();
-    expect(pkg.dependencies).toBeUndefined();
-  });
-
-  test("none of the excluded packages is present", () => {
-    const pkg = packageJson();
-    const names = Object.keys({ ...pkg.devDependencies, ...pkg.dependencies });
-    const forbidden = names.filter(
-      (name) =>
-        ["eslint", "@eslint/js", "typescript-eslint", "globals", "oxlint-tsgolint", "biome", "@biomejs/biome"].includes(name) ||
-        name.includes("prettier") ||
-        name.startsWith("@oxlint/"),
-    );
-    expect(forbidden).toEqual([]);
   });
 });
 
@@ -389,7 +399,8 @@ describe("T-066 criterion 20 — no eslint config exists in question-bank/", () 
         if (name === "node_modules" || name === ".git") continue;
         const full = join(dir, name);
         if (statSync(full).isDirectory()) walk(full);
-        else if (name.startsWith("eslint.config.") || name.startsWith(".eslintrc")) found.push(relative(QB_ROOT, full));
+        else if (name.startsWith("eslint.config.") || name.startsWith(".eslintrc"))
+          found.push(relative(QB_ROOT, full));
       }
     };
     walk(QB_ROOT);
@@ -419,14 +430,22 @@ describe("T-066 criteria 21-22 — written where a brief writer will see it", ()
 describe("T-066 criterion 23 — no doc says or implies question-bank has no lint", () => {
   test("conventions.md, README.md, question-bank/README.md, test-guidelines.md and ci.yml", () => {
     const hits: string[] = [];
-    for (const file of ["conventions.md", "README.md", "question-bank/README.md", "test-guidelines.md", ".github/workflows/ci.yml"]) {
+    for (const file of [
+      "conventions.md",
+      "README.md",
+      "question-bank/README.md",
+      "test-guidelines.md",
+      ".github/workflows/ci.yml",
+    ]) {
       const path = join(REPO_ROOT, file);
       if (!existsSync(path)) continue;
       readFileSync(path, "utf8")
         .split("\n")
         .forEach((line, i) => {
           if (
-            /no lint\b|no linter|no eslint|not linted|without (a )?lint|lint(ing)? is not (run|set up)|has no `?lint/i.test(line) ||
+            /no lint\b|no linter|no eslint|not linted|without (a )?lint|lint(ing)? is not (run|set up)|has no `?lint/i.test(
+              line,
+            ) ||
             /question-bank \(typecheck, test\)/.test(line)
           ) {
             hits.push(`${file}:${i + 1}: ${line.trim()}`);
@@ -460,7 +479,9 @@ describe("T-066 criterion 24 — engineering-decisions.md E-15", () => {
     expect(entry).toMatch(/typescript-eslint/);
     expect(entry).toMatch(/(TS|typescript`?)\s*`?\^?7/i);
     expect(entry).toMatch(/throw/i);
-    expect(entry).toMatch(/oxlint[\s\S]*(not|never)[\s\S]*`?typescript`? package|does not depend on the `?typescript`? package/i);
+    expect(entry).toMatch(
+      /oxlint[\s\S]*(not|never)[\s\S]*`?typescript`? package|does not depend on the `?typescript`? package/i,
+    );
   });
 
   test("records what was rejected: side-by-side TS 6/7, downgrading TS, waiting", () => {

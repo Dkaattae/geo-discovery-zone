@@ -350,7 +350,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "19",
     region: "Upper Midwest",
     state_animal: "American goldfinch",
-    climate_kid: "hot humid summers and freezing cold winters, with strong winds across the open fields",
+    climate_kid:
+      "hot humid summers and freezing cold winters, with strong winds across the open fields",
     top_crops: ["corn", "soybeans"],
     fun_facts: [
       {
@@ -551,7 +552,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "31",
     region: "Great Plains",
     state_animal: "White-tailed deer",
-    climate_kid: "hot windy summers and freezing cold winters, with sudden storms across the open plains",
+    climate_kid:
+      "hot windy summers and freezing cold winters, with sudden storms across the open plains",
     landmark: "Chimney Rock",
     top_crops: ["corn", "soybeans"],
     fun_facts: [
@@ -636,7 +638,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "36",
     region: "Northeast",
     state_animal: "Beaver",
-    climate_kid: "cold snowy winters, heaviest near the lakes and mountains, and warm humid summers",
+    climate_kid:
+      "cold snowy winters, heaviest near the lakes and mountains, and warm humid summers",
     landmark: "Statue of Liberty",
     top_crops: ["apples", "grapes", "maple syrup"],
     fun_facts: [
@@ -923,7 +926,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "55",
     region: "Great Lakes",
     state_animal: "American badger",
-    climate_kid: "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
+    climate_kid:
+      "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
     landmark: "Lambeau Field",
     top_crops: ["cranberries", "corn"],
     fun_facts: [
@@ -940,7 +944,8 @@ export const CURATED_US_STATES: CuratedState[] = [
     fips: "56",
     region: "Mountain West",
     state_animal: "American bison",
-    climate_kid: "cold snowy winters high in the mountains, and hot dry summers down in the valleys below",
+    climate_kid:
+      "cold snowy winters high in the mountains, and hot dry summers down in the valleys below",
     landmark: "Yellowstone National Park",
     top_crops: ["hay", "sugar beets"],
     fun_facts: [

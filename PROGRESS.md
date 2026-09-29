@@ -109,7 +109,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   Alaska first by area, Rhode Island fiftieth.
 - **Linted by oxlint, not eslint** (T-066, E-15): `bun run lint` fails on any
   warning, locally and in CI. typescript-eslint cannot load against the
-  package's `typescript@7`. Formatting is still ungated (T-071).
+  package's `typescript@7`.
+- **Formatted by prettier pinned exact** (T-071, E-16): `bun run format:check`
+  over `src/**/*.ts`, locally and as CI's Format step; JSON under `data/`,
+  `sample-data/` and `src/fixtures/` is outside the glob. The approved dependency
+  set is pinned in one file, `src/dependency-set.test.ts`, not nine.
 - Curated override table for the things Wikidata is bad at: FIPS join keys,
   regions, animals, kid-facing climate phrasing (§1.7, §1.9). Wikidata's FIPS is
   cross-checked; mismatches warn rather than silently win.
@@ -314,6 +318,20 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it**
+  (PR #63, 2026-09-29). `prettier` `3.9.6` exact, `.prettierrc` with the four
+  documented settings, `format`/`format:check` scripts, one formatting-only
+  commit (`6536170`, 16 files, byte-identical to the pinned output) and a CI
+  Format step. Nine hand-written dependency-set pins became one file,
+  `src/dependency-set.test.ts` (**E-16**). **Where reality differed:** the survey
+  missed a tenth pin (`climate-kid-verify`'s "no dependencies block growth") and
+  six count floors that the deletions pushed below; all sixteen test edits went
+  through a Test change request. The harness's permission classifier refused the
+  deletions from the worker, the orchestrator and two subagent testers (six
+  rounds), so a person had them applied in their own session (`e478c8f`) and
+  approved them in an attended tester session — the case that produced P-12.
+  Frontend has the same drift in four non-`.ts` files and no gate: T-075.
 
 - **T-066 — `question-bank/` gets oxlint and a `lint` gate** (PR #62,
   2026-09-28). `bun run lint` runs the local oxlint over `src/` (tests included)

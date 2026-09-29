@@ -126,57 +126,25 @@ place, so nobody rebuilds it:
 
 What is missing from that picture is below.
 
-### T-071 — `question-bank/` is 22 files out of prettier, and nothing gates it · S · todo
+### T-075 — `frontend/` has no format gate, and four of its files are already out of prettier · S · todo
 **Depends on:** —
-**New 2026-09-18, from T-017's reviewer (PR #49).** `bunx prettier --check
-"src/**/*.ts"` in `question-bank/` flags **22 files**, including ones no recent
-task has touched (`build.ts`, `sparql.ts`, `normalize.ts`). It is pre-existing
-drift, not any one task's doing — but `question-bank`'s CI job runs typecheck,
-lint and test, and its linter is oxlint with no formatting rules (T-066, E-15), so
-nothing catches it and nothing stops it growing.
-
-The cost is already being paid task by task: T-017's worker deliberately did not
-run `prettier --write` on the files it edited, because doing so reformatted
-unrelated pre-existing lines well beyond that task's diff and would have made a
-content-curation PR unreviewable. That was the right call, and it is the wrong
-call to keep making — every future task in this package faces the same choice.
-
-Fix it in one commit that is *only* the reformat, then add the gate so the next
-one cannot accumulate. Check `frontend/` and the repo root for the same drift
-while you are there, and check whether the prettier version is pinned — an
-unpinned formatter is how this happens.
-**Done when:** `bunx prettier --check` is clean in `question-bank/`, the
-formatter version is pinned, and CI fails on a badly-formatted file.
-**Skipped by the expander, 2026-09-22:** "the formatter version is pinned" and
-"CI fails on a badly-formatted file" both require `prettier` as a devDependency
-of `question-bank/` — `bunx` resolves from the network, and that job installs
-behind the dead proxy (T-005), so an unpinned `bunx prettier` cannot run there at
-all. Adding it is a dependency decision reserved for Dkaattae (`CLAUDE.md`
-"Packages"), the same wall T-066 is waiting at, and prettier already being a
-`frontend/` devDependency does not settle it. Unblocks the moment that call is
-recorded here; T-065 was taken instead. **Passed over again 2026-09-24** for the
-same reason; T-074 was taken.
-**Answered — katechen150621@gmail.com, 2026-09-25, in chat:** "allow prettier". `prettier` may be added
-as a pinned devDependency of `question-bank/`, lockfile committed with it. The
-dependency decision this entry was waiting on is made; the task is unblocked.
-**Amended 2026-09-28 by T-066's reviewer (PR #62).** Adding `prettier` will turn
-**eight existing tests red**, because they pin `question-bank/`'s dependency set
-by hand. T-066 hit all eight when it added `oxlint`, and edited each:
-- **Key-set pins** ("exactly `@types/bun`, `oxlint`, `typescript`") in
-  `climate-kid-verify`, `climate-kid`, `landmarks-verify`, `landmarks`,
-  `state-animals` and `region-vocabulary` (`.test.ts`).
-- **`top-crops-verify.test.ts` `DEPENDENCY_DIGESTS`**: sha256 of `package.json`
-  and `bun.lock`, re-pinned by T-066.
-- **`highest-point-verify.test.ts`**: compares the dependency blocks with
-  `origin/main`'s and allows `oxlint` by name beyond them. Once PR #62 merges,
-  that name is redundant.
-List all eight in this brief's survey. Then decide, and say which in the brief:
-edit all eight again, or replace them with one shared "the approved dependency
-set" check that the next addition changes in one place. The second is the better
-buy if it stays small.
-Also: `question-bank/`'s lint is **oxlint** (E-15), not eslint, so
-`eslint-config-prettier` has no role here, and oxlint's default rules do not
-conflict with prettier (T-066 criterion 8 checked a mis-formatted probe lints clean).
+**New 2026-09-29, from T-071's reviewer (PR #63).** T-071 gated `question-bank/`
+with an exact-pinned prettier and a CI Format step (E-16). `frontend/` has the same
+four settings in its `.prettierrc` and a `format` (write) script, but **no CI format
+check**, and its prettier is a range (`^3.7.3`, locked at `3.9.6`). T-071's worker
+ran `prettier --check .` in `frontend/` once: it flags **4 files** — `AGENTS.md`,
+`README.md`, `src/routes/README.md`, `src/styles.css`. No `.ts`/`.tsx` file is
+flagged, so this is small today, and it is exactly how `question-bank/` got to 22.
+Decide the glob (`.` including Markdown, or source only), reformat what it covers in
+one formatting-only commit, add a `format:check` script and a Format step to the
+`frontend` job with the same `if:` as its siblings, and pin prettier exact to match
+`question-bank/` — E-16's "Revisit when" asks for the two versions to be aligned
+deliberately at this point. Re-pinning an existing dependency is not adding one, but
+say so in the brief. Frontend Markdown is read by people and agents, never by a
+child, so no content rule applies.
+**Done when:** `bun run format:check` in `frontend/` exits 0, CI's `frontend` job
+runs it, and `frontend/package.json` pins prettier to the same exact version as
+`question-bank/`.
 
 ---
 
@@ -357,16 +325,18 @@ stdout from the existing harness would make that a real test and costs a few lin
 reasoning in `engineering-decisions.md` **E-11**. Nothing here is left to do, and
 E-11 is the precedent for how (a) should be written up whichever way it goes. Two
 related things stayed out of T-072's scope and belong to this entry:
-- **`highest-point-verify.test.ts:582-584`** (`if (base === null) return;`) —
-  another silent-`else` git path in this package. Not a pinned commit, so it is
-  not red anywhere, but it is a check that turns itself off on a shallow clone.
-- **`climate-kid.test.ts:538`'s `expect(status === 0 || status === 1).toBe(true)`**
+- ~~**`highest-point-verify.test.ts:582-584`** (`if (base === null) return;`)~~ —
+  **gone with T-071 (PR #63)**: it was the early return inside that file's
+  dependency-pin test, which T-071 deleted in favour of `dependency-set.test.ts`
+  (E-16), which spawns no `git`.
+- **`climate-kid.test.ts:598`'s `expect(status === 0 || status === 1).toBe(true)`**
   in `"sample-data/us-state-co.json was not touched by this task"` — takes no
   revision, so it needs no history and does not have T-072's defect, but the
   disjunction would still swallow a broken `git`.
 **Amended 2026-09-22 by T-073's reviewer (PR #56).** T-073 deleted the fourth and
 last red-on-`main` instance and recorded it as `engineering-decisions.md` **E-12**,
-so **those two bullets are the whole of what remains of this family** — neither is
+so **those two bullets were the whole of what remains of this family** (one is
+now gone, above) — neither is
 red anywhere, both only turn themselves off. Two things landed that make them
 cheaper to close than they were:
 - **`frontend/src/git-baseline-guard.criteria.test.ts` is the shape to extend, not

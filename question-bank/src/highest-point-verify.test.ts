@@ -135,7 +135,8 @@ const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "us-state-wi.json": "cee9689d0071eebcdbd45ba1a84b0d8c0fc7ed7678225adbeaa5183ed4046bb7",
   "us-state-wv.json": "63d390aee0a350e51f3bc07ad4cb6bd29fdeffb0048ef245497a0fa293b4813d",
   "us-state-wy.json": "4c2aff03fe94762eac25f355dd73567e13e5b08278ca307518e7d30c92cf1507",
-  "sample-data/us-state-co.json": "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
+  "sample-data/us-state-co.json":
+    "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
 };
 
 /** T-017: the region field is dropped before hashing — see DEFAULT_BRANCH_DIGESTS above. */
@@ -476,7 +477,14 @@ describe("T-016 tester, criterion 10 — the pinned digest guards were not weake
             /replace\(\s*ALASKA_HIGHEST_POINT_LINE/.test(line),
         );
       for (const line of removals) {
-        expect({ guard, line, gatedOnAlaska: line.includes("us-state-ak.json") || /file === "us-state-ak/.test(line) || /^\s*file === /.test(line) }).toEqual({
+        expect({
+          guard,
+          line,
+          gatedOnAlaska:
+            line.includes("us-state-ak.json") ||
+            /file === "us-state-ak/.test(line) ||
+            /^\s*file === /.test(line),
+        }).toEqual({
           guard,
           line,
           gatedOnAlaska: true,
@@ -579,34 +587,6 @@ describe("T-016 tester, criterion 13 — nothing this task added reaches the net
 });
 
 describe("T-016 tester, criteria 14 and 15 — no dependency, nothing out of scope", () => {
-  test("question-bank/package.json lists exactly the dependencies the default branch listed", () => {
-    const show = (path: string) => {
-      const proc = Bun.spawnSync(["git", "show", `origin/main:${path}`], { cwd: REPO });
-      if (proc.exitCode !== 0) return null;
-      return proc.stdout.toString();
-    };
-    const base = show("question-bank/package.json");
-    if (base === null) return; // shallow clone (CI): nothing to compare against.
-    // T-066 (2026-09-28) changed package.json deliberately: a `lint` script and
-    // the approved `oxlint` devDependency (engineering-decisions.md E-15). A
-    // byte comparison against origin/main would fail on that branch until it
-    // merged, so this compares the dependency blocks instead, allowing exactly
-    // `oxlint` beyond what the default branch lists. It holds before and after
-    // T-066 merges; any other dependency still fails it.
-    type Manifest = {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    const baseline = JSON.parse(base) as Manifest;
-    const now = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as Manifest;
-    expect(now.dependencies).toEqual(baseline.dependencies);
-    const allowed = new Set([...Object.keys(baseline.devDependencies ?? {}), "oxlint"]);
-    expect(Object.keys(now.devDependencies ?? {}).filter((k) => !allowed.has(k))).toEqual([]);
-    for (const [name, range] of Object.entries(baseline.devDependencies ?? {})) {
-      expect({ name, range: now.devDependencies?.[name] }).toEqual({ name, range });
-    }
-  });
-
   // Addendum, 2026-09-18: criterion 15 originally meant "this task does not
   // touch `landmark`", which held for T-016 itself. Dkaattae's subsequent,
   // separate decision on PR #47 (Denali → Mount McKinley, the call T-013's

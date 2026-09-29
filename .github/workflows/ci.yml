@@ -117,10 +117,17 @@ jobs:
 
       # oxlint, not eslint (engineering-decisions.md E-15). The warning limit
       # lives in the `lint` script (--deny-warnings), not here, so a local run
-      # and CI give the same verdict (E-4). Formatting is not checked yet (T-071).
+      # and CI give the same verdict (E-4).
       - name: Lint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run lint
+
+      # Prettier, pinned to an exact version in package.json (E-16). The file
+      # glob lives in the `format:check` script, not here, so a local run and CI
+      # check the same files (E-4).
+      - name: Format
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run format:check
 
       # No network in tests, ever (test-guidelines.md) — see the identical guard
       # on frontend's Test step above, including why it is `export`ed in the

@@ -545,7 +545,10 @@ describe("T-013 criterion 9 — nothing but landmark moves in the bank (tree-sha
 
   test("all 50 tracked files still carry a non-empty state_animal", () => {
     for (const { file, entity } of trackedStateFiles()) {
-      expect({ file, hasAnimal: typeof entity.state_animal === "string" && entity.state_animal.length > 0 }).toEqual({
+      expect({
+        file,
+        hasAnimal: typeof entity.state_animal === "string" && entity.state_animal.length > 0,
+      }).toEqual({
         file,
         hasAnimal: true,
       });
@@ -563,7 +566,10 @@ describe("T-013 criterion 9 — nothing but landmark moves in the bank (tree-sha
         inRange: true,
       });
       expect(curatedCrops.has(postal)).toBe(true);
-      expect({ file, topCrops: arr }).toEqual({ file, topCrops: curatedCrops.get(postal) as string[] });
+      expect({ file, topCrops: arr }).toEqual({
+        file,
+        topCrops: curatedCrops.get(postal) as string[],
+      });
     }
   });
 
@@ -616,7 +622,9 @@ describe("T-013 criterion 10 — Colorado's landmark is unchanged", () => {
   });
 
   test("the tracked Colorado file carries exactly Rocky Mountain National Park", () => {
-    const entity = JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as TrackedEntity;
+    const entity = JSON.parse(
+      readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
+    ) as TrackedEntity;
     expect(entity.landmark).toBe("Rocky Mountain National Park");
   });
 });
@@ -701,21 +709,6 @@ describe("T-013 criterion 13 — nothing unreviewed, live or new is committed", 
     expect(reviews).toEqual([]);
   });
 
-  test("question-bank/package.json still declares no runtime dependency and the same two devDependencies", () => {
-    const pkg = JSON.parse(readFileSync(join(PKG, "package.json"), "utf8")) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    expect(pkg.dependencies ?? {}).toEqual({});
-    // T-066 (2026-09-28) added `oxlint`, the one devDependency its approval
-    // covered (engineering-decisions.md E-15). Anything else still fails.
-    expect(Object.keys(pkg.devDependencies ?? {}).sort()).toEqual([
-      "@types/bun",
-      "oxlint",
-      "typescript",
-    ]);
-  });
-
   test("no test file in question-bank/src mocks fetch or issues a request", () => {
     const tests = trackedUnder("question-bank/src").filter((p) => p.endsWith(".test.ts"));
     expect(tests.length).toBeGreaterThan(0);
@@ -757,7 +750,8 @@ describe("T-013 criterion 14 — nothing already verified is weakened", () => {
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     "normalize.test.ts": { tests: 14, expects: 31 },
-    "state-animals.test.ts": { tests: 43, expects: 73 },
+    // T-071 row 6 deleted one dependency-pin test from this file (E-16).
+    "state-animals.test.ts": { tests: 42, expects: 73 },
   };
 
   for (const [file, counts] of Object.entries(PINNED)) {
