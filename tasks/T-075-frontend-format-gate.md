@@ -8,8 +8,8 @@
 **Branch:** `claude/dazzling-hawking-13k700` — assigned to the expander's session
 by the harness, branched from `origin/main` at `f3af87b`. Every later role pushes
 here (`CLAUDE.md` "Branches").
-**PR:** opened draft at expand time, built from the branch above — number in the
-Notes below once known.
+**PR:** #66, opened draft at expand time, built from the branch above. It stays
+draft until the reviewer approves it.
 **Fault:**
 
 **Sessions:**
@@ -254,4 +254,4 @@ for a fresh approval.
 
 ## Notes
 
-- Expanded 2026-09-29 from `tasks.md` T-075 at `f3af87b`.
+- Expanded 2026-09-29 from `tasks.md` T-075 at `f3af87b`. Draft PR #66.
