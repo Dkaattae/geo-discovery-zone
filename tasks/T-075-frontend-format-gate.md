@@ -1,7 +1,7 @@
 # T-075 — `frontend/` gets a pinned prettier and a CI format gate
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-09-29 (given in the orchestrator's session). See `runs/T-075-frontend-format-gate.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-075
@@ -17,6 +17,7 @@ draft until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY |
+| worker | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY (same id as the expander's: the orchestrated run spawns both inside one harness session) |
 
 ## Goal
 
@@ -250,8 +251,64 @@ for a fresh approval.
 
 ## Handoff
 
+**TL;DR — built as briefed, no deviations.** prettier pinned to `3.9.6` exact, `format:check` = `prettier --check .`, a Format step in CI's `frontend` job, the four drifted files reformatted in their own commit, `conventions.md` and E-17 written. **Tests made stale: none.** Frontend suite could only be run partially in this sandbox (install 403s, as the brief predicted); CI on the head commit is the evidence for criteria 14 and 18.
+
+**Commits (on `claude/dazzling-hawking-13k700`)**
+
+- **`6d1b5df` — formatting only (criteria 15–17).** `frontend/AGENTS.md`, `frontend/README.md`, `frontend/src/routes/README.md`, `frontend/src/styles.css`, each exactly `prettier --write` 3.9.6 output with `frontend/.prettierrc`. No other file. No `.ts/.tsx/.js/.mjs`.
+- **The following worker commit — everything else:**
+  - `frontend/package.json` — `devDependencies.prettier` `^3.7.3` → `3.9.6`; new script `"format:check": "prettier --check ."`. Nothing else.
+  - `frontend/bun.lock` — line 80 workspace specifier `^3.7.3` → `3.9.6`. The only changed line; resolution at line 866 was already `prettier@3.9.6`.
+  - `.github/workflows/ci.yml` — a `Format` step in the `frontend` job between Lint and Test, `run: bun run format:check`, same `if:` as Typecheck/Lint/Test, with a comment. Job key, `name:` and the `question-bank` job untouched.
+  - `conventions.md` — Formatting paragraph now says both packages pin the same exact version and CI runs `bun run format:check` in both; Commands `# frontend` block gets a `cd frontend && bun run format:check` line.
+  - `engineering-decisions.md` — `## E-17` appended directly after E-16 (E-16 was the last entry; nothing in E-1..E-16 edited).
+  - This brief (Sessions row, Status, Handoff, Notes).
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1–2 | `frontend/package.json` devDependencies.prettier = `"3.9.6"` = question-bank's |
+| 3 | `frontend/bun.lock` line 80 (specifier) and line 866 (resolution) |
+| 4 | `git diff main -- frontend/package.json frontend/bun.lock` — only the prettier specifier and the new script |
+| 5 | `format:check` script; ran locally → exit 0 |
+| 6–7 | Ran locally with all seven probe paths: each → exit 1 and the probe named; after `bun run format` → exit 0 |
+| 8 | `.prettierrc` / `.prettierignore` not touched |
+| 9 | `grep prettier-ignore` over `git ls-files` → no match |
+| 10 | Ran with the six proxy vars at `http://127.0.0.1:1` → exit 0 |
+| 11–13 | `.github/workflows/ci.yml` frontend job, `Format` step |
+| 14 | CI on the head commit — see Notes for the run result, or check PR #66 |
+| 15–17 | commit `6d1b5df` |
+| 18 | see "How it was run" below |
+| 19 | no file under `question-bank/`, `backend/`, `e2e/` changed |
+| 20–21 | `conventions.md` "Code" › Formatting, and Commands `# frontend` |
+| 22 | `engineering-decisions.md` `## E-17` |
+
+**How it was run (and what could not be)**
+
+- `frontend/` `bun install --frozen-lockfile` 403s on several tarballs (d3-*, react-simple-maps) from the sandbox npm cache. It did **not** report a frozen-lockfile mismatch. Separately, copying `package.json` + `bun.lock` to a scratch dir and running `bun install --lockfile-only` rewrote a byte-identical `bun.lock` — the lockfile agrees with the new specifier.
+- The partial install did include `prettier@3.9.6`, so `bun run format:check` / `bun run format` ran for real in `frontend/` (criteria 5–7, 10).
+- `frontend/` `bun run lint` → pass.
+- `frontend/` `bun run typecheck` → 4 errors, all in `src/components/UsMap.tsx` from `react-simple-maps` not being installed (sandbox). Not caused by this change.
+- `frontend/` `bun test` → 342 pass, 1 fail, 1 error; the fail/error is `src/components/screens.criteria.test.tsx` failing to import `react-simple-maps` (same missing package). Baseline `main` shows the same failure in this sandbox. `src/conventions-doc.test.ts` → 80 pass (it checks criterion 21's script name).
+- `question-bank/` `bun test` → 1334 pass, 0 fail; typecheck, lint, format:check pass.
+- To re-run: `cd frontend && bun install --frozen-lockfile && bun run format:check && bun run lint && bun run typecheck && bun test`.
+
+**Deliberately not done**
+
+- No tests written: the criteria are the tester's to check, and nothing I built has logic beyond a script string.
+- No change to `.prettierignore`, eslint config, E-16's stale "`^3.7.3`" line, `PROGRESS.md`, or anything in `question-bank/` (all out of scope).
+
+**Found that the approver should know — owner named**
+
+- **`frontend/README.md` loses its source layout.** Its TypeScript interfaces, the level formula, the state list and the "9. Screens" ASCII flow diagram are *unfenced* Markdown, so prettier treats them as paragraphs: it strips the 2-space indents and collapses the diagram's column alignment. Rendered output was already flat (Markdown collapsed it before this change too), but the raw file is now harder to read, and the Screens diagram is effectively scrambled in source. Criterion 15 forbids any non-prettier edit in that commit, and the brief rules out `prettier-ignore`, so I left it. **Proposed fix:** a small follow-up that wraps those blocks in ``` fences (restoring the original text inside them) — prettier leaves fenced content alone. **Owner:** reviewer, to add as a `tasks.md` entry at the sweep, or to reject if the README is considered disposable Lovable scaffolding.
+
+**Tests made stale:** none. No existing test reads `frontend/package.json`'s devDependencies or the `frontend` job's steps; the question-bank T-071 tests still pass.
+
 ## Verdict
 
 ## Notes
 
 - Expanded 2026-09-29 from `tasks.md` T-075 at `f3af87b`. Draft PR #66.
+- Worker, 2026-09-29: the brief's survey held exactly — prettier already resolved to 3.9.6, the same four files were flagged, nothing else. The only surprise was `frontend/README.md` (see Handoff: unfenced code/diagram blocks get flattened in source by prettier).
+- Worker decision: Format step placed between Lint and Test, mirroring the `question-bank` job's order. Owner to overturn: reviewer.

@@ -804,3 +804,34 @@ not a dependency-set pin and stays.
 `bun run format`, and commit the result alone — or when `frontend/` gets a CI
 format check, at which point the two packages' prettier versions should be
 aligned deliberately rather than by accident.
+
+## E-17 — `frontend/` is formatted by the same exact prettier as `question-bank/`, over `.`
+
+**2026-09-29 (T-075).** Answers E-16's "Revisit when … `frontend/` gets a CI
+format check".
+
+**The pin.** `frontend/package.json` pins prettier to `3.9.6` exactly — the
+same string as `question-bank/package.json`. `frontend/bun.lock` already
+resolved `3.9.6` under the old `^3.7.3` range, so this changed a specifier, not
+a version, and no package entered either lockfile. The reasons for exact are
+E-16's: a range lets two machines disagree about the same file.
+
+**The glob is `.`.** `bun run format:check` runs `prettier --check .`, the same
+set `bun run format` (`prettier --write .`) already wrote, with
+`frontend/.prettierignore` excluding build output, lockfiles and the generated
+`routeTree.gen.ts`. A check narrower than the writer would let `bun run format`
+produce changes CI never asks for. A source-only glob would also have gated
+nothing new: `.ts`/`.tsx`/`.js`/`.mjs` were already held to prettier through
+`eslint-plugin-prettier` in `bun run lint` (E-15 keeps `frontend/` on eslint),
+and the files that had drifted were Markdown and CSS. As in E-16, the glob lives
+in the script, not `ci.yml` (E-4). CI's `frontend` job runs it as its Format
+step.
+
+**One version, two packages.** A prettier bump changes **both** `frontend/` and
+`question-bank/` in the same change — both pins, both lockfiles, and the
+reformat each produces — so the two packages never disagree about what
+"formatted" means.
+
+**Revisit when** a prettier upgrade is wanted (bump both, run `bun run format`
+in both, commit the reformat alone), or when Lovable is reconnected (T-044) and
+rewrites `frontend/AGENTS.md` unformatted, turning this gate red.
