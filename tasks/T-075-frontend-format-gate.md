@@ -1,7 +1,7 @@
 # T-075 — `frontend/` gets a pinned prettier and a CI format gate
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-09-29 (given in the orchestrator's session). See `runs/T-075-frontend-format-gate.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-075
@@ -18,6 +18,7 @@ draft until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY |
 | worker | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY (same id as the expander's: the orchestrated run spawns both inside one harness session) |
+| tester | 2026-09-29 | cse_018Nxo8DLTPmamkPxrMGkzpY (same id again: orchestrated run, see `runs/T-075-frontend-format-gate.md`; independence is a freshly spawned agent's context, not a separate session — see Verdict) |
 
 ## Goal
 
@@ -306,6 +307,61 @@ for a fresh approval.
 **Tests made stale:** none. No existing test reads `frontend/package.json`'s devDependencies or the `frontend` job's steps; the question-bank T-071 tests still pass.
 
 ## Verdict
+
+**TL;DR — pass.** All 22 criteria hold. 33 new tests in `frontend/src/format-gate.criteria.test.ts` pass, and 16 mutations each turned the right test red (all reverted). CI on `235fe0f` is green in all six jobs, and the `frontend` job's Format step ran and succeeded. **Next: reviewer.**
+
+**What kind of independence this is.** This is an orchestrated run, so the tester has the same session id as the expander and the worker (`cse_018Nxo8DLTPmamkPxrMGkzpY`). The session check therefore proves nothing here. This verdict rests on the tester being a freshly spawned agent with its own context: it did not see the work being done and had no access to the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned it correctly, not on anything the tester can check itself.
+
+**Tests:** `frontend/src/format-gate.criteria.test.ts` (tester, from the criteria). The gate tests spawn `bun run format:check` / `bun run format` in `frontend/`, write their probes in place, and remove them in `afterEach`. No network.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | test: `devDependencies.prettier` matches `^\d+\.\d+\.\d+$` |
+| 2 | pass | test: frontend = question-bank = `3.9.6` |
+| 3 | pass | tests: the workspace-block specifier and the `prettier@3.9.6` resolution both equal the pin |
+| 4 | pass | test: no `trustedDependencies`/`overrides`/`resolutions`. By hand, against `f3af87b` (= `origin/main`): only `devDependencies.prettier` differs in deps/devDeps, no top-level key added, and `bun.lock` differs on line 80 only |
+| 5 | pass | tests: `format:check` is a `prettier --check` script; `bun run format:check` exits 0 |
+| 6 | pass | 7 tests, one per probe path (`src/*.ts/.tsx/.css/.json`, `*.md`, `src/routes/*.md`, `scripts/*.mjs`): each exits non-zero and names the probe |
+| 7 | pass | 7 tests: with the probe present, `bun run format` and then `bun run format:check` exits 0 |
+| 8 | pass | by hand: `git diff --quiet f3af87b -- frontend/.prettierrc frontend/.prettierignore` finds no difference |
+| 9 | pass | test: no `git ls-files` file under `frontend/` contains the directive string |
+| 10 | pass | tests: exits 0 under all six dead proxy vars, and a probe still fails under them |
+| 11 | pass | test: exactly one frontend step has `run: bun run format:check` |
+| 12 | pass | test: the Format, Typecheck, Lint and Test `if:` lines are character-identical to the documented condition |
+| 13 | pass | test: key `frontend` has `name: frontend (typecheck, lint, test)`. By hand: the `question-bank` job block is identical to `f3af87b`'s, and the only `ci.yml` hunk is inside the frontend job's steps |
+| 14 | pass | GitHub API, head `235fe0f`: all 6 check runs `success`. Job 109616093876 steps: Typecheck, Lint, **Format**, Test all `success`. The tester commit re-triggers CI; the reviewer should confirm that run too |
+| 15 | pass | by hand: each of the 4 files in `6d1b5df`, taken from `6d1b5df^` and run through `prettier --write` 3.9.6 with `frontend/.prettierrc` in a scratch dir, is byte-identical to its version in `6d1b5df` |
+| 16–17 | pass | `6d1b5df` touches only `frontend/AGENTS.md`, `frontend/README.md`, `frontend/src/routes/README.md` and `frontend/src/styles.css` |
+| 18 | pass | locally: frontend `lint` 0, `format:check` 0, `bun test` 375 pass / 1 fail. The fail is `screens.criteria.test.tsx` failing to import `react-simple-maps`, which the sandbox cannot install (403), and it fails the same way alone. `typecheck` shows 4 errors, all in `UsMap.tsx` from the same missing package. question-bank `bun test` 1334 pass / 0 fail. **CI on `235fe0f` is the evidence for frontend typecheck and the full suite** (criterion 14) |
+| 19 | pass | by hand: `git diff --name-only f3af87b -- question-bank backend e2e` is empty |
+| 20 | pass | test: the Formatting paragraph names both packages, "exact version", and "CI runs `bun run format:check` in both" |
+| 21 | pass | test: a `cd frontend` line in Commands names `bun run format:check` |
+| 22 | pass | tests: `## E-17` directly follows `## E-16`, and it records the exact shared pin, the `.` glob with the writer and eslint reasons, and "both ... same change" on a bump. By hand: the `engineering-decisions.md` diff against `f3af87b` only adds lines after E-16's last line, so E-1 to E-16 are unchanged |
+
+**Mutations (each reverted, and `git status` clean afterwards):**
+
+- **Pin `^3.9.6` in package.json:** criteria 1, 2 and both 3 tests red.
+- **Lock specifier back to `^3.7.3`:** 3 (specifier) red.
+- **Format step `if:` set to `always()`:** 12 red.
+- **Format step `run:` given an extra flag:** 11 and 12 red.
+- **Job name gets ", format":** 13 red.
+- **Formatting paragraph "in both" changed to "in question-bank/":** 20 red.
+- **Commands `cd frontend && bun run format:check` line deleted:** 21 red.
+- **`## E-17` demoted to `###`:** all four 22 tests red.
+- **E-17 "same change" reworded:** 22 (bump in both) red.
+- **Directive comment appended to `styles.css`:** 9 red.
+- **`overrides: {}` added:** 4 red.
+- **`format:check` narrowed to `src`:** 6 red for `*.md` and `scripts/*.mjs`.
+- **`*.md` and `*.css` added to `.prettierignore`:** 6 red for the css probe and both md probes.
+- **`format:check` given `|| true`:** all seven 6 tests red, and 10's probe test red.
+- **`format` narrowed to `src`:** 7 red for `*.md` and `scripts/*.mjs`.
+- **Tracked `src/routes/README.md` drifted:** both 5 and 10's exit-0 test red.
+
+**Not mutated:** the dead-proxy condition itself. Prettier makes no network call, so there is nothing to break. The criterion 10 test runs the real gate under the proxy.
+
+**Tests made stale:** none. The worker listed none, and the full frontend and question-bank suites are green apart from the sandbox import failure above, which main shows too.
+
+**Noted for the reviewer, not a criterion:** the worker's point about `frontend/README.md` stands. Prettier flattened its unfenced interface, formula and "Screens" diagram blocks in the source text. It is allowed by criterion 15, and the owner is the reviewer (sweep).
 
 ## Notes
 
