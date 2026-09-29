@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-09-29 (given in the orchestrator's session). See `runs/T-075-frontend-format-gate.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-075
 **Branch:** `claude/dazzling-hawking-13k700` — assigned to the expander's session

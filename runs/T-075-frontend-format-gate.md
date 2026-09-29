@@ -1,7 +1,7 @@
 # T-075 — `frontend/` gets a pinned prettier and a CI format gate — run log
 
 **Task:** T-075 · **Branch:** `claude/dazzling-hawking-13k700` · **PR:** #66
-**Started:** 2026-09-29 · **Outcome:** halted — needs human
+**Started:** 2026-09-29 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-09-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -47,3 +47,6 @@ refused by the session's permission check, so the brief stays `Approved: pending
 A human has to decide: approve the brief (on PR #66 or by name in the
 `Approved:` line), or explicitly authorise an unattended stamp for this run. The
 worker has not been spawned.
+
+## Resumed — approved by Dkaattae — 2026-09-29
+Dkaattae approved the brief in the orchestrator's session ("approved, Dkaattae — go ahead with the worker"). `Approved:` line set to their name.
