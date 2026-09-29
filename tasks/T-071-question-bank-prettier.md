@@ -1,9 +1,9 @@
 # T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** katechen150621@gmail.com — 2026-09-28, approved via chat in the orchestrator session. See `runs/T-071-question-bank-prettier.md`.
-**Test changes:** approved — katechen150621@gmail.com, 2026-09-28, all rows of the request raised in `1972f18`, approved via chat in the orchestrator session ("approved, send the tester in"). See `runs/T-071-question-bank-prettier.md`. Rows 14–16 (added 2026-09-28 by the third tester): requested, not yet approved.
+**Test changes:** approved — katechen150621@gmail.com, 2026-09-29, rows 1–16 as applied in `e478c8f`, confirmed in the attended tester session cse_015KeLkABbKRT2YoDHiVggSo ("Approve all 16 rows").
 **From:** [`tasks.md`](../tasks.md) T-071
 **Branch:** `claude/nice-euler-247a4f` — assigned to the expander's session by
 the harness, branched from `origin/main` at `374a713`. Every later role pushes
@@ -11,7 +11,6 @@ here (`CLAUDE.md` "Branches").
 **PR:** #63, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it. The PR body condenses the criteria; where
 they differ, this brief's wording is authoritative.
-**Fault:** the harness's auto-mode classifier refused the approved test edits (rows 1–13) twice ("CI Bypass", then "Security Test Removal"), so a person must apply them by hand or allow them in a watched session; rows 14–16 (three more count floors the request missed) also need approval. Owner: a person (see `## Verdict`).
 
 **Sessions:**
 
@@ -23,6 +22,7 @@ they differ, this brief's wording is authoritative.
 | tester | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
 | tester (after P-10) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict on independence) |
 | tester (acting on approved request) | 2026-09-28 | cse_01KmyHhDTUDHHNBeuqPkeiKW (a fresh subagent spawned by the orchestrator, so the same session id; see Verdict) |
+| tester (attended, confirms approval, final verification) | 2026-09-29 | cse_015KeLkABbKRT2YoDHiVggSo (a separate session, started directly by a person) |
 
 ## Goal
 
@@ -375,6 +375,46 @@ cd ../frontend && bun test src/conventions-doc.test.ts
 
 ## Verdict
 
+### Fourth tester run (attended), 2026-09-29: pass
+
+**TL;DR: pass. All 19 criteria are met on head `f939490`.** A person approved the
+test change request (rows 1–16) in this session. Those edits were already in
+`e478c8f`, and I checked they match the rows exactly. The full question-bank suite
+is **1334 pass / 0 fail**. Next step: `reviewer`.
+
+- **Status:** `pass`. **Next step:** `reviewer`.
+- **Independence:** a separate session. `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+  `cse_015KeLkABbKRT2YoDHiVggSo`, which appears in no earlier Sessions row, and a
+  person started it directly. It is not orchestrated.
+- **Approval, in this session:** I asked the person to approve rows 1–16 as applied
+  in `e478c8f`. They answered **"Approve all 16 rows"** (katechen150621@gmail.com).
+  The header now reads `Test changes: approved — katechen150621@gmail.com,
+  2026-09-29, …`, and every row's Decision is filled in.
+- **Tests deleted or modified (all in `e478c8f`, applied by a person at their
+  direction, before this session):**
+  - Deleted: rows 1–10. These are the ten dependency-pin tests, plus
+    `DEPENDENCY_DIGESTS` in `top-crops-verify.test.ts` and the unused
+    `devDependencies`/`dependencies` fields in `lint-gate.test.ts`'s
+    `packageJson()` type. The reason for all of them: criterion 11 requires the
+    dependency set to be pinned in exactly one file (`dependency-set.test.ts`, E-16).
+  - Modified: rows 11–16. Six count floors each dropped by exactly 1
+    (`state-animals.test.ts` 43→42, `landmarks.test.ts` 53→52), with expects
+    unchanged and a comment citing T-071. Each drop equals the one approved
+    deletion from that file.
+  - Diff check: `git show e478c8f` touches only those blocks. There are no other
+    removals, and no bank digest (T-070) was touched. `e478c8f` is the only commit
+    after `1972f18` under `question-bank/src/`.
+- **This session made no test edits.** It records the approval and the verdict only.
+
+| # | Verdict | Evidence (this run, at `f939490`) |
+|---|---|---|
+| 1–10, 12, 17–19 | met | `prettier-gate.test.ts` (21 tests) and `dependency-set.test.ts`, both passing in the full suite. No source other than tests has changed since the previous run's hand checks at `1972f18`. |
+| 11 | **met** | Full clone (`is-shallow-repository` = `false` after `git fetch --unshallow`). In each case the **only** failing test is in `src/dependency-set.test.ts`: `left-pad` added fails "devDependencies is exactly the approved set"; `oxlint` removed fails the same; a `dependencies` key fails "there is no runtime dependencies key…". `package.json` was restored after each run (checked with `cmp`). |
+| 13 | met | `prettier` → `^3.9.6`: 4 tests go red (2 in `dependency-set.test.ts`, 2 in `prettier-gate.test.ts`). |
+| 14 | met | Unchanged since the previous run (`6536170`, 16/16 byte-identical). |
+| 15 | met | `git diff --stat 374a713 HEAD` over `data/`, `sample-data/`, `src/fixtures/` is empty. |
+| 16 | **met** | question-bank: `format:check` 0, `typecheck` 0, `lint` 0 (0 warnings, 0 errors), `bun test` **1334 pass / 0 fail**. frontend: this container can't install `react-simple-maps` (npm mirror 403), so local `bun test` gave 342/1, with the one failure an unhandled import error from `UsMap.tsx`. No frontend file differs from `374a713`. CI's **frontend (typecheck, lint, test)** job ran on this exact head `f939490` in a clean environment and passed, as did the other 5 jobs. |
+
 ### Third tester run (acting on the approved request), 2026-09-28
 
 **TL;DR: blocked. The harness refused the approved edits, and I made none of them.**
@@ -489,26 +529,26 @@ exactly one file (`dependency-set.test.ts`, E-16).
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 18 — nothing unreviewed, live or new is committed" › "question-bank declares no runtime dependency and the same two devDependencies" | `775671c`, T-014 tester: no new dependency | Pins devDependencies to `@types/bun`/`oxlint`/`typescript`, so it fails today on `prettier` and fails under all three criterion 11 mutations. Criterion 11 requires one file. | delete | — | |
-| 2 | `src/climate-kid-verify.test.ts` › same describe › "the only package.json under question-bank/ still has no dependencies block growth" | `775671c`, T-014 tester: no runtime dependency | Passes today, but fails under criterion 11(b) (`dependencies` key), making a second failing file. Not in the brief's survey table. | delete | — | |
-| 3 | `src/climate-kid.test.ts` › "T-014 criterion 18 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `bc544e3`, T-014 worker: no new dependency | As row 1. | delete | — | |
-| 4 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 13 — nothing unreviewed, live or new is committed" › "question-bank still declares no runtime dependency and the same two devDependencies" | `8b5bb81`, T-013 tester: no new dependency | As row 1. | delete | — | |
-| 5 | `src/landmarks.test.ts` › "T-013 criterion 13 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `93fc433`, T-013 worker: no new dependency | As row 1. | delete | — | |
-| 6 | `src/state-animals.test.ts` › "T-012 criterion 11 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `17ddab1`, T-012 tester: no new dependency | As row 1. | delete | — | |
-| 7 | `src/region-vocabulary.test.ts` › "T-017 criterion 8 — no new dependency, no network" › "question-bank declares no runtime dependency and the same two devDependencies as before this task" | `e4fc36b`, T-017 tester: no new dependency | As row 1. | delete | — | |
-| 8 | `src/top-crops-verify.test.ts` › "T-015 tester, criterion 10 — no new dependency" › "package.json and bun.lock are byte-identical to the default branch", **with** the `DEPENDENCY_DIGESTS` constant and its docstring, which only this test uses | `313d72d`, T-015 tester: no new dependency, by sha256 | Its digests fail on any change to either file, including this task's approved one. The bank digests in the same file (T-070) are **not** part of this row. | delete | — | |
-| 9 | `src/highest-point-verify.test.ts` › "T-016 tester, criteria 14 and 15 — no dependency, nothing out of scope" › "question-bank/package.json lists exactly the dependencies the default branch listed" | `34a174a`, T-016 tester: no new dependency vs `origin/main`, allowing `oxlint` | Fails on `prettier`, and spawns `git` (criterion 12's design moves the check off git). The Alaska-landmark test in the same describe stays. | delete | — | |
-| 10 | `src/lint-gate.test.ts` › "T-066 criterion 16 — the only package added is oxlint, as a devDependency" › both tests: "oxlint is in devDependencies; there is no dependencies key" and "none of the excluded packages is present" (the whole `describe`) | `23a0576`, T-066 tester: only oxlint was added, no eslint or prettier | The second test forbids any name containing `prettier`, so it fails today. The first fails under criterion 11(a) and (b). Any `packageJson()` type fields left unused go with them. | delete | — | |
-| 11 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 19 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `775671c`, T-014 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. | |
-| 12 | same file and describe › `FLOORS["landmarks.test.ts"]` | `775671c`, T-014 tester: count floor | Row 5 removes 1 test from a file at exactly 53. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | |
-| 13 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 14 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `8b5bb81`, T-013 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 70 }`, with a comment citing T-071 row 6. | |
+| 1 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 18 — nothing unreviewed, live or new is committed" › "question-bank declares no runtime dependency and the same two devDependencies" | `775671c`, T-014 tester: no new dependency | Pins devDependencies to `@types/bun`/`oxlint`/`typescript`, so it fails today on `prettier` and fails under all three criterion 11 mutations. Criterion 11 requires one file. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 2 | `src/climate-kid-verify.test.ts` › same describe › "the only package.json under question-bank/ still has no dependencies block growth" | `775671c`, T-014 tester: no runtime dependency | Passes today, but fails under criterion 11(b) (`dependencies` key), making a second failing file. Not in the brief's survey table. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 3 | `src/climate-kid.test.ts` › "T-014 criterion 18 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `bc544e3`, T-014 worker: no new dependency | As row 1. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 4 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 13 — nothing unreviewed, live or new is committed" › "question-bank still declares no runtime dependency and the same two devDependencies" | `8b5bb81`, T-013 tester: no new dependency | As row 1. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 5 | `src/landmarks.test.ts` › "T-013 criterion 13 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `93fc433`, T-013 worker: no new dependency | As row 1. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 6 | `src/state-animals.test.ts` › "T-012 criterion 11 — nothing unreviewed, live or new is committed" › "question-bank/package.json still declares no runtime dependency and the same two devDependencies" | `17ddab1`, T-012 tester: no new dependency | As row 1. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 7 | `src/region-vocabulary.test.ts` › "T-017 criterion 8 — no new dependency, no network" › "question-bank declares no runtime dependency and the same two devDependencies as before this task" | `e4fc36b`, T-017 tester: no new dependency | As row 1. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 8 | `src/top-crops-verify.test.ts` › "T-015 tester, criterion 10 — no new dependency" › "package.json and bun.lock are byte-identical to the default branch", **with** the `DEPENDENCY_DIGESTS` constant and its docstring, which only this test uses | `313d72d`, T-015 tester: no new dependency, by sha256 | Its digests fail on any change to either file, including this task's approved one. The bank digests in the same file (T-070) are **not** part of this row. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 9 | `src/highest-point-verify.test.ts` › "T-016 tester, criteria 14 and 15 — no dependency, nothing out of scope" › "question-bank/package.json lists exactly the dependencies the default branch listed" | `34a174a`, T-016 tester: no new dependency vs `origin/main`, allowing `oxlint` | Fails on `prettier`, and spawns `git` (criterion 12's design moves the check off git). The Alaska-landmark test in the same describe stays. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 10 | `src/lint-gate.test.ts` › "T-066 criterion 16 — the only package added is oxlint, as a devDependency" › both tests: "oxlint is in devDependencies; there is no dependencies key" and "none of the excluded packages is present" (the whole `describe`) | `23a0576`, T-066 tester: only oxlint was added, no eslint or prettier | The second test forbids any name containing `prettier`, so it fails today. The first fails under criterion 11(a) and (b). Any `packageJson()` type fields left unused go with them. | delete | — || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 11 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 19 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `775671c`, T-014 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 12 | same file and describe › `FLOORS["landmarks.test.ts"]` | `775671c`, T-014 tester: count floor | Row 5 removes 1 test from a file at exactly 53. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 13 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 14 — nothing already verified is weakened" › `FLOORS["state-animals.test.ts"]` | `8b5bb81`, T-013 tester: count floor | Row 6 removes 1 test from a file at exactly 43. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 70 }`, with a comment citing T-071 row 6. || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
 
-| 14 | `src/climate-kid.test.ts` › "T-014 criterion 19 — nothing already verified is weakened" › `PINNED["state-animals.test.ts"]` | T-014 worker (`bc544e3` era; `git log -S` not run: the harness refused commands in this run), count floor | Row 6 removes 1 test from a file at exactly 43. Missed by the original request. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. | |
-| 15 | same file and describe › `PINNED["landmarks.test.ts"]` | as row 14 | Row 5 removes 1 test from a file at exactly 53. Missed by the original request. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | |
-| 16 | `src/landmarks.test.ts` › its "nothing already verified is weakened" describe (the `PINNED` table near line 763) › `PINNED["state-animals.test.ts"]` | T-013/T-014 era, count floor | Row 6 removes 1 test from a file at exactly 43. Missed by the original request. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. | |
+| 14 | `src/climate-kid.test.ts` › "T-014 criterion 19 — nothing already verified is weakened" › `PINNED["state-animals.test.ts"]` | T-014 worker (`bc544e3` era; `git log -S` not run: the harness refused commands in this run), count floor | Row 6 removes 1 test from a file at exactly 43. Missed by the original request. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. Expects are unchanged: 78 → 76 is still ≥ 73. || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 15 | same file and describe › `PINNED["landmarks.test.ts"]` | as row 14 | Row 5 removes 1 test from a file at exactly 53. Missed by the original request. | modify | `landmarks.test.ts` floor `{ tests: 52, expects: 88 }`, with a comment citing T-071 row 5. Expects are unchanged: 93 → 91 is still ≥ 88. | approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
+| 16 | `src/landmarks.test.ts` › its "nothing already verified is weakened" describe (the `PINNED` table near line 763) › `PINNED["state-animals.test.ts"]` | T-013/T-014 era, count floor | Row 6 removes 1 test from a file at exactly 43. Missed by the original request. | modify | `state-animals.test.ts` floor `{ tests: 42, expects: 73 }`, with a comment citing T-071 row 6. || approved — katechen150621@gmail.com, 2026-09-29; applied in `e478c8f` |
 
-Rows 14–16 were added 2026-09-28 by the third tester and are **not** covered by the
-header's approval, which names the request raised in `1972f18`.
+Rows 14–16 were added 2026-09-28 by the third tester. All 16 rows were approved by
+katechen150621@gmail.com in the attended tester session on 2026-09-29 (see Verdict).
 
 No other floor moves. `landmarks-verify.test.ts` sits at 37 tests, 73 expects,
 against a floor of 36 and 69 in `climate-kid-verify.test.ts`. After row 4 it has
