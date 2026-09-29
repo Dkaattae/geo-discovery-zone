@@ -89,3 +89,36 @@ Files:
 - /home/user/geo-discovery-zone/.github/workflows/ci.yml
 - /home/user/geo-discovery-zone/conventions.md
 - /home/user/geo-discovery-zone/engineering-decisions.md
+
+## Round 3 — tester — 2026-09-29
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-075 tester verdict: pass.** All 22 criteria hold. My 33 new tests fail when they should: 16 mutations each turned the matching test red, and all were reverted. CI on `5a0faba` is green in all six jobs, and the frontend job's Format step ran and succeeded. **Next step: reviewer.** Status is `pass`, and the push landed: the branch head is `52e2f09` on both local and origin.
+
+**Independence:** this is an orchestrated run, so my session id (`cse_018Nxo8DLTPmamkPxrMGkzpY`) is the same one the expander and worker are listed under, and the session check proves nothing. My independence is only that I was freshly spawned with my own context and never saw the worker's reasoning. That is weaker than a separate session, and the Verdict says so. My Sessions row is added.
+
+**What I added**
+- **New test file:** `/home/user/geo-discovery-zone/frontend/src/format-gate.criteria.test.ts`, 33 tests written from the criteria. The gate tests run the real `bun run format:check` / `bun run format` against seven probe paths, one per criterion-6 path, and remove the probes in `afterEach`. No network: criterion 10 runs the gate with all six proxy variables pointed at a dead port.
+- **Brief:** `/home/user/geo-discovery-zone/tasks/T-075-frontend-format-gate.md` has the Verdict (a criterion → evidence table plus the mutation list), the header changes and my Notes.
+- **Commits:**
+  - `121c2b7`: tests and Verdict.
+  - `5a0faba`: fix to my own test.
+  - `52e2f09`: records the green CI.
+
+**Checked by hand against `f3af87b` (= `origin/main`), not by tests.** These criteria are diffs against another revision, and T-073's guard forbids tests that resolve one.
+- **Criterion 4:** only `devDependencies.prettier` changed in the dependencies, and `bun.lock` differs on line 80 only.
+- **Criterion 8:** `.prettierrc` and `.prettierignore` are identical to main.
+- **Criterion 13:** the `question-bank` CI job is identical to main.
+- **Criteria 15–17:** I re-ran prettier 3.9.6 on each of the four files as they were before `6d1b5df`, and each output is byte-identical to that commit.
+- **Criterion 19:** nothing changed under `question-bank/`, `backend/` or `e2e/`.
+- **Criterion 22:** E-1 to E-16 are unchanged.
+
+**Local runs**
+- **Frontend:** lint and format:check exit 0. `bun test` gives 375 pass and 1 fail. The fail is `screens.criteria.test.tsx`, which cannot import `react-simple-maps` because the sandbox gets a 403 installing it; typecheck's 4 errors come from the same missing package. CI covers both.
+- **question-bank:** `bun test` gives 1334 pass, 0 fail.
+
+**My own mistake, now fixed:** CI on `121c2b7` went red in the frontend Test step. My criterion-9 test (no ignore directive in tracked files) had the directive string in its own `describe` name, so it matched itself once the file was tracked. It passed locally only because the file was still untracked. `5a0faba` renames the `describe` and changes no source. I confirmed the test still goes red when a real directive is added.
+
+**For the reviewer:** the worker's point about `frontend/README.md` stands. Prettier flattened the unfenced code and diagram blocks in its source text. Criterion 15 allows this, and the handoff leaves the follow-up to the reviewer at the sweep.
+
+No test changes were requested and no source was edited.
