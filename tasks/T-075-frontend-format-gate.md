@@ -369,3 +369,4 @@ for a fresh approval.
 - Worker, 2026-09-29: the brief's survey held exactly — prettier already resolved to 3.9.6, the same four files were flagged, nothing else. The only surprise was `frontend/README.md` (see Handoff: unfenced code/diagram blocks get flattened in source by prettier).
 - Worker decision: Format step placed between Lint and Test, mirroring the `question-bank` job's order. Owner to overturn: reviewer.
 - Tester, 2026-09-29: CI on `121c2b7` was red in the frontend Test step only. Its single failure annotation was criterion 9 matching its own test file (the tester's bug, not the worker's). The next tester commit fixes it.
+- Tester, 2026-09-29: CI on `5a0faba` (the fix) is green in all six jobs. In the `frontend` job (109626768430), Typecheck, Lint, Format and Test all succeeded, so criterion 14 and the full frontend suite (criterion 18) hold with the tester's tests included.
