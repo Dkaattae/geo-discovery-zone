@@ -103,43 +103,42 @@ All mock data lives in src/data/. Type everything.
 
 // A place in the world. Questions are generated from these.
 interface Entity {
-  id: string;              // "us-state-co"
-  type: 'state' | 'country' | 'city';
-  name: string;            // "Colorado"
-  capital?: string;
-  fipsCode?: string;       // "08" — joins to us-atlas geometry
-  region: string;          // "Mountain West"
-  funFact: string;         // shown on CORRECT answers
-  funFactDetail: string;   // shown behind "Tell me more"
+id: string; // "us-state-co"
+type: 'state' | 'country' | 'city';
+name: string; // "Colorado"
+capital?: string;
+fipsCode?: string; // "08" — joins to us-atlas geometry
+region: string; // "Mountain West"
+funFact: string; // shown on CORRECT answers
+funFactDetail: string; // shown behind "Tell me more"
 }
 
 interface Question {
-  id: string;
-  entityId: string;
-  type: 'map-identify' | 'text-mc';
-  prompt: string;              // "Which state is highlighted?"
-  choices: string[];           // exactly 4
-  correctIndex: number;
-  level: number;               // 0.0–18.0, see §5
-  topic: 'location' | 'capital';
-  ageBand: 1 | 2 | 3;
-  highlightFips?: string;      // for map-identify: which shape to highlight
-  shortExplanation: string;    // shown on WRONG answers — answers "why"
-  detailExplanation: string;   // behind "Why?" button
+id: string;
+entityId: string;
+type: 'map-identify' | 'text-mc';
+prompt: string; // "Which state is highlighted?"
+choices: string[]; // exactly 4
+correctIndex: number;
+level: number; // 0.0–18.0, see §5
+topic: 'location' | 'capital';
+ageBand: 1 | 2 | 3;
+highlightFips?: string; // for map-identify: which shape to highlight
+shortExplanation: string; // shown on WRONG answers — answers "why"
+detailExplanation: string; // behind "Why?" button
 }
 
 interface Profile {
-  id: string;
-  name: string;
-  avatar: string;              // emoji or icon key
-  level: number;               // current difficulty, 0.0–18.0
-  lastSessionEndLevel: number;
-  bestSustainedLevel: number;
-  stats: { answered: number; correct: number };
-  mastery: Record<string, number>;   // entityId -> 0..1
-  reviewQueue: string[];             // entityIds
+id: string;
+name: string;
+avatar: string; // emoji or icon key
+level: number; // current difficulty, 0.0–18.0
+lastSessionEndLevel: number;
+bestSustainedLevel: number;
+stats: { answered: number; correct: number };
+mastery: Record<string, number>; // entityId -> 0..1
+reviewQueue: string[]; // entityIds
 }
-
 
 Ship ~15 entities and ~25 questions as mock data. Use real US states. Write plausible fun facts and explanations — they'll be replaced by real authored content later, so don't agonize, but do make them read like something a child would enjoy.
 
@@ -147,11 +146,10 @@ Ship ~15 entities and ~25 questions as mock data. Use real US states. Write plau
 
 Grade and difficulty are one axis, not two. Store a single number; derive both labels for display.
 
-const gradeOf = (level: number) => Math.floor(level / 2);   // 0 = K, 1 = 1st … 8 = 8th
-const bandOf  = (level: number) => level - 2 * gradeOf(level); // 0 easy, 1 med, 2 hard
+const gradeOf = (level: number) => Math.floor(level / 2); // 0 = K, 1 = 1st … 8 = 8th
+const bandOf = (level: number) => level - 2 * gradeOf(level); // 0 easy, 1 med, 2 hard
 
 // level 7.0 renders as "3rd grade · Medium"
-
 
 This is deliberate: 3rd-grade-hard and 4th-grade-easy are the same difficulty, so they map to the same number. Never store grade and difficulty as separate fields.
 
@@ -163,10 +161,9 @@ Question selection: pick from questions where |question.level - profile.level| <
 
 States
 
-PRESENTING  → question rendered, input live
-COMMITTED   → answer locked, grading runs
-REVEALING   → explanation shown, "Next" enabled
-
+PRESENTING → question rendered, input live
+COMMITTED → answer locked, grading runs
+REVEALING → explanation shown, "Next" enabled
 
 Committing an answer
 
@@ -218,7 +215,6 @@ Use react-simple-maps with geoAlbersUsa projection (it tucks Alaska and Hawaii i
   </Geographies>
 </ComposableMap>
 
-
 Join on FIPS codes, never on name strings. us-atlas puts the FIPS code in geo.id. Match it to Entity.fipsCode.
 
 Map states:
@@ -266,20 +262,19 @@ Never condescend. Kids notice.
 9. Screens
 
 Splash
-  ↓
+↓
 Profile picker ──[+ New]──→ Create (name + avatar + grade)
-  ↓                              ↓
-Home  ←────────────────────────┘
-  · greeting, US map with mastered states filled
-  · [Start] → Setup
-  ↓
+↓ ↓
+Home ←────────────────────────┘
+· greeting, US map with mastered states filled
+· [Start] → Setup
+↓
 Setup: topic → level → [Start]
-  ↓
-Question loop  ──[Quit]──→ "Done for now?"
-  · present → answer → reveal → next        ├─ session summary
-                                            ├─ [Keep playing]  ← default, larger
-                                            └─ [Back home]
-
+↓
+Question loop ──[Quit]──→ "Done for now?"
+· present → answer → reveal → next ├─ session summary
+├─ [Keep playing] ← default, larger
+└─ [Back home]
 
 Session summary copy matters. Never show a percentage. "You learned 3 new states!" and "60%" carry the same information and opposite messages about whether to come back.
 
