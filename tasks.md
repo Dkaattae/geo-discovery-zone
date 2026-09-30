@@ -54,7 +54,10 @@ the stale suite-size counts and guarded them (PR #57): T-074 is smaller and
 unblocked, T-047 lost its count clause, and T-064 now depends on T-040. Swept
 again 2026-09-24, after T-074 deleted the suite sizes from the three package
 READMEs and widened the same guard to them (PR #58): nothing else in the queue
-was waiting on it._
+was waiting on it. Swept again 2026-09-29, after T-075 gave `frontend/` an
+exact-pinned prettier and a CI Format step (PR #66): section A is empty, T-076
+is new in F (the README layout prettier flattened), and T-044 gained the
+`AGENTS.md` risk._
 
 ## How this list is ordered
 
@@ -123,31 +126,9 @@ place, so nobody rebuilds it:
 | **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
 | **Test counts in docs** | none stated in `README.md`, `test-guidelines.md`, `backend/README.md`, `backend/integration/README.md`, `e2e/README.md`, `PROGRESS.md`'s status, Known-gaps and Next sections, or this table, and a test fails if one comes back (T-062, PR #50; T-065, PR #57; T-074, PR #58). Name a command or a directory instead |
 | **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
+| **Formatting** | prettier pinned to one exact version in both `frontend/` and `question-bank/`, and CI runs `format:check` in both (T-071, E-16; T-075, E-17) |
 
-What is missing from that picture is below.
-
-### T-075 — `frontend/` has no format gate, and four of its files are already out of prettier · S · doing
-**Depends on:** —
-**New 2026-09-29, from T-071's reviewer (PR #63).** T-071 gated `question-bank/`
-with an exact-pinned prettier and a CI Format step (E-16). `frontend/` has the same
-four settings in its `.prettierrc` and a `format` (write) script, but **no CI format
-check**, and its prettier is a range (`^3.7.3`, locked at `3.9.6`). T-071's worker
-ran `prettier --check .` in `frontend/` once: it flags **4 files** — `AGENTS.md`,
-`README.md`, `src/routes/README.md`, `src/styles.css`. No `.ts`/`.tsx` file is
-flagged, so this is small today, and it is exactly how `question-bank/` got to 22.
-Decide the glob (`.` including Markdown, or source only), reformat what it covers in
-one formatting-only commit, add a `format:check` script and a Format step to the
-`frontend` job with the same `if:` as its siblings, and pin prettier exact to match
-`question-bank/` — E-16's "Revisit when" asks for the two versions to be aligned
-deliberately at this point. Re-pinning an existing dependency is not adding one, but
-say so in the brief. Frontend Markdown is read by people and agents, never by a
-child, so no content rule applies.
-**Done when:** `bun run format:check` in `frontend/` exits 0, CI's `frontend` job
-runs it, and `frontend/package.json` pins prettier to the same exact version as
-`question-bank/`.
-**Expanded 2026-09-29** into `tasks/T-075-frontend-format-gate.md`. The survey
-found `.ts`/`.tsx` already gated through `eslint-plugin-prettier` in the lint, and
-`bun.lock` already resolving `3.9.6`; the brief picks the glob `.` and adds E-17.
+Nothing in section A is queued: T-075 (PR #66) closed the last gap.
 
 ---
 
@@ -731,6 +712,16 @@ dead-proxy reproduction block runs from a cold checkout.
 
 ## F. Frontend follow-ons
 
+### T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier · S · todo
+**Depends on:** —
+**New 2026-09-29, from T-075's reviewer (PR #66).** `frontend/README.md` is the
+design brief the app is built to. Its TypeScript interfaces, formula, states list
+and the "9. Screens" diagram are not in code fences, so T-075's formatting commit
+(`6d1b5df`) stripped their indentation and scrambled the diagram's columns in
+source. The rendered page was already flat; the source is what got worse.
+**Done when:** each of those blocks is fenced with its pre-`6d1b5df` content
+(from `6d1b5df^`), and `bun run format:check` in `frontend/` exits 0.
+
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —
 One Natural Earth grayscale raster under the state paths. Cheapest visual win in
@@ -744,6 +735,9 @@ Lovable builds from the repo root and the app moved. Its build and sync are
 likely broken until its project root is reconfigured. Now further out of date:
 the app is served by the backend in production and the Vite dev server proxies
 `/api`, so a Lovable preview that builds the client alone has no API to talk to.
+Since T-075 (PR #66), `frontend/AGENTS.md` is under CI's frontend Format step, so
+a reconnected Lovable that rewrites it unformatted turns CI red. Settle it here:
+reformat after each sync, or ignore the file with a line in E-17.
 **Done when:** a Lovable build succeeds, or the integration is deliberately retired.
 
 ### T-048 — A React hydration warning on first load of the production build · M · todo
