@@ -476,3 +476,57 @@ It should update the status."* So an answer resumes the run by itself:
 - D-15 records the choice and what would change it;
 - any permission rule this needs was proposed to the human, and added only with
   their yes.
+
+### P-13 — A refused sweep waits an hour for a person, then the orchestrator applies it · S · todo
+**Depends on:** —
+**New 2026-09-30, from T-075 (PR #66).** The reviewer approved T-075 inside the
+envelope, and then the auto-mode permission classifier refused its sweep
+(deleting the brief, editing `tasks.md` and `PROGRESS.md`) as "Modify Shared
+Resources". The PR stayed draft, and the run halted on `blocked` / `human`. The
+same sweep went through once Dkaattae asked for it in the orchestrator's session
+(`c11378b` on `claude/dazzling-hawking-13k700`). `runs/T-075-frontend-format-gate.md`,
+round 4 onwards, has the detail.
+
+**Dkaattae's ruling, 2026-09-30, in T-075's orchestrator session:** *"next step
+is human, and wait for like an hour. if no response, the orchestrator comes in
+and decide. then write it down."* So:
+
+- **`reviewer.md`, §4:** when the sweep is refused, write it under `## Review` →
+  `### Sweep to apply` as an exact, mechanical list, set `Status: sweep refused`
+  and `Next step: human`, leave the PR draft, push, and stop. Only an approve
+  inside the envelope gets that status; an escalation stays `blocked` and gets no
+  fallback.
+- **`orchestrator.md`:** on `sweep refused`, halt and ask as usual, then schedule
+  its own check-in about 60 minutes out (`send_later`). At the check-in, a person
+  has answered if they replied in its session, the branch head moved, a person
+  commented on or reviewed the PR, or the header changed. If none of those, it
+  reads **only** `### Sweep to apply`, applies it verbatim, runs the checks,
+  commits, pushes, marks the PR ready and logs the wait in `runs/`. It never
+  merges. If it is refused too, it stops and leaves the halt standing.
+- **The blindness exception:** reading `### Sweep to apply` is safe only because
+  nothing is spawned after it, so there is no prompt for it to leak into. No other
+  section is covered, and no task that still has a role to run.
+- **`process.md`:** step 6 and "Where the loop stops for a human" say the same,
+  briefly. **D-16** records it.
+- **`run-loop.sh` is not changed.** It has no model to apply a sweep with, and it
+  cannot schedule a wake-up, so under the driver a refused sweep halts, as today.
+
+**Risk to test before relying on it:** on 2026-09-30 the classifier refused the
+orchestrator's `Approved:` stamp ("Instruction Poisoning") and, while this ticket
+was being drafted, refused an agent's edits to `.claude/agents/` ("Self-Modification").
+D-15 records the same pattern on T-071: authority that reaches an agent only as
+text in a file was refused at every step. An unattended orchestrator applying a
+sweep an hour later has no person's instruction in its context either, so the
+fallback may be refused as well. Step 5 of the orchestrator's procedure covers
+that: stop, do not route around it. Try it on one real refused sweep before
+counting on it.
+
+**This is a process-file change**, done by hand. The `.claude/agents/` edits were
+refused to the agent that drafted this ticket, so a person applies them. The
+drafted text is in that session's run report.
+**Done when:**
+- `reviewer.md` and `orchestrator.md` carry the procedure above, and `process.md`
+  step 6 and "Where the loop stops for a human" agree with them;
+- D-16 records the ruling, the blindness exception and the risk;
+- one real refused sweep has gone through the fallback, applied or refused, and
+  the result is recorded in D-16.
