@@ -1,7 +1,7 @@
 # T-075 — `frontend/` gets a pinned prettier and a CI format gate — run log
 
 **Task:** T-075 · **Branch:** `claude/dazzling-hawking-13k700` · **PR:** #66
-**Started:** 2026-09-29 · **Outcome:** halted — needs human
+**Started:** 2026-09-29 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-09-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -151,3 +151,6 @@ No test changes were requested and no source was edited.
 
 ## Halted — 2026-09-29
 The reviewer approved but set `Status: blocked`, `Next step: human`: its sweep (delete the brief, edit `tasks.md` and `PROGRESS.md`) was refused by the permission classifier. A human has to apply the sweep in the brief's `## Review` → "What is blocked" (or re-run the reviewer with that permission), then mark PR #66 ready. The orchestrator does not apply it: that write is outside its role.
+
+## Resumed — sweep applied, PR ready — 2026-09-30
+At Dkaattae's request ("apply the sweep and mark #66 ready"), the orchestrator session applied the reviewer's `## Review` → "What is blocked" sweep verbatim in `c11378b` and marked PR #66 ready. Local check before pushing: frontend 375 pass / 1 fail (the known sandbox `react-simple-maps` import), `format:check` clean, question-bank 1334 pass. One earlier frontend run showed a second failure that did not reproduce on two re-runs. CI on the sweep commit was queued when the PR was marked ready.
