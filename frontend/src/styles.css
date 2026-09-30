@@ -186,8 +186,16 @@
 
 @utility atlas-grid {
   background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--map-stroke) 34%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--map-stroke) 34%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--map-stroke) 34%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--map-stroke) 34%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 64px 64px;
 }
 
@@ -206,14 +214,28 @@
 }
 
 @keyframes atlas-pop {
-  0% { transform: scale(0.94); opacity: 0; }
-  60% { transform: scale(1.02); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes atlas-rise {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @utility animate-pop {
@@ -225,7 +247,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -243,9 +267,13 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-display);
-    font-variation-settings: "SOFT" 0, "WONK" 1;
+    font-variation-settings:
+      "SOFT" 0,
+      "WONK" 1;
     letter-spacing: -0.015em;
   }
 

@@ -99,6 +99,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   suites now assert against the same committed table, `fixtures/level-labels.json`,
   so changing one alone turns a suite red instead of showing a child a different
   grade on each screen.
+- **Formatted by prettier pinned exact** (T-075, E-17): `bun run format:check`
+  over the whole package, locally and as CI's Format step, at the same version
+  as `question-bank/`. `.ts`/`.tsx` were already held by `eslint-plugin-prettier`.
 
 ### Question bank — the pipeline
 
@@ -318,6 +321,21 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-075 — `frontend/` gets a pinned prettier and a CI format gate**
+  (PR #66, 2026-09-29). prettier `^3.7.3` → `3.9.6` exact (one lockfile line;
+  the lock already resolved it), a `format:check` script over `.`, a Format step
+  in CI's `frontend` job, the four drifted files (`AGENTS.md`, `README.md`,
+  `src/routes/README.md`, `src/styles.css`) reformatted in one formatting-only
+  commit (`6d1b5df`), and **E-17**. **Where reality differed:** the survey held
+  exactly. Prettier flattened the unfenced interfaces and diagram in
+  `frontend/README.md`'s source (T-076). The tester's criterion-9 test matched
+  its own `describe` name and turned CI red once, fixed in `5a0faba`. The
+  criterion-2 test pins `3.9.6` literally, so the next prettier bump edits it
+  through a Test change request. The frontend suite was evidenced by CI, as the
+  sandbox gets a 403 installing some packages. Run orchestrated; the brief was
+  approved by Dkaattae in the orchestrator's session, and the sweep was applied
+  by the orchestrator at Dkaattae's request after the reviewer's was refused.
 
 - **T-071 — `question-bank/` is formatted by a pinned prettier, and CI gates it**
   (PR #63, 2026-09-29). `prettier` `3.9.6` exact, `.prettierrc` with the four

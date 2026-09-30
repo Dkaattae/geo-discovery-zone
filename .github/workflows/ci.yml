@@ -56,6 +56,15 @@ jobs:
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: bun run lint
 
+      # Prettier, pinned to the same exact version as question-bank's (E-17).
+      # The file glob lives in the `format:check` script, not here, so a local
+      # run and CI check the same files (E-4). Lint already fails on a prettier
+      # diff in .ts/.tsx/.js/.mjs via eslint-plugin-prettier; this step is what
+      # covers Markdown, CSS and JSON.
+      - name: Format
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run format:check
+
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         # Same command as question-bank's, and no shell logic: bun's exit code

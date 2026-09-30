@@ -34,8 +34,9 @@ to typecheck when assigned a possibly-undefined value.
 
 **Formatting** is prettier at 100 columns, double quotes, semicolons, trailing
 commas everywhere. `bun run format` in `frontend/` and in `question-bank/`,
-each with its own `.prettierrc` holding those four settings; `question-bank/`
-pins prettier to an exact version and CI runs its `bun run format:check` (E-16).
+each with its own `.prettierrc` holding those four settings. Both `frontend/`
+and `question-bank/` pin prettier to the same exact version, and CI runs
+`bun run format:check` in both (E-16, E-17).
 Python is `ruff format`.
 
 **Alembic owns the database schema.** The pipeline emits JSON and a Python
@@ -56,6 +57,7 @@ environment.
 # frontend
 cd frontend && bun install && bun run dev
 cd frontend && bun run typecheck && bun run lint && bun run format
+cd frontend && bun run format:check   # pinned prettier over . (E-17); `bun run format` rewrites
 cd frontend && bun test                     # the frontend suite
 
 # question bank — data/us-states/ (the 50-state bank) is committed (E-6);
