@@ -598,6 +598,13 @@ can confirm its substance.
 with the work it describes, so `main` never carries a brief for something already
 released and there is no follow-up PR for three line changes.
 
+**If the harness refuses the sweep**, the reviewer does not route around it. It
+writes the sweep out under `### Sweep to apply` in its `## Review`, sets `Status:
+sweep refused` and `Next step: human`, leaves the PR draft and stops. A person
+applies it, or, under the orchestrator, nobody answers for about an hour and the
+orchestrator applies exactly that list. Either way a person marks the PR ready.
+See `.claude/agents/reviewer.md` §4, `orchestrator.md` "A refused sweep", and D-16.
+
 1. **Delete `tasks/T-0xx-slug.md`.** The folder holds only live work. Its history
    is in git and its criteria are in the PR.
 2. **Delete the task's entry from `tasks.md`** — do not mark it done. A queue that
@@ -631,7 +638,7 @@ released and there is no follow-up PR for three line changes.
 
 ## Where the loop stops for a human
 
-Five moments, and only five. Everything else runs to completion.
+Six moments, and only six. Everything else runs to completion.
 
 **Under the `orchestrator`, moment 1 does not move — it disappears.** Nobody
 approves the brief; the orchestrator records `Approved: orchestrator — <date>,
@@ -639,7 +646,7 @@ unattended run` without having read the criteria, because reading them is exactl
 what keeps it safe (D-3). That is the entire cost of a relayed run, and it is
 written into the brief rather than disguised.
 
-**Moments 2 to 5 are unchanged**, but they arrive differently: a spawned role
+**Moments 2 to 6 are unchanged**, but they arrive differently: a spawned role
 cannot ask you anything, so instead of a question it writes the question into the
 brief, sets `Status: blocked`, and stops. The orchestrator halts and quotes it.
 You answer, and restart the run. Moment 5 is the exception: you answer it to a
@@ -660,6 +667,11 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
    run halts and **you resume it by starting a tester in a session you are
    attending**, which asks you and applies what you approve. Unlike moment 1,
    the orchestrator never approves this one for you (D-15).
+6. **A refused sweep.** The reviewer approved, but the harness refused its sweep
+   (T-075). It wrote the sweep out and set `sweep refused`. Apply it yourself, or
+   tell the orchestrator to, and mark the PR ready. If you do not answer in about
+   an hour, the orchestrator applies it for you. It still does not mark the PR
+   ready or merge, and if the harness refuses it too, the halt stands (D-16).
 
 A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that a PR is ready for you.

@@ -477,7 +477,7 @@ It should update the status."* So an answer resumes the run by itself:
 - any permission rule this needs was proposed to the human, and added only with
   their yes.
 
-### P-13 — A refused sweep waits an hour for a person, then the orchestrator applies it · S · todo
+### P-13 — A refused sweep waits an hour for a person, then the orchestrator applies it · S · doing
 **Depends on:** —
 **New 2026-09-30, from T-075 (PR #66).** The reviewer approved T-075 inside the
 envelope, and then the auto-mode permission classifier refused its sweep
@@ -522,8 +522,14 @@ that: stop, do not route around it. Try it on one real refused sweep before
 counting on it.
 
 **This is a process-file change**, done by hand. The `.claude/agents/` edits were
-refused to the agent that drafted this ticket, so a person applies them. The
-drafted text is in that session's run report.
+refused to the agent even with Dkaattae instructing it in the session
+("Self-Modification"), so Dkaattae applied them (`2760698`, `303d30e`). The
+fallback applies the sweep but does not mark the PR ready; that stays with a
+person, so the orchestrator still holds no PR tool. `process.md` and D-16 were
+then written by the agent.
+**Still open:** `orchestrator.md`'s `## Never` bullet "Your only writes are
+`runs/` and the brief's `Approved:` line" should name `### Sweep to apply` as
+the third write.
 **Done when:**
 - `reviewer.md` and `orchestrator.md` carry the procedure above, and `process.md`
   step 6 and "Where the loop stops for a human" agree with them;
