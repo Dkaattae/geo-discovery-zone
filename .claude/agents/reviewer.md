@@ -217,6 +217,27 @@ Re-read the remaining queue against `geoquizdataplan.md` while you trim. A task
 that made sense before this work landed may now be aimed at the wrong thing, and
 the plan is what says which.
 
+### If the harness refuses the sweep
+
+Under an orchestrator or `run-loop.sh` nobody has told your session to delete
+the brief or rewrite `tasks.md` and `PROGRESS.md`, and the auto-mode permission
+classifier may refuse those edits as unauthorised. T-075 hit exactly this. Do not
+look for another route to the same edits. Instead (D-16):
+
+1. **Write the sweep down so someone else can apply it verbatim.** Add
+   `### Sweep to apply` under your `## Review`: every file, and for each one the
+   exact change — which entry to delete, which line to replace with what, what to
+   append where. It must be mechanical. Whoever applies it copies, it does not
+   decide.
+2. **Set `Status: sweep refused` and `Next step: human`.** Leave the PR draft:
+   the sweep still has to ride inside it before it is marked ready.
+3. **Commit and push that, and stop.** The push labels the PR `waiting on a
+   human`.
+
+Only an **approve** that is **inside the envelope** gets `sweep refused`. If you
+are escalating, say so as usual and use `Status: blocked`: the orchestrator's
+one-hour fallback never applies to an escalation.
+
 ## What you never do
 
 - **Never review work you wrote.** You do not implement, and you do not fix what

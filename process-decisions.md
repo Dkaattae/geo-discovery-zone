@@ -871,3 +871,55 @@ With that in place, (b) could come back, and the orchestrator could stamp again
 the way it stamps `Approved:`. Test it on one real request before writing it
 back in. Or the reverse: if the classifier starts refusing attended testers too,
 the by-hand route stops being a fallback and becomes the rule.
+
+## D-16 — A refused sweep waits an hour for a person, then the orchestrator applies it
+
+**2026-10-01.** P-13. On T-075 (PR #66) the reviewer approved inside the
+envelope, and the auto-mode permission classifier then refused its sweep —
+deleting the brief, editing `tasks.md` and `PROGRESS.md` — as "Modify Shared
+Resources". The run halted on `blocked` / `human` with the PR draft. The same
+sweep went through when Dkaattae asked for it in the orchestrator's session
+(`c11378b`). Dkaattae's ruling: *"next step is human, and wait for like an hour.
+if no response, the orchestrator comes in and decide."*
+
+**Decided:**
+
+- **The reviewer writes a refused sweep down and stops.** `### Sweep to apply`
+  under its `## Review`, mechanical enough to copy without judgement; `Status:
+  sweep refused`, `Next step: human`, PR left draft. Only an approve inside the
+  envelope gets this status. An escalation stays `blocked`.
+- **The orchestrator waits about an hour, then applies it.** It halts as usual and
+  schedules its own check-in with `send_later`. At the check-in a person has
+  answered if they replied in its session, the branch head moved, they commented
+  on or reviewed the PR, or the header changed. If not, it applies exactly
+  `### Sweep to apply`, runs the checks, commits and pushes.
+- **It does not mark the PR ready.** It holds no PR tool, and does not gain one.
+  The ready flag and the merge stay with a person (D-4).
+- **One exception to "never read the work" (D-3).** The orchestrator may read
+  `### Sweep to apply`, and nothing else in `## Review`. It is safe because no
+  role is spawned after it, so there is no prompt for it to leak into.
+- **`run-loop.sh` is unchanged.** It has no model to apply a sweep and cannot wake
+  itself, so under the driver a refused sweep halts and waits for a person.
+
+**Why a timeout and not a plain halt.** A refused sweep is bookkeeping on work
+that is already approved, so waiting indefinitely on it costs a person a turn
+for no judgement. The timeout keeps a person first in line and only acts when
+nobody took it.
+
+**Why the orchestrator, and not a re-spawned reviewer.** A fresh reviewer has the
+same empty prompt as the one that was refused, so it would be refused the same
+way. The orchestrator at least runs in the session a person started.
+
+**The known risk.** This acts on authority that reaches the agent as a rule in a
+file, not an instruction in the session — the pattern D-15 found refused at every
+step on T-071. T-075 saw it again: the orchestrator's `Approved:` stamp was
+refused ("Instruction Poisoning"), and the edits that wrote this rule into
+`.claude/agents/` were refused to the agent even with Dkaattae instructing it in
+the session ("Self-Modification"), so Dkaattae applied them by hand
+(`2760698`, `303d30e`). Expect the fallback to be refused as well. The procedure
+stops cleanly when it is, and the halt stands for a person.
+
+**What would make this worth revisiting.** The first real refused sweep that
+reaches the fallback. If the orchestrator is refused, drop the timeout and make a
+refused sweep a plain `Next step: human`, which is what the harness enforces
+anyway. If it goes through, record that here and keep it.

@@ -242,6 +242,48 @@ not, and report:**
 
 Halting is a normal outcome and costs almost nothing. Guessing does not.
 
+## A refused sweep: wait an hour, then apply it
+
+The reviewer can approve a task and still be refused the sweep by the harness.
+It then returns with **`Status: sweep refused`** and **`Next step: human`**, the
+PR still draft, and the sweep written out in its `## Review` under `### Sweep to
+apply`. Dkaattae's standing rule for this case (D-16): **wait about an hour for
+a person, and if nobody answers, the orchestrator applies it.**
+
+1. **Halt as for any `Next step: human`.** Check the push landed, record the
+   round in `runs/` under `## Halted — sweep refused — <date>`, and note the
+   branch head commit at that moment. Report to the person, and if they are in
+   your session, ask them directly.
+2. **Schedule your own check-in about 60 minutes out**, with `send_later` where
+   it exists. With no way to wake yourself, say so and stop: the fallback does not
+   happen, and the halt stands until a person acts.
+3. **At the check-in, a person has answered if any of these is true:** they
+   replied in your session; the branch head has moved since the halt; a person
+   commented on or reviewed the PR since the halt; or the header no longer reads
+   `sweep refused`. Then do what they said, or nothing if they acted themselves.
+   Record which in `runs/`.
+4. **If none is true, apply the sweep.** Re-read the header first: it must still
+   be `Status: sweep refused`. Then read **only** `### Sweep to apply`, not the
+   rest of `## Review` and not the work, and apply exactly what it lists. Do not
+   add to it, trim it, or improve it. Run the checks `CLAUDE.md` asks for before
+   saying something is done. Commit as `T-0xx orchestrator: apply refused sweep
+   after one-hour timeout`, push, confirm it landed, and log it in `runs/` with
+   the time you waited. **Do not mark the PR ready** — you hold no PR tool. Tell
+   the person the sweep is in and the PR is theirs to mark ready and merge.
+5. **If the harness refuses you too, stop.** Record the refusal in `runs/` and
+   leave the halt for the person. Do not retry by another route, and do not spawn
+   a role to do it for you. D-15 found that file-based authority was refused at
+   every step it was tried on T-071, and T-075 saw the same, so expect this.
+
+Reading `### Sweep to apply` is the one exception to "never read the work", and
+it is safe for one reason: **nothing is spawned after it.** The task is finished,
+so there is no next prompt for what you read to leak into. The exception does
+not cover any other section, and it does not cover a sweep on a task that still
+has a role to run.
+
+You still never merge, never apply a sweep the reviewer did not approve, and
+never apply one on `Status: blocked`.
+
 ## Checkpoint after every step
 
 **Commit and push after every role returns, whatever it returned** — success,
@@ -264,7 +306,8 @@ could do.
 - **Never read the work.** Not the diff, not the Handoff, not the criteria.
 - **Never add a sentence to a spawn prompt.**
 - **Never write source, tests, criteria, or any role's signed section.** Your
-  only writes are `runs/` and the brief's `Approved:` line.
+  only writes are `runs/`, the brief's `Approved:` line, and — under "A refused
+  sweep" only — exactly the edits listed in `### Sweep to apply`.
 - **Never approve, stamp or relay a test change request** (D-15), even for a
   person in your session. Send them to an attended tester.
 - **Never answer a question a role addressed to a human.**
