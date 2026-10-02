@@ -1,8 +1,8 @@
 # T-063 — A one-command live refresh of the 50-state bank, with a change summary
 
-**Status:** `awaiting approval`
+**Status:** `approved`
 **Next step:** `worker` (once a human has approved below)
-**Approved:** `pending`
+**Approved:** `Dkaattae — 2026-10-02, in chat (session_015hHheg4x6qXDQn72KbH5Xj), with the expander's defaults for exit codes, fixture rewrite, and criteria 5, 12, 14`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-063
 **Branch:** `claude/exciting-hypatia-jqht79` — assigned by Claude Code on the web
