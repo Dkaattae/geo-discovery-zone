@@ -139,7 +139,7 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-063 — A one-command live refresh of the 50-state data, run monthly by a Claude routine · M · todo
+### T-063 — A one-command live refresh of the 50-state data, run monthly by a Claude routine · M · doing
 **Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
 **Reshaped 2026-09-25 by katechen150621@gmail.com, in chat (option B).** The
 earlier plan was a scheduled GitHub Actions workflow with `contents: write` and
