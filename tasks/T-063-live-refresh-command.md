@@ -8,8 +8,8 @@
 **Branch:** `claude/exciting-hypatia-jqht79` — assigned by Claude Code on the web
 to the expander's session; this is the task branch. Every later role pushes here
 (`CLAUDE.md` "Branches").
-**PR:** draft, opened at expand time against `main` from the branch above — see
-the PR link in the expander's report / the branch's PR list
+**PR:** #68 (https://github.com/Dkaattae/geo-discovery-zone/pull/68), opened
+draft at expand time against `main` from the branch above
 **Fault:**
 
 **Sessions:**
