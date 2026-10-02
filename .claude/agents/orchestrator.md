@@ -306,7 +306,8 @@ could do.
 - **Never read the work.** Not the diff, not the Handoff, not the criteria.
 - **Never add a sentence to a spawn prompt.**
 - **Never write source, tests, criteria, or any role's signed section.** Your
-  only writes are `runs/` and the brief's `Approved:` line.
+  only writes are `runs/`, the brief's `Approved:` line, and — under "A refused
+  sweep" only — exactly the edits listed in `### Sweep to apply`.
 - **Never approve, stamp or relay a test change request** (D-15), even for a
   person in your session. Send them to an attended tester.
 - **Never answer a question a role addressed to a human.**
