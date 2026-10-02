@@ -66,6 +66,7 @@ cd question-bank && bun install
 bun run build              # live: query.wikidata.org → data/us-states/
 bun run build -- --offline --out data/us-states   # offline: recorded fixture → same path, byte-identical
 bun run build:sample       # offline replay of the recorded fixture → sample-data/
+bun run refresh            # live refresh of data/us-states/ + fixture; exit 0 changed, 1 failed, 2 unchanged
 bun run typecheck
 bun run lint               # oxlint, not eslint (E-15); fails on any warning
 bun run format:check       # pinned prettier over src/**/*.ts (E-16); `bun run format` rewrites

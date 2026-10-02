@@ -1,7 +1,7 @@
 # T-063 — A one-command live refresh of the 50-state bank, with a change summary
 
-**Status:** `approved`
-**Next step:** `worker` (once a human has approved below)
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** `Dkaattae — 2026-10-02, in chat (session_015hHheg4x6qXDQn72KbH5Xj), with the expander's defaults for exit codes, fixture rewrite, and criteria 5, 12, 14`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-063
@@ -17,6 +17,7 @@ draft at expand time against `main` from the branch above
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-02 | cse_015hHheg4x6qXDQn72KbH5Xj |
+| worker | 2026-10-02 | cse_015hHheg4x6qXDQn72KbH5Xj |
 
 **Worker model:** Opus. The task touches data correctness (what counts as a
 change, and what a reviewer of the monthly PR gets to see).
@@ -229,6 +230,136 @@ retires them. Consider running T-070 before switching the routine on.
 
 ## Handoff
 
+**TL;DR — `bun run refresh` is built (`question-bank/src/refresh.ts`) and all 19
+criteria have a home. The full `question-bank/` suite (1355 pass, 0 fail),
+typecheck, lint, format:check and `frontend` `bun test` (380 pass) are green.
+No tests made stale. One live run by hand (into scratch copies only) found a
+real bad value, now queued as T-077.**
+
+**Same session id as the expander.** The orchestrator ran expander and worker
+in one remote session, so the Sessions table shows one id twice. The tester
+must be a different session from this one.
+
+### What changed, file by file
+
+- **`question-bank/src/refresh.ts`** (new) — the command. Pure parts:
+  `diffEntity`, `diffBank`, `isUnchanged`, `formatChange`, `formatSide`,
+  `isEntityFile`, `ABSENT`. Orchestration: `refreshBank(options)` returns
+  `0 | 1 | 2`. CLI: `main(argv, deps)`, which parses `--bank`, `--fixture`,
+  `--no-fun-facts` and `--help`, plus an `import.meta.main` block that wires the
+  live `createSparqlClient` and `createSummaryTransport` and calls
+  `process.exit(code)`.
+- **`question-bank/src/review-file.ts`** (new) — `writeReviewFile`, moved
+  verbatim out of `build.ts`, and `draftMissingFunFacts`, the
+  empty-`fun_facts`-only draft pass.
+- **`question-bank/src/build.ts`** — now imports `writeReviewFile` and
+  `FunFactDraft` from `review-file.ts`. Nothing else changed. Its own draft loop
+  still drafts for every titled entity (see "Not done").
+- **`question-bank/src/refresh.test.ts`** (new) — 21 tests, offline, against temp
+  copies of the bank and the fixture.
+- **`question-bank/package.json`** — `"refresh": "bun run src/refresh.ts"`.
+- **`question-bank/README.md`** — new "Refreshing the committed bank" section
+  with the exit-code table. Also a command line in "Run it", and the stale
+  "T-063, not yet built" pointer is updated.
+- **`conventions.md`** — `bun run refresh` added to the question-bank commands.
+- **`tasks.md`** — new **T-077** (see Notes).
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1, 2 | `refreshBank`: `isUnchanged(diff)` → prints `UNCHANGED_LINE`, returns 2. It runs before any write and before the draft pass |
+| 3 | `refreshBank` write block → `JsonFileSink`, then `printSummary` (`bank changed (…)`), returns 0 |
+| 4 | the first `try` in `refreshBank` covers reading the bank and fixture, the SPARQL call and `assertResults`. Any throw → 1, and nothing has been written yet |
+| 5 | `missing` = `CURATED_US_STATES` minus built ids. Non-empty → stderr names each one (`Wyoming (us-state-wy)`) and returns 1 |
+| 6 | write block: `{ _fixture: { ...oldBlock, captured_at, rows }, ...response }`. `captured_at` is second precision, the same style as the committed one |
+| 7 | `builtAt = new Date(capturedAt).toISOString()`, the same conversion `build.ts --offline` applies |
+| 8 | follows from 6 and 7, plus the same `JsonFileSink`. Tested by spawning `build.ts --offline --fixture` |
+| 9, 10 | `diffEntity`/`walk`: descends into plain objects (`sources.wikidata_id`) and shows arrays whole. `formatSide` prints JSON or `(absent)` |
+| 11 | `IGNORED_PATHS = {"sources.built_at"}`, checked in `walk`, so a whole missing `sources` block cannot leak it either |
+| 12 | `diffBank` → `added`/`removed`. Removed files are `rm`'d. `isEntityFile` excludes `index.json` and `*.review.json` |
+| 13 | `printWarnings(warnings, out)` → stdout, same `  entity.field: message` format as `build.ts`'s report. Printed on every outcome, unchanged included |
+| 14 | `draftMissingFunFacts` skips any entity with `fun_facts.length > 0`. Runs only on the changed path |
+| 15 | `refresh.test.ts`: fake `SparqlTransport`/`SummaryTransport`, temp dirs, `DEAD_PROXY` for the one spawn. `git status --porcelain` empty after `bun test` (checked) |
+| 16 | README section + `conventions.md` line. `frontend/src/conventions-doc.test.ts` passes (80/80) |
+| 17 | nothing under `data/`, `sample-data/` or the fixture is in the diff |
+| 18 | no `package.json` dependency change. No new URL host: `refresh.ts` has none, and `example.org` appears only in the test file |
+| 19 | see "How to run" |
+
+### Judgment calls (each with an owner)
+
+- **The draft pass runs only on a changed refresh.** Criterion 2 forbids writing
+  a review file on an unchanged run, so asking Wikipedia then would be wasted.
+  *Tester to confirm against criterion 14; expander to overturn if drafts on
+  unchanged runs are wanted.*
+- **Progress and failure messages go to stderr; the summary and warnings go to
+  stdout.** That keeps stdout pasteable as the PR body. Criteria 4 and 5 say
+  "output", and the tests check both streams. *Reviewer to confirm.*
+- **`--help` exits 1, not 0**, so a routine that mis-invokes the command can
+  never read it as "changed". *Reviewer to confirm or overturn.*
+- **Equality ignores key order** (canonical JSON). A bank whose only difference
+  is key order counts as unchanged and is not rewritten. *Reviewer.*
+- **A stale or missing `index.json` with identical entities is still `bank
+  unchanged`**: the criteria define "unchanged" by entity fields and entity
+  files only. *Expander, if index drift should count.*
+- **Unparseable existing entity files count as a change** and are listed
+  `rewritten (old file was not valid JSON)`. *Reviewer.*
+
+### Not done, deliberately
+
+- **`build.ts`'s own fun-fact pass is unchanged.** It still drafts for all 50.
+  The brief keeps the existing build paths' behaviour as it is, and criterion 14
+  is about the command. *Owner: whoever next touches `build.ts`; it is a
+  one-line switch to `draftMissingFunFacts`.*
+- **The `_fixture.regenerate_with` text is preserved as-is** ("bun run build …
+  then save the raw SPARQL JSON"). It is now stale, since `bun run refresh` does
+  this. Criterion 6 requires the key preserved, and criterion 17 forbids editing
+  the fixture here. *Owner: the first refresh PR, or T-070.*
+- No routine, no CI change, no committed live output.
+
+### Contradictions with the brief
+
+None found. The live run confirmed criteria 6–8 end to end: an offline rebuild
+from the live-written fixture was `diff -r` identical to the written bank. A
+second live run then printed `bank unchanged` and exited 2.
+
+### How to run
+
+```bash
+cd question-bank && bun install --frozen-lockfile
+bun test src/refresh.test.ts        # this task's tests (21)
+bun test && bun run typecheck && bun run lint && bun run format:check
+cd ../frontend && bun test          # criterion 16's doc guard
+# live, into copies (never the tracked paths):
+bun run refresh -- --bank /tmp/x/bank --fixture /tmp/x/fx.json; echo $?
+```
+
+**Environment note (frontend):** `frontend/bun.lock` resolves 27 tarballs from a
+private registry (`europe-west1-npm.pkg.dev/lovable-core-prod/...`) that returns
+403 here, so `bun install` fails and `bun test` errors on `react-simple-maps`. I
+installed by rewriting those URLs to `registry.npmjs.org` in a temporary copy
+of the lockfile and restored the original afterwards; `frontend/` is not in the
+diff. The tester will hit the same thing.
+
+### Tests made stale
+
+None. Every test that existed before this task passes unchanged.
+
 ## Verdict
 
 ## Notes
+
+- **The first live run found a real bad value.** It printed
+  `us-state-ak capital: "Juneau" → "Q29445"`: WDQS's label service fell back to
+  the bare QID. The summary did exactly what it is for, but `normalize.ts` would
+  ship that value. Queued as **T-077** (warn and blank a QID-shaped label). This
+  matters before the routine is switched on, alongside T-070 (a).
+- **`refreshBank` reads and computes everything before writing anything**, so
+  the failure paths (criteria 4 and 5) write nothing by construction. A failure
+  *during* writing still returns 1, with a message saying to restore from git.
+- **`main(argv, deps)` exists so the tester can exercise argument parsing and
+  exit codes in-process.** The alternative was a replay flag on the real CLI,
+  which would have stamped a fixture `captured_at` that was not the capture
+  time. I chose not to add a flag that can record a false provenance.
+- **Expander and worker ran in the same session.** That is recorded above, not
+  hidden.

@@ -338,6 +338,20 @@ decision to keep them is written down in `engineering-decisions.md`), no test in
 a test can assert on the build report's printed warnings without spawning
 `build.ts`.
 
+### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
+**Depends on:** T-063 (the refresh command that surfaced it)
+**New 2026-10-02, from T-063's worker.** The first by-hand live run of
+`bun run refresh` (into a scratch copy, nothing committed) reported
+`us-state-ak capital: "Juneau" → "Q29445"`. WDQS's label service falls back to
+the bare QID when an item has no English label, and `normalize.ts` takes
+`capitalLabel` as-is — so a monthly refresh would have offered a child
+"Q29445" as Alaska's capital, caught only if the PR reviewer reads the summary.
+The same fallback can hit any `*Label` binding (`stateLabel`, `highestPoint`).
+**Done when:** a label matching `^Q\d+$` is treated as missing for that field
+(and warns, `CLAUDE.md` "Prefer a blank field to a guessed one"), with an offline
+test through `parseUsStates`/`normalizeUsStates`; check whether Juneau's English
+label is really gone on Wikidata or the query reads the wrong item.
+
 ---
 
 ## C. Question generation
