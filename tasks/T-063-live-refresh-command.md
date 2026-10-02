@@ -1,7 +1,7 @@
 # T-063 — A one-command live refresh of the 50-state bank, with a change summary
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** `Dkaattae — 2026-10-02, in chat (session_015hHheg4x6qXDQn72KbH5Xj), with the expander's defaults for exit codes, fixture rewrite, and criteria 5, 12, 14`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-063
@@ -18,6 +18,7 @@ draft at expand time against `main` from the branch above
 |---|---|---|
 | task-expander | 2026-10-02 | cse_015hHheg4x6qXDQn72KbH5Xj |
 | worker | 2026-10-02 | cse_015hHheg4x6qXDQn72KbH5Xj |
+| tester | 2026-10-02 | cse_015hHheg4x6qXDQn72KbH5Xj (spawned subagent, fresh context; same id — see Verdict) |
 
 **Worker model:** Opus. The task touches data correctness (what counts as a
 change, and what a reviewer of the monthly PR gets to see).
@@ -346,6 +347,74 @@ diff. The tester will hit the same thing.
 None. Every test that existed before this task passes unchanged.
 
 ## Verdict
+
+**Pass.** All 19 criteria hold. `src/refresh-verify.test.ts` (43 tests, written
+from the criteria) is green, and so is everything else: `question-bank/` 1398/1398
+under the dead-loopback proxy, typecheck, lint, format:check, `frontend` 380/380.
+14 hand mutations of `refresh.ts` / `review-file.ts` were each caught, and all
+were reverted.
+
+**Independence: weaker than a separate session.** I share the expander's and
+worker's session id (`cse_015hHheg4x6qXDQn72KbH5Xj`), because the session that ran
+them spawned me as a subagent. The id check therefore proves nothing. What I did
+have is a fresh context window: I saw no transcript, and I read the source only
+for entry points and signatures. My expected values come from the criteria and
+from the committed data. That rests on the spawner having started me correctly,
+not on anything I can check myself.
+
+| # | Verdict | Evidence (`refresh-verify.test.ts` describe → test) |
+|---|---|---|
+| 1 | pass | "criteria 1-2" → exit 2, exactly one `bank unchanged` line, even though the committed `built_at` ≠ the refresh instant |
+| 2 | pass | unchanged run: whole bank dir, fixture and fixture dir snapshot-equal before/after; no `*.review.json` |
+| 3 | pass | CO population edited → exit 0, written, no `bank unchanged`; an added file alone and a removed file alone each → 0 |
+| 4 | pass | transport throws `TypeError`; throws `SparqlError` (post-retry shape); returns a body with no `results.bindings`. Each → 1, nothing written, no `bank unchanged` on stdout or stderr |
+| 5 | pass | 49 (no Wyoming; no Delaware) → 1, nothing written, name in output; 48 → both named; exactly 50 → proceeds (2) |
+| 6 | pass | fixture `head`/`results` = the response fed; `captured_at` within 1 s of the pinned now; `rows` = 51 when 51 bindings were fed; every other old `_fixture` key equal |
+| 7 | pass | all 50 written `built_at` parse to the same instant as `captured_at` |
+| 8 | pass | spawns `build.ts --offline --fixture <written> --out <tmp>` under `DEAD_PROXY`; same file set (a removed `us-state-zz.json` not resurrected) and byte-equal, `*.review.json` ignored |
+| 9 | pass | one line with `us-state-co`, `population`, old (read from bank copy) before new; `sources.wikidata_id` old/new QID; array `top_crops` both sides; no false `capital` line |
+| 10 | pass | old capital absent / `null` / `""` / `0` in four states: the four old-side renderings are pairwise distinct; null → absent shows exactly one `null` |
+| 11 | pass | changed refresh: no stdout line contains `built_at`; old file lacking `sources.built_at` → still exit 2 |
+| 12 | pass | `us-state-zz.json` reported `removed` by name and deleted; deleted `us-state-vt.json` reported `added`; `index.json` / `other.review.json` never named |
+| 13 | pass | warnings computed independently via `normalizeUsStates` (FIPS mismatch, area range) all appear verbatim in stdout, on a changed and on an unchanged run |
+| 14 | pass | changed and unchanged refresh with curated table: `SummaryTransport` called 0 times, no `*.review.json` anywhere in the temp root. `draftMissingFunFacts` with CO and VT emptied requests exactly those two, drafts `reviewed: false`, entity `fun_facts` stays `[]`; `writeReviewFile` writes only a `*.review.json`. Pre-existing review file → still exit 2 |
+| 15 | pass | All tests use fake transports and temp copies; `main --bank/--fixture` leaves tracked bank and fixture byte-identical; `git status --porcelain` after the full `bun test` shows only my new untracked file, so no tracked file was touched |
+| 16 | pass | README has `bun run refresh`, exit codes `0`/`1`/`2`, `bank unchanged`; `conventions.md` Commands section names it; `frontend` `conventions-doc.test.ts` green |
+| 17 | pass | `git diff --name-only 5cdf011 -- question-bank/data question-bank/sample-data question-bank/src/fixtures` is empty |
+| 18 | pass | no dependency lines in the `package.json` diff (one `scripts.refresh` line); non-test hosts in `src/` are only the pinned four (+ the `127.0.0.1` dead proxy); `top-crops-verify.test.ts` green |
+| 19 | pass | see the suite results below |
+
+**Mutations (each reverted; `git diff` on both files empty afterwards):**
+
+- **Drop the `sources.built_at` ignore** → 9 red (crit 1, 2, 5's 50-case, 11, CLI).
+- **`isUnchanged` always false** → 8 red.
+- **Absent prints as `null`** → both crit 10 tests red.
+- **Skip the missing-states check** → all three crit 5 failure tests red.
+- **Draft for every entity** → all three crit 14 count tests red.
+- **Keep the old `captured_at`** → crit 6, 7 and 8 red.
+- **Don't delete removed files** → crit 8 and 12 red.
+- **Don't print warnings** → both crit 13 tests red.
+- **Don't update `rows`** → crit 6 red.
+- **Skip the bindings check** → crit 4's malformed-body test red.
+- **Failure returns 2** → all four crit 4 tests red.
+- **Don't report removed / added** → the matching crit 12 test red.
+- **`built_at` from wall clock** → crit 7 and 8 red.
+
+**Suites:**
+
+- **`question-bank`:** `bun test` with all six proxy vars at `127.0.0.1:1` gave 1398 pass, 0 fail across 21 files. typecheck, lint and format:check all exit 0.
+- **`frontend`:** `bun test` passed 380/380 on three consecutive runs, two of them under the dead proxy. The first run showed 379 pass, 1 fail. Its output was tailed, so I did not capture which test failed, and the failure did not recur. This task changes nothing under `frontend/`. I report it as an unidentified one-off, not as a T-063 failure. `node_modules` was already installed, so I did not touch the lockfile.
+
+**On the worker's judgment calls:**
+
+- **Drafts only on a changed run.** This is consistent with criteria 2 and 14.
+- **Progress and failures go to stderr.** Criteria 4 and 5 say "output", and my
+  tests check both streams.
+- **A missing `index.json` with identical entities is exit 2.** That follows the
+  criteria literally (criteria 1 and 12), and I pinned it.
+- **`--help` exiting 1.** Left for the reviewer.
+
+**Tests made stale:** none. No pre-existing test was changed.
 
 ## Notes
 
