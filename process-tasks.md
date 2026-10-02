@@ -527,9 +527,9 @@ refused to the agent even with Dkaattae instructing it in the session
 fallback applies the sweep but does not mark the PR ready; that stays with a
 person, so the orchestrator still holds no PR tool. `process.md` and D-16 were
 then written by the agent.
-**Still open:** `orchestrator.md`'s `## Never` bullet "Your only writes are
-`runs/` and the brief's `Approved:` line" should name `### Sweep to apply` as
-the third write.
+`orchestrator.md`'s `## Never` bullet now names `### Sweep to apply` as its
+third write (Dkaattae, `dab8764`). Only the last "Done when" item remains: the
+first real refused sweep through the fallback.
 **Done when:**
 - `reviewer.md` and `orchestrator.md` carry the procedure above, and `process.md`
   step 6 and "Where the loop stops for a human" agree with them;

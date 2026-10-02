@@ -60,7 +60,7 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, new tests, the brief's Handoff | acceptance criteria, **any test that existed before the task** |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict and Test change request; existing tests **only as a human approved** | source, acceptance criteria |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
-| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line | source, tests, criteria, any role's signed section |
+| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line, a refused sweep's `### Sweep to apply` (D-16) | source, tests, criteria, any role's signed section |
 
 **Only the orchestrator has the `Agent` tool**, and only so it can spawn the other
 four — see "Spawning, and the isolation it must not cost" below. The four step
