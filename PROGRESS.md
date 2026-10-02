@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-09-22_
+_Last updated: 2026-10-02_
 
 ## In one paragraph
 
@@ -130,6 +130,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (T-011).
 - `EntitySink` seam, one committed sample run, and a recorded fixture of a real
   50-row response so `--offline` reproduces a full build with no network.
+- **`bun run refresh` refreshes the committed bank from live Wikidata** (T-063,
+  PR #68) and prints a per-state, per-field change summary, or `bank unchanged`
+  with exit code 2. A changed refresh also re-records the fixture, so the
+  offline rebuild keeps reproducing the bank. Nothing runs it on a schedule yet.
 - **The built 50-state bank is committed** (`question-bank/data/us-states/`,
   T-010, `engineering-decisions.md` **E-6**) — a fresh clone already has it, and
   an offline rebuild from the committed fixture reproduces it byte-for-byte
@@ -321,6 +325,24 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-063 — `bun run refresh`: one-command live refresh of the 50-state bank,
+  with a change summary** (PR #68, 2026-10-02). `src/refresh.ts` queries
+  Wikidata, diffs the rebuild against `data/us-states/` field by field (old →
+  new, `(absent)` distinct from `null`, `sources.built_at` ignored), and exits
+  `0` changed / `1` failed / `2` `bank unchanged`, writing nothing on 1 or 2. A
+  changed refresh re-records the fixture and stamps `built_at` from its
+  `captured_at`, so the offline rebuild still reproduces the bank (E-6). Wikipedia
+  drafts are requested only for states with no curated fact (none today), via
+  `draftMissingFunFacts` in the new `src/review-file.ts`. **Where reality
+  differed:** the one live run by hand (into scratch copies) found a real bad
+  value — Alaska's capital came back as the bare QID `Q29445` — queued as T-077.
+  `build.ts`'s own live pass and the fixture's `regenerate_with` text were left
+  as they were, per the brief, and are T-078. The monthly routine itself is a
+  chat step and is not switched on; T-070 (a) and T-077 gate it. Run
+  orchestrated: expander, worker and tester share one session id, so the tester's
+  independence was a fresh context window, not a separate session; the brief was
+  approved by Dkaattae in that session.
 
 - **T-075 — `frontend/` gets a pinned prettier and a CI format gate**
   (PR #66, 2026-09-29). prettier `^3.7.3` → `3.9.6` exact (one lockfile line;
@@ -1129,6 +1151,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   serve nothing, deliberately — the data is not in this repo (T-039).
 - `drag_order`, `pin_*` and `click_profile` have no answer key; submitting one is
   a 422 rather than a guess (T-045).
+- **The monthly bank refresh is built but not switched on** (T-063). Two things
+  have to land first: T-070 (a), or the first changed refresh is red on the
+  four digest guards, and T-077, or a label that falls back to a bare QID
+  (Alaska's capital read `Q29445` on 2026-10-02) ships as data.
 - Bun's `fetch` cannot traverse some egress proxies, so the pipeline falls back
   to `curl`. A runtime without curl needs another path.
 - Lovable builds from the repo root and will need repointing (T-044).
