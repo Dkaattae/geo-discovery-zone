@@ -48,6 +48,7 @@ export interface Entity {
   borders?: string[];
   climate_kid?: string;
   top_crops?: string[];
+  top_livestock?: string[];
   state_animal?: string;
   landmark?: string;
   highest_point?: string;

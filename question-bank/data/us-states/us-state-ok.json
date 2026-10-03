@@ -29,6 +29,9 @@
   "top_crops": [
     "wheat"
   ],
+  "top_livestock": [
+    "cattle"
+  ],
   "fun_facts": [
     {
       "text": "Oklahoma has more man-made lakes than any other state in the country.",

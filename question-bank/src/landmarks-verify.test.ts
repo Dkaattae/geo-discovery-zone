@@ -188,6 +188,7 @@ interface Entity {
   state_animal?: string;
   landmark?: unknown;
   top_crops?: unknown[];
+  top_livestock?: unknown[];
   sources?: { built_at?: string };
 }
 
@@ -430,7 +431,7 @@ describe("T-013 tester, criterion 7 — the bank is built, not hand-edited", () 
 });
 
 describe("T-013 tester, criterion 8 — the committed sample stays in step with the bank", () => {
-  test("the sample equals the tracked Colorado in every field but sources.built_at and top_crops, landmark included", () => {
+  test("the sample equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock, landmark included", () => {
     // T-015 (2026-09-17, a later approved task) freezes `sample-data/us-state-co.json`
     // deliberately at `top_crops: []` (its own criterion 12 — that file is T-064's
     // territory) while populating the tracked bank's copy, so `top_crops` is excluded
@@ -439,6 +440,8 @@ describe("T-013 tester, criterion 8 — the committed sample stays in step with 
       const parsed = JSON.parse(raw) as Entity & { sources?: Record<string, unknown> };
       if (parsed.sources) delete parsed.sources.built_at;
       delete parsed.top_crops;
+      // T-068: the sample is frozen without `top_livestock` (its criterion 14).
+      delete parsed.top_livestock;
       return JSON.stringify(parsed);
     };
     expect(strip(readFileSync(SAMPLE, "utf8"))).toBe(
@@ -457,7 +460,7 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
     );
   });
 
-  test("each of the 50 files, with landmark, climate_kid and top_crops removed, is identical to the default branch's", () => {
+  test("each of the 50 files, with landmark, climate_kid, top_crops and top_livestock removed, is identical to the default branch's", () => {
     // T-014 (2026-09-17, a later approved task) filled `climate_kid` for the
     // 49 states that did not already carry it at this task's own branch point
     // (Colorado already did, so its pinned digest is unaffected either way).
@@ -493,6 +496,9 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
       // T-017 (2026-09-18, a later approved task) resettles `region` for all
       // 50 states — see the DEFAULT_BRANCH_DIGESTS comment above.
       delete parsed["region"];
+      // T-068 (2026-10-03, a later approved task) adds `top_livestock` to all
+      // 50 states; the baseline never had it, so it is deleted.
+      delete parsed["top_livestock"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,

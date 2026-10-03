@@ -26,6 +26,18 @@
  * rules" — there is no separate review pass for this field the way
  * `fun-facts.review.json` provides for `fun_facts`.
  *
+ * **`top_livestock` provenance (T-068, 2026-10-03).** The sibling to
+ * `top_crops`: farm animals raised for food and the food they produce —
+ * cattle, dairy cows, chickens, turkeys, pigs, sheep, goats, eggs. Hand-picked,
+ * zero to two per state, only where the state is genuinely known for it (a
+ * fact a teacher would not correct); every other state is left blank rather
+ * than padded, per `CLAUDE.md` "Content rules". Not derived from USDA NASS or
+ * any live source, and not pinned to a year. Farm-raised fish, horses and bees
+ * are deliberately out of this field, and nothing here may repeat a
+ * `top_crops` string. These strings are themselves the reviewed, kid-facing
+ * text — there is no separate review pass for this field. See
+ * `engineering-decisions.md` E-18.
+ *
  * **`highest_point` provenance (T-016, 2026-09-18).** A gap-filler, not a
  * primary source: `normalize.ts` only reaches for this field when Wikidata's
  * own `P610` label is absent for that state, and a live label always wins over
@@ -96,6 +108,13 @@ export interface CuratedState {
    */
   top_crops?: string[];
   /**
+   * Zero to two farm animals or animal products the state is genuinely known
+   * for, hand-picked — see the header comment above (T-068). Omit it for a
+   * state with no honest standout; `normalize.ts` folds that to `[]`. Never a
+   * plant crop, a fish, a horse or bees.
+   */
+  top_livestock?: string[];
+  /**
    * §1.6: human-reviewed prose, folded into the entity's `fun_facts` by
    * `normalize.ts` the same way `climate_kid`, `state_animal` and `landmark`
    * already are. This is the one field this table holds where `reviewed` must
@@ -115,6 +134,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot sticky summers and mild winters, with strong thunderstorms much of the year",
     landmark: "U.S. Space & Rocket Center",
     top_crops: ["cotton", "peanuts"],
+    top_livestock: ["chickens"],
     fun_facts: [
       {
         text: "Alabama's Space & Rocket Center displays a real Saturn V moon rocket lying on its side.",
@@ -150,6 +170,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "scorching dry summers in the desert, cooler snowy winters up north",
     landmark: "Grand Canyon",
     top_crops: ["cotton", "lettuce"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Arizona is home to the Grand Canyon, a mile-deep gorge carved by the Colorado River.",
@@ -167,6 +188,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot humid summers with strong storms, and mild winters that turn icy at times",
     landmark: "Crater of Diamonds State Park",
     top_crops: ["rice", "soybeans"],
+    top_livestock: ["chickens"],
     fun_facts: [
       {
         text: "Arkansas has a diamond park where visitors can dig all day and keep any diamond they find.",
@@ -184,6 +206,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
     landmark: "Golden Gate Bridge",
     top_crops: ["grapes", "almonds", "strawberries"],
+    top_livestock: ["dairy cows"],
     fun_facts: [
       {
         text: "California holds the highest and lowest places in the lower 48 states, and they are close together.",
@@ -201,6 +224,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "dry and cold in the mountains, drier plains to the east",
     landmark: "Rocky Mountain National Park",
     top_crops: ["potatoes", "peaches"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Colorado has 58 mountains taller than 14,000 feet. Climbers call them fourteeners.",
@@ -234,6 +258,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     state_animal: "Gray fox",
     climate_kid: "mild humid summers and cool damp winters, close to the ocean's moderating winds",
     top_crops: ["lima beans"],
+    top_livestock: ["chickens"],
     fun_facts: [
       {
         text: "Delaware was the first state to ratify the Constitution, so it is nicknamed The First State.",
@@ -268,6 +293,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot muggy summers and mild winters, with thunderstorms common in the warm months",
     landmark: "Georgia Aquarium",
     top_crops: ["peaches", "peanuts", "pecans"],
+    top_livestock: ["chickens"],
     fun_facts: [
       {
         text: "Georgia grows more peanuts than any other state in the whole country.",
@@ -302,6 +328,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "warm dry summers and cold snowy winters, especially high in the mountains",
     landmark: "Craters of the Moon National Monument",
     top_crops: ["potatoes"],
+    top_livestock: ["dairy cows"],
     fun_facts: [
       {
         text: "Idaho grows more potatoes than any other state, and its license plates say Famous Potatoes.",
@@ -353,6 +380,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid:
       "hot humid summers and freezing cold winters, with strong winds across the open fields",
     top_crops: ["corn", "soybeans"],
+    top_livestock: ["pigs"],
     fun_facts: [
       {
         text: "Iowa grows more corn than any other state, with fields stretching as far as you can see.",
@@ -369,6 +397,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     state_animal: "American bison",
     climate_kid: "hot dry summers and cold windy winters, with sudden storms sweeping the plains",
     top_crops: ["wheat", "sorghum"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Kansas sits almost exactly in the middle of the country.",
@@ -437,6 +466,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot humid summers and cold winters, milder and breezier close to the water",
     landmark: "Fort McHenry",
     top_crops: ["corn", "soybeans"],
+    top_livestock: ["chickens"],
     fun_facts: [
       {
         text: "Maryland's Chesapeake Bay is the largest estuary in the United States, full of blue crabs.",
@@ -488,6 +518,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "bitterly cold snowy winters and warm humid summers, with big swings between them",
     landmark: "Mall of America",
     top_crops: ["corn", "soybeans"],
+    top_livestock: ["turkeys"],
     fun_facts: [
       {
         text: "Minnesota calls itself the land of 10,000 lakes. It actually has closer to 12,000.",
@@ -504,6 +535,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     state_animal: "White-tailed deer",
     climate_kid: "hot muggy summers nearly all year, with mild winters and frequent thunderstorms",
     top_crops: ["cotton", "soybeans"],
+    top_livestock: ["chickens"],
     fun_facts: [
       {
         text: "Mississippi is named after the Mississippi River, one of the longest rivers in North America.",
@@ -538,6 +570,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "cold snowy winters in the mountains, hot dry summers out on the plains",
     landmark: "Glacier National Park",
     top_crops: ["wheat", "barley"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Montana is nicknamed Big Sky Country because its skies stretch out over such wide open land.",
@@ -556,6 +589,7 @@ export const CURATED_US_STATES: CuratedState[] = [
       "hot windy summers and freezing cold winters, with sudden storms across the open plains",
     landmark: "Chimney Rock",
     top_crops: ["corn", "soybeans"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Nebraska is home to Chimney Rock, a tall spire that guided pioneers along the Oregon Trail.",
@@ -642,6 +676,7 @@ export const CURATED_US_STATES: CuratedState[] = [
       "cold snowy winters, heaviest near the lakes and mountains, and warm humid summers",
     landmark: "Statue of Liberty",
     top_crops: ["apples", "grapes", "maple syrup"],
+    top_livestock: ["dairy cows"],
     fun_facts: [
       {
         text: "New York City is the biggest city in the country, but it is not the state capital.",
@@ -659,6 +694,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot humid summers, and winters that turn cold and snowy up in the mountains",
     landmark: "Wright Brothers National Memorial",
     top_crops: ["sweet potatoes", "tobacco"],
+    top_livestock: ["pigs", "turkeys"],
     fun_facts: [
       {
         text: "North Carolina is where the Wright brothers flew the first airplane, at Kitty Hawk in 1903.",
@@ -709,6 +745,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     state_animal: "American bison",
     climate_kid: "hot windy summers and mild winters, with sudden severe storms in spring",
     top_crops: ["wheat"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Oklahoma has more man-made lakes than any other state in the country.",
@@ -743,6 +780,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "cold snowy winters and warm humid summers, changing a lot from place to place",
     landmark: "Liberty Bell",
     top_crops: ["mushrooms", "apples"],
+    top_livestock: ["dairy cows"],
     fun_facts: [
       {
         text: "Pennsylvania is where the Declaration of Independence was signed, in Philadelphia in 1776.",
@@ -793,6 +831,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "cold windy winters and hot summers, with sudden storms sweeping the plains",
     landmark: "Mount Rushmore",
     top_crops: ["corn", "soybeans"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "South Dakota is home to Mount Rushmore, where four presidents' faces are carved into granite.",
@@ -827,6 +866,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "scorching hot summers, humid and stormy in the east, drier and milder out west",
     landmark: "Space Center Houston",
     top_crops: ["cotton", "sorghum"],
+    top_livestock: ["cattle"],
     fun_facts: [
       {
         text: "Texas is so wide that El Paso is closer to California than to Houston.",
@@ -861,6 +901,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "cold snowy winters, heavy in the mountains, and mild cool summers below",
     landmark: "Ben & Jerry's Factory",
     top_crops: ["maple syrup", "apples"],
+    top_livestock: ["dairy cows"],
     fun_facts: [
       {
         text: "Vermont produces more maple syrup than any other state in the country.",
@@ -930,6 +971,7 @@ export const CURATED_US_STATES: CuratedState[] = [
       "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
     landmark: "Lambeau Field",
     top_crops: ["cranberries", "corn"],
+    top_livestock: ["dairy cows"],
     fun_facts: [
       {
         text: "Wisconsin produces more cheese than any other state, earning it the nickname America's Dairyland.",
@@ -948,6 +990,7 @@ export const CURATED_US_STATES: CuratedState[] = [
       "cold snowy winters high in the mountains, and hot dry summers down in the valleys below",
     landmark: "Yellowstone National Park",
     top_crops: ["hay", "sugar beets"],
+    top_livestock: ["cattle", "sheep"],
     fun_facts: [
       {
         text: "Wyoming is home to Yellowstone, the first national park ever created anywhere in the world.",

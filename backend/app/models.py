@@ -154,6 +154,7 @@ class Entity(Schema):
     borders: list[str] | None = None
     climate_kid: str | None = None
     top_crops: list[str] | None = None
+    top_livestock: list[str] | None = None
     animals: list[str] | None = None
     landmark: str | None = None
     elevation_m: float | None = None

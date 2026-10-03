@@ -708,6 +708,7 @@ describe("T-014 criterion 15 — nothing but climate_kid moves in the bank (tree
       "highest_point",
       "highest_point_m",
       "top_crops",
+      "top_livestock",
       "fun_facts",
       "sources",
     ]);

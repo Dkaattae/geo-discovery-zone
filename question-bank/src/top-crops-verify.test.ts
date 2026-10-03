@@ -222,6 +222,14 @@ const withoutAlaskaHighestPoint = (file: string, raw: string) =>
 const REGION_LINE = /^ {2}"region": "[^"]*",\n/m;
 const withoutRegion = (raw: string) => raw.replace(REGION_LINE, "");
 
+/**
+ * T-068 (2026-10-03, a later approved task) adds a hand-curated `top_livestock`
+ * array to all 50 states, absent at this suite's baseline, so the block is
+ * removed textually before hashing, the same shape as `region` above.
+ */
+const TOP_LIVESTOCK_BLOCK = /^ {2}"top_livestock": \[[^\]]*\],\n/m;
+const withoutTopLivestock = (raw: string) => raw.replace(TOP_LIVESTOCK_BLOCK, "");
+
 describe("T-015 tester, criterion 1 — one to three non-blank crops in every tracked file", () => {
   test("git ls-files matches exactly 50 state files, and readdirSync finds no stray extra", () => {
     const tracked = trackedStateFileNames();
@@ -576,11 +584,15 @@ describe("T-015 tester, criterion 12 — the committed sample is untouched", () 
 });
 
 describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => {
-  test("each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped and region removed, digests to the default branch's bytes", () => {
+  test("each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes", () => {
     for (const { file, raw } of trackedStates()) {
       expect({
         file,
-        digest: digest(withoutRegion(withoutAlaskaHighestPoint(file, withEmptyTopCrops(raw)))),
+        digest: digest(
+          withoutTopLivestock(
+            withoutRegion(withoutAlaskaHighestPoint(file, withEmptyTopCrops(raw))),
+          ),
+        ),
       }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,
