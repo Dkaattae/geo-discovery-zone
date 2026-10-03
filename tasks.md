@@ -139,42 +139,6 @@ finished. Each of these is independent. Nothing here reaches the app until T-040
 bridges the pipeline to the served bank — but the curation is the long pole, so
 it is worth doing in parallel rather than after.
 
-### T-063 — A one-command live refresh of the 50-state data, run monthly by a Claude routine · M · todo
-**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
-**Reshaped 2026-09-25 by katechen150621@gmail.com, in chat (option B).** The
-earlier plan was a scheduled GitHub Actions workflow with `contents: write` and
-`pull-requests: write` that reached Wikidata from CI. **That is not wanted:** CI
-stays fully offline (T-005) and gains no write permissions. Instead:
-- **This task** builds one command in `question-bank/` that reruns the pipeline
-  live, writes the bank, and prints a **readable change summary**: per state,
-  per field, old value → new value, plus files added or removed. "No change" must
-  be an explicit, machine-checkable outcome (an exit code or a single line), so
-  the caller can do nothing when nothing moved.
-- **After it lands**, a monthly Claude Code routine (a scheduled cloud session,
-  not CI) runs that command and opens a PR **only when the bank changed**, with
-  the summary as the PR body. A human reviews and merges it. Setting the routine
-  up is a chat step, not part of this task's diff. The cloud environment reaches
-  `query.wikidata.org` and `en.wikipedia.org` (both returned HTTP 200,
-  2026-09-25).
-
-**One thing it must not miss, found by T-011's reviewer (PR #41):** the live
-Wikipedia pass (`build.ts`, `if (args.funFacts)`) drafts a fact for **every**
-entity with a `wikipedia_title`, with no check for whether that state already has
-a curated one. All 50 do now, so a live run writes a 50-draft
-`fun-facts.review.json` of which every entry is already answered. Skip states
-that already carry a curated fact, or say why not — a monthly PR full of 50
-redundant drafts is noise that gets ignored. Drafts still land `reviewed: false`
-and never ship (`CLAUDE.md` "Content rules").
-
-**Why the summary matters:** a live refresh can bring in a wrong value as easily
-as a right one — T-069's feet-under-a-metres-key is exactly that shape. The
-summary is what lets a human catch it in the PR, so it names values, not just
-file names.
-**Done when:** one command refreshes the committed bank from live Wikidata and
-prints a per-state, per-field change summary; an unchanged bank is reported as
-unchanged and writes nothing; no redundant fun-fact drafts are produced for
-curated states; tests cover the summary and the no-change path offline, through
-the existing transport seam, with no network.
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
 **Depends on:** T-040 (corrected by T-065's reviewer, per the expander's note below)
 Split out of T-010's Q3: `sample-data/` (one committed state, with its own
@@ -332,11 +296,53 @@ cheaper to close than they were:
   including the documented false-positive mode at `:207-212`.
 - **E-11 and E-12 are now two worked examples of the write-up**, so (a)'s decision
   has a house style to follow whichever way it goes.
+**Amended 2026-10-02 by T-063's reviewer (PR #68): (a) now gates the monthly
+refresh routine.** `bun run refresh` (T-063) moves `sources.built_at` in all 50
+bank files on every *changed* refresh, by design (E-6's reproducibility), so the
+first refresh PR will be red on all four digest guards (`landmarks-verify`,
+`climate-kid-verify`, `top-crops-verify`, `highest-point-verify`) unless (a) is
+settled first. Whichever way (a) goes, the answer has to survive a bank where
+only `built_at` and the fixture moved. Do this, and T-077, before the routine is
+switched on.
 **Done when:** the three digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md`), no test in
 `question-bank/src/` passes down a path taken because a spawned `git` failed, and
 a test can assert on the build report's printed warnings without spawning
 `build.ts`.
+
+### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
+**Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching
+on the monthly refresh routine**, alongside T-070 (a).
+**New 2026-10-02, from T-063's worker.** The first by-hand live run of
+`bun run refresh` (into a scratch copy, nothing committed) reported
+`us-state-ak capital: "Juneau" → "Q29445"`. WDQS's label service falls back to
+the bare QID when an item has no English label, and `normalize.ts` takes
+`capitalLabel` as-is — so a monthly refresh would have offered a child
+"Q29445" as Alaska's capital, caught only if the PR reviewer reads the summary.
+The same fallback can hit any `*Label` binding (`stateLabel`, `highestPoint`).
+**Done when:** a label matching `^Q\d+$` is treated as missing for that field
+(and warns, `CLAUDE.md` "Prefer a blank field to a guessed one"), with an offline
+test through `parseUsStates`/`normalizeUsStates`; check whether Juneau's English
+label is really gone on Wikidata or the query reads the wrong item.
+
+
+### T-078 — Point the other refresh routes at `bun run refresh` · S · todo
+**Depends on:** —
+**New 2026-10-02, from T-063's reviewer (PR #68).** T-063 left two older routes
+saying the old thing, both deliberately out of its scope:
+- **`build.ts`'s live fun-fact pass still drafts for every titled entity** (all
+  50, every one already curated). T-063 added `draftMissingFunFacts` in
+  `src/review-file.ts` and used it only in `refresh.ts`, because its brief kept
+  `bun run build`'s behaviour fixed. Switching `build.ts`'s loop to it removes
+  the duplicate loop and the 50 redundant drafts.
+- **`src/fixtures/us-states.sparql.json`'s `_fixture.regenerate_with`** still
+  says "bun run build … then save the raw SPARQL JSON". A refresh preserves that
+  key verbatim (T-063 criterion 6), so it will stay wrong until edited by hand.
+  Editing it does not change any built byte, so `committed-bank.test.ts` stays
+  green; check the other fixture readers under `src/*verify*.test.ts` too.
+**Done when:** `bun run build`'s live pass requests drafts only for entities with
+empty `fun_facts` (offline test through `SummaryTransport`), and
+`regenerate_with` names `bun run refresh`.
 
 ---
 

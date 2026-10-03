@@ -19,6 +19,7 @@ bun install
 
 bun run build:sample     # offline: recorded fixture → sample-data/
 bun run build            # live: query.wikidata.org → data/us-states/
+bun run refresh          # live refresh of the committed bank + fixture, with a change summary
 bun run build -- --offline --out data/us-states   # offline refresh of the committed bank
 bun run build -- --states CO,VT --out data/subset
 bun run typecheck
@@ -43,7 +44,7 @@ actually spawns the CLI offline twice into a throwaway directory and diffs the
 bytes against what's tracked, so a tracked file drifting from what the fixture
 produces fails CI rather than shipping quietly. A **live** run legitimately
 differs run to run, since Wikidata itself changes; that is expected and is a
-separate decision (`tasks.md` T-063, not yet built) about *when* to refresh the
+separate decision (`bun run refresh`, below) about *when* to refresh the
 committed bank, not whether it is committed.
 
 | Flag | Meaning |
@@ -54,6 +55,37 @@ committed bank, not whether it is committed.
 | `--offline` | Replay the fixture instead of calling Wikidata. Implies `--no-fun-facts` |
 | `--fixture <path>` | Use a specific fixture (implies `--offline`) |
 | `--no-fun-facts` | Skip the Wikipedia summary pass |
+
+## Refreshing the committed bank
+
+`bun run refresh` (`src/refresh.ts`, T-063) is the one command a monthly routine
+runs. It queries `query.wikidata.org`, rebuilds all 50 states, compares them with
+`data/us-states/`, and prints one line per changed field — entity id, field
+path, old value → new value — plus any entity file added or removed. A field
+present on one side only prints as `(absent)`, never as `null`.
+`sources.built_at` is not a change and never appears. Every normalisation
+warning is printed too.
+
+| Exit | Meaning | What it wrote |
+|---|---|---|
+| `0` | The bank changed | All entity files and `index.json`; removed entity files deleted; `src/fixtures/us-states.sparql.json` re-recorded with the live response (`_fixture.captured_at` = now, `rows` updated, the rest of `_fixture` kept); every `built_at` set to that `captured_at` |
+| `1` | The refresh failed — the request failed after retries, the response was malformed, or fewer than all 50 states matched (the missing ones are named) | Nothing |
+| `2` | `bank unchanged` — printed as exactly that line | Nothing |
+
+Because the fixture is re-recorded and `built_at` taken from it, the offline
+rebuild `committed-bank.test.ts` runs still reproduces the refreshed bank byte
+for byte (E-6). Wikipedia drafts are requested only for states with no curated
+fun fact — none today — and land `reviewed: false` in the git-ignored
+`data/us-states/fun-facts.review.json`, never in an entity file.
+
+```bash
+bun run refresh                    # the default paths
+bun run refresh -- --bank <dir> --fixture <path>   # refresh copies instead
+bun run refresh -- --no-fun-facts  # skip the Wikipedia draft pass
+```
+
+Progress and failures go to stderr; the change summary and warnings go to
+stdout, so stdout is what the routine pastes into the PR body.
 
 ## What the first live run found
 

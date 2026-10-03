@@ -8,15 +8,16 @@
  * Everything runs at build time and ships as JSON (§1.9): no runtime API calls,
  * no keys in the client, and no Wikipedia vandalism reaching a child mid-quiz.
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { readFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 
 import { normalizeUsStates } from "./normalize";
+import { writeReviewFile, type FunFactDraft } from "./review-file";
 import { createSink } from "./sinks";
 import { createSparqlClient, type SparqlResults, type SparqlTransport } from "./sparql";
 import { fetchUsStates } from "./sources/wikidata";
 import { createSummaryTransport, fetchFunFact } from "./sources/wikipedia";
-import type { Entity, FunFact } from "./types";
+import type { Entity } from "./types";
 
 interface Args {
   states: string[] | "all";
@@ -127,32 +128,6 @@ function fixtureTransport(
   };
 }
 
-/**
- * Unreviewed facts never touch an entity's shippable text. They go to a review
- * file for a human to rewrite in kid language and mark `reviewed: true` (§1.6).
- */
-async function writeReviewFile(
-  outDir: string,
-  drafts: { id: string; name: string; fact: FunFact }[],
-): Promise<string> {
-  const path = join(outDir, "fun-facts.review.json");
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(
-    path,
-    `${JSON.stringify(
-      {
-        note: "Draft facts scraped from Wikipedia. Rewrite in kid language, then set reviewed: true. Only reviewed facts ship.",
-        generated_at: new Date().toISOString(),
-        drafts,
-      },
-      null,
-      2,
-    )}\n`,
-    "utf8",
-  );
-  return path;
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const log = args.quiet ? () => {} : (message: string) => console.log(message);
@@ -183,7 +158,7 @@ async function main() {
   if (args.funFacts) {
     log("Fetching Wikipedia summaries …");
     const fetchSummary = createSummaryTransport((message) => log(`  ${message}`));
-    const drafts: { id: string; name: string; fact: FunFact }[] = [];
+    const drafts: FunFactDraft[] = [];
     for (const entity of entities) {
       const title = entity.sources?.wikipedia_title;
       if (!title) continue;
