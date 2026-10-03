@@ -1,7 +1,7 @@
 # T-068 — US livestock/poultry per state, separate from crops — run log
 
 **Task:** T-068 · **Branch:** `claude/next-task-queue-3ynpc7` · **PR:** #69
-**Started:** 2026-10-03 · **Outcome:** in progress
+**Started:** 2026-10-03 · **Outcome:** ready for merge (escalated)
 
 ## Round 1 — task-expander — 2026-10-03
 `Next step` on entry: (no brief) → on exit: `worker` (Status `awaiting approval`, Approved `pending`)
@@ -124,3 +124,52 @@ To resume: Dkaattae starts the `tester` step for T-068 in a session they are att
 
 ## Resumed — attended tester — 2026-10-03
 Outside this run, an attended `tester` applied the approved test change request (`e1f2689`) and wrote the final verdict (`a3491a1`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-03`. CI on `a3491a1`: all 7 check runs green. Dkaattae asked the orchestrator to continue ("Ci should be fixed. Keep going").
+
+## Round 4 — reviewer — 2026-10-03
+`Next step` on entry: `reviewer` (Status `pass`) → on exit: `human` (Status `approved — ready for review, escalated (openapi.yaml changed; child-facing text)`; brief then swept in `a394d52`)
+
+**TL;DR: I approved T-068 and escalated it. PR #69 is marked ready for review and is not merged.** It escalates for two reasons: it changes `openapi.yaml` (`Entity.topLivestock`), and it adds text a child will read (26 livestock strings across 24 states). Neither is a defect. **Next step: human.** Dkaattae works through the checklist at the top of the PR body, then merges or doesn't. The sweep is already inside the PR, so nothing else is owed after the merge.
+
+**State, all confirmed through the API**
+- **PR #69:** open, `draft: false`, not merged. The body is updated and its head is `a394d52`.
+- **Branch `claude/next-task-queue-3ynpc7`:** the push landed, and `origin` matches my local `a394d52`.
+- **Commits:**
+  - `694bdfa`: review written into the brief. Status `approved — ready for review, escalated (openapi.yaml changed; child-facing text)`, Next step `human`, my reviewer row added to Sessions.
+  - `3312f46`: corrects the string count in that review.
+  - `a394d52`: the sweep.
+- **The brief no longer exists.** The sweep deleted it, so the Status and Review sections live in git history at `3312f46`. The PR body is now the permanent record.
+
+**Checks before approving**
+- **Every role's work is in the PR.** Each Sessions row (the expander, the worker, the orchestrated tester and the attended tester) has commits on the branch. `origin/main` is still the base, `ed229805`.
+- **Every role stayed in its lane.**
+  - The expander touched only `tasks/` and `tasks.md`.
+  - The worker touched exactly the files the brief's Constraints list, plus the brief.
+  - The testers touched only tests and the brief.
+- **The test changes match the request.** `e1f2689` is a tester commit and changes exactly the 14 approved rows across 8 files. Each row only removes `top_livestock`. No assertion was dropped and no digest was re-pinned. The approval is Dkaattae's own, given in an attended session (D-15).
+- **All gates pass when I re-ran them:**
+  - question-bank: `bun test` 1419 pass, 0 fail; typecheck, lint and format:check clean.
+  - backend: `make test` 537 passed, 9 skipped.
+  - After the sweep I also re-ran the frontend and question-bank tests that read `tasks.md` and `PROGRESS.md`; all pass.
+- **CI on the final push was still in progress** when I finished, so I have not seen its result.
+
+**Findings (none block). Each is routed to an existing task rather than a new entry:**
+1. **`openapi.yaml:1489`.** The description reads "Empty where no state has an honest standout"; it should say "where the state has no honest standout". Added to **T-040**, the next task to touch this field.
+2. **`question-bank/sample-data/README.md`** says nothing about the missing `top_livestock`. Its "same output" claim has been stale since T-015. Added to **T-064**, which deletes that directory.
+3. **Criterion 16's `top_crops` example is weaker than it reads.** Since T-015, three of the four digest guards reset `top_crops` before hashing, so they never see a crop change. Added to **T-070**, along with the fifth neutralisation and the 14 test edits this one key cost.
+
+**Worker and tester flags, all settled**
+- **The `beef`/`bee` clash:** no action; `cattle` is the better word for a child anyway.
+- **The shared session id:** closed, because the final verdict came from a separate attended session.
+- **The close calls and the 26 deliberate blanks:** moved into the human checklist on the PR.
+
+**The sweep**
+- **Brief deleted:** `tasks/T-068-top-livestock.md`.
+- **`tasks.md`:**
+  - The T-068 entry is deleted.
+  - T-070's "Depends on" line is updated and an amendment added.
+  - T-064 and T-040 each get an amendment.
+  - T-026 gets a farm-animal row and a note that the question only works from state to animal, since only `sheep` belongs to a single state.
+- **`PROGRESS.md`:** T-068 is logged under Completed tasks, including where reality differed from the brief (14 test edits instead of the 9 predicted). The question-bank section is updated.
+
+## Ended — ready for merge — 2026-10-03
+PR #69 marked ready by the reviewer, escalated for a human decision (openapi.yaml change; child-facing text). Not merged — Dkaattae's to merge (D-4).
