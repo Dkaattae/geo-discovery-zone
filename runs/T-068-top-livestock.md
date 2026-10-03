@@ -1,7 +1,7 @@
 # T-068 — US livestock/poultry per state, separate from crops — run log
 
 **Task:** T-068 · **Branch:** `claude/next-task-queue-3ynpc7` · **PR:** #69
-**Started:** 2026-10-03 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-03 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-03
 `Next step` on entry: (no brief) → on exit: `worker` (Status `awaiting approval`, Approved `pending`)
@@ -121,3 +121,6 @@ The brief is at `/home/user/geo-discovery-zone/tasks/T-068-top-livestock.md`.
 Raised in commit `27afd58`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not read by the orchestrator.
 
 To resume: Dkaattae starts the `tester` step for T-068 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15).
+
+## Resumed — attended tester — 2026-10-03
+Outside this run, an attended `tester` applied the approved test change request (`e1f2689`) and wrote the final verdict (`a3491a1`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-03`. CI on `a3491a1`: all 7 check runs green. Dkaattae asked the orchestrator to continue ("Ci should be fixed. Keep going").
