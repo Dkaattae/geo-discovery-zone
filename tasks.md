@@ -178,7 +178,10 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-069 — `highest_point_m` carries feet for some states · S · todo
+### T-069 — `highest_point_m` carries feet for some states · S · doing
+**Expanded 2026-10-03:** `tasks/T-069-highest-point-metres.md`, branch
+`task/T-069-highest-point-metres`. The expander re-sized it closer to M: the unit
+has to come from a new live recording, and the live paths need the same fix.
 **Depends on:** —
 **New 2026-09-18, found while surveying T-016.** `P2044` carries a unit that
 `wdt:` drops, so an elevation stated in feet arrives as a plausible-looking
@@ -200,6 +203,24 @@ wrong unit warns instead of shipping.
 **It will move five tracked files' bytes, so it hits the pinned-digest wall —
 read T-070 first.** This is the first queued task that *changes* a value rather
 than adding a key, which none of the existing neutralisations handle.
+
+### T-079 — `highest_point_m` is the mountain's summit, not the state's high point · S · todo
+**Depends on:** T-069 (same field, same files; run after it to avoid conflicts)
+**New 2026-10-03, from T-069's expander.** Surveying T-069 found three values
+that are in metres but still look wrong, which T-069 deliberately leaves alone:
+**CT `748`** is Mount Frissell's summit, which is in Massachusetts —
+Connecticut's high point is on its south slope (~725 m); **OK `1737`** appears
+to be Black Mesa's overall top, in New Mexico, not Oklahoma's high point
+(~1,516 m); **VA `1825`** does not match Mount Rogers' usual figure (~1,746 m).
+All three reference figures are from the expander's memory and unverified —
+T-069's 50-row cross-check (criterion 17) should confirm or clear them first.
+This is a definitional question — "the elevation of the state's high point" vs.
+"the elevation of the mountain that contains it" — so it needs a decision before
+a fix, and `CLAUDE.md`'s "Flag uncertain data rather than silently picking a side"
+applies.
+**Done when:** the rule is decided and written down (`engineering-decisions.md`),
+and each of the three either follows it from a recorded source or is blank with a
+warning.
 
 ### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
 **Depends on:** — (blocks nothing, but **T-069 will hit it**; T-068 already did, PR #69, and T-067 ended by deleting its field and never touched the bank)
