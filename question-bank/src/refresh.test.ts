@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { DEAD_PROXY } from "./offline-rebuild";
+import { US_STATES_ELEVATION_QUERY } from "./queries/us-states-elevation";
 import {
   ABSENT,
   diffBank,
@@ -71,10 +72,16 @@ function row(response: SparqlResults, name: string): SparqlRow {
   return found;
 }
 
+// T-069 (approved test change request, row 8): a refresh makes a second query
+// for elevation units; that one is answered with the committed elevation
+// recording, any other query with the given response as before.
+const ELEVATION_FIXTURE = join(PKG, "src/fixtures/us-states-elevation.sparql.json");
 const transportOf =
   (response: SparqlResults): SparqlTransport =>
-  async () =>
-    response;
+  async (query) =>
+    query === US_STATES_ELEVATION_QUERY
+      ? (JSON.parse(readFileSync(ELEVATION_FIXTURE, "utf8")) as SparqlResults)
+      : response;
 
 function snapshot(dir: string): Map<string, string> {
   return new Map(readdirSync(dir).map((name) => [name, readFileSync(join(dir, name), "utf8")]));

@@ -453,6 +453,20 @@ describe("T-013 tester, criterion 8 — the committed sample stays in step with 
   });
 });
 
+/**
+ * T-069 (2026-10-03, a later approved task; approved test change request,
+ * rows 1–2) converts `highest_point_m` to metres in five files that shipped
+ * feet. Those five get their default-branch value back before hashing; the
+ * other 45 are hashed exactly as before.
+ */
+const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
+  "us-state-az.json": 12622,
+  "us-state-or.json": 11237,
+  "us-state-ne.json": 5429,
+  "us-state-ks.json": 4039,
+  "us-state-ia.json": 1670,
+};
+
 describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank", () => {
   test("index.json is byte-identical to the default branch's", () => {
     expect(digest(readFileSync(join(DATA_DIR, "index.json"), "utf8"))).toBe(
@@ -500,6 +514,11 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
       // 50 states; the baseline never had it, so it is deleted.
       delete parsed["top_livestock"];
       parsed["top_crops"] = [];
+      // T-069 (approved test change request): the five converted files get
+      // their default-branch highest_point_m back; the other 45 are untouched.
+      if (file in T069_DEFAULT_BRANCH_HIGHEST_POINT_M) {
+        parsed["highest_point_m"] = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
+      }
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: DEFAULT_BRANCH_DIGESTS[file] as string,

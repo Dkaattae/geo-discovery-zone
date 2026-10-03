@@ -26,6 +26,7 @@ import { join, resolve } from "node:path";
 
 import { normalizeUsStates } from "./normalize";
 import { DEAD_PROXY } from "./offline-rebuild";
+import { US_STATES_ELEVATION_QUERY } from "./queries/us-states-elevation";
 import { main, refreshBank } from "./refresh";
 import { draftMissingFunFacts, writeReviewFile } from "./review-file";
 import type { SparqlResults, SparqlRow, SparqlTransport } from "./sparql";
@@ -89,10 +90,16 @@ function withRow(name: string, edit: (row: SparqlRow) => SparqlRow): SparqlResul
   return response;
 }
 
+// T-069 (approved test change request, row 9): a refresh makes a second query
+// for elevation units; `replay` answers it with the committed elevation recording.
+const ELEVATION_FIXTURE = join(PKG, "src/fixtures/us-states-elevation.sparql.json");
+const elevationRecording = (): SparqlResults =>
+  JSON.parse(readFileSync(ELEVATION_FIXTURE, "utf8")) as SparqlResults;
+
 const replay =
   (response: SparqlResults): SparqlTransport =>
-  async () =>
-    structuredClone(response);
+  async (query) =>
+    query === US_STATES_ELEVATION_QUERY ? elevationRecording() : structuredClone(response);
 
 /** Snapshot of every file under a directory (relative path → bytes as text). */
 function snapshot(dir: string): Map<string, string> {
@@ -555,8 +562,10 @@ describe("T-063 criterion 12: added and removed entity files", () => {
 });
 
 describe("T-063 criterion 13: normalisation warnings reach stdout", () => {
+  // T-069 (approved test change request, row 10): parsed with the elevation
+  // recording, as the refresh itself does.
   const warningLines = (response: SparqlResults) =>
-    normalizeUsStates(parseUsStates(structuredClone(response)), {
+    normalizeUsStates(parseUsStates(structuredClone(response), elevationRecording()), {
       builtAt: NOW.toISOString(),
     }).warnings.map((w) => `${w.entity}.${w.field}: ${w.message}`);
 

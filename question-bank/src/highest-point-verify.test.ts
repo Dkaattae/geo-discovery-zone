@@ -155,8 +155,14 @@ const rowFor = (name: string, overrides: Partial<WikidataStateRow> = {}): Wikida
   ...overrides,
 });
 
+// T-069 (approved test change request, row 6): the offline build reads the
+// elevation-with-unit recording beside the main fixture, so this does too.
+const ELEVATION_FIXTURE = join(PKG, "src/fixtures/us-states-elevation.sparql.json");
 const fixtureRows = (): WikidataStateRow[] =>
-  parseUsStates(JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults);
+  parseUsStates(
+    JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults,
+    JSON.parse(readFileSync(ELEVATION_FIXTURE, "utf8")) as SparqlResults,
+  );
 
 // ---------------------------------------------------------------------------
 // Criterion 1 — 50 of 50 tracked files carry a non-empty string highest_point
@@ -331,16 +337,35 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
   });
 });
 
+/**
+ * T-069 (2026-10-03, a later approved task; approved test change request,
+ * row 5) converts `highest_point_m` to metres in five files that shipped
+ * feet. Their line is rewritten to the default-branch value before the other
+ * neutralisers; the other 45 files are untouched by this.
+ */
+const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
+  "us-state-az.json": 12622,
+  "us-state-or.json": 11237,
+  "us-state-ne.json": 5429,
+  "us-state-ks.json": 4039,
+  "us-state-ia.json": 1670,
+};
+const withDefaultBranchHighestPointM = (file: string, raw: string) => {
+  const metres = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
+  return metres === undefined
+    ? raw
+    : raw.replace(/^ {2}"highest_point_m": \d+,\n/m, `  "highest_point_m": ${metres},\n`);
+};
+
 describe("T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched", () => {
   test("each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped", () => {
     for (const name of trackedStateFiles()) {
       if (name === "us-state-ak.json") continue;
-      expect({ name, digest: sha256(withoutTopLivestock(withoutRegion(readState(name)))) }).toEqual(
-        {
-          name,
-          digest: DEFAULT_BRANCH_DIGESTS[name] as string,
-        },
-      );
+      const raw = withDefaultBranchHighestPointM(name, readState(name));
+      expect({ name, digest: sha256(withoutTopLivestock(withoutRegion(raw))) }).toEqual({
+        name,
+        digest: DEFAULT_BRANCH_DIGESTS[name] as string,
+      });
     }
   });
 

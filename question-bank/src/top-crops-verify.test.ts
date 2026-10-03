@@ -449,7 +449,10 @@ describe("T-015 tester, criterion 7 — no new network or environment surface", 
   });
 
   test("no new file was added under question-bank/src/fixtures/", () => {
+    // T-069 (2026-10-03, a later approved task; approved test change request,
+    // row 4) records the elevation-with-unit response as a second fixture.
     expect(trackedUnder("question-bank/src/fixtures")).toEqual([
+      "question-bank/src/fixtures/us-states-elevation.sparql.json",
       "question-bank/src/fixtures/us-states.sparql.json",
     ]);
   });
@@ -583,6 +586,26 @@ describe("T-015 tester, criterion 12 — the committed sample is untouched", () 
   });
 });
 
+/**
+ * T-069 (2026-10-03, a later approved task; approved test change request,
+ * row 3) converts `highest_point_m` to metres in five files that shipped
+ * feet. Their line is rewritten to the default-branch value before the other
+ * neutralisers; the other 45 files are untouched by this.
+ */
+const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
+  "us-state-az.json": 12622,
+  "us-state-or.json": 11237,
+  "us-state-ne.json": 5429,
+  "us-state-ks.json": 4039,
+  "us-state-ia.json": 1670,
+};
+const withDefaultBranchHighestPointM = (file: string, raw: string) => {
+  const metres = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
+  return metres === undefined
+    ? raw
+    : raw.replace(/^ {2}"highest_point_m": \d+,\n/m, `  "highest_point_m": ${metres},\n`);
+};
+
 describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => {
   test("each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes", () => {
     for (const { file, raw } of trackedStates()) {
@@ -590,7 +613,12 @@ describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => 
         file,
         digest: digest(
           withoutTopLivestock(
-            withoutRegion(withoutAlaskaHighestPoint(file, withEmptyTopCrops(raw))),
+            withoutRegion(
+              withoutAlaskaHighestPoint(
+                file,
+                withEmptyTopCrops(withDefaultBranchHighestPointM(file, raw)),
+              ),
+            ),
           ),
         ),
       }).toEqual({
