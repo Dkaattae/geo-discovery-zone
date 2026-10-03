@@ -28,6 +28,9 @@
     "wheat",
     "sorghum"
   ],
+  "top_livestock": [
+    "cattle"
+  ],
   "fun_facts": [
     {
       "text": "Kansas sits almost exactly in the middle of the country.",

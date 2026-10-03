@@ -1,7 +1,7 @@
 # T-068 — US livestock/poultry per state, separate from crops
 
-**Status:** `approved`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** `Dkaattae — 2026-10-03, in chat (session_018ET4S26HVxh9FbiQMgTU3y), with the expander's defaults for field name, placement, and livestock scope`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-068
@@ -18,6 +18,7 @@ approves
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y |
+| worker | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y (same remote session id as the expander: the orchestrated run spawns roles as subagents inside one web session, so the env var does not distinguish them) |
 
 ## Goal
 
@@ -217,6 +218,103 @@ and records who checked on the PR:
 
 ## Handoff
 
+**TL;DR — `top_livestock` is built end to end: 24 states curated, 26 blank, contract and backend model carry it, E-18 written.** The suite has **14 stale reds, all by design** (listed below — the four digest guards, the five Colorado-vs-sample comparisons, and three "no unexpected key" allow-lists). Typecheck, lint, format:check and the backend suite (525 passed, 9 skipped) are green. Next: the tester raises the Test change request for the 14.
+
+**Changed, file by file**
+
+- `question-bank/src/types.ts` — `Entity.top_livestock?: string[]`, after `top_crops`.
+- `question-bank/src/curated/us-states.ts` — `CuratedState.top_livestock?: string[]` with doc comment; T-068 provenance paragraph in the header comment (criterion 23); `top_livestock` set on 24 rows, directly after `top_crops`.
+- `question-bank/src/normalize.ts` — `top_livestock: curated.top_livestock ?? []`, right after the `top_crops` fold.
+- `question-bank/data/us-states/us-state-*.json` (all 50) — regenerated with `bun run src/build.ts --offline --out data/us-states --quiet`; insertions only (147 lines), never hand-edited. `index.json` did not change.
+- `openapi.yaml` — `Entity.topLivestock` (array of string, with a description) right after `topCrops`.
+- `backend/app/models.py` — `Entity.top_livestock: list[str] | None = None` after `top_crops`.
+- `engineering-decisions.md` — E-18 appended; E-1…E-17 untouched (the diff against the base commit is 49 insertions, 0 deletions).
+
+**The picks** (all lower-case, at most two)
+
+| Value | States |
+|---|---|
+| `chickens` | AL, AR, DE, GA, MD, MS |
+| `cattle` | AZ, CO, KS, MT, NE, OK, SD, TX |
+| `dairy cows` | CA, ID, NY, PA, VT, WI |
+| `pigs` | IA |
+| `turkeys` | MN |
+| `pigs`, `turkeys` | NC |
+| `cattle`, `sheep` | WY |
+| `[]` (26) | AK, CT, FL, HI, IL, IN, KY, LA, MA, ME, MI, MO, ND, NH, NJ, NM, NV, OH, OR, RI, SC, TN, UT, VA, WA, WV |
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1–8 | the 50 tracked files; values from the curated table. Checked by an ad-hoc script (not committed): 50 files, 0 violations |
+| 9 | `CURATED_US_STATES[*].top_livestock` → tracked files via the offline rebuild |
+| 10 | `normalize.ts`, the `?? []` line after `top_crops`. No worker test was added for this; it is the tester's to pin |
+| 11 | two consecutive dead-proxy offline rebuilds into temp dirs: `diff -r` against `data/us-states/` is empty both times |
+| 12 | insertions only in the 50 files; each file with `top_livestock` deleted deep-equals the base commit (ad-hoc script, `built_at` included) |
+| 13–15, 24 | `git diff --quiet ed229805 -- <those paths>` exits 0 |
+| 16 | not satisfiable by the worker: the guards are existing tests (see Tests made stale) |
+| 17 | `openapi.yaml`, `components.schemas.Entity.properties.topLivestock` |
+| 18–19 | `backend/app/models.py` `Entity`; `make -C backend test` passes, contract-walk tests included |
+| 20–22 | `engineering-decisions.md` E-18 |
+| 23 | header comment of `curated/us-states.ts`, "`top_livestock` provenance (T-068, 2026-10-03)" |
+| 25 | the backend suite passes with all six proxy variables on `127.0.0.1:1`. The question-bank suite's only reds are the stale 14 |
+| 26 | green except the stale 14 |
+
+**Deliberately not done**
+
+- **No test written by the worker.** Every criterion is observable in data or in existing harnesses; the tests are the tester's.
+- **Not re-pinned or refactored the digest guards** (T-070, out of scope).
+- **No `top_crops` change, no `sample-data/` change, no `content.json` change.**
+
+**Contradicts or strains the brief**
+
+- **`beef` in criterion 6 can never be used.** Criterion 7 bans the substring `bee`, and `beef` contains it. The two criteria are consistent (6 only needs one listed word), but `beef` is dead in 6, and a "beef cattle" string would fail 7. I wrote `cattle` instead. **Owner:** the expander, if T-068 is ever re-expanded or the criteria are reused. Otherwise the reviewer only needs to know why "beef" never appears.
+- **The Sessions id is the same as the expander's**, because the orchestrated run shares one web session id (see the Sessions row). **Owner:** the tester, to note and judge against `process.md`'s isolation rule.
+
+**How to run**
+
+```bash
+cd question-bank && bun install --frozen-lockfile   # node_modules was absent in this env; lint/prettier tests need it
+bun test && bun run typecheck && bun run lint && bun run format:check
+bun run src/build.ts --offline --out data/us-states --quiet   # regenerates the 50 files; must leave git clean
+make -C ../backend test
+```
+
+**Tests made stale** (14, all in `question-bank/src/`, all caused by criterion 1's new key). Each fix below **removes `top_livestock` and nothing else**, so a change to any other field still fails (criterion 16). There are no count floors: nothing is deleted, so no test-count pin moves.
+
+*Pinned-digest guards (criterion 16):*
+
+1. `top-crops-verify.test.ts` › "T-015 tester, criterion 13 — nothing else in the bank moves" › "each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped and region removed, digests to the default branch's bytes". **Modify:** before hashing, also strip the `top_livestock` block textually: `raw.replace(/^ {2}"top_livestock": \[[^\]]*\],\n/m, "")`. This works for both `[]` and multi-line arrays, because the values contain no `]`.
+2. `landmarks-verify.test.ts` › "T-013 tester, criterion 9 — nothing but landmark moves in the bank" › "each of the 50 files, with landmark, climate_kid and top_crops removed, is identical to the default branch's". **Modify:** add `delete parsed["top_livestock"];` next to the existing `delete parsed["region"];`.
+3. `climate-kid-verify.test.ts` › "T-014 tester, criterion 15 — nothing but climate_kid moves in the bank" › "each of the 50 files, with climate_kid and top_crops removed, digests to the default branch's value". **Modify:** the same `delete parsed["top_livestock"];`.
+4. `highest-point-verify.test.ts` › "T-016 tester, criterion 5 — us-state-ak.json gains one line and nothing else" › "removing the highest_point line, reverting landmark and dropping region reproduces the default branch's bytes exactly". **Modify:** add the same textual `top_livestock` strip as item 1 to the `.replace` chain.
+5. `highest-point-verify.test.ts` › "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched" › "each of the 49 non-Alaska state files matches the default branch once T-017's region line is dropped". **Modify:** strip `top_livestock` textually before `sha256`.
+6. `highest-point-verify.test.ts` › "T-016 tester, criterion 11 — both neutralisation routes are proven real" › "the textual route (top-crops-verify) changes the bytes and drops the value". **Modify:** add the same textual strip to its `neutralised` chain.
+
+*Tracked Colorado vs `sample-data/us-state-co.json`* (the sample is frozen by criterion 14, so the comparison has to drop the key):
+
+7. `committed-bank.test.ts` › "T-010 criterion 4 — the tracked Colorado matches the committed sample" › "data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at and top_crops". **Modify:** also delete `top_livestock` in `stripBuiltAt` (or at the call site).
+8. `landmarks.test.ts` › "T-013 criterion 8 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops". **Modify:** the same.
+9. `state-animals.test.ts` › "T-012 criterion 7 — the committed sample stays in step with the bank" › the same test name. **Modify:** the same.
+10. `landmarks-verify.test.ts` › "T-013 tester, criterion 8 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at and top_crops, landmark included". **Modify:** add `delete parsed["top_livestock"]` inside its `strip`.
+11. `climate-kid-verify.test.ts` › "T-014 tester, criterion 13 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at and top_crops". **Modify:** the same.
+
+*"No unexpected key" allow-lists:*
+
+12. `landmarks.test.ts` › "T-013 criterion 9 — nothing but landmark moves in the bank (tree-shaped pieces)" › "no tracked entity file has grown a key outside the schema this task may touch". **Modify:** add `"top_livestock"` to `allowed`.
+13. `state-animals.test.ts` › "T-012 criterion 8 — nothing but state_animal moves in the bank" › the same test name. **Modify:** the same.
+14. `climate-kid.test.ts` › "T-014 criterion 15 — nothing but climate_kid moves in the bank (tree-shaped pieces)" › the same test name. **Modify:** the same.
+
+The brief's Constraints predicted the four guards and the five sample comparisons. It did not predict items 12–14 or the extra `highest-point-verify` reds (items 5 and 6). All of these are the same cause.
+
 ## Verdict
 
 ## Notes
+
+- **Worker model: Opus.** The work is mostly mechanical, but the picks are child-facing content.
+- **The `bee` ban caught "beef cattle".** That is why the value is `cattle`. It also reads more simply for a 7–10-year-old.
+- **Conservative on purpose.** States that raise plenty of livestock but are not *known* for it were left blank: FL and MO cattle, OH and IN eggs, VA and SC poultry, MI dairy. Most of the rest are crop or horse states (KY, TN). This is the reviewer checklist's second box. **Owner:** the human reviewer.
+- **Closest calls, for the reviewer:** CO `cattle`, AZ `cattle` (one of Arizona's "five Cs"), ID `dairy cows`, MS `chickens` (catfish is more famous but excluded), NC `turkeys` as the second item alongside `pigs`, and WY `sheep`. **Owner:** the human reviewer, on the PR.
+- **Environment:** `question-bank/node_modules` was missing at the start, so 13 lint/prettier gate tests failed for that reason alone. `bun install --frozen-lockfile` fixed them, with no lockfile change.
+- **PR note owed (from the T-068 queue entry):** the digest guards gain a fifth neutralisation (`top_livestock`) instead of being re-pinned. T-070 still owns that decision. **Owner:** the reviewer, to carry into the PR body.

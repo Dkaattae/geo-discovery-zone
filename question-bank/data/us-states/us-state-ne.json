@@ -31,6 +31,9 @@
     "corn",
     "soybeans"
   ],
+  "top_livestock": [
+    "cattle"
+  ],
   "fun_facts": [
     {
       "text": "Nebraska is home to Chimney Rock, a tall spire that guided pioneers along the Oregon Trail.",

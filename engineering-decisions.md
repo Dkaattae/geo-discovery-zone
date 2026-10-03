@@ -835,3 +835,52 @@ reformat each produces — so the two packages never disagree about what
 **Revisit when** a prettier upgrade is wanted (bump both, run `bun run format`
 in both, commit the reformat alone), or when Lovable is reconnected (T-044) and
 rewrites `frontend/AGENTS.md` unformatted, turning this gate red.
+
+## E-18 — `top_livestock` is a hand-curated sibling to `top_crops`, exposed in the contract now
+
+**2026-10-03 (T-068).** Each US state carries a `top_livestock` list: the farm
+animals and animal products it is genuinely known for (Wisconsin's dairy cows,
+Delaware's and Arkansas's chickens). It takes exactly the route E-7 settled for
+`top_crops`: a field on `CuratedState` in `question-bank/src/curated/us-states.ts`,
+folded in by `normalize.ts` as `curated.top_livestock ?? []`, so a state with
+nothing curated still carries the key as `[]` and the bank keeps one shape.
+
+**Field name.** `top_livestock` in the pipeline and on the backend's `Entity`
+model (`backend/app/models.py`), serialised as `topLivestock` — the same
+snake/camel pair as `top_crops` / `topCrops`.
+
+**Exposure.** `openapi.yaml`'s `Entity` schema and the backend model gain the
+field now, so T-040's loader has a slot to fill rather than a contract change
+to make. No question template reads it yet: templates do not exist (T-020,
+T-026), and `backend/app/data/content.json` is not touched (T-040).
+
+**Boundary with `top_crops`.** `top_crops` is plant crops only (E-7);
+`top_livestock` is farm animals raised for food and the food they produce —
+cattle, dairy cows, chickens, turkeys, pigs, sheep, goats, eggs. No string may
+appear in both fields for any state. **Fish and horses are excluded** —
+farm-raised fish such as Mississippi catfish, Kentucky's or Tennessee's horses —
+as are bees and honey: none is what a child means by "the farm animals this
+state raises", and widening the field to them is a separate call.
+
+**Hand-curated, not fetched.** E-7's reasoning holds unchanged: no USDA NASS
+key reaches this repo or CI, CI has no network, and "top" needs a human's
+call on value versus head count anyway. Zero to two items per state, only where
+the state is genuinely known for it; never padded. The strings are themselves
+the reviewed, kid-facing text, with no separate review pass. Plain words a
+7–10-year-old reads ("cattle", "dairy cows", "pigs") rather than commodity
+labels — "beef cattle" is written as "cattle", which also keeps clear of the
+`bee` exclusion.
+
+**States with an empty `top_livestock`** (26): AK, CT, FL, HI, IL, IN, KY, LA,
+MA, ME, MI, MO, ND, NH, NJ, NM, NV, OH, OR, RI, SC, TN, UT, VA, WA, WV. Several
+raise plenty of livestock (Florida and Missouri cattle, Ohio and Indiana eggs,
+Virginia poultry); none is what the state is known for, so they stay blank
+rather than guessed.
+
+**Pinned-digest guards.** The four guards T-070 owns each gain one more
+neutralisation — `top_livestock` deleted before hashing — the same way they
+already handle `top_crops`. This task does not re-pin them (T-070).
+
+**Revisit when** a question template for the `agriculture` topic is written and
+wants more than two items, or a reviewer wants fish or horses in a farm-animal
+question — either is a new decision, not a widening of this one.

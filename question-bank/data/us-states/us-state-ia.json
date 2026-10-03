@@ -30,6 +30,9 @@
     "corn",
     "soybeans"
   ],
+  "top_livestock": [
+    "pigs"
+  ],
   "fun_facts": [
     {
       "text": "Iowa grows more corn than any other state, with fields stretching as far as you can see.",
