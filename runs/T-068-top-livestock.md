@@ -1,7 +1,7 @@
 # T-068 — US livestock/poultry per state, separate from crops — run log
 
 **Task:** T-068 · **Branch:** `claude/next-task-queue-3ynpc7` · **PR:** #69
-**Started:** 2026-10-03 · **Outcome:** in progress
+**Started:** 2026-10-03 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-03
 `Next step` on entry: (no brief) → on exit: `worker` (Status `awaiting approval`, Approved `pending`)
@@ -81,3 +81,43 @@ The brief's Constraints predicted most of these, but not the three key lists or 
 - **Setup:** `question-bank/node_modules` was missing at the start. `bun install --frozen-lockfile` fixed it without changing the lockfile.
 
 The brief is at `/home/user/geo-discovery-zone/tasks/T-068-top-livestock.md`.
+
+## Round 3 — tester — 2026-10-03
+`Next step` on entry: `tester` (Status `awaiting verification`) → on exit: `human` (Status `test changes requested`, Test changes `requested`)
+
+**T-068 tester: no final verdict yet. The task is waiting for a person to approve test changes.** Status is `test changes requested` and Next step is `human`. 25 of the 26 criteria hold. Criterion 16 is still open because the four guards it names are among the 14 tests that went stale. **Next:** Dkaattae starts a `tester` in a session they are attending and approves or refuses the 14 rows there. That tester applies the approved rows, checks criterion 16 by mutation and writes the final verdict. Under D-15 the orchestrator must not approve or relay this.
+
+**Pushed:** commit `27afd58` on `claude/next-task-queue-3ynpc7` (the brief's `Branch:` header, and the branch I was on). `origin` is at the same SHA.
+
+**Independence (stated in the Verdict as well):** this is an orchestrated run. The session id `cse_018ET4S26HVxh9FbiQMgTU3y` is the same one listed for the expander and the worker, so the Sessions check proves nothing here. My only independence is being a freshly spawned subagent that did not see the work being done. That is weaker evidence than a separate session would be.
+
+**Tests added:**
+- `/home/user/geo-discovery-zone/question-bank/src/top-livestock-verify.test.ts`: 21 tests covering criteria 1–11, 20, 21 and 23.
+- `/home/user/geo-discovery-zone/backend/tests/test_top_livestock_t068_criteria.py`: 12 tests covering criteria 17–19.
+
+**Criteria compared against the base commit were checked once, not pinned.** Criteria 12–15, 22 and 24 compare files to `ed229805`. Pinning those bytes in a test would repeat the expiring-baseline pattern that E-11 and E-12 removed and T-070 is retiring. I followed the T-067 precedent: checked them once in a full clone and recorded the results in the Verdict. All six hold:
+- **Criterion 12:** all 50 files, with `top_livestock` removed, deep-equal the base versions, `built_at` included.
+- **Criteria 13–15 and 24:** `git diff --quiet ed229805` reports no difference for each of those paths.
+- **Criterion 22:** the base `engineering-decisions.md` is a byte-for-byte prefix of the current file, followed directly by E-18.
+
+**Suites, run with all six proxy variables pointed at `127.0.0.1:1`:**
+
+| Check | Result |
+|---|---|
+| question-bank `bun test` | 1405 pass, 14 fail (only the 14 stale tests) |
+| typecheck, lint, format:check | green |
+| backend `make test` | 537 passed, 9 skipped |
+| backend lint, format-check | green |
+
+**Mutation results:** every mutation turned the matching test red, and every one was reverted.
+- **Pipeline:** I removed the `?? []` fold, pointed the fold at `top_crops`, and edited the curated table and data files to add catfish, horses, corn, duplicates, upper-case and padded strings, a third item, an emptied DE or WI, and a removed AK key. I also dropped NV from E-18's list and reworded the header comment.
+- **Backend:** I deleted the field, made it required, widened its type to `list[str] | str` (this one survived at first, so I added a test that rejects a bare string), and renamed `topLivestock` in the contract.
+
+**The 14 stale tests are stale, not a sign of broken code.** With `top_livestock` stripped from all 50 files in the working tree, none of the 14 failed. The worker's list was complete. All 14 rows in the request are "modify": no test is deleted and no count floor changes. The rows are in `## Test change request` in `/home/user/geo-discovery-zone/tasks/T-068-top-livestock.md`.
+
+**Not a block:** the worker is right that `beef` can never satisfy criterion 6, because criterion 7 bans the substring `bee`. The criteria can still be met. The expander should know this if the criteria are ever reused.
+
+## Halted — test change request — 2026-10-03
+Raised in commit `27afd58`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not read by the orchestrator.
+
+To resume: Dkaattae starts the `tester` step for T-068 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15).
