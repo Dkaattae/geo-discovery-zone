@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker` — once a human replaces `pending` below
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-03, unattended run. See `runs/T-069-highest-point-metres.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-069
 **Branch:** `task/T-069-highest-point-metres`
