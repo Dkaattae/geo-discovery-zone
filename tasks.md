@@ -163,6 +163,12 @@ criterion 2 banned from anything tracked under `sample-data/`, and
 `us-state-co.json`, `index.json` and that README.
 **Done when:** `sample-data/` is deleted, or this task is dropped with the reason
 it turned out still to earn its place.
+**Amended 2026-10-03 by T-068's reviewer (PR #69).** The same five comparisons
+now exclude `top_livestock` as well as `top_crops`. That makes two fields the
+sample is frozen without. `sample-data/README.md` is now further from true: it
+says `build:sample` gives the "same output" and explains only the `top_crops`
+gap. Criterion 14 froze it on purpose. Deleting the directory fixes both
+problems. If this task is dropped instead, the README must be corrected.
 **Skipped by the expander, 2026-09-22 — and its `Depends on: —` is wrong.** The
 entry's own precondition is "kept until the committed bank is shown to work end
 to end", and nothing serves the committed bank yet: **T-040** is the loader and
@@ -171,40 +177,6 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 "dropped because it still earns its place" cannot be settled either while the
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
-
-### T-068 — US livestock/poultry per state, separate from crops · S · doing
-**Depends on:** — (**T-015 landed, PR #46**, and settled the pattern this
-inherits.)
-**Smaller than when it was written (T-015's reviewer, PR #46).** T-015 proved the
-whole route end to end, so this is now a copy of a working shape rather than a
-design: a `string[]` field on `CuratedState`, folded in by `normalize.ts` as
-`curated.<field> ?? []` (`fun_facts`'s shape — **not** `climate_kid`'s
-conditional spread, so a blank state keeps the key and the bank diff does not
-move), values curated as the reviewed kid-facing text itself with no second
-review pass, provenance in the table's header comment and an `engineering-decisions.md`
-entry. Read **E-7** and PR #46's body before writing the brief; the field name
-and the `openapi.yaml`/template exposure are the only genuinely open questions
-left, since `top_crops` was already declared and this one is not.
-**One thing it must not miss — the pinned-digest wall, now owned by T-070.**
-T-016 (PR #47) reached it before this task did and added the third and fourth
-neutralisations rather than re-pinning, so the judgement this entry used to
-carry has moved to its own entry: **read T-070 before writing this brief**, and
-do not add a fifth exception without reading it. If T-070 has not run, neutralise
-`top_livestock` the same way the three guards already do and say so on the PR.
-**Why it exists, from a question raised while scoping T-015:** cattle, dairy,
-poultry and eggs are farm output but not crops, and folding them into
-`top_crops` would make that field's own name wrong and could crowd out an
-actual plant crop in a state where livestock is the bigger commodity by value
-(e.g. cattle over corn). Neither `tasks.md` nor `geoquizdataplan.md` currently
-tracks livestock at all — this is a new entry, not a gap in an existing one.
-Add a sibling curated field (e.g. `top_livestock`) with one or two standout
-livestock/poultry products per state where one is genuinely well known (e.g.
-poultry in Delaware or Arkansas, dairy in Wisconsin) — hand-curated, same route
-T-015 took for crops, not a live API. Leave it blank for states with no
-standout, per `CLAUDE.md`'s "prefer a blank field to a guessed one."
-**Done when:** a decision is recorded on the field name and where it's exposed
-(`openapi.yaml`, the `agriculture` topic's templates), and it's populated for
-the states where a standout genuinely exists.
 
 ### T-069 — `highest_point_m` carries feet for some states · S · todo
 **Depends on:** —
@@ -230,7 +202,7 @@ read T-070 first.** This is the first queued task that *changes* a value rather
 than adding a key, which none of the existing neutralisations handle.
 
 ### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
-**Depends on:** — (blocks nothing, but **T-068 and T-069 both hit it**; T-067 ended by deleting its field and never touched the bank)
+**Depends on:** — (blocks nothing, but **T-069 will hit it**; T-068 already did, PR #69, and T-067 ended by deleting its field and never touched the bank)
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -304,6 +276,20 @@ first refresh PR will be red on all four digest guards (`landmarks-verify`,
 settled first. Whichever way (a) goes, the answer has to survive a bank where
 only `built_at` and the fixture moved. Do this, and T-077, before the routine is
 switched on.
+**Amended 2026-10-03 by T-068's reviewer (PR #69): a fifth neutralisation, and
+a blind spot worth knowing.** T-068 added `top_livestock` to all 50 files and,
+as this entry asked, neutralised it rather than re-pinning. `top-crops-verify`
+and `highest-point-verify` strip it textually
+(`/^ {2}"top_livestock": \[[^\]]*\],\n/m`); `landmarks-verify` and
+`climate-kid-verify` `delete` it. Nine more tests also gained the same
+exclusion: the five sample comparisons (T-064) and three "no unexpected key"
+allow-lists. That is 14 test edits for one new key. Whatever (a) decides
+should also cover those allow-lists. **The blind spot:** three of the four guards reset
+`top_crops` to `[]` before hashing, so none of them turns red on a `top_crops`
+change. Only `highest-point-verify` and T-015's curated-source and rebuild tests
+catch one. T-068's tester proved this by mutation. A re-pin removes the reset
+and with it the blind spot. Keeping the pins means the blind spot has to be
+written down.
 **Done when:** the three digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md`), no test in
 `question-bank/src/` passes down a path taken because a spawned `git` failed, and
@@ -433,6 +419,7 @@ infrastructure once T-021 lands:
 | `landmark` | "Where is <landmark>?" | T-013 — **landed, PR #43** |
 | `climate` | "Which state is <climate phrase>?" | T-014 — **landed, PR #44** |
 | `agriculture` | "What grows most in <state>?" | T-015 — **landed, PR #46** |
+| `agriculture` (animals) | "Which farm animal is <state> known for?" | T-068 — **landed, PR #69** |
 | `size` / `superlative` | "Which is bigger?" | rank fields — already on entities |
 
 `size` and `superlative` are the cheapest by a wide margin: the ranks are already
@@ -520,6 +507,15 @@ same-crop guard before it can be asked at all, not just a distractor rule:
 
 Prefer `<state>` → crop phrasing, and treat "which state grows X" as gated on the
 unique-crop list above.
+
+**Farm animals exist now too, for 24 of 50 states (T-068, PR #69, E-18).**
+`top_livestock` is a separate field from `top_crops`, so a template can ask
+about animals without making "what grows" wrong. There are only five distinct
+values: `cattle` (9 states, WY included), `chickens` (6), `dairy cows` (6),
+`pigs` (IA, NC) and `turkeys` (MN, NC), plus WY's `sheep`. The 26 blank states
+emit nothing. **The reverse direction is unsafe for every value except `sheep`**,
+so use `<state>` → animal phrasing only, and pick distractors from values the
+state does *not* carry.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
 
@@ -550,6 +546,13 @@ Half of it already exists — `store.ensure_content_loaded` reads
 no-op. What is missing is the step before it: taking the pipeline's shape into
 that shape. Plan §5.3 is explicit that this is the Python loader's job and not
 `DbSink`'s, and Alembic still owns the schema.
+**Amended 2026-10-03 by T-068's reviewer (PR #69).** `Entity.topLivestock` is
+now in `openapi.yaml` and on `backend/app/models.py`'s `Entity`
+(`engineering-decisions.md` E-18), so the loader has a slot to fill. It is 24 of
+50 states, and `[]` is a real value for the rest, not a gap. One wording slip is
+owed while you are in that schema: `openapi.yaml`'s `topLivestock.description`
+says "Empty where no state has an honest standout". It should say "where the
+state has no honest standout".
 **Done when:** a documented command turns a pipeline build into a served bank,
 running it twice changes nothing, and the app serves states that were never
 hand-written.

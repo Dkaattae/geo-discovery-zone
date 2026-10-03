@@ -326,6 +326,33 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-068 — 24 states have a hand-curated `top_livestock`, separate from crops**
+  (PR #69, 2026-10-03). A new `CuratedState.top_livestock` field holds 26
+  strings across 24 states, built from five words (`cattle`, `chickens`,
+  `dairy cows`, `pigs`, `turkeys`) plus WY's `sheep`. It is folded in by
+  `normalize.ts` as `?? []`, so the 26 blank states still carry the key, and the
+  50 files were rebuilt offline. `openapi.yaml` gained `Entity.topLivestock` and
+  the backend model `top_livestock`, so T-040's loader has a slot to fill. No
+  template reads the field yet. Fish, horses and bees are excluded by design,
+  as recorded in `engineering-decisions.md` **E-18**. **Escalated** for a human
+  read of the picks (child-facing text) and for the contract change; the
+  checklist is on PR #69. *Where it differed from the brief:*
+  - **14 pre-existing tests had to change, not the 9 the brief predicted.** The
+    extra five were three "no unexpected key" allow-lists and two more
+    `highest-point-verify` digest tests. All 14 were neutralise-only, approved
+    by Dkaattae in an attended tester session (D-15). The question-bank job
+    stayed red on CI until that session ran. The guards gained a fifth
+    neutralisation and were not re-pinned; T-070 still owns that decision and
+    was amended.
+  - **Criterion 16's `top_crops` example was weaker than it read.** Three of the
+    four guards have reset `top_crops` before hashing since T-015, so they never
+    see a crop change. The tester showed this by mutation. It is recorded on
+    T-070.
+  - **`beef` could never be used.** Criterion 7's `bee` ban matches it, so beef
+    cattle is written `cattle`.
+  - *Process:* expander, worker, first tester and reviewer shared one
+    orchestrated session id. The final tester ran in a separate attended
+    session.
 - **T-063 — `bun run refresh`: one-command live refresh of the 50-state bank,
   with a change summary** (PR #68, 2026-10-02). `src/refresh.ts` queries
   Wikidata, diffs the rebuild against `data/us-states/` field by field (old →
@@ -1108,7 +1135,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   `climate` questions must not offer two of. `top_crops` is **50 of 50** (T-015,
   hand-curated plant crops, one to three per state, folded in from
   `CuratedState.top_crops` the same way the other curated fields are — not USDA
-  NASS) and was the last curated field. So all four topic fields now have data
+  NASS) and was the last of the four topic fields. `top_livestock` followed
+  as its sibling (T-068, PR #69, E-18): 24 of 50 states, deliberately blank
+  elsewhere, with its substance awaiting a human read on PR #69. So all four
+  topic fields now have data
   and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
   T-021/T-026, a same-value distractor guard (T-022), and something serving
   them (T-040, T-050).
