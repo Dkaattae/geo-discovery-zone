@@ -1,9 +1,9 @@
 # T-068 — US livestock/poultry per state, separate from crops
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** `Dkaattae — 2026-10-03, in chat (session_018ET4S26HVxh9FbiQMgTU3y), with the expander's defaults for field name, placement, and livestock scope`
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-03`
 **From:** [`tasks.md`](../tasks.md) T-068
 **Branch:** `claude/next-task-queue-3ynpc7` — assigned to the expander's session
 by the harness (Claude Code on the web), so `task/T-068-top-livestock` was not
@@ -11,7 +11,7 @@ available. Every later role pushes here (`CLAUDE.md` "Branches").
 **PR:** #69 (https://github.com/Dkaattae/geo-discovery-zone/pull/69), opened
 draft at expand time, built from the branch above. Stays draft until the reviewer
 approves
-**Fault:** test changes are waiting for approval — 14 existing question-bank tests are red by design because criterion 1 adds `top_livestock` to all 50 files; a person must approve the rows in `## Test change request` in an attended tester session.
+**Fault:**
 
 **Sessions:**
 
@@ -20,6 +20,7 @@ approves
 | task-expander | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y |
 | worker | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y (same remote session id as the expander: the orchestrated run spawns roles as subagents inside one web session, so the env var does not distinguish them) |
 | tester | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y (same id again: orchestrated run, spawned as a fresh subagent; see Verdict) |
+| tester | 2026-10-03 | cse_01XJBrfMf9E8iwaLHeYwbwoU (attended session; applied the approved test change request and wrote the final verdict) |
 
 ## Goal
 
@@ -311,6 +312,47 @@ The brief's Constraints predicted the four guards and the five sample comparison
 
 ## Verdict
 
+**TL;DR — pass.** All 26 criteria hold. Dkaattae approved all 14 test changes in this attended session, and I applied them in `e1f2689`. CI's red `question-bank` job came from those 14 stale tests. The question-bank suite is now 1419 pass, 0 fail. **Next:** the reviewer.
+
+**Approval:** header reads `Test changes: approved — Dkaattae, 2026-10-03`. I asked Dkaattae row by row in session `cse_01XJBrfMf9E8iwaLHeYwbwoU`, offering "Approve all 14", "Approve some rows" and "Refuse all". Their answer was **"Approve all 14 (Recommended)"**.
+
+**Independence:** this tester ran in its own attended web session, `cse_01XJBrfMf9E8iwaLHeYwbwoU`, which differs from the expander's, worker's and first tester's `cse_018ET4S26HVxh9FbiQMgTU3y`. So this round has separate-session independence, not just subagent isolation. Criteria 1–15 and 17–25 are carried from the first tester's round below. I re-ran its tests here (they are in the 1419) but did not repeat its one-off base-commit checks.
+
+**Tests modified** (all 14 rows, `e1f2689`, each neutralising `top_livestock` and nothing else, with no assertion removed and no digest re-pinned):
+
+- **Rows 1, 4, 5, 6.** Digest guards in `top-crops-verify.test.ts` and `highest-point-verify.test.ts` strip the `top_livestock` block textually with `/^ {2}"top_livestock": \[[^\]]*\],\n/m`.
+- **Rows 2, 3.** `landmarks-verify.test.ts` and `climate-kid-verify.test.ts` add `delete parsed["top_livestock"]`.
+- **Rows 7, 8, 9.** `committed-bank.test.ts`, `landmarks.test.ts` and `state-animals.test.ts` drop `top_livestock` in `stripBuiltAt`. To make the destructure typecheck, each file's local `TrackedEntity` interface gains `top_livestock?: unknown[]`, the same shape as its existing `top_crops?`.
+- **Rows 10, 11.** The `strip` helpers in `landmarks-verify.test.ts` and `climate-kid-verify.test.ts` delete `top_livestock`. In `landmarks-verify.test.ts` the local `Entity` interface gains `top_livestock?` so `delete parsed.top_livestock` typechecks.
+- **Rows 12, 13, 14.** `"top_livestock"` is added to the `allowed` set in `landmarks.test.ts`, `state-animals.test.ts` and `climate-kid.test.ts`, and nothing else is added.
+- **Names:** each changed test's name now says it also excludes `top_livestock`, as the rows specify.
+
+**Criterion 16 by mutation** (each on a tracked file, then reverted with `git checkout`; final `git status` shows only the test edits):
+
+| Mutation | Guards red | Reading |
+|---|---|---|
+| IA `capital` → `"Ames"` | landmarks-verify c9, climate-kid-verify c15, top-crops-verify c13, highest-point-verify c6 | **all four red** |
+| AK `capital` → `"Anchorage"` | landmarks-verify c9, climate-kid-verify c15, top-crops-verify c13, highest-point-verify c5 and c11 | **all four red** |
+| IA `fun_facts[0].reviewed` → `false`, the field right after the `top_livestock` block | all four, as for IA `capital` | the strip does not reach past its own block |
+| IA `top_crops` `"soybeans"` → `"oats"` | highest-point-verify c6, plus the T-015 curated-source and rebuild tests | **only one of the four guards** (see note) |
+| IA `top_livestock` `"pigs"` → `"goats"` | none of the digest guards (30 pass) | the strip neutralises `top_livestock`, as intended. The criteria 9 and 11 tests catch this change separately |
+
+**Note on the `top_crops` example — for the reviewer, not a block.** Three of the four guards (landmarks-verify, climate-kid-verify, top-crops-verify) do not go red on a `top_crops` change. That is not T-068's doing: since T-015 they reset `top_crops` to `[]` before hashing, and none of the 14 rows touches that line. Criterion 16's operative sentence is "removes `top_livestock` and nothing else", and that holds. The `capital` example turns all four red. T-068 did not weaken any of the guards. I tried an AK `top_crops` mutation as well, but my `sed` did not match the multi-line array, so it changed nothing and I am not counting it.
+
+**Gates (criterion 26), all run in this session:**
+
+- **question-bank:** `bun test` 1419 pass, 0 fail. `typecheck` clean. `lint` 0 warnings, 0 errors. `format:check` clean.
+- **backend:** `make -C backend lint format-check` clean. `uv run pytest` 537 passed, 9 skipped.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1–11, 17–21, 23, 25 | hold | first tester's committed tests, all green in this run (first round's table below) |
+| 12–15, 22, 24 | hold (one-off) | first tester's full-clone checks against `ed229805`, carried over |
+| 16 | **holds** | mutation table above |
+| 26 | **holds** | gates above |
+
+### First tester round (orchestrated, superseded by the verdict above)
+
 **TL;DR — not yet a verdict. The task halts for a person to approve test changes.** 25 of the 26 criteria hold. The one left open is criterion 16, because the four guards it names are among the 14 stale tests. I confirmed all 14 are red only because of the new `top_livestock` key, and raised them under `## Test change request`. **Needed next:** Dkaattae starts a `tester` in a session they are attending, approves or refuses each row there, and that tester applies the approved rows, checks criterion 16 by mutation and writes the final verdict.
 
 **Independence:** this is an orchestrated run (`runs/T-068-top-livestock.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_018ET4S26HVxh9FbiQMgTU3y`, the same id the expander and worker rows carry, so the Sessions check cannot tell the roles apart here. What independence there is comes from this tester being a freshly spawned subagent with its own context: it did not watch the work and cannot see the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned it correctly rather than on anything the tester can check for itself.
@@ -365,20 +407,20 @@ Raised by the tester on 2026-10-03, in an orchestrated run with no person to ask
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `top-crops-verify.test.ts` › "T-015 tester, criterion 13 — nothing else in the bank moves" › "each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped and region removed, digests to the default branch's bytes" | `313d72d`, T-015 tester. Protected: nothing in the 50 files moves except the fields named tasks are known to touch | criterion 1 adds a key absent from every pinned digest | modify | Name gains ", top_livestock removed". Before hashing, the `top_livestock` block is also stripped textually: `raw.replace(/^ {2}"top_livestock": \[[^\]]*\],\n/m, "")`, the same chain as the existing strips. It still asserts all 50 digests equal `DEFAULT_BRANCH_DIGESTS`, unchanged. Criterion 16 has to hold: changing a `capital` or a `top_crops` entry still turns it red | |
-| 2 | `landmarks-verify.test.ts` › "T-013 tester, criterion 9 — nothing but landmark moves in the bank" › "each of the 50 files, with landmark, climate_kid and top_crops removed, is identical to the default branch's" | `3501dac`, T-015 worker (renamed from T-013's tester test). Same protection | same | modify | Name gains "and top_livestock". Adds `delete parsed["top_livestock"];` next to the existing `delete parsed["region"];`. Digests are unchanged. Criterion 16 has to hold, as in row 1 | |
-| 3 | `climate-kid-verify.test.ts` › "T-014 tester, criterion 15 — nothing but climate_kid moves in the bank" › "each of the 50 files, with climate_kid and top_crops removed, digests to the default branch's value" | `3501dac`, T-015 worker (renamed from T-014's tester test). Same protection | same | modify | Name gains "and top_livestock". Adds `delete parsed["top_livestock"];` next to the existing deletions. Digests are unchanged. Criterion 16 has to hold | |
-| 4 | `highest-point-verify.test.ts` › "T-016 tester, criterion 5 — us-state-ak.json gains one line and nothing else" › "removing the highest_point line, reverting landmark and dropping region reproduces the default branch's bytes exactly" | `c37381b`, T-017 worker (renamed from T-016's tester test). Protected: Alaska's file differs from its baseline by the `highest_point` line alone | same, for `us-state-ak.json` (AK's `top_livestock` is `[]`, which is still a new line) | modify | Name gains ", dropping top_livestock". The row 1 textual strip is added to the existing `.replace` chain. It still asserts exact bytes against the pinned baseline. Criterion 16 has to hold | |
-| 5 | `highest-point-verify.test.ts` › "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched" › "each of the 49 non-Alaska state files matches the default branch once T-017's region line is dropped" | `c37381b`, T-017 worker (renamed from T-016's tester test). Protected: T-016 moved nothing in the other 49 | same | modify | Name ends "…once T-017's region line and T-068's top_livestock line are dropped". The row 1 textual strip is applied before `sha256`. Digests are unchanged | |
-| 6 | `highest-point-verify.test.ts` › "T-016 tester, criterion 11 — both neutralisation routes are proven real" › "the textual route (top-crops-verify) changes the bytes and drops the value" | `34a174a`, T-016 tester. Protected: the `top-crops-verify` textual neutralisation is real, not a no-op | it replays row 1's chain and compares against the baseline, so it inherits row 1's staleness | modify | Name unchanged. The row 1 textual strip is added to its `neutralised` chain so that it mirrors row 1. Its existing assertions (the bytes change, the value is dropped, the baseline is reproduced) are unchanged | |
-| 7 | `committed-bank.test.ts` › "T-010 criterion 4 — the tracked Colorado matches the committed sample" › "data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at and top_crops" | `3501dac`, T-015 worker (T-010 criterion 4 originally). Protected: the sample stays in step with the bank | tracked CO gains `top_livestock`, and the sample is frozen without it (criterion 14) | modify | Name: "…except sources.built_at, top_crops and top_livestock". `stripBuiltAt` also drops `top_livestock`. It still asserts `toEqual` on everything else | |
-| 8 | `landmarks.test.ts` › "T-013 criterion 8 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops" | `3501dac`, T-015 worker (T-013 criterion 8). Same protection | same | modify | Name: "…but sources.built_at, top_crops and top_livestock". The strip also drops `top_livestock`. It still asserts `toEqual` on the rest | |
-| 9 | `state-animals.test.ts` › "T-012 criterion 7 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops" | `3501dac`, T-015 worker (T-012 criterion 7). Same protection | same | modify | as row 8 | |
-| 10 | `landmarks-verify.test.ts` › "T-013 tester, criterion 8 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at and top_crops, landmark included" | `3501dac`, T-015 worker (T-013 tester). Same protection | same | modify | Name: "…but sources.built_at, top_crops and top_livestock, landmark included". `strip` adds `delete parsed["top_livestock"]`. It still asserts `toEqual` on the rest | |
-| 11 | `climate-kid-verify.test.ts` › "T-014 tester, criterion 13 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at and top_crops" | `3501dac`, T-015 worker (T-014 tester). Same protection | same | modify | as row 10, without "landmark included" | |
-| 12 | `landmarks.test.ts` › "T-013 criterion 9 — nothing but landmark moves in the bank (tree-shaped pieces)" › "no tracked entity file has grown a key outside the schema this task may touch" | `93fc433`, T-013 worker. Protected: no unexpected key appears in an entity file | criterion 1 adds a key outside its allow-list | modify | Name unchanged. `"top_livestock"` is added to `allowed`, and nothing else is added | |
-| 13 | `state-animals.test.ts` › "T-012 criterion 8 — nothing but state_animal moves in the bank" › "no tracked entity file has grown a key outside the schema this task may touch" | `17ddab1`, T-012 tester. Same protection | same | modify | as row 12 | |
-| 14 | `climate-kid.test.ts` › "T-014 criterion 15 — nothing but climate_kid moves in the bank (tree-shaped pieces)" › "no tracked entity file has grown a key outside the schema this task may touch" | `bc544e3`, T-014 worker. Same protection | same | modify | as row 12 | |
+| 1 | `top-crops-verify.test.ts` › "T-015 tester, criterion 13 — nothing else in the bank moves" › "each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped and region removed, digests to the default branch's bytes" | `313d72d`, T-015 tester. Protected: nothing in the 50 files moves except the fields named tasks are known to touch | criterion 1 adds a key absent from every pinned digest | modify | Name gains ", top_livestock removed". Before hashing, the `top_livestock` block is also stripped textually: `raw.replace(/^ {2}"top_livestock": \[[^\]]*\],\n/m, "")`, the same chain as the existing strips. It still asserts all 50 digests equal `DEFAULT_BRANCH_DIGESTS`, unchanged. Criterion 16 has to hold: changing a `capital` or a `top_crops` entry still turns it red | approved — Dkaattae, 2026-10-03 |
+| 2 | `landmarks-verify.test.ts` › "T-013 tester, criterion 9 — nothing but landmark moves in the bank" › "each of the 50 files, with landmark, climate_kid and top_crops removed, is identical to the default branch's" | `3501dac`, T-015 worker (renamed from T-013's tester test). Same protection | same | modify | Name gains "and top_livestock". Adds `delete parsed["top_livestock"];` next to the existing `delete parsed["region"];`. Digests are unchanged. Criterion 16 has to hold, as in row 1 | approved — Dkaattae, 2026-10-03 |
+| 3 | `climate-kid-verify.test.ts` › "T-014 tester, criterion 15 — nothing but climate_kid moves in the bank" › "each of the 50 files, with climate_kid and top_crops removed, digests to the default branch's value" | `3501dac`, T-015 worker (renamed from T-014's tester test). Same protection | same | modify | Name gains "and top_livestock". Adds `delete parsed["top_livestock"];` next to the existing deletions. Digests are unchanged. Criterion 16 has to hold | approved — Dkaattae, 2026-10-03 |
+| 4 | `highest-point-verify.test.ts` › "T-016 tester, criterion 5 — us-state-ak.json gains one line and nothing else" › "removing the highest_point line, reverting landmark and dropping region reproduces the default branch's bytes exactly" | `c37381b`, T-017 worker (renamed from T-016's tester test). Protected: Alaska's file differs from its baseline by the `highest_point` line alone | same, for `us-state-ak.json` (AK's `top_livestock` is `[]`, which is still a new line) | modify | Name gains ", dropping top_livestock". The row 1 textual strip is added to the existing `.replace` chain. It still asserts exact bytes against the pinned baseline. Criterion 16 has to hold | approved — Dkaattae, 2026-10-03 |
+| 5 | `highest-point-verify.test.ts` › "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched" › "each of the 49 non-Alaska state files matches the default branch once T-017's region line is dropped" | `c37381b`, T-017 worker (renamed from T-016's tester test). Protected: T-016 moved nothing in the other 49 | same | modify | Name ends "…once T-017's region line and T-068's top_livestock line are dropped". The row 1 textual strip is applied before `sha256`. Digests are unchanged | approved — Dkaattae, 2026-10-03 |
+| 6 | `highest-point-verify.test.ts` › "T-016 tester, criterion 11 — both neutralisation routes are proven real" › "the textual route (top-crops-verify) changes the bytes and drops the value" | `34a174a`, T-016 tester. Protected: the `top-crops-verify` textual neutralisation is real, not a no-op | it replays row 1's chain and compares against the baseline, so it inherits row 1's staleness | modify | Name unchanged. The row 1 textual strip is added to its `neutralised` chain so that it mirrors row 1. Its existing assertions (the bytes change, the value is dropped, the baseline is reproduced) are unchanged | approved — Dkaattae, 2026-10-03 |
+| 7 | `committed-bank.test.ts` › "T-010 criterion 4 — the tracked Colorado matches the committed sample" › "data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at and top_crops" | `3501dac`, T-015 worker (T-010 criterion 4 originally). Protected: the sample stays in step with the bank | tracked CO gains `top_livestock`, and the sample is frozen without it (criterion 14) | modify | Name: "…except sources.built_at, top_crops and top_livestock". `stripBuiltAt` also drops `top_livestock`. It still asserts `toEqual` on everything else | approved — Dkaattae, 2026-10-03 |
+| 8 | `landmarks.test.ts` › "T-013 criterion 8 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops" | `3501dac`, T-015 worker (T-013 criterion 8). Same protection | same | modify | Name: "…but sources.built_at, top_crops and top_livestock". The strip also drops `top_livestock`. It still asserts `toEqual` on the rest | approved — Dkaattae, 2026-10-03 |
+| 9 | `state-animals.test.ts` › "T-012 criterion 7 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops" | `3501dac`, T-015 worker (T-012 criterion 7). Same protection | same | modify | as row 8 | approved — Dkaattae, 2026-10-03 |
+| 10 | `landmarks-verify.test.ts` › "T-013 tester, criterion 8 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at and top_crops, landmark included" | `3501dac`, T-015 worker (T-013 tester). Same protection | same | modify | Name: "…but sources.built_at, top_crops and top_livestock, landmark included". `strip` adds `delete parsed["top_livestock"]`. It still asserts `toEqual` on the rest | approved — Dkaattae, 2026-10-03 |
+| 11 | `climate-kid-verify.test.ts` › "T-014 tester, criterion 13 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at and top_crops" | `3501dac`, T-015 worker (T-014 tester). Same protection | same | modify | as row 10, without "landmark included" | approved — Dkaattae, 2026-10-03 |
+| 12 | `landmarks.test.ts` › "T-013 criterion 9 — nothing but landmark moves in the bank (tree-shaped pieces)" › "no tracked entity file has grown a key outside the schema this task may touch" | `93fc433`, T-013 worker. Protected: no unexpected key appears in an entity file | criterion 1 adds a key outside its allow-list | modify | Name unchanged. `"top_livestock"` is added to `allowed`, and nothing else is added | approved — Dkaattae, 2026-10-03 |
+| 13 | `state-animals.test.ts` › "T-012 criterion 8 — nothing but state_animal moves in the bank" › "no tracked entity file has grown a key outside the schema this task may touch" | `17ddab1`, T-012 tester. Same protection | same | modify | as row 12 | approved — Dkaattae, 2026-10-03 |
+| 14 | `climate-kid.test.ts` › "T-014 criterion 15 — nothing but climate_kid moves in the bank (tree-shaped pieces)" › "no tracked entity file has grown a key outside the schema this task may touch" | `bc544e3`, T-014 worker. Same protection | same | modify | as row 12 | approved — Dkaattae, 2026-10-03 |
 
 The "Introduced" commit is the one `git log -S '<current test name>'` returns. For rows renamed by T-015's worker or T-017's worker, the original task is given in brackets.
 
