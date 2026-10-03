@@ -1,8 +1,8 @@
 # T-068 — US livestock/poultry per state, separate from crops
 
-**Status:** `awaiting approval`
-**Next step:** `worker` — after a human replaces `pending` below
-**Approved:** `pending`
+**Status:** `approved`
+**Next step:** `worker`
+**Approved:** `Dkaattae — 2026-10-03, in chat (session_018ET4S26HVxh9FbiQMgTU3y), with the expander's defaults for field name, placement, and livestock scope`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-068
 **Branch:** `claude/next-task-queue-3ynpc7` — assigned to the expander's session
