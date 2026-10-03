@@ -1,7 +1,7 @@
 # T-069 — `highest_point_m` carries feet for some states — run log
 
 **Task:** T-069 · **Branch:** `task/T-069-highest-point-metres` · **PR:** #70
-**Started:** 2026-10-03 · **Outcome:** in progress
+**Started:** 2026-10-03 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-03
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -94,3 +94,35 @@ I tried every proposed fix on a throwaway copy and confirmed it works; nothing w
 Files:
 - question-bank: README.md, src/queries/us-states-elevation.ts, src/fixtures/us-states-elevation.sparql.json, src/fixture-transport.ts, src/normalize.ts, src/sources/wikidata.ts, src/build.ts, src/refresh.ts, src/highest-point-metres.test.ts
 - tasks/T-069-highest-point-metres.md (Handoff, the 50-row table, the stale-test list, Notes)
+
+## Round 3 — tester — 2026-10-03
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-069 is blocked on test changes; it is not a fail.** The code meets every criterion a test can check, and my 79 new tests pass. The suite can't go green until a person approves 10 test-change rows covering 71 stale tests.
+**Next step:** `human`. A person has to start an **attended** `tester` session for T-069 and approve or refuse each row. The orchestrator can't approve them (D-15).
+**Pushed:** `1386de3` on `task/T-069-highest-point-metres`. `origin` is at that commit and the branch is in sync.
+
+**Independence is weaker than usual.** This is an orchestrated run: `runs/T-069-…` exists, and my session id `cse_01SUGoHdt5tMKsMnrvhWFDqg` is the same one listed for the expander and the worker. The Sessions check therefore proves nothing. My independence rests only on being a freshly spawned agent that never saw the worker's reasoning. I've said this in the Verdict and in my Sessions row.
+
+**Results:**
+- **Criteria 1–16 and 18–20:** met, with criteria 1–16 each covered by tests in `question-bank/src/highest-point-metres-verify.test.ts`.
+- **Criterion 11:** met on the only reading consistent with criterion 8. AZ, OR and IA record both a metre and a foot value, so I read "recorded unit is metre" as "every recorded value is in metres".
+- **Criterion 14:** the code side is met. Whether the recording is a real Wikidata response is left to the review checklist; I made no network call.
+- **Criterion 17:** the table has 50 rows, the shipped values match the data files, and exactly CT, OK and VA (the rows more than 2% off) are marked. I did not check the reference figures; that is a human check.
+- **Criterion 21:** `bun test` gives 1450 pass and 71 fail, and every failure is in the request. Typecheck, lint and `format:check` all pass.
+- **The tests catch real bugs.** I broke the source 7 ways (feet not converted, unknown unit shipped, the missing-unit warning dropped, mixed units taking the bigger number, a missing unit treated as metres, refresh not re-saving the elevation recording, the live fetch ignoring the elevation response). Each turned the matching tests red, and I reverted every change.
+
+**Two things the worker's Handoff got wrong:**
+- **It listed 70 stale tests; there are 71.** The one it missed is `top-crops-verify.test.ts` › `no new file was added under question-bank/src/fixtures/`, which fails because the new elevation recording is a tracked file.
+- **Its fix for the four "nothing else changed" checksum checks doesn't work.** It proposed deleting `highest_point_m` before comparing checksums. The saved checksums were taken with that field present, so deleting it still fails. Putting back the old values (AZ 12622, OR 11237, NE 5429, KS 4039, IA 1670) for those five files does pass, and that is what my rows propose.
+
+**The request:** I tried all 10 rows on the real test files and the suite came out green apart from a lint warning caused by my scratch script, not by the rows. I then reverted everything, so no existing test is changed in this commit. No count floors are affected.
+
+**Files:**
+- question-bank/src/highest-point-metres-verify.test.ts (new, 79 tests)
+- tasks/T-069-highest-point-metres.md. The header now reads `test changes requested` / `human` / `Test changes: requested`, with a Fault line and my Sessions row. I wrote the `## Verdict` and `## Test change request` sections.
+
+## Halted — test change request — 2026-10-03
+Raised by commit `1386de3`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. The request rows were not read by the orchestrator.
+
+A human has to start the `tester` step for T-069 in a session they are attending. It will ask about each row, apply what is approved, and finish verifying. The orchestrator cannot take the approval (D-15).
