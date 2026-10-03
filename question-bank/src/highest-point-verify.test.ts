@@ -143,6 +143,10 @@ const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
 const REGION_LINE = /^ {2}"region": "[^"]*",\n/m;
 const withoutRegion = (raw: string) => raw.replace(REGION_LINE, "");
 
+/** T-068: the top_livestock block is dropped before hashing too — absent at the baseline. */
+const TOP_LIVESTOCK_BLOCK = /^ {2}"top_livestock": \[[^\]]*\],\n/m;
+const withoutTopLivestock = (raw: string) => raw.replace(TOP_LIVESTOCK_BLOCK, "");
+
 /** A minimal row — `parseUsStates` guarantees these three keys and nothing more. */
 const rowFor = (name: string, overrides: Partial<WikidataStateRow> = {}): WikidataStateRow => ({
   name,
@@ -288,11 +292,13 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
    * differs from the default branch. The test below is widened to name both
    * differences explicitly rather than pretend only one exists.
    */
-  test("removing the highest_point line, reverting landmark and dropping region reproduces the default branch's bytes exactly", () => {
-    const withoutLine = withoutRegion(
-      raw
-        .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
-        .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
+  test("removing the highest_point line, reverting landmark, dropping region and dropping top_livestock reproduces the default branch's bytes exactly", () => {
+    const withoutLine = withoutTopLivestock(
+      withoutRegion(
+        raw
+          .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
+          .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
+      ),
     );
     expect(sha256(withoutLine)).toBe(DEFAULT_BRANCH_DIGESTS["us-state-ak.json"] as string);
   });
@@ -326,13 +332,15 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
 });
 
 describe("T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched", () => {
-  test("each of the 49 non-Alaska state files matches the default branch once T-017's region line is dropped", () => {
+  test("each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped", () => {
     for (const name of trackedStateFiles()) {
       if (name === "us-state-ak.json") continue;
-      expect({ name, digest: sha256(withoutRegion(readState(name))) }).toEqual({
-        name,
-        digest: DEFAULT_BRANCH_DIGESTS[name] as string,
-      });
+      expect({ name, digest: sha256(withoutTopLivestock(withoutRegion(readState(name)))) }).toEqual(
+        {
+          name,
+          digest: DEFAULT_BRANCH_DIGESTS[name] as string,
+        },
+      );
     }
   });
 
@@ -518,10 +526,12 @@ describe("T-016 tester, criterion 11 — both neutralisation routes are proven r
   // A second addendum, same day (T-017): `region` also differs now, and has no
   // baseline to revert to, so it is dropped rather than restored.
   test("the textual route (top-crops-verify) changes the bytes and drops the value", () => {
-    const neutralised = withoutRegion(
-      raw
-        .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
-        .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
+    const neutralised = withoutTopLivestock(
+      withoutRegion(
+        raw
+          .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
+          .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
+      ),
     );
     expect(neutralised).not.toBe(raw);
     expect(neutralised).not.toContain('"highest_point"');

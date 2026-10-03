@@ -741,7 +741,7 @@ describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", ()
 });
 
 describe("T-014 tester, criterion 13 — the committed sample stays in step with the bank", () => {
-  test("the sample equals the tracked Colorado in every field but sources.built_at and top_crops", () => {
+  test("the sample equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock", () => {
     // T-015 (2026-09-17, a later approved task) freezes the sample at
     // `top_crops: []` (its own criterion 12) while populating the tracked
     // copy, so it is excluded here the same way `built_at` already is.
@@ -749,6 +749,8 @@ describe("T-014 tester, criterion 13 — the committed sample stays in step with
       const parsed = JSON.parse(raw) as { sources?: Record<string, unknown> };
       if (parsed.sources) delete parsed.sources["built_at"];
       delete (parsed as Record<string, unknown>)["top_crops"];
+      // T-068: the sample is frozen without `top_livestock` (its criterion 14).
+      delete (parsed as Record<string, unknown>)["top_livestock"];
       return JSON.stringify(parsed);
     };
     expect(strip(readFileSync(SAMPLE, "utf8"))).toBe(
@@ -780,7 +782,7 @@ describe("T-014 tester, criterion 14 — Colorado's phrase is unchanged", () => 
 });
 
 describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the bank", () => {
-  test("each of the 50 files, with climate_kid and top_crops removed, digests to the default branch's value", () => {
+  test("each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value", () => {
     // T-015 (2026-09-17, a later approved task) fills `top_crops` for all 50
     // states. `BASELINE_DIGESTS` was computed at a branch point that predates
     // T-015 too, where every file still carried the literal `top_crops: []`
@@ -801,6 +803,9 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
       // T-017 (2026-09-18, a later approved task) resettles `region` for all
       // 50 states — see the BASELINE_DIGESTS comment above.
       delete parsed["region"];
+      // T-068 (2026-10-03, a later approved task) adds `top_livestock` to all
+      // 50 states; the baseline never had it, so it is deleted.
+      delete parsed["top_livestock"];
       parsed["top_crops"] = [];
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
