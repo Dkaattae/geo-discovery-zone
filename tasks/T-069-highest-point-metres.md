@@ -1,14 +1,14 @@
 # T-069 — `highest_point_m` carries feet for some states
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-10-03, unattended run. See `runs/T-069-highest-point-metres.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-069
 **Branch:** `task/T-069-highest-point-metres`
 **PR:** #70, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:**
+**Fault:** test changes are waiting for a person's approval. 71 pre-existing tests (10 rows in `## Test change request`) are stale by this task's design. Every criterion a test can check is otherwise met.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-10-03 | cse_01SUGoHdt5tMKsMnrvhWFDqg |
 | worker | 2026-10-03 | cse_01SUGoHdt5tMKsMnrvhWFDqg |
+| tester | 2026-10-03 | cse_01SUGoHdt5tMKsMnrvhWFDqg (orchestrated: one id for every role, see Verdict) |
 
 **Worker model:** Opus. This touches data correctness and has more than one
 defensible design (`process.md`, "Choosing the worker's model").
@@ -442,6 +443,87 @@ git diff e10f94d -- data sample-data           # 5 files, highest_point_m only
 ```
 
 ## Verdict
+
+**TL;DR: blocked on test changes. This is not a fail.** I checked all 21 criteria. The code meets every one that a test can check, and my 79 new tests pass.
+**What blocks it:** criterion 21 (green suite) cannot hold until a person approves the stale-test request below. There are 71 stale reds in 10 rows. The worker listed 70 and missed 1, and its proposed fix for 4 of the rows would not turn them green. The corrected fixes below were dry-run and turn the whole suite green.
+**Needed next:** a person starts an **attended** `tester` session for T-069 and approves or refuses each row. The orchestrator cannot do this (D-15).
+
+**Independence: weaker than a separate session.** This run is orchestrated: `runs/T-069-highest-point-metres.md` exists, and `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01SUGoHdt5tMKsMnrvhWFDqg`, the same id listed for task-expander and worker. So the Sessions check proves nothing here. My independence rests only on being a freshly spawned agent with its own context: I did not see the worker's reasoning or conversation. That depends on the orchestrator having spawned me correctly, which I cannot verify myself.
+
+**Branch:** `task/T-069-highest-point-metres`, the brief's `Branch:` header. I was already on it. The worker's files named in the Handoff are all present at `e64b016`.
+
+### Criterion by criterion
+
+New tests are in `question-bank/src/highest-point-metres-verify.test.ts` (79 tests, all pass under the six dead-loopback proxy vars). Expected values come from the criteria. For criteria 11 and 12 they come from `main` at `e10f94d`, pinned in the file.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | metre 1609 → exactly `1609`, no `highest_point_m` warning for the entity |
+| 2 | met | foot 12622 → in [3846.8, 3847.8] |
+| 3 | met | kilometre `Q828224` → no key, plus a warning with that entity and field |
+| 4 | met | value node with no unit → no key, warned. Also: main response has an elevation but the elevation response has no row for it → no key, warned |
+| 5 | met | no elevation anywhere → no key |
+| 6 | met | 3852 m + 12637 ft, in both orders → in [3850, 3853], never 12637 |
+| 7 | met | live `runBuild` (no `--offline`) and `refreshBank`, both through a fake `SparqlTransport` with AZ in feet → AZ in [3846.8, 3847.8]. The refresh starts from a bank holding the old 12622, so it has to write |
+| 8 | met | AZ 3847, OR 3425, NE 1655, KS 1231, IA 509, each inside its range |
+| 9, 10 | met | AK is exactly 6190; none of the 50 is above 6190 |
+| 11 | met, on one reading (below) | metre-only states keep main's `highest_point_m` bytes. The changed set equals the not-metre-only set, which is {AZ, IA, KS, NE, OR}, the set the Handoff names |
+| 12 | met | the 51 bank files with the `highest_point_m` line removed digest to main's. The line itself is still present (no key added or removed), `built_at` is unchanged, and `sample-data/` is byte-identical (3 digests) |
+| 13 | met | `rebuildOffline` reproduces all 51 files byte for byte (the existing `committed-bank.test.ts` also does) |
+| 14 | met in code; provenance is a human check | `_fixture` has `status`, `captured_at`, `endpoint` = query.wikidata.org, and `query`. Swapping a copy of the recording for one with CO in km blanks CO in an offline build, so the units really come from that file. **Whether it is a real response** stays in the Review checklist: the statement GUIDs look real, but I made no network call to confirm them |
+| 15 | met | `curated/us-states.ts` names no elevation, `highest_point_m` or unit item. No non-test `.ts` under `src/` holds any shipped or old-feet value as code (comments stripped; `normalize.ts`'s doc comment quotes 3847/12622 as a prose example only) |
+| 16 | met | a changed refresh into temp dirs (CO 15000 ft), then `runBuild --offline --fixture <temp>` → every JSON file byte-identical to the refreshed bank |
+| 17 | shape met; content is the human check | 50 rows; shipped values match the bank; exactly the rows over 2% (CT, OK, VA) are marked with a reason. I did not verify the reference figures |
+| 18 | met | `git diff e10f94d -- question-bank/package.json question-bank/bun.lock` is empty |
+| 19 | met | every new test passes under the dead-loopback proxy; no `fetch` mock |
+| 20 | met | outside `question-bank/`: only the brief, `tasks.md` (expander) and `runs/T-069-…` (orchestrator's log, process infrastructure, not the worker's) |
+| 21 | **not yet: blocked on the request** | `bun test`: 1450 pass / 71 fail, every fail in the request below. Typecheck, lint and `format:check` are clean |
+
+**Criterion 11, the reading I applied.** AZ, OR and IA each record **both** a metre and a foot statement. Read literally, "every state whose recorded elevation unit is metre" would then require AZ to stay at main's 12622, and that contradicts criterion 8. I read "recorded unit is metre" as "every recorded statement is in metres", as the worker did. It is the only reading consistent with criterion 8, so I did not bounce the criterion. My test pins that reading explicitly ("metre (and only metre)").
+
+**Mutations, each reverted** (`git status` clean apart from the new test file afterwards):
+
+| Mutation (source) | New tests that went red |
+|---|---|
+| M1: feet not × 0.3048 | c2, c7 build, c7 refresh, c13 |
+| M2: unknown unit shipped as metres | c3, c4 (no unit node), c14 |
+| M3: "no unit information" warning not pushed | c4 (no elevation row) |
+| M4: mixed units take the max over all statements | c6 ×2, c13, c14 |
+| M5: missing unit treated as metre | c4 (no unit node) |
+| M6: refresh does not re-record the elevation fixture | c16 |
+| M7: `fetchUsStates` ignores the elevation response | c7 build, c13, c14, c16 |
+
+My first M3 attempt was a syntax error. I caught it and redid it; the row above is the valid run.
+
+### What I found that the Handoff got wrong
+
+- **A 71st stale test.** `top-crops-verify.test.ts` › `T-015 tester, criterion 7 — no new network or environment surface` › `no new file was added under question-bank/src/fixtures/` goes red because the new recording is a tracked file. It is row 4 below.
+- **The proposal for the four digest guards does not work.** The Handoff proposes deleting `highest_point_m` from the five files before hashing (rows 1–3, 5). The pinned digests hashed those files **with** the key present, holding the old feet value, so deleting it still mismatches: tried on a scratch copy of `landmarks-verify`, still red. What works is **restoring** the default-branch value (AZ 12622, OR 11237, NE 5429, KS 4039, IA 1670) for those five files only. This follows the precedent of `top_crops` being put back to `[]`. That is what rows 1–3 and 5 propose.
+- **Dry run of all 10 rows:** I applied them to the real files and got 1516 pass and 5 fail. The 5 fails were the lint gate, reacting to an unused helper my scratch script pasted into two files; the rows themselves do not need that helper. After the run I reverted every file with `git checkout -- src/`. **No pre-existing test is changed in this commit.**
+
+### Not done
+
+- I made no network call: the recording's authenticity and the 50 reference values are left to the Review checklist.
+- `PROGRESS.md` and `tasks.md` are untouched (the sweep's job).
+
+## Test change request
+
+Raised by tester, 2026-10-03, in an orchestrated run: nobody was there to ask, so **nothing below has been applied**. "Five files" means `us-state-{az,or,ne,ks,ia}.json`, and "their default-branch values" means AZ 12622, OR 11237, NE 5429, KS 4039, IA 1670 (`main` at `e10f94d`). Every modify below was dry-run together and turns the suite green.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/landmarks-verify.test.ts` › `T-013 tester, criterion 9 — nothing but landmark moves in the bank` › `each of the 50 files, with landmark, climate_kid, top_crops and top_livestock removed, is identical to the default branch's` | `8b5bb81`, T-013: nothing but `landmark` (and fields later approved tasks own) moves in any state file | criterion 8 changes `highest_point_m` in the five files | modify | Same name and pinned digests. Before hashing, the parsed object's `highest_point_m` is set back to its default-branch value **for the five files only** (a comment cites T-069). The other 45 files are hashed exactly as now | |
+| 2 | `src/climate-kid-verify.test.ts` › `T-014 tester, criterion 15 — nothing but climate_kid moves in the bank` › `each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value` | `775671c`, T-014: nothing but `climate_kid` moves | as row 1 | modify | As row 1: restore `highest_point_m` to the default-branch value for the five files only; digests unchanged | |
+| 3 | `src/top-crops-verify.test.ts` › `T-015 tester, criterion 13 — nothing else in the bank moves` › `each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes` | `313d72d`, T-015: nothing but `top_crops` moves | as row 1 | modify | Same name and digests. The raw text's `"highest_point_m": <n>,` line is rewritten to the default-branch value **for the five files only**, before the existing neutralisers | |
+| 4 | `src/top-crops-verify.test.ts` › `T-015 tester, criterion 7 — no new network or environment surface` › `no new file was added under question-bank/src/fixtures/` | `313d72d`, T-015: T-015 added no fixture | criteria 14 and 16 require a new recorded fixture, `us-states-elevation.sparql.json` | modify | Same name. The tracked list under `question-bank/src/fixtures` equals exactly `[us-states-elevation.sparql.json, us-states.sparql.json]` (full paths, sorted), with a comment citing T-069 | |
+| 5 | `src/highest-point-verify.test.ts` › `T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched` › `each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped` | `34a174a`, T-016: only Alaska's file moved | as row 1 | modify | As row 3: rewrite the five files' `highest_point_m` line to the default-branch value before the existing neutralisers; digests unchanged. (The dry run kept this file's criterion-10 guard-shape tests green) | |
+| 6 | `src/highest-point-verify.test.ts` › `T-016 tester, criterion 9 — the full fixture build warns about nothing at all` › `and zero warnings of any other field — the default branch's count is 0` | `34a174a`, T-016: a full offline build raises no warning | criterion 4: its `fixtureRows()` parses only the main fixture, so every state now has "no unit information" and warns. A real build reads both recordings | modify | Same name and the same assertion (`warnings` equals `[]`). `fixtureRows()` passes the committed elevation recording as `parseUsStates`'s second argument, as the offline build does | |
+| 7 | `src/data-us-states.test.ts` › `criterion 8 — the committed bank matches an offline rebuild` › all 50 `us-state-XX equals the offline rebuild of the committed fixture` | `cbdab4d`, T-010: every committed file equals a rebuild of the fixture | as row 6: `expectedEntities()` reads only the main fixture | modify | Same 50 tests and assertions. `expectedEntities()` passes the elevation recording to `parseUsStates` | |
+| 8 | `src/refresh.test.ts` › 6 tests: `criteria 1–2 — an unchanged refresh exits 2 and writes nothing` › `` the committed fixture as the live response: exit 2, `bank unchanged` once, bytes untouched `` and › `an existing review file and index.json are not entity files`; `criteria 3, 6–9, 11 — a changed refresh` › `` exits 0, prints the one change old → new, never `bank unchanged` or built_at ``; `criteria 10, 12, 13 — absent fields, added/removed files, warnings` › `a warning that changes no field still prints, on an unchanged run`; `criteria 4–5 — failures exit 1 and write nothing` › `50 matched plus an unmatched row still proceeds`; `the CLI entry point` › `--bank and --fixture are honoured and the exit code passes through` | `321cf65`, T-063: refresh behaviour | criterion 7: a refresh now makes two queries, and the fake `transportOf` answers both with the main recording, so every state loses its units | modify | Same tests and assertions. `transportOf` answers `US_STATES_ELEVATION_QUERY` with the committed elevation recording, and any other query with the given response as now | |
+| 9 | `src/refresh-verify.test.ts` › 9 tests: `T-063 criteria 1-2: a refresh that moves nothing but built_at` › `` criterion 1: exits 2 and prints `bank unchanged` exactly once ``, `criterion 1: the committed built_at differs from the refresh instant, and that alone is not a change`, `criterion 2: unchanged run leaves bank and fixture byte-identical and creates no file`, `criteria 1, 12: index.json is not an entity file — a bank missing it is still unchanged`, `criteria 1, 14: an existing *.review.json is not a bank change and is left alone`; `T-063 criterion 5: fewer than all 50 curated states matched` › `exactly 50 matched → proceeds (exit 2 here, since nothing moved)`; `T-063 criterion 11: sources.built_at is never a change line` › `not even when the old file's sources block lacks built_at`; `T-063 criterion 12: added and removed entity files` › `a file built but not present before is reported added by name`; `T-063 CLI: main() honours --bank and --fixture` › `main --bank <copy> --fixture <copy> on an unchanged response exits 2` | `627a66a`, T-063 tester | as row 8, through `replay` | modify | Same tests and assertions. `replay` answers `US_STATES_ELEVATION_QUERY` with the committed elevation recording | |
+| 10 | `src/refresh-verify.test.ts` › `T-063 criterion 13: normalisation warnings reach stdout` › its `warningLines` helper (two tests, green now but red once row 9 lands) | `627a66a`, T-063 tester | as row 6: `warningLines` parses only the main response, so it would expect 50 "no unit" warnings the refresh no longer prints | modify | Same tests and assertions. `warningLines` passes the elevation recording to `parseUsStates` | |
+
+**Count floors:** none move. No row deletes a test, and no file these rows touch has a test-count floor.
 
 ## Notes
 
