@@ -428,7 +428,7 @@ The brief's Constraints predicted the four guards and the five sample comparison
 **Escalation (D-4 envelope)**
 
 - **`openapi.yaml` changed:** `Entity.topLivestock`, as criterion 17 requires.
-- **Text a child will read:** 27 strings across 24 states. Tests confirm their shape; only a person can confirm their substance.
+- **Text a child will read:** 26 strings across 24 states. Tests confirm their shape; only a person can confirm their substance.
 - **Inside the envelope otherwise:** no dependency added, no migration, no change to `geoquizdataplan.md`, and the pre-existing test changes carry a person's approval.
 
 ## Test change request
