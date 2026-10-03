@@ -18,16 +18,29 @@
  * that fixture's `_fixture.captured_at` — so the offline rebuild that
  * `committed-bank.test.ts` runs reproduces the refreshed bank byte for byte
  * (E-6). `sources.built_at` alone moving is therefore not a change.
+ *
+ * T-069: a refresh makes a second query, for each highest point's elevation
+ * **with its unit** (`queries/us-states-elevation.ts`), and on a changed bank
+ * re-records that response too, as `us-states-elevation.sparql.json` beside the
+ * main fixture — the file `build.ts --offline` reads `highest_point_m`'s unit
+ * from. Both recordings get the same `captured_at`.
  */
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import { CURATED_US_STATES, entityIdFor } from "./curated/us-states";
+import { elevationFixtureBeside } from "./fixture-transport";
 import { normalizeUsStates, type BuildWarning } from "./normalize";
 import { US_STATES_QUERY } from "./queries/us-states";
+import { US_STATES_ELEVATION_QUERY } from "./queries/us-states-elevation";
 import { draftMissingFunFacts, writeReviewFile } from "./review-file";
 import { JsonFileSink } from "./sinks/json";
-import { createSparqlClient, type SparqlResults, type SparqlTransport } from "./sparql";
+import {
+  createSparqlClient,
+  WIKIDATA_ENDPOINT,
+  type SparqlResults,
+  type SparqlTransport,
+} from "./sparql";
 import { parseUsStates } from "./sources/wikidata";
 import { createSummaryTransport, type SummaryTransport } from "./sources/wikipedia";
 import type { Entity } from "./types";
@@ -175,6 +188,12 @@ export const isEntityFile = (name: string): boolean =>
 export interface RefreshOptions {
   bankDir: string;
   fixturePath: string;
+  /**
+   * Where the elevation-with-unit recording goes (T-069). Defaults to
+   * `us-states-elevation.sparql.json` beside `fixturePath`, which is where
+   * `build.ts --offline --fixture <fixturePath>` looks for it.
+   */
+  elevationFixturePath?: string;
   sparql: SparqlTransport;
   /** Omit to skip the Wikipedia draft pass entirely. */
   summary?: SummaryTransport | undefined;
@@ -231,15 +250,23 @@ export async function refreshBank(options: RefreshOptions): Promise<RefreshExitC
   // Everything is read and computed before anything is written, so every
   // failure path below leaves the bank and the fixture untouched (criteria 4, 5).
   let existing: Map<string, string>;
+  const elevationFixturePath =
+    options.elevationFixturePath ?? elevationFixtureBeside(options.fixturePath);
   let fixtureBlock: Record<string, unknown>;
+  let elevationBlock: Record<string, unknown>;
   let response: SparqlResults;
+  let elevationResponse: SparqlResults;
   try {
     existing = await readBank(options.bankDir);
     fixtureBlock = await readFixtureBlock(options.fixturePath);
+    elevationBlock = await readFixtureBlock(elevationFixturePath);
     err("Querying Wikidata …");
     const raw: unknown = await options.sparql(US_STATES_QUERY);
     assertResults(raw);
     response = raw;
+    const rawElevation: unknown = await options.sparql(US_STATES_ELEVATION_QUERY);
+    assertResults(rawElevation);
+    elevationResponse = rawElevation;
   } catch (error) {
     err(`refresh failed: ${error instanceof Error ? error.message : String(error)}`);
     err("nothing was written");
@@ -250,9 +277,12 @@ export async function refreshBank(options: RefreshOptions): Promise<RefreshExitC
   // The same conversion `build.ts --offline` applies to `_fixture.captured_at`,
   // so an offline rebuild from the re-recorded fixture is byte-identical (criterion 8).
   const builtAt = new Date(capturedAt).toISOString();
-  const { entities, warnings, unmatched } = normalizeUsStates(parseUsStates(response), {
-    builtAt,
-  });
+  const { entities, warnings, unmatched } = normalizeUsStates(
+    parseUsStates(response, elevationResponse),
+    {
+      builtAt,
+    },
+  );
 
   const builtIds = new Set(entities.map((entity) => entity.id));
   const missing = CURATED_US_STATES.filter((state) => !builtIds.has(entityIdFor(state.postal)));
@@ -305,6 +335,27 @@ export async function refreshBank(options: RefreshOptions): Promise<RefreshExitC
     };
     await mkdir(resolve(options.fixturePath, ".."), { recursive: true });
     await writeFile(options.fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
+
+    // The elevation recording the offline build reads `highest_point_m`'s unit
+    // from (T-069 criterion 16). Its provenance keys are filled in when there
+    // was no previous block to keep, so a fresh directory still gets a
+    // recording that says what it is.
+    const { _fixture: _ignoredElevation, ...elevationRest } = elevationResponse as SparqlResults & {
+      _fixture?: unknown;
+    };
+    const elevationFixture = {
+      _fixture: {
+        status: "RECORDED — a real response from query.wikidata.org",
+        endpoint: WIKIDATA_ENDPOINT,
+        query: "src/queries/us-states-elevation.ts (US_STATES_ELEVATION_QUERY)",
+        ...elevationBlock,
+        captured_at: capturedAt,
+        rows: elevationResponse.results.bindings.length,
+      },
+      ...elevationRest,
+    };
+    await mkdir(resolve(elevationFixturePath, ".."), { recursive: true });
+    await writeFile(elevationFixturePath, `${JSON.stringify(elevationFixture, null, 2)}\n`, "utf8");
 
     if (drafts.length) {
       const path = await writeReviewFile(options.bankDir, drafts);
