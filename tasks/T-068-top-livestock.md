@@ -1,7 +1,7 @@
 # T-068 — US livestock/poultry per state, separate from crops
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — ready for review, escalated (openapi.yaml changed; child-facing text)`
+**Next step:** `human` — Dkaattae reads the picks on PR #69 and merges, or not
 **Approved:** `Dkaattae — 2026-10-03, in chat (session_018ET4S26HVxh9FbiQMgTU3y), with the expander's defaults for field name, placement, and livestock scope`
 **Test changes:** `approved — Dkaattae, 2026-10-03`
 **From:** [`tasks.md`](../tasks.md) T-068
@@ -21,6 +21,7 @@ approves
 | worker | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y (same remote session id as the expander: the orchestrated run spawns roles as subagents inside one web session, so the env var does not distinguish them) |
 | tester | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y (same id again: orchestrated run, spawned as a fresh subagent; see Verdict) |
 | tester | 2026-10-03 | cse_01XJBrfMf9E8iwaLHeYwbwoU (attended session; applied the approved test change request and wrote the final verdict) |
+| reviewer | 2026-10-03 | cse_018ET4S26HVxh9FbiQMgTU3y (orchestrated; fresh subagent, shared session id) |
 
 ## Goal
 
@@ -398,6 +399,37 @@ The brief's Constraints predicted the four guards and the five sample comparison
 **Every mutation was reverted.** `git status` shows only the two new test files before commit.
 
 **Worker's note on `beef` and `bee`:** confirmed. `beef` can never satisfy criterion 6 without failing criterion 7. That does not stop the criteria being met, so it is not a block. Owner: the expander, if these criteria are ever reused.
+
+## Review
+
+**TL;DR — approved, and escalated.** The code is a faithful copy of the `top_crops` route, every role stayed in its lane, and all gates are green when re-run here. It is escalated, not routine, for two reasons: **it changes `openapi.yaml`**, and **24 states gain text a child will read**. Neither is a defect. **Needed next:** Dkaattae works through the four-box checklist on PR #69 and merges, or not.
+
+**Checks**
+
+- **All roles' work is in the PR.** The Sessions rows (expander, worker, two testers) each have commits on `claude/next-task-queue-3ynpc7`. The base is still `ed229805` (= `origin/main`).
+- **Lanes held.** The expander's commits touch only `tasks/` and `tasks.md`. The worker touched exactly the Constraints' files, plus the brief. The tester's commits touch only tests and the brief.
+- **Test changes match the request.** `e1f2689` changes exactly the 8 files and 14 tests in the request's rows. Each change removes `top_livestock` and nothing else, no assertion is dropped and no digest is re-pinned. The approval is a person's (`Dkaattae`), given in an attended session (D-15).
+- **Gates re-run in this session:** question-bank `bun test` 1419 pass / 0 fail, `typecheck`, `lint` and `format:check` clean; backend `make test` 537 passed, 9 skipped.
+- **Fit.** Three one-line additions mirror `top_crops` exactly: `types.ts`, `normalize.ts`'s `?? []` fold and `models.py`. Each has a comment in the same style as its neighbour. The data files were regenerated, not hand-edited. Nothing speculative was added.
+
+**Findings — none block**
+
+1. **`openapi.yaml:1489`, `topLivestock.description`.** It reads "Empty where no state has an honest standout"; it should say "where the state has no honest standout". This is a wording slip in a doc. **Routed to T-040**, the next task to put this field on the wire, as a one-line amendment. A new entry for one word would only lengthen the queue.
+2. **`question-bank/sample-data/README.md`** now also fails to mention `top_livestock`. It says `build:sample` gives "same output", which has not been true since T-015, and it explains only the `top_crops` gap. Criterion 14 froze this directory on purpose. **Routed to T-064**, which deletes the directory and already owns the five sample comparisons that grew a second exclusion here.
+3. **Criterion 16's `top_crops` example is weaker than it reads.** Three of the four digest guards reset `top_crops` to `[]` before hashing, so a `top_crops` change does not turn them red. That has been true since T-015, not T-068. The `capital` mutation turns all four red, and `top_crops` changes are caught by T-015's curated-source and rebuild tests. **Routed to T-070**, whose decision about the guards has to account for it. The amendment also records that the guards now carry a fifth neutralisation (`top_livestock`).
+
+**Flags disposed**
+
+- **`beef` is dead in criterion 6 because of the `bee` ban (worker, tester).** Decided here: no action. The criteria are a finished record, and "cattle" is the better kid-facing word anyway. If a future livestock widening reuses the word lists, E-18's "Revisit when" is where the question will be reopened.
+- **Shared session id (worker).** Closed: the final verdict came from a separate attended session, `cse_01XJBrfMf9E8iwaLHeYwbwoU`.
+- **Close calls and conservative blanks (worker's Notes).** These are for a person, not this review. They are carried onto PR #69 as the escalation's checklist: CO/AZ `cattle`, ID `dairy cows`, MS `chickens`, NC `turkeys`, WY `sheep`, and the 26 blanks.
+- **PR note owed about T-070.** Carried into the PR body: the digest guards gained a fifth neutralisation and were not re-pinned. T-070 still owns that decision.
+
+**Escalation (D-4 envelope)**
+
+- **`openapi.yaml` changed:** `Entity.topLivestock`, as criterion 17 requires.
+- **Text a child will read:** 27 strings across 24 states. Tests confirm their shape; only a person can confirm their substance.
+- **Inside the envelope otherwise:** no dependency added, no migration, no change to `geoquizdataplan.md`, and the pre-existing test changes carry a person's approval.
 
 ## Test change request
 
