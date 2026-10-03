@@ -29,6 +29,9 @@
     "corn",
     "soybeans"
   ],
+  "top_livestock": [
+    "chickens"
+  ],
   "fun_facts": [
     {
       "text": "Maryland's Chesapeake Bay is the largest estuary in the United States, full of blue crabs.",

@@ -172,7 +172,7 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-068 — US livestock/poultry per state, separate from crops · S · todo
+### T-068 — US livestock/poultry per state, separate from crops · S · doing
 **Depends on:** — (**T-015 landed, PR #46**, and settled the pattern this
 inherits.)
 **Smaller than when it was written (T-015's reviewer, PR #46).** T-015 proved the

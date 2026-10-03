@@ -132,6 +132,7 @@ interface TrackedEntity {
   state_animal?: string;
   landmark?: string;
   top_crops?: unknown[];
+  top_livestock?: unknown[];
   fun_facts?: unknown[];
   sources?: { built_at?: string };
 }
@@ -454,7 +455,7 @@ describe("T-012 criterion 7 — the committed sample stays in step with the bank
   // while populating the tracked copy, so `top_crops` is dropped here the
   // same way `built_at` already is.
   const stripBuiltAt = (entity: TrackedEntity) => {
-    const { sources, top_crops: _crops, ...rest } = entity;
+    const { sources, top_crops: _crops, top_livestock: _livestock, ...rest } = entity;
     const { built_at: _dropped, ...restSources } = sources ?? {};
     return { ...rest, sources: restSources };
   };
@@ -463,7 +464,7 @@ describe("T-012 criterion 7 — the committed sample stays in step with the bank
   const sample = () =>
     JSON.parse(readFileSync(join(PKG, "sample-data/us-state-co.json"), "utf8")) as TrackedEntity;
 
-  test("sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at and top_crops", () => {
+  test("sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock", () => {
     expect(stripBuiltAt(sample())).toEqual(stripBuiltAt(tracked()));
   });
 
@@ -655,6 +656,7 @@ describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () 
       "highest_point",
       "highest_point_m",
       "top_crops",
+      "top_livestock",
       "fun_facts",
       "sources",
     ]);

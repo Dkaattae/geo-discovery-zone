@@ -56,6 +56,7 @@ interface TrackedEntity {
   area_km2: number | null;
   area_rank: number | null;
   top_crops?: unknown[];
+  top_livestock?: unknown[];
   fun_facts: { reviewed?: boolean }[];
   sources?: { built_at?: string; builder_version?: string };
 }
@@ -149,9 +150,9 @@ describe("T-010 criterion 4 — the tracked Colorado matches the committed sampl
   // `top_crops: []` (its own criterion 12 — sample-data is T-064's territory)
   // while populating the tracked copy, so `top_crops` is dropped here the
   // same way `built_at` already is.
-  test("data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at and top_crops", () => {
+  test("data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at, top_crops and top_livestock", () => {
     const stripBuiltAt = (entity: TrackedEntity) => {
-      const { sources, top_crops: _crops, ...rest } = entity;
+      const { sources, top_crops: _crops, top_livestock: _livestock, ...rest } = entity;
       const { built_at: _dropped, ...restSources } = sources ?? {};
       return { ...rest, sources: restSources };
     };

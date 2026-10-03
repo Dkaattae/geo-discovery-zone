@@ -29,6 +29,9 @@
     "wheat",
     "barley"
   ],
+  "top_livestock": [
+    "cattle"
+  ],
   "fun_facts": [
     {
       "text": "Montana is nicknamed Big Sky Country because its skies stretch out over such wide open land.",

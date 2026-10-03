@@ -150,6 +150,9 @@ export function normalizeUsStates(
       // `fun_facts` below — the key stays present even if a future state has
       // none curated yet, rather than being spread away.
       top_crops: curated.top_crops ?? [],
+      // Hand-curated farm animals and animal products (T-068), the sibling to
+      // `top_crops`, folded the same way so a state with none keeps the key.
+      top_livestock: curated.top_livestock ?? [],
       fun_facts: curated.fun_facts ?? [],
       sources: {
         ...(row.qid ? { wikidata_id: row.qid } : {}),
