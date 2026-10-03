@@ -8,8 +8,9 @@
 **Branch:** `claude/next-task-queue-3ynpc7` — assigned to the expander's session
 by the harness (Claude Code on the web), so `task/T-068-top-livestock` was not
 available. Every later role pushes here (`CLAUDE.md` "Branches").
-**PR:** opened draft at expand time against the branch above — number recorded in
-the next expander commit
+**PR:** #69 (https://github.com/Dkaattae/geo-discovery-zone/pull/69), opened
+draft at expand time, built from the branch above. Stays draft until the reviewer
+approves
 **Fault:**
 
 **Sessions:**
