@@ -1,7 +1,7 @@
 # T-069 — `highest_point_m` carries feet for some states — run log
 
 **Task:** T-069 · **Branch:** `task/T-069-highest-point-metres` · **PR:** #70
-**Started:** 2026-10-03 · **Outcome:** halted — needs human
+**Started:** 2026-10-03 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-03
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -126,3 +126,10 @@ Files:
 Raised by commit `1386de3`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. The request rows were not read by the orchestrator.
 
 A human has to start the `tester` step for T-069 in a session they are attending. It will ask about each row, apply what is approved, and finish verifying. The orchestrator cannot take the approval (D-15).
+
+## Resumed — 2026-10-04
+In the orchestrator session the person said: "Tests should be fixed. Please proceed". Before that, an attended tester in a separate session (`session_01PepTJN1rwWEdPekDGgQtFK`) had already applied the approved request and finished verifying:
+- `443f53c` T-069 tester: apply approved test change request
+- `0c42f8b` T-069 tester: final verdict pass after approved test changes
+
+Header now: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-03`. The orchestrator did not read that tester's verdict. The run resumes at the reviewer.
