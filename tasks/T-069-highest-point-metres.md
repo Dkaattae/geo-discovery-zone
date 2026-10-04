@@ -1,7 +1,7 @@
 # T-069 — `highest_point_m` carries feet for some states
 
-**Status:** `approved — escalated`
-**Next step:** `human` (merge decision; see `## Review`)
+**Status:** `blocked`
+**Next step:** `human` — approved and **escalated**, and the harness refused the sweep. Apply `### Sweep to apply` below, work through the Review checklist, then mark PR #70 ready and decide the merge.
 **Approved:** orchestrator — 2026-10-03, unattended run. See `runs/T-069-highest-point-metres.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-03`
 **From:** [`tasks.md`](../tasks.md) T-069
@@ -545,7 +545,10 @@ My first M3 attempt was a syntax error. I caught it and redid it; the row above 
 
 ## Review
 
-**TL;DR — approved, and escalated.** The code is good: it fits the pipeline, stays inside the brief, and every worker flag is settled below. **Do not merge without a person working through the brief's Review checklist**, which reserves two checks for a human: the 50-row reference table (criterion 17) and that the elevation recording is a real response (criterion 14). PR #70 is marked ready, with the escalation at the top of its body.
+**TL;DR — approved, and escalated. The harness also refused the sweep.** The code is good: it fits the pipeline, stays inside the brief, and every worker flag is settled below.
+- **The sweep was refused.** The auto-mode classifier blocked the edits to `tasks.md` and `PROGRESS.md` and the brief's deletion, so the sweep is written out below for a person to apply verbatim. PR #70 **stays draft** until it is applied.
+- **Escalated.** Do not merge without a person working through the brief's Review checklist. It reserves two checks for a human: the 50-row reference table (criterion 17) and that the elevation recording is a real response (criterion 14).
+- **Status is `blocked`, not `sweep refused`.** This is an escalation, so the orchestrator's one-hour fallback does not apply (D-16).
 
 **Reviewer, 2026-10-04.**
 
@@ -589,6 +592,133 @@ None blocks.
 ### Process notes
 
 - **Orchestrated, so the session ids prove nothing about independence.** One session id covers the expander, the worker, the first tester and this reviewer. Only the final tester ran separately, attended. This is the same pattern as T-068.
+
+### Sweep to apply
+
+The changes are mechanical: copy each block below exactly, and commit all of it to `task/T-069-highest-point-metres` as one commit. Then mark PR #70 ready. It is escalated, so read its body before merging.
+
+**1. `tasks/T-069-highest-point-metres.md`: delete the file.**
+
+**2. `tasks.md`: three edits.**
+
+a. **Delete the T-069 entry.** Remove everything from the line `### T-069 — \`highest_point_m\` carries feet for some states · S · doing` up to, but not including, the line `### T-079 — \`highest_point_m\` is the mountain's summit, not the state's high point · S · todo`.
+
+b. **In T-079, replace a line.** Replace the line
+
+```
+**Depends on:** T-069 (same field, same files; run after it to avoid conflicts)
+```
+
+with
+
+```
+**Depends on:** — (T-069 landed in PR #70)
+```
+
+Then, directly after T-079's `**Done when:** …` paragraph, which ends `…or is blank with a\nwarning.`, append:
+
+```
+**Amended 2026-10-04 by T-069's reviewer (PR #70): all three are confirmed.**
+T-069's 50-row cross-check marked exactly these three over 2%. It used en.wikipedia
+"List of U.S. states and territories by elevation", revision 1377209854 (rows
+cite NGS datasheets and Peakbagger). The figures: **CT 748 vs 727.2** (+2.9%),
+**OK 1737 vs 1516.4** (+14.5%), **VA 1825 vs 1740.6** (+4.8%). The other 47 are
+within 0.7%.
+- **All three are metre statements on Wikidata,** so this is not a unit
+  problem.
+- **The value now comes from** `src/fixtures/us-states-elevation.sparql.json`,
+  through `resolveElevation` in `normalize.ts`. A fix belongs there or on
+  Wikidata, not in the main fixture.
+- **VA's high point is in no doubt** (Mount Rogers is in Virginia), so it is
+  a plain data error, not a definitional one. It may not need the rule at all.
+```
+
+c. **In T-070, insert a paragraph.** Put the following immediately before the line that begins `**Done when:** the three digest guards no longer need a per-task exception`:
+
+```
+**Amended 2026-10-04 by T-069's reviewer (PR #70): a sixth neutralisation, and
+a new kind.** T-069 changed five *values*: `highest_point_m` in AZ, OR, NE, KS and
+IA went from feet to metres. All four guards (`landmarks-verify`,
+`climate-kid-verify`, `top-crops-verify`, `highest-point-verify`) now **put the old
+feet values back** before hashing.
+- **How it is written:** the same five-entry table
+  (`T069_DEFAULT_BRANCH_HIGHEST_POINT_M`) is pasted into each of the four files.
+  Two of them do a textual line rewrite; the other two set the parsed key.
+- **Why it is a new kind:** every earlier exception stripped or reset a key
+  that a task added. This is the first that restores a value a task
+  *corrected*.
+- **What it costs:** the guards now assert that those five files still carry
+  wrong data underneath, and any later correction to the same field will need
+  another table.
+- **Ten pre-existing tests changed** (approved by Dkaattae, D-15). Their
+  rebuild and refresh helpers also learned to read the second fixture,
+  `us-states-elevation.sparql.json`.
+- **Re-pinning would remove all of this at once.** The cost grows with every
+  task that corrects a value rather than adding one.
+```
+
+**3. `PROGRESS.md`: two edits.**
+
+a. **In the `highest_point` bullet under the question-bank section, replace two lines.** Replace
+
+```
+  **`highest_point_m` is a separate problem** — at least five states carry feet
+  under a metres key (T-069).
+```
+
+with
+
+```
+  **`highest_point_m` is in metres for all 50** (T-069, PR #70). The unit now
+  comes from a second recorded query, `us-states-elevation.sparql.json`. A
+  value whose unit is unknown warns and stays blank. CT, OK and VA are still
+  metre values for the wrong point or simply off (T-079).
+```
+
+b. **Under `## Completed tasks`, insert an entry.** Put the following immediately before the line that begins `- **T-068 — 24 states have a hand-curated \`top_livestock\``:
+
+```
+- **T-069 — `highest_point_m` is metres, from the unit Wikidata states**
+  (PR #70, 2026-10-04). Five states had shipped feet under a metres key: AZ,
+  OR, NE, KS and IA. They are now 3847, 3425, 1655, 1231 and 509, rebuilt
+  offline. The other 45 are byte-identical.
+  - **How it works:** a new query, `queries/us-states-elevation.ts`, reads each
+    P2044 statement with its unit. It is recorded once, live, as
+    `src/fixtures/us-states-elevation.sparql.json`, beside the main fixture.
+  - **How a value is chosen:** `normalize.ts`'s `resolveElevation` takes metre
+    statements first, then feet × 0.3048 rounded. Otherwise the field stays
+    blank and the build warns.
+  - **Both run paths make both queries:** `build.ts` (now `runBuild`, which a
+    test can drive) and `refresh.ts`. A changed refresh re-records both
+    fixtures.
+  - **All 50 were cross-checked by hand** against en.wikipedia's elevation list.
+    Only CT, OK and VA differ by more than 2%, and they are left for T-079.
+  - **Escalated:** the brief reserves the table and the recording's provenance
+    for a person. The checklist is on PR #70.
+
+  *Where it differed from the brief:*
+  - **Three of the five "feet states" carry a correct metre statement too**
+    (AZ, OR, IA). The bug was the main query's `MAX` picking the foot number.
+    Only NE and KS are stated in feet alone.
+  - **The offline bank now mixes two snapshots.** The main fixture is from
+    2026-08-04 and the elevation fixture from 2026-10-03, because re-recording
+    the main fixture was forbidden. The two agree on every metre-stated state.
+  - **A new file, `src/fixture-transport.ts`.** It holds the offline replay,
+    moved out of `build.ts` so that `refresh.ts` shares the "elevation fixture
+    sits beside the main one" rule.
+  - **71 pre-existing tests went stale, in 10 request rows** (not the 70 the
+    worker counted). All were modify-only and approved by Dkaattae in an
+    attended tester session (D-15).
+    - **The four digest guards now restore the old feet values before
+      hashing.** This is recorded on T-070.
+    - **The worker's proposed fix, deleting the key, would not have worked.**
+      The tester caught this.
+  - *Process:* the expander, worker, first tester and reviewer shared one
+    orchestrated session id. The final tester ran in a separate attended
+    session.
+```
+
+**4. Queue trim: nothing else changes.** I checked the rest of section B against `geoquizdataplan.md` §1.8–1.9. T-064, T-077 and T-078 are unaffected, and no task becomes unnecessary.
 
 ## Test change request
 
