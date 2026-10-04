@@ -175,8 +175,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   **Dkaattae decided the still-open name question directly on PR #47
   (2026-09-18): Mount McKinley**, the same call T-013's reviewer left open on
   PR #43. Both fields were updated together.
-  **`highest_point_m` is a separate problem** — at least five states carry feet
-  under a metres key (T-069).
+  **`highest_point_m` is in metres for all 50** (T-069, PR #70). The unit now
+  comes from a second recorded query, `us-states-elevation.sparql.json`. A
+  value whose unit is unknown warns and stays blank. CT, OK and VA are still
+  metre values for the wrong point or simply off (T-079).
 - **The offline-rebuild test harness lives in one place** (T-014, PR #44):
   `question-bank/src/offline-rebuild.ts` exports the dead-loopback proxy map and
   `rebuildOffline()`, and all six suites that check a byte-identical offline
@@ -326,6 +328,44 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-069 — `highest_point_m` is metres, from the unit Wikidata states**
+  (PR #70, 2026-10-04). Five states had shipped feet under a metres key: AZ,
+  OR, NE, KS and IA. They are now 3847, 3425, 1655, 1231 and 509, rebuilt
+  offline. The other 45 are byte-identical.
+  - **How it works:** a new query, `queries/us-states-elevation.ts`, reads each
+    P2044 statement with its unit. It is recorded once, live, as
+    `src/fixtures/us-states-elevation.sparql.json`, beside the main fixture.
+  - **How a value is chosen:** `normalize.ts`'s `resolveElevation` takes metre
+    statements first, then feet × 0.3048 rounded. Otherwise the field stays
+    blank and the build warns.
+  - **Both run paths make both queries:** `build.ts` (now `runBuild`, which a
+    test can drive) and `refresh.ts`. A changed refresh re-records both
+    fixtures.
+  - **All 50 were cross-checked by hand** against en.wikipedia's elevation list.
+    Only CT, OK and VA differ by more than 2%, and they are left for T-079.
+  - **Escalated:** the brief reserves the table and the recording's provenance
+    for a person. The checklist is on PR #70.
+
+  *Where it differed from the brief:*
+  - **Three of the five "feet states" carry a correct metre statement too**
+    (AZ, OR, IA). The bug was the main query's `MAX` picking the foot number.
+    Only NE and KS are stated in feet alone.
+  - **The offline bank now mixes two snapshots.** The main fixture is from
+    2026-08-04 and the elevation fixture from 2026-10-03, because re-recording
+    the main fixture was forbidden. The two agree on every metre-stated state.
+  - **A new file, `src/fixture-transport.ts`.** It holds the offline replay,
+    moved out of `build.ts` so that `refresh.ts` shares the "elevation fixture
+    sits beside the main one" rule.
+  - **71 pre-existing tests went stale, in 10 request rows** (not the 70 the
+    worker counted). All were modify-only and approved by Dkaattae in an
+    attended tester session (D-15).
+    - **The four digest guards now restore the old feet values before
+      hashing.** This is recorded on T-070.
+    - **The worker's proposed fix, deleting the key, would not have worked.**
+      The tester caught this.
+  - *Process:* the expander, worker, first tester and reviewer shared one
+    orchestrated session id. The final tester ran in a separate attended
+    session.
 - **T-068 — 24 states have a hand-curated `top_livestock`, separate from crops**
   (PR #69, 2026-10-03). A new `CuratedState.top_livestock` field holds 26
   strings across 24 states, built from five words (`cattle`, `chickens`,
