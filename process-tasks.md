@@ -536,3 +536,50 @@ first real refused sweep through the fallback.
 - D-16 records the ruling, the blindness exception and the risk;
 - one real refused sweep has gone through the fallback, applied or refused, and
   the result is recorded in D-16.
+
+### P-14 — A cloud session can run `run-loop.sh`, but the orchestrator agent never checks · S · todo
+**Depends on:** —
+**New 2026-10-04, from T-069 (PR #70).** T-069 ran under the orchestrator agent
+in a Claude Code on the web session. Every role it spawned was a subagent of
+that one session, so the expander, worker, tester and reviewer all wrote the
+same id (`cse_01SUGoHdt5tMKsMnrvhWFDqg`) into the Sessions table. The tester's
+independence fell back to attestation, as `process.md` and
+`process-decisions.md` already say it does under the orchestrator.
+
+**What is new:** the docs treat that as "a property of the environment that
+forced the agent". On 2026-10-04 that environment did not force it:
+
+- **`claude` is on PATH** in the cloud container (`/opt/node22/bin/claude`,
+  2.1.289), and `claude -p` ran there.
+- **`--session-id <uuid>` is honoured:** the JSON result returned the id passed in.
+  Under `run-loop.sh` each role would have had a distinct id, and the Sessions
+  check would have been evidence again.
+- **Nobody checked:** `CLAUDE.md` says the driver is preferred "wherever a shell
+  can run", but the orchestrator was started by name and has no step that asks.
+
+**Not yet verified, and the reason this is a ticket and not a one-line fix:**
+
+- **Permissions:** headless `claude -p` printed *"Ignoring 18 permissions.allow
+  entries from .claude/settings.json: this workspace has not been trusted"*.
+  With the driver's default `LOOP_PERMISSION_MODE=acceptEdits`, a role's
+  `bun test`, `git push` or PR call may be refused. That needs one real driven
+  step in a cloud session to find out.
+- **Cost and timeout:** the driver's per-step budget and timeout were tuned on a
+  local machine.
+- **GitHub:** the driver's roles open and update PRs. In a cloud container that
+  goes through the GitHub MCP tools, and whether a `claude -p` child gets them is
+  untested.
+
+**Proposed change:**
+
+- **`orchestrator.md`:** before the first spawn, check `command -v claude`. If it
+  is there, say the driver is available and preferred, and ask the person whether
+  to run `.claude/loop/run-loop.sh` instead. Unattended, record the choice in
+  `runs/`.
+- **`.claude/loop/README.md`, "Which one to use":** add the cloud case, with the
+  trust and permission caveat once it has been tried.
+- **`process-decisions.md`:** amend the entry that calls the shared session id
+  "a property of the environment that forced the agent". It is a property of
+  choosing the agent.
+
+**This is a process-file change**, done by hand.
