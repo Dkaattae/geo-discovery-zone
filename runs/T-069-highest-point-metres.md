@@ -1,7 +1,7 @@
 # T-069 — `highest_point_m` carries feet for some states — run log
 
 **Task:** T-069 · **Branch:** `task/T-069-highest-point-metres` · **PR:** #70
-**Started:** 2026-10-03 · **Outcome:** in progress
+**Started:** 2026-10-03 · **Outcome:** halted — needs human (reviewer approved, escalated; sweep refused by harness)
 
 ## Round 1 — task-expander — 2026-10-03
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -133,3 +133,45 @@ In the orchestrator session the person said: "Tests should be fixed. Please proc
 - `0c42f8b` T-069 tester: final verdict pass after approved test changes
 
 Header now: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-03`. The orchestrator did not read that tester's verdict. The run resumes at the reviewer.
+
+## Round 4 — reviewer — 2026-10-04
+`Next step` on entry: `reviewer` → on exit: `human`
+
+**T-069 reviewer: approved and escalated, but the sweep is not done.** The harness refused the sweep edits, so I wrote them out in the brief for a person to apply. PR #70 stays draft. The brief says `Status: blocked`, `Next step: human`. The push landed: `origin/task/T-069-highest-point-metres` is at `0477f15`.
+
+**What a human has to do:**
+- **Apply the sweep.** Copy `### Sweep to apply` from `tasks/T-069-highest-point-metres.md`: delete the brief, make three edits to `tasks.md` and two to `PROGRESS.md`. Commit it to `task/T-069-highest-point-metres`.
+- **Work through the Review checklist** in the PR body:
+  - spot-check the 50-row reference table (criterion 17);
+  - confirm `question-bank/src/fixtures/us-states-elevation.sparql.json` is a real Wikidata response (criterion 14).
+- **Mark PR #70 ready** and decide the merge.
+
+**Why it escalates:** the brief's Review checklist names *a person* for those two checks. No role made a network call to confirm either. Everything else is inside the envelope:
+- no dependency added;
+- no change to `openapi.yaml`, a migration or the plan;
+- no text a child reads;
+- the 10 pre-existing tests that changed were all modifications, approved by Dkaattae, in tester commit `443f53c`. They match the request's rows one for one.
+
+**Why `blocked` and not `sweep refused`:** the reviewer instructions give `sweep refused` only to an in-envelope approve. An escalation uses `blocked`, so the orchestrator's one-hour auto-apply does not apply here.
+
+**Review results:**
+- **Every role's commit is on the PR branch** (expander, worker, both testers), and each role stayed in its lane.
+- **Gates pass when I re-run them:** `bun test` 1521 pass / 0 fail; typecheck, lint and `format:check` are clean. An offline rebuild leaves the tree clean.
+- **No finding blocks.** I decided all the worker's flags:
+  - **Confirmed:** the rule for choosing a unit (metre first, then feet × 0.3048 rounded, otherwise blank and warned), the second fixture and the two snapshots it creates, and the hard failure when the elevation fixture is missing.
+  - **Main query's unitless `?elevation` column:** keep it, with no task. It is what tells "has an elevation but no unit" (warns) apart from "no elevation" (blank).
+- **Non-blocking findings go into existing tasks**, through the sweep text:
+  - **T-070** gets the sixth digest-guard neutralisation. It is the first that restores an old value, and it is copy-pasted into four files.
+  - **T-079** is unblocked, and its CT, OK and VA reference figures are now confirmed with a source.
+  - **No new tasks.** I spot-checked `area_km2` in 7 states and all are in km².
+
+**Process notes:**
+- **Same session id as the expander, worker and first tester** (`cse_01SUGoHdt5tMKsMnrvhWFDqg`). I was a freshly spawned agent, but that id proves nothing about independence.
+- **Two classifier refusals.** One was the sweep itself (shared-resource edits). The other was a later `git status`. I did not try to route around either.
+
+**Files:**
+- `tasks/T-069-highest-point-metres.md` — `## Review` and `### Sweep to apply`, Status and Next step, my Sessions row.
+- PR body updated: https://github.com/Dkaattae/geo-discovery-zone/pull/70. It has the escalation and sweep note at the top, the 21 criteria verbatim with what verified each, the test-change summary and the review decisions.
+
+## Halted — reviewer escalation, sweep refused — 2026-10-04
+Header: `Status: blocked`, `Next step: human`. Branch head at halt: `0477f15`. Because the status is `blocked`, not `sweep refused`, the orchestrator does not apply the sweep after an hour. A person applies the sweep, works through the PR's Review checklist, marks #70 ready, and merges.
