@@ -1,7 +1,7 @@
 # T-069 — `highest_point_m` carries feet for some states
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision; see `## Review`)
 **Approved:** orchestrator — 2026-10-03, unattended run. See `runs/T-069-highest-point-metres.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-03`
 **From:** [`tasks.md`](../tasks.md) T-069
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | worker | 2026-10-03 | cse_01SUGoHdt5tMKsMnrvhWFDqg |
 | tester | 2026-10-03 | cse_01SUGoHdt5tMKsMnrvhWFDqg (orchestrated: one id for every role, see Verdict) |
 | tester | 2026-10-03 | cse_01PepTJN1rwWEdPekDGgQtFK (attended session; applied the approved test change request and wrote the final verdict) |
+| reviewer | 2026-10-04 | cse_01SUGoHdt5tMKsMnrvhWFDqg (orchestrated: same id as expander, worker and first tester; a freshly spawned agent that did not see their reasoning) |
 
 **Worker model:** Opus. This touches data correctness and has more than one
 defensible design (`process.md`, "Choosing the worker's model").
@@ -541,6 +542,53 @@ My first M3 attempt was a syntax error. I caught it and redid it; the row above 
 
 - I made no network call: the recording's authenticity and the 50 reference values are left to the Review checklist.
 - `PROGRESS.md` and `tasks.md` are untouched (the sweep's job).
+
+## Review
+
+**TL;DR — approved, and escalated.** The code is good: it fits the pipeline, stays inside the brief, and every worker flag is settled below. **Do not merge without a person working through the brief's Review checklist**, which reserves two checks for a human: the 50-row reference table (criterion 17) and that the elevation recording is a real response (criterion 14). PR #70 is marked ready, with the escalation at the top of its body.
+
+**Reviewer, 2026-10-04.**
+
+- **All roles' work is in the PR.** Expander `fbe3db0`, worker `e64b016`, tester `1386de3`, `443f53c` and `0c42f8b`, all on `task/T-069-highest-point-metres`.
+- **Each role stayed in its lane.** The expander touched only `tasks.md` and the brief. The testers touched only test files and the brief. The pre-existing test edits are all in `443f53c` (a tester commit) and match rows 1–10 one for one. No assertion was removed and no digest was re-pinned.
+- **Gates re-run here, under the dead-loopback proxy:** `bun test` 1521 pass, 0 fail. `typecheck`, `lint` and `format:check` are clean. `bun src/build.ts --offline --quiet` leaves `git status` clean.
+
+### Envelope
+
+| Check | Result |
+|---|---|
+| Tester pass, gates green | yes |
+| Nothing outside Constraints | yes. `src/fixture-transport.ts` is new and not on the list, but the Handoff gives the reason. The approved test edits are the expected stale ones. `runs/` is the orchestrator's log. |
+| No dependency | yes (`package.json` and `bun.lock` unchanged) |
+| No `openapi.yaml`, migration or plan | yes |
+| No child-readable text | yes. The change is five numbers, and no prose. |
+| Pre-existing tests | modified only, **approved by Dkaattae** (a person), via `tester` commits. The tester noted the per-row list was not echoed in chat before the approval; the rows were in the pushed brief. |
+| Hand check reserved for a person | **no — escalates.** The brief's Review checklist says *a person* spot-checks the 50-row table and the recording's provenance. Neither the tester nor the reviewer made a network call. |
+
+**What I could check without a network:**
+- **The five corrected values match the published figures I know:** AZ 3847 / 3852, OR 3425 / 3429, NE 1655 / 1655, KS 1231 / 1232, IA 509 / 509.
+- **The recording looks real.** Its statement GUIDs mix Wikidata's two historical formats (upper-case and lower-case), its 55 rows match `_fixture.rows`, and its `query` names the file that holds the query text. This is supporting evidence, not proof.
+
+### Findings
+
+None blocks.
+
+1. **Rule for choosing a unit (worker flag): confirmed.**
+   - Metre statements win, taking their max.
+   - Otherwise feet × 0.3048, rounded to whole metres.
+   - Otherwise blank, with a warning.
+   - **Why it is right:** taking the metre max keeps the 45 metre-only states byte-identical, and rounding feet avoids false precision.
+   - **The extra warnings stay:** a metre/foot disagreement over 1%, and an unknown unit beside a usable value. They follow "flag uncertain data", and neither fires today.
+2. **Two snapshots in the offline bank (worker flag): confirmed.** A second recording was the only route criterion 12 allowed. The two agree on every metre-stated state, and the next changed refresh re-records both together.
+3. **An offline build fails hard when the elevation recording is missing (worker flag): confirmed.** Blanking 50 elevations without a word would read as data. The error is a bare ENOENT naming the path, which is enough for a developer. It does not need a task of its own.
+4. **The main query's unitless `?elevation` column (worker flag): keep it, and no queue entry.** It is not dead weight. It is how `resolveElevation` tells "an elevation exists but no unit reached us" (which warns, criterion 4) from "no elevation" (blank and silent, criterion 5). Dropping it would merge those two cases.
+5. **The digest guards gained a sixth neutralisation, copied four times.** The `T069_DEFAULT_BRANCH_HIGHEST_POINT_M` table now appears in each of the four guards. It is the first neutraliser that *restores an old value*, not one that strips a new key. **T-070 owns this.** I amended T-070 rather than opening a new entry, because T-070 has to settle the guards' fate anyway.
+6. **T-079 is unblocked, and its premise is now verified.** Criterion 17's table confirms CT, OK and VA against a cited source, and that source is in T-079. I amended T-079 rather than adding an entry.
+7. **`area_km2`'s unit (out of scope here): no task.** The same trap was a possibility, so I spot-checked CO, TX, AK, RI, CA, MT and WY. All are in km² today, and the existing magnitude warning stands. A unit-aware fix can reuse this task's pattern if a refresh ever shows square miles.
+
+### Process notes
+
+- **Orchestrated, so the session ids prove nothing about independence.** One session id covers the expander, the worker, the first tester and this reviewer. Only the final tester ran separately, attended. This is the same pattern as T-068.
 
 ## Test change request
 
