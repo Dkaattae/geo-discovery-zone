@@ -223,6 +223,24 @@ Worth weighing, rather than assuming the first is the answer:
   Whether that substitution is ever acceptable — and if so, what it must say in
   the Verdict — is a `D-n` decision, not a code change.
 
+**Re-tested 2026-10-04, in a Claude Code on the web session (during T-069):
+still broken.** A `claude -p` child started the way `run-loop.sh` starts one
+(`--permission-mode acceptEdits`, its own `--session-id`) was asked to run `git
+rev-parse --short HEAD && bun --version`. It was refused: *"This Bash command
+contains multiple operations. The following part requires approval: bun
+--version"*, with the same *"Ignoring 18 permissions.allow entries … this
+workspace has not been trusted"* warning on stderr. The child does get its own
+session id, so that part of the driver works. Running commands does not. T-069
+ran under the fallback above (the top-level session spawning each role with
+`Agent`), and every role executed normally.
+
+**Second driver bug, found the same day: the ledger's turns and cost are always
+0.** `run_role` sends the child's stderr into the same file as its JSON
+(`> "$out" 2>&1`). The trust warning is the first line, so `jq` cannot parse the
+file and falls back to `0`. Every row in `runs/ledger.tsv` shows 0 turns and
+$0.00. A child's real cost (about $0.05 for the probe above) is never recorded.
+Fix: write stderr to its own file.
+
 **This is a process-file change** (`.claude/loop/run-loop.sh`, `.claude/agents/
 tester.md`, `process.md`, and a `D-n` entry), so G1 forbids running it through
 the loop: hand-written PR, reviewed by Dkaattae.
@@ -537,49 +555,34 @@ first real refused sweep through the fallback.
 - one real refused sweep has gone through the fallback, applied or refused, and
   the result is recorded in D-16.
 
-### P-14 — A cloud session can run `run-loop.sh`, but the orchestrator agent never checks · S · todo
+### P-14 — Stop reporting a subagent tester as weaker independence · S · todo
 **Depends on:** —
-**New 2026-10-04, from T-069 (PR #70).** T-069 ran under the orchestrator agent
-in a Claude Code on the web session. Every role it spawned was a subagent of
-that one session, so the expander, worker, tester and reviewer all wrote the
-same id (`cse_01SUGoHdt5tMKsMnrvhWFDqg`) into the Sessions table. The tester's
-independence fell back to attestation, as `process.md` and
-`process-decisions.md` already say it does under the orchestrator.
+**New 2026-10-04, from T-069 (PR #70). Dkaattae's ruling, in T-069's orchestrator
+session:** *"I am actually ok with the blindness currently, just not reporting
+that way."*
 
-**What is new:** the docs treat that as "a property of the environment that
-forced the agent". On 2026-10-04 that environment did not force it:
+Today `.claude/agents/tester.md` ("First: confirm you are actually a fresh
+session") tells a tester spawned by the orchestrator to say in its Verdict that
+its independence is "weaker evidence than a separate session". On T-069 the
+tester said so, the reviewer repeated it, and the orchestrator repeated it again
+in its report. That reads as a defect when it is the accepted way the loop runs.
 
-- **`claude` is on PATH** in the cloud container (`/opt/node22/bin/claude`,
-  2.1.289), and `claude -p` ran there.
-- **`--session-id <uuid>` is honoured:** the JSON result returned the id passed in.
-  Under `run-loop.sh` each role would have had a distinct id, and the Sessions
-  check would have been evidence again.
-- **Nobody checked:** `CLAUDE.md` says the driver is preferred "wherever a shell
-  can run", but the orchestrator was started by name and has no step that asks.
-
-**Not yet verified, and the reason this is a ticket and not a one-line fix:**
-
-- **Permissions:** headless `claude -p` printed *"Ignoring 18 permissions.allow
-  entries from .claude/settings.json: this workspace has not been trusted"*.
-  With the driver's default `LOOP_PERMISSION_MODE=acceptEdits`, a role's
-  `bun test`, `git push` or PR call may be refused. That needs one real driven
-  step in a cloud session to find out.
-- **Cost and timeout:** the driver's per-step budget and timeout were tuned on a
-  local machine.
-- **GitHub:** the driver's roles open and update PRs. In a cloud container that
-  goes through the GitHub MCP tools, and whether a `claude -p` child gets them is
-  untested.
+**What blindness is for:** the tester judges the work against the brief, not
+through the worker's reasoning. A freshly spawned subagent gives that exactly as
+a separate session does. Both start with an empty context, and both may read the
+repo, including the Handoff. The differences are elsewhere: who writes the spawn
+prompt (covered by the orchestrator's fixed template), whether the Sessions
+table can prove separation, and whether a role can ask a person.
 
 **Proposed change:**
-
-- **`orchestrator.md`:** before the first spawn, check `command -v claude`. If it
-  is there, say the driver is available and preferred, and ask the person whether
-  to run `.claude/loop/run-loop.sh` instead. Unattended, record the choice in
-  `runs/`.
-- **`.claude/loop/README.md`, "Which one to use":** add the cloud case, with the
-  trust and permission caveat once it has been tried.
-- **`process-decisions.md`:** amend the entry that calls the shared session id
-  "a property of the environment that forced the agent". It is a property of
-  choosing the agent.
+- **`tester.md`:** under an orchestrated run, still record which kind of run it
+  was (one factual line: "spawned by the orchestrator; shares the session id"),
+  but drop "weaker evidence" and the instruction to flag it. Keep the stop for
+  the real failure: the tester running in the worker's own conversation.
+- **`reviewer.md`, `orchestrator.md`:** do not repeat it as a finding or a
+  process note.
+- **`process.md` (~l.130–155) and `process-decisions.md`** (the "no longer
+  *checkable*" entry): reword "degrades to attestation" to say the Sessions check
+  does not apply under the orchestrator, and that this is accepted.
 
 **This is a process-file change**, done by hand.
