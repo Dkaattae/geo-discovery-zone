@@ -52,8 +52,8 @@ committed bank, not whether it is committed.
 | `--states CO,VT` \| `all` | Which states to write (default `all`) |
 | `--out <dir>` | Output directory (default `data/us-states`) |
 | `--sink json` \| `db` | Where entities go (default `json`) |
-| `--offline` | Replay the fixture instead of calling Wikidata. Implies `--no-fun-facts` |
-| `--fixture <path>` | Use a specific fixture (implies `--offline`) |
+| `--offline` | Replay the fixtures instead of calling Wikidata. Implies `--no-fun-facts` |
+| `--fixture <path>` | Use a specific main fixture (implies `--offline`); the elevation fixture is read from the same directory as `us-states-elevation.sparql.json` |
 | `--no-fun-facts` | Skip the Wikipedia summary pass |
 
 ## Refreshing the committed bank
@@ -68,7 +68,7 @@ warning is printed too.
 
 | Exit | Meaning | What it wrote |
 |---|---|---|
-| `0` | The bank changed | All entity files and `index.json`; removed entity files deleted; `src/fixtures/us-states.sparql.json` re-recorded with the live response (`_fixture.captured_at` = now, `rows` updated, the rest of `_fixture` kept); every `built_at` set to that `captured_at` |
+| `0` | The bank changed | All entity files and `index.json`; removed entity files deleted; `src/fixtures/us-states.sparql.json` and `src/fixtures/us-states-elevation.sparql.json` re-recorded with the live responses (`_fixture.captured_at` = now, `rows` updated, the rest of `_fixture` kept); every `built_at` set to that `captured_at` |
 | `1` | The refresh failed — the request failed after retries, the response was malformed, or fewer than all 50 states matched (the missing ones are named) | Nothing |
 | `2` | `bank unchanged` — printed as exactly that line | Nothing |
 
@@ -178,10 +178,13 @@ src/
   curated/us-states.ts    manual override table
   normalize.ts            rows + curation → entities
   sinks/                  json.ts, db.ts, index.ts
-  fixtures/               recorded SPARQL responses for offline runs
+  fixtures/               recorded SPARQL responses for offline runs:
+                          us-states.sparql.json (the main query) and
+                          us-states-elevation.sparql.json (each highest
+                          point's elevation with its unit — T-069)
 data/us-states/           the committed 50-state bank (E-6) — one file per
                           entity plus index.json, reproducible offline from
-                          fixtures/us-states.sparql.json
+                          those two fixtures
 sample-data/              output of one committed single-state run, kept as a
                           teaching example of the entity shape (T-064 revisits
                           this now that the full bank is committed alongside it)

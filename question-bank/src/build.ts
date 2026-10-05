@@ -8,15 +8,15 @@
  * Everything runs at build time and ships as JSON (§1.9): no runtime API calls,
  * no keys in the client, and no Wikipedia vandalism reaching a child mid-quiz.
  */
-import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import { normalizeUsStates } from "./normalize";
+import { fixtureTransport } from "./fixture-transport";
+import { normalizeUsStates, type BuildWarning } from "./normalize";
 import { writeReviewFile, type FunFactDraft } from "./review-file";
 import { createSink } from "./sinks";
-import { createSparqlClient, type SparqlResults, type SparqlTransport } from "./sparql";
+import { createSparqlClient, type SparqlTransport } from "./sparql";
 import { fetchUsStates } from "./sources/wikidata";
-import { createSummaryTransport, fetchFunFact } from "./sources/wikipedia";
+import { createSummaryTransport, fetchFunFact, type SummaryTransport } from "./sources/wikipedia";
 import type { Entity } from "./types";
 
 interface Args {
@@ -101,41 +101,45 @@ Build US state entity records from Wikidata.
   --out <dir>            Output directory (default: data/us-states)
   --sink <json|db>       Where entities go (default: json). "db" is the seam
                          for the backend step and is not implemented yet.
-  --offline              Replay the recorded fixture instead of calling
+  --offline              Replay the recorded fixtures instead of calling
                          query.wikidata.org. Implies --no-fun-facts.
-  --fixture <path>       Use a specific fixture file (implies --offline).
+  --fixture <path>       Use a specific main fixture file (implies --offline).
+                         The elevation fixture is read from the same
+                         directory, as us-states-elevation.sparql.json.
   --no-fun-facts         Skip the Wikipedia summary pass.
   --quiet                Only print the final summary.
 `);
 }
 
 /**
- * Replays a recorded SPARQL response through the exact parsing path, and
- * stashes the fixture's own `_fixture.captured_at` into `capture` as it goes —
- * that is what lets the offline path use a fixed, meaningful `built_at`
- * instead of wall clock, so two offline builds are byte-identical (criterion 6).
+ * What a live run reaches the network through. Injectable so a test can drive
+ * the live path (`--offline` absent) through the `SparqlTransport` seam with no
+ * network (T-069 criterion 7); the CLI passes nothing and gets the real clients.
+ * The offline path ignores `sparql` and replays fixtures (`fixture-transport.ts`).
  */
-function fixtureTransport(
-  path: string,
-  capture: { capturedAt?: string | undefined },
-): SparqlTransport {
-  return async () => {
-    const raw = JSON.parse(await readFile(path, "utf8")) as SparqlResults & {
-      _fixture?: { captured_at?: string };
-    };
-    capture.capturedAt = raw._fixture?.captured_at;
-    return raw;
-  };
+export interface BuildDeps {
+  sparql?: SparqlTransport;
+  summary?: SummaryTransport;
+  log?: (message: string) => void;
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const log = args.quiet ? () => {} : (message: string) => console.log(message);
+export interface BuildResult {
+  entities: Entity[];
+  warnings: BuildWarning[];
+  unmatched: string[];
+}
 
+export async function runBuild(argv: string[], deps: BuildDeps = {}): Promise<BuildResult> {
+  const args = parseArgs(argv);
+  const print = deps.log ?? ((message: string) => console.log(message));
+  const log = args.quiet ? () => {} : print;
+
+  // The offline path replays the main fixture and the elevation fixture beside
+  // it (T-069); the live path makes the same two queries over the network.
   const fixtureCapture: { capturedAt?: string } = {};
   const query = args.offline
     ? fixtureTransport(args.fixture, fixtureCapture)
-    : createSparqlClient({ log: (message) => log(`  ${message}`) });
+    : (deps.sparql ?? createSparqlClient({ log: (message) => log(`  ${message}`) }));
 
   log(args.offline ? `Reading fixture ${args.fixture}` : "Querying query.wikidata.org …");
   const rows = await fetchUsStates(query);
@@ -157,7 +161,7 @@ async function main() {
 
   if (args.funFacts) {
     log("Fetching Wikipedia summaries …");
-    const fetchSummary = createSummaryTransport((message) => log(`  ${message}`));
+    const fetchSummary = deps.summary ?? createSummaryTransport((message) => log(`  ${message}`));
     const drafts: FunFactDraft[] = [];
     for (const entity of entities) {
       const title = entity.sources?.wikipedia_title;
@@ -179,6 +183,7 @@ async function main() {
   await sink.close();
 
   report(entities, warnings, unmatched, args, log);
+  return { entities, warnings, unmatched };
 }
 
 function report(
@@ -207,7 +212,9 @@ function report(
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exit(1);
-});
+if (import.meta.main) {
+  runBuild(process.argv.slice(2)).catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}

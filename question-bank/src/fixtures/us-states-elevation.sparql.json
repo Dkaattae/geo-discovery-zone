@@ -1,0 +1,1290 @@
+{
+  "_fixture": {
+    "status": "RECORDED — a real response from query.wikidata.org",
+    "captured_at": "2026-10-03T21:16:45Z",
+    "endpoint": "https://query.wikidata.org/sparql",
+    "query": "src/queries/us-states-elevation.ts (US_STATES_ELEVATION_QUERY)",
+    "rows": 55,
+    "why_committed": "The unit of each highest-point elevation (T-069). The main fixture's `elevation` reads P2044 through wdt:, which drops the unit; --offline reads this file beside it to know whether a value is metres or feet.",
+    "regenerate_with": "bun run refresh   # re-records this file alongside us-states.sparql.json whenever the bank changes",
+    "note": "Wikidata is edited continuously, so these values are a snapshot. A live run is the source of truth."
+  },
+  "head": {
+    "vars": [
+      "state",
+      "highestPoint",
+      "statement",
+      "amount",
+      "unit"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q173"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q927744"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q927744-2746d8c5-4702-61e7-d709-a43e7a1a574a"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "735.5"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q173"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q927744"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q927744-5916bd6e-4b55-2cdd-fa74-2e9752918bbb"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "733"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q173"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q927744"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q927744-BD260A32-28BC-460F-922D-B738713DC972"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "735"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q99"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q235539"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q235539-80AF808E-9B7E-43AB-8E80-81E95C9EFE14"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4421"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1166"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1164979"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1164979-1A663689-86AB-4CD9-BDFE-6E22BFA4D3EB"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "603"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1204"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1065571"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1065571-56568C38-4479-4026-8D90-4069A246B2CC"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "376"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1207"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q590820"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q590820-64E048F7-48C4-4546-8623-56001A2D168E"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1069"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1211"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1585737"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1585737-5E52306E-4E12-4E8A-9368-6424A66A5058"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2208"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1212"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q599777"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q599777-B2F10480-148F-4F75-AFC1-273BE8CDB81D"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3904"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1214"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1493617"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1493617-99FEF4A2-37A5-49C8-B4D9-5D966C6AB63F"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4207"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1221"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q893312"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q893312-56E241D2-BB9D-453B-B831-C56E560B2808"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3857"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1223"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q194057"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q194057-A39343E6-6F07-402F-93D1-F20C572DCE77"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4389"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1227"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q573205"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q573205-81E68F34-F9D3-4CE7-93CF-2D6C41D32B40"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4007"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1261"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q657225"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q657225-D03F951C-D06F-47A3-B7B1-0E149793BD75"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4401"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1370"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q688645"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q688645-96D278BD-63FE-476F-948B-C343688E6552"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1825"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1371"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1815535"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1815535-4973A4A9-8A98-4760-8002-6CAE3CB1C2C2"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1482"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1384"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1858227"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1858227-5BCFDB23-B0DF-4231-A96C-D167AFD4E789"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1629"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1387"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q956395"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q956395-57D362DA-6B9D-42E0-A1D1-CB4435890B01"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "247"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1391"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q658808"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q658808-95552D09-798E-474E-8524-9749BD366927"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1020"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1393"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1280075"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1280075-28A96872-F45F-4199-A778-A59334B78246"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "137"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1397"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1030445"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1030445-D686F240-9B9B-4992-86DC-6581D01B3259"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "472"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1400"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q3660"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q3660-EB470590-79E1-425E-8B4C-74B801E0D2B0"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "979"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1408"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1587207"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1587207-9976C325-A90B-4410-811F-ECFDD9D1979C"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "550"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1415"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1627481"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1627481-C6004D42-C1EF-427A-916B-7BE8ADAA16C9"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "383"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1428"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q842924"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q842924-302BA65E-36A2-4B94-9FF3-86EAFA5AA9CC"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1458"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1439"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q32793"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q32793-2CB72285-F26E-4617-BBB3-D0EA8AB7DC4E"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2667"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1454"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q615337"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q615337-9E6059BF-6F5F-4926-B01C-87E878A1F393"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2037"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1456"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q2225722"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q2225722-A0098082-2422-47D9-A8B4-A551ED95E0A6"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1085"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1494"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1701877"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1701877-84D8DF7F-C670-4DC6-9B9B-560003768324"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "246"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1509"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q685166"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q685166-80CD7A96-DD85-4BF3-986B-CC6371DE7C57"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2025"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1522"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1505965"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1505965-9C3F0B1C-2C4C-4B8E-B52A-76E299210720"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4011"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1527"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q252204"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q252204-35E63451-CC80-4CA1-B027-B8164225D720"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "701"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1537"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1862687"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1862687-276FCEFB-105E-4929-987B-98ACF5B4C22C"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "594.8"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1546"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1591692"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1591692-72E7304C-584C-4277-B297-85EF12DF0A50"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "509"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1546"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1591692"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1591692-7aa15cf7-4aad-09cb-cda1-cd1571c74d01"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1670"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q3710"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1553"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q947553"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q947553-E1D6BEE2-AFB4-446E-BB11-101F2D81F191"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "5429"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q3710"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1558"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1587215"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1587215-C901D1FF-12D6-4796-A474-12DABF6C938F"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4039"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q3710"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1581"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q948475"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q948475-ECAF72A0-9ACF-4ACC-8830-DC6F9164C67A"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "540"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1588"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1665452"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1665452-4A2CA52C-F153-4CE8-8568-8C470FCC3091"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "163"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1603"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q880428"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q880428-B6F49B14-E7A2-4BAC-B09E-8AAE2F4C7167"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1263"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1612"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q515059"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q515059-1793CFB2-C830-4C29-B07E-DD8F6E83C22D"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "839"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1649"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q880398"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q880398-823FECE5-FF53-4B42-AE5C-EB7AF0EA54CD"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1737"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q16551"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q573840"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q573840-8368561E-87A6-4907-9F3E-B8417C3A8C29"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1339.69"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q724"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1858056"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1858056-3ADE7409-595B-4AF6-B603-DF1699323CBB"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1606"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q759"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q572801"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q572801-8E8EF064-3D8E-4C88-9746-364D9AE9C888"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1917"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q771"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1587225"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1587225-1089FFD2-BF2D-4409-BD8A-450B51C6D845"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "1064"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q779"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1950492"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1950492-7DF26BDC-643D-4A47-ADA3-58C9FE63FD53"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "748"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q782"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q131230"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q131230-DC865990-0F21-460C-9150-630648D52611"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4207.3"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q797"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q130018"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q130018-c13552cc-4ae0-fc56-e6f0-4d1189c0cade"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "6190"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q812"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q921136"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q921136-8E0E8D57-CF24-4A05-9B1C-047A2BCC0298"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "105"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q816"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1239004"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1239004-250e510d-4407-0d25-dc7c-490108745df7"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3847"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q816"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1239004"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1239004-70049FA8-CFC0-4D3B-A5D6-1A31820683B5"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "12622"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q3710"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q824"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q275662"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q275662-6142A3FE-E3E8-46BA-9CBE-CD9281BD6310"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "3425"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q824"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q275662"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q275662-a4bda6d4-4efe-6086-8ae8-7a758099bb99"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11237"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q3710"
+        }
+      },
+      {
+        "state": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q829"
+        },
+        "highestPoint": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q1642538"
+        },
+        "statement": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/statement/Q1642538-3D990955-B05F-4999-9A38-EB3A42B2E6D7"
+        },
+        "amount": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "4123"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "http://www.wikidata.org/entity/Q11573"
+        }
+      }
+    ]
+  }
+}

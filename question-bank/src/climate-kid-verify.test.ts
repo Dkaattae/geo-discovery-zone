@@ -781,6 +781,20 @@ describe("T-014 tester, criterion 14 — Colorado's phrase is unchanged", () => 
   });
 });
 
+/**
+ * T-069 (2026-10-03, a later approved task; approved test change request,
+ * rows 1–2) converts `highest_point_m` to metres in five files that shipped
+ * feet. Those five get their default-branch value back before hashing; the
+ * other 45 are hashed exactly as before.
+ */
+const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
+  "us-state-az.json": 12622,
+  "us-state-or.json": 11237,
+  "us-state-ne.json": 5429,
+  "us-state-ks.json": 4039,
+  "us-state-ia.json": 1670,
+};
+
 describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the bank", () => {
   test("each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value", () => {
     // T-015 (2026-09-17, a later approved task) fills `top_crops` for all 50
@@ -807,6 +821,11 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
       // 50 states; the baseline never had it, so it is deleted.
       delete parsed["top_livestock"];
       parsed["top_crops"] = [];
+      // T-069 (approved test change request): the five converted files get
+      // their default-branch highest_point_m back; the other 45 are untouched.
+      if (file in T069_DEFAULT_BRANCH_HIGHEST_POINT_M) {
+        parsed["highest_point_m"] = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
+      }
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
         digest: BASELINE_DIGESTS[file] as string,

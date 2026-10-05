@@ -178,28 +178,36 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-069 — `highest_point_m` carries feet for some states · S · todo
-**Depends on:** —
-**New 2026-09-18, found while surveying T-016.** `P2044` carries a unit that
-`wdt:` drops, so an elevation stated in feet arrives as a plausible-looking
-number under a metres key — the same trap `normalize.ts:103-114` already flags
-for `area_km2` on `P2046`, and nothing flags here. At least five of the 50
-committed files are wrong by a factor of 3.28: **AZ `12622`** (Humphreys Peak is
-3,852 m), **OR `11237`** (Mount Hood, 3,429 m), **NE `5429`** (Panorama Point,
-1,653 m), **KS `4039`** (Mount Sunflower, 1,232 m), **IA `1670`** (Hawkeye Point,
-509 m). Two of those are also *plausible* metre values for a mountain, so a
-magnitude sanity check alone will not catch the low ones — Iowa's 1,670 "m" would
-make a cornfield taller than Mount Mitchell and reads as fine. This poisons every
-superlative question that ranks states by height (§1.8), which is the whole point
-of the field. Check all 50, not just the five; the fix has to survive an offline
-rebuild, so it belongs in the query or in `normalize.ts`, not in hand-edited JSON.
-Alaska's `6190` is genuinely metres — leave it.
-**Done when:** every state's `highest_point_m` is in metres and cross-checked by
-hand against the plan's §1.9 instruction to cross-check peaks, and a value in the
-wrong unit warns instead of shipping.
-**It will move five tracked files' bytes, so it hits the pinned-digest wall —
-read T-070 first.** This is the first queued task that *changes* a value rather
-than adding a key, which none of the existing neutralisations handle.
+### T-079 — `highest_point_m` is the mountain's summit, not the state's high point · S · todo
+**Depends on:** — (T-069 landed in PR #70)
+**New 2026-10-03, from T-069's expander.** Surveying T-069 found three values
+that are in metres but still look wrong, which T-069 deliberately leaves alone:
+**CT `748`** is Mount Frissell's summit, which is in Massachusetts —
+Connecticut's high point is on its south slope (~725 m); **OK `1737`** appears
+to be Black Mesa's overall top, in New Mexico, not Oklahoma's high point
+(~1,516 m); **VA `1825`** does not match Mount Rogers' usual figure (~1,746 m).
+All three reference figures are from the expander's memory and unverified —
+T-069's 50-row cross-check (criterion 17) should confirm or clear them first.
+This is a definitional question — "the elevation of the state's high point" vs.
+"the elevation of the mountain that contains it" — so it needs a decision before
+a fix, and `CLAUDE.md`'s "Flag uncertain data rather than silently picking a side"
+applies.
+**Done when:** the rule is decided and written down (`engineering-decisions.md`),
+and each of the three either follows it from a recorded source or is blank with a
+warning.
+**Amended 2026-10-04 by T-069's reviewer (PR #70): all three are confirmed.**
+T-069's 50-row cross-check marked exactly these three over 2%. It used en.wikipedia
+"List of U.S. states and territories by elevation", revision 1377209854 (rows
+cite NGS datasheets and Peakbagger). The figures: **CT 748 vs 727.2** (+2.9%),
+**OK 1737 vs 1516.4** (+14.5%), **VA 1825 vs 1740.6** (+4.8%). The other 47 are
+within 0.7%.
+- **All three are metre statements on Wikidata,** so this is not a unit
+  problem.
+- **The value now comes from** `src/fixtures/us-states-elevation.sparql.json`,
+  through `resolveElevation` in `normalize.ts`. A fix belongs there or on
+  Wikidata, not in the main fixture.
+- **VA's high point is in no doubt** (Mount Rogers is in Virginia), so it is
+  a plain data error, not a definitional one. It may not need the rule at all.
 
 ### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
 **Depends on:** — (blocks nothing, but **T-069 will hit it**; T-068 already did, PR #69, and T-067 ended by deleting its field and never touched the bank)
@@ -290,6 +298,25 @@ change. Only `highest-point-verify` and T-015's curated-source and rebuild tests
 catch one. T-068's tester proved this by mutation. A re-pin removes the reset
 and with it the blind spot. Keeping the pins means the blind spot has to be
 written down.
+**Amended 2026-10-04 by T-069's reviewer (PR #70): a sixth neutralisation, and
+a new kind.** T-069 changed five *values*: `highest_point_m` in AZ, OR, NE, KS and
+IA went from feet to metres. All four guards (`landmarks-verify`,
+`climate-kid-verify`, `top-crops-verify`, `highest-point-verify`) now **put the old
+feet values back** before hashing.
+- **How it is written:** the same five-entry table
+  (`T069_DEFAULT_BRANCH_HIGHEST_POINT_M`) is pasted into each of the four files.
+  Two of them do a textual line rewrite; the other two set the parsed key.
+- **Why it is a new kind:** every earlier exception stripped or reset a key
+  that a task added. This is the first that restores a value a task
+  *corrected*.
+- **What it costs:** the guards now assert that those five files still carry
+  wrong data underneath, and any later correction to the same field will need
+  another table.
+- **Ten pre-existing tests changed** (approved by Dkaattae, D-15). Their
+  rebuild and refresh helpers also learned to read the second fixture,
+  `us-states-elevation.sparql.json`.
+- **Re-pinning would remove all of this at once.** The cost grows with every
+  task that corrects a value rather than adding one.
 **Done when:** the three digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md`), no test in
 `question-bank/src/` passes down a path taken because a spawned `git` failed, and

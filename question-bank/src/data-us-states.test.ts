@@ -17,6 +17,7 @@ import type { Entity } from "./types";
  * Changing a single value in a single tracked file is enough to fail this.
  */
 const FIXTURE = join(import.meta.dirname, "fixtures/us-states.sparql.json");
+const ELEVATION_FIXTURE = join(import.meta.dirname, "fixtures/us-states-elevation.sparql.json");
 const DATA_DIR = join(import.meta.dirname, "../data/us-states");
 
 /** Mirrors `build.ts`'s offline `built_at`: the fixture's own capture time. */
@@ -29,7 +30,12 @@ function fixtureBuiltAt(): string | undefined {
 }
 
 function expectedEntities(): Entity[] {
-  const rows = parseUsStates(JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults);
+  // T-069 (approved test change request, row 7): the offline build reads the
+  // elevation-with-unit recording beside the main fixture, so this does too.
+  const rows = parseUsStates(
+    JSON.parse(readFileSync(FIXTURE, "utf8")) as SparqlResults,
+    JSON.parse(readFileSync(ELEVATION_FIXTURE, "utf8")) as SparqlResults,
+  );
   const builtAt = fixtureBuiltAt();
   return normalizeUsStates(rows, builtAt ? { builtAt } : {}).entities;
 }

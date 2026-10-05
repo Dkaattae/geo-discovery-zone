@@ -4,13 +4,25 @@ import {
   entityIdFor,
   type CuratedState,
 } from "./curated/us-states";
-import type { WikidataStateRow } from "./sources/wikidata";
+import { UNIT_FOOT, UNIT_METRE } from "./queries/us-states-elevation";
+import type { ElevationStatement, WikidataStateRow } from "./sources/wikidata";
 import type { Entity } from "./types";
 
 export const BUILDER_VERSION = "0.1.0";
 
 /** Smallest state ~4,000 km²; largest ~1,720,000 km². */
 const AREA_SANITY_KM2 = { min: 2_000, max: 2_000_000 };
+
+/** International foot, exactly (1959 agreement). */
+export const METRES_PER_FOOT = 0.3048;
+
+/**
+ * How far a state's metre and foot statements may disagree before the pair is
+ * flagged. Wikidata's paired statements are usually one survey written twice
+ * (Arizona: 3847 m / 12622 ft = 3847.2 m), so 1% is generous for rounding and
+ * still catches two statements describing different points.
+ */
+const UNIT_DISAGREEMENT = 0.01;
 
 export interface BuildWarning {
   entity: string;
@@ -121,6 +133,11 @@ export function normalizeUsStates(
     const highestPoint = row.highestPoint ?? curated.highest_point;
     if (!highestPoint) warnings.push({ entity: id, field: "highest_point", message: "missing" });
 
+    const elevation = resolveElevation(row);
+    for (const message of elevation.warnings) {
+      warnings.push({ entity: id, field: "highest_point_m", message });
+    }
+
     const borders = resolveBorders(row, qidToPostal);
     if (borders.length === 0 && curated.postal !== "AK" && curated.postal !== "HI") {
       warnings.push({ entity: id, field: "borders", message: "no neighbours resolved" });
@@ -144,7 +161,7 @@ export function normalizeUsStates(
       ...(curated.state_animal ? { state_animal: curated.state_animal } : {}),
       ...(curated.landmark ? { landmark: curated.landmark } : {}),
       ...(highestPoint ? { highest_point: highestPoint } : {}),
-      ...(row.highestPointM !== undefined ? { highest_point_m: row.highestPointM } : {}),
+      ...(elevation.metres !== undefined ? { highest_point_m: elevation.metres } : {}),
       // Hand-curated plant crops (T-015; see the header comment in
       // curated/us-states.ts for provenance), folded in the same shape as
       // `fun_facts` below — the key stays present even if a future state has
@@ -164,6 +181,77 @@ export function normalizeUsStates(
   }
 
   return { entities, warnings, unmatched };
+}
+
+export interface ResolvedElevation {
+  /** Metres, or undefined when no statement could be read as metres. */
+  metres?: number;
+  warnings: string[];
+}
+
+const largest = (statements: ElevationStatement[]): number =>
+  Math.max(...statements.map((statement) => statement.amount));
+
+/**
+ * A state's highest-point elevation in metres, from statements whose unit is
+ * stated (T-069). A guess never ships (`CLAUDE.md` "Content rules"):
+ *
+ * - **Metre statements present** → the largest of them, unchanged. Largest
+ *   mirrors the main query's old `MAX`, so a metre-stated state ships exactly
+ *   what it shipped before (Alabama carries 735.5, 735 and 733).
+ * - **Otherwise foot statements** → the largest, × 0.3048, rounded to whole
+ *   metres (a foot is 0.3 m, so a decimal would be false precision).
+ * - **Otherwise** → blank, with a warning: a unit that is neither metre nor
+ *   foot, a statement with no unit (or Wikidata's dimensionless `Q199`), or an
+ *   elevation the main query saw with no elevation response to give its unit.
+ * - **No elevation at all** → blank, silently, as before.
+ *
+ * Statements in other units next to a usable value are not used, and are
+ * warned about; so are metre and foot statements that disagree by more than 1%.
+ */
+export function resolveElevation(row: WikidataStateRow): ResolvedElevation {
+  const statements = row.elevations ?? [];
+  const metre = statements.filter((statement) => statement.unit === UNIT_METRE);
+  const foot = statements.filter((statement) => statement.unit === UNIT_FOOT);
+  const other = statements.filter(
+    (statement) => statement.unit !== UNIT_METRE && statement.unit !== UNIT_FOOT,
+  );
+  const warnings: string[] = [];
+  const describe = (statement: ElevationStatement): string =>
+    statement.unit === undefined || statement.unit === "Q199"
+      ? `${statement.amount} with no unit`
+      : `${statement.amount} in unit ${statement.unit}`;
+
+  let metres: number | undefined;
+  if (metre.length) {
+    metres = largest(metre);
+    if (foot.length) {
+      const fromFeet = largest(foot) * METRES_PER_FOOT;
+      if (Math.abs(fromFeet - metres) > metres * UNIT_DISAGREEMENT) {
+        warnings.push(
+          `metre statement ${metres} and foot statement ${largest(foot)} (${Math.round(fromFeet)} m) disagree by more than 1%; shipped the metre value — check P2044`,
+        );
+      }
+    }
+  } else if (foot.length) {
+    metres = Math.round(largest(foot) * METRES_PER_FOOT);
+  }
+
+  if (metres === undefined) {
+    if (other.length) {
+      warnings.push(
+        `elevation ${other.map(describe).join(", ")} is neither metres (${UNIT_METRE}) nor feet (${UNIT_FOOT}); left blank — check the unit on P2044`,
+      );
+    } else if (row.elevationUnitless !== undefined) {
+      warnings.push(
+        `elevation ${row.elevationUnitless} has no unit information; left blank rather than assumed to be metres`,
+      );
+    }
+  } else if (other.length) {
+    warnings.push(`ignored elevation ${other.map(describe).join(", ")}: neither metres nor feet`);
+  }
+
+  return { ...(metres !== undefined ? { metres } : {}), warnings };
 }
 
 /**
