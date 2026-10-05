@@ -178,7 +178,7 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-079 — `highest_point_m` is the mountain's summit, not the state's high point · S · todo
+### T-079 — `highest_point_m` is the mountain's summit, not the state's high point · S · doing
 **Depends on:** — (T-069 landed in PR #70)
 **New 2026-10-03, from T-069's expander.** Surveying T-069 found three values
 that are in metres but still look wrong, which T-069 deliberately leaves alone:
