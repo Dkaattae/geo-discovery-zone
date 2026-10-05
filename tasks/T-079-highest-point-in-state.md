@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-079
 **Branch:** `claude/great-keller-n8v6cq`
-**PR:** opened draft at expand time from the branch above. The number is in the PR list for this branch.
+**PR:** #71, opened draft at expand time from the branch above.
 **Fault:** The fix needs a rule chosen first. Which elevation `highest_point_m` means, whether a curated value may override Wikidata, and which source and precision to use are product and data calls. `tasks.md` reserves them for a person.
 
 **Sessions:**
