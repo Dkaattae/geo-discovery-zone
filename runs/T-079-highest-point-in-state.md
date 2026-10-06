@@ -81,3 +81,38 @@ Dkaattae, in the orchestrator session: "accept the recommended answers and resum
 ## Approval — 2026-10-06
 
 The orchestrator asked Dkaattae whether the worker should build with the Q3 values: T-069's reference, revision 1377209854, giving CT 727.2, OK 1516.4 and VA 1740.6. Answer: "Use these numbers". `Approved:` was then stamped as an orchestrator line, because no human has read the criteria.
+
+## Round 3 — worker — 2026-10-06
+`Next step` on entry: `worker` → on exit: `tester` (`Status: awaiting verification`)
+
+**TL;DR:** I built T-079 and pushed it as commit `185f926` to `claude/great-keller-n8v6cq`. `git log origin/claude/great-keller-n8v6cq -1` shows that commit. CT, OK and VA now ship 727.2, 1516.4 and 1740.6 from a curated override, with one build warning each. In the full suite, 1524 tests pass and **11 fail**. All 11 are old tests that my change breaks on purpose; each is listed by name in the brief's Handoff. Typecheck, lint and format check pass. **Next:** the tester, in a new session, who needs a person to approve changing those 11 tests.
+
+- **Brief:** Status is now `awaiting verification` and Next step is `tester`. I added a worker row to Sessions and filled in the Handoff and Notes.
+- **Same session id:** my session id is `cse_01F7wKd4WT75r6pKhzRsTbbB`, the same as the expander's. Please make sure the tester runs under a different one.
+
+**What changed**
+- **`question-bank/src/curated/us-states.ts`:** each state can now carry `highest_point_m: { metres, source }`. Only CT, OK and VA have one, and the source text includes revision `1377209854`.
+- **`question-bank/src/normalize.ts`:** new `resolveHighestPointMetres`.
+  - A state without an override gets exactly what `resolveElevation` gives it.
+  - A state with one ships the curated value and gets exactly one `highest_point_m` warning. That warning names the Wikidata value, or says Wikidata has none or one it could not read. It never says "left blank".
+- **`question-bank/data/us-states/us-state-{ct,ok,va}.json`:** only the `highest_point_m` line changed, from an offline rebuild. Compared with `323254c`, the other 47 files, both fixtures, and every `package.json` and `bun.lock` are unchanged.
+- **`question-bank/src/highest-point-in-state.test.ts`:** new, 14 tests, all passing. They cover criteria 7–15 and use no network.
+- **`engineering-decisions.md`:** I added E-19. E-1 to E-18 are unchanged.
+
+**The 11 failing tests.** All of them passed on this branch before my change (1521 pass, 0 fail).
+- **Expected by the brief:**
+  - `highest-point-metres.test.ts`: criterion 14, which expects no elevation warnings.
+  - `highest-point-verify.test.ts`: T-016 criterion 9, which expects zero warnings.
+  - Four checks that compare each state file's hash with the main branch. They are in `highest-point-verify.test.ts` (T-016 c6), `climate-kid-verify.test.ts`, `landmarks-verify.test.ts` and `top-crops-verify.test.ts`.
+- **Not on the brief's list:**
+  - Four T-069 tests in `highest-point-metres-verify.test.ts`: two under criterion 11 and two under criterion 15.
+  - `refresh.test.ts`, "criteria 3, 6–9, 11 — a changed refresh". The three new warning lines also start with `  us-state-`, so it now counts 4 such lines instead of 1.
+
+**Where the brief was wrong.** It said the checks at `highest-point-metres-verify.test.ts:385`, `:501` and `:537` would go red. They still pass.
+
+**Calls for the reviewer to confirm or overturn**
+- **One message per override:** when an override applies, its single warning replaces Wikidata's own unit warnings, since those describe a value that is not shipped.
+- **Neutral wording:** "used curated X (source) instead of Wikidata Y". For VA the Wikidata number is simply wrong, not a summit in another state.
+- **Override equal to Wikidata:** it still ships, and the warning says "delete the override". This makes E-19's deletion rule visible in the build output.
+
+**Environment:** `node_modules` was missing in the container, so I ran `bun install --frozen-lockfile`. No tracked file changed.
