@@ -1,7 +1,7 @@
 # T-079 — `highest_point_m` is the state's high point, not the mountain's summit — run log
 
 **Task:** T-079 · **Branch:** `claude/great-keller-n8v6cq` · **PR:** #71
-**Started:** 2026-10-05 · **Outcome:** in progress
+**Started:** 2026-10-05 · **Outcome:** ready for merge (escalated — a person must confirm the three values and the criteria)
 
 ## Round 1 — task-expander — 2026-10-05
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `human` (`Status: blocked`, `Approved: pending`)
@@ -174,3 +174,46 @@ Raised in `2a1202d`. The orchestrator did not read the request rows. Under D-15 
 ## Human answer — 2026-10-06
 
 Dkaattae, in the orchestrator session: "start the tester for T-079, I'll approve the changes". The orchestrator did not spawn a tester and did not record an approval (D-15). Meanwhile an attended tester session had already pushed `cd2dc04` (apply approved test change request) and `a337271` (verdict pass after approved test changes). The run resumes from the brief's `Next step`.
+
+## Round 5 — reviewer — 2026-10-06
+`Next step` on entry: `reviewer` → on exit: brief deleted by sweep; PR #71 marked ready, escalated
+
+**I approved T-079 and escalated it.** PR #71 is marked ready for review but must not be merged until a person decides on two points: the three numbers children will see, and criteria nobody read. The sweep is in the PR. My commit `28b9850` is pushed to `claude/great-keller-n8v6cq`, and I confirmed the remote head matches. The PR is no longer draft, its head is `28b9850`, and it is not merged.
+
+**Before merging, a person needs to:**
+- **Check the numbers.** CT 727.2, OK 1516.4 and VA 1740.6 m become quiz values. They come from en.wikipedia "List of U.S. states and territories by elevation", revision 1377209854. The brief's Constraints require a person to see child-facing data.
+- **Read the criteria.** `Approved:` is the orchestrator's stamp, which says "criteria not read". The Q3 values were inferred by the orchestrator and then confirmed by Dkaattae in the orchestrator session. The PR body is the first place a person sees the criteria.
+
+**Review: no blocking findings.**
+- **Every role's work is in the PR.** Each Sessions row has a commit on the branch: expander ×2, worker, tester ×2.
+- **Each role stayed in its lane.**
+  - Expander commits touch only `tasks/` and `tasks.md`.
+  - The worker commit touches no pre-existing test.
+  - Tester commits touch only tests and the brief.
+- **Test changes match what was approved.** The 11 changes are all modify, all in tester commit `cd2dc04`, and match the rows a person approved in attended session `cse_01Lyx9VoiaH1j4L9JD3hZYUG`. That person gave no name. I copied the rows into the PR body, because the sweep deletes the brief.
+- **Scope and docs are fine.** Nothing changed outside the Constraints. The code follows the house style, and E-19 and the header comment in `curated/us-states.ts` are accurate.
+- **Checks re-run by me on `79f85b8`:** `bun test` gives 1649 pass, 0 fail. Typecheck, lint and format:check are all green.
+
+**The worker's three flags:** all confirmed.
+- One override warning replaces Wikidata's own elevation warnings.
+- The warning wording stays neutral.
+- When Wikidata equals the override, the build warns "delete the override".
+- One non-blocking caveat, noted in the PR with no task created: that last check needs exact equality. If Wikidata changed to 727, the "delete" message would not appear, but the normal warning still prints both values.
+
+**What the sweep changed:**
+- **Brief deleted:** `tasks/T-079-highest-point-in-state.md`. Its criteria are now in the PR body, word for word, with what verified each one. Because the brief is gone, there is no Status, Next step or Sessions row to update.
+- **`/home/user/geo-discovery-zone/tasks.md`:**
+  - Removed the T-079 entry.
+  - Amended T-070 with two notes rather than opening a new task, since (a) already owns the digest-guard question:
+    - T-079 is a seventh neutralisation, of the same "restore a corrected value" kind.
+    - Every full build and every changed refresh now prints three override warning lines.
+- **`/home/user/geo-discovery-zone/PROGRESS.md`:**
+  - Added a T-079 entry under "Completed tasks", including where it differed from the brief.
+  - Updated the question-bank `highest_point_m` line, which still said CT, OK and VA were wrong.
+- **No other queue task** got larger, smaller or unnecessary.
+
+**Next step: a person** confirms the three values and the criteria, then merges PR #71: https://github.com/Dkaattae/geo-discovery-zone/pull/71
+
+## Ended — 2026-10-06
+
+Roles in order: task-expander → (human answer) → task-expander → worker → tester → (attended tester, outside this run) → reviewer. The run ends at a ready PR, escalated. No role merges (D-4).
