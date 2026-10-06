@@ -1,7 +1,7 @@
 # T-080 — The offline harness returns the build's stdout
 
-**Status:** `awaiting approval`
-**Next step:** `worker`, once a human has approved the criteria below
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-06, in the orchestrator session ("approved. you write my name on it"). Stamped by the orchestrator on their instruction. See `runs/T-080-build-report-stdout.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-080, split out of T-070 (b) on 2026-10-06
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (T-070 round: blocked on Q1 and Q2) |
 | task-expander | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (T-080 round: split applied, brief written) |
+| worker | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN |
 
 ## Goal
 
@@ -163,6 +164,49 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR:** I added a second route to the harness, `rebuildOfflineWithStdout(buildScript, fileNames, tmpPrefix?)`. It returns `{ files, stdout }` from the same spawned `build.ts --offline`, but without `--quiet`. `rebuildOffline` is unchanged on the outside. Whole suite 1657/1657 green, and typecheck, lint and format:check are green. **Tests made stale: none.** The tester is up next. Heads-up: the expander, worker and (per the orchestrator) probably the tester all share session `cse_01UvBvo6qodvNQDpFJPANTgN`. See Notes.
+
+**Files changed**
+
+- `question-bank/src/offline-rebuild.ts`
+  - New exported `rebuildOfflineWithStdout` and an `OfflineRebuildReport` interface (`files: Map<string,string>`, `stdout: string`).
+  - Both public functions now call one private `runOffline(buildScript, fileNames, tmpPrefix, quiet)`. It holds the spawn, the `DEAD_PROXY` env, the `exitCode !== 0` → `throw new Error` check and the `finally` → `rmSync`. The only difference between the two routes is whether `--quiet` goes on the argv.
+  - `DEAD_PROXY` is untouched: same six keys, same values.
+- `question-bank/src/build-report-stdout.test.ts`: new, the worker's own checks (8 tests). It does not call `spawnSync`/`spawn`, and it holds no dead-loopback literal.
+- Not touched: `src/build.ts`, any existing `*.test.ts`, `data/`, `sample-data/`, `fixtures/`, `package.json`, `bun.lock`.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1 | `rebuildOfflineWithStdout` in `offline-rebuild.ts`: one call returns `{ files, stdout }`, and the harness spawns |
+| 2-4 | Real output of `report()` (`build.ts:189-210`), now visible because `--quiet` is dropped on this route. Worker tests: "stdout carries the summary line", "exactly one warning header…", "the three lines after it…" |
+| 5 | Spawned build, no reimplementation. I checked by mutation: renaming `warning(s):` to `warnings:` in `build.ts` turned the two criterion 3/4 tests red, and I reverted it |
+| 6 | `files` comes from the same temp `--out` dir as before. Worker test compares `index.json`, `us-state-ct.json`, `us-state-co.json` to `data/us-states/` |
+| 7 | `runOffline` spawns with `env: { ...process.env, ...DEAD_PROXY }`, shared by both routes |
+| 8 | `runOffline` throws `offline rebuild exited N: …` on non-zero. Both routes are tested against a missing script |
+| 9-10 | `finally { rmSync(out, …) }` in `runOffline`, both routes. Worker tests scan `os.tmpdir()` for the per-call prefix after success and after a throw |
+| 11 | `rebuildOffline` signature and `Map<string,string>` return are unchanged |
+| 12-15 | Only the two files above changed (check with `git diff --name-status origin/main...HEAD`) |
+| 16 | Follows from 7. No new network path |
+
+**Deliberately not done**
+
+- **`build.ts`'s `--quiet` mismatch is left alone.** It is out of scope.
+- **T-016's source-grep test and comments are not retired.** They are existing tests, and the brief makes retiring them a follow-up.
+- **No `--fixture` parameter.**
+- **I did not expose the spawn's env for inspection.** Criterion 7 is visible in the source. If the tester wants a runtime check, the spawn's environment is not returned. That is a choice the tester can question, not a gap I found.
+
+**Contradictions with the brief:** none found.
+
+**How to run** (in `question-bank/`)
+
+- `bun install --frozen-lockfile`. This checkout had no `node_modules`. Without it the first suite run gave 12 fails and the lint/typecheck commands could not be found. It installs nothing new.
+- `bun test src/build-report-stdout.test.ts` runs this task's tests.
+- `bun test`, `bun run typecheck`, `bun run lint`, `bun run format:check` run the full gates.
+
+**Tests made stale:** none.
+
 ## Verdict
 
 ## Notes
@@ -188,3 +232,6 @@ Required reading for the worker and the tester.
   T-070 round's questions and survey are in commit `3cedfe8`.
 - **The expander did not run the build or the suite** (D-7). Every line number
   above comes from reading the source on this branch.
+- **Worker: design choice (worker decided; tester/reviewer to confirm or overturn).** I added a second function rather than an options flag on `rebuildOffline`, because criterion 11 pins that signature. Both functions share one private spawner, so the isolation and cleanup cannot drift apart. That drift is exactly what T-014's extraction existed to prevent.
+- **Worker: environment surprise.** Before `bun install`, I ran `bun run format` by mistake. It auto-fetched some prettier and rewrote the existing `highest-point-metres-verify.test.ts`. I reverted it straight away with `git checkout`, and it is not in the commit. After `bun install`, `format:check` passes on the untouched file. So the rewrite came from a different prettier version, not a real formatting fault.
+- **Worker: session isolation (orchestrator/human to note).** `$CLAUDE_CODE_REMOTE_SESSION_ID` gives the same id the expander rows record. The tester's same-session check (process.md step 4) will see a `worker` row with that id if the tester also runs under it. The orchestrator owns how it launches the tester.
