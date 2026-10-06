@@ -1,7 +1,7 @@
 # T-080 — The offline harness returns the build's stdout
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #73; routine, no escalation)
 **Approved:** Dkaattae — 2026-10-06, in the orchestrator session ("approved. you write my name on it"). Stamped by the orchestrator on their instruction. See `runs/T-080-build-report-stdout.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-080, split out of T-070 (b) on 2026-10-06
@@ -17,6 +17,7 @@
 | task-expander | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (T-080 round: split applied, brief written) |
 | worker | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN |
 | tester | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (orchestrated: freshly spawned subagent, same session id; see Verdict) |
+| reviewer | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (orchestrated: freshly spawned subagent, same session id) |
 
 ## Goal
 
@@ -257,6 +258,40 @@ Required reading for the worker and the tester.
 **Worker's design choice** (a second function sharing one private spawner): confirmed. It keeps criterion 11's signature and gives both routes one isolation path, which M3 and M4 show is exercised on both.
 
 **Tests made stale:** none. I checked: no existing test is modified, deleted or red.
+
+## Review
+
+**TL;DR: approve, inside the envelope.** The change is small and matches the code around it: one private spawner shared by both routes, and a 2-line argv difference. It stays inside Constraints. I re-ran all four gates and they are green (1671/1671 tests, typecheck, lint, format:check). PR #73 is marked ready with no escalation. Two non-blocking findings are queued: a new T-083, and an amendment to T-082.
+
+**PR completeness.** Every Sessions row has a commit in PR #73: expander `2511e58`, worker `71e446c`, tester `d700d47`. Nothing is stranded on another branch.
+
+**Lanes (D-7).**
+- **Expander** (`3cedfe8`, `6a42bec`, `2511e58`): touched only `tasks/` and `tasks.md`.
+- **Worker** (`71e446c`): touched `offline-rebuild.ts`, its own new test and the brief.
+- **Tester** (`d700d47`): touched only its new test and the brief. No source.
+- **Orchestrator:** touched only `runs/` and the brief header.
+
+**Envelope**
+- **Tester:** pass.
+- **Gates:** green on my own re-run.
+- **Outside Constraints:** nothing beyond loop bookkeeping (`runs/`, the expander's queue split, and this sweep).
+- **Dependencies:** none added.
+- **Contract, schema and plan:** no `openapi.yaml` or migration change, and no plan change.
+- **Child-facing text:** none.
+- **Existing tests:** none modified or deleted (`Test changes: none`).
+- **Product decisions:** none settled.
+- **Size:** about 70 lines of source, all of which I read.
+
+**Findings (none block)**
+1. **Some existing test comments are now untrue.** In `question-bank/src/highest-point-verify.test.ts:433-447` and `:478-482`, the comments say the report's stdout cannot be read through the harness, and they keep a source-grep in place of a behavioural test. Criterion 12 and Out of scope kept them untouched on purpose, so this does not block. Queued as **new T-083**, together with the `--quiet` / `--help` mismatch the brief left out of scope (`build.ts:110`, `:135`).
+2. **T-082 is smaller now.** The harness can return stdout, so the only thing standing between the two refresh tests and the shared harness is a `--fixture` argument. **Amended T-082** rather than creating a new entry, because it already owns that question.
+3. **Two test files cover the same criteria.** `build-report-stdout.test.ts` (worker) and `-verify.test.ts` (tester) overlap, and between them they spawn about 8 real builds. This is the repo's usual worker/tester pair (`climate-kid.test.ts` / `-verify.test.ts`), so I did not queue it.
+
+**Flags disposed**
+- **Worker's design choice** (a second exported function sharing one private `runOffline`, not an options flag): **confirmed.** It is the only shape that keeps criterion 11's signature, and the tester's M3/M4 show that one isolation path covers both routes.
+- **Worker's prettier surprise** (`bun run format` before `bun install` fetched a different prettier): **no action.** It was reverted before commit, and `conventions.md:65` already says to run `bun install` first.
+- **Session isolation** (every role ran under one session id): **no new ticket.** This is already a recorded weakness, `process-decisions.md` "Known weaknesses" (around :486). The tester and I both state it.
+- **Worker's choice not to expose the spawn env:** **settled by the tester**, whose env-probe script checks criterion 7 at runtime.
 
 ## Notes
 
