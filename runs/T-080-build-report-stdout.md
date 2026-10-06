@@ -1,7 +1,9 @@
-# T-070 — digest guards and build stdout — run log
+# T-080 — the offline harness returns the build's stdout — run log
 
-**Task:** T-070 · **Branch:** `claude/serene-heisenberg-cd5unq` · **PR:** #73
-**Started:** 2026-10-06 · **Outcome:** halted — needs human
+_Opened as T-070; split on Dkaattae's answer and continued as T-080 (rounds 1–2 below are the same run)._
+
+**Task:** T-080 (was T-070) · **Branch:** `claude/serene-heisenberg-cd5unq` · **PR:** #73
+**Started:** 2026-10-06 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-06
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `human` (`Status: blocked`, `Approved: pending`)
@@ -38,10 +40,50 @@ Draft criteria for T-080 (five) and T-081 (two) are in the brief and the PR body
 
 **Next step:** a person answers Q1 and Q2, on the PR or in the brief, and then `task-expander` runs again.
 
-## Halted — 2026-10-06
+## Halted (round 1) — 2026-10-06
 
 Gates: G1 passed (the only file changed against `origin/main` is the brief). G5 passed (a brief now exists with `Status: blocked`). The working tree was clean on return, and `origin/claude/serene-heisenberg-cd5unq` is at `6a42bec`. The halt is `Next step: human` with `Status: blocked`, which the expander wrote. `Approved:` stays `pending`. It was not stamped, and nothing was built.
 
 What a human has to decide is the expander's list, quoted above: **Q1** (re-pin against `main`, or keep the historical pins behind one shared helper; and whether the guard must survive a `built_at`/fixture-only refresh) and **Q2** (whether to split into T-070 / T-080 / T-081). Answer them in the brief or on PR #73, set `Next step: task-expander`, commit, and start a new run.
 
 Orchestrator note: the header fields were read with a field filter over the first 20 lines (`Status`, `Next step`, `Approved`, `Test changes`, `Branch`, `PR`), so the `Fault:` line was not loaded.
+
+## Human answer — 2026-10-06
+
+Dkaattae, in the orchestrator session: "accept the split and start with T-080". The orchestrator wrote it into the brief as `### Answers` (`10042d5`): Q2 split accepted, start with T-080; Q1 left open for T-070. `Next step` was set to `task-expander`.
+
+## Round 2 — task-expander — 2026-10-06
+`Next step` on entry: `task-expander` → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
+
+**TL;DR:** I applied the split you accepted and wrote the T-080 brief. **The brief moved:** it is now `/home/user/geo-discovery-zone/tasks/T-080-build-report-stdout.md`, and the T-070 file is gone (git mv). It is on the same branch, `claude/serene-heisenberg-cd5unq`, and the push landed (remote head is `2511e58`). PR #73 is renamed "T-080: the offline harness returns the build's stdout" and its body is now the criteria. It is still a draft. **Next: a human approves** (replaces `Approved: pending`), then the worker runs.
+
+**Brief header**
+- Status: `awaiting approval`
+- Next step: `worker`
+- Approved: `pending`
+- Test changes: `none`
+- Branch: `claude/serene-heisenberg-cd5unq`
+- PR: #73
+- Sessions: my row for this round is added.
+
+**Criteria (16)**
+- **New capability (1–6):** one harness call returns both the written files and the real build's full stdout. On the committed fixtures, stdout has a `Wrote 50 entities via json → ` line, exactly one `3 warning(s):` line, and then exactly the CT, OK and VA `highest_point_m` warning lines.
+  - It must be the real spawned build's output: changing `report()`'s text in `build.ts` must turn the test red.
+  - The returned files must match the tracked bank byte for byte.
+- **The harness keeps working (7–10):** all six `DEAD_PROXY` variables are still set, a non-zero exit still throws, and the temp directory is removed whether the call succeeds or throws, on both routes.
+- **Nothing else moves (11–16):** `rebuildOffline` keeps its signature, and no `*.test.ts` that already exists is modified or deleted. Only `offline-rebuild.ts` contains `127.0.0.1:1`, and no new test spawns anything. No data or fixture changes, no new dependency, no network.
+
+**What the survey found**
+- **`--quiet` hides the report.** `rebuildOffline` passes `--quiet`, and `build.ts:135` turns that into a log that prints nothing at all, even though the help text says "Only print the final summary". So today the spawned build prints nothing. `build.ts` is out of scope; how the harness gets the output is left to the worker.
+- **The T-070 draft's criterion 5 was false.** `refresh.test.ts:194` and `refresh-verify.test.ts:379` spawn `build.ts` directly. The three spawn guards miss them because the script is named through a constant. I wrote this up as a new queue entry, **T-082**, rather than demanding it here, since fixing it means editing existing tests.
+- **Existing guards the new code must pass unedited** are listed under Constraints in the brief: the loopback-literal count, the spawn regexes, the `exitCode !== 0` and `throw new Error` source check, and the `rebuildOffline(` call shape.
+
+**Changes to `tasks.md`**
+- **T-070** now holds only (a), resized to M, and is marked as waiting on Q1. It notes that it has no PR now.
+- **T-080** (doing), **T-081** (the `git` leftover) and **T-082** are new.
+
+`PROGRESS.md` is unchanged. The commit touches only `tasks/` and `tasks.md`. I did not run the build or the suite (D-7).
+
+**For the orchestrator:** the brief's path changed from `tasks/T-070-digest-guards-and-build-stdout.md` to `tasks/T-080-build-report-stdout.md`. The `runs/T-070-...` log is yours to rename or continue.
+
+Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `2511e58`. G1 passed (diff is `runs/`, `tasks.md`, `tasks/` only). G5 passed (`blocked`/`task-expander` → `awaiting approval`/`worker`).
