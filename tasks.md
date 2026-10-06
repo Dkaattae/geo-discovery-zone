@@ -178,37 +178,6 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-079 — `highest_point_m` is the mountain's summit, not the state's high point · S · todo
-**Depends on:** — (T-069 landed in PR #70)
-**New 2026-10-03, from T-069's expander.** Surveying T-069 found three values
-that are in metres but still look wrong, which T-069 deliberately leaves alone:
-**CT `748`** is Mount Frissell's summit, which is in Massachusetts —
-Connecticut's high point is on its south slope (~725 m); **OK `1737`** appears
-to be Black Mesa's overall top, in New Mexico, not Oklahoma's high point
-(~1,516 m); **VA `1825`** does not match Mount Rogers' usual figure (~1,746 m).
-All three reference figures are from the expander's memory and unverified —
-T-069's 50-row cross-check (criterion 17) should confirm or clear them first.
-This is a definitional question — "the elevation of the state's high point" vs.
-"the elevation of the mountain that contains it" — so it needs a decision before
-a fix, and `CLAUDE.md`'s "Flag uncertain data rather than silently picking a side"
-applies.
-**Done when:** the rule is decided and written down (`engineering-decisions.md`),
-and each of the three either follows it from a recorded source or is blank with a
-warning.
-**Amended 2026-10-04 by T-069's reviewer (PR #70): all three are confirmed.**
-T-069's 50-row cross-check marked exactly these three over 2%. It used en.wikipedia
-"List of U.S. states and territories by elevation", revision 1377209854 (rows
-cite NGS datasheets and Peakbagger). The figures: **CT 748 vs 727.2** (+2.9%),
-**OK 1737 vs 1516.4** (+14.5%), **VA 1825 vs 1740.6** (+4.8%). The other 47 are
-within 0.7%.
-- **All three are metre statements on Wikidata,** so this is not a unit
-  problem.
-- **The value now comes from** `src/fixtures/us-states-elevation.sparql.json`,
-  through `resolveElevation` in `normalize.ts`. A fix belongs there or on
-  Wikidata, not in the main fixture.
-- **VA's high point is in no doubt** (Mount Rogers is in Virginia), so it is
-  a plain data error, not a definitional one. It may not need the rule at all.
-
 ### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
 **Depends on:** — (blocks nothing, but **T-069 will hit it**; T-068 already did, PR #69, and T-067 ended by deleting its field and never touched the bank)
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
@@ -317,6 +286,17 @@ feet values back** before hashing.
   `us-states-elevation.sparql.json`.
 - **Re-pinning would remove all of this at once.** The cost grows with every
   task that corrects a value rather than adding one.
+**Amended 2026-10-06 by T-079's reviewer (PR #71): a seventh neutralisation,
+the same kind as the sixth.** T-079 replaced `highest_point_m` in CT, OK and VA
+with curated values (727.2, 1516.4, 1740.6; `engineering-decisions.md` E-19).
+All four guards now also put back `748`, `1737` and `1825` for those files before
+hashing, and the two textual guards widened their line regex from `\d+` to
+`[\d.]+` to match a decimal. That is the second task in a row that restores a
+*corrected* value, so the guards now assert eight files still carry wrong data
+underneath. Eleven pre-existing tests changed (approved in an attended tester
+session, D-15). A full build and every changed refresh now also print three
+`highest_point_m` override warnings by design, which any stdout-counting test
+under (b) must expect.
 **Done when:** the three digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md`), no test in
 `question-bank/src/` passes down a path taken because a spawned `git` failed, and

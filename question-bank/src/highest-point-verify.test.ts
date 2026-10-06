@@ -349,16 +349,27 @@ const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
   "us-state-ne.json": 5429,
   "us-state-ks.json": 4039,
   "us-state-ia.json": 1670,
+  // T-079 (2026-10-06; approved test change request, rows 7 and 10) ships a
+  // curated highest_point_m for these three; restored to the default branch's
+  // Wikidata value the same way. The line regex is widened to [\d.]+ so it
+  // matches 727.2.
+  "us-state-ct.json": 748,
+  "us-state-ok.json": 1737,
+  "us-state-va.json": 1825,
 };
 const withDefaultBranchHighestPointM = (file: string, raw: string) => {
   const metres = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
   return metres === undefined
     ? raw
-    : raw.replace(/^ {2}"highest_point_m": \d+,\n/m, `  "highest_point_m": ${metres},\n`);
+    : raw.replace(/^ {2}"highest_point_m": [\d.]+,\n/m, `  "highest_point_m": ${metres},\n`);
 };
 
 describe("T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched", () => {
-  test("each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped", () => {
+  test("each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped, and T-079's three highest_point_m lines restored", () => {
+    // The T-079 restore is not a no-op.
+    expect(
+      withDefaultBranchHighestPointM("us-state-ct.json", readState("us-state-ct.json")),
+    ).toContain('\n  "highest_point_m": 748,\n');
     for (const name of trackedStateFiles()) {
       if (name === "us-state-ak.json") continue;
       const raw = withDefaultBranchHighestPointM(name, readState(name));
@@ -452,10 +463,20 @@ describe("T-016 tester, criterion 9 — the full fixture build warns about nothi
     expect(normalizeUsStates(rows).warnings.filter((w) => w.field === "highest_point")).toEqual([]);
   });
 
-  test("and zero warnings of any other field — the default branch's count is 0", () => {
+  test("and no warnings besides the three T-079 highest_point_m overrides", () => {
     // Measured on the default branch (`origin/main`, 284b8bc) by running
     // `bun run src/build.ts --offline`: it printed no warning line at all.
-    expect(normalizeUsStates(fixtureRows()).warnings).toEqual([]);
+    // T-079 test change request row 6 (approved): its three curated overrides
+    // each warn once (criteria 10–11); nothing else may.
+    const { warnings } = normalizeUsStates(fixtureRows());
+    expect(warnings).toHaveLength(3);
+    expect(warnings.every((w) => w.field === "highest_point_m")).toBe(true);
+    expect(warnings.map((w) => w.entity).sort()).toEqual([
+      "us-state-ct",
+      "us-state-ok",
+      "us-state-va",
+    ]);
+    expect(warnings.filter((w) => w.field !== "highest_point_m")).toEqual([]);
   });
 
   test("a real offline rebuild of all 50 still produces Alaska's tracked bytes", () => {

@@ -133,7 +133,7 @@ export function normalizeUsStates(
     const highestPoint = row.highestPoint ?? curated.highest_point;
     if (!highestPoint) warnings.push({ entity: id, field: "highest_point", message: "missing" });
 
-    const elevation = resolveElevation(row);
+    const elevation = resolveHighestPointMetres(row, curated);
     for (const message of elevation.warnings) {
       warnings.push({ entity: id, field: "highest_point_m", message });
     }
@@ -252,6 +252,43 @@ export function resolveElevation(row: WikidataStateRow): ResolvedElevation {
   }
 
   return { ...(metres !== undefined ? { metres } : {}), warnings };
+}
+
+/**
+ * A state's `highest_point_m`: the elevation of the highest point inside its
+ * borders (T-079, `engineering-decisions.md` E-19).
+ *
+ * With no curated `highest_point_m`, this is exactly `resolveElevation`. With
+ * one, the curated value ships whatever Wikidata says, and replaces
+ * `resolveElevation`'s warnings with exactly one of its own, naming the
+ * Wikidata value (or its absence) beside the curated value and its source, so
+ * an override never applies silently. Wikidata's own unit warnings are folded
+ * into that one message rather than repeated: they describe a value that is not
+ * shipped, and "left blank" would be false.
+ */
+export function resolveHighestPointMetres(
+  row: WikidataStateRow,
+  curated: CuratedState,
+): ResolvedElevation {
+  const fromWikidata = resolveElevation(row);
+  const override = curated.highest_point_m;
+  if (!override) return fromWikidata;
+
+  const used = `used curated ${override.metres} (${override.source})`;
+  let message: string;
+  if (fromWikidata.metres === undefined) {
+    const statements = row.elevations ?? [];
+    message = statements.length
+      ? `${used}; Wikidata's elevation could not be read as metres or feet (${statements
+          .map((statement) => `${statement.amount} in unit ${statement.unit ?? "none"}`)
+          .join(", ")})`
+      : `${used}; Wikidata has no elevation for this state`;
+  } else if (fromWikidata.metres === override.metres) {
+    message = `${used}; Wikidata now agrees (${fromWikidata.metres}) — delete the override (E-19)`;
+  } else {
+    message = `${used} instead of Wikidata ${fromWikidata.metres}`;
+  }
+  return { metres: override.metres, warnings: [message] };
 }
 
 /**

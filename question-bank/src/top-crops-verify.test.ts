@@ -598,16 +598,28 @@ const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
   "us-state-ne.json": 5429,
   "us-state-ks.json": 4039,
   "us-state-ia.json": 1670,
+  // T-079 (2026-10-06; approved test change request, rows 7 and 10) ships a
+  // curated highest_point_m for these three; restored to the default branch's
+  // Wikidata value the same way. The line regex is widened to [\d.]+ so it
+  // matches 727.2.
+  "us-state-ct.json": 748,
+  "us-state-ok.json": 1737,
+  "us-state-va.json": 1825,
 };
 const withDefaultBranchHighestPointM = (file: string, raw: string) => {
   const metres = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
   return metres === undefined
     ? raw
-    : raw.replace(/^ {2}"highest_point_m": \d+,\n/m, `  "highest_point_m": ${metres},\n`);
+    : raw.replace(/^ {2}"highest_point_m": [\d.]+,\n/m, `  "highest_point_m": ${metres},\n`);
 };
 
 describe("T-015 tester, criterion 13 — nothing else in the bank moves", () => {
   test("each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes", () => {
+    // The T-079 restore (approved test change request, row 10) is not a no-op.
+    const ct = readFileSync(join(DATA_DIR, "us-state-ct.json"), "utf8");
+    expect(withDefaultBranchHighestPointM("us-state-ct.json", ct)).toContain(
+      '\n  "highest_point_m": 748,\n',
+    );
     for (const { file, raw } of trackedStates()) {
       expect({
         file,

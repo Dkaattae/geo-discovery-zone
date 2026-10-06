@@ -399,10 +399,26 @@ describe("criterion 14: the elevation recording says where it came from", () => 
     expect(covered).toHaveLength(CURATED_US_STATES.length);
   });
 
-  test("the full offline build warns about no elevation", () => {
+  // T-079 test change request row 5 (approved): each curated override warns once.
+  test("the full offline build's only highest_point_m warnings are the three T-079 overrides", () => {
     const { warnings } = normalizeUsStates(
       parseUsStates(recorded(MAIN_FIXTURE), recorded(ELEVATION_FIXTURE)),
     );
-    expect(warnings.filter((w) => w.field === "highest_point_m")).toEqual([]);
+    const elevation = warnings.filter((w) => w.field === "highest_point_m");
+    expect(elevation.map((w) => w.entity).sort()).toEqual([
+      "us-state-ct",
+      "us-state-ok",
+      "us-state-va",
+    ]);
+    const expected: Record<string, [string, string]> = {
+      "us-state-ct": ["727.2", "748"],
+      "us-state-ok": ["1516.4", "1737"],
+      "us-state-va": ["1740.6", "1825"],
+    };
+    for (const w of elevation) {
+      const [curated, wikidata] = expected[w.entity] as [string, string];
+      expect(w.message).toContain(curated);
+      expect(w.message).toContain(wikidata);
+    }
   });
 });

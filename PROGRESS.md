@@ -177,8 +177,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   PR #43. Both fields were updated together.
   **`highest_point_m` is in metres for all 50** (T-069, PR #70). The unit now
   comes from a second recorded query, `us-states-elevation.sparql.json`. A
-  value whose unit is unknown warns and stays blank. CT, OK and VA are still
-  metre values for the wrong point or simply off (T-079).
+  value whose unit is unknown warns and stays blank. **It means the highest
+  point inside the state's borders** (T-079, PR #71, E-19): CT, OK and VA ship
+  a curated value that overrides Wikidata and warns on every build.
 - **The offline-rebuild test harness lives in one place** (T-014, PR #44):
   `question-bank/src/offline-rebuild.ts` exports the dead-loopback proxy map and
   `rebuildOffline()`, and all six suites that check a byte-identical offline
@@ -327,6 +328,33 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-079 — `highest_point_m` is the state's high point, not the mountain's
+  summit** (PR #71, 2026-10-06). CT, OK and VA now ship 727.2, 1516.4 and
+  1740.6 from a curated `highest_point_m` override that wins over Wikidata and
+  warns on every build. The values come from en.wikipedia's elevation list,
+  revision 1377209854. The other 47 files are byte-identical. The rule and the
+  reversal of E-8 for this one field are written up as `engineering-decisions.md`
+  **E-19**.
+  - **How it works:** `CuratedState.highest_point_m = { metres, source }`, and
+    `normalize.ts`'s `resolveHighestPointMetres` ships it in place of
+    `resolveElevation`. It emits one warning that names both values. If
+    Wikidata ever equals the override exactly, the warning says to delete it.
+  - **Escalated:** these are child-facing numbers. The criteria were approved by
+    the orchestrator without being read, and Q3's values were inferred, then
+    confirmed by Dkaattae in the orchestrator session.
+
+  *Where it differed from the brief:*
+  - **The three pins the brief expected to go stale did not**
+    (`highest-point-metres-verify.test.ts:385/:501/:537`). They read the
+    fixture, not the bank.
+  - **Eleven other pre-existing tests did go stale.** All were modify-only and
+    approved by a person in an attended tester session (D-15). One of them,
+    `refresh.test.ts`, was not on the brief's list: the override warnings share
+    the `  us-state-` stdout prefix with change lines.
+  - **The unit-disagreement and "left blank" warnings are folded into the single
+    override warning** whenever an override applies. They describe a value that
+    is not shipped.
 
 - **T-069 — `highest_point_m` is metres, from the unit Wikidata states**
   (PR #70, 2026-10-04). Five states had shipped feet under a metres key: AZ,
