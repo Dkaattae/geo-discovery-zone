@@ -57,7 +57,9 @@ READMEs and widened the same guard to them (PR #58): nothing else in the queue
 was waiting on it. Swept again 2026-09-29, after T-075 gave `frontend/` an
 exact-pinned prettier and a CI Format step (PR #66): section A is empty, T-076
 is new in F (the README layout prettier flattened), and T-044 gained the
-`AGENTS.md` risk._
+`AGENTS.md` risk. Swept again 2026-10-06, after T-080 let the offline harness
+return the build's stdout (PR #73): T-082 is smaller (only `--fixture` is
+missing now), and T-083 is new (retire T-016's source-grep workaround)._
 
 ## How this list is ordered
 
@@ -221,7 +223,7 @@ right, but it discards the "unchanged since T-013" property those digests exist 
 hold, so it is a deliberate call rather than a tidy-up. Whichever way it goes, say
 it in `engineering-decisions.md` so the next field task inherits an answer instead
 of the question.
-**(b) moved to T-080** (split 2026-10-06).
+**(b) is done: T-080, PR #73** (split 2026-10-06).
 **(c) is closed — T-072 did it (PR #55).** Both criterion-19 diff guards in
 `climate-kid.test.ts` and `climate-kid-verify.test.ts`, and the expired
 `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist in each, are **deleted**, with the
@@ -308,16 +310,6 @@ T-081** (split 2026-10-06). They are kept here for their history only.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-080 — The offline harness returns the build's stdout · S · doing
-**Depends on:** —
-**Split out of T-070 (b), 2026-10-06.** `rebuildOffline()` in
-`question-bank/src/offline-rebuild.ts` returns the files a build wrote, never what
-it printed, and it passes `--quiet`, which silences `report()` entirely. So no
-test can see the build report's warnings, and T-016's criterion 8 had to settle
-for grepping `build.ts`'s source. Brief: `tasks/T-080-build-report-stdout.md`.
-**Done when:** a test asserts on the real build report's printed warnings, read
-through the shared harness, with no existing test changed.
-
 ### T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` · S · todo
 **Depends on:** —
 **Split out of T-070, 2026-10-06.** Two pieces, both edits to tests that already
@@ -347,8 +339,31 @@ above it (`BUILD`, `BUILD_SCRIPT`). Both do use `DEAD_PROXY`, so nothing reaches
 the network. But the rule is not what the guards say it is, and `rebuildOffline`
 cannot take these two today because it accepts no `--fixture`. Every fix edits
 existing tests, so each needs an approved Test change request.
+**Smaller since T-080 (PR #73).** The harness now has
+`rebuildOfflineWithStdout`, which returns `{ files, stdout }` from the same
+isolated spawn. The only thing these two still need is a `--fixture` argument on
+the harness, and T-083 wants the same thing.
 **Done when:** either both go through the shared harness and the guards catch a
 spawn through a constant, or the exception is written down where the guards are.
+
+### T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable · S · todo
+**Depends on:** — (T-080 landed in PR #73; it made this possible)
+**New 2026-10-06, from T-080's reviewer.** `highest-point-verify.test.ts:433-455`
+("build.ts's report prints every warning it is given…") greps `build.ts`'s
+source because no test could read the report's stdout. Its comments
+(`:433-447`, `:478-482`) say the same. Both have been untrue since
+`rebuildOfflineWithStdout` landed. The behavioural half T-016 checked by hand
+dropped `capital`/`highestPoint` from a *derived* fixture, so a faithful
+replacement needs the `--fixture` argument T-082 also needs. Do the two
+together, or settle for the committed fixtures' three `highest_point_m` lines,
+which show a field printing but not "no field is filtered". Either way this
+edits an existing test, so it needs an approved Test change request (D-14, D-15).
+Second, smaller piece, which T-080 kept out of scope: `build.ts --help` says
+`--quiet` means "Only print the final summary" (`:110`), but `:135` makes it
+print nothing. Make the two agree, one way or the other.
+**Done when:** no comment or test in `question-bank/src/` says the build report
+cannot be read, T-016 criterion 8 is asserted on real stdout, and `--quiet`
+does what `--help` says.
 
 ### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
 **Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching
