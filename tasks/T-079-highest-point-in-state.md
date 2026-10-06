@@ -1,13 +1,13 @@
 # T-079 — `highest_point_m` is the state's high point, not the mountain's summit
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-10-06, unattended run. See `runs/T-079-highest-point-in-state.md`. Q3 values (CT 727.2, OK 1516.4, VA 1740.6) confirmed by Dkaattae in the orchestrator session; criteria not read.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-079
 **Branch:** `claude/great-keller-n8v6cq`
 **PR:** #71, opened draft at expand time from the branch above.
-**Fault:**
+**Fault:** All 21 criteria hold, but 11 pre-existing tests made stale by this task's own change are red and wait for a person's approval of the Test change request (D-14, D-15); nobody's fault.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-05 | cse_01F7wKd4WT75r6pKhzRsTbbB |
 | task-expander | 2026-10-06 | cse_01F7wKd4WT75r6pKhzRsTbbB |
 | worker | 2026-10-06 | cse_01F7wKd4WT75r6pKhzRsTbbB |
+| tester | 2026-10-06 | cse_01F7wKd4WT75r6pKhzRsTbbB (orchestrator-spawned subagent; same id by construction, see Verdict) |
 
 ## Decision record (was: Why this is blocked)
 
@@ -286,6 +287,97 @@ All 11 pass on this branch before the change and fail after it, by design.
 **No count floors found** that pin a test count in these files. The tester should still confirm this.
 
 ## Verdict
+
+**TL;DR:** Every one of the 21 criteria holds, and my 114 new tests pass. The verdict is not **pass** yet, because 11 older tests are red. This task's own change made them stale, and none of them points to a bug. They wait on the Test change request below, which a person has to approve in an attended tester session. Next step: **human**.
+
+**Independence: weaker than a separate session.** My session id `cse_01F7wKd4WT75r6pKhzRsTbbB` is the same one listed for the expander and the worker. This run is orchestrated (`runs/T-079-highest-point-in-state.md` exists), and every role the orchestrator spawns shares that id, so the id check cannot show separation here. What I can claim is narrower: I am a freshly spawned agent with my own context. I did not see the work being done or the worker's reasoning, only what is committed. That rests on the orchestrator having spawned me correctly, which I cannot check myself.
+
+**Suite on `claude/great-keller-n8v6cq`** (`question-bank/`, after `bun install --frozen-lockfile`, which changed no tracked file):
+
+- `bun test`: **1638 pass, 11 fail** (1649 tests, 26 files). The 11 failures are exactly the Handoff's **Tests made stale** list, and nothing else fails.
+- `typecheck`, `lint` and `format:check`: all green.
+- New file: `question-bank/src/highest-point-in-state-verify.test.ts`, 114 tests, all green. The worker's `highest-point-in-state.test.ts` is also green.
+
+### Criteria
+
+Expected values come from the criteria and from digests of `323254c` (`git show 323254c:<path> | sha256sum`). None was read out of the code.
+
+| # | Verdict | Evidence (test describe in `highest-point-in-state-verify.test.ts`) |
+|---|---|---|
+| 1–3 | met | `criteria 1-3`: offline rebuild (`rebuildOffline`, dead proxy) gives CT 727.2, OK 1516.4, VA 1740.6, and the committed file equals the rebuilt bytes |
+| 4 | met | `criterion 4`: putting main's `748`/`1737`/`1825` back on the single `highest_point_m` line reproduces main's sha256 exactly |
+| 5 | met | `criterion 5`: the 47 other state files each digest to `323254c`'s value. `index.json` is also unchanged (`git diff`), though the criterion does not name it |
+| 6 | met | `criterion 6`: CT, OK and VA labels are unchanged, and the other 47 match byte for byte |
+| 7 | met | `criterion 7`: the overrides are exactly CT/OK/VA = 727.2/1516.4/1740.6. The other 47 have no `highest_point_m` key, and the table has 50 states |
+| 8 | met | `criterion 8`: each `source` is a string field containing `1377209854` |
+| 9 | met | `criterion 9`: all three states with a differing metre statement, a multi-statement case, a foot-only case and a value 0.1 m off |
+| 10 | met | `criterion 10`: exactly one warning, containing both values, for all three states. A neighbour in the same batch gets none |
+| 11 | met | `criterion 11`: no statements, or an empty list, ships the override with exactly one warning that contains it |
+| 12 | met | `criterion 12`: no unit, Q199, kilometre, two unreadable statements, or a unitless main-query value. Each ships 727.2 with no "left blank" |
+| 13 | met | `criterion 13`: six non-override rows (metre, foot-only, multi-metre, disagreeing metre/foot, unreadable unit, unitless). `metres` and warnings equal `resolveElevation`'s |
+| 14 | met | `criterion 14`: CO, AK and RI with no elevation have no `highest_point_m` key |
+| 15 | met | `criterion 15`: Alaska's row label beats its curated `highest_point`, the curated one fills the gap, and CT's row label is kept |
+| 16 | met | The criteria 9–15 tests call `normalizeUsStates` / `resolveElevation` directly, with no transport, spawn or `fetch`. Only the criteria 1–3 rebuild spawns `build.ts`, offline |
+| 17 | met | `criterion 17`: E-19 exists once and covers (a) through (e). I also read it in full: it matches the brief's answers |
+| 18 | met | `criterion 18`: everything before `## E-19` digests to `323254c`'s whole file |
+| 19 | met | `criterion 19`: both fixtures digest to `323254c` |
+| 20 | met | `criterion 20`: the six tracked `package.json`/`bun.lock` digest to `323254c`, and no other is tracked |
+| 21 | **not yet** | typecheck, lint and format are green. The suite has 11 stale reds, waiting on the request below |
+
+### Mutations (each reverted; `git status` clean afterwards)
+
+| Mutation | Red in my file |
+|---|---|
+| Override ignored (`resolveHighestPointMetres` always returns Wikidata) | 23 (crit 1–3, 9–12) |
+| Wikidata's own warnings kept beside the override message | 5 (crit 12, "left blank") |
+| Wikidata value dropped from the override message | 4 (crit 10) |
+| No-override path drops `resolveElevation`'s warnings | 3 (crit 13) |
+| Label precedence swapped (`curated ?? row`) | 1 (crit 15) |
+| CT curated 727.2 → 727 | 12 (crit 1, 7, 9–12) |
+| No warning when Wikidata has no elevation | 4 (crit 11) |
+| CT label edited in the data file; CO data file given one extra byte | crit 1, 4, 5, 6 |
+
+### Stale tests checked
+
+- **All 11 are stale, and each is red only because of a change the criteria require.**
+  - Rows 1–2 and 4: the CT/OK/VA values move.
+  - Row 3: the curated table now carries `highest_point_m`.
+  - Rows 5–6: the three override warnings.
+  - Rows 7–10: CT/OK/VA digests.
+  - Row 11: three extra `  us-state-…highest_point_m:` warning lines in refresh stdout (`refresh.ts:380`).
+- **None hides a bug.** The four digest guards stop at the first mismatching file, so they cannot show whether anything beyond CT/OK/VA moved. My criterion 5 test can: the other 47 files are byte-identical.
+- **I found no stale test beyond the worker's 11.** The brief's `:385/:501/:537` pins pass, as the worker said.
+- **Count floors:**
+  - `climate-kid.test.ts` pins `landmarks-verify.test.ts` at ≥36 tests and ≥69 `expect(`. Row 9 is a modify, so the floor still holds.
+  - No floor covers the other affected files.
+  - `region-vocabulary.test.ts`'s structural checks on the four guards are unaffected by these rows.
+
+### For the reviewer, not criteria failures
+
+- **The override warning prints on every build, by design (criteria 10–11).** So a build or refresh now always has 3 warning lines.
+- **An override equal to Wikidata still ships and warns "delete the override".** The criteria do not cover it either way. The worker's Note flags it for the reviewer.
+
+## Test change request
+
+Raised by the T-079 tester, 2026-10-06. No row has been applied. **Approval must come from a person, in an attended `tester` session** (D-15). The orchestrator cannot give it.
+
+**Neutralisation used by rows 7–10:** put back the default-branch `highest_point_m` for the three T-079 files: `us-state-ct.json` → `748`, `us-state-ok.json` → `1737`, `us-state-va.json` → `1825`. Do this the same way each guard already restores T-069's five files. In the guards that rewrite the raw line, widen the line regex from `\d+` to `[\d.]+` so that it matches `727.2`. Leave the other 47 files untouched by it. Each guard also gets a check that the T-079 restore is not a no-op: after the restore, CT's line reads `748`. A comment cites T-079 and this request.
+
+| # | Test (file › describe › name) | Introduced | Why stale | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/highest-point-metres-verify.test.ts` › "T-069 tester, criterion 11 — only unit-corrected states moved" › "every state whose recorded unit is metre (and only metre) keeps main's highest_point_m bytes" | `1386de3`, T-069 tester. Protected the rule that only unit-corrected states moved | Criteria 1–3 move CT, OK and VA, which are metre-only | modify | "…keeps main's highest_point_m bytes, except CT, OK, VA (T-079 overrides)". The metre-only set minus exactly `{ct, ok, va}` has the same `elevationLine` as `MAIN_AT_E10F94D`. Add a second assertion: for CT/OK/VA the line now equals the curated value (727.2/1516.4/1740.6), so the exclusion pins the new value and does not merely skip it | |
+| 2 | same file › same describe › "the changed set is exactly the states whose recorded unit is not metre: AZ, IA, KS, NE, OR" | `1386de3`, T-069 tester. Same | Same cause: the changed set is now 8 | modify | "the changed set is the non-metre states AZ, IA, KS, NE, OR plus the T-079 overrides CT, OK, VA". The changed set equals the sorted 8 files exactly. The non-metre part still equals `notMetre` | |
+| 3 | same file › "T-069 tester, criterion 15 — no hand-written elevation" › "curated/us-states.ts names no elevation, highest_point_m or unit item" | `1386de3`, T-069 tester. Protected against a hand-written elevation | Criteria 7–8 require exactly that field on three states | modify | "curated/us-states.ts holds highest_point_m only for CT, OK, VA, each with a source naming 1377209854, and names no unit item". Through `CURATED_US_STATES`: the overrides are exactly those 3 postals, each `source` contains `1377209854`. The file text still matches no `Q11573` or `Q3710` | |
+| 4 | same file › same describe › "no non-test source under src/ holds a shipped highest_point_m value as code" | `1386de3`, T-069 tester. Same | Criterion 7 puts 727.2, 1516.4 and 1740.6 in `curated/us-states.ts` as code | modify | "no non-test source under src/ holds a shipped highest_point_m value as code, except the three T-079 overrides in curated/us-states.ts". Hits equal exactly `["/src/curated/us-states.ts: 727.2", "…: 1516.4", "…: 1740.6"]` in any order. Any other hit, including those values in any other file, fails | |
+| 5 | `src/highest-point-metres.test.ts` › "criterion 14: the elevation recording says where it came from" › "the full offline build warns about no elevation" | `e64b016`, T-069 worker. Protected a clean build | Criteria 10–11 make the build warn once per override | modify | "the full offline build's only highest_point_m warnings are the three T-079 overrides". `highest_point_m` warnings map to entities exactly `["us-state-ct", "us-state-ok", "us-state-va"]`. Each message contains its curated value and the Wikidata value (748/1737/1825) | |
+| 6 | `src/highest-point-verify.test.ts` › "T-016 tester, criterion 9 — the full fixture build warns about nothing at all" › "and zero warnings of any other field — the default branch's count is 0" | `34a174a`, T-016 tester. Protected a zero-warning build | Same cause | modify | "and no warnings besides the three T-079 highest_point_m overrides". The warnings list has length 3, every warning is `field: "highest_point_m"`, and entities are exactly CT, OK, VA. Warnings of any other field: `[]` | |
+| 7 | `src/highest-point-verify.test.ts` › "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched" › "each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped" | `c37381b`, T-017 worker (pinned-digest guard). Protected "nothing else moves" | CT/OK/VA digests change (criteria 1–3) | modify | Same name, extended with "…and T-079's three highest_point_m lines restored". The T-079 neutralisation above is applied; the digests are unchanged | |
+| 8 | `src/climate-kid-verify.test.ts` › "T-014 tester, criterion 15 — nothing but climate_kid moves in the bank" › "each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value" | `775671c`, T-014 tester. Same kind of guard | Same | modify | T-079 neutralisation on the parsed object (`parsed["highest_point_m"] = 748/1737/1825` for those three files). Digests unchanged | |
+| 9 | `src/landmarks-verify.test.ts` › "T-013 tester, criterion 9 — nothing but landmark moves in the bank" › "each of the 50 files, with landmark, climate_kid, top_crops and top_livestock removed, is identical to the default branch's" | `8b5bb81`, T-013 tester. Same | Same | modify | As row 8. Keeps the file at or above the `climate-kid.test.ts` floor of 36 tests / 69 expects | |
+| 10 | `src/top-crops-verify.test.ts` › "T-015 tester, criterion 13 — nothing else in the bank moves" › "each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes" | `313d72d`, T-015 tester. Same | Same | modify | As row 7: raw-line restore with the regex widened to `[\d.]+`. Digests unchanged | |
+| 11 | `src/refresh.test.ts` › "criteria 3, 6–9, 11 — a changed refresh" › "exits 0, prints the one change old → new, never `bank unchanged` or built_at" | `321cf65`, T-063 worker. Protected "exactly one change line" | The three override warnings print as `  us-state-…highest_point_m: …` and match the `  us-state-` prefix filter | modify | Same name. Count only change lines: stdout lines starting `  us-state-` **and containing ` → `** must have length 1. Add an assertion that the only other `  us-state-` lines are exactly the three `highest_point_m` override warnings (CT, OK, VA) | |
+
+There are no deletions, so no count floor drops.
 
 ## Notes
 
