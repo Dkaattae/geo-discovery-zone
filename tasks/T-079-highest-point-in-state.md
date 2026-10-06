@@ -1,7 +1,7 @@
 # T-079 — `highest_point_m` is the state's high point, not the mountain's summit
 
-**Status:** `blocked`
-**Next step:** `human` — answer Q1 to Q3 below, then set this to `task-expander` so the criteria can be finalised.
+**Status:** `answered — awaiting re-expansion`
+**Next step:** `task-expander` — Q1 to Q3 answered below; finalise the criteria.
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-079
@@ -49,6 +49,15 @@ T-069's 50-row cross-check recorded en.wikipedia "List of U.S. states and territ
 Pick the source of record (that revision, an NGS datasheet id, or another source) and the precision. The bank already mixes whole metres and decimals (AL 735.5, VT 1339.69), so either is consistent with the bank. The expander will not choose a number.
 
 Also confirm the labels stay as they are under (a). CT keeps "Mount Frissell" and OK keeps "Black Mesa": each state's high point lies on that feature, just not at its summit. The draft below assumes yes.
+
+### Answers — Dkaattae, 2026-10-06
+
+Given in the orchestrator session as "accept the recommended answers". The orchestrator wrote it here.
+
+- **Q1: (a).** `highest_point_m` is the highest point inside the state's borders.
+- **Q2: (i).** A curated override for `highest_point_m` that wins over Wikidata for CT, OK and VA. Each override records its source and raises a build warning. Record it as a new E-19.
+- **Q3: T-069's reference.** en.wikipedia "List of U.S. states and territories by elevation", revision 1377209854, at that source's one-decimal precision: **CT 727.2, OK 1516.4, VA 1740.6**. This was the only source of record the brief offered, so the orchestrator took it as the accepted answer.
+- **Labels: unchanged.** CT keeps "Mount Frissell" and OK keeps "Black Mesa".
 
 ## Goal
 
