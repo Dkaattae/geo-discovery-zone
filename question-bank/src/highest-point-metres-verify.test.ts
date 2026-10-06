@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { runBuild } from "./build";
+import { CURATED_US_STATES } from "./curated/us-states";
 import { normalizeUsStates, type BuildWarning } from "./normalize";
 import { rebuildOffline } from "./offline-rebuild";
 import { US_STATES_QUERY } from "./queries/us-states";
@@ -559,6 +560,13 @@ const MAIN_AT_E10F94D: Record<string, { line: string | null; rest: string }> = {
   },
 };
 
+/** T-079's curated overrides: bank file → the highest_point_m it now ships. */
+const T079_OVERRIDES: Record<string, string> = {
+  "us-state-ct.json": "727.2",
+  "us-state-ok.json": "1516.4",
+  "us-state-va.json": "1740.6",
+};
+
 const ELEVATION_LINE = /^ {2}"highest_point_m": ([^,\n]+),\n/m;
 const sha256 = (text: string) => new Bun.CryptoHasher("sha256").update(text).digest("hex");
 const elevationLine = (raw: string) => ELEVATION_LINE.exec(raw)?.[1] ?? null;
@@ -591,18 +599,27 @@ describe("T-069 tester, criterion 11 — only unit-corrected states moved", () =
     expect([...recordedUnitsByPostal().keys()].sort()).toEqual(stateFiles().sort());
   });
 
-  test("every state whose recorded unit is metre (and only metre) keeps main's highest_point_m bytes", () => {
+  // T-079 test change request rows 1–2 (approved): CT, OK and VA are metre-only
+  // in the recording but now ship a curated override, so they move by design.
+  test("every state whose recorded unit is metre (and only metre) keeps main's highest_point_m bytes, except CT, OK, VA (T-079 overrides)", () => {
     const units = recordedUnitsByPostal();
     const metreOnly = stateFiles().filter((n) => {
       const set = units.get(n);
       return set?.size === 1 && set.has(METRE);
     });
     expect(metreOnly.length).toBeGreaterThan(0);
-    const moved = metreOnly.filter((n) => elevationLine(readState(n)) !== MAIN_AT_E10F94D[n]?.line);
+    for (const n of Object.keys(T079_OVERRIDES)) expect(metreOnly).toContain(n);
+    const moved = metreOnly
+      .filter((n) => !Object.hasOwn(T079_OVERRIDES, n))
+      .filter((n) => elevationLine(readState(n)) !== MAIN_AT_E10F94D[n]?.line);
     expect(moved).toEqual([]);
+    // The exclusion pins the new value rather than merely skipping the file.
+    for (const [n, value] of Object.entries(T079_OVERRIDES)) {
+      expect(elevationLine(readState(n))).toBe(value);
+    }
   });
 
-  test("the changed set is exactly the states whose recorded unit is not metre: AZ, IA, KS, NE, OR", () => {
+  test("the changed set is the non-metre states AZ, IA, KS, NE, OR plus the T-079 overrides CT, OK, VA", () => {
     const units = recordedUnitsByPostal();
     const notMetre = stateFiles()
       .filter((n) => {
@@ -613,13 +630,23 @@ describe("T-069 tester, criterion 11 — only unit-corrected states moved", () =
     const changed = stateFiles()
       .filter((n) => elevationLine(readState(n)) !== MAIN_AT_E10F94D[n]?.line)
       .sort();
-    expect(changed).toEqual(notMetre);
-    expect(changed).toEqual([
+    expect(changed.filter((n) => !Object.hasOwn(T079_OVERRIDES, n))).toEqual(notMetre);
+    expect(notMetre).toEqual([
       "us-state-az.json",
       "us-state-ia.json",
       "us-state-ks.json",
       "us-state-ne.json",
       "us-state-or.json",
+    ]);
+    expect(changed).toEqual([
+      "us-state-az.json",
+      "us-state-ct.json",
+      "us-state-ia.json",
+      "us-state-ks.json",
+      "us-state-ne.json",
+      "us-state-ok.json",
+      "us-state-or.json",
+      "us-state-va.json",
     ]);
   });
 });
@@ -707,12 +734,17 @@ const code = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 describe("T-069 tester, criterion 15 — no hand-written elevation", () => {
-  test("curated/us-states.ts names no elevation, highest_point_m or unit item", () => {
+  // T-079 test change request rows 3–4 (approved): criteria 7–8 put a sourced
+  // highest_point_m override on exactly CT, OK and VA.
+  test("curated/us-states.ts holds highest_point_m only for CT, OK, VA, each with a source naming 1377209854, and names no unit item", () => {
+    const overrides = CURATED_US_STATES.filter((s) => s.highest_point_m !== undefined);
+    expect(overrides.map((s) => s.postal).sort()).toEqual(["CT", "OK", "VA"]);
+    for (const s of overrides) expect(s.highest_point_m?.source).toContain("1377209854");
     const curated = readFileSync(join(PKG, "src/curated/us-states.ts"), "utf8");
-    expect(curated).not.toMatch(/elevation|highest_point_m|highestPointM|Q11573|Q3710/i);
+    expect(curated).not.toMatch(/Q11573|Q3710/);
   });
 
-  test("no non-test source under src/ holds a shipped highest_point_m value as code", () => {
+  test("no non-test source under src/ holds a shipped highest_point_m value as code, except the three T-079 overrides in curated/us-states.ts", () => {
     // Every shipped value, and every feet value the default branch shipped.
     const values = new Set<string>();
     for (const [name, pin] of Object.entries(MAIN_AT_E10F94D)) {
@@ -739,7 +771,13 @@ describe("T-069 tester, criterion 15 — no hand-written elevation", () => {
         }
       }
     }
-    expect(hits).toEqual([]);
+    expect(hits.sort()).toEqual(
+      [
+        "/src/curated/us-states.ts: 727.2",
+        "/src/curated/us-states.ts: 1516.4",
+        "/src/curated/us-states.ts: 1740.6",
+      ].sort(),
+    );
   });
 });
 

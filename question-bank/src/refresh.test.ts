@@ -152,7 +152,17 @@ describe("criteria 3, 6–9, 11 — a changed refresh", () => {
     expect(text).not.toContain("bank unchanged");
     expect(stdout).toContain("  us-state-co population: 5773714 → 5773715");
     expect(text).not.toContain("sources.built_at");
-    expect(stdout.filter((line) => line.startsWith("  us-state-"))).toHaveLength(1);
+    // T-079 (approved test change request, row 11): its three curated
+    // highest_point_m overrides print as `  us-state-…` warning lines too, so
+    // only lines carrying ` → ` count as changes.
+    const entityLines = stdout.filter((line) => line.startsWith("  us-state-"));
+    expect(entityLines.filter((line) => line.includes(" → "))).toHaveLength(1);
+    const others = entityLines.filter((line) => !line.includes(" → "));
+    expect(others.map((line) => line.slice(0, line.indexOf(": ")))).toEqual([
+      "  us-state-ct.highest_point_m",
+      "  us-state-ok.highest_point_m",
+      "  us-state-va.highest_point_m",
+    ]);
   });
 
   test("the fixture is re-recorded, with its _fixture keys kept and captured_at/rows updated", async () => {

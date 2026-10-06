@@ -795,6 +795,18 @@ const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
   "us-state-ia.json": 1670,
 };
 
+/**
+ * T-079 (2026-10-06, a later approved task; approved test change request,
+ * row 8) ships a curated `highest_point_m` for CT, OK and VA. Those three get
+ * the default branch's Wikidata value back before hashing; the other 47 are
+ * hashed exactly as before.
+ */
+const T079_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
+  "us-state-ct.json": 748,
+  "us-state-ok.json": 1737,
+  "us-state-va.json": 1825,
+};
+
 describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the bank", () => {
   test("each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value", () => {
     // T-015 (2026-09-17, a later approved task) fills `top_crops` for all 50
@@ -825,6 +837,14 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
       // their default-branch highest_point_m back; the other 45 are untouched.
       if (file in T069_DEFAULT_BRANCH_HIGHEST_POINT_M) {
         parsed["highest_point_m"] = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
+      }
+      // T-079 (approved test change request, row 8): CT, OK and VA get their
+      // default-branch highest_point_m back. Connecticut's restore is checked
+      // to change something, so it is not a no-op.
+      if (file in T079_DEFAULT_BRANCH_HIGHEST_POINT_M) {
+        if (file === "us-state-ct.json") expect(parsed["highest_point_m"]).not.toBe(748);
+        parsed["highest_point_m"] = T079_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
+        if (file === "us-state-ct.json") expect(parsed["highest_point_m"]).toBe(748);
       }
       expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
         file,
