@@ -91,3 +91,31 @@ Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `251
 ## Approval — 2026-10-06
 
 Dkaattae, in the orchestrator session, answering the approval question: "approved. you write my name on it". The orchestrator wrote `Approved: Dkaattae — 2026-10-06` into the brief header on that instruction. The orchestrator did not read the criteria.
+
+## Round 3 — worker — 2026-10-06
+`Next step` on entry: `worker` → on exit: `tester` (`Status: awaiting verification`)
+
+T-080 is built and pushed to `claude/serene-heisenberg-cd5unq`: `git log origin/claude/serene-heisenberg-cd5unq -1` shows `71e446c T-080 worker: rebuildOfflineWithStdout returns the build's stdout`. The whole question-bank suite passes (1657 of 1657), and typecheck, lint and format:check pass. No tests were made stale. Status is now `awaiting verification`, Next step `tester`.
+
+**Before you launch the tester:** this worker session has the same id as the expander's, `cse_01UvBvo6qodvNQDpFJPANTgN`. If the tester runs under that id too, its same-session check will find a `worker` row with its own id and should refuse. It needs a different session.
+
+**Changes**
+- **`question-bank/src/offline-rebuild.ts`:**
+  - New exported function `rebuildOfflineWithStdout(buildScript, fileNames, tmpPrefix?)`. It runs the same offline build without `--quiet` and returns the written files plus the build's full stdout.
+  - Both it and `rebuildOffline` now go through one private function. That function holds the shared parts: the dead-proxy settings, the throw on a non-zero exit, and the temp-folder cleanup. The only difference between the two is whether `--quiet` is passed.
+  - `rebuildOffline`'s signature and return type are unchanged, and so is `DEAD_PROXY`.
+- **`question-bank/src/build-report-stdout.test.ts`:** new, my own 8 tests. They cover criteria 2–4, 6 and 8–11. The file spawns nothing itself and does not contain `127.0.0.1:1`.
+- **Not touched:** `build.ts`, any existing test, `data/`, `sample-data/`, the fixtures, `package.json`, `bun.lock`.
+
+**Criterion 5 checked by breaking it on purpose:** I changed `warning(s):` to `warnings:` in `build.ts`. The two tests for criteria 3 and 4 failed, and I reverted the change.
+
+**Gaps and things to know**
+- **Criterion 7 is only visible in the source.** The new function does not return the environment the build ran with, so a runtime check of the six proxy variables isn't possible through it. I named this in the Handoff for the tester to decide.
+- **This checkout had no `node_modules`.** Before I ran `bun install --frozen-lockfile`, the suite showed 12 failures and the lint and typecheck tools were missing. The install adds no dependencies.
+- **One existing test file was briefly reformatted.** Before that install I ran `bun run format` by mistake, and it reformatted the existing `highest-point-metres-verify.test.ts`. I reverted it with `git checkout` straight away, so it is not in the commit. format:check passes on the untouched file.
+
+**Judgment call for the tester or reviewer:** I added a second function rather than an option on `rebuildOffline`, because criterion 11 fixes that signature. The tester or reviewer can confirm or overturn this.
+
+The full Handoff, with where each criterion lives and how to run things, is in `/home/user/geo-discovery-zone/tasks/T-080-build-report-stdout.md`.
+
+Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `71e446c`. G1 passed. G5 passed (`awaiting approval`/`worker` → `awaiting verification`/`tester`). Orchestrator note: the worker's request about the tester's session is recorded here and was not relayed. The spawn prompt is the fixed template. Under a relayed run every role shares one session id, and `process.md` step 4 covers how the tester handles that.
