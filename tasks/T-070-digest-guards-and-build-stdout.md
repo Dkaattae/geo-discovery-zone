@@ -1,7 +1,7 @@
 # T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout
 
 **Status:** `blocked`
-**Next step:** `human` — answer Q1 and Q2 under "Blocked: questions for a human" below, then re-run `task-expander`
+**Next step:** `task-expander` — Q2 answered under "### Answers" (split accepted, start with T-080); Q1 still open for T-070
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-070
@@ -126,3 +126,10 @@ brief that follows:
 - `tasks/` was empty at start: T-079's reviewer swept it. `tasks.md` and
   `PROGRESS.md` are unchanged by this commit.
 - The expander did not run the build or the suite (D-7).
+
+### Answers
+
+Dkaattae, in the orchestrator session, 2026-10-06: "accept the split and start with T-080".
+
+- **Q2:** split accepted: T-070 (the digest guards), T-080 (the offline harness returning stdout) and T-081 (the `climate-kid.test.ts:598` leftover and the wider `git-baseline-guard`). **Start with T-080.**
+- **Q1:** not answered. It belongs to T-070, which now waits behind T-080.
