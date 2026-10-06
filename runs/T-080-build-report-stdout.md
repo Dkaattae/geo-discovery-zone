@@ -87,3 +87,7 @@ Dkaattae, in the orchestrator session: "accept the split and start with T-080". 
 **For the orchestrator:** the brief's path changed from `tasks/T-070-digest-guards-and-build-stdout.md` to `tasks/T-080-build-report-stdout.md`. The `runs/T-070-...` log is yours to rename or continue.
 
 Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `2511e58`. G1 passed (diff is `runs/`, `tasks.md`, `tasks/` only). G5 passed (`blocked`/`task-expander` → `awaiting approval`/`worker`).
+
+## Approval — 2026-10-06
+
+Dkaattae, in the orchestrator session, answering the approval question: "approved. you write my name on it". The orchestrator wrote `Approved: Dkaattae — 2026-10-06` into the brief header on that instruction. The orchestrator did not read the criteria.

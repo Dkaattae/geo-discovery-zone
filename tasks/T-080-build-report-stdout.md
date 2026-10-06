@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`, once a human has approved the criteria below
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-06, in the orchestrator session ("approved. you write my name on it"). Stamped by the orchestrator on their instruction. See `runs/T-080-build-report-stdout.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-080, split out of T-070 (b) on 2026-10-06
 **Branch:** `claude/serene-heisenberg-cd5unq`
