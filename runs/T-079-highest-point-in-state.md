@@ -1,7 +1,7 @@
 # T-079 — `highest_point_m` is the state's high point, not the mountain's summit — run log
 
 **Task:** T-079 · **Branch:** `claude/great-keller-n8v6cq` · **PR:** #71
-**Started:** 2026-10-05 · **Outcome:** in progress
+**Started:** 2026-10-05 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-05
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `human` (`Status: blocked`, `Approved: pending`)
@@ -116,3 +116,57 @@ The orchestrator asked Dkaattae whether the worker should build with the Q3 valu
 - **Override equal to Wikidata:** it still ships, and the warning says "delete the override". This makes E-19's deletion rule visible in the build output.
 
 **Environment:** `node_modules` was missing in the container, so I ran `bun install --frozen-lockfile`. No tracked file changed.
+
+## Round 4 — tester — 2026-10-06
+`Next step` on entry: `tester` → on exit: `human` (`Status: test changes requested`, `Test changes: requested`)
+
+**T-079 tester: all 21 criteria hold, but the task is halted on a Test change request.** 11 older tests are red, and this task's own change made every one of them stale. None of them is a code bug. A person has to approve the request in an attended tester session.
+
+**Status:** `test changes requested` · **Next step:** `human` · **Test changes:** `requested`
+
+**Pushed:** commit `2a1202d` is on `claude/great-keller-n8v6cq`, and I confirmed it there with `git fetch` and `rev-parse`.
+
+**Independence: weaker than a separate session.** My session id `cse_01F7wKd4WT75r6pKhzRsTbbB` is the same one the expander and worker rows list. That is expected in an orchestrated run (`runs/T-079-highest-point-in-state.md` exists), so the id check proves nothing either way. What I can claim is narrower: I was freshly spawned with my own context, and I saw only what is committed, not the worker's reasoning. That depends on the orchestrator having spawned me correctly, which I can't check myself. The Verdict says this.
+
+**What I did**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/highest-point-in-state-verify.test.ts`, 114 tests, all green.
+  - Every criterion has at least one test.
+  - Expected values come from the criteria, plus sha256 digests of the files at `323254c`.
+  - Criteria 9–15 call `normalizeUsStates` directly; no network.
+  - Only the criteria 1–3 test runs a build, and it runs offline.
+- **Whole `question-bank` suite:** 1638 pass, 11 fail.
+  - The 11 failures are exactly the worker's "Tests made stale" list. I found no others.
+  - Typecheck, lint and format:check are green.
+- **Mutations:** 8, each reverted, and `git status` was clean afterwards. Each one turned the matching tests red:
+  - ignoring the override
+  - keeping Wikidata's own warnings next to the override's
+  - dropping the Wikidata value from the warning
+  - dropping warnings for states with no override
+  - swapping which label wins
+  - changing CT's value from 727.2 to 727
+  - no warning when Wikidata has no value
+  - editing a byte in a data file
+- **Stale tests:** I checked each one and confirmed it is red only because of a change the criteria require.
+  - The four digest guards stop at the first file that differs, so they can't show whether anything else moved. My criterion 5 test does: the other 47 state files are byte-identical to `323254c`.
+  - The `:385/:501/:537` value checks the brief expected to go stale still pass.
+  - One test-count floor covers an affected file: `climate-kid.test.ts` requires `landmarks-verify.test.ts` to keep at least 36 tests. All 11 requested changes are modifications, not deletions, so it still holds.
+
+**Brief updates** (`/home/user/geo-discovery-zone/tasks/T-079-highest-point-in-state.md`)
+- Header: Status, Next step, Test changes and Fault set as above, plus my Sessions row.
+- `## Verdict`: a table mapping each criterion to its evidence, the mutation results, and the independence caveat.
+- `## Test change request`: 11 rows, all "modify", each with the commit and task that introduced it, why it went stale, and exactly what it should assert instead.
+  - Rows 7–10 (digest guards) share one fix: restore CT 748, OK 1737 and VA 1825 before hashing. The guards that match the raw line need their regex widened from `\d+` to `[\d.]+` so it matches decimals like 727.2.
+  - Row 11 (`refresh.test.ts`) should count only change lines, the ones containing ` → `, and assert that the only other matching lines are the three override warnings.
+
+**What happens next**
+- A person starts an attended `tester` session for T-079 and approves or refuses each row.
+- That tester applies the approved rows, reruns the suite and gives the final verdict.
+- No row has been applied, and I changed no source.
+
+**Two things for the reviewer** (both noted in the Verdict; neither fails a criterion):
+- **Override warnings print on every build**, by design under criteria 10–11.
+- **An override equal to Wikidata's value** still ships and warns "delete the override". No criterion covers that case.
+
+## Halted — test change request — 2026-10-06
+
+Raised in `2a1202d`. The orchestrator did not read the request rows. Under D-15 the request can only be approved by a person, in an attended `tester` session for T-079. That tester applies what is approved and finishes verifying. After it returns, start a new run from the brief's `Next step`, which should be the reviewer.
