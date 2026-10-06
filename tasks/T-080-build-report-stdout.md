@@ -1,7 +1,7 @@
 # T-080 — The offline harness returns the build's stdout
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-06, in the orchestrator session ("approved. you write my name on it"). Stamped by the orchestrator on their instruction. See `runs/T-080-build-report-stdout.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-080, split out of T-070 (b) on 2026-10-06
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (T-070 round: blocked on Q1 and Q2) |
 | task-expander | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (T-080 round: split applied, brief written) |
 | worker | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN |
+| tester | 2026-10-06 | cse_01UvBvo6qodvNQDpFJPANTgN (orchestrated: freshly spawned subagent, same session id; see Verdict) |
 
 ## Goal
 
@@ -208,6 +209,54 @@ Required reading for the worker and the tester.
 **Tests made stale:** none.
 
 ## Verdict
+
+**TL;DR: pass.** All 16 criteria hold. I added 14 tester tests in `question-bank/src/build-report-stdout-verify.test.ts`. Nine mutations turned the right tests red, and I reverted all of them. Whole suite 1671/1671, and typecheck, lint and format:check are green. **Next: reviewer.**
+
+**Independence, stated plainly.** This is an orchestrated run (`runs/T-080-build-report-stdout.md` exists), so the session-id check cannot work. `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01UvBvo6qodvNQDpFJPANTgN`, the same id as the expander and worker rows. My independence rests only on being a freshly spawned subagent with its own context. I did not see the worker's session or reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly, and nothing I can check confirms that. Weigh this `pass` accordingly.
+
+**Handoff check.** The handoff names `offline-rebuild.ts` and `build-report-stdout.test.ts`. Both are on the branch (`git diff --name-status origin/main...HEAD`).
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | "criterion 1 — one harness call returns files and stdout": one `rebuildOfflineWithStdout` call returns a `Map` of all 51 tracked files and a non-empty stdout. The test spawns nothing |
+| 2 | pass | "criterion 2": a line begins `Wrote 50 entities via json → ` |
+| 3 | pass | "criterion 3": the lines matching `^\d+ warning\(s\):$` are exactly `["3 warning(s):"]` |
+| 4 | pass | "criterion 4": the next 3 lines match `^  entity.field: .+$`, their pairs are exactly CT/OK/VA `highest_point_m` with no duplicates, and the 4th line is not a warning line |
+| 5 | pass | Mutations M1 and M2 in `build.ts` (below) turned the criterion 3/4 tests red. Stdout comes from a real spawn through the harness |
+| 6 | pass | `index.json`, `us-state-ct.json` and `us-state-co.json` are byte-identical to `data/us-states/`, and so are all 51 tracked files |
+| 7 | pass | `DEAD_PROXY` has exactly the six keys, all set to the loopback. **Runtime check:** a stand-in script, run through `rebuildOfflineWithStdout`, prints its own env. All six vars arrive set to the loopback (M3 and M8 turn it red) |
+| 8 | pass | Both routes throw on a missing script, with `fileNames: []` so only the exit-code check can throw (M5 turns both red) |
+| 9 | pass | No leftover dir with the call's unique prefix after a successful call, on either route (M4) |
+| 10 | pass | No leftover dir with the call's unique prefix after a throwing call, on either route (M4) |
+| 11 | pass | A type-level pin `(string, string[], string?) => Map<string,string>` plus a runtime `Map` of strings. M9 (return type changed to `Map<string, number>`) makes `bun run typecheck` fail |
+| 12 | pass | The diff vs `origin/main` has no `M` or `D` row on any existing `*.test.ts`. Whole suite 1671/1671 pass |
+| 13 | pass | `grep -rl "127.0.0.1:1" question-bank/src --include=*.ts` returns only `offline-rebuild.ts`. Neither new test file calls `spawn`/`spawnSync` (the only matches are comments). The existing guards stay green |
+| 14 | pass | `git diff --stat origin/main...HEAD` shows nothing in `data/`, `sample-data/` or `src/fixtures/` |
+| 15 | pass | Same diff: `package.json` and `bun.lock` are unchanged. `src/build.ts` is unchanged too |
+| 16 | pass | Follows from 7, which is checked at runtime. No `fetch` mocks |
+
+**Mutations** (all reverted; `git status` shows only my new test file)
+
+- **M1**, `build.ts` `warning(s):` → `warnings:`: criteria 3 and 4 red.
+- **M2**, `build.ts` separator `entity.field` → `entity/field`: criterion 4 red.
+- **M3**, harness drops `...DEAD_PROXY` from the spawn env: criterion 7 runtime test red.
+- **M4**, harness drops the `rmSync` in `finally`: criteria 9 and 10 red on both routes (4 tests).
+- **M5**, harness never throws on a non-zero exit: criterion 8 red on both routes. My first version **survived** this mutation, because it passed `["index.json"]` and the `readFileSync` threw instead. I changed it to `[]`, and now it goes red.
+- **M6**, harness always passes `--quiet`: criteria 1 to 4 red.
+- **M7**, `build.ts` prints one warning line twice: criterion 4 red.
+- **M8**, harness overrides one key (`https_proxy`): criterion 7 runtime test red.
+- **M9**, `rebuildOffline` return type changed: typecheck red on the criterion 11 pin.
+
+**Gates** (in `question-bank/`, after `bun install --frozen-lockfile`)
+
+- `bun test`: 1671 pass, 0 fail, 28 files.
+- `bun run typecheck`: green.
+- `bun run lint`: 0 warnings, 0 errors.
+- `bun run format:check`: green.
+
+**Worker's design choice** (a second function sharing one private spawner): confirmed. It keeps criterion 11's signature and gives both routes one isolation path, which M3 and M4 show is exercised on both.
+
+**Tests made stale:** none. I checked: no existing test is modified, deleted or red.
 
 ## Notes
 
