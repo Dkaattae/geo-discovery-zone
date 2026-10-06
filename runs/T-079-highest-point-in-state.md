@@ -1,7 +1,7 @@
 # T-079 — `highest_point_m` is the state's high point, not the mountain's summit — run log
 
 **Task:** T-079 · **Branch:** `claude/great-keller-n8v6cq` · **PR:** #71
-**Started:** 2026-10-05 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-05 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-05
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `human` (`Status: blocked`, `Approved: pending`)
@@ -170,3 +170,7 @@ The orchestrator asked Dkaattae whether the worker should build with the Q3 valu
 ## Halted — test change request — 2026-10-06
 
 Raised in `2a1202d`. The orchestrator did not read the request rows. Under D-15 the request can only be approved by a person, in an attended `tester` session for T-079. That tester applies what is approved and finishes verifying. After it returns, start a new run from the brief's `Next step`, which should be the reviewer.
+
+## Human answer — 2026-10-06
+
+Dkaattae, in the orchestrator session: "start the tester for T-079, I'll approve the changes". The orchestrator did not spawn a tester and did not record an approval (D-15). Meanwhile an attended tester session had already pushed `cd2dc04` (apply approved test change request) and `a337271` (verdict pass after approved test changes). The run resumes from the brief's `Next step`.
