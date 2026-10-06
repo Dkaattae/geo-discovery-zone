@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-070
 **Branch:** `claude/serene-heisenberg-cd5unq`
-**PR:** opened draft at expand time against the branch above (number recorded in the PR itself and in the expander's handback)
+**PR:** #73, opened draft at expand time against the branch above
 **Fault:** the queue entry needs a decision that is not the expander's to make (re-pin vs keep the historical digests), and it is three tasks in one entry.
 
 **Sessions:**
