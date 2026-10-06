@@ -178,8 +178,20 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
-**Depends on:** — (blocks nothing, but **T-069 will hit it**; T-068 already did, PR #69, and T-067 ended by deleting its field and never touched the bank)
+### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo — **waiting on Q1**
+**Depends on:** a human answer to **Q1** below (blocks nothing, but every field task since T-068 has hit it, and the monthly refresh routine is gated on it)
+**Split 2026-10-06 (Dkaattae, answering the T-070 expander's Q2, PR #73).** This
+entry used to hold three pieces. **(b)** is now **T-080** and the git leftover is
+now **T-081**, both below. What stays here is **(a)** alone, re-sized to M because
+it edits four or five verify suites, and every one of those edits needs an
+approved Test change request (D-14, D-15). **Plan to attend its tester step.**
+**Q1, still open:** re-pin against the default branch and delete every
+neutralisation, or keep the historical pins behind one shared helper and write
+down the `top_crops` blind spot? Either way: must the guard survive a refresh
+where only `sources.built_at` and the fixture moved? The expander's survey for
+this half (more guards than the entry says: `highest-point-in-state-verify.test.ts`
+pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
+`3cedfe8`. The next decision entry is `E-20`.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -209,13 +221,7 @@ right, but it discards the "unchanged since T-013" property those digests exist 
 hold, so it is a deliberate call rather than a tidy-up. Whichever way it goes, say
 it in `engineering-decisions.md` so the next field task inherits an answer instead
 of the question.
-**(b) `rebuildOffline()` returns written files, not stdout**, so no test can see
-what `build.ts`'s `report()` actually prints — and `top-crops-verify.test.ts:438`
-and `climate-kid-verify.test.ts:828` (rightly) forbid a test from spawning
-`build.ts` itself. T-016's criterion 8 wanted "the report prints the warning" and
-had to settle for grepping `build.ts`'s source for the absence of a field filter,
-with the real behaviour checked by hand and recorded in the PR. Returning captured
-stdout from the existing harness would make that a real test and costs a few lines.
+**(b) moved to T-080** (split 2026-10-06).
 **(c) is closed — T-072 did it (PR #55).** Both criterion-19 diff guards in
 `climate-kid.test.ts` and `climate-kid-verify.test.ts`, and the expired
 `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist in each, are **deleted**, with the
@@ -296,12 +302,53 @@ hashing, and the two textual guards widened their line regex from `\d+` to
 underneath. Eleven pre-existing tests changed (approved in an attended tester
 session, D-15). A full build and every changed refresh now also print three
 `highest_point_m` override warnings by design, which any stdout-counting test
-under (b) must expect.
-**Done when:** the three digest guards no longer need a per-task exception (or the
-decision to keep them is written down in `engineering-decisions.md`), no test in
-`question-bank/src/` passes down a path taken because a spawned `git` failed, and
-a test can assert on the build report's printed warnings without spawning
-`build.ts`.
+under (b), now T-080, must expect.
+**The two git bullets above, and the `git-baseline-guard` amendment, moved to
+T-081** (split 2026-10-06). They are kept here for their history only.
+**Done when:** the pinned-digest guards no longer need a per-task exception (or the
+decision to keep them is written down in `engineering-decisions.md` as `E-20`).
+
+### T-080 — The offline harness returns the build's stdout · S · doing
+**Depends on:** —
+**Split out of T-070 (b), 2026-10-06.** `rebuildOffline()` in
+`question-bank/src/offline-rebuild.ts` returns the files a build wrote, never what
+it printed, and it passes `--quiet`, which silences `report()` entirely. So no
+test can see the build report's warnings, and T-016's criterion 8 had to settle
+for grepping `build.ts`'s source. Brief: `tasks/T-080-build-report-stdout.md`.
+**Done when:** a test asserts on the real build report's printed warnings, read
+through the shared harness, with no existing test changed.
+
+### T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` · S · todo
+**Depends on:** —
+**Split out of T-070, 2026-10-06.** Two pieces, both edits to tests that already
+exist, so each needs an approved Test change request (D-14, D-15). Plan to attend
+the tester step.
+- **`climate-kid.test.ts:598`'s `expect(status === 0 || status === 1).toBe(true)`**,
+  in `"sample-data/us-state-co.json was not touched by this task"`. It takes no
+  revision, so it does not have T-072's defect, but the disjunction would still
+  swallow a broken `git`.
+- **Widen `frontend/src/git-baseline-guard.criteria.test.ts`'s second scan to
+  `question-bank/src/`.** Inside `frontend/src/` it asserts that every `git` call
+  uses a working-tree subcommand and throws on a non-zero exit. Its `codeOf()`
+  stripper and 400-character throw heuristic come with it, including the
+  documented false-positive mode at `:207-212`.
+**Done when:** no test in `question-bank/src/` passes down a path taken because a
+spawned `git` failed, and a guard says so for `question-bank/src/`.
+
+### T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it · S · todo
+**Depends on:** —
+**Found 2026-10-06 by T-080's expander.** `refresh.test.ts:194` and
+`refresh-verify.test.ts:379` each call `Bun.spawnSync(["bun", BUILD…, "--offline",
+"--fixture", …])` directly. The three guards that forbid a test from spawning
+`build.ts` (`climate-kid.test.ts:738`, `climate-kid-verify.test.ts:979`,
+`top-crops-verify.test.ts:473`) miss both. They look for the text `build.ts` at or
+after the spawn call, and these two name the script through a constant defined
+above it (`BUILD`, `BUILD_SCRIPT`). Both do use `DEAD_PROXY`, so nothing reaches
+the network. But the rule is not what the guards say it is, and `rebuildOffline`
+cannot take these two today because it accepts no `--fixture`. Every fix edits
+existing tests, so each needs an approved Test change request.
+**Done when:** either both go through the shared harness and the guards catch a
+spawn through a constant, or the exception is written down where the guards are.
 
 ### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
 **Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching
