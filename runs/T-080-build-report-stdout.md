@@ -3,7 +3,7 @@
 _Opened as T-070; split on Dkaattae's answer and continued as T-080 (rounds 1–2 below are the same run)._
 
 **Task:** T-080 (was T-070) · **Branch:** `claude/serene-heisenberg-cd5unq` · **PR:** #73
-**Started:** 2026-10-06 · **Outcome:** in progress
+**Started:** 2026-10-06 · **Outcome:** ready for merge (inside the envelope, not escalated)
 
 ## Round 1 — task-expander — 2026-10-06
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `human` (`Status: blocked`, `Approved: pending`)
@@ -149,3 +149,59 @@ Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `71e
 - **Tests made stale:** none, so there is no test change request.
 
 Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `d700d47`. G1 passed. G5 passed (`awaiting verification`/`tester` → `pass`/`reviewer`). G3 count: 0 fail, 0 blocked.
+
+## Round 5 — reviewer — 2026-10-06
+`Next step` on entry: `reviewer` → on exit: `human` (`Status: approved`, `993c2b6`). The brief was then deleted by the sweep (`202ec6c`).
+
+**TL;DR: I approved T-080. It is inside the envelope, so there is no escalation.** PR #73 is now marked ready for review (no longer draft). The sweep rides inside it, and the push landed: the remote head is `202ec6c`. **Next: Dkaattae merges PR #73 when convenient.** CI on the head was still running when I finished, so wait for it to go green before merging.
+
+**State**
+- **PR:** https://github.com/Dkaattae/geo-discovery-zone/pull/73. Ready for review, not merged. Its body now has the 16 criteria verbatim, what verified each, the review findings and what was deliberately not done.
+- **Branch:** `claude/serene-heisenberg-cd5unq`. I pushed two commits:
+  - `993c2b6`: my `## Review` in the brief, with Status `approved`, Next step `human`, and my Sessions row.
+  - `202ec6c`: the sweep.
+- **CI on `202ec6c`:** backend lint passed. The question-bank, frontend, e2e, integration and postgres jobs were still in progress when I stopped.
+
+**Checks**
+- **Every role's work is in the PR:** expander `2511e58`, worker `71e446c`, tester `d700d47`. Nothing is stranded on another branch.
+- **Each role stayed in its lane (D-7).** The expander touched only `tasks/` and `tasks.md`. The tester touched only its new test file and the brief, no source.
+- **My own re-run of the gates in `question-bank/`:** `bun test` 1671 pass / 0 fail; typecheck, lint and format:check are green. After the sweep I also re-ran the frontend and question-bank tests that read `tasks.md` and `PROGRESS.md`; all green.
+- **Envelope:** inside it.
+  - No dependency added.
+  - Nothing touches `openapi.yaml`, a migration or the plan.
+  - No text a child will read.
+  - No existing test modified (`Test changes: none`).
+  - Nothing outside Constraints beyond loop bookkeeping.
+
+**Findings (none block)**
+- **New T-083.** The comments at `question-bank/src/highest-point-verify.test.ts:433-447` and `:478-482` still say the build's output cannot be read by a test, which is no longer true. The brief kept that existing test untouched on purpose. T-083 also takes the `--quiet` / `--help` mismatch in `build.ts` (`:110` vs `:135`).
+- **T-082 amended rather than duplicated.** Now that the harness returns stdout, the only thing those refresh tests still lack is a `--fixture` argument.
+- **Worker's and tester's test files overlap.** That is the repo's usual worker/tester pairing, so I did not queue it.
+- **Worker's flags:**
+  - Its design choice (a second function rather than an options flag): confirmed.
+  - The prettier version fetched before `bun install`: no action, since it was reverted and `conventions.md` already says to install first.
+  - Every role sharing one session id: already a known weakness in `process-decisions.md`, so no new ticket.
+
+**Sweep**
+- **Deleted** the brief, `tasks/T-080-build-report-stdout.md`.
+- **`tasks.md`:**
+  - removed the T-080 entry;
+  - T-070's "(b)" now reads done (PR #73);
+  - amended T-082 and added T-083;
+  - added a sweep note to the header.
+- **`PROGRESS.md`:** added a T-080 line under "Completed tasks". I also updated the "offline-rebuild test harness" bullet under Done to mention `rebuildOfflineWithStdout`.
+
+**Files**
+- /home/user/geo-discovery-zone/question-bank/src/offline-rebuild.ts
+- /home/user/geo-discovery-zone/question-bank/src/build-report-stdout.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/build-report-stdout-verify.test.ts
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+
+**Independence caveat:** every role in this run, including me, reports session `cse_01UvBvo6qodvNQDpFJPANTgN`. Each role's independence rests only on being a freshly spawned subagent, and nothing it can check confirms that.
+
+## Ended — 2026-10-06
+
+Gates after return: tree clean, `origin/claude/serene-heisenberg-cd5unq` at `202ec6c`. G1 passed (no process files in the diff). G5 passed (`pass`/`reviewer` → `approved`/`human`, then the brief was swept). The reviewer marked PR #73 ready. The run stops here: merging is Dkaattae's (D-4), and the orchestrator does not pick the next task.
+
+Path: task-expander (halt, Q1/Q2) → human answer → task-expander → human approval → worker → tester (pass) → reviewer (approve, not escalated).
