@@ -1,7 +1,7 @@
 # T-079 — `highest_point_m` is the state's high point, not the mountain's summit
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-06, unattended run. See `runs/T-079-highest-point-in-state.md`. Q3 values (CT 727.2, OK 1516.4, VA 1740.6) confirmed by Dkaattae in the orchestrator session; criteria not read.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-079
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-05 | cse_01F7wKd4WT75r6pKhzRsTbbB |
 | task-expander | 2026-10-06 | cse_01F7wKd4WT75r6pKhzRsTbbB |
+| worker | 2026-10-06 | cse_01F7wKd4WT75r6pKhzRsTbbB |
 
 ## Decision record (was: Why this is blocked)
 
@@ -171,6 +172,119 @@ The list may be incomplete; the tester runs the suite and finds the rest.
 
 ## Handoff
 
+**TL;DR:** Built. CT, OK and VA now ship 727.2, 1516.4 and 1740.6 from a curated override that wins over Wikidata and warns on every build; the other 47 files are unchanged. Typecheck, lint and format:check are green. The suite is 1524 pass / **11 fail**, and all 11 are the stale tests listed below (baseline on this branch before the change: 1521 pass / 0 fail). Tester next, with a Test change request for the 11.
+
+**Same session id as the expander.** The orchestrator ran the expander and worker under one remote session id (`cse_01F7wKd4WT75r6pKhzRsTbbB`). The tester must not run in it either. Orchestrator to confirm the tester's session is different.
+
+### What changed, file by file
+
+- **`question-bank/src/curated/us-states.ts`**:
+  - new `CuratedElevation { metres; source }` interface and `HIGHEST_POINT_M_SOURCE` constant (contains `1377209854`);
+  - `CuratedState.highest_point_m?: CuratedElevation`;
+  - set on CT (727.2), OK (1516.4) and VA (1740.6) only;
+  - a `highest_point_m` provenance paragraph in the header comment.
+- **`question-bank/src/normalize.ts`**: new exported `resolveHighestPointMetres(row, curated)`. `normalizeUsStates` now calls it where it used to call `resolveElevation`.
+  - No override: returns `resolveElevation(row)` unchanged.
+  - With an override: ships `override.metres` and replaces `resolveElevation`'s warnings with exactly one. That warning names the Wikidata value ("instead of Wikidata 748"), or says Wikidata has none, or lists the statements it could not read. It never says "left blank". If Wikidata ever equals the override, it says "Wikidata now agrees … delete the override (E-19)".
+- **`question-bank/data/us-states/us-state-{ct,ok,va}.json`**: only the `highest_point_m` line, from `bun run build --offline`.
+- **`question-bank/src/highest-point-in-state.test.ts`** (new, 14 tests): worker tests for criteria 7–15, all calling `normalizeUsStates` on in-test rows.
+- **`engineering-decisions.md`**: E-19 appended. E-1 to E-18 are untouched.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1–3 | `data/us-states/us-state-{ct,ok,va}.json`; offline build output prints the three override warnings |
+| 4–5 | `git diff 323254c -- question-bank/data` shows 3 files, 1 line each |
+| 6 | labels untouched; `highest_point` logic in `normalize.ts` unchanged |
+| 7–8 | `curated/us-states.ts` `highest_point_m` on CT/OK/VA; `source` is a string field |
+| 9–12 | `normalize.ts` `resolveHighestPointMetres` |
+| 13–14 | same function's no-override path, i.e. `resolveElevation` verbatim |
+| 15 | `normalize.ts` `row.highestPoint ?? curated.highest_point`, unchanged |
+| 17–18 | `engineering-decisions.md` E-19 |
+| 19–20 | no fixture, `package.json` or `bun.lock` touched |
+
+### How to run
+
+```
+cd question-bank
+bun install --frozen-lockfile   # node_modules was absent in this container; no lockfile change
+bun run build --offline
+bun test src/highest-point-in-state.test.ts
+bun test && bun run typecheck && bun run lint && bun run format:check
+```
+
+### Deliberately not done
+
+- **No stale test was changed.** That is D-14: the tester's job.
+- **No digest re-pin.** That belongs to T-070 (a).
+- **No fixture re-record.**
+- **The override warnings stay on in every build.** That is by design (criteria 10 and 11): they are how a person on refresh sees the override is still live.
+
+### Contradiction with the brief
+
+- **The pins at `highest-point-metres-verify.test.ts:385`, `:501` and `:537` did not go red.** The brief expected them to; they pass, so they must read Wikidata/fixture values rather than shipped ones. The T-069 tests that did go red are listed below.
+
+### Tests made stale
+
+All 11 pass on this branch before the change and fail after it, by design.
+
+**`src/highest-point-metres-verify.test.ts`**
+
+1. `T-069 tester, criterion 11 — only unit-corrected states moved > every state whose recorded unit is metre (and only metre) keeps main's highest_point_m bytes`
+   - Why: CT, OK and VA are metre-stated and now move (criteria 1–3).
+   - Proposal: modify it to exclude states with a curated `highest_point_m`.
+2. `T-069 tester, criterion 11 — only unit-corrected states moved > the changed set is exactly the states whose recorded unit is not metre: AZ, IA, KS, NE, OR`
+   - Why: same cause.
+   - Proposal: modify it to compare the T-069 baseline to a T-079-aware set, or exclude the overridden states.
+3. `T-069 tester, criterion 15 — no hand-written elevation > curated/us-states.ts names no elevation, highest_point_m or unit item`
+   - Why: criteria 7 and 8 require exactly this field.
+   - Proposal: delete it, or narrow it to "only CT/OK/VA, each with a source".
+4. `T-069 tester, criterion 15 — no hand-written elevation > no non-test source under src/ holds a shipped highest_point_m value as code`
+   - Why: 727.2, 1516.4 and 1740.6 are now code in `curated/us-states.ts` (criterion 7).
+   - Proposal: modify it to allow the three curated values in that file.
+
+**`src/highest-point-metres.test.ts`**
+
+5. `criterion 14: the elevation recording says where it came from > the full offline build warns about no elevation`
+   - Why: criterion 10 makes the build emit three.
+   - Proposal: modify it to expect exactly the CT/OK/VA override warnings.
+
+**`src/highest-point-verify.test.ts`**
+
+6. `T-016 tester, criterion 9 — the full fixture build warns about nothing at all > and zero warnings of any other field — the default branch's count is 0`
+   - Why: same cause.
+   - Proposal: modify it to expect only the three `highest_point_m` warnings.
+7. `T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched > each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped`
+   - Why: this is a pinned-digest guard.
+   - Proposal: neutralise `highest_point_m` for CT, OK and VA (T-070 (a) pattern).
+
+**`src/climate-kid-verify.test.ts`**
+
+8. `T-014 tester, criterion 15 — nothing but climate_kid moves in the bank > each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value`
+   - Why: pinned-digest guard.
+   - Proposal: same neutralisation.
+
+**`src/landmarks-verify.test.ts`**
+
+9. `T-013 tester, criterion 9 — nothing but landmark moves in the bank > each of the 50 files, with landmark, climate_kid, top_crops and top_livestock removed, is identical to the default branch's`
+   - Why: pinned-digest guard.
+   - Proposal: same neutralisation.
+
+**`src/top-crops-verify.test.ts`**
+
+10. `T-015 tester, criterion 13 — nothing else in the bank moves > each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes`
+    - Why: pinned-digest guard.
+    - Proposal: same neutralisation.
+
+**`src/refresh.test.ts`**
+
+11. `criteria 3, 6–9, 11 — a changed refresh > exits 0, prints the one change old → new, never \`bank unchanged\` or built_at`
+    - Why: the build's warning lines also start with `  us-state-`. The three new override warnings push the count of such stdout lines from 1 to 4. This is not on the brief's list.
+    - Proposal: modify the filter to count only change lines (those containing `→`), or expect 4.
+
+**No count floors found** that pin a test count in these files. The tester should still confirm this.
+
 ## Verdict
 
 ## Notes
@@ -178,3 +292,16 @@ The list may be incomplete; the tester runs the suite and finds the rest.
 - **expander, 2026-10-06: Q3 was inferred, not explicitly answered.** The recorded answer was "accept the recommended answers". Q3 offered no recommendation. The orchestrator took T-069's reference (the only source of record the brief named) and its one-decimal precision. The criteria freeze those numbers. **Whoever approves this brief is confirming `727.2 / 1516.4 / 1740.6` from revision 1377209854.** If that approval comes from the orchestrator unread, the reviewer's escalation of child-facing data is the first point at which a person sees them.
 - **expander: criterion 11 is a choice the answers implied.** Q2 (i) said each override "raises a build warning". The expander read that as covering the case where Wikidata has no value too, so an override never applies silently.
 - **expander: survey still holds.** The default branch is `323254c` (origin/main unchanged since the first expansion). Nothing in this task is already done.
+- **worker, 2026-10-06: one warning replaces `resolveElevation`'s warnings when an override applies.**
+  - What I decided: Wikidata's unit-disagreement and "left blank" messages describe a value that is not shipped, so they are folded into the single override message.
+  - Why: criteria 10 and 12 together point this way, and "left blank" would be false.
+  - Owner: reviewer to confirm or overturn.
+- **worker: the warning wording is neutral** ("used curated X (source) instead of Wikidata Y").
+  - What I decided: I dropped a draft clause saying the Wikidata value "is not the highest point inside the state".
+  - Why: for VA the problem is a wrong number, not an out-of-state summit.
+  - Owner: reviewer to confirm.
+- **worker: an override that equals Wikidata still ships, and warns "delete the override".**
+  - What I decided: this is the E-19 (e) deletion trigger, made visible in the build output.
+  - Owner: reviewer to confirm.
+- **worker: `node_modules` was missing in the container.**
+  - What I did: before `bun install --frozen-lockfile`, typecheck, lint and the T-066 tests failed for that reason alone. The install changed no tracked file.

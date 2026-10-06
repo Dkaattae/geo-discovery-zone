@@ -884,3 +884,53 @@ already handle `top_crops`. This task does not re-pin them (T-070).
 **Revisit when** a question template for the `agriculture` topic is written and
 wants more than two items, or a reviewer wants fish or horses in a farm-animal
 question — either is a new decision, not a widening of this one.
+
+## E-19 — `highest_point_m` is the state's own high point; a curated value overrides Wikidata for it
+
+**2026-10-06 (T-079).** T-069 made `highest_point_m` read Wikidata's unit
+correctly, and its 50-row cross-check left three states that were still wrong
+in a different way. Connecticut shipped 748 m and Oklahoma 1737 m: those are
+the summits of Mount Frissell and Black Mesa, and both summits lie in a
+neighbouring state (Massachusetts, New Mexico). Wikidata is right about each
+mountain; the number is wrong for the state. Virginia shipped 1825 m from
+Mount Rogers' single metre statement, which is simply off.
+
+**The rule.** `highest_point_m` is the elevation of **the highest point inside
+the state's borders**, for every state. A question built on it may say "the
+state's highest point".
+
+**The mechanism.** `CuratedState` (`question-bank/src/curated/us-states.ts`)
+gains an optional `highest_point_m: { metres, source }`. When it is present,
+`normalize.ts` (`resolveHighestPointMetres`) ships the curated value **whatever
+Wikidata says**, and emits exactly one build warning (`field:
+"highest_point_m"`) naming the Wikidata value, or its absence, beside the
+curated value and its source. An override never applies silently. A state
+without one goes through `resolveElevation` (T-069) unchanged.
+
+**What this reverses.** E-8 settled that a curated value "fills a Wikidata gap
+only, never overrides it". That still holds for the `highest_point` **label**:
+Connecticut keeps "Mount Frissell" and Oklahoma "Black Mesa", because each
+state's high point lies on that feature, just not at its summit. It is
+reversed for `highest_point_m` only, and only for the states that carry an
+override.
+
+**The three overrides**, from en.wikipedia "List of U.S. states and
+territories by elevation", **revision 1377209854** (which cites NGS datasheets
+and Peakbagger), at that source's one decimal:
+
+| State | Wikidata | Shipped |
+|---|---|---|
+| CT | 748 | 727.2 |
+| OK | 1737 | 1516.4 |
+| VA | 1825 | 1740.6 |
+
+Decided by Dkaattae, 2026-10-06, in the T-079 orchestrator session.
+
+**When to delete an override.** When Wikidata comes to agree with it — the
+build warning then reads "Wikidata now agrees … delete the override". For CT
+and OK that means a P610 or elevation that describes the in-state point, not
+the summit; for VA, a corrected statement on Mount Rogers. Deleting it is a
+curated-table edit and an offline rebuild, nothing more.
+
+**Revisit when** a fourth state needs an override, or a reviewer wants a
+different source of record than that revision.

@@ -49,6 +49,21 @@
  * same call T-013's reviewer left open on PR #43. See `engineering-decisions.md`
  * E-8.
  *
+ * **`highest_point_m` provenance (T-079, 2026-10-06).** Unlike the
+ * `highest_point` label above, this one **wins over Wikidata**: the field means
+ * the elevation of the highest point *inside the state's borders*, and for
+ * three states Wikidata's P610 item carries a different number. Connecticut's
+ * and Oklahoma's high points lie on the slope of a mountain whose summit is in
+ * a neighbouring state (Mount Frissell, Black Mesa), so Wikidata is right about
+ * the mountain and wrong for this field; Virginia's Mount Rogers carries a
+ * single metre statement that is simply off. Each override records its source
+ * as data, and `normalize.ts` raises a `highest_point_m` build warning every
+ * time it applies, so it never replaces a value silently. **Decided 2026-10-06
+ * by Dkaattae**: values from en.wikipedia "List of U.S. states and territories
+ * by elevation", revision 1377209854, at that source's one decimal. Delete an
+ * override once Wikidata comes to agree with it. See `engineering-decisions.md`
+ * E-19.
+ *
  * **`region` vocabulary (T-017, 2026-09-18).** This field used to carry an
  * eight-value set of its own, out of step with the thirteen values the served
  * bank (`backend/app/data/content.json`, the 15 states shipping today) already
@@ -78,6 +93,17 @@
 
 import type { FunFact } from "../types";
 
+/** A curated `highest_point_m`, with the source it was taken from. */
+export interface CuratedElevation {
+  metres: number;
+  /** Where `metres` comes from, precise enough to re-check (a page revision). */
+  source: string;
+}
+
+/** The source of record for every `highest_point_m` override today (T-079). */
+export const HIGHEST_POINT_M_SOURCE =
+  'en.wikipedia "List of U.S. states and territories by elevation", revision 1377209854';
+
 export interface CuratedState {
   postal: string;
   name: string;
@@ -101,6 +127,14 @@ export interface CuratedState {
    * equal to Alaska's `landmark`.
    */
   highest_point?: string;
+  /**
+   * The elevation in metres of the highest point inside the state's borders,
+   * used **instead of** Wikidata's value whenever present, with a build warning
+   * each time (T-079, `engineering-decisions.md` E-19). Set only where
+   * Wikidata's number belongs to a summit outside the state or is wrong; see
+   * the header comment above.
+   */
+  highest_point_m?: CuratedElevation;
   /**
    * One to three genuinely famous plant crops, hand-picked (not NASS-derived,
    * not year-pinned) — see the header comment above for full provenance.
@@ -242,6 +276,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "cold snowy winters and warm sticky summers, with all four seasons clearly felt",
     landmark: "Mystic Aquarium",
     top_crops: ["tobacco"],
+    highest_point_m: { metres: 727.2, source: HIGHEST_POINT_M_SOURCE },
     fun_facts: [
       {
         text: "Connecticut is home to the oldest continuously published newspaper in the United States.",
@@ -746,6 +781,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot windy summers and mild winters, with sudden severe storms in spring",
     top_crops: ["wheat"],
     top_livestock: ["cattle"],
+    highest_point_m: { metres: 1516.4, source: HIGHEST_POINT_M_SOURCE },
     fun_facts: [
       {
         text: "Oklahoma has more man-made lakes than any other state in the country.",
@@ -919,6 +955,7 @@ export const CURATED_US_STATES: CuratedState[] = [
     climate_kid: "hot humid summers near the coast, colder and snowier out in the mountains",
     landmark: "Mount Vernon",
     top_crops: ["peanuts", "tobacco"],
+    highest_point_m: { metres: 1740.6, source: HIGHEST_POINT_M_SOURCE },
     fun_facts: [
       {
         text: "Virginia is nicknamed the Mother of Presidents because eight American presidents were born there.",
