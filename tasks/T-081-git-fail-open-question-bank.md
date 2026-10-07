@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
 **Branch:** `claude/relaxed-ramanujan-7q3ey3`
-**PR:** opened draft against the branch above at expand time (number in the PR list for this branch)
+**PR:** #74, opened draft against the branch above at expand time. It stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
@@ -121,8 +121,8 @@ guard red, naming the offending file)
 13. The worker's commits modify or delete no `*.test.ts` file that existed
     before the task. Every modification or deletion of such a file on the branch
     matches an approved row in this brief's Test change request.
-14. Nothing outside test files changes, apart from this brief, `tasks.md` and
-    `PROGRESS.md`. In particular, no non-test `.ts` under `question-bank/src/`
+14. Nothing outside test files changes, apart from this brief, `tasks.md`,
+    `PROGRESS.md` and `runs/`. In particular, no non-test `.ts` under `question-bank/src/`
     or `frontend/src/` changes, and nothing under `question-bank/data/`,
     `question-bank/sample-data/`, `question-bank/src/fixtures/`, `.github/` or
     `backend/` changes.
