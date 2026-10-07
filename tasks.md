@@ -310,7 +310,7 @@ T-081** (split 2026-10-06). They are kept here for their history only.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` · S · todo
+### T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` · S · doing
 **Depends on:** —
 **Split out of T-070, 2026-10-06.** Two pieces, both edits to tests that already
 exist, so each needs an approved Test change request (D-14, D-15). Plan to attend
