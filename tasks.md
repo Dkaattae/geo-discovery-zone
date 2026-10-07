@@ -57,7 +57,9 @@ READMEs and widened the same guard to them (PR #58): nothing else in the queue
 was waiting on it. Swept again 2026-09-29, after T-075 gave `frontend/` an
 exact-pinned prettier and a CI Format step (PR #66): section A is empty, T-076
 is new in F (the README layout prettier flattened), and T-044 gained the
-`AGENTS.md` risk._
+`AGENTS.md` risk. Swept again 2026-10-06, after T-080 let the offline harness
+return the build's stdout (PR #73): T-082 is smaller (only `--fixture` is
+missing now), and T-083 is new (retire T-016's source-grep workaround)._
 
 ## How this list is ordered
 
@@ -178,8 +180,20 @@ has not run, so the app still serves the hand-copied `content.json`. Deleting
 thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
 instead.
 
-### T-070 — Re-pin the bank's digest guards, and let the offline harness return stdout · S · todo
-**Depends on:** — (blocks nothing, but **T-069 will hit it**; T-068 already did, PR #69, and T-067 ended by deleting its field and never touched the bank)
+### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo — **waiting on Q1**
+**Depends on:** a human answer to **Q1** below (blocks nothing, but every field task since T-068 has hit it, and the monthly refresh routine is gated on it)
+**Split 2026-10-06 (Dkaattae, answering the T-070 expander's Q2, PR #73).** This
+entry used to hold three pieces. **(b)** is now **T-080** and the git leftover is
+now **T-081**, both below. What stays here is **(a)** alone, re-sized to M because
+it edits four or five verify suites, and every one of those edits needs an
+approved Test change request (D-14, D-15). **Plan to attend its tester step.**
+**Q1, still open:** re-pin against the default branch and delete every
+neutralisation, or keep the historical pins behind one shared helper and write
+down the `top_crops` blind spot? Either way: must the guard survive a refresh
+where only `sources.built_at` and the fixture moved? The expander's survey for
+this half (more guards than the entry says: `highest-point-in-state-verify.test.ts`
+pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
+`3cedfe8`. The next decision entry is `E-20`.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -209,13 +223,7 @@ right, but it discards the "unchanged since T-013" property those digests exist 
 hold, so it is a deliberate call rather than a tidy-up. Whichever way it goes, say
 it in `engineering-decisions.md` so the next field task inherits an answer instead
 of the question.
-**(b) `rebuildOffline()` returns written files, not stdout**, so no test can see
-what `build.ts`'s `report()` actually prints — and `top-crops-verify.test.ts:438`
-and `climate-kid-verify.test.ts:828` (rightly) forbid a test from spawning
-`build.ts` itself. T-016's criterion 8 wanted "the report prints the warning" and
-had to settle for grepping `build.ts`'s source for the absence of a field filter,
-with the real behaviour checked by hand and recorded in the PR. Returning captured
-stdout from the existing harness would make that a real test and costs a few lines.
+**(b) is done: T-080, PR #73** (split 2026-10-06).
 **(c) is closed — T-072 did it (PR #55).** Both criterion-19 diff guards in
 `climate-kid.test.ts` and `climate-kid-verify.test.ts`, and the expired
 `ALLOWED_OUTSIDE_QUESTION_BANK` allowlist in each, are **deleted**, with the
@@ -296,12 +304,66 @@ hashing, and the two textual guards widened their line regex from `\d+` to
 underneath. Eleven pre-existing tests changed (approved in an attended tester
 session, D-15). A full build and every changed refresh now also print three
 `highest_point_m` override warnings by design, which any stdout-counting test
-under (b) must expect.
-**Done when:** the three digest guards no longer need a per-task exception (or the
-decision to keep them is written down in `engineering-decisions.md`), no test in
-`question-bank/src/` passes down a path taken because a spawned `git` failed, and
-a test can assert on the build report's printed warnings without spawning
-`build.ts`.
+under (b), now T-080, must expect.
+**The two git bullets above, and the `git-baseline-guard` amendment, moved to
+T-081** (split 2026-10-06). They are kept here for their history only.
+**Done when:** the pinned-digest guards no longer need a per-task exception (or the
+decision to keep them is written down in `engineering-decisions.md` as `E-20`).
+
+### T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` · S · todo
+**Depends on:** —
+**Split out of T-070, 2026-10-06.** Two pieces, both edits to tests that already
+exist, so each needs an approved Test change request (D-14, D-15). Plan to attend
+the tester step.
+- **`climate-kid.test.ts:598`'s `expect(status === 0 || status === 1).toBe(true)`**,
+  in `"sample-data/us-state-co.json was not touched by this task"`. It takes no
+  revision, so it does not have T-072's defect, but the disjunction would still
+  swallow a broken `git`.
+- **Widen `frontend/src/git-baseline-guard.criteria.test.ts`'s second scan to
+  `question-bank/src/`.** Inside `frontend/src/` it asserts that every `git` call
+  uses a working-tree subcommand and throws on a non-zero exit. Its `codeOf()`
+  stripper and 400-character throw heuristic come with it, including the
+  documented false-positive mode at `:207-212`.
+**Done when:** no test in `question-bank/src/` passes down a path taken because a
+spawned `git` failed, and a guard says so for `question-bank/src/`.
+
+### T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it · S · todo
+**Depends on:** —
+**Found 2026-10-06 by T-080's expander.** `refresh.test.ts:194` and
+`refresh-verify.test.ts:379` each call `Bun.spawnSync(["bun", BUILD…, "--offline",
+"--fixture", …])` directly. The three guards that forbid a test from spawning
+`build.ts` (`climate-kid.test.ts:738`, `climate-kid-verify.test.ts:979`,
+`top-crops-verify.test.ts:473`) miss both. They look for the text `build.ts` at or
+after the spawn call, and these two name the script through a constant defined
+above it (`BUILD`, `BUILD_SCRIPT`). Both do use `DEAD_PROXY`, so nothing reaches
+the network. But the rule is not what the guards say it is, and `rebuildOffline`
+cannot take these two today because it accepts no `--fixture`. Every fix edits
+existing tests, so each needs an approved Test change request.
+**Smaller since T-080 (PR #73).** The harness now has
+`rebuildOfflineWithStdout`, which returns `{ files, stdout }` from the same
+isolated spawn. The only thing these two still need is a `--fixture` argument on
+the harness, and T-083 wants the same thing.
+**Done when:** either both go through the shared harness and the guards catch a
+spawn through a constant, or the exception is written down where the guards are.
+
+### T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable · S · todo
+**Depends on:** — (T-080 landed in PR #73; it made this possible)
+**New 2026-10-06, from T-080's reviewer.** `highest-point-verify.test.ts:433-455`
+("build.ts's report prints every warning it is given…") greps `build.ts`'s
+source because no test could read the report's stdout. Its comments
+(`:433-447`, `:478-482`) say the same. Both have been untrue since
+`rebuildOfflineWithStdout` landed. The behavioural half T-016 checked by hand
+dropped `capital`/`highestPoint` from a *derived* fixture, so a faithful
+replacement needs the `--fixture` argument T-082 also needs. Do the two
+together, or settle for the committed fixtures' three `highest_point_m` lines,
+which show a field printing but not "no field is filtered". Either way this
+edits an existing test, so it needs an approved Test change request (D-14, D-15).
+Second, smaller piece, which T-080 kept out of scope: `build.ts --help` says
+`--quiet` means "Only print the final summary" (`:110`), but `:135` makes it
+print nothing. Make the two agree, one way or the other.
+**Done when:** no comment or test in `question-bank/src/` says the build report
+cannot be read, T-016 criterion 8 is asserted on real stdout, and `--quiet`
+does what `--help` says.
 
 ### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
 **Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching

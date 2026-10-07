@@ -34,10 +34,21 @@ export const DEAD_PROXY = {
   all_proxy: "http://127.0.0.1:1",
 } as const;
 
+/** What `rebuildOfflineWithStdout` returns: the files, and what the CLI printed. */
+export interface OfflineRebuildReport {
+  /** File name to UTF-8 text, exactly as `rebuildOffline` returns it. */
+  files: Map<string, string>;
+  /** The spawned build's complete stdout, decoded as UTF-8. */
+  stdout: string;
+}
+
 /**
  * Runs the real CLI offline into a throwaway directory, reads back the named
  * files as UTF-8 text, and always removes the directory again. Nothing is
  * mocked — the isolation is `DEAD_PROXY` plus a temp `--out` dir.
+ *
+ * Passes `--quiet`, so the build prints nothing; use `rebuildOfflineWithStdout`
+ * when the test needs what `report()` printed.
  *
  * @param buildScript absolute path to `src/build.ts` (callers pass
  *   `join(PKG, "src/build.ts")`, since `PKG` differs per caller only in value,
@@ -52,9 +63,38 @@ export function rebuildOffline(
   fileNames: string[],
   tmpPrefix = "question-bank-rebuild-",
 ): Map<string, string> {
+  return runOffline(buildScript, fileNames, tmpPrefix, true).files;
+}
+
+/**
+ * The same offline build as `rebuildOffline`, without `--quiet`, so the build's
+ * `report()` lines ("Wrote N entities …", "N warning(s):", one line per
+ * warning) reach stdout. Returns the files and that stdout together (T-080).
+ *
+ * Same isolation, same throw on a non-zero exit, same temp-dir cleanup. A test
+ * should call this rather than spawning `build.ts` itself: the spawn guards in
+ * `climate-kid.test.ts` and `top-crops-verify.test.ts` forbid the latter.
+ */
+export function rebuildOfflineWithStdout(
+  buildScript: string,
+  fileNames: string[],
+  tmpPrefix = "question-bank-rebuild-",
+): OfflineRebuildReport {
+  return runOffline(buildScript, fileNames, tmpPrefix, false);
+}
+
+/** The one spawn both routes share, so their isolation cannot drift apart. */
+function runOffline(
+  buildScript: string,
+  fileNames: string[],
+  tmpPrefix: string,
+  quiet: boolean,
+): OfflineRebuildReport {
   const out = mkdtempSync(join(tmpdir(), tmpPrefix));
   try {
-    const proc = Bun.spawnSync(["bun", buildScript, "--offline", "--out", out, "--quiet"], {
+    const argv = ["bun", buildScript, "--offline", "--out", out];
+    if (quiet) argv.push("--quiet");
+    const proc = Bun.spawnSync(argv, {
       env: { ...process.env, ...DEAD_PROXY },
     });
     if (proc.exitCode !== 0) {
@@ -62,7 +102,7 @@ export function rebuildOffline(
     }
     const files = new Map<string, string>();
     for (const name of fileNames) files.set(name, readFileSync(join(out, name), "utf8"));
-    return files;
+    return { files, stdout: proc.stdout?.toString() ?? "" };
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

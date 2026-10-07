@@ -183,7 +183,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - **The offline-rebuild test harness lives in one place** (T-014, PR #44):
   `question-bank/src/offline-rebuild.ts` exports the dead-loopback proxy map and
   `rebuildOffline()`, and all six suites that check a byte-identical offline
-  rebuild import it instead of pasting a fifth and sixth copy. There is exactly
+  rebuild import it instead of pasting a fifth and sixth copy. Since T-080
+  (PR #73), `rebuildOfflineWithStdout()` also returns what the build printed, so
+  `report()`'s warning lines can be asserted on. There is exactly
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
@@ -328,6 +330,18 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-080 — the offline harness returns the build's stdout** (PR #73,
+  2026-10-06). `offline-rebuild.ts` gains `rebuildOfflineWithStdout`, which runs
+  the same isolated `build.ts --offline` without `--quiet` and returns
+  `{ files, stdout }`. Both routes share one private spawner. A test now asserts
+  the real CLI prints `3 warning(s):` followed by the CT, OK and VA
+  `highest_point_m` lines. `rebuildOffline` is unchanged, and no existing test
+  was touched.
+  *Where it differed from the brief:* nowhere in the code. Split out of T-070 (b)
+  by Dkaattae. The expander's survey found that two refresh tests already spawn
+  `build.ts` past the guards (T-082). T-016's source-grep stand-in and the
+  `--quiet`/`--help` mismatch are left for T-083.
 
 - **T-079 — `highest_point_m` is the state's high point, not the mountain's
   summit** (PR #71, 2026-10-06). CT, OK and VA now ship 727.2, 1516.4 and
