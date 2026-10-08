@@ -1,7 +1,7 @@
 # T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it — run log
 
 **Task:** T-082 · **Branch:** `claude/affectionate-wright-jaormy` · **PR:** #75
-**Started:** 2026-10-08 · **Outcome:** in progress
+**Started:** 2026-10-08 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-08
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker, once a human has approved the criteria below` (`Status: awaiting approval`, `Approved: pending`)
@@ -84,3 +84,48 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/src/offline-rebuild.ts
 - /home/user/geo-discovery-zone/question-bank/src/spawn-guard.test.ts
 - /home/user/geo-discovery-zone/question-bank/src/offline-rebuild-fixture.test.ts
+
+## Round 3 — tester — 2026-10-08
+`Next step` on entry: `tester` (`Status: awaiting verification`) → on exit: `human` (`Status: test changes requested`, `Test changes: requested`). Pushed as `e758f91`, `b352c9c`.
+
+**TL;DR: T-082 is halted at `Status: test changes requested`, `Next step: human`.** The parts I could verify hold: the harness (criteria 1–4), the guard (8–11, 13, 14) and the "must not change" checks (15–19). Criteria 5, 6, 7, 12 and 20 can't hold until two existing refresh tests are changed, and that needs a person's approval (D-14, D-15). This run is orchestrated, so nobody could give it. **Next:** a person starts a `tester` step for T-082 in a session they are attending and approves or refuses the two rows in the brief's `## Test change request`.
+
+**Push:** both commits are on `claude/affectionate-wright-jaormy`. Local HEAD and `origin` are both `b352c9c`; checked after a fetch.
+- `e758f91` — "T-082 tester: criteria 1-4 checks for the harness's fixture option"
+- `b352c9c` — "T-082 tester: verdict pending, raise test change request for the two refresh tests"
+
+**Independence:** the session-id check did not pass and does not show separation. `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01QcjHTfUsm5YqzVagoD4oww`, the same id the expander and worker recorded, because orchestrator-spawned roles share one id. My independence rests only on being a freshly spawned agent with its own context. That is weaker than a separate session, and the Verdict says so. I added my Sessions row with that caveat.
+
+**Suite** (`question-bank/`, all six proxy variables set to the dead loopback):
+- **`bun test`:** 1738 pass, 1 fail. The failure is `spawn-guard.test.ts` › "no tracked test spawns build.ts", which names `refresh-verify.test.ts:379` and `refresh.test.ts:194`. That is the expected red until the two rows are applied.
+- **`typecheck`, `lint` (0 warnings), `format:check`:** all pass.
+
+| Criteria | State | Evidence |
+|---|---|---|
+| 1–4 | met | My new test file (14 tests). Mutations of the harness turned the tests red: dropping `--fixture` → 8 red, dropping the proxy env → 1, dropping cleanup → 4, always passing `--fixture` → 1, never throwing on a non-zero exit → 2 |
+| 8–11 | met | Each snippet pasted into `committed-bank.test.ts` showed up in the guard's findings by file:line |
+| 13 | met | Emptying the scan turns "the scan finds test files…" red |
+| 14–19 | met | The four older guards are untouched and green; nothing outside the allowed files changed |
+| 5, 6, 7, 12, 20 | not yet | Wait on the two approved rows |
+
+**Weak evidence and one surviving mutation:**
+- **8–11 were checked against a guard that was already red.** The evidence is that each pasted line joined the findings list. An attended tester should rerun them once the guard is otherwise green.
+- **One harness mutation stayed green:** passing the fixture path unresolved. That is acceptable because `build.ts:67` resolves `--fixture` itself, so criterion 2 still holds.
+
+**Checks for criteria 6, 7 and 12 on temporary copies:**
+- **6 and 7:** I applied the worker's proposed replacements to untracked copies, since deleted. Both pass, and both go red in each of (a) a changed byte, (b) an extra rebuild file, (c) a bank file the rebuild lacks.
+- **12:** with those copies staged as tracked, the guard did not flag them.
+- **Gates:** the copies pass typecheck, lint and prettier.
+
+**Rows waiting for approval** (Decision column is pending in the brief):
+1. **`refresh.test.ts`**, "an offline build from the written fixture reproduces the bank byte for byte" (from `321cf65`, T-063): **modify** so it gets its rebuild from the harness.
+2. **`refresh-verify.test.ts`**, "criterion 8: build.ts --offline from the written fixture reproduces the bank byte for byte" (from `627a66a`, T-063): **modify** the same way, keeping the `us-state-zz.json` setup.
+
+No count floor pins either file. All mutations are reverted, I edited no source, and I changed no test that existed before the task.
+
+**Files:**
+- /home/user/geo-discovery-zone/tasks/T-082-build-spawn-guard.md (Verdict, Test change request, header, Sessions)
+- /home/user/geo-discovery-zone/question-bank/src/offline-rebuild-fixture-verify.test.ts (new)
+
+## Halted — test change request — 2026-10-08
+Raised in `b352c9c`. Header reads `Status: test changes requested`, `Next step: human`, `Test changes: requested`. The orchestrator did not open the request and does not approve or relay one (D-15). To resume: a person starts the `tester` step for T-082 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. A new run then carries on from the header's `Next step`.
