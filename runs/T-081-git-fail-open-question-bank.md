@@ -95,3 +95,10 @@ Files:
 
 ## Halted — attended tester required — 2026-10-08
 Branch head at halt: `b09ad3a`. The header's `Next step` reads `tester — attended`. A spawned tester cannot get a test change request approved (D-15), so the orchestrator did not spawn one. The person starts the `tester` step for T-081 in a session they attend. That tester raises the request and asks about each row, then finishes verifying. After that, a new run continues from the header's `Next step`.
+
+## Round 3 — tester (attended, outside this run) — 2026-10-08
+Not relayed by the orchestrator. A person ran the `tester` step in a session they attended, per the halt above. Commits on the branch: `d409fdc` (raise test change request, 3 rows), `f61e862` (apply approved test change request), `db582fe` (verdict pass, record approvals), `733bba5` (cite CI for the frontend gates).
+`Next step` on entry: `tester — attended` (`Status: awaiting verification`) → on exit: `reviewer` (`Status: pass`, `Test changes: approved — Dkaattae, 2026-10-08`). The orchestrator did not read the Verdict.
+
+## Resumed — 2026-10-08
+The user told the orchestrator session "ci is green, you can proceed". The run resumes from the header's `Next step: reviewer`.
