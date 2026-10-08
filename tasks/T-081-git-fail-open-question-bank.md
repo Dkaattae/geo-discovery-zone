@@ -1,13 +1,13 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/`
 
-**Status:** `test changes requested`
-**Next step:** `human` — approve or refuse each row of the Test change request, in an attended tester session
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** the user (repo owner), in the orchestrator session — 2026-10-08. See `runs/T-081-git-fail-open-question-bank.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-08`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
 **Branch:** `claude/relaxed-ramanujan-7q3ey3`
 **PR:** #74, opened draft against the branch above at expand time. It stays draft until the reviewer approves it
-**Fault:** test changes are waiting for a person's approval (three rows, D-15). Everything else verified.
+**Fault:**
 
 **Sessions:**
 
@@ -330,15 +330,50 @@ I applied all three fixes in a scratch working tree. The guard plus those three 
 
 ## Verdict
 
+**Pass.** Every criterion holds on `f61e862`. The three approved test edits are applied, the new guard is green, and `question-bank` is 1708 pass / 0 fail with typecheck, lint and format clean. **Gap:** the frontend full suite, typecheck, lint and format could not run here (proxy 403 on `bun install`); `frontend/` is untouched, its guard ran alone 15/15, and PR CI is the evidence for the rest.
+
+- **Independence:** separate session (`cse_01CFy7c1T6hS9XTA2Ff6THQX`, vs worker/expander `cse_017mbfrRAp5jhR3D1pPAktBG`), attended by a person. Not an orchestrated spawn.
+- **Approval, quoted from this session:** rows 1–3 each answered "Approve: modify (Recommended)", name "Dkaattae". On the count pin: "Amend row 3 to throw (Recommended)".
+- **Tests modified (commit `f61e862`, all under the header line `approved — Dkaattae, 2026-10-08`):**
+  - `climate-kid.test.ts` › "sample-data/us-state-co.json was not touched…": `expect(status).toBe(0)` (row 1, criterion 1).
+  - `fun-facts.test.ts` › "the 51 bank paths are still tracked and still not ignored": `expect(git(["check-ignore", …]).status).toBe(1)` (row 2, criterion 2).
+  - `committed-bank.test.ts` › `${doc} — every test it credits…` (×4): throws on a non-zero `ls-files` (row 3, amended).
+  - Nothing deleted.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | Real tree: passes. Fake `git` on PATH failing only `diff` with exit 1, and with 128: test fails both times. Before the fix (stashed), exit 1 passed — the defect was real |
+| 2 | pass | Real tree: passes. Fake `check-ignore` exit 0 → fails; exit 128 → fails. Before the fix, exit 128 passed |
+| 3 | pass | Guard's exit rule green on the final tree; inventory below |
+| 4 | pass | Mutations in `landmarks.test.ts`, each red naming `landmarks.test.ts:777`: literal `rev-parse HEAD`; wrapper `log -1`; wrapper `show`, `rev-list`, `merge-base`, `cat-file`, `blame`, `describe`, `for-each-ref` |
+| 5 | pass | Red, file named: `diff --name-only origin/main...HEAD`; literal `ls-files --with-tree=HEAD~1`; 7-char sha `abc1234`; 40-char sha |
+| 6 | pass | `expect(status === 0 \|\| status === 1).toBe(true)` → red, file named |
+| 7 | pass | literal `ls-files` + `if (proc.exitCode !== 0) return;` → red, file named |
+| 8 | pass | the old `fun-facts:388` `ignored: …status === 0` shape inside `toEqual` → red, file named |
+| 9 | pass | Before my edits the guard's only offenders were the three request rows; every listed fail-closed shape (`top-crops-verify` throwing wrapper, `trackedUnder` throw, `committed-bank:238/:243` `.toBe`, `highest-point-in-state-verify:487-488`) is unflagged; guard green after |
+| 10 | pass | Pasting a comment `// git show 323254c:… Bun.spawnSync(["git", "log"])` added no offender |
+| 11 | pass | Replacing `["git", ...args]` with a non-git argv in `committed-bank.test.ts` → "it finds wrapper invocations in committed-bank.test.ts" red; same for `fun-facts.test.ts`. (Renaming the wrapper does *not* hide it: detection is by shape, not name) |
+| 12 | pass | `Bun.spawnSync(["git", "show", "HEAD:x"])` in `frontend/src/ci-action-pinning.test.ts` → three frontend guard tests red. `git-baseline-guard.criteria.test.ts` untouched, 15/15 |
+| 13 | pass | Worker commit `b09ad3a` adds one new file only. Pre-existing tests changed only in `f61e862`, matching rows 1–3 |
+| 14 | pass | `git diff --name-status origin/main...HEAD`: the guard, three test files, this brief, `tasks.md`, `runs/` |
+| 15 | pass | No `package.json` or `bun.lock` in the diff |
+| 16 | pass | Guard's own `git ls-files -z -- question-bank/src` throws on non-zero; its "criterion 16" block passes |
+| 17 | pass | Only spawn is `git ls-files`; full suite ran without network |
+| 18 | pass (question-bank) / CI (frontend) | `question-bank`: `bun test` 1708/0, typecheck, lint, format:check clean. `frontend`: not runnable here (403 on `react-simple-maps`, `d3-timer`); PR CI runs those gates |
+
+**Inventory (criterion 3), final tree:** every row in the Handoff's inventory table is now fail-closed. The three that were not: `climate-kid.test.ts:595` → `expect(status).toBe(0)`; `fun-facts.test.ts:388` → `expect(….status).toBe(1)`; `committed-bank.test.ts:430` → `if (status !== 0) throw`. No row is left as "passes".
+
+Every mutation was reverted; `git status` was clean after each.
+
 ## Test change request
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/climate-kid.test.ts` › "T-014 criterion 13 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json was not touched by this task (git status is clean for it)" | `bc544e3`, T-014 worker: that T-014 did not modify `sample-data/us-state-co.json` | Criterion 1: line 598 `expect(status === 0 \|\| status === 1).toBe(true)` accepts exit 1, which `git diff --name-only` never returns on success. The new guard flags it (criterion 6) | modify (delete also allowed by criterion 1, since T-064 removes `sample-data/`) | Same name. Line 598 becomes `expect(status).toBe(0);`. Nothing else changes; `expect(stdout).not.toContain("us-state-co.json")` stays | *pending* |
-| 2 | `question-bank/src/fun-facts.test.ts` › "T-011 criterion 10 — nothing unreviewed, live or new is committed" › "the 51 bank paths are still tracked and still not ignored" | `19027c6`, T-011 tester: the 51 bank files stay tracked and are not gitignored | Criterion 2: line 388 `ignored: …status === 0` turns exit 128 into `ignored: false`, which passes. Guard flags it (criterion 8) | modify (criterion 2 forbids delete) | Same name. `trackedUnder(...)` and `toHaveLength(51)` unchanged. The `expect({ path, ignored: … }).toEqual({ path, ignored: false })` block becomes `expect(git(["check-ignore", "--no-index", "-q", path]).status).toBe(1);` (the shape `committed-bank.test.ts:238` uses). Exit 1 passes; 0 and 128 fail | *pending* |
-| 3 | `question-bank/src/committed-bank.test.ts` › "T-010 round 2 — criteria 11 and 15: a doc that credits a test names one that says so" › `${doc} — every test it credits with a criterion exists and contains that claim` (four generated tests: `question-bank/.gitignore`, `question-bank/README.md`, `engineering-decisions.md`, `PROGRESS.md`) | `807fa96`, T-010 tester: every test a doc credits with a criterion exists and quotes that claim | Not required by any criterion (Out of scope says the guard need not flag line 430; a change is a row if it does). The guard flags it: `git([...]).stdout` is read with no status check. Fails closed today only by accident (empty output → `tracked: false`) | modify | Same names. Line 430 becomes `const { status, stdout } = git(["ls-files", "--", \`*/${file}\`, file]);` then `expect(status).toBe(0);`, then `const matches = stdout.split("\\n").filter(Boolean);`. Every existing assertion stays. **If refused**, the guard needs an exemption — back to `worker` | *pending* |
+| 1 | `question-bank/src/climate-kid.test.ts` › "T-014 criterion 13 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json was not touched by this task (git status is clean for it)" | `bc544e3`, T-014 worker: that T-014 did not modify `sample-data/us-state-co.json` | Criterion 1: line 598 `expect(status === 0 \|\| status === 1).toBe(true)` accepts exit 1, which `git diff --name-only` never returns on success. The new guard flags it (criterion 6) | modify (delete also allowed by criterion 1, since T-064 removes `sample-data/`) | Same name. Line 598 becomes `expect(status).toBe(0);`. Nothing else changes; `expect(stdout).not.toContain("us-state-co.json")` stays | approved (modify) — Dkaattae, tester session 2026-10-08 |
+| 2 | `question-bank/src/fun-facts.test.ts` › "T-011 criterion 10 — nothing unreviewed, live or new is committed" › "the 51 bank paths are still tracked and still not ignored" | `19027c6`, T-011 tester: the 51 bank files stay tracked and are not gitignored | Criterion 2: line 388 `ignored: …status === 0` turns exit 128 into `ignored: false`, which passes. Guard flags it (criterion 8) | modify (criterion 2 forbids delete) | Same name. `trackedUnder(...)` and `toHaveLength(51)` unchanged. The `expect({ path, ignored: … }).toEqual({ path, ignored: false })` block becomes `expect(git(["check-ignore", "--no-index", "-q", path]).status).toBe(1);` (the shape `committed-bank.test.ts:238` uses). Exit 1 passes; 0 and 128 fail | approved (modify) — Dkaattae, tester session 2026-10-08 |
+| 3 | `question-bank/src/committed-bank.test.ts` › "T-010 round 2 — criteria 11 and 15: a doc that credits a test names one that says so" › `${doc} — every test it credits with a criterion exists and contains that claim` (four generated tests: `question-bank/.gitignore`, `question-bank/README.md`, `engineering-decisions.md`, `PROGRESS.md`) | `807fa96`, T-010 tester: every test a doc credits with a criterion exists and quotes that claim | Not required by any criterion (Out of scope says the guard need not flag line 430; a change is a row if it does). The guard flags it: `git([...]).stdout` is read with no status check. Fails closed today only by accident (empty output → `tracked: false`) | modify | Same names. Line 430 becomes `const { status, stdout } = git(["ls-files", "--", \`*/${file}\`, file]);` then `expect(status).toBe(0);`, then `const matches = stdout.split("\\n").filter(Boolean);`. Every existing assertion stays. **Amended in session:** applying `expect(status).toBe(0)` turned `climate-kid-verify.test.ts` › "committed-bank.test.ts's expect count really is 58…" red (an exact `expect(` count the request missed). With Dkaattae's approval the check is instead `if (status !== 0) throw new Error(\`git ls-files exited ${status}\`);`, so the count stays 58 and no fourth test changes | approved (modify, amended to throw) — Dkaattae, tester session 2026-10-08 |
 
-No count floor is affected (none of these files carries one, and nothing is deleted unless row 1 is approved as a delete).
+Count pins: none lowered. `committed-bank.test.ts`'s exact count of 58 `expect(` calls (`climate-kid-verify.test.ts:1203`) is unchanged because row 3 was amended to a throw. The worker's "Count floors: none affected" and this request's first draft both missed that pin; the full suite caught it.
 
 ## Notes
 
