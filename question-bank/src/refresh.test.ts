@@ -12,7 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { DEAD_PROXY } from "./offline-rebuild";
+import { rebuildOfflineWithStdout } from "./offline-rebuild";
 import { US_STATES_ELEVATION_QUERY } from "./queries/us-states-elevation";
 import {
   ABSENT,
@@ -190,15 +190,22 @@ describe("criteria 3, 6–9, 11 — a changed refresh", () => {
 
   test("an offline build from the written fixture reproduces the bank byte for byte", async () => {
     await changedRun();
-    const out = join(work, "rebuild");
-    const proc = Bun.spawnSync(
-      ["bun", BUILD_SCRIPT, "--offline", "--fixture", fixturePath, "--out", out, "--quiet"],
-      { env: { ...process.env, ...DEAD_PROXY } },
-    );
-    expect(proc.exitCode).toBe(0);
     const strip = (m: Map<string, string>) =>
       new Map([...m].filter(([name]) => !name.endsWith(".review.json")));
-    expect(strip(snapshot(out))).toEqual(strip(snapshot(bankDir)));
+    const bank = strip(snapshot(bankDir));
+    // T-082: through the harness. Its `listing` is every file the build wrote,
+    // so a file only in the rebuild still fails; one only in the bank makes the
+    // harness throw when it reads that name back.
+    const { files, listing } = rebuildOfflineWithStdout(
+      BUILD_SCRIPT,
+      [...bank.keys()],
+      "question-bank-refresh-rebuild-",
+      { fixture: fixturePath },
+    );
+    expect(listing.filter((name) => !name.endsWith(".review.json"))).toEqual(
+      [...bank.keys()].sort(),
+    );
+    expect(files).toEqual(bank);
   });
 });
 
