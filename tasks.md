@@ -284,7 +284,7 @@ under (b), now T-080, must expect.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it · S · todo
+### T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it · S · doing
 **Depends on:** —
 **Found 2026-10-06 by T-080's expander.** `refresh.test.ts:194` and
 `refresh-verify.test.ts:379` each call `Bun.spawnSync(["bun", BUILD…, "--offline",
