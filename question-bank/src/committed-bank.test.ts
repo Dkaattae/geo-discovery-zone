@@ -427,9 +427,9 @@ describe("T-010 round 2 — criteria 11 and 15: a doc that credits a test names 
 
     test(`${doc} — every test it credits with a criterion exists and contains that claim`, () => {
       for (const { file, quoted } of claims) {
-        const matches = git(["ls-files", "--", `*/${file}`, file])
-          .stdout.split("\n")
-          .filter(Boolean);
+        const { status, stdout } = git(["ls-files", "--", `*/${file}`, file]);
+        if (status !== 0) throw new Error(`git ls-files exited ${status}`);
+        const matches = stdout.split("\n").filter(Boolean);
         expect({ doc, file, tracked: matches.length > 0 }).toEqual({ doc, file, tracked: true });
         const sources = matches.map((p) => flatten(readFileSync(join(REPO, p), "utf8")));
         expect({

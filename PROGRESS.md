@@ -331,6 +331,23 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-081 — no `git` check in `question-bank/src/` passes when `git` fails**
+  (PR #74, 2026-10-08). A new guard, `git-exit-guard.criteria.test.ts`, scans every
+  tracked test under `question-bank/src/`. It reads literal `["git", …]` argv and
+  calls through a local `git(args)` wrapper. Each call must use `ls-files`, `status`,
+  `check-ignore` or a revision-free `diff`, take no revision, and fail closed on a
+  non-zero exit. Three pre-existing tests were tightened under an approved Test
+  change request: `climate-kid.test.ts`'s `0 || 1` disjunction became
+  `toBe(0)`, `fun-facts.test.ts`'s `check-ignore` boolean became `toBe(1)`, and
+  `committed-bank.test.ts`'s unchecked `ls-files` now throws.
+  *Where it differed from the brief:* the brief named two sites, and the guard
+  flagged a third (`committed-bank.test.ts:430`), which Dkaattae approved. That
+  row was amended to a throw, because an `expect` there would have broken
+  `climate-kid-verify`'s exact count of 58 `expect(` calls, a pin both the worker
+  and the first draft of the request missed. The guard is a new file rather than
+  a widened `frontend` guard, so the frontend guard is unchanged. The frontend
+  gates could not run in the agent sandbox (proxy 403). CI is the evidence for them.
+
 - **T-080 — the offline harness returns the build's stdout** (PR #73,
   2026-10-06). `offline-rebuild.ts` gains `rebuildOfflineWithStdout`, which runs
   the same isolated `build.ts --offline` without `--quiet` and returns
@@ -1240,17 +1257,20 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
   `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
   `README.md` (T-058, PR #35) — both now fail a test rather than drift.
-- **No test fails on `main` in a full clone any more.** All four known expired
-  git baselines are gone: `question-bank`'s two with T-072 (PR #55, `E-11`) and
-  `frontend`'s one with T-073 (PR #56, `E-12`). What remains of the family is two
-  silent-`else` git paths in `question-bank/` that are not red but do turn
-  themselves off on a shallow clone — `highest-point-verify.test.ts:582-584` and
-  `climate-kid.test.ts:538`, both listed under T-070.
-  `frontend/src/git-baseline-guard.criteria.test.ts` is the standing guard: it
-  asserts repo-wide that no test hands `engineering-decisions.md` to `git`, and
-  within `frontend/src/` that every `git` call reads only the working tree and
-  throws on a non-zero exit. It is a `frontend` test asserting repo-wide facts,
-  so a violation added in another package reddens `frontend`'s suite.
+- **No test fails on `main` in a full clone any more, and none passes because
+  `git` failed.** All four known expired git baselines are gone: `question-bank`'s
+  two with T-072 (PR #55, `E-11`) and `frontend`'s one with T-073 (PR #56,
+  `E-12`). T-081 (PR #74) closed the last fail-open `git` check. Two guards now
+  hold the line:
+  - `frontend/src/git-baseline-guard.criteria.test.ts` asserts repo-wide that no
+    test hands `engineering-decisions.md` to `git`, and within `frontend/src/`
+    that every `git` call reads only the working tree and throws on a non-zero
+    exit. It is a `frontend` test asserting repo-wide facts, so a violation added
+    in another package reddens `frontend`'s suite.
+  - `question-bank/src/git-exit-guard.criteria.test.ts` does the same for
+    `question-bank/src/`, and also reads calls made through a local `git(args)`
+    wrapper. Its exit check is an allowlist of fail-closed shapes. Its lexer is
+    heuristic, not a parser.
 
 **Behaviour.**
 

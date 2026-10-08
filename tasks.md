@@ -183,8 +183,8 @@ instead.
 ### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo — **waiting on Q1**
 **Depends on:** a human answer to **Q1** below (blocks nothing, but every field task since T-068 has hit it, and the monthly refresh routine is gated on it)
 **Split 2026-10-06 (Dkaattae, answering the T-070 expander's Q2, PR #73).** This
-entry used to hold three pieces. **(b)** is now **T-080** and the git leftover is
-now **T-081**, both below. What stays here is **(a)** alone, re-sized to M because
+entry used to hold three pieces. **(b)** became **T-080** and the git leftover
+**T-081**; both have landed (PRs #73, #74). What stays here is **(a)** alone, re-sized to M because
 it edits four or five verify suites, and every one of those edits needs an
 approved Test change request (D-14, D-15). **Plan to attend its tester step.**
 **Q1, still open:** re-pin against the default branch and delete every
@@ -224,35 +224,11 @@ hold, so it is a deliberate call rather than a tidy-up. Whichever way it goes, s
 it in `engineering-decisions.md` so the next field task inherits an answer instead
 of the question.
 **(b) is done: T-080, PR #73** (split 2026-10-06).
-**(c) is closed — T-072 did it (PR #55).** Both criterion-19 diff guards in
-`climate-kid.test.ts` and `climate-kid-verify.test.ts`, and the expired
-`ALLOWED_OUTSIDE_QUESTION_BANK` allowlist in each, are **deleted**, with the
-reasoning in `engineering-decisions.md` **E-11**. Nothing here is left to do, and
-E-11 is the precedent for how (a) should be written up whichever way it goes. Two
-related things stayed out of T-072's scope and belong to this entry:
-- ~~**`highest-point-verify.test.ts:582-584`** (`if (base === null) return;`)~~ —
-  **gone with T-071 (PR #63)**: it was the early return inside that file's
-  dependency-pin test, which T-071 deleted in favour of `dependency-set.test.ts`
-  (E-16), which spawns no `git`.
-- **`climate-kid.test.ts:598`'s `expect(status === 0 || status === 1).toBe(true)`**
-  in `"sample-data/us-state-co.json was not touched by this task"` — takes no
-  revision, so it needs no history and does not have T-072's defect, but the
-  disjunction would still swallow a broken `git`.
-**Amended 2026-09-22 by T-073's reviewer (PR #56).** T-073 deleted the fourth and
-last red-on-`main` instance and recorded it as `engineering-decisions.md` **E-12**,
-so **those two bullets were the whole of what remains of this family** (one is
-now gone, above) — neither is
-red anywhere, both only turn themselves off. Two things landed that make them
-cheaper to close than they were:
-- **`frontend/src/git-baseline-guard.criteria.test.ts` is the shape to extend, not
-  to re-invent.** It already asserts repo-wide that no test hands
-  `engineering-decisions.md` to `git`, and asserts *within `frontend/src/`* that
-  every `git` call uses a working-tree subcommand and throws on a non-zero exit.
-  Widening that second scan to `question-bank/src/` is most of what this half
-  needs; its `codeOf()` stripper and 400-character throw heuristic come with it,
-  including the documented false-positive mode at `:207-212`.
-- **E-11 and E-12 are now two worked examples of the write-up**, so (a)'s decision
-  has a house style to follow whichever way it goes.
+**(c) and the git leftovers are done.** T-072 (PR #55, E-11) and T-073 (PR #56,
+E-12) deleted the red-on-`main` git baselines. T-081 (PR #74) closed the last
+fail-open `git` check, `climate-kid.test.ts:598`, and added
+`question-bank/src/git-exit-guard.criteria.test.ts` as the standing guard for
+`question-bank/src/`. Their history is in those PRs.
 **Amended 2026-10-02 by T-063's reviewer (PR #68): (a) now gates the monthly
 refresh routine.** `bun run refresh` (T-063) moves `sources.built_at` in all 50
 bank files on every *changed* refresh, by design (E-6's reproducibility), so the
@@ -305,27 +281,8 @@ underneath. Eleven pre-existing tests changed (approved in an attended tester
 session, D-15). A full build and every changed refresh now also print three
 `highest_point_m` override warnings by design, which any stdout-counting test
 under (b), now T-080, must expect.
-**The two git bullets above, and the `git-baseline-guard` amendment, moved to
-T-081** (split 2026-10-06). They are kept here for their history only.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
-
-### T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` · S · todo
-**Depends on:** —
-**Split out of T-070, 2026-10-06.** Two pieces, both edits to tests that already
-exist, so each needs an approved Test change request (D-14, D-15). Plan to attend
-the tester step.
-- **`climate-kid.test.ts:598`'s `expect(status === 0 || status === 1).toBe(true)`**,
-  in `"sample-data/us-state-co.json was not touched by this task"`. It takes no
-  revision, so it does not have T-072's defect, but the disjunction would still
-  swallow a broken `git`.
-- **Widen `frontend/src/git-baseline-guard.criteria.test.ts`'s second scan to
-  `question-bank/src/`.** Inside `frontend/src/` it asserts that every `git` call
-  uses a working-tree subcommand and throws on a non-zero exit. Its `codeOf()`
-  stripper and 400-character throw heuristic come with it, including the
-  documented false-positive mode at `:207-212`.
-**Done when:** no test in `question-bank/src/` passes down a path taken because a
-spawned `git` failed, and a guard says so for `question-bank/src/`.
 
 ### T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it · S · todo
 **Depends on:** —
