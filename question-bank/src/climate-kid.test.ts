@@ -595,7 +595,7 @@ describe("T-014 criterion 13 — the committed sample stays in step with the ban
     const { status, stdout } = git(["diff", "--name-only", "--", "question-bank/sample-data"]);
     // A clean checkout returns status 0 with no output; either way, the file
     // this task must not move is absent from any diff there is.
-    expect(status === 0 || status === 1).toBe(true);
+    expect(status).toBe(0);
     expect(stdout).not.toContain("us-state-co.json");
   });
 });

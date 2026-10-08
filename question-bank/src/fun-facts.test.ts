@@ -383,10 +383,7 @@ describe("T-011 criterion 10 — nothing unreviewed, live or new is committed", 
     const paths = trackedUnder("question-bank/data/us-states");
     expect(paths).toHaveLength(51);
     for (const path of paths) {
-      expect({
-        path,
-        ignored: git(["check-ignore", "--no-index", "-q", path]).status === 0,
-      }).toEqual({ path, ignored: false });
+      expect(git(["check-ignore", "--no-index", "-q", path]).status).toBe(1);
     }
   });
 });
