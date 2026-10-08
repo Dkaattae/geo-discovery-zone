@@ -1,7 +1,7 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` — run log
 
 **Task:** T-081 · **Branch:** `claude/relaxed-ramanujan-7q3ey3` · **PR:** #74
-**Started:** 2026-10-07 · **Outcome:** halted — sweep refused, needs human
+**Started:** 2026-10-07 · **Outcome:** ready for merge once a person marks PR #74 ready (sweep applied 2026-10-08)
 
 ## Round 1 — task-expander — 2026-10-07
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker, once a human has approved the criteria below` (`Status: awaiting approval`, `Approved: pending`)
@@ -153,3 +153,16 @@ PR comment with the same summary: https://github.com/Dkaattae/geo-discovery-zone
 
 ## Halted — sweep refused — 2026-10-08
 Branch head at halt: `131c909`. Per D-16 the person was asked directly in the orchestrator session. No one-hour self check-in was scheduled: the harness refused this sweep to the reviewer, and the orchestrator will not apply the same refused edits without the person's say-so in this session.
+
+## Sweep applied — orchestrator — 2026-10-08
+The user answered in the orchestrator session: "yes, apply the sweep". So this was not the one-hour fallback. The orchestrator re-read the header (`Status: sweep refused`), read only `### Sweep to apply`, and applied its four items verbatim as `6acbce4`:
+- deleted the brief;
+- `tasks.md`: removed T-081, updated T-070's header paragraph, trimmed T-070's git history;
+- `PROGRESS.md`: added the T-081 completed entry and replaced the "no test fails on `main`" gap bullet.
+
+Checks run after the sweep:
+- **question-bank:** 1708 pass / 0 fail, with typecheck, lint and format:check clean.
+- **frontend:** `bun test --timeout 60000` gave 375 pass / 1 fail / 1 error, identical with and without the sweep. The fail and the error come from `react-simple-maps` missing, because the proxy refuses `bun install` here. `tsc` fails in `UsMap.tsx` for the same reason. Lint and format:check are clean.
+- **Default 5s timeout:** the frontend suite flaked with timeouts, varying between 1 and 4 fails across runs. The 60s-timeout comparison is the one to trust.
+
+The PR was not marked ready, since the orchestrator holds no PR tool. CI on the new head and merging are the person's.
