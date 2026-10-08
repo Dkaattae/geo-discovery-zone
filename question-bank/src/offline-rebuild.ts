@@ -20,9 +20,9 @@
  * stray untracked file is caught) — two different failure modes, deliberately
  * not shared (see that file's header comment). Nothing here touches that.
  */
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 /** No network, ever — the same loopback trick CI uses (`test-guidelines.md`). */
 export const DEAD_PROXY = {
@@ -40,6 +40,23 @@ export interface OfflineRebuildReport {
   files: Map<string, string>;
   /** The spawned build's complete stdout, decoded as UTF-8. */
   stdout: string;
+  /**
+   * Every file the build wrote to its output directory, as paths relative to
+   * it, sorted (T-082). Lets a caller compare the whole output against a
+   * directory, catching a file it did not name as well as one it did.
+   */
+  listing: string[];
+}
+
+/** Optional settings shared by both entry points (T-082). */
+export interface OfflineRebuildOptions {
+  /**
+   * Path to a main SPARQL fixture to build from instead of the committed one,
+   * passed as `build.ts --fixture` (which implies `--offline` and reads the
+   * elevation fixture beside it). Resolved against the current directory, so
+   * the build's `Reading fixture …` line names it absolutely.
+   */
+  fixture?: string;
 }
 
 /**
@@ -62,8 +79,9 @@ export function rebuildOffline(
   buildScript: string,
   fileNames: string[],
   tmpPrefix = "question-bank-rebuild-",
+  options: OfflineRebuildOptions = {},
 ): Map<string, string> {
-  return runOffline(buildScript, fileNames, tmpPrefix, true).files;
+  return runOffline(buildScript, fileNames, tmpPrefix, true, options).files;
 }
 
 /**
@@ -73,14 +91,16 @@ export function rebuildOffline(
  *
  * Same isolation, same throw on a non-zero exit, same temp-dir cleanup. A test
  * should call this rather than spawning `build.ts` itself: the spawn guards in
- * `climate-kid.test.ts` and `top-crops-verify.test.ts` forbid the latter.
+ * `climate-kid.test.ts` and `top-crops-verify.test.ts` forbid the latter, and
+ * `spawn-guard.test.ts` (T-082) forbids it through a constant too.
  */
 export function rebuildOfflineWithStdout(
   buildScript: string,
   fileNames: string[],
   tmpPrefix = "question-bank-rebuild-",
+  options: OfflineRebuildOptions = {},
 ): OfflineRebuildReport {
-  return runOffline(buildScript, fileNames, tmpPrefix, false);
+  return runOffline(buildScript, fileNames, tmpPrefix, false, options);
 }
 
 /** The one spawn both routes share, so their isolation cannot drift apart. */
@@ -89,10 +109,12 @@ function runOffline(
   fileNames: string[],
   tmpPrefix: string,
   quiet: boolean,
+  options: OfflineRebuildOptions,
 ): OfflineRebuildReport {
   const out = mkdtempSync(join(tmpdir(), tmpPrefix));
   try {
     const argv = ["bun", buildScript, "--offline", "--out", out];
+    if (options.fixture !== undefined) argv.push("--fixture", resolve(options.fixture));
     if (quiet) argv.push("--quiet");
     const proc = Bun.spawnSync(argv, {
       env: { ...process.env, ...DEAD_PROXY },
@@ -102,7 +124,10 @@ function runOffline(
     }
     const files = new Map<string, string>();
     for (const name of fileNames) files.set(name, readFileSync(join(out, name), "utf8"));
-    return { files, stdout: proc.stdout?.toString() ?? "" };
+    const listing = (readdirSync(out, { recursive: true }) as string[])
+      .filter((rel) => statSync(join(out, rel)).isFile())
+      .sort();
+    return { files, stdout: proc.stdout?.toString() ?? "", listing };
   } finally {
     rmSync(out, { recursive: true, force: true });
   }
