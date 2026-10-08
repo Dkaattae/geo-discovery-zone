@@ -1,7 +1,7 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/`
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #74 (D-4). Inside the envelope; no escalation
 **Approved:** the user (repo owner), in the orchestrator session — 2026-10-08. See `runs/T-081-git-fail-open-question-bank.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-08`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-07 | cse_017mbfrRAp5jhR3D1pPAktBG |
 | worker | 2026-10-08 | cse_017mbfrRAp5jhR3D1pPAktBG |
 | tester | 2026-10-08 | cse_01CFy7c1T6hS9XTA2Ff6THQX |
+| reviewer | 2026-10-08 | session_017mbfrRAp5jhR3D1pPAktBG (orchestrated spawn) |
 
 > **Plan to attend the tester step.** Criteria 1 and 2 can only be met by
 > changing tests that existed before this task. The worker may not do that
@@ -364,6 +365,29 @@ I applied all three fixes in a scratch working tree. The guard plus those three 
 **Inventory (criterion 3), final tree:** every row in the Handoff's inventory table is now fail-closed. The three that were not: `climate-kid.test.ts:595` → `expect(status).toBe(0)`; `fun-facts.test.ts:388` → `expect(….status).toBe(1)`; `committed-bank.test.ts:430` → `if (status !== 0) throw`. No row is left as "passes".
 
 Every mutation was reverted; `git status` was clean after each.
+
+## Review
+
+**Approve, inside the envelope.** The guard is a sound allowlist, the three test edits are exactly the approved rows and come only from the tester's `f61e862`, and `question-bank` is 1708/0 with typecheck, lint and format clean on `52ff18e` (re-run in this session). No blocking findings; no new `tasks.md` entries.
+
+**PR completeness and lanes**
+- Every Sessions row has commits on this branch: expander `581f9a8`, `6f7ea17` (only `tasks/`, `tasks.md`); worker `b09ad3a` (new guard + brief only); tester `d409fdc`, `f61e862`, `db582fe`, `733bba5` (`f61e862` touches only the three approved test files, no source); orchestrator `7f1a58a`, `5e21a4b`, `52ff18e` (`runs/` and the brief header).
+- Files changed: the guard, three approved test files, this brief, `tasks.md`, `runs/`. Nothing outside criterion 14. No `package.json`/`bun.lock`, `openapi.yaml`, migration, plan or child-facing text.
+- `Test changes:` names Dkaattae, not `orchestrator`. The diff's three modifications match rows 1–3 (row 3 as amended to a throw).
+
+**Quality**
+- **Fits the codebase.** It follows the `frontend` guard's file name, `*.criteria.test.ts` shape and split-string trick (`G = "gi" + "t"`), and `file:line: problem — snippet` reporting. It is a new file, so the frontend guard needed no row.
+- **Size is earned.** 722 lines, about half of them self-tests that replay the brief's mutations on synthetic sources. They are what keep the heuristic lexer honest without anyone pasting anything. No options, flags or shared module beyond the brief.
+- **Fails closed where it is unsure.** `looksLikeRevision`'s `/HEAD/` would also flag a path such as `HEADER.md`. That is a false positive in the safe direction, so I filed nothing.
+- **Nit, not filed:** `climate-kid.test.ts:596-597`'s comment says "either way", which referred to the old 0-or-1 disjunction. It is still true as prose. Changing it would need another Test change request row for a comment, and T-064 deletes the test with `sample-data/`.
+
+**Worker flags, disposed**
+- **`diff` allowed with no revision: confirmed.** Working tree against index is the same no-history read as `status`. The family's defect (E-11, E-12) is history beyond HEAD, which neither touches. The guard already rejects every positional argument before `--`.
+- **`committed-bank.test.ts:430` flagged on purpose: settled** by Dkaattae at the Test change request (row 3, approved and amended to a throw).
+- **Lexer is heuristic: accepted.** Criterion 11's per-file floors catch it if it silently finds nothing in the two wrapper-only files. Any other file it misread would err towards *finding nothing*, which no criterion asks to close. That residual risk is fine for a test-only guard.
+- **Shared session id: settled.** The tester ran in its own attended session (`cse_01CFy7c1T6hS9XTA2Ff6THQX`).
+
+**Queue effect.** T-081 closes the git leftovers T-070 held "for their history only". The sweep trims that history from T-070, so the entry is (a) and its amendments alone. `PROGRESS.md`'s "no test fails on `main`" gap now names both guards.
 
 ## Test change request
 
