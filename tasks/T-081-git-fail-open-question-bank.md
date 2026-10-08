@@ -1,7 +1,7 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/`
 
-**Status:** `approved`
-**Next step:** `human` — merge PR #74 (D-4). Inside the envelope; no escalation
+**Status:** `sweep refused`
+**Next step:** `human` — apply `## Review` › `### Sweep to apply` verbatim on this branch, then mark PR #74 ready and merge (D-4, D-16). The review approved it inside the envelope, with no escalation
 **Approved:** the user (repo owner), in the orchestrator session — 2026-10-08. See `runs/T-081-git-fail-open-question-bank.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-08`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
@@ -388,6 +388,111 @@ Every mutation was reverted; `git status` was clean after each.
 - **Shared session id: settled.** The tester ran in its own attended session (`cse_01CFy7c1T6hS9XTA2Ff6THQX`).
 
 **Queue effect.** T-081 closes the git leftovers T-070 held "for their history only". The sweep trims that history from T-070, so the entry is (a) and its amendments alone. `PROGRESS.md`'s "no test fails on `main`" gap now names both guards.
+
+### Sweep to apply
+
+The auto-mode classifier refused the sweep. It refused deleting this brief as
+"Irreversible Local Destruction", and then refused even `git status` as "Modify
+Shared Resources". Nothing from the sweep was applied. Apply these four changes
+verbatim on `claude/relaxed-ramanujan-7q3ey3`, in one commit, then mark PR #74
+ready.
+
+**1. `tasks/T-081-git-fail-open-question-bank.md`:** delete the file.
+
+**2. `tasks.md`:** make three edits.
+
+- **a. Delete the T-081 entry.** Delete from the line
+  `### T-081 — The last \`git\` check that passes when \`git\` fails, and a guard for \`question-bank/src/\` · S · doing`
+  up to the line before `### T-082 — Two refresh tests spawn \`build.ts\` past the guard that forbids it · S · todo`.
+  Delete the trailing blank line with it, so that exactly one blank line separates T-070's `**Done when:**` from `### T-082`.
+- **b. Update the T-070 header paragraph.** Replace these two lines
+
+  ```
+  entry used to hold three pieces. **(b)** is now **T-080** and the git leftover is
+  now **T-081**, both below. What stays here is **(a)** alone, re-sized to M because
+  ```
+
+  with
+
+  ```
+  entry used to hold three pieces. **(b)** became **T-080** and the git leftover
+  **T-081**; both have landed (PRs #73, #74). What stays here is **(a)** alone, re-sized to M because
+  ```
+- **c. Trim T-070's git history.** In T-070, delete everything from the line that
+  starts `**(c) is closed — T-072 did it (PR #55).**` up to the line before
+  `**Amended 2026-10-02 by T-063's reviewer (PR #68): (a) now gates the monthly`.
+  Put these lines in its place:
+
+  ```
+  **(c) and the git leftovers are done.** T-072 (PR #55, E-11) and T-073 (PR #56,
+  E-12) deleted the red-on-`main` git baselines. T-081 (PR #74) closed the last
+  fail-open `git` check, `climate-kid.test.ts:598`, and added
+  `question-bank/src/git-exit-guard.criteria.test.ts` as the standing guard for
+  `question-bank/src/`. Their history is in those PRs.
+  ```
+
+  Then, in the same entry, delete these two lines:
+
+  ```
+  **The two git bullets above, and the `git-baseline-guard` amendment, moved to
+  T-081** (split 2026-10-06). They are kept here for their history only.
+  ```
+
+**3. `PROGRESS.md`, "Completed tasks":** insert this block directly after the
+line `### Earlier tasks, on-process` and its blank line, before the T-080 entry.
+Keep one blank line after it.
+
+```
+- **T-081 — no `git` check in `question-bank/src/` passes when `git` fails**
+  (PR #74, 2026-10-08). A new guard, `git-exit-guard.criteria.test.ts`, scans every
+  tracked test under `question-bank/src/`. It reads literal `["git", …]` argv and
+  calls through a local `git(args)` wrapper. Each call must use `ls-files`, `status`,
+  `check-ignore` or a revision-free `diff`, take no revision, and fail closed on a
+  non-zero exit. Three pre-existing tests were tightened under an approved Test
+  change request: `climate-kid.test.ts`'s `0 || 1` disjunction became
+  `toBe(0)`, `fun-facts.test.ts`'s `check-ignore` boolean became `toBe(1)`, and
+  `committed-bank.test.ts`'s unchecked `ls-files` now throws.
+  *Where it differed from the brief:* the brief named two sites, and the guard
+  flagged a third (`committed-bank.test.ts:430`), which Dkaattae approved. That
+  row was amended to a throw, because an `expect` there would have broken
+  `climate-kid-verify`'s exact count of 58 `expect(` calls, a pin both the worker
+  and the first draft of the request missed. The guard is a new file rather than
+  a widened `frontend` guard, so the frontend guard is unchanged. The frontend
+  gates could not run in the agent sandbox (proxy 403). CI is the evidence for them.
+```
+
+**4. `PROGRESS.md`, "Known gaps in what is done":** replace the whole bullet
+that starts `- **No test fails on \`main\` in a full clone any more.**` and ends
+`so a violation added in another package reddens \`frontend\`'s suite.` with:
+
+```
+- **No test fails on `main` in a full clone any more, and none passes because
+  `git` failed.** All four known expired git baselines are gone: `question-bank`'s
+  two with T-072 (PR #55, `E-11`) and `frontend`'s one with T-073 (PR #56,
+  `E-12`). T-081 (PR #74) closed the last fail-open `git` check. Two guards now
+  hold the line:
+  - `frontend/src/git-baseline-guard.criteria.test.ts` asserts repo-wide that no
+    test hands `engineering-decisions.md` to `git`, and within `frontend/src/`
+    that every `git` call reads only the working tree and throws on a non-zero
+    exit. It is a `frontend` test asserting repo-wide facts, so a violation added
+    in another package reddens `frontend`'s suite.
+  - `question-bank/src/git-exit-guard.criteria.test.ts` does the same for
+    `question-bank/src/`, and also reads calls made through a local `git(args)`
+    wrapper. Its exit check is an allowlist of fail-closed shapes. Its lexer is
+    heuristic, not a parser.
+```
+
+That bullet replaces a sentence that named `climate-kid.test.ts:538` and the
+already-deleted `highest-point-verify.test.ts:582-584` as live silent-`else` paths
+"listed under T-070". Both are now gone.
+
+**Queue trim, otherwise:** nothing else. T-082 and T-083 are untouched by this
+task. T-070 (a) still waits on Q1. No new task and no `P-n` ticket. The
+classifier refusal is already recorded under P-13.
+
+**Before marking ready:** CI on the head commit. The run for `52ff18e` was still
+in progress when this review was written. `question-bank` was re-run locally on
+`52ff18e`: 1708 pass / 0 fail, with typecheck, lint and format clean.
 
 ## Test change request
 
