@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-082
 **Branch:** `claude/affectionate-wright-jaormy`
-**PR:** opened draft against the branch above at expand time (number recorded in the PR itself and in the expander's handback). It stays draft until the reviewer approves it
+**PR:** #75, opened draft against the branch above at expand time. It stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
@@ -132,8 +132,8 @@ Each of 8–11 must turn the guard red, naming the file the snippet was pasted i
     matches an approved row in this brief's Test change request.
 16. The only non-test file under `question-bank/` that changes is
     `src/offline-rebuild.ts`. In particular `src/build.ts`, `src/refresh.ts`,
-    everything under `data/`, `sample-data/` and `src/fixtures/`, and both
-    `package.json`/`bun.lock` are unchanged; nothing under `frontend/`,
+    everything under `data/`, `sample-data/` and `src/fixtures/`, and
+    `package.json` and `bun.lock` are unchanged; nothing under `frontend/`,
     `backend/` or `.github/` changes. Outside `question-bank/`, only this brief,
     `tasks.md`, `PROGRESS.md` and `runs/` may change.
 17. `src/offline-rebuild.ts` is still the only file under `question-bank/src/`
