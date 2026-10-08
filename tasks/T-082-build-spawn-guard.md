@@ -1,13 +1,13 @@
 # T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae (in the orchestrator session, 2026-10-08: "I approve, continue"). The orchestrator did not read the criteria. See `runs/T-082-build-spawn-guard.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-08`
 **From:** [`tasks.md`](../tasks.md) T-082
 **Branch:** `claude/affectionate-wright-jaormy`
 **PR:** #75, opened draft against the branch above at expand time. It stays draft until the reviewer approves it
-**Fault:** two pre-existing tests (`refresh.test.ts`, `refresh-verify.test.ts`) must change for criteria 5–7 and 12; the Test change request below is waiting for a person's approval in an attended tester session.
+**Fault:**
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-08 | cse_01QcjHTfUsm5YqzVagoD4oww |
 | worker | 2026-10-08 | cse_01QcjHTfUsm5YqzVagoD4oww (orchestrated subagent; the remote session id is shared by every role the orchestrator spawns, so it cannot tell the roles apart here) |
 | tester | 2026-10-08 | cse_01QcjHTfUsm5YqzVagoD4oww (orchestrated subagent, freshly spawned; same shared remote id as the worker, so the id check cannot show separation, see Verdict) |
+| tester | 2026-10-08 | cse_01S1Sk78MFcFw5LyeqSZgpWP (attended; a separate remote session from every row above) |
 
 > **Plan to attend the tester step.** Criteria 6 and 7 can only be met by
 > changing two tests that existed before this task (`refresh.test.ts`,
@@ -354,6 +355,61 @@ evidence.
 
 ## Verdict
 
+**TL;DR. `pass`: all 20 criteria hold.** Dkaattae approved both Test change request
+rows in this attended tester session, I applied them exactly (`cde9d63`), and CI's
+failing guard is now green. `question-bank`: `bun test` **1739 pass, 0 fail**;
+typecheck, lint (0 warnings) and `format:check` pass. **Next:** the reviewer.
+
+**Independence.** This round ran in an attended session, `cse_01S1Sk78MFcFw5LyeqSZgpWP`,
+which is not the expander's or the worker's session. Unlike the orchestrated round
+below, the session-id check does pass here.
+
+**Approval, quoted.** I asked one question per row: test, action, why, and what it
+becomes. Dkaattae answered **"Approve"** to row 1 (`refresh.test.ts`) and
+**"Approve"** to row 2 (`refresh-verify.test.ts`). Header: `Test changes: approved — Dkaattae, 2026-10-08`.
+
+**Tests modified (the only pre-existing tests changed on the branch).** Both were
+changed exactly as written in the Handoff's "Tests made stale". Neither was
+loosened: (a), (b) and (c) still fail, as shown below.
+
+- **`refresh.test.ts`**: "an offline build from the written fixture reproduces the bank byte for byte"
+- **`refresh-verify.test.ts`**: "criterion 8: build.ts --offline from the written fixture reproduces the bank byte for byte"
+
+### Attended round: what changed from the orchestrated verdict
+
+| # | State | Evidence |
+|---|---|---|
+| 1–4, 8–11, 13, 14, 16–19 | **met** | unchanged from the orchestrated round below; 8–11 rerun with the guard otherwise green |
+| 5 | **met** | every `Bun.spawn*` call in tracked `question-bank/src/*.test.ts` spawns `git`: `climate-kid:217`, `climate-koppen.criteria:67`, `committed-bank:27`, `fun-facts:44`, `git-exit-guard.criteria:53`, `highest-point-in-state-verify:487`, `highest-point-verify:57`, `landmarks:144`, `spawn-guard:129`, `state-animals:141`, `top-crops-verify:133`, `top-crops:31`, `top-livestock-verify:48`. `spawn-guard:8` and `git-exit-guard.criteria:552…709` are a doc comment and probe text. No `Bun.spawn(` call and no spawn of `build.ts` remain |
+| 6 | **met** | passes; mutations of a temp copy (table below) each turn it red |
+| 7 | **met** | passes and keeps the `us-state-zz.json` setup; same mutations each turn it red |
+| 12 | **met** | `spawn-guard.test.ts` 11 pass, 0 fail on the final tree |
+| 15 | **met** | the worker's `2f09b38` touches no pre-existing test; the only modified pre-existing tests are rows 1–2, in the tester's `cde9d63` |
+| 20 | **met** | 1739 pass / 0 fail; typecheck, lint, format:check clean |
+
+**Criteria 6 and 7: mutation of a temp copy** (`src/__t082_mut.test.ts`, deleted
+afterwards). Each was inserted right after the refresh, and only the named test was run:
+
+| Case | `refresh.test.ts` | `refresh-verify.test.ts` |
+|---|---|---|
+| none | pass | pass |
+| (a) one byte appended to the bank's `us-state-co.json` | **red**, `toEqual` diff | **red**, `toBe` diff |
+| (b) bank's `us-state-wy.json` deleted (so the rebuild has a file the bank lacks) | **red**, listing `toEqual` | **red**, listing `toEqual` |
+| (c) `us-state-qq.json` added to the bank | **red**, harness ENOENT | **red**, harness ENOENT |
+
+**Guard 8–11, rerun on a green guard.** Each snippet was appended to
+`committed-bank.test.ts` and reverted afterwards; the baseline was 11 pass, 0 fail.
+
+| # | Guard result |
+|---|---|
+| 8 | red, names `question-bank/src/committed-bank.test.ts:464` |
+| 9 | red, names `committed-bank.test.ts:464` |
+| 10 | red, names `committed-bank.test.ts:463` |
+| 11 | red, names `committed-bank.test.ts:463` |
+
+### Orchestrated round (superseded where the table above says so)
+
+
 **TL;DR. Not yet a verdict: halted at `test changes requested` / `human`.** The
 harness changes (criteria 1–4) and the guard (8–11, 13, 14) hold. Criteria 5, 6,
 7, 12 and 20 can only hold once two pre-existing refresh tests are changed, and that
@@ -473,8 +529,8 @@ for T-082 in a session you are attending and answer it there (D-15).
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/refresh.test.ts` › "criteria 3, 6–9, 11 — a changed refresh" › "an offline build from the written fixture reproduces the bank byte for byte" | `321cf65`, T-063 worker. It protected the refresh reproducibility rule: an offline build from the refreshed fixture reproduces the written bank byte for byte, with no extra or missing files | Criterion 5 and the new guard forbid its direct `Bun.spawnSync` of `BUILD_SCRIPT`. Criterion 6 requires it to get its rebuild from the harness | modify | **Same name.** Line 15's import becomes `import { rebuildOfflineWithStdout } from "./offline-rebuild";` (`DEAD_PROXY` is no longer used). After `await changedRun();`, it takes `bank` = the snapshot of `bankDir` without `.review.json`. It calls `rebuildOfflineWithStdout(BUILD_SCRIPT, [...bank.keys()], "question-bank-refresh-rebuild-", { fixture: fixturePath })`. It asserts (1) the returned `listing` without `.review.json` **equals** `[...bank.keys()].sort()`, which catches (b) an extra rebuild file; and (2) `files` **toEqual** `bank`, which catches (a) a changed byte. A bank file the rebuild lacks, (c), makes the harness throw. The exact text is in the Handoff's "Tests made stale" item 1 | *(pending: a person's answer in an attended tester session)* |
-| 2 | `question-bank/src/refresh-verify.test.ts` › "T-063 criteria 6-8: a changed refresh stays reproducible offline" › "criterion 8: build.ts --offline from the written fixture reproduces the bank byte for byte" | `627a66a`, T-063 tester. It protected T-063 criterion 8: the offline rebuild equals the refreshed bank exactly, including that a removed file (`us-state-zz.json`) is not resurrected | Criterion 5 and the guard forbid its direct `Bun.spawnSync` of `BUILD`. Criterion 7 requires it to get its rebuild from the harness | modify | **Same name.** Line 28's import becomes `import { rebuildOfflineWithStdout } from "./offline-rebuild";`. The sandbox, the `us-state-zz.json` write and the `run(...)` line with its `code` 0 assertion stay. The `mkdtempSync` / `Bun.spawnSync` / `exitCode` block is replaced: `bank` = the recursive snapshot of `box.bank` without `.review.json`. It calls `rebuildOfflineWithStdout(BUILD, [...bank.keys()], "t063-verify-rebuild-", { fixture: box.fixture })`. It asserts the returned `listing` without `.review.json` **equals** `[...bank.keys()].sort()`, which catches (b), and that for every bank entry `rebuilt.get(name)` **toBe** its text, which catches (a). A missing rebuild file throws, which catches (c). The exact text is in the Handoff's "Tests made stale" item 2 | *(pending)* |
+| 1 | `question-bank/src/refresh.test.ts` › "criteria 3, 6–9, 11 — a changed refresh" › "an offline build from the written fixture reproduces the bank byte for byte" | `321cf65`, T-063 worker. It protected the refresh reproducibility rule: an offline build from the refreshed fixture reproduces the written bank byte for byte, with no extra or missing files | Criterion 5 and the new guard forbid its direct `Bun.spawnSync` of `BUILD_SCRIPT`. Criterion 6 requires it to get its rebuild from the harness | modify | **Same name.** Line 15's import becomes `import { rebuildOfflineWithStdout } from "./offline-rebuild";` (`DEAD_PROXY` is no longer used). After `await changedRun();`, it takes `bank` = the snapshot of `bankDir` without `.review.json`. It calls `rebuildOfflineWithStdout(BUILD_SCRIPT, [...bank.keys()], "question-bank-refresh-rebuild-", { fixture: fixturePath })`. It asserts (1) the returned `listing` without `.review.json` **equals** `[...bank.keys()].sort()`, which catches (b) an extra rebuild file; and (2) `files` **toEqual** `bank`, which catches (a) a changed byte. A bank file the rebuild lacks, (c), makes the harness throw. The exact text is in the Handoff's "Tests made stale" item 1 | **approved** — Dkaattae, 2026-10-08, attended tester session `cse_01S1Sk78MFcFw5LyeqSZgpWP`; applied in `cde9d63` |
+| 2 | `question-bank/src/refresh-verify.test.ts` › "T-063 criteria 6-8: a changed refresh stays reproducible offline" › "criterion 8: build.ts --offline from the written fixture reproduces the bank byte for byte" | `627a66a`, T-063 tester. It protected T-063 criterion 8: the offline rebuild equals the refreshed bank exactly, including that a removed file (`us-state-zz.json`) is not resurrected | Criterion 5 and the guard forbid its direct `Bun.spawnSync` of `BUILD`. Criterion 7 requires it to get its rebuild from the harness | modify | **Same name.** Line 28's import becomes `import { rebuildOfflineWithStdout } from "./offline-rebuild";`. The sandbox, the `us-state-zz.json` write and the `run(...)` line with its `code` 0 assertion stay. The `mkdtempSync` / `Bun.spawnSync` / `exitCode` block is replaced: `bank` = the recursive snapshot of `box.bank` without `.review.json`. It calls `rebuildOfflineWithStdout(BUILD, [...bank.keys()], "t063-verify-rebuild-", { fixture: box.fixture })`. It asserts the returned `listing` without `.review.json` **equals** `[...bank.keys()].sort()`, which catches (b), and that for every bank entry `rebuilt.get(name)` **toBe** its text, which catches (a). A missing rebuild file throws, which catches (c). The exact text is in the Handoff's "Tests made stale" item 2 | **approved** — Dkaattae, 2026-10-08, same session; applied in `cde9d63` |
 
 **No count floor** pins either file. I searched every `question-bank/src/*.test.ts` for references to these two files.
 
