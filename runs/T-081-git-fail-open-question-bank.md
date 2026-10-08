@@ -1,7 +1,7 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/` — run log
 
 **Task:** T-081 · **Branch:** `claude/relaxed-ramanujan-7q3ey3` · **PR:** #74
-**Started:** 2026-10-07 · **Outcome:** halted — needs human (attended tester)
+**Started:** 2026-10-07 · **Outcome:** halted — sweep refused, needs human
 
 ## Round 1 — task-expander — 2026-10-07
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker, once a human has approved the criteria below` (`Status: awaiting approval`, `Approved: pending`)
@@ -102,3 +102,54 @@ Not relayed by the orchestrator. A person ran the `tester` step in a session the
 
 ## Resumed — 2026-10-08
 The user told the orchestrator session "ci is green, you can proceed". The run resumes from the header's `Next step: reviewer`.
+
+## Round 4 — reviewer — 2026-10-08
+`Next step` on entry: `reviewer` (`Status: pass`) → on exit: `human` (`Status: sweep refused`). Pushed as `985a23e`, `131c909`.
+
+**T-081 reviewer: I approved the PR, and it is inside the envelope (no escalation). But the harness refused the sweep, so the brief is now `Status: sweep refused`, `Next step: human`, and PR #74 stays draft (D-16).** The sweep is written out for a person to apply verbatim. The push landed: `origin/claude/relaxed-ramanujan-7q3ey3` is at `131c909`.
+
+**What a person has to do**
+1. Apply the sweep exactly as written under `## Review` › `### Sweep to apply` in `/home/user/geo-discovery-zone/tasks/T-081-git-fail-open-question-bank.md`. It covers four things:
+   - delete the brief;
+   - delete T-081 from `tasks.md`;
+   - trim T-070's git history, which T-081 retires;
+   - add the T-081 line to PROGRESS "Completed tasks" and rewrite the PROGRESS "no test fails on `main`" gap bullet, which still named paths that are gone.
+2. Confirm CI is green on the head commit. The run for `52ff18e` was still in progress when I looked.
+3. Mark PR #74 ready and merge it.
+
+**What the harness refused (auto-mode classifier)**
+- Deleting the brief and editing `tasks.md` and `PROGRESS.md` in one command was refused as "Irreversible Local Destruction".
+- A follow-up `git status` was then refused as "Modify Shared Resources".
+- Nothing from the sweep was applied: I checked with Glob and Grep. I did not look for another route to the same edits.
+
+**Review**
+- **Completeness:** every Sessions row has commits on the PR.
+- **Lanes:**
+  - The expander touched only `tasks/` and `tasks.md`.
+  - The worker added one new file plus the brief.
+  - The tester changed only the three approved test files, all in `f61e862`.
+  - The orchestrator touched `runs/` and the brief header.
+- **Envelope:**
+  - Files changed: the guard, the three approved test files, the brief, `tasks.md` and `runs/`.
+  - Nothing else changed: no dependency, no `openapi.yaml`, migration or plan, and no child-facing text.
+  - `Test changes:` names Dkaattae, not the orchestrator, and the diff matches rows 1–3 (row 3 as amended to a throw).
+- **Gates:** I re-ran `question-bank` on `52ff18e`: 1708 pass / 0 fail, with typecheck, lint and format:check clean. `frontend/` is unchanged, and CI run 466 passed it.
+- **Quality:**
+  - The guard fits the shape of the existing frontend guard.
+  - It is 722 lines, but about half are self-tests that replay the brief's mutations, so the size is earned.
+  - It fails safe where it is unsure.
+  - One comment in `climate-kid.test.ts:596-597` still says "either way", from the old 0-or-1 check. I did not file it: the prose is still true, changing it would need another Test change request row, and T-064 deletes that test anyway.
+- **Worker flags, all settled:**
+  - Allowing `diff` with no revision is confirmed.
+  - `committed-bank.test.ts:430` was approved by Dkaattae at the Test change request.
+  - The heuristic lexer is accepted, with criterion 11's floors as the backstop.
+  - The shared session id is resolved: the tester ran in its own session.
+
+**Commits pushed**
+- `985a23e`: the `## Review` section and the reviewer Sessions row.
+- `131c909`: `Status: sweep refused` and `### Sweep to apply`.
+
+PR comment with the same summary: https://github.com/Dkaattae/geo-discovery-zone/pull/74#issuecomment-6063836934
+
+## Halted — sweep refused — 2026-10-08
+Branch head at halt: `131c909`. Per D-16 the person was asked directly in the orchestrator session. No one-hour self check-in was scheduled: the harness refused this sweep to the reviewer, and the orchestrator will not apply the same refused edits without the person's say-so in this session.
