@@ -359,7 +359,7 @@ I applied all three fixes in a scratch working tree. The guard plus those three 
 | 15 | pass | No `package.json` or `bun.lock` in the diff |
 | 16 | pass | Guard's own `git ls-files -z -- question-bank/src` throws on non-zero; its "criterion 16" block passes |
 | 17 | pass | Only spawn is `git ls-files`; full suite ran without network |
-| 18 | pass (question-bank) / CI (frontend) | `question-bank`: `bun test` 1708/0, typecheck, lint, format:check clean. `frontend`: not runnable here (403 on `react-simple-maps`, `d3-timer`); PR CI runs those gates |
+| 18 | pass | `question-bank`: `bun test` 1708/0, typecheck, lint, format:check clean. `frontend`: not runnable here (403 on `react-simple-maps`, `d3-timer`). PR CI run 466 (`d409fdc`, same `frontend/` tree as now) passed the frontend job's typecheck, lint, format and test; its only red was question-bank's Test step, the guard before the approved edits |
 
 **Inventory (criterion 3), final tree:** every row in the Handoff's inventory table is now fail-closed. The three that were not: `climate-kid.test.ts:595` → `expect(status).toBe(0)`; `fun-facts.test.ts:388` → `expect(….status).toBe(1)`; `committed-bank.test.ts:430` → `if (status !== 0) throw`. No row is left as "passes".
 
