@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`, once a human has approved the criteria below
-**Approved:** `pending`
+**Approved:** the user (repo owner), in the orchestrator session — 2026-10-08. See `runs/T-081-git-fail-open-question-bank.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
 **Branch:** `claude/relaxed-ramanujan-7q3ey3`
