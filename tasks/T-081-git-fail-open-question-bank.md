@@ -1,7 +1,7 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`, once a human has approved the criteria below
+**Status:** `awaiting verification`
+**Next step:** `tester` — attended: the guard is red on three pre-existing tests by design, and only a human can approve those changes (D-14, D-15)
 **Approved:** the user (repo owner), in the orchestrator session — 2026-10-08. See `runs/T-081-git-fail-open-question-bank.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-07 | cse_017mbfrRAp5jhR3D1pPAktBG |
+| worker | 2026-10-08 | cse_017mbfrRAp5jhR3D1pPAktBG |
 
 > **Plan to attend the tester step.** Criteria 1 and 2 can only be met by
 > changing tests that existed before this task. The worker may not do that
@@ -209,6 +210,123 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR.** One new file, `question-bank/src/git-exit-guard.criteria.test.ts`, guards `question-bank/src/`.
+It is **red by design** in one test, "every invocation fails when git exits with a status it does not expect". That test names three
+pre-existing call sites: the two from criteria 1 and 2, plus `committed-bank.test.ts:430`. All three are listed under
+**Tests made stale**, each with a one-line fix that I checked turns the guard green. Next: an **attended** tester raises the Test change request.
+
+**Note: the worker and the expander share session id `cse_017mbfrRAp5jhR3D1pPAktBG`.** It is the value
+`$CLAUDE_CODE_REMOTE_SESSION_ID` returned here. The orchestrator spawned this run, so the id is probably the
+parent session's and not this subagent's. The tester should run in a session whose id differs from this one.
+
+### What changed, file by file
+
+- **`question-bank/src/git-exit-guard.criteria.test.ts`**: new. This is the whole guard, plus self-tests that run the brief's mutations on synthetic sources.
+- **This brief**: the Sessions row, Status, Handoff and Notes.
+- **Nothing else.** No pre-existing test, no non-test `.ts`, no `package.json`, no `bun.lock`. `frontend/` is untouched.
+
+### How the guard works
+
+1. **Lex.** A small lexer tags every character as code, text (string, template text or regex) or comment. A template's `${…}` counts as code.
+   - Comment mentions like `highest-point-in-state-verify.test.ts:17` are not invocations.
+   - Neither is the string `'git(["ls-files"'` at `climate-kid.test.ts:778`.
+2. **Find invocations.**
+   - **Literal:** an array literal in code whose first element is the string `git`.
+   - **Wrapper definition:** a literal that is exactly `[git, ...P]` inside a `function NAME(P` or `const NAME = (P`. It is not counted as an invocation.
+   - **Wrapper call:** every call `NAME(` to a defined wrapper, apart from the definition itself.
+3. **Apply three rules to each invocation.**
+   - **Subcommand** (criterion 4): it must be one of `ls-files`, `status`, `check-ignore` or `diff`, written as a string literal.
+   - **Revision** (criterion 5): no argument may look like a revision. That covers `HEAD`, `origin/`, `upstream/`, `refs/`, `a..b`, `a...b`, `@{`, `~n`, `^`, a 7–40 character hex sha, `--with-tree`, `--merge-base`, `--since` and `--until`. `diff` also takes no positional argument before `--`.
+   - **Exit** (criteria 3 and 6–8): the call must be fail-closed in one of these shapes:
+     - through a wrapper that throws itself;
+     - `expect(<call>.status|.exitCode).toBe|toEqual|toStrictEqual(<integer>)`;
+     - `const {status}` or `const proc = <call>`, where the **first** later use of the status is `if (S !== 0) throw` or `expect(S).toBe(<integer>)`.
+
+   Anything else is flagged, reported as `file:line: reason — snippet`.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1, 2 | Not done by me. The guard flags both (`climate-kid.test.ts:595`, `fun-facts.test.ts:388`). See Tests made stale. |
+| 3 | The exit rule. The full inventory, as the guard classifies it, is below. |
+| 4 | `subcommandProblem`, the allowlist. Self-tests run each of the nine named subcommands plus both brief mutations. |
+| 5 | `revisionProblem`. Self-tests cover the range, `--with-tree=HEAD~1`, a 7-character and a 40-character sha, and `diff main --`. |
+| 6, 7, 8 | `exitProblem`. Self-tests use the brief's exact snippets. |
+| 9, 10 | The self-tests in "criteria 9–10" cover every listed shape, plus comment, string and regex mentions. |
+| 11 | The describe block "criterion 11": more than 20 files, at least one invocation, and wrapper-only invocations found in `fun-facts.test.ts` and `committed-bank.test.ts`. |
+| 12 | Unchanged. `frontend/src/git-baseline-guard.criteria.test.ts` is untouched and passes, 15/15. |
+| 13–15 | Nothing pre-existing was modified. Check with `git diff --stat origin/main...`. |
+| 16 | Its one spawn is `git ls-files -z -- question-bank/src`, which throws on a non-zero exit. The describe block "criterion 16" asserts that exactly one invocation is found in the guard and that it is clean. |
+| 17 | No network. The only spawn is that `git ls-files`. |
+| 18 | See "Gates run" below. The frontend full suite could **not** be run. |
+
+**Inventory (criterion 3)**, as the guard reads the tree today. "ok" means a non-zero exit fails the test in the way given.
+
+| file:line | shape | how a non-zero exit fails |
+|---|---|---|
+| climate-kid.test.ts:223 | wrapper | `if (status !== 0) throw` |
+| climate-kid.test.ts:595 | wrapper | **fails open**: disjunction (criterion 1) |
+| climate-koppen.criteria.test.ts:67 | literal | `if (proc.exitCode !== 0) throw` |
+| committed-bank.test.ts:37 | wrapper | throw |
+| committed-bank.test.ts:238, :243, :391, :397, :403 | wrapper | `expect(….status).toBe(n)` |
+| committed-bank.test.ts:349 | wrapper | `expect(status).toBe(0)` |
+| committed-bank.test.ts:430 | wrapper | **flagged**: `.stdout` read, status never checked (fails closed by accident, see below) |
+| fun-facts.test.ts:50 | wrapper | throw |
+| fun-facts.test.ts:375, :378 | wrapper | `expect(….status).toBe(0)` |
+| fun-facts.test.ts:388 | wrapper | **fails open**: `=== 0` boolean (criterion 2) |
+| git-exit-guard.criteria.test.ts:53 | literal | throw |
+| highest-point-in-state-verify.test.ts:487 | literal | `expect(proc.exitCode).toBe(0)` |
+| highest-point-verify.test.ts:57 | literal | throw |
+| landmarks.test.ts:150, state-animals.test.ts:147, top-crops.test.ts:37 | wrapper | throw |
+| top-crops-verify.test.ts:140, :151; top-livestock-verify.test.ts:54 | throwing wrapper | the wrapper throws |
+
+### Tests made stale
+
+The guard test that is red is the new test `git-exit-guard.criteria.test.ts` › "T-081 criteria 3–8 — every git invocation under question-bank/src is fail-closed" › "every invocation fails when git exits with a status it does not expect".
+It is red because of these three pre-existing tests. The tests themselves still pass.
+
+1. **`climate-kid.test.ts` › "T-014 criterion 13…" describe › "sample-data/us-state-co.json was not touched by this task (git status is clean for it)"**
+   - **Why:** criterion 1. Line 598 is a disjunction that accepts exit 1.
+   - **Proposed: modify.** Replace `expect(status === 0 || status === 1).toBe(true);` with `expect(status).toBe(0);`.
+   - Deleting it is also allowed under criterion 1, because T-064 removes `sample-data/`. That is the human's call at the Test change request.
+2. **`fun-facts.test.ts` › "T-011 criterion 10 — nothing unreviewed, live or new is committed" › "the 51 bank paths are still tracked and still not ignored"**
+   - **Why:** criterion 2. Line 388 turns the status into `=== 0`, so a 128 passes.
+   - **Proposed: modify.** Replace the `expect({ path, ignored: … }).toEqual({ path, ignored: false })` block with `expect(git(["check-ignore", "--no-index", "-q", path]).status).toBe(1);`. This is the shape `committed-bank.test.ts:238` already uses.
+   - This test may not be deleted (criterion 2).
+3. **`committed-bank.test.ts` › "T-010 round 2 — criteria 11 and 15…" › `${doc} — every test it credits with a criterion exists and contains that claim`** (four generated tests, one per doc)
+   - **Why:** line 430 reads `git([...]).stdout` with no status check.
+   - **Proposed: modify.** Destructure `const { status, stdout } = git([...]);` and add `expect(status).toBe(0);`, then split `stdout` as before.
+   - **Out of scope says** nothing requires the guard to flag this, and that a change here is a Test change request row. I flagged it on purpose (see Notes).
+   - If the human rejects the row, the guard needs a narrow exemption instead. That makes it a guard change, not a test change.
+
+I applied all three fixes in a scratch working tree. The guard plus those three files went 320 pass / 0 fail. I then reverted them, so none are committed.
+
+**Count floors:** none affected.
+
+### How to run
+
+- `cd question-bank && bun test src/git-exit-guard.criteria.test.ts`: 36 pass, 1 fail (the stale red above).
+- Mutations: append the snippet inside a `test(...)` in a tracked file, run the guard, then `git checkout -- <file>`.
+- I ran every brief mutation against a real file (criterion 4: `Bun.spawnSync([git, "rev-parse", "HEAD"])` and `git(["log", "-1"])`; criterion 5: the range, `--with-tree=HEAD~1` and a sha; criteria 6, 7 and 8). Each one was flagged with its file and line.
+- I did not run criterion 12's mutation. The frontend guard is unchanged, and its criterion-3 test already rejects `show` and `HEAD:`.
+
+### Gates run
+
+- **question-bank**:
+  - `bun test`: 1707 pass, 1 fail (the stale red only).
+  - `typecheck`, `lint` and `format:check`: clean.
+- **frontend**:
+  - `bun install --frozen-lockfile` failed with **403 from the egress proxy** on `react-simple-maps-3.0.0.tgz`. That is a policy denial, so I did not retry it.
+  - I ran `bun test src/git-baseline-guard.criteria.test.ts` on its own, since it needs no packages: 15 pass, 0 fail.
+  - **The full frontend suite, typecheck, lint and format:check were not run.** Nothing under `frontend/` changed. The tester should run them in an environment that can install.
+
+### Deliberately not done
+
+- **No edit to any pre-existing test** (D-14), including the three above.
+- **No shared `git()` module** (out of scope).
+- **No change to the frontend guard.**
+
 ## Verdict
 
 ## Test change request
@@ -234,3 +352,29 @@ Required reading for the worker and the tester.
   `["git", ...args]` as having no readable subcommand and no `exitCode !== 0`
   nearby. How the guard handles wrappers is the worker's choice. The mutations
   pin down what it must catch.
+- **Worker: the guard is an allowlist of fail-closed shapes, not a denylist of
+  the brief's mutations.** A denylist would miss the next variant, such as
+  `if (r.status === 0) {…}`. The cost is that it also flags
+  `committed-bank.test.ts:430`, which only fails closed because empty output
+  happens to make `tracked: false` fail. I took that cost: a `.stdout` read with
+  no status check is exactly the shape that recurs. **Owner:** the human at the
+  tester's Test change request approves row 3, or rejects it. If they reject it,
+  the tester sends the task back to the worker to add an exemption.
+- **Worker: `diff` is allowed only with no revision.** That means no argument
+  before `--`, because a bare branch name such as `main` is a revision that no
+  pattern can see. `diff` compares the working tree to the index. Allowing it
+  lets criterion 1 be fixed in one line, without rewriting the test to use
+  `status --porcelain`. **Owner:** the reviewer confirms it or overturns it. If
+  overturned, remove `diff` from `ALLOWED_SUBCOMMANDS`, and site 1 then needs
+  `status --porcelain` or deletion.
+- **Worker: the lexer handles regex literals and template expressions.** The
+  frontend `codeOf()` does neither. Without regex handling, the quote inside
+  `/["'`]/` in `committed-bank.test.ts`, and in the guard itself, would throw
+  off string tracking. Regex-versus-division is decided by the previous
+  significant character, a standard heuristic. **Known limit:** it is
+  heuristic, not a parser. A file that defeats it errs towards finding nothing,
+  and criterion 11's per-file floors are there to catch that for the two
+  wrapper-only files.
+- **Worker: the session id is shared with the expander.** See the Handoff.
+  **Owner:** the orchestrator or a human, who should confirm that the tester
+  runs in a distinct session.
