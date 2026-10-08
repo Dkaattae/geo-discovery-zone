@@ -1,13 +1,13 @@
 # T-081 — The last `git` check that passes when `git` fails, and a guard for `question-bank/src/`
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — attended: the guard is red on three pre-existing tests by design, and only a human can approve those changes (D-14, D-15)
+**Status:** `test changes requested`
+**Next step:** `human` — approve or refuse each row of the Test change request, in an attended tester session
 **Approved:** the user (repo owner), in the orchestrator session — 2026-10-08. See `runs/T-081-git-fail-open-question-bank.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-081, split out of T-070 on 2026-10-06
 **Branch:** `claude/relaxed-ramanujan-7q3ey3`
 **PR:** #74, opened draft against the branch above at expand time. It stays draft until the reviewer approves it
-**Fault:**
+**Fault:** test changes are waiting for a person's approval (three rows, D-15). Everything else verified.
 
 **Sessions:**
 
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-07 | cse_017mbfrRAp5jhR3D1pPAktBG |
 | worker | 2026-10-08 | cse_017mbfrRAp5jhR3D1pPAktBG |
+| tester | 2026-10-08 | cse_01CFy7c1T6hS9XTA2Ff6THQX |
 
 > **Plan to attend the tester step.** Criteria 1 and 2 can only be met by
 > changing tests that existed before this task. The worker may not do that
@@ -330,6 +331,14 @@ I applied all three fixes in a scratch working tree. The guard plus those three 
 ## Verdict
 
 ## Test change request
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/climate-kid.test.ts` › "T-014 criterion 13 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json was not touched by this task (git status is clean for it)" | `bc544e3`, T-014 worker: that T-014 did not modify `sample-data/us-state-co.json` | Criterion 1: line 598 `expect(status === 0 \|\| status === 1).toBe(true)` accepts exit 1, which `git diff --name-only` never returns on success. The new guard flags it (criterion 6) | modify (delete also allowed by criterion 1, since T-064 removes `sample-data/`) | Same name. Line 598 becomes `expect(status).toBe(0);`. Nothing else changes; `expect(stdout).not.toContain("us-state-co.json")` stays | *pending* |
+| 2 | `question-bank/src/fun-facts.test.ts` › "T-011 criterion 10 — nothing unreviewed, live or new is committed" › "the 51 bank paths are still tracked and still not ignored" | `19027c6`, T-011 tester: the 51 bank files stay tracked and are not gitignored | Criterion 2: line 388 `ignored: …status === 0` turns exit 128 into `ignored: false`, which passes. Guard flags it (criterion 8) | modify (criterion 2 forbids delete) | Same name. `trackedUnder(...)` and `toHaveLength(51)` unchanged. The `expect({ path, ignored: … }).toEqual({ path, ignored: false })` block becomes `expect(git(["check-ignore", "--no-index", "-q", path]).status).toBe(1);` (the shape `committed-bank.test.ts:238` uses). Exit 1 passes; 0 and 128 fail | *pending* |
+| 3 | `question-bank/src/committed-bank.test.ts` › "T-010 round 2 — criteria 11 and 15: a doc that credits a test names one that says so" › `${doc} — every test it credits with a criterion exists and contains that claim` (four generated tests: `question-bank/.gitignore`, `question-bank/README.md`, `engineering-decisions.md`, `PROGRESS.md`) | `807fa96`, T-010 tester: every test a doc credits with a criterion exists and quotes that claim | Not required by any criterion (Out of scope says the guard need not flag line 430; a change is a row if it does). The guard flags it: `git([...]).stdout` is read with no status check. Fails closed today only by accident (empty output → `tracked: false`) | modify | Same names. Line 430 becomes `const { status, stdout } = git(["ls-files", "--", \`*/${file}\`, file]);` then `expect(status).toBe(0);`, then `const matches = stdout.split("\\n").filter(Boolean);`. Every existing assertion stays. **If refused**, the guard needs an exemption — back to `worker` | *pending* |
+
+No count floor is affected (none of these files carries one, and nothing is deleted unless row 1 is approved as a delete).
 
 ## Notes
 
