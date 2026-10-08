@@ -35,3 +35,6 @@
 **Files**
 - /home/user/geo-discovery-zone/tasks/T-082-build-spawn-guard.md
 - /home/user/geo-discovery-zone/tasks.md
+
+## Approval — 2026-10-08
+The user was asked in the orchestrator session whether to record their approval, stamp an unattended one, or stop. They chose "I approve, continue". The header now records that human approval. The orchestrator did not read the criteria.

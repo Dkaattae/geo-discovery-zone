@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`, once a human has approved the criteria below
-**Approved:** `pending`
+**Approved:** Dkaattae (in the orchestrator session, 2026-10-08: "I approve, continue"). The orchestrator did not read the criteria. See `runs/T-082-build-spawn-guard.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-082
 **Branch:** `claude/affectionate-wright-jaormy`
