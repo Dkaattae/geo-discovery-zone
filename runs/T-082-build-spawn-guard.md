@@ -38,3 +38,49 @@
 
 ## Approval — 2026-10-08
 The user was asked in the orchestrator session whether to record their approval, stamp an unattended one, or stop. They chose "I approve, continue". The header now records that human approval. The orchestrator did not read the criteria.
+
+## Round 2 — worker — 2026-10-08
+`Next step` on entry: `worker` (`Status: awaiting approval`) → on exit: `tester` (`Status: awaiting verification`). Pushed as `2f09b38`.
+
+**TL;DR.** T-082 is built and pushed. It is at `awaiting verification`, and the tester goes next. The new spawn guard fails on purpose until the tester gets a person's approval to change the two refresh tests, so **a person has to be present at the tester step**. An unattended tester will stop at `test changes requested` / `human`.
+
+**Push:** commit `2f09b38` ("T-082 worker: …") is on `origin/claude/affectionate-wright-jaormy`, which is the branch the brief names. I checked with `git log origin/claude/affectionate-wright-jaormy -1`.
+
+**Suite results in `question-bank/`:**
+- **`bun test`:** 1724 pass, 1 fail. The failure is the guard's "no tracked test spawns build.ts". It names `refresh-verify.test.ts:379` and `refresh.test.ts:194`, as the brief predicted.
+- **Typecheck, lint and format:check:** all pass.
+- **Environment:** `node_modules` was missing at first. I ran `bun install --frozen-lockfile`, and the lockfile did not change.
+
+**What changed:**
+- **`question-bank/src/offline-rebuild.ts`:**
+  - Both entry points take an optional fourth parameter, `{ fixture?: string }`. When it is set, the harness passes `--fixture <resolved path>` to the build.
+  - The report returned by `rebuildOfflineWithStdout` has a new `listing: string[]` field: every file the build wrote, sorted.
+  - Nothing else in the file changed. Existing callers work unchanged.
+- **`question-bank/src/spawn-guard.test.ts` (new): the guard.**
+  - It checks the argv array of every `Bun.spawn` / `Bun.spawnSync` call in the tracked `*.test.ts` files under `question-bank/src/`.
+  - It flags an argv that contains `build.ts` as text, or that uses a `const`/`let` name whose value contains `build.ts`.
+  - It includes probe tests for each mutation shape in criteria 8–11 and each allowed case in criterion 12.
+  - Its own source is assembled from parts, so neither it nor the three older guards flag it.
+- **`question-bank/src/offline-rebuild-fixture.test.ts` (new):** my own checks for criteria 1, 2 and 4, plus `listing`.
+- **The brief (`tasks/T-082-build-spawn-guard.md`):** Status, Next step, my Sessions row, the Handoff (with a criterion-by-criterion table) and Notes.
+
+**Tests made stale** (exact replacement code is in the Handoff):
+- **`refresh.test.ts`** › "an offline build from the written fixture reproduces the bank byte for byte".
+- **`refresh-verify.test.ts`** › "criterion 8: build.ts --offline from the written fixture reproduces the bank byte for byte".
+- **Proposed change for both:** modify them to call `rebuildOfflineWithStdout(…, { fixture })` and swap the `DEAD_PROXY` import for the harness import.
+  - A file only in the rebuild is caught by comparing `listing` with the bank.
+  - A file only in the bank is caught because the harness throws when it tries to read that name back.
+- **Tried on throwaway copies (since deleted):** both replacements pass, and both still fail for each of cases (a), (b) and (c) in criterion 6.
+
+**Decisions for the reviewer to confirm or overturn:**
+- Adding `listing` to the report, rather than adding a third entry point.
+- Passing the fixture inside an options object rather than as a bare string argument.
+- Having the replacements use `rebuildOfflineWithStdout`, because only its report carries `listing`.
+
+**Process flag:** `$CLAUDE_CODE_REMOTE_SESSION_ID` gives the expander and the worker the same id, because the orchestrator spawns both inside one session. The tester's "not the same session" check therefore can't be made from the Sessions table in an orchestrated run. Whoever owns `process-tasks.md` should decide whether to fix that.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-082-build-spawn-guard.md
+- /home/user/geo-discovery-zone/question-bank/src/offline-rebuild.ts
+- /home/user/geo-discovery-zone/question-bank/src/spawn-guard.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/offline-rebuild-fixture.test.ts
