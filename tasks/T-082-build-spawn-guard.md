@@ -1,7 +1,7 @@
 # T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision on PR #75; see Review)
 **Approved:** Dkaattae (in the orchestrator session, 2026-10-08: "I approve, continue"). The orchestrator did not read the criteria. See `runs/T-082-build-spawn-guard.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-08`
 **From:** [`tasks.md`](../tasks.md) T-082
@@ -17,6 +17,7 @@
 | worker | 2026-10-08 | cse_01QcjHTfUsm5YqzVagoD4oww (orchestrated subagent; the remote session id is shared by every role the orchestrator spawns, so it cannot tell the roles apart here) |
 | tester | 2026-10-08 | cse_01QcjHTfUsm5YqzVagoD4oww (orchestrated subagent, freshly spawned; same shared remote id as the worker, so the id check cannot show separation, see Verdict) |
 | tester | 2026-10-08 | cse_01S1Sk78MFcFw5LyeqSZgpWP (attended; a separate remote session from every row above) |
+| reviewer | 2026-10-12 | cse_01QcjHTfUsm5YqzVagoD4oww (orchestrated subagent; shared remote id, see P-14) |
 
 > **Plan to attend the tester step.** Criteria 6 and 7 can only be met by
 > changing two tests that existed before this task (`refresh.test.ts`,
@@ -24,6 +25,58 @@
 > under **Tests made stale**, and the tester raises a Test change request that a
 > person approves in the tester's own session (D-15). An unattended tester will
 > halt at `test changes requested` / `human`.
+
+## Review
+
+**TL;DR. Approved, escalated on one point.** The code is small, idiomatic and
+does what the brief asked; the suite is green on my run (1739 pass, 0 fail;
+typecheck, lint, format:check clean). **Escalated because `process-tasks.md`
+changed** (`b82328a`, the P-14 ticket), which is outside criterion 16's allowed
+files and was committed by the orchestrator session, not by a role. A person
+should confirm P-14 belongs in this PR before merging.
+
+**Every role's work is in the PR.** expander `34636c2`/`f90ea27`, worker
+`2f09b38`, tester `e758f91`/`b352c9c` (orchestrated) and `cde9d63`/`1b11b76`
+(attended), orchestrator `84619ba`/`a92deb3`/`6287b7f`/`3c57ecc`.
+
+**Lanes.** Expander touched only `tasks/` and `tasks.md`. Worker touched
+`offline-rebuild.ts`, two new test files and the brief; no pre-existing test.
+Tester touched no source; the only pre-existing tests modified are the two
+approved rows, in `cde9d63`, matching the request text exactly.
+`Test changes:` names Dkaattae, a person, so no copy of the rows is required in
+the PR body; it is included anyway as the brief is swept.
+
+### Findings (none blocking)
+
+1. **`process-tasks.md` changed outside the Constraints** (`b82328a`). The
+   content is sound (it disposes of the worker's and tester's session-id flag),
+   but `process-tasks.md` is "done by hand" and criterion 16 does not allow it.
+   **Escalated**, not sent back: there is nothing for an agent to fix, only for a
+   person to accept or move.
+2. **`spawn-guard.test.ts:7`** is one over-long doc-comment line (prettier does
+   not wrap comments). Cosmetic; no task.
+3. **Four guards now enforce one rule** (the three narrow ones plus
+   `spawn-guard.test.ts`, which subsumes them). Retiring the old three is a Test
+   change request for little gain; the brief's Out of scope already said "not
+   required". No task added, deliberately.
+
+### Worker's judgment calls, disposed
+
+- **`listing` on the report**: confirmed. Smallest additive way to keep (b)
+  detectable; T-083 can use it.
+- **Options object as a fourth parameter**: confirmed. Backward-compatible and
+  leaves room for T-083 without another positional.
+- **Replacements use `rebuildOfflineWithStdout`**: confirmed; only it carries
+  `listing`, and stdout is simply ignored.
+- **Guard scans tracked files only**: confirmed; that is the brief's definition.
+- **Bracket-matcher, not a parser** (Notes): accepted for test sources;
+  comment-awareness is out of scope.
+- **Session-id caveat** (Notes): disposed by P-14 in `process-tasks.md`.
+
+### Queue
+
+- **T-083 rewritten**: its blocker (no `--fixture` on the harness) is gone;
+  the entry now says the harness takes `{ fixture }` and returns `listing`.
 
 ## Goal
 
