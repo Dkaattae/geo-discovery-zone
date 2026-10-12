@@ -1,7 +1,7 @@
 # T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable — run log
 
 **Task:** T-083 · **Branch:** `claude/awesome-hamilton-gft1hi` · **PR:** #76
-**Started:** 2026-10-12 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-12 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-10-12
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -118,3 +118,6 @@ That session then applies the approved rows, reruns the full suite and writes th
 
 ## Halted — test change request — 2026-10-12
 Raised by tester commits `7c957db` (session `cse_01U3AvJtbD4ftspuhsxd6PZJ`, not spawned by this orchestrator) and `18c82c9` (the tester this orchestrator spawned). Rows not read here. Resumes only through a tester session a person attends (D-15). The orchestrator does not approve or relay the approval, and spawns no further role. The run ends here.
+
+## Resumed — 2026-10-12
+An attended tester session, outside this orchestrator, applied the test change request and verified: commits `25a884e`, `cc639b2`, `6b23191`. Its report was not relayed here. Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-12`. Dkaattae in this session: "ci is fixed".
