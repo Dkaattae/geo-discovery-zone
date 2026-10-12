@@ -1,7 +1,7 @@
 # T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it — run log
 
 **Task:** T-082 · **Branch:** `claude/affectionate-wright-jaormy` · **PR:** #75
-**Started:** 2026-10-08 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-08 · **Outcome:** ready for merge, escalated: a person decides on commit `b82328a` (P-14) before merging PR #75
 
 ## Round 1 — task-expander — 2026-10-08
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker, once a human has approved the criteria below` (`Status: awaiting approval`, `Approved: pending`)
@@ -129,3 +129,63 @@ No count floor pins either file. All mutations are reverted, I edited no source,
 
 ## Halted — test change request — 2026-10-08
 Raised in `b352c9c`. Header reads `Status: test changes requested`, `Next step: human`, `Test changes: requested`. The orchestrator did not open the request and does not approve or relay one (D-15). To resume: a person starts the `tester` step for T-082 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. A new run then carries on from the header's `Next step`.
+
+## Resumed — attended tester — 2026-10-08
+Dkaattae ran the `tester` step in an attended session (`cse_01S1Sk78MFcFw5LyeqSZgpWP`), approved the two rows, and that tester applied them (`cde9d63`) and set `Status: pass`, `Next step: reviewer` (`1b11b76`). Not relayed by the orchestrator; its result is in the brief's Verdict, not copied here.
+
+## P-14 — 2026-10-12
+On the user's instruction in the orchestrator session, the orchestrator added P-14 to `process-tasks.md` (`b82328a`): every role it spawns shares one session id, so the Sessions table cannot show the tester's independence. This is outside the task's criteria; the user was told the reviewer might flag it.
+
+## Round 4 — reviewer — 2026-10-12
+`Next step` on entry: `reviewer` (`Status: pass`) → on exit: `human` (`Status: approved — escalated`), then the brief was deleted by the sweep. Pushed as `8e12a0b`, `b9a5a89`.
+
+**I approved T-082 but escalated it. PR #75 is now ready for review and is not merged.** The code is good. The one thing a person must decide before merging is commit `b82328a`. It adds a P-14 ticket to `process-tasks.md`, which criterion 16 does not allow, and it was made by the orchestrator session rather than by one of the roles. The ticket itself is sound: it records that every role the orchestrator spawns shares one session id, which the worker and tester both flagged. **Next:** Dkaattae either accepts P-14 riding in this PR and merges, or drops or moves that commit first.
+
+**State, checked after the push:**
+- **Branch:** `claude/affectionate-wright-jaormy` HEAD is `b9a5a89`, and the remote matches.
+- **PR #75:** open, no longer draft, not merged. The body starts with the escalation note and holds the envelope table, what verified each criterion, both approved test change rows, the review and the criteria verbatim. The title was updated.
+- **Commits I added:**
+  - `8e12a0b`: a `## Review` section in the brief, Status `approved — escalated`, Next step `human`, and my Sessions row.
+  - `b9a5a89`: the sweep.
+- **Marking ready:** `gh pr ready` failed with HTTP 403 because GraphQL is blocked from this session. I used the REST route `POST .../pulls/75/ccr/ready_for_review` instead.
+
+**Review checks:**
+- **Every role's work is in the PR:**
+  - expander: `34636c2`, `f90ea27`
+  - worker: `2f09b38`
+  - tester: `e758f91`, `b352c9c`, `cde9d63`, `1b11b76`
+  - orchestrator: four logging commits
+- **Lanes:** the expander touched only `tasks/` and `tasks.md`. The worker changed no existing test. The tester changed no source. The only existing tests modified are the two approved rows, both in `cde9d63`, and they match the request text exactly.
+- **Test change approval:** `Test changes:` names Dkaattae, who approved in an attended tester session. It is not an orchestrator approval.
+- **My rerun in `question-bank/`:** `bun test` 1739 pass, 0 fail. Typecheck, lint (0 warnings) and `format:check` are clean. I ran the suite again after the sweep with the same result.
+- **Envelope:** no dependency was added. Nothing changed in `openapi.yaml`, any migration, `geoquizdataplan.md`, or text a child reads.
+
+**The worker's judgment calls:** I confirmed all of them.
+- the new `listing` field on the harness's report
+- the `{ fixture }` options object as a fourth parameter
+- the replacement tests using `rebuildOfflineWithStdout`
+- the guard scanning tracked files only
+- the guard using a bracket matcher rather than a parser
+
+The session-id flag is the one already recorded as P-14.
+
+**Findings that don't block (no tasks added):**
+- **Long comment line:** `spawn-guard.test.ts:7` is an over-long doc-comment line. Cosmetic only.
+- **Four guards for one rule:** the new guard covers what the three older, narrower guards check. Retiring them would need a test change request for little gain, and the brief put it out of scope.
+
+**Sweep (`b9a5a89`):**
+- Deleted `tasks/T-082-build-spawn-guard.md`.
+- Deleted the T-082 entry from `tasks.md`.
+- Rewrote T-083 in `tasks.md`: what blocked it (no fixture option on the harness) is gone, and it now names `{ fixture }` and `listing`.
+- `PROGRESS.md`: added a T-082 line under "Completed tasks", including where reality differed from the brief, and updated the offline-harness bullet.
+- No queue entries deleted.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md (P-14, the escalated commit)
+- /home/user/geo-discovery-zone/question-bank/src/offline-rebuild.ts
+- /home/user/geo-discovery-zone/question-bank/src/spawn-guard.test.ts
+
+## Ended — 2026-10-12
+The reviewer approved, escalated, and marked PR #75 ready. The run stops here. Merging is Dkaattae's (D-4); the one decision is whether P-14 (`b82328a`) rides in this PR.
