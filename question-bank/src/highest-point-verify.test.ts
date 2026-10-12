@@ -26,14 +26,13 @@ import type { SparqlResults } from "./sparql";
  *    Alaska's file must digest to that value once its one new
  *    `highest_point` line is removed, and the other 51 paths must digest to it
  *    untouched.
- *  - Criterion 9's "the warning count for the full fixture build is what it is
- *    on the default branch" is pinned at `0`, measured by running
- *    `src/build.ts --offline` against the default branch worktree — not by
- *    counting what this branch happens to emit.
- *  - Criterion 8's "`build.ts`'s report prints that warning" is exercised end
- *    to end through the real CLI, on a *derived* fixture written to a temp
- *    directory (the committed recording is never edited, `test-guidelines.md`
- *    "Fixtures are recordings").
+ *  - Criterion 9's full-fixture warning count is 3: T-079's three
+ *    `highest_point_m` overrides (its approved test change request row 6) and
+ *    nothing else. The CLI's stdout carrying that 3 is pinned by
+ *    `build-report-stdout.test.ts` (T-080).
+ *  - Criterion 8's warning is checked here in `normalizeUsStates`. The real
+ *    CLI printing it for a derived fixture is asserted in
+ *    `report-warnings-stdout.test.ts` (T-083).
  *
  * No network: the only subprocess is the build CLI with `--offline` and all
  * six proxy spellings pointed at a dead loopback port. Nothing mocks `fetch`.
@@ -428,32 +427,6 @@ describe("T-016 tester, criterion 8 — a state left without a name says so", ()
       normalizeUsStates([rowFor("Alaska")]).warnings.filter((w) => w.field === "highest_point"),
     ).toEqual([]);
   });
-
-  test("build.ts's report prints every warning it is given, with no allow-list of fields", () => {
-    // The behavioural half of this criterion was checked by hand and is
-    // recorded in the brief's Verdict: a *derived* fixture (the committed
-    // recording is never edited) with Colorado's `highestPoint` and `capital`
-    // dropped makes the real CLI print
-    //   2 warning(s):
-    //     us-state-co.capital: missing
-    //     us-state-co.highest_point: missing
-    // It cannot live here as a test, because two committed guards
-    // (`top-crops-verify.test.ts` T-015 criterion 8, `climate-kid-verify.test.ts`
-    // T-014 criterion 16) forbid any *.test.ts from spawning `build.ts`, and
-    // `rebuildOffline` — the sanctioned route — returns written files, not
-    // stdout. What is asserted instead is the property that makes the printed
-    // line possible: `report()` iterates the warnings it is handed and filters
-    // none of them out by field, so a new field is printed the moment it exists.
-    const report = readFileSync(BUILD_SCRIPT, "utf8").slice(
-      readFileSync(BUILD_SCRIPT, "utf8").indexOf("function report("),
-    );
-    expect(report).not.toBe("");
-    expect(report).toMatch(/for \(const warning of warnings\)/);
-    expect(report).toContain("warning.entity");
-    expect(report).toContain("warning.field");
-    expect(report).toContain("warning.message");
-    expect(report).not.toMatch(/warnings\s*\.\s*filter\s*\(/);
-  });
 });
 
 describe("T-016 tester, criterion 9 — the full fixture build warns about nothing at all", () => {
@@ -464,10 +437,10 @@ describe("T-016 tester, criterion 9 — the full fixture build warns about nothi
   });
 
   test("and no warnings besides the three T-079 highest_point_m overrides", () => {
-    // Measured on the default branch (`origin/main`, 284b8bc) by running
-    // `bun run src/build.ts --offline`: it printed no warning line at all.
-    // T-079 test change request row 6 (approved): its three curated overrides
-    // each warn once (criteria 10–11); nothing else may.
+    // The full-fixture count is 3. T-079's three curated overrides each warn
+    // once (its test change request row 6, approved; criteria 10–11), and
+    // nothing else may. The CLI's stdout carries the same 3, pinned by
+    // `build-report-stdout.test.ts`.
     const { warnings } = normalizeUsStates(fixtureRows());
     expect(warnings).toHaveLength(3);
     expect(warnings.every((w) => w.field === "highest_point_m")).toBe(true);
@@ -480,11 +453,11 @@ describe("T-016 tester, criterion 9 — the full fixture build warns about nothi
   });
 
   test("a real offline rebuild of all 50 still produces Alaska's tracked bytes", () => {
-    // The CLI-stdout version of this ("no warning section printed") was run by
-    // hand on both this branch and a worktree at `origin/main`; both printed no
-    // warning line at all, which is where the pinned count of 0 above comes
-    // from. What is committed here goes through the sanctioned harness
-    // (`offline-rebuild.ts`) rather than spawning `build.ts` directly.
+    // The CLI-stdout side of criterion 9 (the full build prints exactly the
+    // three `highest_point_m` warnings) is pinned on real stdout by
+    // `build-report-stdout.test.ts` (T-080). This test checks the written bytes
+    // through the sanctioned harness (`offline-rebuild.ts`) rather than
+    // spawning `build.ts` directly.
     const rebuilt = rebuildOffline(BUILD_SCRIPT, ["us-state-ak.json"], "t016-rebuild-");
     expect(rebuilt.get("us-state-ak.json")).toBe(readState("us-state-ak.json"));
   });
