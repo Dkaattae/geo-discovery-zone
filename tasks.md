@@ -284,7 +284,7 @@ under (b), now T-080, must expect.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable · S · todo
+### T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable · S · doing — brief in `tasks/T-083-retire-source-grep-stand-in.md`
 **Depends on:** — (T-080, PR #73, and T-082, PR #75, made this possible)
 **New 2026-10-06, from T-080's reviewer.** `highest-point-verify.test.ts:433-455`
 ("build.ts's report prints every warning it is given…") greps `build.ts`'s
