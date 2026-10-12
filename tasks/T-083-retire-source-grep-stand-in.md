@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-12, in the orchestrator session ("I approve T083 criteria"). See `runs/T-083-retire-source-grep-stand-in.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-083
 **Branch:** `claude/awesome-hamilton-gft1hi`
