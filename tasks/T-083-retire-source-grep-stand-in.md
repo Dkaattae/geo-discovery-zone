@@ -16,6 +16,7 @@
 | task-expander | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
 | worker | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
 | tester | 2026-10-12 | cse_01U3AvJtbD4ftspuhsxd6PZJ |
+| tester | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK (orchestrator-spawned subagent; same id as expander/worker, see Verdict) |
 
 > **Plan to attend the tester step.** Criteria 5–7 change an existing test file
 > (`question-bank/src/highest-point-verify.test.ts`), and only the tester may do
@@ -319,11 +320,22 @@ _Written by `tester`._ All rows are in `question-bank/src/highest-point-verify.t
 | 3 | Same file › file header doc comment (`:28-35`): the criterion 9 and criterion 8 bullets | `34a174a`, T-016. It described how criteria 8 and 9 were verified. | Criterion 7: it says criterion 9's count "is pinned at `0`" (it is 3). It also says criterion 8 "is exercised end to end through the real CLI", which this file never did. | modify | No code changes. The criterion 9 bullet becomes: "the full-fixture warning count is 3: T-079's three `highest_point_m` overrides (its approved test change request row 6) and nothing else. The CLI's stdout carrying that 3 is pinned by `build-report-stdout.test.ts` (T-080)." The criterion 8 bullet becomes: "this file checks the warning in `normalizeUsStates`. The real CLI printing it for a derived fixture is asserted in `report-warnings-stdout.test.ts` (T-083)." | approved — Dkaattae, in the tester session ("approve 1–4, Dkaattae") |
 | 4 | Same file › "T-016 tester, criterion 9 — …" › "and no warnings besides the three T-079 highest_point_m overrides": **comment only** (`:469-472`). *Missed by the worker's list.* | `34a174a`, T-016, amended by T-079 row 6. It recorded where the expected count came from. | Criterion 7: "Measured on the default branch … it printed no warning line at all" is a statement that the full-fixture count was measured as 0. It is borderline, because it was true at `284b8bc`. | modify | Test name, body and assertions unchanged. The comment becomes: "The full-fixture count is 3. T-079's three curated overrides each warn once (its test change request row 6, approved; criteria 10–11), and nothing else may. The CLI's stdout carries the same 3, pinned by `build-report-stdout.test.ts`." | approved — Dkaattae, in the tester session ("approve 1–4, Dkaattae") |
 
+**Second tester's note on the request above** (`cse_01MS…`): I wrote my own
+four rows independently before I saw `7c957db`, then kept the rows above
+because they were pushed first. They name the same four passages with the same
+actions. Their wording differs from my dry-run's, but neither version contains
+any phrase that criteria 6–7 forbid (none of ``pinned at `0` ``, `count of 0`,
+`printed no warning line`, `by hand`). One more item for the approver: the
+describe name "T-016 tester, criterion 9 — the full fixture build warns about
+nothing at all" also implies a count of 0. Criterion 7 covers comments only, so
+no row proposes renaming it. If you want it renamed, say so and it becomes a
+fifth row.
+
 ## Verdict
 
 _Written by `tester`._
 
-**Pass.** All 18 criteria hold. The full `question-bank` suite is green (1746 pass, 0 fail; that is 1747 minus the one approved deletion), and typecheck, lint and format:check all exit 0. Next step: `reviewer`.
+**Pass.** All 18 criteria hold. The full `question-bank` suite is green: **1763 pass, 0 fail**. That is the worker's 1747, minus the one approved deletion, plus the orchestrated tester's 17 verify tests, and its criterion 5–7 tests are now green, and typecheck, lint and format:check all exit 0. Next step: `reviewer`.
 
 **Independence:** this is a separate session (`cse_01U3AvJtbD4ftspuhsxd6PZJ`) from the expander and the worker (`cse_01MSfVMBpo6T2CEZcvWpdetK`). A person started it directly. It was not spawned by the orchestrator.
 
@@ -353,6 +365,72 @@ _Written by `tester`._
 **Observations, not failures:**
 - **A stale describe name:** "T-016 tester, criterion 9 — the full fixture build warns about nothing at all" is now untrue, since the count is 3. Criterion 7 covers comments only, so I left it alone. It could go in a later task.
 - **A blank line in quiet output:** a quiet build still prints `report()`'s leading blank line (the worker raised this). No criterion forbids it, and criterion 8's summary lines are all present.
+
+### Earlier verdict from the orchestrated tester (`cse_01MS…`), kept as a record
+
+That tester ran at the same time as this one and halted before the rows were approved. It is superseded by the verdict above. Its 17 verify tests (`report-warnings-stdout-verify.test.ts`) and its mutations M1–M4 still stand, and its criterion 5–7 tests are now green.
+
+**TL;DR: not a pass yet. The task is halted at `test changes requested`.**
+Criteria 1–4 and 8–18 hold, each tested and checked by mutation. Criteria 5–7
+need four comment/test edits to `highest-point-verify.test.ts`, and nobody has
+approved them yet. **Next:** a person starts an attended `tester` session for
+T-083 and approves or refuses the four rows above. That tester applies them and
+reruns everything.
+
+**Independence.** This is an orchestrated run (`runs/T-083-…md` exists), so
+every role has the same session id (`cse_01MSfVMBpo6T2CEZcvWpdetK`) and the
+Sessions-table check cannot prove anything. My independence comes only from
+being a freshly spawned agent with its own context. I did not see the worker's
+reasoning. That is weaker evidence than a separate session, because it depends
+on the orchestrator having spawned me correctly.
+
+**Tests added:** `question-bank/src/report-warnings-stdout-verify.test.ts`
+(17 tests). Expected values are quoted from the criteria, not from the code.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | three tests in "criteria 1–3": one header line, each Colorado line exactly once and after it (derived fixture via `rebuildOfflineWithStdout({ fixture })`) |
+| 2 | met | header `<n>` = warning lines after it |
+| 3 | met | committed fixture: neither line, and the `Wrote 50 entities…` line is checked so an empty stdout can't pass |
+| 4 | met | mutation M1 below turns both test files red |
+| 5 | **not yet met** (pending row 1) | criterion 5 tests red: `readFileSync(BUILD_SCRIPT` still present |
+| 6 | **not yet met** (pending rows 1–2) | scan of every file under `src/` finds all four phrases, all in `highest-point-verify.test.ts` |
+| 7 | **not yet met** (pending rows 2–4) | ``pinned at `0` ``, `count of 0`, `printed no warning line` still present |
+| 8 | met | quiet `runBuild` emits `Wrote 50 entities via json → …`, exactly one `3 warning(s):`, and one CT/OK/VA `highest_point_m` line each |
+| 9 | met | quiet run has no `Reading fixture`, `row(s) returned$`, `Querying…`, `Fetching…` or `  wrote …` line |
+| 10 | met | non-quiet run = the quiet output plus exactly `Reading fixture <default fixture>` and `  50 row(s) returned` (out path masked) |
+| 11 | met | in-process `runBuild(["--help"])`, with `console.log` captured and `process.exit` stubbed to throw: the `--quiet` line reads `Only print the final summary.` (also checked by hand with `bun run src/build.ts --help`) |
+| 12 | met | `offline-rebuild.ts` has no "prints nothing" |
+| 13 | met | new test: `rebuildOffline` output is byte-identical to every `data/us-states/*.json`. T-080/T-082/committed-bank tests are green and unmodified |
+| 14 | met | no `Bun.spawn` in either new file; `git diff b8f8855 --` the four spawn guards is empty, and they pass |
+| 15 | met | after the full suite, `git status --porcelain -- question-bank/` shows only my then-uncommitted test file, and no `t083-*` dir is left in `/tmp`. One leftover pair showed up from a `-t`-filtered run, where eager builds raced `afterAll`. I made those builds lazy and the leftovers did not come back (3 filtered runs, 2 full runs) |
+| 16 | met | harness uses `DEAD_PROXY`; in-process runs are `--offline`; no `fetch` anywhere in either file except a comment |
+| 17 | met | `git diff b8f8855 -- package.json bun.lock` empty |
+| 18 | met except the criterion 5–7 tests | `bun test`: **1760 pass, 4 fail**. The 4 fails are my criterion 5–7 tests, which are red until the rows are applied. `typecheck`, `lint` and `format:check` exit 0. The worker deleted or modified no pre-existing test |
+
+**Mutations** (all on `src/build.ts`; each was reverted by restoring a saved
+copy, and `git status` afterwards showed only my new test file):
+- **M1 (criterion 4).** `report()` skips warnings whose `field` is
+  `highest_point`. Red: the worker's criteria 1 and 2 tests, and my criterion 1
+  `highest_point` test and criterion 2 test. My criterion 1 `capital` test
+  stayed green, which is correct.
+- **M2.** `report()` gets `log` instead of `print` (the old behaviour). Red:
+  criterion 8 (both of my tests and the worker's) and my criterion 10
+  equivalence test. I re-ran this after the lazy-build change and got the same
+  result.
+- **M3.** `--quiet` is ignored (`log = print`). Red: criterion 9 (mine and the
+  worker's) and my criterion 10 equivalence test.
+- **M4.** `--help` text changed. Red: criterion 11.
+
+**Rows were dry-run.** I applied my own wording of the same four rows (delete row 1; rows 2–4 rewritten to name 3 or no number, row 4 by dropping the two "Measured … no warning line" lines) to a scratch copy of
+`highest-point-verify.test.ts` and then restored the file. With them applied,
+criteria 5–7 go green, and that file plus `region-vocabulary.test.ts` pass
+(122/0), with typecheck, lint and prettier clean. Once the rows are approved
+and applied, I expect the whole suite to be green and the verdict to be
+**pass**, with Next step `reviewer`.
+
+**Worker's open question.** A quiet build now prints `report()`'s leading
+blank line. No criterion forbids that, so I accept it.
 
 ## Notes
 
