@@ -68,7 +68,7 @@ comments, and make `build.ts --quiet` do what its `--help` says.
 makes the **behaviour** match the help text, not the other way round: a quiet
 build still prints its summary and its warnings, because a flag that hides
 warnings works against `CLAUDE.md` "Flag uncertain data". The approver may flip
-this at approval; if so, criteria 8–11 need rewriting, through the expander.
+this at approval; if so, criteria 8–12 need rewriting, through the expander.
 
 ## Acceptance criteria
 
@@ -140,26 +140,27 @@ uses `--offline` and an `--out` under the OS temp dir.
     the progress lines `Reading fixture <path>` and `  50 row(s) returned` —
     i.e. the non-quiet output keeps every line it has today.
 11. `bun run src/build.ts --help`'s description of `--quiet` still reads
-    `Only print the final summary.` (unchanged), and `offline-rebuild.ts` no
-    longer says that `--quiet` makes the build print nothing.
-12. `rebuildOffline` (which passes `--quiet`) still returns files byte-identical
+    `Only print the final summary.` (unchanged).
+12. No comment in `offline-rebuild.ts` says that `--quiet` makes the build print
+    nothing.
+13. `rebuildOffline` (which passes `--quiet`) still returns files byte-identical
     to the tracked `question-bank/data/us-states/` — the existing T-080/T-082
     tests that pin this stay green unmodified.
 
 ### What must not happen
 
-13. No test spawns `build.ts` itself: `spawn-guard.test.ts` and the three older
+14. No test spawns `build.ts` itself: `spawn-guard.test.ts` and the three older
     spawn guards pass unmodified, and the new stdout assertions go through
     `offline-rebuild.ts`.
-14. No committed fixture or bank file changes: on a clean checkout of the task
+15. No committed fixture or bank file changes: on a clean checkout of the task
     branch, after the full suite runs, `git status --porcelain -- question-bank/`
     is empty, and no directory with a
     new test's temp prefix is left in the OS temp dir.
-15. No network: every new build runs under `DEAD_PROXY` (the harness does this)
+16. No network: every new build runs under `DEAD_PROXY` (the harness does this)
     or in-process with `--offline`; nothing mocks `fetch`.
-16. No new dependency: `question-bank/package.json` and
+17. No new dependency: `question-bank/package.json` and
     `question-bank/bun.lock` are unchanged.
-17. In `question-bank/`, `bun test`, `bun run typecheck`, `bun run lint` and
+18. In `question-bank/`, `bun test`, `bun run typecheck`, `bun run lint` and
     `bun run format:check` all exit 0. No pre-existing test other than those in
     an approved Test change request row is deleted or modified.
 
