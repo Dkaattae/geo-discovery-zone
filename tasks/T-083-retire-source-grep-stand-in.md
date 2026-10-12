@@ -1,13 +1,13 @@
 # T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-10-12, in the orchestrator session ("I approve T083 criteria"). See `runs/T-083-retire-source-grep-stand-in.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-083
 **Branch:** `claude/awesome-hamilton-gft1hi`
 **PR:** #76, opened draft at expand time, built from the branch above
-**Fault:**
+**Fault:** test changes are waiting for approval — four rows in `## Test change request`, all in `highest-point-verify.test.ts`.
 
 **Sessions:**
 
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
 | worker | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
+| tester | 2026-10-12 | cse_01U3AvJtbD4ftspuhsxd6PZJ |
 
 > **Plan to attend the tester step.** Criteria 5–7 change an existing test file
 > (`question-bank/src/highest-point-verify.test.ts`), and only the tester may do
@@ -306,6 +307,17 @@ cd question-bank && bun install --frozen-lockfile   # node_modules was absent in
 bun test src/report-warnings-stdout.test.ts
 bun test && bun run typecheck && bun run lint && bun run format:check
 ```
+
+## Test change request
+
+_Written by `tester`._ All rows are in `question-bank/src/highest-point-verify.test.ts`. Every row was added by `34a174a` (T-016 tester: verify all 16 criteria). None of them is red; they are stale because criteria 5–7 make them untrue. No count floor covers this file (the `:714` block counts digests and states, not tests), so deleting a test needs no floor row.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `highest-point-verify.test.ts` › "T-016 tester, criterion 8 — a state left without a name says so" › "build.ts's report prints every warning it is given, with no allow-list of fields" (`:432-455`, comment included) | `34a174a`, T-016. It stood in for "`build.ts` prints that warning" by grepping `report()`'s source for a `for…of warnings` loop and no `warnings.filter(`. | Criterion 5: no test may read `build.ts`'s source to check the report. Criterion 6: its comment contains `checked by hand and is`, `cannot live here as a test`, `returns written files, not`. `report-warnings-stdout.test.ts` criteria 1–2 now assert the behaviour on real stdout. A `field === "highest_point"` filter in `report()` turns them red (tester mutation). | delete | — | |
+| 2 | Same file › "T-016 tester, criterion 9 — the full fixture build warns about nothing at all" › "a real offline rebuild of all 50 still produces Alaska's tracked bytes": **comment only** (`:483-487`) | `34a174a`, T-016. It explained where the CLI-stdout warning count came from. | Criteria 6 and 7: it says the check "was run by hand" and gives the "pinned count of 0", but the count above is 3. | modify | Test name, body and assertion unchanged. The comment becomes: "The CLI-stdout side of criterion 9 (the full build prints exactly the three `highest_point_m` warnings) is pinned on real stdout by `build-report-stdout.test.ts` (T-080). This test checks the written bytes through the sanctioned harness (`offline-rebuild.ts`) rather than spawning `build.ts` directly." | |
+| 3 | Same file › file header doc comment (`:28-35`): the criterion 9 and criterion 8 bullets | `34a174a`, T-016. It described how criteria 8 and 9 were verified. | Criterion 7: it says criterion 9's count "is pinned at `0`" (it is 3). It also says criterion 8 "is exercised end to end through the real CLI", which this file never did. | modify | No code changes. The criterion 9 bullet becomes: "the full-fixture warning count is 3: T-079's three `highest_point_m` overrides (its approved test change request row 6) and nothing else. The CLI's stdout carrying that 3 is pinned by `build-report-stdout.test.ts` (T-080)." The criterion 8 bullet becomes: "this file checks the warning in `normalizeUsStates`. The real CLI printing it for a derived fixture is asserted in `report-warnings-stdout.test.ts` (T-083)." | |
+| 4 | Same file › "T-016 tester, criterion 9 — …" › "and no warnings besides the three T-079 highest_point_m overrides": **comment only** (`:469-472`). *Missed by the worker's list.* | `34a174a`, T-016, amended by T-079 row 6. It recorded where the expected count came from. | Criterion 7: "Measured on the default branch … it printed no warning line at all" is a statement that the full-fixture count was measured as 0. It is borderline, because it was true at `284b8bc`. | modify | Test name, body and assertions unchanged. The comment becomes: "The full-fixture count is 3. T-079's three curated overrides each warn once (its test change request row 6, approved; criteria 10–11), and nothing else may. The CLI's stdout carries the same 3, pinned by `build-report-stdout.test.ts`." | |
 
 ## Verdict
 
