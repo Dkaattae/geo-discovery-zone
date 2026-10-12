@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-083
 **Branch:** `claude/awesome-hamilton-gft1hi`
-**PR:** opened draft at expand time — see the PR built from the branch above
+**PR:** #76, opened draft at expand time, built from the branch above
 **Fault:**
 
 **Sessions:**
