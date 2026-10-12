@@ -1,7 +1,7 @@
 # T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable — run log
 
 **Task:** T-083 · **Branch:** `claude/awesome-hamilton-gft1hi` · **PR:** #76
-**Started:** 2026-10-12 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-10-12 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-12
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -121,3 +121,49 @@ Raised by tester commits `7c957db` (session `cse_01U3AvJtbD4ftspuhsxd6PZJ`, not 
 
 ## Resumed — 2026-10-12
 An attended tester session, outside this orchestrator, applied the test change request and verified: commits `25a884e`, `cc639b2`, `6b23191`. Its report was not relayed here. Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-12`. Dkaattae in this session: "ci is fixed".
+
+## Round 4 — reviewer — 2026-10-12
+`Next step` on entry: `reviewer` (`Status: pass`) → on exit: `human` (`Status: approved`, at `d604adc`; brief then deleted by the sweep, `6745c51`)
+
+**I approved T-083 inside the envelope. PR #76 is marked ready, has no escalation note, and is not merged.** The sweep is in the PR, so merging it needs no follow-up. Next step: Dkaattae merges.
+
+**Status**
+- **PR #76:** open, `draft: false`, head `6745c51`.
+- **Push:** landed. `origin/claude/awesome-hamilton-gft1hi` is at the same `6745c51`.
+- **Brief:** I set it to Status `approved`, Next step `human` (merge), added a reviewer row to Sessions and a `## Review` section, and committed that as `d604adc`. The sweep commit `6745c51` then deleted the brief. Both are in the PR's history.
+
+**What I checked**
+- **Every role's commit is in the PR:** expander, worker, both testers, and orchestrator logs.
+- **Lanes:** the expander touched only `tasks/` and `tasks.md`. The worker did not touch `highest-point-verify.test.ts`. The changes to that file are only in tester commit `25a884e`, and they match the four Test change request rows exactly.
+- **Test change approval:** `Test changes:` names Dkaattae, who approved in an attended tester session, not `orchestrator`.
+- **Code:** a one-line `build.ts` change, `report(…, print)`, plus a comment and the `offline-rebuild.ts` doc comment. It reuses the existing print/log split and fits the code around it.
+- **Envelope:** no dependency, no `openapi.yaml`, migration or plan change, and no text a child reads.
+- **Suite, rerun in this session:** `question-bank` 1763 pass, 0 fail. Typecheck, lint and format:check all exit 0.
+- **Doc-guard tests after the sweep:** the frontend ones (223 tests) and `committed-bank`/`top-crops-verify` (184 tests) are green. The frontend `bun install` failed through the proxy, but these tests ran anyway.
+
+**Flags disposed**
+- **Blank line in quiet output:** accepted. It is `report()`'s existing separator.
+- **Stale describe name** "…warns about nothing at all": deferred to T-070, which I amended because it already has to edit that file under an attended Test change request.
+- **Tester of record:** the attended session `cse_01U3AvJtbD4ftspuhsxd6PZJ`.
+- **Two testers ran at once:** filed as a new P-15 in `process-tasks.md`.
+
+**Sweep**
+- Deleted the brief and the T-083 entry in `tasks.md`, and updated the sweep line at the top of `tasks.md`.
+- Amended T-070.
+- Logged T-083 in `PROGRESS.md` under Completed tasks, and updated the paragraph about the offline-rebuild harness.
+- Added P-15.
+
+**The P-15 addition sits outside the "tasks.md, PROGRESS.md, brief" files the envelope exempts as sweep.** The reviewer instructions direct loop gaps there, so I counted it as part of the sweep. T-082's reviewer escalated when a *run* added P-14; this one was added by the reviewer.
+
+**Tooling:** `gh pr edit` and `gh pr ready` failed because GraphQL is blocked here. I set the PR body through the REST PATCH endpoint and marked it ready through `POST /pulls/76/ccr/ready_for_review`, then confirmed `draft: false`.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/tasks/T-083-retire-source-grep-stand-in.md (deleted; the review is at `d604adc`)
+- /home/user/geo-discovery-zone/question-bank/src/build.ts (reviewed)
+- /home/user/geo-discovery-zone/question-bank/src/report-warnings-stdout.test.ts (reviewed)
+
+## Ended — 2026-10-12
+The reviewer approved and marked PR #76 ready. The run stops here. Merging is Dkaattae's (D-4). One thing to look at before merging: P-15 in `process-tasks.md`, which the reviewer added as part of the sweep without escalating.
