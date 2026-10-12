@@ -1,7 +1,7 @@
 # T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge)
 **Approved:** Dkaattae — 2026-10-12, in the orchestrator session ("I approve T083 criteria"). See `runs/T-083-retire-source-grep-stand-in.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-12`
 **From:** [`tasks.md`](../tasks.md) T-083
@@ -17,6 +17,7 @@
 | worker | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
 | tester | 2026-10-12 | cse_01U3AvJtbD4ftspuhsxd6PZJ |
 | tester | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK (orchestrator-spawned subagent; same id as expander/worker, see Verdict) |
+| reviewer | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK (orchestrator-spawned subagent) |
 
 > **Plan to attend the tester step.** Criteria 5–7 change an existing test file
 > (`question-bank/src/highest-point-verify.test.ts`), and only the tester may do
@@ -431,6 +432,49 @@ and applied, I expect the whole suite to be green and the verdict to be
 
 **Worker's open question.** A quiet build now prints `report()`'s leading
 blank line. No criterion forbids that, so I accept it.
+
+## Review
+
+_Written by `reviewer`._
+
+**Approved, inside the envelope.** The code change is one line in `build.ts`
+(`report(…, print)`) and a doc comment. The approved test changes match the
+diff, and the full suite is green in this session (1763 pass, 0 fail;
+typecheck, lint and format:check exit 0). PR #76 is marked ready with no
+escalation note.
+
+- **Lanes:** the expander touched only `tasks/` and `tasks.md`. The worker
+  changed `build.ts`, `offline-rebuild.ts` and one new test, and did not touch
+  `highest-point-verify.test.ts`. The tester changes to that file are only in
+  `25a884e`, and they match rows 1–4 exactly. `Test changes:` names Dkaattae,
+  not `orchestrator`.
+- **Constraints:** nothing outside them. The second new test file
+  (`report-warnings-stdout-verify.test.ts`) is the tester's, and `runs/` is the
+  orchestrator's log.
+- **Fit:** the `print`/`log` split already existed. The fix routes `report()`
+  through it and does not add a new flag or path.
+- **Docs:** `--help` was already right. `offline-rebuild.ts` now describes what
+  it does, and no README mentions `--quiet`.
+
+**Flags disposed:**
+- **Blank line in quiet output** (worker, both testers): accepted. It is
+  `report()`'s existing separator, and the brief keeps `report()`'s format out
+  of scope.
+- **Stale describe name** "…the full fixture build warns about nothing at all"
+  (both testers): deferred to **T-070**, which already has to edit
+  `highest-point-verify.test.ts` under an attended Test change request. I added
+  it to that entry rather than opening a one-line task.
+- **Tester of record** (orchestrated tester's Fault): the attended session
+  `cse_01U3AvJtbD4ftspuhsxd6PZJ`. It was started by a person, applied the
+  approved rows and wrote the final pass. The orchestrated tester's verify file
+  and mutations stand as additional evidence.
+- **Two testers at once:** this is a loop gap, not a task defect. I opened it as
+  **P-15** in `process-tasks.md`.
+
+**Not a finding:** `report-warnings-stdout.test.ts` runs its harness builds when
+the describe block is collected, not lazily. The orchestrated tester saw temp
+directories left over from this pattern only under `-t`-filtered runs. A full
+run leaves none, so criterion 15 holds.
 
 ## Notes
 
