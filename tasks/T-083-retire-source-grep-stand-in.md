@@ -1,7 +1,7 @@
 # T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-12, in the orchestrator session ("I approve T083 criteria"). See `runs/T-083-retire-source-grep-stand-in.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-083
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
+| worker | 2026-10-12 | cse_01MSfVMBpo6T2CEZcvWpdetK |
 
 > **Plan to attend the tester step.** Criteria 5–7 change an existing test file
 > (`question-bank/src/highest-point-verify.test.ts`), and only the tester may do
@@ -231,6 +232,81 @@ Required reading for the worker and the tester.
 
 _Written by `worker`._
 
+**TL;DR:** `--quiet` now keeps the summary and warnings and drops only progress
+lines; a new test pins criteria 1–4 and 8–10 on real stdout. Whole suite green
+(1747 pass, 0 fail), typecheck/lint/format clean. Criteria 5–7 are untouched by
+design and are the tester's to raise as Test change request rows.
+
+**Files changed**
+
+- `question-bank/src/build.ts` — `runBuild` passes `print` (not `log`) to
+  `report()`, so `--quiet` silences progress only. Comment added at the
+  `print`/`log` split. `--help` text unchanged. Return value unchanged.
+- `question-bank/src/offline-rebuild.ts` — doc comment of `rebuildOffline` no
+  longer says `--quiet` makes the build print nothing (criterion 12). No code change.
+- `question-bank/src/report-warnings-stdout.test.ts` — new. Criteria 1–3 via
+  `rebuildOfflineWithStdout` on a derived fixture (Colorado's `capitalLabel`
+  and `highestPoint` keys deleted, elevation fixture copied beside it, all in a
+  `t083-<pid>-` temp dir removed in `afterAll`); criteria 8–10 in-process via
+  `runBuild(argv, { log })` with `--offline`; plus a check that `--quiet` does
+  not change `runBuild`'s return value.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1–3 | `report-warnings-stdout.test.ts`, describe "T-083 criteria 1–3"; behaviour already held in `report()` (no change needed there) |
+| 4 | same tests. Worker ran the mutation (`report()` skipping `field === "highest_point"`): criteria 1 and 2 tests went red; reverted. Tester to repeat |
+| 5–7 | **not done — tester's job** (see Tests made stale) |
+| 8–10 | `build.ts` `runBuild` → `report(..., print)`; tests in describe "T-083 criteria 8–10". Reverting the one-line change turns criterion 8 red (worker checked) |
+| 11 | `build.ts` `printHelp`, untouched |
+| 12 | `offline-rebuild.ts` `rebuildOffline` doc comment |
+| 13 | existing T-080/T-082/committed-bank tests, green unmodified |
+| 14 | no spawn in the new file; spawn guards green |
+| 15 | `git status --porcelain -- question-bank/` empty after suite (besides this branch's own edits pre-commit); no `t083-*` dir left in tmp |
+| 16 | harness uses `DEAD_PROXY`; in-process runs are `--offline`; no `fetch` mock |
+| 17 | `package.json`, `bun.lock` unchanged |
+| 18 | `bun test` 1747/0, `typecheck` 0, `lint` 0, `format:check` 0 |
+
+**Tests made stale** — all in `question-bank/src/highest-point-verify.test.ts`.
+None is red (the source grep still matches, since `report()` still has no
+filter); they are stale because they are untrue, per criteria 5–7.
+
+- `T-016 tester, criterion 8 — a state left without a name says so` >
+  `build.ts's report prints every warning it is given, with no allow-list of fields`
+  (`:432-455`, comment `:433-447`) — criteria 5 and 6. Proposed: **delete** it.
+  Its behaviour is now asserted on real stdout by
+  `report-warnings-stdout.test.ts` criteria 1–2, which also catches a
+  field allow-list by mutation. Deleting it also removes the `checked by hand
+  and is`, `cannot live here as a test`, `returns written files, not` phrases.
+  Count floors: none found. The file's "pins above are not vacuous" block
+  (`:714`) counts digests and states, not tests; `region-vocabulary.test.ts`
+  greps this file only for its region neutralisation, which the deletion does
+  not touch.
+- Same file, `T-016 tester, criterion 9 — …` > `a real offline rebuild of all
+  50 still produces Alaska's tracked bytes`, comment `:483-487` — criteria 6
+  and 7 (`was run by hand`, "pinned count of 0"). Proposed: **modify the
+  comment only** to say the CLI-stdout warning count (3) is pinned by
+  `build-report-stdout.test.ts`, with no "by hand" claim. Test body unchanged.
+- File header `:28-35` — criterion 7. Proposed: **modify** the two bullets to
+  say criterion 9's count is 3 (T-079's three `highest_point_m` overrides) and
+  criterion 8's stdout half is asserted in `report-warnings-stdout.test.ts`.
+
+**Deliberately not done**
+
+- Did not touch `highest-point-verify.test.ts` at all (Constraints).
+- Did not change `report()`'s format; a quiet build still prints the leading
+  blank line `report()` has always emitted (it goes through `print` now). Not
+  forbidden by any criterion; tester to confirm it is acceptable.
+
+**How to run**
+
+```
+cd question-bank && bun install --frozen-lockfile   # node_modules was absent in this sandbox
+bun test src/report-warnings-stdout.test.ts
+bun test && bun run typecheck && bun run lint && bun run format:check
+```
+
 ## Verdict
 
 _Written by `tester`._
@@ -241,3 +317,12 @@ _Written by `tester`._
   read from the default branch at `b8f8855`.
 - Considered and rejected: changing `--help` to say `--quiet` prints nothing.
   Cheaper, but leaves a quiet build hiding its warnings.
+- Worker: the brief's Status read `awaiting approval` while the Approved line
+  named Dkaattae; treated the Approved line as authoritative and started.
+- Worker: in a fresh sandbox `node_modules` was missing, so a first `bun run
+  format` used a different prettier and reformatted a pre-existing test
+  (`highest-point-metres-verify.test.ts`); that edit was reverted before
+  commit. Run `bun install --frozen-lockfile` first.
+- Worker: oxlint's `unicorn/prefer-string-starts-ends-with` rejects
+  `/…$/.test(l)`, so criterion 9's "matching `row\(s\) returned$`" is
+  checked as `l.endsWith("row(s) returned")` — same meaning.
