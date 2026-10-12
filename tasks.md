@@ -284,36 +284,19 @@ under (b), now T-080, must expect.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-082 — Two refresh tests spawn `build.ts` past the guard that forbids it · S · doing
-**Depends on:** —
-**Found 2026-10-06 by T-080's expander.** `refresh.test.ts:194` and
-`refresh-verify.test.ts:379` each call `Bun.spawnSync(["bun", BUILD…, "--offline",
-"--fixture", …])` directly. The three guards that forbid a test from spawning
-`build.ts` (`climate-kid.test.ts:738`, `climate-kid-verify.test.ts:979`,
-`top-crops-verify.test.ts:473`) miss both. They look for the text `build.ts` at or
-after the spawn call, and these two name the script through a constant defined
-above it (`BUILD`, `BUILD_SCRIPT`). Both do use `DEAD_PROXY`, so nothing reaches
-the network. But the rule is not what the guards say it is, and `rebuildOffline`
-cannot take these two today because it accepts no `--fixture`. Every fix edits
-existing tests, so each needs an approved Test change request.
-**Smaller since T-080 (PR #73).** The harness now has
-`rebuildOfflineWithStdout`, which returns `{ files, stdout }` from the same
-isolated spawn. The only thing these two still need is a `--fixture` argument on
-the harness, and T-083 wants the same thing.
-**Done when:** either both go through the shared harness and the guards catch a
-spawn through a constant, or the exception is written down where the guards are.
-
 ### T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable · S · todo
-**Depends on:** — (T-080 landed in PR #73; it made this possible)
+**Depends on:** — (T-080, PR #73, and T-082, PR #75, made this possible)
 **New 2026-10-06, from T-080's reviewer.** `highest-point-verify.test.ts:433-455`
 ("build.ts's report prints every warning it is given…") greps `build.ts`'s
 source because no test could read the report's stdout. Its comments
 (`:433-447`, `:478-482`) say the same. Both have been untrue since
 `rebuildOfflineWithStdout` landed. The behavioural half T-016 checked by hand
-dropped `capital`/`highestPoint` from a *derived* fixture, so a faithful
-replacement needs the `--fixture` argument T-082 also needs. Do the two
-together, or settle for the committed fixtures' three `highest_point_m` lines,
-which show a field printing but not "no field is filtered". Either way this
+dropped `capital`/`highestPoint` from a *derived* fixture. Since T-082
+(PR #75) the harness takes one: `rebuildOfflineWithStdout(BUILD, names, prefix,
+{ fixture })` builds from a fixture in a temp directory (with its elevation
+fixture beside it) and also returns `listing`, every file written. So a
+faithful replacement is now possible without spawning `build.ts`, which
+`spawn-guard.test.ts` forbids, through a constant too. Either way this
 edits an existing test, so it needs an approved Test change request (D-14, D-15).
 Second, smaller piece, which T-080 kept out of scope: `build.ts --help` says
 `--quiet` means "Only print the final summary" (`:110`), but `:135` makes it
