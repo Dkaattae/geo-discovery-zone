@@ -185,7 +185,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   `rebuildOffline()`, and all six suites that check a byte-identical offline
   rebuild import it instead of pasting a fifth and sixth copy. Since T-080
   (PR #73), `rebuildOfflineWithStdout()` also returns what the build printed, so
-  `report()`'s warning lines can be asserted on. Since T-082 (PR #75) both
+  `report()`'s warning lines can be asserted on, and since T-083 (PR #76)
+  T-016's "the build prints that warning" is, on a derived fixture, in place of
+  the old source grep. Since T-082 (PR #75) both
   take `{ fixture }` and the report carries `listing`, and no test spawns
   `build.ts` itself, through a constant either (`spawn-guard.test.ts`). There is exactly
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
@@ -332,6 +334,23 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-083 — T-016's source-grep stand-in is retired, and `--quiet` keeps the
+  summary** (PR #76, 2026-10-12). A new test builds from a derived fixture
+  (Colorado without `capitalLabel` or `highestPoint`) through
+  `rebuildOfflineWithStdout`. It asserts that the real CLI prints
+  `us-state-co.capital: missing` and `us-state-co.highest_point: missing`
+  under the warning header. `build.ts --quiet` now drops only progress lines,
+  and the summary and every warning still print, as `--help` always said. The
+  source-grep test in `highest-point-verify.test.ts` is deleted, and three
+  comments there that claimed a count of 0 or a check done by hand are
+  corrected.
+  *Where it differed from the brief:* nowhere in the code. Two testers ran at
+  once: the orchestrator's, and an attended session a person started. Both
+  raised the same four Test change request rows, and Dkaattae approved them in
+  the attended session. Both testers' files landed. The overlap is now P-15.
+  The describe name "…warns about nothing at all" is still stale and is
+  folded into T-070.
 
 - **T-081 — no `git` check in `question-bank/src/` passes when `git` fails**
   (PR #74, 2026-10-08). A new guard, `git-exit-guard.criteria.test.ts`, scans every

@@ -59,7 +59,9 @@ exact-pinned prettier and a CI Format step (PR #66): section A is empty, T-076
 is new in F (the README layout prettier flattened), and T-044 gained the
 `AGENTS.md` risk. Swept again 2026-10-06, after T-080 let the offline harness
 return the build's stdout (PR #73): T-082 is smaller (only `--fixture` is
-missing now), and T-083 is new (retire T-016's source-grep workaround)._
+missing now), and T-083 is new (retire T-016's source-grep workaround). Swept
+again 2026-10-12, after T-083 retired that workaround and made `--quiet` keep
+the summary (PR #76): T-070 gained a stale describe name to fix._
 
 ## How this list is ordered
 
@@ -281,29 +283,15 @@ underneath. Eleven pre-existing tests changed (approved in an attended tester
 session, D-15). A full build and every changed refresh now also print three
 `highest_point_m` override warnings by design, which any stdout-counting test
 under (b), now T-080, must expect.
+**Amended 2026-10-12 by T-083's reviewer (PR #76): one more stale name in
+the same file.** `highest-point-verify.test.ts`'s describe "T-016 tester,
+criterion 9 — the full fixture build warns about nothing at all" is untrue: the
+count has been 3 since T-079, and the tests and comments under it say so.
+T-083's criteria covered comments only, so it left the name alone. This task
+already edits that file under an attended Test change request, so add a row to
+rename it there instead of opening a task for one string.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
-
-### T-083 — Retire T-016's source-grep stand-in now the build's stdout is readable · S · doing — brief in `tasks/T-083-retire-source-grep-stand-in.md`
-**Depends on:** — (T-080, PR #73, and T-082, PR #75, made this possible)
-**New 2026-10-06, from T-080's reviewer.** `highest-point-verify.test.ts:433-455`
-("build.ts's report prints every warning it is given…") greps `build.ts`'s
-source because no test could read the report's stdout. Its comments
-(`:433-447`, `:478-482`) say the same. Both have been untrue since
-`rebuildOfflineWithStdout` landed. The behavioural half T-016 checked by hand
-dropped `capital`/`highestPoint` from a *derived* fixture. Since T-082
-(PR #75) the harness takes one: `rebuildOfflineWithStdout(BUILD, names, prefix,
-{ fixture })` builds from a fixture in a temp directory (with its elevation
-fixture beside it) and also returns `listing`, every file written. So a
-faithful replacement is now possible without spawning `build.ts`, which
-`spawn-guard.test.ts` forbids, through a constant too. Either way this
-edits an existing test, so it needs an approved Test change request (D-14, D-15).
-Second, smaller piece, which T-080 kept out of scope: `build.ts --help` says
-`--quiet` means "Only print the final summary" (`:110`), but `:135` makes it
-print nothing. Make the two agree, one way or the other.
-**Done when:** no comment or test in `question-bank/src/` says the build report
-cannot be read, T-016 criterion 8 is asserted on real stdout, and `--quiet`
-does what `--help` says.
 
 ### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
 **Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching
