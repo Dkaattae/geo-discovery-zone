@@ -32,3 +32,34 @@
 
 ## Approval — 2026-10-12
 The orchestrator's unattended `Approved:` stamp was refused by the harness as self-approval. Dkaattae then approved in the orchestrator session: "I approve T083 criteria". `Approved:` records that, with the design choice above left as the expander wrote it.
+
+## Round 2 — worker — 2026-10-12
+`Next step` on entry: `worker` (`Status: awaiting approval`) → on exit: `tester` (`Status: awaiting verification`)
+
+**TL;DR:** T-083 is built and pushed as commit `37a6342` to `claude/awesome-hamilton-gft1hi`, and `git log origin/claude/awesome-hamilton-gft1hi -1` shows it. The brief is now Status `awaiting verification`, Next step `tester`. The full suite passes (1747 pass, 0 fail), and typecheck, lint and format:check all exit 0. Criteria 5–7 (rewriting the old test file) are left for the tester to raise as Test change request rows, which a person has to approve. So whoever starts the tester session needs to be present for it.
+
+**Files changed**
+- **`/home/user/geo-discovery-zone/question-bank/src/build.ts`**: `runBuild` now hands `report()` the always-on printer, `report(entities, warnings, unmatched, args, print)`, instead of the logger that `--quiet` silences. A quiet build now drops only the progress lines and still prints its summary and every warning, which is what `--help` already said. The `--help` text and the return value are unchanged.
+- **`/home/user/geo-discovery-zone/question-bank/src/offline-rebuild.ts`**: only the doc comment changed. It no longer says `--quiet` makes the build print nothing (criterion 12).
+- **`/home/user/geo-discovery-zone/question-bank/src/report-warnings-stdout.test.ts`** (new):
+  - **Criteria 1–3:** an offline build through `rebuildOfflineWithStdout` on a derived fixture. It is a temp copy with Colorado's `capitalLabel` and `highestPoint` keys removed and the elevation fixture copied beside it.
+  - **Criteria 8–10:** checked in-process through `runBuild(argv, { log })` with `--offline`.
+  - **Extra check:** `--quiet` does not change what `runBuild` returns.
+- **`/home/user/geo-discovery-zone/tasks/T-083-retire-source-grep-stand-in.md`**: Handoff, Sessions row, Status and Notes filled in.
+
+**Checks I ran**
+- **Criterion 4 mutation:** I made `report()` skip warnings whose field is `highest_point`. The criterion 1 and 2 tests went red, and I reverted it.
+- **Undoing the `print` change:** the criterion 8 test goes red.
+- **Clean up:** no `t083-*` temp directories are left behind, and `package.json` and `bun.lock` are unchanged.
+
+**Tests made stale** (all in `highest-point-verify.test.ts`, which I did not touch; none of them are red)
+- **The test at `:432`**, "build.ts's report prints every warning it is given, with no allow-list of fields": I propose deleting it, because the new file now checks the same thing on real stdout.
+- **The comment at `:483-487`**, which says "run by hand" and "count of 0": I propose rewriting it to say the count is 3 and is pinned in `build-report-stdout.test.ts`.
+- **The file header at `:28-35`**: I propose fixing both bullets the same way.
+- **Test-count floors:** none would be affected.
+
+**Things to know**
+- **Brief header contradiction:** Status read `awaiting approval` while the Approved line named Dkaattae. I went by the Approved line and started.
+- **Install dependencies first:** `node_modules` was missing here. My first `bun run format` used a different Prettier and reformatted an existing test, `highest-point-metres-verify.test.ts`. I reverted that before committing. Run `bun install --frozen-lockfile` before formatting.
+- **Criterion 9's pattern:** the lint rules reject the regex `row\(s\) returned$`, so the test uses `endsWith("row(s) returned")`, which means the same thing.
+- **Leading blank line:** a quiet build now prints the blank line `report()` has always started with. No criterion forbids it; the tester should confirm it is acceptable.
