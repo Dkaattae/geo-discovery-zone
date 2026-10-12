@@ -185,7 +185,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   `rebuildOffline()`, and all six suites that check a byte-identical offline
   rebuild import it instead of pasting a fifth and sixth copy. Since T-080
   (PR #73), `rebuildOfflineWithStdout()` also returns what the build printed, so
-  `report()`'s warning lines can be asserted on. There is exactly
+  `report()`'s warning lines can be asserted on. Since T-082 (PR #75) both
+  take `{ fixture }` and the report carries `listing`, and no test spawns
+  `build.ts` itself, through a constant either (`spawn-guard.test.ts`). There is exactly
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
@@ -347,6 +349,21 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   and the first draft of the request missed. The guard is a new file rather than
   a widened `frontend` guard, so the frontend guard is unchanged. The frontend
   gates could not run in the agent sandbox (proxy 403). CI is the evidence for them.
+
+- **T-082 — no test spawns `build.ts` past the harness, through a constant
+  either** (PR #75, 2026-10-12). `offline-rebuild.ts`'s two entry points take
+  an optional `{ fixture }` (passed as `build.ts --fixture`) and the report
+  gains `listing`, every file the build wrote. `refresh.test.ts` and
+  `refresh-verify.test.ts` now rebuild through the harness and still catch a
+  changed byte, an extra file and a missing one. A new `spawn-guard.test.ts`
+  rejects any `Bun.spawn`/`Bun.spawnSync` of `build.ts` in a tracked test,
+  literal or through a same-file `const`/`let`.
+  *Where it differed from the brief:* `listing` was the worker's addition, so
+  the refresh tests keep detecting extra files; the two refresh tests changed
+  via a Test change request Dkaattae approved in an attended tester session,
+  after the orchestrated tester halted on it. The run also added P-14 to
+  `process-tasks.md` (the shared session id under the orchestrator), outside
+  the brief's Constraints; the reviewer escalated on that.
 
 - **T-080 — the offline harness returns the build's stdout** (PR #73,
   2026-10-06). `offline-rebuild.ts` gains `rebuildOfflineWithStdout`, which runs

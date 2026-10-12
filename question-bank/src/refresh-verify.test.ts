@@ -25,7 +25,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { normalizeUsStates } from "./normalize";
-import { DEAD_PROXY } from "./offline-rebuild";
+import { rebuildOfflineWithStdout } from "./offline-rebuild";
 import { US_STATES_ELEVATION_QUERY } from "./queries/us-states-elevation";
 import { main, refreshBank } from "./refresh";
 import { draftMissingFunFacts, writeReviewFile } from "./review-file";
@@ -374,19 +374,21 @@ describe("T-063 criteria 6-8: a changed refresh stays reproducible offline", () 
     writeFileSync(join(box.bank, "us-state-zz.json"), '{"id":"us-state-zz"}\n');
     expect((await run(box, replay(coPopulation("5900001")))).code).toBe(0);
 
-    const out = mkdtempSync(join(tmpdir(), "t063-verify-rebuild-"));
-    temps.push(out);
-    const proc = Bun.spawnSync(
-      ["bun", BUILD, "--offline", "--fixture", box.fixture, "--out", out, "--quiet"],
-      { env: { ...process.env, ...DEAD_PROXY } },
-    );
-    expect(proc.exitCode).toBe(0);
-
     const strip = (files: Map<string, string>) =>
       new Map([...files].filter(([name]) => !name.endsWith(".review.json")));
     const bank = strip(snapshot(box.bank));
-    const rebuilt = strip(snapshot(out));
-    expect([...rebuilt.keys()].sort()).toEqual([...bank.keys()].sort());
+    // T-082: through the harness, which cleans up its own output directory.
+    // `listing` is every file the build wrote; a bank file the rebuild lacks
+    // makes the harness throw when it reads that name back.
+    const { files: rebuilt, listing } = rebuildOfflineWithStdout(
+      BUILD,
+      [...bank.keys()],
+      "t063-verify-rebuild-",
+      { fixture: box.fixture },
+    );
+    expect(listing.filter((name) => !name.endsWith(".review.json"))).toEqual(
+      [...bank.keys()].sort(),
+    );
     for (const [name, text] of bank) expect(rebuilt.get(name)).toBe(text);
   });
 });
