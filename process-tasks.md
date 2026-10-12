@@ -536,3 +536,41 @@ first real refused sweep through the fallback.
 - D-16 records the ruling, the blindness exception and the risk;
 - one real refused sweep has gone through the fallback, applied or refused, and
   the result is recorded in D-16.
+
+### P-14 — An orchestrated run cannot show its tester was independent · S · todo
+**Depends on:** —
+**New 2026-10-12, from T-082's orchestrated run (PR #75).** The worker and the
+unattended tester both flagged it unprompted. Every role the `orchestrator`
+spawns records the same `$CLAUDE_CODE_REMOTE_SESSION_ID`
+(`cse_01QcjHTfUsm5YqzVagoD4oww` for the expander, worker and tester on T-082),
+so the Sessions table cannot tell them apart. The tester's "not the same
+session as the worker" check, which is evidence under `run-loop.sh` or a manual
+run, falls back to the tester's own word under the orchestrator.
+`process-decisions.md` already names this ("Known weaknesses": "a downgrade from
+evidence to attestation"), but nothing in the queue tries to close it, and each
+role still spends a paragraph of its report explaining it.
+
+**What is known.** The tester really is independent: it is a fresh subagent
+that never sees the worker's transcript. What is missing is a record a third
+party can check. On T-082 the only distinct id in the table came from the
+attended tester (`cse_01S1Sk78MFcFw5LyeqSZgpWP`), a separate session started by
+a person.
+
+**Options to weigh, not a decision:**
+- **The orchestrator records a per-spawn id.** Each `Agent` call returns an
+  agent id, and the harness keeps a per-agent transcript. The orchestrator could
+  write that id into `runs/` beside each round, without reading the transcript,
+  so that the worker's and tester's ids visibly differ. This adds no sentence to
+  a spawn prompt, so D-3 is untouched.
+- **Each role mints a nonce at start** and writes it into its Sessions row. This
+  is cheap, but a role could copy one, so it proves less than the first option.
+- **Accept it**: make the Sessions-row wording one fixed line, so roles stop
+  re-explaining it in every report.
+
+**This is a process-file change** (`.claude/agents/orchestrator.md`, likely the
+tester's and worker's Sessions-row instructions, `process.md`, and a `D-n`
+entry), so it is done by hand and never through the loop.
+**Done when:** an orchestrated run leaves a record, in the brief or in `runs/`,
+that distinguishes the worker's spawn from the tester's without anyone's word
+for it; or a `D-n` entry records why it is accepted as attestation and roles stop
+re-explaining it.
