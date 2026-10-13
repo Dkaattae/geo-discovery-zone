@@ -1,13 +1,13 @@
 # T-078 — Point the other refresh routes at `bun run refresh`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-078, continue the run". See `runs/T-078-refresh-routes.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-078
 **Branch:** `claude/loving-darwin-jij761`
 **PR:** #78, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
-**Fault:**
+**Fault:** test changes are waiting for approval: criterion 12 necessarily breaks T-079's byte pin on `us-states.sparql.json`, which the brief did not foresee (owner: a human, D-14/D-15).
 
 **Sessions:**
 
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (orchestrated run: every spawned role shares this id) |
 | worker | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent) |
+| tester | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent, so the id check cannot show independence) |
 
 ## Why T-078 and not T-084
 
@@ -265,3 +266,78 @@ bun run typecheck && bun run lint && bun run format:check   # all clean
 - **Same session id as the expander.** This is an orchestrated run, so every role shares `cse_01PtngPoaghwWcXCwbmrjZNw`. The tester's session check will see a `worker` row with its own id. Orchestrator/human to decide whether that isolation is enough: the subagent contexts are separate, but the id is not.
 
 ## Verdict
+
+**TL;DR: halted for a test change, not failed.** All 18 criteria hold on the
+branch. 17 are met outright, and 18 is met except for one existing test. That
+test is T-079's byte pin on `us-states.sparql.json`, and criterion 12 has to
+break it. Changing it needs a person's approval in an attended tester session
+(D-14/D-15), so the run stops here: **Next step `human`**.
+
+**Independence.** This is an orchestrated run (`runs/T-078-refresh-routes.md`).
+Every role shares `cse_01PtngPoaghwWcXCwbmrjZNw`, so I appear in the Sessions
+table under the worker's id. That is not evidence either way. My independence
+rests only on being a freshly spawned subagent with its own context. I did not
+see the worker's reasoning, only its committed Handoff. That is weaker than a
+separate session, because it depends on the orchestrator having spawned me
+correctly, which I cannot check myself.
+
+**Suite (six proxies at `http://127.0.0.1:1`):** `bun test` gives 1821 pass and
+1 fail, across 38 files. The one fail is the stale pin below.
+`typecheck`, `lint` (0 warnings) and `format:check` are clean.
+
+**Tests added:** `question-bank/src/refresh-routes-verify.test.ts`, 13 tests.
+I wrote them from the criteria. The expected values came from the brief, from
+`d71dd8a` (the default branch) and from the curated table, never from `build.ts`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `criterion 1: …`: 50 entities, all non-empty `fun_facts`, recorder saw 0 titles |
+| 2 | met | `criterion 2: …`: no `fun-facts.review.json` |
+| 3 | met | `criterion 3: …`: WY blanked, calls equal `[WY's built wikipedia_title]` |
+| 4 | met | `criterion 4: …`: 1 draft, `id` `us-state-wy`, `reviewed: false` |
+| 5 | met | `criterion 5: …`: WY file `fun_facts: []`. The draft text and marker appear in no `.json` under `--out` except the review file (`index.json` included) |
+| 6 | met | `criterion 6: …`: the `article` binding is dropped for Wyoming, the entity has no title, 0 calls |
+| 7 | met | `criterion 7: …`: the transport throws for WY's title, the build resolves, 50 `us-state-*.json` are written, and exactly 1 `fun_facts` warning has `entity` `us-state-wy` |
+| 8 | met | `criterion 8: …`: `--states CO,VT`, VT and ME (outside the subset) blanked, calls equal `[VT title]` and never CO's |
+| 9 | met | `criterion 9: …`: `--no-fun-facts`, 0 calls, no review file |
+| 10 | met | Both T-078 test files pass with all six proxy variables set to the dead loopback. Neither stubs `fetch`: the SPARQL side is `fixtureTransport`, the summary side a local function |
+| 11 | met | `criterion 11: …`: runs last. Every curated `fun_facts` is the same array by identity and by JSON content |
+| 12 | met | `criterion 12: …` |
+| 13 | met | `criterion 13: …`: the parsed fixture minus `regenerate_with`, key-sorted, hashes to the sha256 of the same object from `d71dd8a` (`2acd0f04…a360`) |
+| 14 | met | `git diff origin/main -- question-bank/data` is empty. `committed-bank.test.ts` passes |
+| 15 | met | `criterion 15: …` (0 calls, no review file). **stdout checked by hand:** I ran `bun run build -- --offline` from a worktree of `origin/main` and from this branch. The two `--out` trees are identical (`diff -r`). stdout is identical except the absolute paths on lines 1, 2 and 5 (different checkout and out dirs). Both show the same `3 warning(s):` CT/OK/VA lines. The T-080 stdout tests also pass |
+| 16 | met | `refresh.ts`, `refresh.test.ts`, `refresh-verify.test.ts` and `review-file.ts` have no diff from `origin/main`, and all pass |
+| 17 | met | `package.json` and `bun.lock` have no diff |
+| 18 | **met except one stale test** | No pre-existing test file is in the diff (only the new `build-fun-facts.test.ts`). One pre-existing test is red by design, see the Test change request below |
+
+**Mutations** (each reverted with `git checkout`. The working tree was clean apart
+from my test file before I committed):
+
+- **Draft every entity** (pass `fun_facts: []` copies to `draftMissingFunFacts`, which is the old behaviour): criteria 1, 2, 3, 4, 6 and 8 go red.
+- **Run the pass despite `--no-fun-facts`:** criterion 9 goes red.
+- **Drop `warnings.push(...drafted.warnings)`:** criterion 7 goes red.
+- **Copy each draft into its entity's `fun_facts`:** criterion 5 goes red.
+- **Draft an extra out-of-subset entity:** criterion 8 goes red. Criteria 1–4 and 6 do too, because the mutation was crude and fired on every run.
+- **Fixture: `regenerate_with` back to `bun run build`:** criterion 12 goes red.
+- **Fixture: `rows` 50 to 51:** criterion 13 goes red.
+- **Test file: disable the `afterEach` restore:** criterion 11 goes red.
+
+**Worker's tests** (`build-fun-facts.test.ts`, 8): all pass and are honest. No
+network, no `fetch` stub, no fixture edits beyond the criterion-12 string.
+
+**Stale-test check.** I confirmed the worker's single entry independently, and
+found no others. The full suite has exactly one red test. Its expected value is
+a sha256 of the whole fixture file, and criterion 12 requires changing a string
+in that file, so no implementation of criterion 12 can keep it green. The
+sibling `us-states-elevation.sparql.json` pin stays green and is not touched.
+No count floor is affected: the request is a modify, not a delete.
+
+**What a human has to do:** start a `tester` in a session you are attending for
+T-078. Approve or refuse row 1 below there. If you refuse, criteria 12 and 18
+conflict, and the brief goes back to `task-expander`.
+
+## Test change request
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/highest-point-in-state-verify.test.ts` › `T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c` › `"us-states.sparql.json"` | `2a1202d`, T-079 tester. It protected T-079's promise not to re-record or edit either SPARQL fixture: the main fixture's sha256 is pinned to `994223fe…f41f` | T-078 criterion 12 requires `_fixture.regenerate_with` in this file to change from `bun run build …` to a `bun run refresh` string. Any change to the file changes its sha256, so the pin is red by design (criterion 13 separately pins that nothing else moved) | modify | Same test name, same whole-file sha256 assertion, with the digest updated to `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d` (this branch's file, `sha256sum` checked by the tester). The describe becomes `T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c (main fixture: as of T-078's regenerate_with)`, with a comment citing T-078 criterion 12 and this request. It still pins every byte, so it is no weaker. The elevation entry is unchanged | *(awaiting a person, in an attended tester session)* |
