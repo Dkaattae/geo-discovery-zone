@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-078
 **Branch:** `claude/loving-darwin-jij761`
-**PR:** opened draft at expand time, built from the branch above (number in the PR list for this branch). It **stays draft** until the reviewer approves it
+**PR:** #78, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
 **Fault:**
 
 **Sessions:**
