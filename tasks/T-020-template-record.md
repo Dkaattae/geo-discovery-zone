@@ -6,7 +6,7 @@
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-020
 **Branch:** `claude/bold-noether-djxpzu`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #79, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:**
 
