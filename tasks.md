@@ -336,6 +336,9 @@ refresh after T-070 (a). T-078 was taken instead.
 **Since T-078 (PR #78):** a re-record also turns T-079's criterion-19 fixture
 pins red (`highest-point-in-state-verify.test.ts`). See T-070's 2026-10-13
 amendment; the re-record needs a Test change request row for each.
+**Skipped again by the expander, 2026-10-13, for T-020.** Nothing has changed
+since the note above: Q1 is still open, and nobody has decided the proposed
+split.
 
 ---
 
@@ -345,7 +348,7 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-020 — Template record type and three templates · M · todo
+### T-020 — Template record type and three templates · M · doing
 **Depends on:** —
 `{ id, prompt, answer_field, distractor_strategy, requires, applies_to, format,
 base_difficulty, min_age_band }`. Start with identify-on-map, capital-of, and
@@ -620,6 +623,14 @@ rather than decorative.
 
 The backend already grades it: `openapi.yaml` carries `map_click` in
 `QuestionFormat` and the answer payload has a place for the tapped geometry id.
+**Corrected 2026-10-13 by T-020's expander.** The sentence above is only half
+true:
+- `backend/app/grading.py:39` puts `map_click` in `CHOICE_FORMATS`, so it is
+  graded by `choiceIndex` against `choices`.
+- `openapi.yaml`'s `AnswerRequest` has **no** geometry-id field.
+
+So a tap has to become a `choiceIndex` on the client, or the payload gains a
+field. T-020's `tpl-click-the-map` sets `answer_field: "geometry_id"`.
 **Done when:** a `map_click` question can be shown, answered by tapping the map,
 and graded, with the same asymmetric reveal as the other two.
 
