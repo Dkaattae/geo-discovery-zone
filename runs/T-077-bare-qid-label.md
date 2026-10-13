@@ -1,7 +1,7 @@
 # T-077 — A label that comes back as a bare QID must warn, not ship — run log
 
 **Task:** T-077 · **Branch:** `claude/inspiring-faraday-a9hh8r` · **PR:** #77
-**Started:** 2026-10-13 · **Outcome:** in progress
+**Started:** 2026-10-13 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -103,3 +103,42 @@ A person was in the orchestrator session, so the orchestrator asked them to appr
 - **Two of the worker's choices to confirm:** the warning wording, and emitting only one warning (no extra `missing`) when the highest point is a bare QID and there is no curated value. Both meet criteria 2 and 5 as written.
 
 **Brief changes** (`/home/user/geo-discovery-zone/tasks/T-077-bare-qid-label.md`): Status is now `pass`, Next step is `reviewer`, my tester row is in the Sessions table, and the Verdict has a table mapping each criterion to its evidence. Before running anything I ran `bun install --frozen-lockfile` because `node_modules` was missing; the lockfile did not change.
+
+## Round 4 — reviewer — 2026-10-13
+`Next step` on entry: `reviewer` (`Status: pass`) → on exit: `human` (`Status: approved`; the brief was then deleted by the sweep at `20caaf4`)
+
+**I approved T-077, swept it, and marked PR #77 ready for review. It is inside the envelope, so there is no escalation note.** Nothing blocks the merge, and it waits on Dkaattae. I did not merge.
+
+- **PR:** https://github.com/Dkaattae/geo-discovery-zone/pull/77. It is no longer draft, it is still open and unmerged, and the head is `20caaf4`.
+- **Push:** it landed on `claude/inspiring-faraday-a9hh8r`, and local matches `origin` after a fetch.
+  - `07b2a9e` records the `## Review` section in the brief, sets `Status: approved` and `Next step: human`, and adds my Sessions row.
+  - `20caaf4` is the sweep.
+
+**The checks before the review**
+- **PR state:** open and draft when I started, not merged.
+- **Every role's work is in it:** the expander (`0236b84`, `ae82868`), worker (`760f6ec`) and tester (`6e94dea`) commits are all on the branch, plus the orchestrator's run-log commits. Nothing is stranded on another branch.
+- **Each role stayed in its lane:** the expander touched only `tasks/` and `tasks.md`. The tester touched only its new test file and the brief. The orchestrator touched only `runs/` and the brief header.
+- **Gate, re-run by me:** `bun test` gave 1801 pass, 0 fail. Lint was 0/0, and typecheck and format:check were clean. The CI `question-bank` job is green. The frontend, e2e and integration jobs were still running when I checked; this PR does not touch their code.
+
+**Review**
+- **The code:** only `question-bank/src/normalize.ts` changed. It uses the same warning style as the existing `missing` warnings next to it.
+- **No dependency, no fixture or bank change, no pre-existing test touched.**
+- **No text a child reads:** the new warnings only go to the maintainer's terminal output.
+- **The worker's `tasks.md` edit:** it added T-084, which the brief's Review checklist asked for, so it is not drift.
+- **Findings:** none blocking and none non-blocking, so no new tasks.
+- **The worker's flags, decided:**
+  - **No double warning:** confirmed, because criterion 5 asks for exactly one.
+  - **Warning wording:** confirmed.
+  - **Shared session id:** no action, it is expected when the orchestrator relays the roles.
+
+**Sweep (included in the PR)**
+- **Deleted:** the brief `/home/user/geo-discovery-zone/tasks/T-077-bare-qid-label.md`, and T-077's entry in `/home/user/geo-discovery-zone/tasks.md`.
+- **`/home/user/geo-discovery-zone/PROGRESS.md`:** added a T-077 line under Completed tasks. Rewrote the Known gaps bullet: switching on the monthly refresh is now gated on T-084 and T-070 (a), not T-077.
+- **`tasks.md`:** T-070's note now says T-084 must land before the refresh is switched on. T-084's "Depends on" now says T-077 landed in PR #77, and the entry now says it gates the monthly routine. Nothing else in the queue depended on T-077.
+
+**For the human, not blocking**
+- **Juneau's label (the brief's Review checklist):** the worker checked live that Alaska's capital points at the right item, `Q29445`. Its English name now sits only in Wikidata's `mul` label, which the query does not read, so the query is at fault. T-084 owns that fix.
+- **What changes once this merges:** a live refresh blanks Alaska's capital, with a warning, instead of shipping "Q29445". That is why T-084 now gates switching on the monthly refresh. This is written in the PR body.
+
+## Ended — 2026-10-13
+The reviewer approved and marked PR #77 ready. The run stops here; merging is Dkaattae's.
