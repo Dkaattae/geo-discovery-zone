@@ -1,7 +1,7 @@
 # T-020 — Template record type and three templates
 
-**Status:** pass
-**Next step:** reviewer
+**Status:** approved — escalated (child-facing prompt)
+**Next step:** human (read the `tpl-click-the-map` prompt, then merge PR #79)
 **Approved:** Dkaattae — 2026-10-13, given in the orchestrator session (AskUserQuestion). See `runs/T-020-template-record.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-020
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-10-13 | session_01UpEFQfyRxWfuVGBtPaogEo |
 | worker | 2026-10-13 | cse_01UpEFQfyRxWfuVGBtPaogEo (subagent spawned by the orchestrator; `$CLAUDE_CODE_REMOTE_SESSION_ID` reads the same id as the expander's row, so the tester must run in a different session) |
 | tester | 2026-10-13 | cse_01UpEFQfyRxWfuVGBtPaogEo (subagent spawned by the orchestrator; same id as the worker's row, so independence rests on a fresh context window, not on a separate session) |
+| reviewer | 2026-10-13 | cse_01UpEFQfyRxWfuVGBtPaogEo (subagent spawned by the orchestrator; same orchestrated run, fresh context window) |
 
 ## Why this task, and not an earlier one
 
@@ -417,6 +418,79 @@ reasoning, which depends on the orchestrator having spawned me correctly.
 - `QUESTION_FORMATS` is a hand copy of `openapi.yaml`'s enum; my criterion-17
   test pins the nine values from the openapi file as read today, not a live tie.
 - **Test changes:** none needed; no pre-existing test touched.
+
+## Review
+
+**TL;DR: approved, escalated.** The code is small, tidy and inside the brief.
+Re-run here: 1929 pass / 0 fail; typecheck, lint and format:check are clean.
+**Escalated for one reason:** `tpl-click-the-map`'s prompt, `"Tap {name} on the
+map."`, is new text a child will read. A person must read it before merging.
+
+**Why escalated (envelope, `reviewer.md` §3)**
+
+- **Child-facing text: yes.** `question-bank/src/templates.ts`, the
+  `tpl-click-the-map` entry: `prompt: "Tap {name} on the map."`. It is short,
+  has no jargon and reads at age six to eight. One question for the person:
+  the app also runs with a mouse, where "Tap" is slightly off. "Find {name} on
+  the map." fits both. Either wording passes every criterion.
+- **Everything else is inside the envelope.** Tester passed. No dependency. No
+  `openapi.yaml`, migration or plan change. No pre-existing test touched
+  (`Test changes: none`). No product decision settled. The other two prompts
+  already ship: `"Which state is highlighted?"` is the served bank's wording,
+  and `"What is the capital of {name}?"` is plan §1.2's example.
+
+**Checks**
+
+- **Every role's work is in the PR.** Expander (`50eda07`, `656d902`), worker
+  (`cec0bd4`), tester (`99e36fb`) and orchestrator commits are all on
+  `claude/bold-noether-djxpzu`.
+- **Lanes held.** The expander touched only `tasks/` and `tasks.md`. The tester
+  touched only `templates-verify.test.ts` and the brief. The worker touched
+  `templates.ts`, `templates.test.ts` and the brief.
+- **Inside Constraints.** The diff is the new module, two new test files, the
+  brief, the expander's `tasks.md` notes and `runs/T-020-template-record.md`
+  (the orchestrator's log). `types.ts` was not touched.
+- **Fits the codebase.** The `satisfies Record<keyof Entity, true>` sets give
+  criterion 15's tie through typecheck rather than a test. That is the cheapest
+  way to keep the list in step. `Object.hasOwn` instead of `in` is correct
+  (`toString` and `__proto__` are rejected). The problem strings use the
+  `field: message` shape, which T-021 can show directly. Nothing in it is
+  speculative. The extra exports (`QUESTION_FORMATS`, `DistractorStrategy`,
+  `AgeBand`, `EntityField`) are the types the record is made of, and T-021 will
+  import them.
+- **Docs are true.** No README describes templates yet, and none needs to until
+  T-021 gives them a reader. The module's header comment says nothing imports
+  it, which is true (the tester asserts it for `build.ts`, `refresh.ts` and
+  `normalize.ts`).
+- **Honesty intact.** No fixture, data or existing test moved. The tester ran
+  nine mutations; the one survivor (M9) is an equivalent mutant, and the tester
+  explained why.
+
+**Findings.** None block.
+
+- **Non-blocking, folded into T-024:** `QUESTION_FORMATS` is a hand copy. Under
+  E-14 the backend is the source of truth, and `backend/app/models.py` already
+  holds a `QuestionFormat` enum. T-024 emits `format` as an API tag, so it has
+  to settle the tie anyway. Amended T-024 rather than opening a task.
+- **Non-blocking, folded into T-021:** `tpl-click-the-map`'s answer is a
+  `geometry_id`, and `grading.py:39` grades `map_click` by `choiceIndex`. T-021
+  is the first code that builds a question from it, so T-021 has to decide what
+  goes in `choices` for that format. A FIPS code must never reach a child as a
+  label. `TEMPLATES` is also a mutable exported array, so T-021 should copy, not
+  mutate. Both are one-line notes on T-021.
+
+**Flags disposed**
+
+- **Worker: validator stricter than the brief** (duplicate `applies_to`, `{}`,
+  unmatched braces, empty prompt). **Accepted.** Each one would otherwise reach
+  T-021 as a malformed question, and none contradicts a criterion.
+- **Worker: `QUESTION_FORMATS` hand copy.** **Deferred to T-024**, amended above.
+- **Worker: strategy doc comments.** **Deferred to T-022**, which owns the
+  strategies and may rewrite the comments.
+- **Worker: criterion-7 values** (identify 2/band 1, click 3/band 1).
+  **Accepted** as stored inputs. Tuning them is T-023/T-025, as the brief says.
+- **Tester: one session id across the run.** Deferred to `P-14`, which already
+  owns it.
 
 ## Notes
 
