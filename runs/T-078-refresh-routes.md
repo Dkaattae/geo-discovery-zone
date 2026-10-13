@@ -1,7 +1,7 @@
 # T-078 — Point the other refresh routes at `bun run refresh` — run log
 
 **Task:** T-078 · **Branch:** `claude/loving-darwin-jij761` · **PR:** #78
-**Started:** 2026-10-13 · **Outcome:** in progress
+**Started:** 2026-10-13 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -133,3 +133,43 @@ An attended `tester` session (outside this run) applied the approved test change
 `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-13`.
 Dkaattae, in the orchestrator session: "ci is fixed". The orchestrator resumed
 from `Next step: reviewer`.
+
+## Round 4 — reviewer — 2026-10-13
+`Next step` on entry: `reviewer` (`Status: pass`) → on exit: `human` (`Status: approved`, merge PR #78; brief swept)
+
+**I approved T-078, swept it, and marked PR #78 ready with no escalation.** Nothing blocks. Dkaattae merges; I did not. The push landed: `origin/claude/loving-darwin-jij761` head is `7c2bfdf`, and PR #78 reads `draft: false`, `state: open`, `merged: false`.
+
+**Verdict:** approved, inside the envelope.
+- **Tests:** the tester returned pass. I re-ran the suite with the six proxies pointed at `127.0.0.1:1`: 1822 pass, 0 fail, and typecheck, lint and format:check are clean. On the previous head CI's `question-bank` job was green, but `frontend`, `integration` and `e2e` were still running when I checked. My two pushes start a fresh CI run on `7c2bfdf`, and I did not wait for it.
+- **Changes stayed inside the brief's Constraints.** The only source changes are in `build.ts` (it now calls `draftMissingFunFacts`, the same as `refresh.ts`) and the one `regenerate_with` string in the fixture. There are two new test files. Nothing touches dependencies, `openapi.yaml`, migrations, the plan or text a child reads.
+- **The one pre-existing test that changed was approved by a person.** That is T-079's criterion-19 sha256 pin in `highest-point-in-state-verify.test.ts`. The `Test changes:` line names Dkaattae, not the orchestrator. The change was made in tester commit `a1653c2` and matches row 1 of the request exactly.
+- **Each role stayed in its lane and every role's work is in the PR.** The expander only touched `tasks/` and `tasks.md`. Every role in the Sessions table has a commit on the branch.
+- **The docs are true.** `question-bank/README.md:77` already describes the missing-only rule.
+
+**Commits pushed**
+- **`c95dfc1`:** writes a `## Review` section into the brief, sets Status to `approved` and Next step to `human` (merge PR #78), and adds my Sessions row (`cse_01PtngPoaghwWcXCwbmrjZNw`).
+- **`7c2bfdf` (the sweep):**
+  - deletes `tasks/T-078-refresh-routes.md`;
+  - removes the T-078 entry from `tasks.md` and adds a line to its sweep log;
+  - logs T-078 under Completed tasks in `PROGRESS.md`, adds a line to the fun-facts summary there, and bumps Last updated;
+  - adds P-16 to `process-tasks.md`.
+
+**Findings (neither blocks)**
+- **T-070 amended:** a changed `bun run refresh` re-records both fixtures. That will turn T-079's criterion-19 fixture pins red, on the first refresh and on T-084's re-record. T-070 (a) already owns the "survive a refresh" question, so I amended it rather than opening a task. T-084 got a one-line pointer to it.
+- **New P-16:** the brief said no test would go stale, but criterion 12 had to break a byte pin on the file it edits. That cost one halt and an attended tester round. The gap is in the expander's survey, which makes it a loop issue, so it goes in `process-tasks.md`.
+
+**How each flag was settled**
+- **Stale pin:** decided. Dkaattae approved the change and the tester applied it.
+- **Criteria 12 and 18 contradicting each other:** settled by that approval. The lesson is now P-16.
+- **One session id shared across the orchestrated run:** deferred to P-14, which already covers it.
+- **The T-084 split:** left for a human, as the PR body says. It is not settled here.
+
+**What's needed next:** Dkaattae merges PR #78 (https://github.com/Dkaattae/geo-discovery-zone/pull/78) and decides on the T-084 split.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/tasks/T-078-refresh-routes.md (deleted; the review is in commit `c95dfc1`)
+
+The run ends here: the reviewer marked the PR ready. No role merges.
