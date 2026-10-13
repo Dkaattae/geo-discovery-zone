@@ -69,3 +69,37 @@ A person was in the orchestrator session, so the orchestrator asked them to appr
 - **Warning wording — reviewer.** The text is `label is a bare QID (<qid>), not a name; left blank` or `…; used curated <v>`.
 - **Session id — tester.** My session id is the same as the expander's. That is expected when roles are spawned by the orchestrator (`process.md` "Spawning"), so the tester should apply that rule rather than refuse on it.
 - **Juneau finding — human.** Please read the Juneau evidence in the Handoff and confirm T-084.
+
+## Round 3 — tester — 2026-10-13
+`Next step` on entry: `tester` (`Status: awaiting verification`) → on exit: `reviewer` (`Status: pass`)
+
+**T-077 passes.** All 11 criteria hold, each covered by tests I wrote from the brief. The full question-bank suite and every gate are green. The commit is pushed to `claude/inspiring-faraday-a9hh8r` at `6e94dea`, and I confirmed the remote head matches. **Next step: reviewer.**
+
+**Independence is the weaker kind.** This is an orchestrated run (`runs/T-077-bare-qid-label.md` exists), so my session id `cse_019jSkM2Hn46U29v2f2miUvU` is the same as the expander's and the worker's, and the id check proves nothing. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. That depends on the orchestrator having spawned me correctly, which I can't verify. The Verdict says this.
+
+**What I did**
+- **Handoff checked against the branch:** the `normalize.ts` guard and the worker's `bare-qid-label.test.ts` are both there, as the Handoff describes.
+- **New tests:** 18 in `/home/user/geo-discovery-zone/question-bank/src/bare-qid-label-verify.test.ts`, named by criterion.
+  - Criteria 1–7 call `parseUsStates` / `normalizeUsStates` directly, on in-memory copies of the committed recording with one field edited each.
+  - Criterion 8 runs `refreshBank` through a `SparqlTransport` fake against a temporary copy of the bank.
+  - No network, no `fetch` mock.
+- **Mutations to `normalize.ts`:** each one turned tests red, and all were reverted (`git diff --quiet` confirmed).
+
+| Mutation | Tests that went red |
+|---|---|
+| Regex not anchored | 3 tests for criterion 7 |
+| Regex case-insensitive | 1 test for criterion 7 (`q29445`) |
+| Capital guard turned off | 4 tests for criteria 1, 2 and 8 |
+| Highest-point guard turned off | 3 tests for criteria 4–5 |
+| Missing-capital message changed | 1 test for criterion 3 |
+
+- **Gate:** `bun test` 1801 pass / 0 fail with the proxy pointed at loopback; lint, typecheck and format:check all clean.
+- **Criterion 9 (the committed bank doesn't move):** I ran the offline build with `origin/main`'s `normalize.ts` and with the branch's. The printed output and the written files were identical apart from the output path, and both match `data/us-states/`. Only the three expected `highest_point_m` warnings appear (CT, OK, VA).
+- **Criterion 10:** no changes to `package.json`, `bun.lock`, `data/` or `src/fixtures/`.
+- **No existing test was touched**, and no test change request was needed.
+
+**For the reviewer**
+- **Juneau's label (review checklist):** this needs the live service, so no test covers it. The worker's live evidence is in the Handoff, and the query fix is filed as T-084.
+- **Two of the worker's choices to confirm:** the warning wording, and emitting only one warning (no extra `missing`) when the highest point is a bare QID and there is no curated value. Both meet criteria 2 and 5 as written.
+
+**Brief changes** (`/home/user/geo-discovery-zone/tasks/T-077-bare-qid-label.md`): Status is now `pass`, Next step is `reviewer`, my tester row is in the Sessions table, and the Verdict has a table mapping each criterion to its evidence. Before running anything I ran `bun install --frozen-lockfile` because `node_modules` was missing; the lockfile did not change.
