@@ -1,7 +1,7 @@
 # T-078 — Point the other refresh routes at `bun run refresh`
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #78)
 **Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-078, continue the run". See `runs/T-078-refresh-routes.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-13`
 **From:** [`tasks.md`](../tasks.md) T-078
@@ -17,6 +17,7 @@
 | worker | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent) |
 | tester | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent, so the id check cannot show independence) |
 | tester | 2026-10-13 | `cse_01VvKCk2x3LPzM3oyNrUpKEa` (attended session, separate from the orchestrated run; resumed the Test change request) |
+| reviewer | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent) |
 
 ## Why T-078 and not T-084
 
@@ -361,6 +362,63 @@ No count floor is affected: the request is a modify, not a delete.
 **What a human has to do:** start a `tester` in a session you are attending for
 T-078. Approve or refuse row 1 below there. If you refuse, criteria 12 and 18
 conflict, and the brief goes back to `task-expander`.
+
+## Review
+
+**TL;DR: approved, inside the envelope.** The change is the 21-line swap
+the brief asked for, in the house style, with the docs already true. CI's
+`question-bank` job and a local re-run are green (1822 pass, 0 fail). PR #78 is
+marked ready with no escalation note. Dkaattae merges.
+
+**Checks**
+
+- **Every role's work is in the PR.** The expander (`353eec1`, `4def7e1`), worker
+  (`084125b`), both testers (`179fa2c`, `a1653c2`, `754af8a`) and orchestrator
+  commits are all on `claude/loving-darwin-jij761`.
+- **Lanes held.** The expander touched only `tasks/` and `tasks.md`. Tester
+  commits touch only test files and the brief. The single pre-existing test
+  modified (`highest-point-in-state-verify.test.ts`) changed in `a1653c2`, a
+  `tester` commit, and matches row 1 exactly. `Test changes:` names Dkaattae,
+  a person, not `orchestrator`.
+- **Inside Constraints.** Source: `build.ts` and the one fixture string only.
+  New tests: `build-fun-facts.test.ts`, `refresh-routes-verify.test.ts`.
+  `runs/T-078-refresh-routes.md` is the orchestrator's own log, as on earlier
+  orchestrated PRs. No `data/`, `package.json`, `bun.lock`, `openapi.yaml`,
+  migration, plan or child-facing text.
+- **Fits the codebase.** `build.ts` now calls `draftMissingFunFacts` exactly as
+  `refresh.ts` does, and drops the duplicate loop and two imports. Warnings land
+  in the same place and the same format as before. No new `BuildDeps` field.
+- **Docs are true.** `question-bank/README.md:77` already describes the
+  missing-only rule; nothing says the live build drafts "every" state. The new
+  `regenerate_with` text matches what `refresh.ts` does (both fixtures,
+  `_fixture` kept apart from `captured_at` and `rows`).
+- **Suite re-run here** with the six proxies at `127.0.0.1:1`: 1822 pass, 0 fail.
+  `typecheck`, `lint` and `format:check` are clean.
+
+**Findings.** None block.
+
+- **Non-blocking, folded into T-070:** T-079's criterion-19 pin hashes both
+  SPARQL fixtures whole. Every changed `bun run refresh` re-records both files,
+  so the pin goes red on the first refresh, and on T-084's re-record. That is
+  the same "must survive a refresh" question T-070 (a) already owns, so I
+  amended T-070 rather than opening a task. T-084 gets a one-line pointer.
+- **Non-blocking, new `P-16`:** the expander wrote "Nothing above expects one"
+  about stale tests, but criterion 12 had to break a byte pin on the file it
+  edits. That cost a halt and an attended tester round. The gap is in the loop
+  (the expander's survey), so it goes in `process-tasks.md`, not `tasks.md`.
+- **Not raised:** `build.ts` still logs "Fetching Wikipedia summaries …" when
+  there is nothing to fetch. It is a progress line on stderr and costs nothing.
+
+**Flags disposed**
+
+- **Worker: stale T-079 pin.** Decided. Dkaattae approved row 1 in an attended
+  tester session, and the tester applied it.
+- **Worker: criteria 12 and 18 conflict.** Decided by that approval. The process
+  lesson is `P-16`.
+- **Worker and tester: one session id across the orchestrated run.** Deferred to
+  `P-14`, which already owns it.
+- **Expander: split T-084.** Still a human's call. It is in `tasks.md` T-084 and
+  this PR does not settle it.
 
 ## Test change request
 
