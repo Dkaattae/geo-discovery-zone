@@ -1,7 +1,7 @@
 # T-077 — A label that comes back as a bare QID must warn, not ship
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-077 criteria". See `runs/T-077-bare-qid-label.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-077
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU |
 | worker | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU (relayed subagent: same id as every spawned role, `process.md` "Spawning") |
+| tester | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU (orchestrated subagent: same id as every spawned role; see Verdict on independence) |
 
 **Why this task.** First in `tasks.md` whose dependencies are done. Skipped:
 **T-064** (depends on T-040, not built) and **T-070** (waiting on a human answer
@@ -269,6 +270,54 @@ is right. The underlying reason is `mul`, not a missing label.
 **Tests made stale:** none.
 
 ## Verdict
+
+**Pass.** All 11 criteria hold. I wrote 18 tests from the criteria
+(`question-bank/src/bare-qid-label-verify.test.ts`), and 5 mutations of the guard
+each turned them red. The full gate is green: `bun test` 1801/0 with the proxy
+pointed at loopback, lint 0/0, typecheck clean, format:check clean. **Next:
+reviewer.**
+
+**Independence: the weaker kind.** This run is orchestrated
+(`runs/T-077-bare-qid-label.md` exists), so my session id
+`cse_019jSkM2Hn46U29v2f2miUvU` equals the expander's and the worker's, and the id
+check proves nothing. My independence rests on being a freshly spawned subagent
+with its own context. I did not see the worker's reasoning. That holds only if
+the orchestrator spawned me correctly, which I cannot verify myself.
+
+**The work is on the branch.** `normalize.ts` (the guard) and
+`bare-qid-label.test.ts` are on `claude/inspiring-faraday-a9hh8r` at `af6a1f1`,
+as the Handoff says.
+
+| # | Verdict | Evidence (`bare-qid-label-verify.test.ts` unless noted) |
+|---|---|---|
+| 1 | pass | Alaska `capitalLabel` `Q29445` gives no `capital` key. With Colorado also set to `Q1`, no capital matches `^Q\d+$`, and Texas is still `Austin` |
+| 2 | pass | Exactly one `us-state-ak` / `capital` warning, its message contains `Q29445` and is not `missing`. Baseline: the unedited recording gives none |
+| 3 | pass | Absent `capitalLabel` gives `toEqual([{ entity, field: "capital", message: "missing" }])` |
+| 4 | pass | AK `highestPoint` `Q130018` ships the curated `Mount McKinley`. CO `Q1208` has no `highest_point` key. With 3 states set to QIDs, none ships one. Baseline: CO's `Mount Elbert` still wins |
+| 5 | pass | Exactly one `highest_point` warning naming the QID, in both the AK case and the CO case |
+| 6 | pass | Ohio `stateLabel` set to `Q1397`: it is in `unmatched`, there is no `us-state-oh` and no entity with that name, and 49 entities are built |
+| 7 | pass | `Juneau`, `Q`, `q29445`, `Q29445a`, ` Q29445`, `Q29445 ` and `Quebec City` each ship verbatim, with no capital warning |
+| 8 | pass | `refreshBank` through a `SparqlTransport` fake, writing to a temp copy of the bank: `us-state-ak.json` has no `capital`, no bank file contains `"Q29445"`, and a stdout line starting `  us-state-ak.capital: ` contains `Q29445` |
+| 9 | pass | `bun run build --offline --out <scratch>`, run with `origin/main`'s `normalize.ts` and with this branch's: stdout is identical apart from the path, the output trees are identical (`diff -r`), and both match `data/us-states/` (review files excluded). The 3 warnings are the CT/OK/VA `highest_point_m` overrides and nothing else. `git diff origin/main...HEAD -- data/ src/fixtures/` is empty |
+| 10 | pass | No `fetch` in either new test file. Criteria 1–7 call `parseUsStates`/`normalizeUsStates` directly, and criterion 8 goes through the seam. `package.json` and `bun.lock` show no diff against `origin/main` |
+| 11 | pass | 1801 pass / 0 fail, lint, typecheck and format:check all clean. No pre-existing test changed: the branch diff touches only `normalize.ts`, the new test file, `tasks.md`, the brief and the run log |
+
+**Mutations** (on `normalize.ts`, each reverted, `git diff --quiet` confirmed
+afterwards):
+- **Regex unanchored** (`/Q\d+/`): 3 criterion-7 tests red (`Q29445a`, ` Q29445`,
+  `Q29445 `).
+- **Regex case-insensitive** (`/i`): the criterion-7 `q29445` test red.
+- **Capital guard disabled:** criteria 1, 2 and 8 red (4 tests).
+- **Highest-point guard disabled:** criteria 4–5 red (3 tests).
+- **Absent-capital message changed to `absent`:** criterion 3 red.
+
+**Not verified by test:** the Review checklist (Juneau's live label). It needs
+the network. The Handoff's live evidence and the filed T-084 are for the human
+reviewer. The warning wording and the "no double warning" choice are left for the
+reviewer, as the Notes ask. Both satisfy criteria 2 and 5 as written.
+
+**Setup note:** `node_modules` was absent. I ran `bun install --frozen-lockfile`,
+and the lockfile is unchanged.
 
 ## Notes
 
