@@ -61,7 +61,10 @@ is new in F (the README layout prettier flattened), and T-044 gained the
 return the build's stdout (PR #73): T-082 is smaller (only `--fixture` is
 missing now), and T-083 is new (retire T-016's source-grep workaround). Swept
 again 2026-10-12, after T-083 retired that workaround and made `--quiet` keep
-the summary (PR #76): T-070 gained a stale describe name to fix._
+the summary (PR #76): T-070 gained a stale describe name to fix. Swept again
+2026-10-13, after T-078 pointed `bun run build`'s live pass and the fixture's
+`regenerate_with` at `bun run refresh`'s route (PR #78): T-070 now also owns the
+fixture byte pins a refresh turns red, and T-084 points there._
 
 ## How this list is ordered
 
@@ -290,6 +293,15 @@ count has been 3 since T-079, and the tests and comments under it say so.
 T-083's criteria covered comments only, so it left the name alone. This task
 already edits that file under an attended Test change request, so add a row to
 rename it there instead of opening a task for one string.
+**Amended 2026-10-13 by T-078's reviewer (PR #78): the fixture pins go red on
+a refresh too.** `highest-point-in-state-verify.test.ts`'s describe "T-079
+tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c"
+hashes both `us-states.sparql.json` and `us-states-elevation.sparql.json` whole.
+T-078 had to re-pin the main one (approved row, Dkaattae) just to change
+`regenerate_with`. A changed `bun run refresh` re-records both files, so both
+entries go red on the first refresh, and on T-084's re-record. Whatever (a)
+decides about surviving a refresh has to cover these two pins as well as the
+four bank guards.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
@@ -321,24 +333,9 @@ and moves no committed byte. The fixture already records `Juneau`
 (`src/fixtures/us-states.sparql.json:100`), and `fixture-transport.ts` matches
 by query identity. The re-record and the live check would move to the first
 refresh after T-070 (a). T-078 was taken instead.
-
-### T-078 — Point the other refresh routes at `bun run refresh` · S · doing
-**Depends on:** —
-**New 2026-10-02, from T-063's reviewer (PR #68).** T-063 left two older routes
-saying the old thing, both deliberately out of its scope:
-- **`build.ts`'s live fun-fact pass still drafts for every titled entity** (all
-  50, every one already curated). T-063 added `draftMissingFunFacts` in
-  `src/review-file.ts` and used it only in `refresh.ts`, because its brief kept
-  `bun run build`'s behaviour fixed. Switching `build.ts`'s loop to it removes
-  the duplicate loop and the 50 redundant drafts.
-- **`src/fixtures/us-states.sparql.json`'s `_fixture.regenerate_with`** still
-  says "bun run build … then save the raw SPARQL JSON". A refresh preserves that
-  key verbatim (T-063 criterion 6), so it will stay wrong until edited by hand.
-  Editing it does not change any built byte, so `committed-bank.test.ts` stays
-  green; check the other fixture readers under `src/*verify*.test.ts` too.
-**Done when:** `bun run build`'s live pass requests drafts only for entities with
-empty `fun_facts` (offline test through `SummaryTransport`), and
-`regenerate_with` names `bun run refresh`.
+**Since T-078 (PR #78):** a re-record also turns T-079's criterion-19 fixture
+pins red (`highest-point-in-state-verify.test.ts`). See T-070's 2026-10-13
+amendment; the re-record needs a Test change request row for each.
 
 ---
 

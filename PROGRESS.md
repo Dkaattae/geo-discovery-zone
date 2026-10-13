@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-10-02_
+_Last updated: 2026-10-13_
 
 ## In one paragraph
 
@@ -128,6 +128,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (`src/curated/us-states.ts`), folded into each entity by `normalize.ts` the way
   `climate_kid` and `landmark` already are. **All 50 states carry one fact**
   (T-011).
+  Both `bun run build`'s live pass and `bun run refresh` request a draft only
+  for a state with no curated fact (`draftMissingFunFacts`; T-063, T-078).
 - `EntitySink` seam, one committed sample run, and a recorded fixture of a real
   50-row response so `--offline` reproduces a full build with no network.
 - **`bun run refresh` refreshes the committed bank from live Wikidata** (T-063,
@@ -334,6 +336,20 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-078 — `bun run build`'s live pass drafts only missing fun facts, and the
+  fixture says to re-record with `bun run refresh`** (PR #78, 2026-10-13).
+  `build.ts` replaced its own every-entity Wikipedia loop with
+  `draftMissingFunFacts`, the rule `refresh.ts` already used, so a live build
+  makes no summary request while all 50 states are curated. The main fixture's
+  `_fixture.regenerate_with` now names `bun run refresh`. Nothing built moved:
+  the bank, the offline build and its stdout are unchanged.
+  *Where it differed from the brief:* the brief expected no stale tests, but
+  T-079's whole-file sha256 pin on `us-states.sparql.json` had to move for the
+  one-string edit. Dkaattae approved the re-pin in an attended tester session.
+  A refresh will trip the same pins, which is now part of T-070 (a). The
+  expander's miss is `P-16`. Run orchestrated, with one session id across
+  the roles (`P-14`).
 
 - **T-077 — A label that comes back as a bare QID warns instead of shipping**
   (PR #77, 2026-10-13). `normalize.ts` treats a `capital` or `highest_point`
