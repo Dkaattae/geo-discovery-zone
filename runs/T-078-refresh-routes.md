@@ -50,3 +50,37 @@ waiting on a person.
 Dkaattae, in the orchestrator session: "I approve T-078, continue the run".
 The orchestrator recorded that approval in the brief's `Approved:` line and
 resumed from `Next step: worker`.
+
+## Round 2 — worker — 2026-10-13
+`Next step` on entry: `worker` (`Status: awaiting approval`) → on exit: `tester` (`Status: awaiting verification`)
+
+**T-078 worker: built and pushed. One existing test now fails on purpose because the brief requires it, and changing that test needs a human's approval (D-14).** Commit `084125b` is on `origin/claude/loving-darwin-jij761`; I checked with `git log origin/claude/loving-darwin-jij761 -1`. The brief now reads Status `awaiting verification`, Next step `tester`.
+
+**Changes**
+- **`question-bank/src/build.ts`:** the live fun-fact pass no longer loops over every state. It now calls `draftMissingFunFacts`, the same rule `refresh.ts` uses. While all 50 states have curated facts, a live build calls Wikipedia zero times. Warnings come out in the same order and format as before. No new `BuildDeps` field.
+- **`question-bank/src/fixtures/us-states.sparql.json`:** only `_fixture.regenerate_with` changed, and it now names `bun run refresh`. With that key removed, the parsed file is identical to the version before the change.
+- **`question-bank/src/build-fun-facts.test.ts` (new):** 8 tests covering criteria 1–9, 11 and 15.
+  - They drive `runBuild` live through `fixtureTransport` and a `SummaryTransport` that records each title it gets.
+  - A state gets empty `fun_facts` by blanking its curated entry in the test; `afterEach` restores it.
+  - For criterion 6, the test removes Vermont's `article` binding from the replayed response.
+  - Nothing is stubbed with `fetch`, and the file passes with all six proxy variables set to `http://127.0.0.1:1`.
+
+**Results**
+- **Tests:** 1808 pass, 1 fail. The failure is the stale test below.
+- **Checks:** typecheck, lint and `format:check` are all clean. I had to run `bun install` first because `node_modules` was missing; the lockfile did not change.
+- **Bank and offline build (criteria 14–15):** nothing under `question-bank/data/` changed. I ran an offline build from a checkout of the code before my change and one from this branch. The output folders were identical, and stdout differed only in the fixture's absolute path, because the two checkouts sit in different directories.
+
+**Test made stale**
+- **Which test:** in `question-bank/src/highest-point-in-state-verify.test.ts`, the describe `"T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c"`, test `"us-states.sparql.json"`.
+- **Why it fails:** it pins the main fixture's sha256, and criterion 12 requires editing that file.
+- **Proposed fix, for the tester to take to Dkaattae:** change the digest to `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d`, or compare the parsed fixture with `regenerate_with` left out.
+
+**Where the brief is wrong**
+- **Two criteria can't both pass.** The Constraints say no existing test should break ("Nothing above expects one"). But criterion 12 (edit the fixture) and criterion 18 (every existing test passes unmodified) contradict each other because of that pin.
+- **Owner:** the tester raises it with a human. If they want to keep the pin as it is, criterion 12 goes back to task-expander.
+
+**Two things for the tester**
+- **The output folder has 51 files.** It holds `index.json` next to the 50 state files, so count `us-state-*.json` when checking criterion 7's "all 50 entity files".
+- **Every role in this run has the same session id**, `cse_01PtngPoaghwWcXCwbmrjZNw`, because it is orchestrated, so the tester's check against the Sessions table will match the worker row. The orchestrator or a human should decide whether separate subagent contexts count as enough isolation.
+
+The full Handoff, with a table of where each criterion is implemented, is in `/home/user/geo-discovery-zone/tasks/T-078-refresh-routes.md`.
