@@ -64,7 +64,8 @@ export interface OfflineRebuildOptions {
  * files as UTF-8 text, and always removes the directory again. Nothing is
  * mocked — the isolation is `DEAD_PROXY` plus a temp `--out` dir.
  *
- * Passes `--quiet`, so the build prints nothing; use `rebuildOfflineWithStdout`
+ * Passes `--quiet`, so the build skips its progress lines and prints only its
+ * final summary, which this function discards; use `rebuildOfflineWithStdout`
  * when the test needs what `report()` printed.
  *
  * @param buildScript absolute path to `src/build.ts` (callers pass

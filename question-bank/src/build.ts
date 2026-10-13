@@ -131,6 +131,9 @@ export interface BuildResult {
 
 export async function runBuild(argv: string[], deps: BuildDeps = {}): Promise<BuildResult> {
   const args = parseArgs(argv);
+  // `print` reaches stdout always; `log` is progress chatter that `--quiet`
+  // silences. The summary and every warning go through `print`, so a quiet
+  // build still flags uncertain data — what `--help` promises (T-083).
   const print = deps.log ?? ((message: string) => console.log(message));
   const log = args.quiet ? () => {} : print;
 
@@ -182,7 +185,7 @@ export async function runBuild(argv: string[], deps: BuildDeps = {}): Promise<Bu
   await sink.write(entities);
   await sink.close();
 
-  report(entities, warnings, unmatched, args, log);
+  report(entities, warnings, unmatched, args, print);
   return { entities, warnings, unmatched };
 }
 

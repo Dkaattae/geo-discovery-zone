@@ -574,3 +574,30 @@ entry), so it is done by hand and never through the loop.
 that distinguishes the worker's spawn from the tester's without anyone's word
 for it; or a `D-n` entry records why it is accepted as attestation and roles stop
 re-explaining it.
+
+### P-15 — An attended step and the orchestrator can run the same role at once · S · todo
+**Depends on:** —
+**New 2026-10-12, from T-083's reviewer (PR #76).** The brief said "Plan to
+attend the tester step" because its criteria needed a Test change request. A
+person then started a tester session (`cse_01U3AvJtbD4ftspuhsxd6PZJ`) while the
+orchestrator spawned its own tester for the same task. Both raised the same four
+rows, both pushed, and the second had to rebase onto the first and add a note
+comparing the two. Each also wrote a verdict, and someone had to decide which
+tester counted. No harm came of it: the rows matched, and the attended session
+applied them. But nothing in the loop stops two sessions holding one role at
+the same time, and a push race between them could have dropped one session's
+work.
+**Options to weigh, not a decision:**
+- **The orchestrator halts before a step the brief says to attend.** It would
+  need to recognise the expander's "Plan to attend" note, or a header field
+  that replaces it.
+- **A role claims its step** by pushing a one-line Status change before it
+  starts work, and a second session that sees the claim stops.
+- **Accept it**, and say in `process.md` what to do when two sessions for the
+  same role meet on one branch.
+
+**This is a process-file change** (`.claude/agents/orchestrator.md`, likely the
+expander's attend note and `process.md`), so it is done by hand.
+**Done when:** a person attending a step and an orchestrator running the same
+task cannot both run the same role without one of them noticing first; or a
+`D-n` entry records why that is accepted.
