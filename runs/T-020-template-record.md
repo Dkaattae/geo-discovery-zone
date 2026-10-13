@@ -82,3 +82,38 @@ The orchestrator recorded that approval in the `Approved:` line.
 **Two things to know:**
 - **Status line was inconsistent:** the brief read `awaiting approval` even though `Approved:` named Dkaattae. I treated the named approval as the gate.
 - **Same session id as the expander:** this session's `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01UpEFQfyRxWfuVGBtPaogEo`, which matches the expander's row. The tester must run in a different session. I recorded this in the Sessions table.
+
+## Round 3 — tester — 2026-10-13
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-020 tester verdict: pass.** All 27 criteria hold. I added 90 tester tests and all of them pass. The full question-bank suite is 1929 pass / 0 fail, and typecheck, lint and format:check all exit 0. The commit is `99e36fb` on `claude/bold-noether-djxpzu`, and `origin` points at the same sha, so the push landed. In the brief, Status is now `pass` and Next step is `reviewer`.
+
+**This is the weaker kind of independence.** The run is orchestrated (`runs/T-020-template-record.md` exists), and `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01UpEFQfyRxWfuVGBtPaogEo`, the same id as the worker's row. So the session check proves nothing. The only separation is that I was spawned fresh with my own context window and never saw the worker's reasoning, which relies on the orchestrator having spawned me correctly. The Verdict and my Sessions row both say this.
+
+**What I committed:**
+- `/home/user/geo-discovery-zone/question-bank/src/templates-verify.test.ts` (new): one `describe` per criterion, covering 1–21 and 23's import check. Expected values come from the brief and plan §1.2, not from the code.
+- `/home/user/geo-discovery-zone/tasks/T-020-template-record.md`: the Verdict (a table with one row per criterion), the tester Sessions row, Status and Next step.
+
+**Criteria I checked by hand, not in a test** (a test can't use a git revision, under `git-exit-guard`):
+- **22 and 23:** no diff from `origin/main` for `package.json`, `bun.lock`, `data/`, `sample-data/` or `src/fixtures/`.
+- **23, build:** `bun run build -- --offline` exits 0 and leaves the tree unchanged. Its stdout matches main's build, run in a worktree, except for absolute paths.
+- **24:** the only changes outside `question-bank/` are `tasks.md`, the brief and the orchestrator's run log.
+- **25:** no pre-existing test was modified or deleted.
+
+**Mutations** (all reverted, tree clean afterwards):
+- **Criterion 15's tie to `Entity` holds:** adding `flag_url?: string` to `Entity` makes typecheck fail.
+- **My tests catch broken checks.** Each of these turned one or more tests red:
+  - widening the difficulty bound
+  - accepting age band 0
+  - turning off the "answer_field must be in requires" check
+  - dropping the extra-key problem
+  - turning off the placeholder check
+  - loosening the id pattern (4 tests red)
+  - changing the click template's `answer_field`
+- **One mutation stayed green, correctly:** making the check throw on `null` changed nothing, because the `try/catch` around it still returns a non-empty list, which is what criterion 10 asks for.
+
+**For the reviewer** (neither is a failure):
+- **Click prompt:** it is `"Tap {name} on the map."` (the brief's "Child-facing text").
+- **`QUESTION_FORMATS`:** it is a hand copy of the openapi enum, and nothing checks the two against each other.
+
+No test changes were needed.
