@@ -1,7 +1,7 @@
 # T-020 — Template record type and three templates
 
-**Status:** awaiting verification
-**Next step:** tester
+**Status:** pass
+**Next step:** reviewer
 **Approved:** Dkaattae — 2026-10-13, given in the orchestrator session (AskUserQuestion). See `runs/T-020-template-record.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-020
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-10-13 | session_01UpEFQfyRxWfuVGBtPaogEo |
 | worker | 2026-10-13 | cse_01UpEFQfyRxWfuVGBtPaogEo (subagent spawned by the orchestrator; `$CLAUDE_CODE_REMOTE_SESSION_ID` reads the same id as the expander's row, so the tester must run in a different session) |
+| tester | 2026-10-13 | cse_01UpEFQfyRxWfuVGBtPaogEo (subagent spawned by the orchestrator; same id as the worker's row, so independence rests on a fresh context window, not on a separate session) |
 
 ## Why this task, and not an earlier one
 
@@ -361,6 +362,61 @@ as the gate and started.
 **Tests made stale**: none.
 
 ## Verdict
+
+**TL;DR: pass.** All 27 criteria hold. 90 new tester tests in
+`question-bank/src/templates-verify.test.ts` pass; full suite 1929 pass / 0 fail;
+typecheck, lint and format:check exit 0. Next step: reviewer.
+
+**Independence: weaker than a separate session.** This is an orchestrated run
+(`runs/T-020-template-record.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_01UpEFQfyRxWfuVGBtPaogEo`, the same id as the worker's row, so the
+session check proves nothing. My independence rests only on being a freshly
+spawned agent with its own context window that did not see the worker's
+reasoning, which depends on the orchestrator having spawned me correctly.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | each entry has exactly the nine keys; a nine-field literal typechecks as `Template` |
+| 2, 9 | pass | three entries, the three ids, distinct |
+| 3, 20 | pass | both names present; `"random"` absent and rejected |
+| 4 | pass | `tpl-capital-of` field for field against plan §1.2 |
+| 5, 6 | pass | pinned fields; click prompt has only `{name}` |
+| 7 | pass | both map templates: finite 0–18, band in {1,2,3} |
+| 8 | pass | `validateTemplate` returns `[]` for each |
+| 10 | pass | `null`, `undefined`, `42`, `"tpl-x"`, `[]`, `{}`: non-empty, no throw |
+| 11 | pass | each of nine fields deleted is named; extra `topic` named |
+| 12 | pass | four rejects, four accepts |
+| 13, 14 | pass | `{name}` accepted/rejected by `requires`; no-placeholder prompt accepted; answer outside `requires` rejected |
+| 15 | pass | `capitol`, `flag_url` rejected; `top_livestock`, `highest_point_m` accepted (as `requires` and as `answer_field`); empty and duplicate `requires` rejected. Mutation M1 (below): adding `flag_url?: string` to `Entity` makes `bun run typecheck` fail |
+| 16 | pass | `["state"]` accepted; `[]`, `["province"]`, `["state","continent"]` rejected |
+| 17 | pass | all nine openapi values accepted; `map-identify`, `text-mc` rejected |
+| 18, 19 | pass | every listed boundary value |
+| 21 | pass | 50 committed files, no gaps |
+| 22 | pass | `git diff origin/main...HEAD` empty for `package.json`, `bun.lock` |
+| 23 | pass | no diff under `data/`, `sample-data/`, `src/fixtures/`; `bun run build -- --offline` exit 0, tree unchanged after it; stdout identical to main's build (run in a worktree) apart from absolute paths; test asserts `build.ts`, `refresh.ts`, `normalize.ts` do not import `./templates` |
+| 24 | pass | outside `question-bank/` only `tasks.md`, the brief and `runs/T-020-template-record.md` (the orchestrator's log) changed |
+| 25 | pass | the only test-file change on the branch is the new `templates.test.ts` (plus mine) |
+| 26 | pass | tests call `validateTemplate`/read `TEMPLATES` and the committed JSON; no fetch, mock, spawn or seam |
+| 27 | pass | typecheck 0, lint 0, format:check 0, `bun test` 1929 pass / 0 fail |
+
+**Mutations** (each reverted with `git checkout`, tree clean afterwards):
+
+- **M1** `Entity` gains `flag_url?: string` → typecheck fails (1 TS error). Criterion 15's tie holds.
+- **M2** difficulty upper bound 18 → 99: 1 tester test red.
+- **M3** band 0 accepted: 1 red.
+- **M4** answer-in-requires check off: 1 red.
+- **M5** extra-key problem dropped: 1 red.
+- **M6** placeholder check off: 1 red.
+- **M7** id pattern `^.*$`: 4 red.
+- **M8** click template `answer_field` → `name`: 1 red.
+- **M9** `check` throws on `null`: 0 red. Equivalent mutant: the `try/catch` in `validateTemplate` still returns a non-empty list, which is what criterion 10 asks.
+
+**Notes for the reviewer** (not failures):
+
+- The click prompt is `"Tap {name} on the map."` (brief "Child-facing text").
+- `QUESTION_FORMATS` is a hand copy of `openapi.yaml`'s enum; my criterion-17
+  test pins the nine values from the openapi file as read today, not a live tie.
+- **Test changes:** none needed; no pre-existing test touched.
 
 ## Notes
 
