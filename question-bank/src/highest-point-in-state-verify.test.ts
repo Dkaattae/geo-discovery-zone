@@ -454,9 +454,12 @@ describe("T-079 tester, criterion 18 — E-1 to E-18 are unchanged", () => {
 // What must not happen — criteria 19-20
 // ---------------------------------------------------------------------------
 
-describe("T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c", () => {
+// The main fixture's digest moved once, by T-078 criterion 12 (its
+// `_fixture.regenerate_with` now names `bun run refresh`). Approved in T-078's
+// Test change request, row 1. It still pins every byte of the file.
+describe("T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c (main fixture: as of T-078's regenerate_with)", () => {
   const fixtures: Record<string, string> = {
-    "us-states.sparql.json": "994223feb64bec88ac9f0f85bd0f538a9bc061329dfb09c4a97397f0e1aff41f",
+    "us-states.sparql.json": "121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d",
     "us-states-elevation.sparql.json":
       "9ef05326f66f54876ca3a554698f7bd11648ff6ba8884116028dd9e293598ab7",
   };
