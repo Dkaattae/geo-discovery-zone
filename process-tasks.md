@@ -601,3 +601,27 @@ expander's attend note and `process.md`), so it is done by hand.
 **Done when:** a person attending a step and an orchestrator running the same
 task cannot both run the same role without one of them noticing first; or a
 `D-n` entry records why that is accepted.
+
+### P-16 — The expander does not look for byte pins on files its criteria change · S · todo
+**Depends on:** —
+**New 2026-10-13, from T-078's reviewer (PR #78).** T-078's criterion 12 changed
+one string in `question-bank/src/fixtures/us-states.sparql.json`. Its Constraints
+said of stale tests "Nothing above expects one". But T-079's tester had pinned
+that file's whole sha256 (`highest-point-in-state-verify.test.ts`, criterion 19),
+so criteria 12 and 18 contradicted each other. The worker found it and the
+orchestrated tester halted on a Test change request. A person then had to start
+an attended tester session for one digest. A grep for the file name across
+`src/*.test.ts` at expand time would have found it, and the brief could have said
+"Plan to attend the tester step" up front.
+**Options to weigh, not a decision:**
+- **The expander's survey greps** every file its criteria change for digest or
+  byte pins in existing tests, and lists each one as an expected Test change
+  request row in the brief.
+- **Accept it**: the worker's "Tests made stale" and the tester's request
+  already catch it, at the cost of one halt.
+
+**This is a process-file change** (`.claude/agents/task-expander.md`, perhaps
+`tasks/TEMPLATE.md`), so it is done by hand.
+**Done when:** a brief whose criteria change a file that a pre-existing test pins
+byte for byte says so before the worker starts; or a `D-n` entry records why
+the halt is accepted.

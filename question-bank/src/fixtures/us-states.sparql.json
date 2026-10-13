@@ -6,7 +6,7 @@
     "query": "src/queries/us-states.ts (US_STATES_QUERY)",
     "rows": 50,
     "why_committed": "Lets --offline reproduce a full 50-state build with no network, which is what makes population_rank and area_rank meaningful in a subset run.",
-    "regenerate_with": "bun run build   # then save the raw SPARQL JSON over this file, keeping this _fixture block",
+    "regenerate_with": "bun run refresh   # re-records this file and us-states-elevation.sparql.json, keeping this _fixture block apart from captured_at and rows",
     "note": "Wikidata is edited continuously, so these values are a snapshot. A live run is the source of truth."
   },
   "head": {

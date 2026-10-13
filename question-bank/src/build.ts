@@ -12,11 +12,11 @@ import { join, resolve } from "node:path";
 
 import { fixtureTransport } from "./fixture-transport";
 import { normalizeUsStates, type BuildWarning } from "./normalize";
-import { writeReviewFile, type FunFactDraft } from "./review-file";
+import { draftMissingFunFacts, writeReviewFile } from "./review-file";
 import { createSink } from "./sinks";
 import { createSparqlClient, type SparqlTransport } from "./sparql";
 import { fetchUsStates } from "./sources/wikidata";
-import { createSummaryTransport, fetchFunFact, type SummaryTransport } from "./sources/wikipedia";
+import { createSummaryTransport, type SummaryTransport } from "./sources/wikipedia";
 import type { Entity } from "./types";
 
 interface Args {
@@ -165,17 +165,12 @@ export async function runBuild(argv: string[], deps: BuildDeps = {}): Promise<Bu
   if (args.funFacts) {
     log("Fetching Wikipedia summaries …");
     const fetchSummary = deps.summary ?? createSummaryTransport((message) => log(`  ${message}`));
-    const drafts: FunFactDraft[] = [];
-    for (const entity of entities) {
-      const title = entity.sources?.wikipedia_title;
-      if (!title) continue;
-      try {
-        const fact = await fetchFunFact(title, fetchSummary);
-        if (fact) drafts.push({ id: entity.id, name: entity.name, fact });
-      } catch (error) {
-        warnings.push({ entity: entity.id, field: "fun_facts", message: String(error) });
-      }
-    }
+    // Draft only what is missing (T-078): the same rule `refresh.ts` uses, so a
+    // state that already carries a curated fact costs no request and adds no
+    // already-answered entry to the review file.
+    const drafted = await draftMissingFunFacts(entities, fetchSummary);
+    const drafts = drafted.drafts;
+    warnings.push(...drafted.warnings);
     if (drafts.length)
       log(`  wrote ${drafts.length} draft(s) → ${await writeReviewFile(args.out, drafts)}`);
   }
