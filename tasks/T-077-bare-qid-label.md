@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-077 criteria". See `runs/T-077-bare-qid-label.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-077
 **Branch:** `claude/inspiring-faraday-a9hh8r` (assigned by the Claude Code on the web harness; this is the task branch every role pushes to)

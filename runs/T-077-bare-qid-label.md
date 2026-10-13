@@ -40,4 +40,4 @@
 - PR: https://github.com/Dkaattae/geo-discovery-zone/pull/77
 
 ## Approval — 2026-10-13
-Pending. A person is in the orchestrator session, so the orchestrator asked them to approve on PR #77 rather than writing its unattended stamp (on T-083 that stamp was refused by the harness as self-approval).
+A person was in the orchestrator session, so the orchestrator asked them to approve rather than writing its unattended stamp (on T-083 that stamp was refused by the harness as self-approval). Dkaattae then approved in the orchestrator session: "I approve T-077 criteria". `Approved:` records that.
