@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-077
 **Branch:** `claude/inspiring-faraday-a9hh8r` (assigned by the Claude Code on the web harness; this is the task branch every role pushes to)
-**PR:** opened draft at expand time against the branch above — number recorded in the PR list for this branch
+**PR:** #77, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
 **Fault:**
 
 **Sessions:**
