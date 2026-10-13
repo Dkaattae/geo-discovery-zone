@@ -1,7 +1,7 @@
 # T-020 — Template record type and three templates
 
-**Status:** awaiting approval
-**Next step:** worker
+**Status:** awaiting verification
+**Next step:** tester
 **Approved:** Dkaattae — 2026-10-13, given in the orchestrator session (AskUserQuestion). See `runs/T-020-template-record.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-020
@@ -15,6 +15,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-13 | session_01UpEFQfyRxWfuVGBtPaogEo |
+| worker | 2026-10-13 | cse_01UpEFQfyRxWfuVGBtPaogEo (subagent spawned by the orchestrator; `$CLAUDE_CODE_REMOTE_SESSION_ID` reads the same id as the expander's row, so the tester must run in a different session) |
 
 ## Why this task, and not an earlier one
 
@@ -283,6 +284,85 @@ Required reading for the worker and the tester:
 
 ## Handoff
 
+**TL;DR:** built. `question-bank/src/templates.ts` holds the record, the three
+templates and the validator; `templates.test.ts` covers them. Nothing else
+changed. Full suite 1839 pass / 0 fail, typecheck, lint and format:check exit 0.
+**Tests made stale: none.**
+
+**Files changed**
+
+- `question-bank/src/templates.ts` (new): `Template`, `TEMPLATES`,
+  `DISTRACTOR_STRATEGIES`, `validateTemplate`. Also exports `QUESTION_FORMATS`,
+  and the types `QuestionFormat`, `DistractorStrategy`, `AgeBand`, `EntityField`.
+- `question-bank/src/templates.test.ts` (new): 17 worker tests.
+- This brief. `types.ts` is **not** touched: the runtime lists of `Entity` keys
+  and `EntityType` members live in `templates.ts`, tied by `satisfies`.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1 | `interface Template` (nine fields). `TEMPLATE_KEYS ... satisfies Record<keyof Template, true>` keeps the validator's key list in step with it |
+| 2, 9 | `TEMPLATES` |
+| 3, 20 | `DISTRACTOR_STRATEGIES = ["neighbours_first", "sibling_capitals_same_region"]`. **`"random"` is not in it** |
+| 4–7 | `TEMPLATES` entries |
+| 8 | `validateTemplate` on each entry returns `[]` |
+| 10 | non-plain-object check first; whole body wrapped in `try/catch` (throwing getters, proxies) |
+| 11 | missing-key and extra-key loops against `TEMPLATE_KEYS`; messages start with the key name |
+| 12 | `ID_PATTERN` |
+| 13 | `PLACEHOLDER = /\{([^{}]*)\}/g`; each token must be in `requires`. Also rejected (beyond the brief): empty `{}`, an unmatched brace, an empty prompt |
+| 14 | `answer_field` must be in `requires` |
+| 15 | `ENTITY_FIELD_SET ... satisfies Record<keyof Entity, true>`, looked up with `Object.hasOwn` (so `toString`, `__proto__` are rejected). Mutation checked by hand: adding `flag_url?: string` to `Entity` makes `bun run typecheck` fail with TS2741 at `templates.ts`; reverted |
+| 16 | `ENTITY_TYPE_SET ... satisfies Record<EntityType, true>`; also rejects duplicates and non-arrays |
+| 17 | `QUESTION_FORMATS`, copied from `openapi.yaml:1319` (nine values) |
+| 18, 19 | type + `Number.isFinite` + range; `band === 1 \|\| 2 \|\| 3` |
+| 21 | holds; worker test reads the 50 committed files |
+| 22–24 | `git status` shows only the two new files plus the brief. `bun run build -- --offline` (exit 0) left `data/` byte-identical; no pipeline file imports `templates.ts` |
+| 26 | no fetch, mock, transport or spawn in either file |
+| 27 | all four gates exit 0 |
+
+**Values chosen (criterion 7)**
+
+- `tpl-identify-on-map`: `base_difficulty: 2`. Recognising one shape among four
+  named choices is about as hard as the capital question the plan pins at 2.
+- `tpl-identify-on-map`: `min_age_band: 1`. State shapes and names are fine
+  for 6–8 year olds; nothing in it is uninteresting to them.
+- `tpl-click-the-map`: `base_difficulty: 3`. No choices are offered, so the
+  child has to find the state on the whole map. That is a step harder than
+  picking from four.
+- `tpl-click-the-map`: `min_age_band: 1`. Same reasoning as identify.
+- `tpl-click-the-map` prompt: **`"Tap {name} on the map."`**. Short, one
+  placeholder, no jargon. The reviewer reads it (brief, "Child-facing text").
+
+**Judgment calls, with owners**
+
+- **Validator stricter than the brief in places**: duplicates in `applies_to`,
+  `{}` and unmatched braces, empty prompt. None contradicts a criterion.
+  Reviewer to confirm.
+- **`QUESTION_FORMATS` is a hand copy of the openapi enum**, not read from
+  `openapi.yaml`. Nothing ties them yet. If they drift, T-024 (the API tag set)
+  is the natural owner of a cross-check. Reviewer to decide whether that goes
+  into `tasks.md`.
+- **Strategy names are only names** (T-022 implements them). The doc comment
+  says what each is meant to do, so T-022 has a starting point. T-022 may
+  overturn it.
+
+**Did not do**: no generation, strategy functions, level formula, `topic`
+field, or country entities (all out of scope).
+
+**Contradictions with the brief**: none. The brief's own Status line read
+`awaiting approval` while `Approved:` named Dkaattae; I took the named approval
+as the gate and started.
+
+**How to run**: in `question-bank/`: `bun install --frozen-lockfile`, then
+`bun test src/templates.test.ts`, `bun test`, `bun run typecheck`,
+`bun run lint`, `bun run format:check`.
+
+**Tests made stale**: none.
+
 ## Verdict
 
 ## Notes
+
+- worker: the runtime key lists sit in `templates.ts` behind `satisfies Record<…, true>`, so `types.ts` did not need a change. That gives criterion 15's mutation rule through typecheck rather than through a test.
+- worker: `Object.hasOwn`, not `in`, for the lookups. With `in`, `"toString"` would pass as an Entity field.
