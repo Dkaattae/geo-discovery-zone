@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-078, continue the run". See `runs/T-078-refresh-routes.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-078
 **Branch:** `claude/loving-darwin-jij761`

@@ -1,7 +1,7 @@
 # T-078 — Point the other refresh routes at `bun run refresh` — run log
 
 **Task:** T-078 · **Branch:** `claude/loving-darwin-jij761` · **PR:** #78
-**Started:** 2026-10-13 · **Outcome:** halted — needs human
+**Started:** 2026-10-13 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -45,3 +45,8 @@ spawned (G2).
 `Approved: pending` in `tasks/T-078-refresh-routes.md`, then start a run from
 `Next step: worker`. Separately, the expander's proposed T-084 split (above) is
 waiting on a person.
+
+## Resumed — 2026-10-13
+Dkaattae, in the orchestrator session: "I approve T-078, continue the run".
+The orchestrator recorded that approval in the brief's `Approved:` line and
+resumed from `Next step: worker`.
