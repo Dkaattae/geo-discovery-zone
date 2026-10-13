@@ -52,3 +52,33 @@ I followed the git-only rule: no build, test or pipeline commands were run.
 The harness refused an unattended orchestrator stamp. Dkaattae was present in
 the orchestrator session and approved the brief there ("Approve, run worker").
 The orchestrator recorded that approval in the `Approved:` line.
+
+## Round 2 — worker — 2026-10-13
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR:** T-020 is built and pushed. Commit `cec0bd4` is the head of `origin/claude/bold-noether-djxpzu`. In `question-bank/`: full `bun test` 1839 pass / 0 fail; `typecheck`, `lint` and `format:check` exit 0. Tests made stale: none. Status is now `awaiting verification`, Next step `tester`.
+
+**Files**
+- `/home/user/geo-discovery-zone/question-bank/src/templates.ts` (new). Exports:
+  - the four names the brief fixes: `Template`, `TEMPLATES`, `DISTRACTOR_STRATEGIES` (`neighbours_first`, `sibling_capitals_same_region`; no `"random"`), `validateTemplate`
+  - extras: `QUESTION_FORMATS`, and the types `QuestionFormat`, `DistractorStrategy`, `AgeBand`, `EntityField`
+- `/home/user/geo-discovery-zone/question-bank/src/templates.test.ts` (new): 17 tests. They call the code directly and read the 50 committed state files. No network.
+- `/home/user/geo-discovery-zone/tasks/T-020-template-record.md`: Handoff with a criterion-to-location table, Notes, Sessions row, Status and Next step.
+- `types.ts` is unchanged. The runtime lists of `Entity` keys and `EntityType` members sit in `templates.ts`, tied to those types with `satisfies Record<…, true>`.
+
+**Criterion 15's mutation rule, checked by hand:** I added `flag_url?: string` to `Entity`. `bun run typecheck` then failed with TS2741 at `templates.ts`. I reverted the change.
+
+**Built output didn't move:** `bun run build -- --offline` exited 0 and left `data/` byte-identical. `build.ts`, `refresh.ts` and `normalize.ts` do not import `templates.ts`.
+
+**Values I chose (criterion 7):**
+- `tpl-identify-on-map`: difficulty 2, age band 1.
+- `tpl-click-the-map`: difficulty 3, age band 1.
+- Click-the-map prompt: `"Tap {name} on the map."` The reviewer should read this wording.
+
+**Decisions that need an owner:**
+- **Validator is stricter than the brief:** it also rejects duplicates in `applies_to`, `{}`, unmatched braces and an empty prompt. None of this contradicts a criterion. Reviewer to confirm.
+- **`QUESTION_FORMATS` is a hand copy of the `openapi.yaml` enum:** nothing keeps the two in step. Reviewer to decide whether a cross-check goes into `tasks.md`, probably under T-024.
+
+**Two things to know:**
+- **Status line was inconsistent:** the brief read `awaiting approval` even though `Approved:` named Dkaattae. I treated the named approval as the gate.
+- **Same session id as the expander:** this session's `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01UpEFQfyRxWfuVGBtPaogEo`, which matches the expander's row. The tester must run in a different session. I recorded this in the Sessions table.
