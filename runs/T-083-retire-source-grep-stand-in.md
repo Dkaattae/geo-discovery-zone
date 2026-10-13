@@ -167,3 +167,6 @@ Files:
 
 ## Ended — 2026-10-12
 The reviewer approved and marked PR #76 ready. The run stops here. Merging is Dkaattae's (D-4). One thing to look at before merging: P-15 in `process-tasks.md`, which the reviewer added as part of the sweep without escalating.
+
+## Decision recorded — 2026-10-13
+Dkaattae, in the orchestrator session: "keep P-15 in this PR, I'll merge it". P-15 stays in PR #76.
