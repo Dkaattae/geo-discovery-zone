@@ -41,3 +41,31 @@
 
 ## Approval — 2026-10-13
 A person was in the orchestrator session, so the orchestrator asked them to approve rather than writing its unattended stamp (on T-083 that stamp was refused by the harness as self-approval). Dkaattae then approved in the orchestrator session: "I approve T-077 criteria". `Approved:` records that.
+
+## Round 2 — worker — 2026-10-13
+`Next step` on entry: `worker` (`Status: awaiting approval`) → on exit: `tester` (`Status: awaiting verification`)
+
+**TL;DR.** T-077 is built and pushed. A `capital` or `highest_point` label that is just a QID (matches `^Q\d+$`) no longer ships, and it produces one warning that names the QID. The whole `question-bank` suite passes (1783 pass, 0 fail), as do lint, typecheck and format:check. No existing test went stale. Brief is at Status `awaiting verification`, Next step `tester`.
+
+- **Branch:** commit `760f6ec` ("T-077 worker: treat a bare-QID label as missing and warn") is on `origin/claude/inspiring-faraday-a9hh8r`. I confirmed it with `git log origin/claude/inspiring-faraday-a9hh8r -1`.
+- **Juneau:** I checked this live through `query.wikidata.org`; `www.wikidata.org/w/api.php` was refused by the proxy with a 403. The query reads the right item: Alaska's capital statement points at `Q29445`, which is Juneau. That item has no English (`en`) label, only a `mul` label "Juneau". Asking the label service for `"en"` returns `Q29445`; asking for `"en,mul"` returns `Juneau`. The fix is a query change, which the brief puts out of scope, so I filed it as T-084 in `tasks.md`.
+
+**Files changed**
+- **`/home/user/geo-discovery-zone/question-bank/src/normalize.ts`**:
+  - New exported `isBareQid`.
+  - **Capital:** a bare-QID capital is dropped, with one warning that names it. The existing `missing` warning text is unchanged.
+  - **Highest point:** a bare-QID highest point counts as absent, so the curated value fills it where one exists (Alaska: Mount McKinley). Either way it gets exactly one warning naming the QID.
+- **`/home/user/geo-discovery-zone/question-bank/src/bare-qid-label.test.ts`** (new): 20 tests covering criteria 1–8, all offline. They call `parseUsStates`/`normalizeUsStates` directly, plus one `refreshBank` test through a `SparqlTransport` fake. Without the fix, 4 of them fail.
+- **`/home/user/geo-discovery-zone/tasks.md`**: new entry T-084, "Read Wikidata's `mul` labels".
+- **`/home/user/geo-discovery-zone/tasks/T-077-bare-qid-label.md`**: Sessions row, Handoff (a table mapping each criterion to its test, plus the evidence), Notes, Status and Next step.
+
+**Criterion 9 (committed bank and offline build).**
+- **Output:** I ran the offline build with and without the change. Its output differs only in the `--out` path, and the written files are identical to each other and to `data/us-states/`.
+- **Warnings:** still the same three `highest_point_m` warnings (CT, OK, VA).
+- **Dependencies:** `package.json` and `bun.lock` are untouched. I ran `bun install --frozen-lockfile` once because `node_modules` was missing.
+
+**Calls for others to confirm**
+- **No double warning — reviewer.** When a highest point is a bare QID and there is no curated value, only the bare-QID warning is emitted, not a second `missing`. Criterion 5 asks for exactly one.
+- **Warning wording — reviewer.** The text is `label is a bare QID (<qid>), not a name; left blank` or `…; used curated <v>`.
+- **Session id — tester.** My session id is the same as the expander's. That is expected when roles are spawned by the orchestrator (`process.md` "Spawning"), so the tester should apply that rule rather than refuse on it.
+- **Juneau finding — human.** Please read the Juneau evidence in the Handoff and confirm T-084.
