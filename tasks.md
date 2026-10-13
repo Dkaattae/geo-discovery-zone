@@ -311,8 +311,18 @@ same blind spot. There a `mul`-only item gives an absent binding, not a QID.
 **Done when:** the label service asks for `"en,mul"`, the explicit label reads
 accept `mul` as a fallback after `en`, the fixture is re-recorded, and Alaska's
 capital is `Juneau` from a live refresh.
+**Skipped by the expander, 2026-10-13. Its `Depends on: —` is incomplete.**
+Re-recording the fixture is a changed refresh. That moves `sources.built_at` in
+all 50 bank files, and the four digest guards go red until T-070 (a) is
+settled, which waits on Q1. So this Done-when cannot land before T-070 (a).
+**Proposed split, for a human to decide:** the query half (`"en,mul"`, plus a
+`mul` fallback for `highestPoint` and `borderNames`) is offline-checkable today
+and moves no committed byte. The fixture already records `Juneau`
+(`src/fixtures/us-states.sparql.json:100`), and `fixture-transport.ts` matches
+by query identity. The re-record and the live check would move to the first
+refresh after T-070 (a). T-078 was taken instead.
 
-### T-078 — Point the other refresh routes at `bun run refresh` · S · todo
+### T-078 — Point the other refresh routes at `bun run refresh` · S · doing
 **Depends on:** —
 **New 2026-10-02, from T-063's reviewer (PR #68).** T-063 left two older routes
 saying the old thing, both deliberately out of its scope:
