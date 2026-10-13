@@ -1,7 +1,7 @@
 # T-078 — Point the other refresh routes at `bun run refresh` — run log
 
 **Task:** T-078 · **Branch:** `claude/loving-darwin-jij761` · **PR:** #78
-**Started:** 2026-10-13 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-13 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -126,3 +126,10 @@ Raised in commit `179fa2c`. The orchestrator did not open the request rows.
 To resume, Dkaattae starts the `tester` step for T-078 in a session they are
 attending. It asks about each row, applies what is approved, and finishes
 verifying. After that, a new run starts from whatever `Next step` it writes.
+
+## Resumed — 2026-10-13
+An attended `tester` session (outside this run) applied the approved test change
+(`a1653c2`) and wrote its verdict (`754af8a`). Header on resume: `Status: pass`,
+`Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-13`.
+Dkaattae, in the orchestrator session: "ci is fixed". The orchestrator resumed
+from `Next step: reviewer`.
