@@ -237,8 +237,8 @@ bank files on every *changed* refresh, by design (E-6's reproducibility), so the
 first refresh PR will be red on all four digest guards (`landmarks-verify`,
 `climate-kid-verify`, `top-crops-verify`, `highest-point-verify`) unless (a) is
 settled first. Whichever way (a) goes, the answer has to survive a bank where
-only `built_at` and the fixture moved. Do this, and T-077, before the routine is
-switched on.
+only `built_at` and the fixture moved. Do this, and T-084 (T-077 landed in PR #77
+and only blanks a bare-QID label), before the routine is switched on.
 **Amended 2026-10-03 by T-068's reviewer (PR #69): a fifth neutralisation, and
 a blind spot worth knowing.** T-068 added `top_livestock` to all 50 files and,
 as this entry asked, neutralised it rather than re-pinning. `top-crops-verify`
@@ -293,21 +293,24 @@ rename it there instead of opening a task for one string.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
-**Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching
-on the monthly refresh routine**, alongside T-070 (a).
-**New 2026-10-02, from T-063's worker.** The first by-hand live run of
-`bun run refresh` (into a scratch copy, nothing committed) reported
-`us-state-ak capital: "Juneau" → "Q29445"`. WDQS's label service falls back to
-the bare QID when an item has no English label, and `normalize.ts` takes
-`capitalLabel` as-is — so a monthly refresh would have offered a child
-"Q29445" as Alaska's capital, caught only if the PR reviewer reads the summary.
-The same fallback can hit any `*Label` binding (`stateLabel`, `highestPoint`).
-**Done when:** a label matching `^Q\d+$` is treated as missing for that field
-(and warns, `CLAUDE.md` "Prefer a blank field to a guessed one"), with an offline
-test through `parseUsStates`/`normalizeUsStates`; check whether Juneau's English
-label is really gone on Wikidata or the query reads the wrong item.
-
+### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · todo
+**Depends on:** — (T-077's guard landed in PR #77, so this is a fix, not a
+safety net). Touches the query, so it moves the fixture and every digest guard —
+sequence it with T-070 (a). **Gates switching on the monthly refresh routine**
+alongside T-070 (a): since T-077, a live refresh blanks Alaska's capital, with a
+warning, instead of shipping `Q29445`.
+**New 2026-10-13, from T-077's worker.** The query reads the right item: Alaska's
+P36 points at `Q29445`, which is Juneau. It has no `en` label any more, only a
+`mul` ("default for all languages") label `Juneau`, with labels in about 20 other
+languages beside it. Wikidata added `mul` and editors dropped the matching `en`
+labels. Checked live against `query.wikidata.org` on 2026-10-13:
+`SERVICE wikibase:label { … wikibase:language "en" }` returns `Q29445`, and
+`"en,mul"` returns `Juneau`. The explicit `rdfs:label … FILTER(LANG(...) = "en")`
+reads for `highestPoint` and `borderNames` in `src/queries/us-states.ts` have the
+same blind spot. There a `mul`-only item gives an absent binding, not a QID.
+**Done when:** the label service asks for `"en,mul"`, the explicit label reads
+accept `mul` as a fallback after `en`, the fixture is re-recorded, and Alaska's
+capital is `Juneau` from a live refresh.
 
 ### T-078 — Point the other refresh routes at `bun run refresh` · S · todo
 **Depends on:** —

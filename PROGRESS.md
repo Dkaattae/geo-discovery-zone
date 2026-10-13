@@ -335,6 +335,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-077 — A label that comes back as a bare QID warns instead of shipping**
+  (PR #77, 2026-10-13). `normalize.ts` treats a `capital` or `highest_point`
+  label matching `^Q\d+$` as missing and emits one warning naming the QID
+  (`label is a bare QID (Q29445), not a name; left blank`, or `…; used curated
+  <v>` when the curated table fills `highest_point`). The plain `missing`
+  warning is unchanged, and the committed bank and offline build output did not
+  move. *Where it differed from the brief:* Juneau's English label was not lost
+  by accident. Wikidata folded it into a `mul` ("all languages") label, and the
+  query asks for `en` only, so the query is at fault after all. That fix is
+  T-084, which now gates the monthly routine instead of T-077. Run
+  orchestrated: every role shares one session id.
+
 - **T-083 — T-016's source-grep stand-in is retired, and `--quiet` keeps the
   summary** (PR #76, 2026-10-12). A new test builds from a derived fixture
   (Colorado without `capitalLabel` or `highestPoint`) through
@@ -1321,8 +1333,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   a 422 rather than a guess (T-045).
 - **The monthly bank refresh is built but not switched on** (T-063). Two things
   have to land first: T-070 (a), or the first changed refresh is red on the
-  four digest guards, and T-077, or a label that falls back to a bare QID
-  (Alaska's capital read `Q29445` on 2026-10-02) ships as data.
+  four digest guards, and T-084, or Alaska's capital is blanked. Its English
+  label now lives in Wikidata's `mul` label, which the query does not read; T-077
+  (PR #77) stops the bare QID `Q29445` shipping, but leaves the field empty.
 - Bun's `fetch` cannot traverse some egress proxies, so the pipeline falls back
   to `curl`. A runtime without curl needs another path.
 - Lovable builds from the repo root and will need repointing (T-044).

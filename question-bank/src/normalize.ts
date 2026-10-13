@@ -24,6 +24,16 @@ export const METRES_PER_FOOT = 0.3048;
  */
 const UNIT_DISAGREEMENT = 0.01;
 
+/**
+ * WDQS's label service falls back to the item's bare QID when it has no label
+ * in the requested language, so `Q29445` can arrive where a name was expected
+ * (T-077, seen on the first live refresh for Alaska's capital). Such a value is
+ * an absent label, not a name, and must never ship to a child.
+ */
+const BARE_QID = /^Q\d+$/;
+
+export const isBareQid = (value: string): boolean => BARE_QID.test(value);
+
 export interface BuildWarning {
   entity: string;
   field: string;
@@ -124,14 +134,40 @@ export function normalizeUsStates(
         message: `area ${row.area} outside plausible km² range — check the unit on P2046`,
       });
     }
-    if (!row.capital) warnings.push({ entity: id, field: "capital", message: "missing" });
+    // A bare-QID label is treated as missing, and warned about with the value
+    // named so a reader can tell it apart from a plain absence (T-077).
+    let capital = row.capital;
+    if (capital && isBareQid(capital)) {
+      warnings.push({
+        entity: id,
+        field: "capital",
+        message: `label is a bare QID (${capital}), not a name; left blank`,
+      });
+      capital = undefined;
+    } else if (!capital) {
+      warnings.push({ entity: id, field: "capital", message: "missing" });
+    }
     if (!row.centroid) warnings.push({ entity: id, field: "centroid", message: "missing" });
 
     // Wikidata's P610 label wins when present; the curated table only fills the
     // gap it leaves (T-016) — never the other way around. Warn rather than ship
     // a silent blank when neither has one.
-    const highestPoint = row.highestPoint ?? curated.highest_point;
-    if (!highestPoint) warnings.push({ entity: id, field: "highest_point", message: "missing" });
+    // A bare-QID label counts as absent, so the curated value can fill it; the
+    // warning names the QID either way, because Wikidata's value was still bad.
+    const wikidataPoint =
+      row.highestPoint && isBareQid(row.highestPoint) ? undefined : row.highestPoint;
+    const highestPoint = wikidataPoint ?? curated.highest_point;
+    if (row.highestPoint && wikidataPoint === undefined) {
+      warnings.push({
+        entity: id,
+        field: "highest_point",
+        message: highestPoint
+          ? `label is a bare QID (${row.highestPoint}), not a name; used curated ${highestPoint}`
+          : `label is a bare QID (${row.highestPoint}), not a name; left blank`,
+      });
+    } else if (!highestPoint) {
+      warnings.push({ entity: id, field: "highest_point", message: "missing" });
+    }
 
     const elevation = resolveHighestPointMetres(row, curated);
     for (const message of elevation.warnings) {
@@ -148,7 +184,7 @@ export function normalizeUsStates(
       type: "state",
       scope: "us",
       name: curated.name,
-      ...(row.capital ? { capital: row.capital } : {}),
+      ...(capital ? { capital } : {}),
       geometry_id: curated.fips,
       region: curated.region,
       ...(row.centroid ? { centroid: row.centroid } : {}),
