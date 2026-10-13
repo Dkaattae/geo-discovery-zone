@@ -1,7 +1,7 @@
 # T-020 — Template record type and three templates
 
-**Status:** approved — escalated (child-facing prompt)
-**Next step:** human (read the `tpl-click-the-map` prompt, then merge PR #79)
+**Status:** blocked
+**Next step:** human. The review approved the work but escalated it for the child-facing `tpl-click-the-map` prompt. The harness then refused the sweep. Apply `### Sweep to apply` under `## Review`, read the prompt, mark PR #79 ready and merge it.
 **Approved:** Dkaattae — 2026-10-13, given in the orchestrator session (AskUserQuestion). See `runs/T-020-template-record.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-020
@@ -491,6 +491,104 @@ map."`, is new text a child will read. A person must read it before merging.
   **Accepted** as stored inputs. Tuning them is T-023/T-025, as the brief says.
 - **Tester: one session id across the run.** Deferred to `P-14`, which already
   owns it.
+
+**The sweep was refused.** The auto-mode classifier refused the sweep command
+("Irreversible Local Destruction": deleting this brief while editing `tasks.md`
+and `PROGRESS.md`). Nothing from it was applied. Because this PR is escalated,
+the status is `blocked`, not `sweep refused` (D-16), so the orchestrator's
+one-hour fallback does not apply. PR #79 stays **draft** until the sweep rides
+inside it.
+
+### Sweep to apply
+
+Apply on `claude/bold-noether-djxpzu`, in this order. Copy the text exactly.
+
+1. **Delete** `tasks/T-020-template-record.md`.
+
+2. **`tasks.md`: delete the whole T-020 entry.** That is from the line
+   `### T-020 — Template record type and three templates · M · doing` up to,
+   but not including, `### T-021 — Generator: entities × templates → questions · M · todo`.
+   This removes the heading, its `**Depends on:** —` line, the four-line
+   description and its `**Done when:**` line, plus the blank line after it.
+
+3. **`tasks.md`, T-021:** directly after the line
+   `question with a hole in it.`, insert:
+
+   ```
+   **Since T-020 (PR #79):** read `TEMPLATES` from `question-bank/src/templates.ts`
+   and call `validateTemplate` on each before use. Copy the records, do not mutate
+   them: `TEMPLATES` is an exported mutable array. `tpl-click-the-map`'s answer is a
+   `geometry_id`, and `backend/app/grading.py:39` grades `map_click` by
+   `choiceIndex`, so this task decides what goes in `choices` for it. A FIPS code
+   must never be a label a child sees. T-051 owns the client side.
+   ```
+
+4. **`tasks.md`, T-022:** directly before the line
+   `**Done when:** strategies are named on templates, not hardcoded, and a test`,
+   insert:
+
+   ```
+   **Since T-020 (PR #79):** the naming half is done. Every template carries a
+   `distractor_strategy` from `DISTRACTOR_STRATEGIES` in `templates.ts`, and its doc
+   comment says what each name is meant to do. This task implements those names and
+   may rewrite the comments.
+   ```
+
+5. **`tasks.md`, T-024:** directly after the line
+   `already implements and filters on.`, insert:
+
+   ```
+   **Since T-020 (PR #79):** `QUESTION_FORMATS` in `question-bank/src/templates.ts`
+   is a hand copy of the nine formats, with nothing tying it to the backend's
+   `QuestionFormat` enum (`backend/app/models.py`), the source of truth under E-14.
+   Emitting `format` makes that drift visible, so add the cross-check here. Whether
+   a template carries `topic` is also this task's call: the record has nine fields,
+   and the validator rejects a tenth on purpose.
+   ```
+
+6. **`tasks.md`, T-026:** directly after the line
+   `infrastructure once T-021 lands:`, insert:
+
+   ```
+   **Since T-020 (PR #79):** each new template is an entry in `TEMPLATES` and must
+   pass `validateTemplate`. A new distractor rule is a new name in
+   `DISTRACTOR_STRATEGIES` plus T-022's implementation of it.
+   ```
+
+7. **`PROGRESS.md`, "Completed tasks":** directly after the heading
+   `### Earlier tasks, on-process` and its blank line, before the T-078 entry,
+   insert this, followed by one blank line:
+
+   ```
+   - **T-020 — the template record, three templates and a validator** (PR #79,
+     2026-10-13). `question-bank/src/templates.ts` holds `Template` (plan §1.2's
+     nine fields), `TEMPLATES` (`tpl-identify-on-map`, `tpl-capital-of`,
+     `tpl-click-the-map`), `DISTRACTOR_STRATEGIES` (names only) and
+     `validateTemplate`, which never throws. Its lists of `Entity` keys and
+     `EntityType` members are tied to `types.ts` through `satisfies`, so a new
+     entity field fails typecheck until it is listed. Nothing in the build imports
+     it yet. The click prompt, `"Tap {name} on the map."`, is new child-facing text,
+     so the PR was escalated for a person to read it.
+     *Where it differed from the brief:* the validator is a little stricter than
+     asked (duplicate `applies_to`, empty `{}`, unmatched braces, empty prompt).
+     `QUESTION_FORMATS` is a hand copy of the backend's enum, and the cross-check
+     went to T-024. The harness refused the reviewer's sweep. Run orchestrated,
+     with one session id across the roles (`P-14`).
+   ```
+
+8. **`PROGRESS.md`, "Question bank — the pipeline":** directly before the line
+   `- Tests cover the built bank across \`data-us-states.test.ts\` and`, insert:
+
+   ```
+   - **Question templates exist but generate nothing yet** (T-020):
+     `src/templates.ts` holds the template record, three templates and a
+     validator. T-021 is the first reader.
+   ```
+
+9. **Check, commit, push.** `grep -n "T-020" tasks.md` should show only the
+   `Since T-020` notes and T-051's existing correction. Run `cd question-bank &&
+   bun run format:check` (markdown is outside its glob, so this is a sanity
+   check only). Then mark PR #79 ready, after reading the click prompt.
 
 ## Notes
 
