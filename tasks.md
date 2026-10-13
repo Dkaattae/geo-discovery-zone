@@ -293,7 +293,7 @@ rename it there instead of opening a task for one string.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as `E-20`).
 
-### T-077 — A label that comes back as a bare QID must warn, not ship · S · todo
+### T-077 — A label that comes back as a bare QID must warn, not ship · S · doing — brief in `tasks/T-077-bare-qid-label.md`
 **Depends on:** — (T-063 landed in PR #68; it surfaced this). **Gates switching
 on the monthly refresh routine**, alongside T-070 (a).
 **New 2026-10-02, from T-063's worker.** The first by-hand live run of
