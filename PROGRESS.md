@@ -195,6 +195,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
+- **Question templates exist but generate nothing yet** (T-020):
+  `src/templates.ts` holds the template record, three templates and a
+  validator. T-021 is the first reader.
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
   `state-animals.test.ts` (T-012), `landmarks.test.ts` and
@@ -336,6 +339,23 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-020 — the template record, three templates and a validator** (PR #79,
+  2026-10-13). `question-bank/src/templates.ts` holds `Template` (plan §1.2's
+  nine fields), `TEMPLATES` (`tpl-identify-on-map`, `tpl-capital-of`,
+  `tpl-click-the-map`), `DISTRACTOR_STRATEGIES` (names only) and
+  `validateTemplate`, which never throws. Its lists of `Entity` keys and
+  `EntityType` members are tied to `types.ts` through `satisfies`, so a new
+  entity field fails typecheck until it is listed. Nothing in the build imports
+  it yet. The click prompt is new child-facing text, so the PR was escalated:
+  Dkaattae chose `"Find {name} on the map."` over the worker's `"Tap {name} on
+  the map."`, which reads oddly with a mouse.
+  *Where it differed from the brief:* the validator is a little stricter than
+  asked (duplicate `applies_to`, empty `{}`, unmatched braces, empty prompt).
+  `QUESTION_FORMATS` is a hand copy of the backend's enum, and the cross-check
+  went to T-024. The harness refused the reviewer's sweep; the orchestrator
+  applied it on Dkaattae's instruction. Run orchestrated, with one session id
+  across the roles (`P-14`).
 
 - **T-078 — `bun run build`'s live pass drafts only missing fun facts, and the
   fixture says to re-record with `bun run refresh`** (PR #78, 2026-10-13).

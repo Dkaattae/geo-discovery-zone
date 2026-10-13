@@ -142,7 +142,7 @@ export const TEMPLATES: Template[] = [
   },
   {
     id: "tpl-click-the-map",
-    prompt: "Tap {name} on the map.",
+    prompt: "Find {name} on the map.",
     answer_field: "geometry_id",
     distractor_strategy: "neighbours_first",
     requires: ["name", "geometry_id"],

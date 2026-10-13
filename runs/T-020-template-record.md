@@ -1,7 +1,7 @@
 # T-020 — Template record type and three templates — run log
 
 **Task:** T-020 · **Branch:** `claude/bold-noether-djxpzu` · **PR:** #79
-**Started:** 2026-10-13 · **Outcome:** halted — needs human
+**Started:** 2026-10-13 · **Outcome:** swept on Dkaattae's instruction — ready for a person to mark ready and merge
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -169,3 +169,14 @@ then mark the PR ready and merge it." and "'Tap' is a little off for mouse
 users. 'Find {name} on the map.' works for both."
 `Status: blocked` is not `sweep refused`, so the D-16 one-hour fallback does not
 apply; the orchestrator does not apply the sweep. Run ends here.
+
+## Resumed by Dkaattae — 2026-10-13
+Dkaattae answered in the orchestrator session: *"use "Find {name} on the map." and
+apply the sweep"*.
+- `tpl-click-the-map` prompt changed to `"Find {name} on the map."` in
+  `question-bank/src/templates.ts`.
+- `### Sweep to apply` steps 1–8 applied. Step 7's PROGRESS text was adjusted
+  only to record the chosen prompt and who applied the sweep.
+- Checks in `question-bank/`: typecheck, lint, format:check exit 0; `bun test`
+  1929 pass, 0 fail.
+- PR #79 left for Dkaattae to mark ready and merge.

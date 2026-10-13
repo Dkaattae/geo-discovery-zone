@@ -348,19 +348,16 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-020 — Template record type and three templates · M · doing
-**Depends on:** —
-`{ id, prompt, answer_field, distractor_strategy, requires, applies_to, format,
-base_difficulty, min_age_band }`. Start with identify-on-map, capital-of, and
-click-the-map — the three the plan names in §4 step 2. Note that the client
-renders only the first two (`Session.tsx` handles `map_identify` and
-`multiple_choice`); `map_click` needs T-051 to be visible.
-**Done when:** the type exists with three templates and a test that validates them.
-
 ### T-021 — Generator: entities × templates → questions · M · todo
 **Depends on:** T-020
 Skip any entity missing a template's `requires` fields rather than emitting a
 question with a hole in it.
+**Since T-020 (PR #79):** read `TEMPLATES` from `question-bank/src/templates.ts`
+and call `validateTemplate` on each before use. Copy the records, do not mutate
+them: `TEMPLATES` is an exported mutable array. `tpl-click-the-map`'s answer is a
+`geometry_id`, and `backend/app/grading.py:39` grades `map_click` by
+`choiceIndex`, so this task decides what goes in `choices` for it. A FIPS code
+must never be a label a child sees. T-051 owns the client side.
 **Done when:** the generator produces questions for all 50 states and skips
 cleanly where data is absent.
 
@@ -394,6 +391,10 @@ opposite case and worth separating:** its collisions *are* exact string matches,
 deliberately, because crops genuinely repeat across states. A same-string check
 catches them — what it cannot decide is that the right response is to gate the
 reverse question direction rather than to reshuffle distractors.
+**Since T-020 (PR #79):** the naming half is done. Every template carries a
+`distractor_strategy` from `DISTRACTOR_STRATEGIES` in `templates.ts`, and its doc
+comment says what each name is meant to do. This task implements those names and
+may rewrite the comments.
 **Done when:** strategies are named on templates, not hardcoded, and a test
 asserts distractors come from the same region.
 
@@ -409,6 +410,12 @@ in one documented place.
 `scope`, `entity_type`, `topic`, `region`, `format`, `age_band`, `level` — the
 filters `openapi.yaml` exposes on `GET /questions`, all of which the backend
 already implements and filters on.
+**Since T-020 (PR #79):** `QUESTION_FORMATS` in `question-bank/src/templates.ts`
+is a hand copy of the nine formats, with nothing tying it to the backend's
+`QuestionFormat` enum (`backend/app/models.py`), the source of truth under E-14.
+Emitting `format` makes that drift visible, so add the cross-check here. Whether
+a template carries `topic` is also this task's call: the record has nine fields,
+and the validator rejects a tenth on purpose.
 **Done when:** every generated question carries all seven and matches the schema.
 
 ### T-025 — Hand-check 30 generated questions · S · todo
@@ -422,6 +429,9 @@ plan expects this to be a manual pass, not a computed one.
 **New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
 topic is one template plus the curated field behind it, and none needs new
 infrastructure once T-021 lands:
+**Since T-020 (PR #79):** each new template is an entry in `TEMPLATES` and must
+pass `validateTemplate`. A new distractor rule is a new name in
+`DISTRACTOR_STRATEGIES` plus T-022's implementation of it.
 
 | Topic | Template | Needs |
 |---|---|---|
