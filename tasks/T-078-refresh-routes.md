@@ -1,7 +1,7 @@
 # T-078 — Point the other refresh routes at `bun run refresh`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-078, continue the run". See `runs/T-078-refresh-routes.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-078
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (orchestrated run: every spawned role shares this id) |
+| worker | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent) |
 
 ## Why T-078 and not T-084
 
@@ -200,5 +201,67 @@ Required reading for the worker and the tester:
   the fixture.
 
 ## Handoff
+
+**TL;DR: built.** The live `bun run build` now drafts fun facts through `draftMissingFunFacts` (the rule `refresh.ts` already used), so it makes zero Wikipedia calls while all 50 states are curated. The main fixture's `regenerate_with` now names `bun run refresh`. The suite is 1808 pass and **1 stale red, by design**: T-079's fixture-digest pin (see **Tests made stale**). That one needs a human-approved test change (D-14), and the brief did not foresee it.
+
+**Files changed**
+
+- **`question-bank/src/build.ts`**: the inline loop over every entity (old `:162–176`) is replaced by `draftMissingFunFacts(entities, fetchSummary)`. Its warnings are appended to `warnings` in the same position and format (`String(error)`) as before. The imports of `fetchFunFact` and `FunFactDraft` are dropped. Nothing else changed: no new `BuildDeps` field, `parseArgs`, help text, offline path and sink are untouched.
+- **`question-bank/src/fixtures/us-states.sparql.json`**: only `_fixture.regenerate_with`, now `"bun run refresh   # re-records this file and us-states-elevation.sparql.json, keeping this _fixture block apart from captured_at and rows"`.
+- **`question-bank/src/build-fun-facts.test.ts`** (new): 8 tests, covering criteria 1–9, 11 and 15.
+- **`review-file.ts`, docs, `package.json`, `bun.lock`, `data/`**: not touched.
+
+**Where each criterion lives**
+
+| # | Behaviour lives in | Worker test |
+|---|---|---|
+| 1, 2 | `build.ts` fun-fact block → `review-file.ts` `draftMissingFunFacts` (skips non-empty `fun_facts`). `writeReviewFile` is only called when `drafts.length > 0` | `criteria 1 and 2: …` |
+| 3, 4, 5 | same. Drafts go only to `writeReviewFile`, and entities come from `normalize.ts` `curated.fun_facts ?? []` | `criteria 3, 4 and 5: …` |
+| 6 | `draftMissingFunFacts` `if (!title) continue`. The test strips Vermont's `article` binding from the replayed response | `criterion 6: …` |
+| 7 | `draftMissingFunFacts` catch → warning, appended in `build.ts` | `criterion 7: …` |
+| 8 | `normalizeUsStates({ only })` filters entities before drafting. The test also blanks TX (outside the subset) | `criterion 8: …` |
+| 9 | `parseArgs` `--no-fun-facts` → `args.funFacts = false` (unchanged) | `criterion 9: …` |
+| 10 | all transports are local functions; `fixtureTransport` reads files. No `fetch` stub | run the file with the six proxy vars set (below) |
+| 11 | `afterEach` restores every curated `fun_facts` by identity | `T-078 criterion 11: …` (runs last in the file) |
+| 12, 13 | the fixture JSON | none of mine. Checked by hand: parsed fixture minus `regenerate_with` deep-equals `HEAD` (pre-change) → `True` |
+| 14 | `git diff --stat` shows nothing under `question-bank/data/`; `committed-bank.test.ts` passes | — |
+| 15 | `--offline` forces `funFacts = false` (unchanged) | `criterion 15: …`. Also by hand: an offline build from a pre-change worktree and from this branch give identical `--out` trees and identical stdout, apart from the absolute fixture path on line 1 (different checkout dirs) |
+| 16 | `refresh.ts` not touched; its tests pass unmodified | — |
+| 17 | not touched | — |
+| 18 | only the T-079 pin below goes red | — |
+
+**How to run**
+
+```bash
+cd question-bank
+bun install   # node_modules was absent in this sandbox; no lockfile change
+export HTTP_PROXY=http://127.0.0.1:1 HTTPS_PROXY=http://127.0.0.1:1 http_proxy=http://127.0.0.1:1 https_proxy=http://127.0.0.1:1 ALL_PROXY=http://127.0.0.1:1 all_proxy=http://127.0.0.1:1
+bun test src/build-fun-facts.test.ts   # 8 pass
+bun test                               # 1808 pass, 1 fail (stale, below)
+bun run typecheck && bun run lint && bun run format:check   # all clean
+```
+
+**Tests made stale**
+
+- **`question-bank/src/highest-point-in-state-verify.test.ts`**, `describe("T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c")` › `test("us-states.sparql.json")`.
+  - **Why it is stale:** it pins the main fixture's sha256 to `994223fe…f41f`. Criterion 12 requires changing `_fixture.regenerate_with` in that file, so any implementation turns it red. The sibling `us-states-elevation.sparql.json` test still passes.
+  - **Proposed fix:** modify it. Either update the digest to `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d` (this branch's file) and rename the describe to say "…except T-078's `regenerate_with`", or, more durably, compare the parsed fixture minus `_fixture.regenerate_with` against a digest. Tester to raise it with a human under D-14.
+  - **Count floors:** none affected. No test was removed, and the new file only adds tests.
+
+**Contradicts the brief**
+
+- **"Nothing above expects one" (Constraints, stale tests) is wrong.** Criteria 12 and 18 conflict as written: the T-079 pin above makes "every existing test still passes unmodified" impossible once the fixture string changes. I implemented criterion 12 as specified and left the pin red, per D-14. **Owner:** the tester raises the test change with Dkaattae. If the human would rather keep the pin, criterion 12 goes back to task-expander.
+
+**Deliberately not done**
+
+- **No `BuildDeps` seam added.** Mutating `curatedByPostal` in-process was enough, as the brief allowed.
+- **Docs left alone.** No line in `question-bank/README.md`, `conventions.md`, the `build.ts` header or `--help` says the live build drafts "every" state, so there was nothing to correct. The README (`:77`) already describes the missing-only rule.
+- **No live build or refresh was run.** No fixture was re-recorded.
+
+**Notes**
+
+- **The output dir holds `index.json` as well as the 50 entity files.** My first count expected 50 `.json` files and failed. The test now counts `us-state-*.json`. The tester should know this when checking criterion 7's "all 50 entity files".
+- **Warning order is the same as before.** Fun-fact warnings are appended after the normalisation warnings, as the old inline loop did, so `report()` prints the same sequence.
+- **Same session id as the expander.** This is an orchestrated run, so every role shares `cse_01PtngPoaghwWcXCwbmrjZNw`. The tester's session check will see a `worker` row with its own id. Orchestrator/human to decide whether that isolation is enough: the subagent contexts are separate, but the id is not.
 
 ## Verdict
