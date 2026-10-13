@@ -1,13 +1,13 @@
 # T-078 — Point the other refresh routes at `bun run refresh`
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-078, continue the run". See `runs/T-078-refresh-routes.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-13`
 **From:** [`tasks.md`](../tasks.md) T-078
 **Branch:** `claude/loving-darwin-jij761`
 **PR:** #78, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
-**Fault:** test changes are waiting for approval: criterion 12 necessarily breaks T-079's byte pin on `us-states.sparql.json`, which the brief did not foresee (owner: a human, D-14/D-15).
+**Fault:**
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (orchestrated run: every spawned role shares this id) |
 | worker | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent) |
 | tester | 2026-10-13 | `cse_01PtngPoaghwWcXCwbmrjZNw` (same orchestrated run; spawned as a separate subagent, so the id check cannot show independence) |
+| tester | 2026-10-13 | `cse_01VvKCk2x3LPzM3oyNrUpKEa` (attended session, separate from the orchestrated run; resumed the Test change request) |
 
 ## Why T-078 and not T-084
 
@@ -267,6 +268,31 @@ bun run typecheck && bun run lint && bun run format:check   # all clean
 
 ## Verdict
 
+**TL;DR: pass.** Dkaattae approved row 1 of the Test change request in an
+attended tester session. I applied that row and nothing else, and the full suite
+is now green: 1822 pass, 0 fail. CI's only red job (`question-bank`, run
+38453827625) failed on exactly that pin. **Next step `reviewer`.**
+
+**Resumed in an attended session** (`cse_01VvKCk2x3LPzM3oyNrUpKEa`, not the
+orchestrated run's id), 2026-10-13:
+
+- **Row rechecked before asking.** On `f231144` the main fixture's sha256 was
+  still `121a4b8a…cfd9d`, and the pin was still the only red test (1821 pass, 1 fail).
+- **Approval.** The header reads `Test changes: approved — Dkaattae, 2026-10-13`.
+  I asked whether they approve row 1, and Dkaattae answered **"Approve row 1"**.
+- **Changed, exactly as the row says.** `highest-point-in-state-verify.test.ts`:
+  the describe gained the suffix `(main fixture: as of T-078's regenerate_with)`,
+  the `us-states.sparql.json` digest became `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d`,
+  and a comment now cites T-078 criterion 12 and this request. It is still a
+  whole-file sha256 pin, so it is no weaker. The elevation entry was not touched.
+  No count floor was affected.
+- **Suite after the commit** (six proxies at `http://127.0.0.1:1`): `bun test`
+  gives 1822 pass and 0 fail across 38 files. `typecheck`, `lint` (0 warnings)
+  and `format:check` are clean.
+- **Criterion 18** is now met in full. The other 17 verdicts below stand as recorded.
+
+### Earlier round (orchestrated, halted for the test change)
+
 **TL;DR: halted for a test change, not failed.** All 18 criteria hold on the
 branch. 17 are met outright, and 18 is met except for one existing test. That
 test is T-079's byte pin on `us-states.sparql.json`, and criterion 12 has to
@@ -340,4 +366,4 @@ conflict, and the brief goes back to `task-expander`.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/highest-point-in-state-verify.test.ts` › `T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c` › `"us-states.sparql.json"` | `2a1202d`, T-079 tester. It protected T-079's promise not to re-record or edit either SPARQL fixture: the main fixture's sha256 is pinned to `994223fe…f41f` | T-078 criterion 12 requires `_fixture.regenerate_with` in this file to change from `bun run build …` to a `bun run refresh` string. Any change to the file changes its sha256, so the pin is red by design (criterion 13 separately pins that nothing else moved) | modify | Same test name, same whole-file sha256 assertion, with the digest updated to `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d` (this branch's file, `sha256sum` checked by the tester). The describe becomes `T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c (main fixture: as of T-078's regenerate_with)`, with a comment citing T-078 criterion 12 and this request. It still pins every byte, so it is no weaker. The elevation entry is unchanged | *(awaiting a person, in an attended tester session)* |
+| 1 | `question-bank/src/highest-point-in-state-verify.test.ts` › `T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c` › `"us-states.sparql.json"` | `2a1202d`, T-079 tester. It protected T-079's promise not to re-record or edit either SPARQL fixture: the main fixture's sha256 is pinned to `994223fe…f41f` | T-078 criterion 12 requires `_fixture.regenerate_with` in this file to change from `bun run build …` to a `bun run refresh` string. Any change to the file changes its sha256, so the pin is red by design (criterion 13 separately pins that nothing else moved) | modify | Same test name, same whole-file sha256 assertion, with the digest updated to `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d` (this branch's file, `sha256sum` checked by the tester). The describe becomes `T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c (main fixture: as of T-078's regenerate_with)`, with a comment citing T-078 criterion 12 and this request. It still pins every byte, so it is no weaker. The elevation entry is unchanged **approved** — Dkaattae, 2026-10-13, attended tester session `cse_01VvKCk2x3LPzM3oyNrUpKEa`. Applied in the `apply approved test change request` commit |
