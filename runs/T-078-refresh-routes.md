@@ -1,7 +1,7 @@
 # T-078 — Point the other refresh routes at `bun run refresh` — run log
 
 **Task:** T-078 · **Branch:** `claude/loving-darwin-jij761` · **PR:** #78
-**Started:** 2026-10-13 · **Outcome:** in progress
+**Started:** 2026-10-13 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -84,3 +84,45 @@ resumed from `Next step: worker`.
 - **Every role in this run has the same session id**, `cse_01PtngPoaghwWcXCwbmrjZNw`, because it is orchestrated, so the tester's check against the Sessions table will match the worker row. The orchestrator or a human should decide whether separate subagent contexts count as enough isolation.
 
 The full Handoff, with a table of where each criterion is implemented, is in `/home/user/geo-discovery-zone/tasks/T-078-refresh-routes.md`.
+
+## Round 3 — tester — 2026-10-13
+`Next step` on entry: `tester` (`Status: awaiting verification`) → on exit: `human` (`Status: test changes requested`, `Test changes: requested`)
+
+**T-078 tester: the run is halted on a test change that needs a person's approval. Nothing failed.** All 18 criteria hold on `claude/loving-darwin-jij761`. One existing test, T-079's whole-file sha256 pin on `us-states.sparql.json`, goes red as a direct result of criterion 12, and only a person can approve changing it (D-14/D-15). The brief now says Status `test changes requested`, Next step `human`, Test changes `requested`, with a Fault line. Pushed as commit `179fa2c`; `git log origin/claude/loving-darwin-jij761 -1` shows it.
+
+**Independence:** this is an orchestrated run, so every role shares session id `cse_01PtngPoaghwWcXCwbmrjZNw`, and the tester row I added sits under the same id as the worker. The session check therefore proves nothing. My independence rests only on being a freshly spawned subagent with my own context. That is weaker evidence than a separate session, and the Verdict says so.
+
+**Results** (all six proxy variables set to `http://127.0.0.1:1`)
+- **Whole suite:** `bun test` gives 1821 pass, 1 fail. The fail is `highest-point-in-state-verify.test.ts` › "T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c" › "us-states.sparql.json".
+- **Checks:** typecheck, lint (0 warnings) and format:check are all clean.
+- **New file:** `/home/user/geo-discovery-zone/question-bank/src/refresh-routes-verify.test.ts`, 13 tests covering criteria 1–9, 11, 12, 13 and 15, all passing.
+  - Criterion 13 compares the fixture against a sha256 of the default branch's version (`d71dd8a`), parsed with `regenerate_with` removed and keys sorted. The hash is written into the test.
+- **Checked by hand:**
+  - **Criterion 15 stdout:** I ran the offline build from an `origin/main` worktree and from this branch. The output trees are identical. stdout matches except for absolute paths.
+  - **Criteria 14, 16, 17:** no diff against `origin/main` in `data/`, the refresh files, `package.json` or `bun.lock`.
+- **Worker's 8 tests:** they pass, use no network and do not stub `fetch`.
+
+**Mutations** (each one reverted)
+- **Drafting every entity again:** criteria 1, 2, 3, 4, 6 and 8 went red.
+- **Ignoring `--no-fun-facts`:** criterion 9 went red.
+- **Dropping the warnings:** criterion 7 went red.
+- **Copying the draft into the entity:** criterion 5 went red.
+- **Drafting an extra entity outside the subset:** criterion 8 went red.
+- **`regenerate_with` set back to `bun run build`:** criterion 12 went red.
+- **Fixture `rows` changed from 50 to 51:** criterion 13 went red.
+- **`afterEach` restore disabled:** criterion 11 went red.
+
+**Test change request (one row, in the brief):** modify the pin, not delete it.
+- It keeps the same test name and the same whole-file sha256 assertion, with the digest changed to `121a4b8a1d94409ab76063909cb64b3b40ddde93431b07dec5416662455cfd9d` (I checked it with `sha256sum`).
+- The describe text and a comment will cite T-078 criterion 12.
+- No count floor changes.
+
+**What a human needs to do:** start a `tester` for T-078 in a session you are attending, and approve or refuse row 1 there. If you refuse, criteria 12 and 18 contradict each other, and the brief goes back to the task-expander. The orchestrator must not relay or stamp this approval.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-078-refresh-routes.md`
+
+## Halted — test change request — 2026-10-13
+Raised in commit `179fa2c`. The orchestrator did not open the request rows.
+To resume, Dkaattae starts the `tester` step for T-078 in a session they are
+attending. It asks about each row, applies what is approved, and finishes
+verifying. After that, a new run starts from whatever `Next step` it writes.
