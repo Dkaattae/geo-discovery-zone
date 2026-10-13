@@ -309,6 +309,23 @@ test through `parseUsStates`/`normalizeUsStates`; check whether Juneau's English
 label is really gone on Wikidata or the query reads the wrong item.
 
 
+### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · todo
+**Depends on:** T-077 (the guard that blanks a bare-QID label; landed first so
+this one is a fix, not a safety net). Touches the query, so it moves the fixture
+and every digest guard — sequence it with T-070 (a).
+**New 2026-10-13, from T-077's worker.** The query reads the right item: Alaska's
+P36 points at `Q29445`, which is Juneau. It has no `en` label any more, only a
+`mul` ("default for all languages") label `Juneau`, with labels in about 20 other
+languages beside it. Wikidata added `mul` and editors dropped the matching `en`
+labels. Checked live against `query.wikidata.org` on 2026-10-13:
+`SERVICE wikibase:label { … wikibase:language "en" }` returns `Q29445`, and
+`"en,mul"` returns `Juneau`. The explicit `rdfs:label … FILTER(LANG(...) = "en")`
+reads for `highestPoint` and `borderNames` in `src/queries/us-states.ts` have the
+same blind spot. There a `mul`-only item gives an absent binding, not a QID.
+**Done when:** the label service asks for `"en,mul"`, the explicit label reads
+accept `mul` as a fallback after `en`, the fixture is re-recorded, and Alaska's
+capital is `Juneau` from a live refresh.
+
 ### T-078 — Point the other refresh routes at `bun run refresh` · S · todo
 **Depends on:** —
 **New 2026-10-02, from T-063's reviewer (PR #68).** T-063 left two older routes
