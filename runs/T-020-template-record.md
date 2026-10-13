@@ -1,7 +1,7 @@
 # T-020 — Template record type and three templates — run log
 
 **Task:** T-020 · **Branch:** `claude/bold-noether-djxpzu` · **PR:** #79
-**Started:** 2026-10-13 · **Outcome:** in progress
+**Started:** 2026-10-13 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-13
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -117,3 +117,55 @@ The orchestrator recorded that approval in the `Approved:` line.
 - **`QUESTION_FORMATS`:** it is a hand copy of the openapi enum, and nothing checks the two against each other.
 
 No test changes were needed.
+
+## Round 4 — reviewer — 2026-10-13
+`Next step` on entry: `reviewer` → on exit: `human`
+
+**TL;DR:** I approved T-020 but escalated it, because there is a new prompt a child will read: `"Tap {name} on the map."`. The harness then refused the sweep, so nothing from it is applied. The brief is now `Status: blocked`, `Next step: human`, and PR #79 is still **draft**. A person needs to apply the sweep, read the prompt, then mark the PR ready and merge it.
+
+**Status:** I used `blocked`, not `sweep refused`, because D-16 says an escalated PR gets `blocked`. That means the orchestrator's one-hour fallback does not apply.
+
+**Push:** landed. The branch head is `e939516`, both locally and on `origin/claude/bold-noether-djxpzu`.
+
+**Review**
+- **Every role's work is in the PR:** expander `50eda07` and `656d902`, worker `cec0bd4`, tester `99e36fb`.
+- **Each role stayed in its own files.** The expander touched only `tasks/` and `tasks.md`; the tester touched only its test file and the brief.
+- **Nothing changed outside the brief's Constraints.** No dependency added. Nothing changed in `openapi.yaml`, `backend/`, `frontend/` or the built data. No existing test was changed.
+- **My own re-run in `question-bank/`:** typecheck, lint and format:check all exit 0; `bun test` gives 1929 pass, 0 fail.
+- **The code fits the codebase.** It is small, nothing in it is speculative, and adding a field to `Entity` without listing it fails typecheck.
+
+**Findings (none block; each added as a note to a task that already owns the area):**
+- **Formats list (T-024):** `QUESTION_FORMATS` is a hand copy. Nothing ties it to the backend's `QuestionFormat` enum in `backend/app/models.py`, which is the source of truth under E-14. T-024 gets the cross-check.
+- **Click-the-map answers (T-021):** that template's answer is a `geometry_id`, but `map_click` is graded by `choiceIndex`. T-021 has to decide what goes in `choices`, and a FIPS code must never be shown to a child. T-021 should also copy `TEMPLATES` rather than change it.
+
+**Worker flags, all settled:**
+- **Stricter validator:** accepted.
+- **Strategy comments:** left to T-022.
+- **Difficulty and age-band values:** accepted for now; T-023 and T-025 tune them.
+- **One session id across the run:** left to P-14.
+
+**Escalation question for the person:** "Tap" is a little off for mouse users. "Find {name} on the map." works for both.
+
+**Refused sweep:** the permission check refused the sweep as "Irreversible Local Destruction". It would have deleted the brief and edited `tasks.md` and `PROGRESS.md`. I did not look for another way to make those edits. The exact edits are written out under `### Sweep to apply` in the brief, ready to copy:
+- delete the brief;
+- remove the T-020 entry from `tasks.md`;
+- add "Since T-020" notes to T-021, T-022, T-024 and T-026;
+- add a Completed-tasks entry and a pipeline bullet to `PROGRESS.md`.
+
+**PR body:** rewritten with the escalation note at the top, the criteria and what verified each, and the findings. The PR stays draft.
+
+**Commits:**
+- `56ef29d`: review written into the brief
+- `e939516`: sweep written out, status set to blocked
+
+**Files:**
+- /home/user/geo-discovery-zone/tasks/T-020-template-record.md
+- /home/user/geo-discovery-zone/question-bank/src/templates.ts
+
+## Halted — 2026-10-13
+Header at halt: `Status: blocked`, `Next step: human` (branch head `e939516`).
+The reviewer asks, quoted: "A person needs to apply the sweep, read the prompt,
+then mark the PR ready and merge it." and "'Tap' is a little off for mouse
+users. 'Find {name} on the map.' works for both."
+`Status: blocked` is not `sweep refused`, so the D-16 one-hour fallback does not
+apply; the orchestrator does not apply the sweep. Run ends here.
