@@ -2,7 +2,7 @@
 
 **Status:** awaiting approval
 **Next step:** worker
-**Approved:** pending
+**Approved:** Dkaattae — 2026-10-13, given in the orchestrator session (AskUserQuestion). See `runs/T-020-template-record.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-020
 **Branch:** `claude/bold-noether-djxpzu`
