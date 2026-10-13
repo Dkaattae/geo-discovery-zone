@@ -1,7 +1,7 @@
 # T-077 — A label that comes back as a bare QID must warn, not ship
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #77)
 **Approved:** Dkaattae — 2026-10-13, in the orchestrator session: "I approve T-077 criteria". See `runs/T-077-bare-qid-label.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-077
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU |
 | worker | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU (relayed subagent: same id as every spawned role, `process.md` "Spawning") |
 | tester | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU (orchestrated subagent: same id as every spawned role; see Verdict on independence) |
+| reviewer | 2026-10-13 | cse_019jSkM2Hn46U29v2f2miUvU (orchestrated subagent: same id as every spawned role) |
 
 **Why this task.** First in `tasks.md` whose dependencies are done. Skipped:
 **T-064** (depends on T-040, not built) and **T-070** (waiting on a human answer
@@ -337,3 +338,42 @@ and the lockfile is unchanged.
   expected under the orchestrator relay (`process.md` "Spawning"), and it is not
   evidence of a shared context. **Tester:** apply the relay rule, do not refuse
   on it.
+
+## Review
+
+**Approve, inside the envelope.** The guard is small, sits beside the existing
+`missing` warnings in the house style, and does exactly what the criteria ask.
+Gate re-run here: `bun test` 1801/0, lint 0/0, typecheck and format:check clean;
+CI `question-bank` job green. No blocking findings, no new tasks beyond T-084.
+
+- **Every role's work is in the PR.** Expander (`0236b84`, `ae82868`), worker
+  (`760f6ec`), tester (`6e94dea`) and orchestrator logs are all on
+  `claude/inspiring-faraday-a9hh8r`.
+- **Lanes held.** Expander touched only `tasks/` and `tasks.md`; tester only its
+  new test file and the brief; orchestrator only `runs/` and the brief header.
+- **Constraints.** Source change is `normalize.ts` only; nothing under `data/`,
+  `src/fixtures/`, `package.json` or `bun.lock`. The worker's `tasks.md` edit
+  (new T-084) is what the Review checklist and Out of scope asked for, so it is
+  not drift.
+- **Fit.** Same `BuildWarning` push idiom, same comment style, entity spread
+  uses the guarded value. `isBareQid` is exported only so the definition can be
+  pinned; acceptable for a one-line predicate.
+- **Docs.** `question-bank/README.md` does not enumerate warning texts, so
+  nothing went untrue. `PROGRESS.md` Known gaps and T-070's note named T-077 as
+  the gate; both are updated in the sweep to name T-084 instead.
+
+**Worker flags, disposed of:**
+- **No double warning — confirmed.** Criterion 5 requires exactly one
+  `highest_point` warning; a second `missing` would also be redundant, since the
+  bare-QID message already says `left blank`.
+- **Warning wording — confirmed.** It is maintainer-facing stdout, never shown to
+  a child, names the QID and says what was done (`left blank` / `used curated
+  <v>`).
+- **Session id — no action.** Expected under the relay.
+
+**Review checklist (Juneau).** The worker checked live: P36 points at the right
+item, `Q29445`, which has a `mul` label and no `en` one. That is evidence for a
+human to read, not a merge blocker: the guard is correct either way, and the fix
+is owned by T-084. Consequence written into the queue: with T-077 merged, a live
+refresh today blanks Alaska's capital (visibly, with a warning) rather than
+shipping `Q29445`, so **T-084 now gates the monthly routine** alongside T-070 (a).
