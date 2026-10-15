@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `blocked`
+**Next step:** `task-expander`
 **Approved:** Dkaattae (person, in the orchestrator session) — 2026-10-15: "approved, go ahead with the worker". See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE |
+| worker | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (same id as the expander: relayed run, process.md "Two things break") |
 
 > **TL;DR.** Give every generated question a `level` in 0–18 from plan §1.4's
 > formula, as a **new pure stage after `buildChoices`**, with every weight in one
@@ -277,6 +278,127 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+> **TL;DR.** The stage is built and the whole gate is green, but **criterion 16
+> contradicts the brief's own near/far definition for NV**, so it cannot pass as
+> written. Status `blocked`, back to **task-expander** to amend criterion 16 (then
+> human re-approval). No code change is expected from the fix: the implementation
+> follows the brief's near definition exactly.
+
+### Why blocked: criterion 16 versus the near definition
+
+- **The brief defines near** as "in the question entity's `borders`, or the same
+  non-blank `region`". Criteria 14 and 15 rely on that definition.
+- **Criterion 16 says** HI, CA and NV's `tpl-capital-of` questions have "0 near
+  distractors, E-21". E-21 says **0 same-region** distractors. That is a
+  different thing, because the borders half of the definition still applies.
+- **What the committed bank actually gives**, by the brief's definition:
+
+  | State | Distractors (`choices` minus the answer) | Near count |
+  |---|---|---|
+  | HI | Sacramento, Salem, Carson City | **0** (no borders, alone in `Pacific`) |
+  | CA | Carson City (NV), Salem (OR), Salt Lake City (UT) | **2** (NV and OR border CA) |
+  | NV | Sacramento (CA), Salt Lake City (UT), Salem (OR) | **3** (all three border NV) |
+
+- **So for NV, "the level with 3 near distractors and its own ranks" is its
+  actual level.** "Strictly lower" cannot hold for any tightness that is a
+  function of the near count. HI and CA do pass.
+- **What I did not do: build to my reading of it.** I could have made NV pass by
+  (a) counting near per strategy tier, so `sibling_capitals_same_region` ignores
+  `borders`, or (b) adding a second, same-region-only weight. (a) breaks the
+  brief's near definition, which criteria 14 and 15 test. (b) passes or fails
+  criterion 16 depending on how the tester builds its synthetic "3 near" set,
+  which is building to my reading of the criterion.
+- **Proposed fixes, for task-expander, with re-approval by Dkaattae:**
+  1. **Replace NV with HI and CA only, or with HI alone.** HI is 0 near, CA is 2.
+     Correct the parenthetical to "0 same-region distractors". This is the
+     smallest change, and the current code passes it.
+  2. Or redefine near for the capital strategy as same-region only, matching
+     the tier in `tierOf`. Then criteria 14 and 15 need the same change, and
+     E-22 and the code change with them.
+  My recommendation is option 1. Borders are a fair signal of confusability for
+  capitals too: Carson City is a plausible wrong answer for California.
+
+### What changed, file by file
+
+- **`question-bank/src/seed-level.ts` (new).** The stage is `seedLevels(questions,
+  entities, templates = TEMPLATES)`. The constant is `LEVEL_SEED_WEIGHTS`. It
+  also exports `levelFor` (one question), `nearDistractorCount`, `LEVEL_MIN` /
+  `LEVEL_MAX` (0 / 18), and the types `LeveledQuestion` and `LevelSeedWeights`.
+  Imports: `./distractors` (type only), `./templates`, `./types`.
+- **`question-bank/src/seed-level.test.ts` (new).** 11 tests, my own. The
+  tester's verify file is the independent check.
+- **`engineering-decisions.md`.** Appends `## E-22`.
+- **`question-bank/src/generate.ts`.** One header comment line: "`level` is
+  T-023's" now reads "`level` by `seedLevels` in seed-level.ts (T-023, E-22)".
+  Comment only. `distractors.ts` is untouched (it has no `level` mention).
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1, 3 | `seedLevels` maps input to `{ ...question, level }` in input order |
+| 2, 9 | `levelFor` clamps to `LEVEL_MIN`–`LEVEL_MAX`. Every term is finite: an unusable rank becomes `missing_rank_bucket` |
+| 4 | No input is written. Spreads only |
+| 5, 6, 7 | No state, no randomness or clock. Entity lookup is by id. Near-matching is "any match is near", so order does not matter |
+| 8 | `base_difficulty` is added unscaled |
+| 10, 11 | `rankBucket`: the count of `rank_bucket_edges` the rank is strictly above. Weights 1 (population) and 0.5 (area) |
+| 12, 13 | `usableRank`: a positive integer, or missing. Missing means bucket `missing_rank_bucket` = 2, the bucket of ranks 21–35 |
+| 14, 15 | `near_distractor_weight` 0.5 × near count, from `nearDistractorCount` |
+| **16** | **Blocked**: see above. HI and CA pass, NV cannot |
+| 17 | `concept_load[template.id]`, else `concept_load_default` (1) |
+| 18 | `familiarity_bonus: 0` in the constant, subtracted. No player input exists |
+| 19 | Over the bank: identify 3.5–8, capital 4–9, click 4.5–9 |
+| 20 | `LEVEL_SEED_WEIGHTS`. Every numeric leaf mutated by +1 and −1 changes at least one level (24/24), over the committed bank plus base-0 and base-18 copies of the capital template, with AK's `population_rank` set to null |
+| 21 | E-22. My test checks each `key: value` (arrays as `[a, b, c]`, `concept_load` entries as `"tpl-…": n`) |
+| 22–27 | `buildChoices`, `generate`, `templates.ts`, `package.json`, `bun.lock`, data and fixtures are untouched. No pipeline file imports `seed-level.ts` |
+| 28 | Green. See below |
+
+### What I deliberately did not do
+
+- **The clamp bounds are not in `LEVEL_SEED_WEIGHTS`.** I first had `min_level`
+  and `max_level` there. Lowering `min_level` can never change a level, because
+  no term is negative while `familiarity_bonus` is 0. That would fail
+  criterion 20's mutation check, and 0–18 is the contract's `Level` range, not a
+  tunable weight. They are now `LEVEL_MIN` / `LEVEL_MAX` beside the constant.
+  **Reviewer to confirm, or overturn by moving them back and accepting that one
+  mutation is a no-op.**
+- **No rounding.** Levels land on multiples of 0.5 with the current weights.
+- **An unmatched distractor counts as far.** That is a distractor whose text
+  matches no entity, which `buildChoices` output never produces. I did not
+  throw, because the brief names only the unknown `entityId` / `templateId` as
+  errors. Reviewer to confirm.
+- **Mutation edges.** A bucket-edge mutation that crosses no integer (10 → 10.5)
+  changes nothing, because ranks are integers. The tester should mutate by
+  whole numbers.
+
+### How to run
+
+```
+cd question-bank
+bun install --frozen-lockfile   # fresh container: node_modules was absent
+bun test src/seed-level.test.ts # 11 pass
+bun test                        # 2085 pass, 0 fail
+bun run typecheck && bun run lint && bun run format:check   # all clean
+```
+
+### Tests made stale
+
+None.
+
 ## Verdict
 
 ## Notes
+
+- **Worker, 2026-10-15.**
+  - **Model.** Ran on Opus, as the brief asked.
+  - **Prettier.** `bun run format` before `bun install` used a different
+    prettier and rewrote two pre-existing test files (`distractors.test.ts`,
+    `highest-point-metres-verify.test.ts`). I reverted both before committing.
+    With the pinned prettier, `format:check` is clean. Worth knowing for any
+    role that formats in a fresh container.
+  - **The map templates nearly always get 3 near distractors** (only AK = 2 and
+    HI = 0 do not), so `distractor_tightness` barely separates map questions.
+    Owner: T-025, when tuning.
+  - **Level range.** Over the bank, levels run 3.5 to 9, about 1st grade to 4th
+    grade. Whether that is the right band for "which state is highlighted" is
+    T-025's call.
