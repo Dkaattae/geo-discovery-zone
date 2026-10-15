@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -97,3 +97,28 @@ The header reads `Status: blocked`, `Next step: task-expander`. `Status: blocked
 
 ## Resumed — human decision on the block — 2026-10-15
 The person answered in the orchestrator's session: "go with the worker's fix, drop NV from criterion 16". Their words are now in the brief's `Approved:` line, which reads `pending` again because the amended brief needs re-approval. Resuming at `task-expander`. The spawn prompt is the unchanged template.
+
+## Round 3 — task-expander (amend criterion 16) — 2026-10-15
+`Next step` on entry: `task-expander` → on exit: `worker`. `Status`: `blocked` → `awaiting approval`. Pushed: `e636b0c`.
+
+**TL;DR.** I amended criterion 16 of T-023 as Dkaattae decided ("drop NV"), and changed nothing else in the brief. The brief is now `Status: awaiting approval`, `Next step: worker`, `Approved: pending`. **Dkaattae has to re-approve the amended brief before the worker runs.** The push landed: local and remote are both at `e636b0c`.
+
+**What changed**
+- **Criterion 16** now covers only HI and CA. The parenthetical "0 near distractors, E-21" was wrong. E-21 counts only same-region distractors, but the brief's definition of near also counts shared borders. The criterion now gives each state's near count under the brief's own definition:
+  - **HI: 0 near.** Its `borders` list is empty and it is alone in the `Pacific` region (checked in `us-state-hi.json`).
+  - **CA: 2 near.** Its `borders` list includes `us-state-nv` and `us-state-or` (checked in `us-state-ca.json`).
+  - **NV is excluded on purpose.** All three of its wrong answers are capitals of bordering states, so it has 3 near and cannot be "strictly lower than with 3 near".
+- **Nothing else changed.** Criteria 1–15 and 17–28, Out of scope, Constraints, Context and the near definition are as first approved. I did not take the alternative fix (counting only same-region distractors as near for capital questions).
+- **Header:** Status `awaiting approval`, Next step `worker`. The Approved line still reads `pending` and says that only criterion 16 changed.
+- **Sessions:** added a row, "task-expander (amend c16)".
+- **Notes:** added an expander entry with what changed, why, and what is left for the worker. The worker's Handoff says no code change is expected, so after re-approval its job is to confirm against the new criterion 16, set `awaiting verification`, and hand to the tester.
+- **PR #83 body:** I replaced criterion 16 with the amended text through the REST API, with a note that it needs re-approval. The rest of the body is unchanged.
+
+**Commit:** `e636b0c`, "T-023 expander: seed-level — amend criterion 16 (drop NV)", pushed to `claude/stoic-lamport-zeq0c3`. It touches only `tasks/T-023-seed-level.md`.
+
+**Next:** Dkaattae re-approves on PR #83 and records it in the `Approved:` line. Then the worker runs.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-023-seed-level.md
+
+## Halted — G2, re-approval needed — 2026-10-15
+`Approved:` reads `pending` after the amendment. Asked the person to re-approve in the orchestrator session.
