@@ -47,3 +47,28 @@ What a person has to decide: **approve T-024's criteria (PR #84) or not.** If th
 ## Approved by a person — 2026-10-15
 
 The person replied in the orchestrator's session, verbatim: "approve". The orchestrator wrote `Approved:` on their behalf and resumed at `Next step: worker`.
+
+## Round 2 — worker — 2026-10-15
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR.** T-024 is built and handed off. The new function `tagQuestions` adds the five missing tags to every generated question. No existing test goes stale, and the whole suite passes. Pushed as `033b6ec` to `claude/friendly-archimedes-dw9utb`; `git log origin/claude/friendly-archimedes-dw9utb -1` shows that commit. Status is `awaiting verification`, Next step `tester`.
+
+**Results** (in `question-bank/`, after `bun install --frozen-lockfile`): `bun test` 2134 pass, 0 fail. `bun run typecheck`, `bun run lint` and `bun run format:check` are all clean.
+
+**Files changed**
+- **`/home/user/geo-discovery-zone/question-bank/src/tags.ts`** (new): `tagQuestions(questions, entities, templates = TEMPLATES, topics = TEMPLATE_TOPICS)`. It adds `scope`, `entityType`, `topic`, `region` and `ageBand`, and keeps `format` and `level` as they arrive. If an entity has no usable region, the `region` key is left out entirely. It throws, naming the question, when an entity or template id is not in the input. It throws, naming the template, when a template has no topic or one the backend doesn't know.
+- **`/home/user/geo-discovery-zone/question-bank/src/templates.ts`**: adds `TOPICS` (the backend's ten `Topic` values), a `Topic` type, and `TEMPLATE_TOPICS`, which maps template id to topic:
+  - `tpl-identify-on-map` and `tpl-click-the-map` get `location`
+  - `tpl-capital-of` gets `capital`
+  - `Template` itself still has its nine fields, so the four tests that pin those fields stay green.
+- **`/home/user/geo-discovery-zone/question-bank/src/tags.test.ts`** (new): my own tests, including both checks against `backend/app/models.py` (formats and topics).
+- **`/home/user/geo-discovery-zone/engineering-decisions.md`**: new entry E-23.
+- **`/home/user/geo-discovery-zone/tasks/T-024-emit-api-tag-set.md`**: my Sessions row, the Handoff (a criterion-by-criterion table, how the tester builds the hard cases, how to run), Notes, and the Status / Next step change.
+
+**Flags, each with an owner**
+- **A `format` mismatch throws.** This goes beyond the brief. If a question's `format` differs from its template's, the function throws rather than quietly keeping one. Otherwise criteria 4 and 12 would conflict for that input. Nothing the pipeline produces triggers it. **Reviewer** to confirm or overturn.
+- **`PROGRESS.md` is out of date.** Around line 206 it still says questions have no tags yet. **Reviewer** to update it in the sweep.
+- **The session id matches the expander's** (`cse_0148WgLerEA66mjfXXfy932d`), because both ran under the same orchestrated parent session. I noted this in the Sessions row. **Tester** to record its own id and judge isolation from that.
+- **Formatting trap in this environment.** `node_modules` was missing, so `bun run format` used a global prettier 3.8.1 and rewrote two unrelated test files. I reverted both before installing from the lockfile, which left `package.json` and `bun.lock` unchanged. Nothing for anyone to do; the warning is also in the Handoff.
+
+**Tests made stale:** none.
