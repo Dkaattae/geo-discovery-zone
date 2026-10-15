@@ -1,7 +1,7 @@
 # T-024 — Emit the API tag set on generated questions — run log
 
 **Task:** T-024 · **Branch:** `claude/friendly-archimedes-dw9utb` · **PR:** #84
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`
@@ -103,3 +103,55 @@ The person replied in the orchestrator's session, verbatim: "approve". The orche
 **Files**
 - `/home/user/geo-discovery-zone/question-bank/src/tags-verify.test.ts` (new)
 - `/home/user/geo-discovery-zone/tasks/T-024-emit-api-tag-set.md`: Verdict with per-criterion and mutation tables, Status `pass`, Next step `reviewer`, my Sessions row.
+
+## Round 4 — reviewer — 2026-10-15
+`Next step` on entry: `reviewer` → on exit: `human` — merge PR #84 (brief swept; last header at `8e56530`)
+
+**TL;DR.** I approved T-024 with no escalation, since every envelope condition holds. The sweep is pushed to `claude/friendly-archimedes-dw9utb`, and PR #84 is now marked ready (re-read shows `draft: false`). Next: Dkaattae merges PR #84. CI on the final head `75e7d02` was still running when I stopped; only "backend (lint, format, test)" and the waiting-on-a-human check had finished, both green.
+
+**Every role's work is in the PR.**
+- **Each Sessions row has a commit in PR #84:** expander `7f72993` and `9098cd1`, worker `033b6ec`, tester `5588c60`, plus the orchestrator's `runs/` commits.
+- **Each role stayed in its lane:**
+  - The expander touched only `tasks.md` and `tasks/`.
+  - The tester touched only the brief and a new `tags-verify.test.ts`.
+  - The worker's files are all inside the brief's Constraints.
+
+**Review**
+- **It fits the codebase.** `tagQuestions` in `question-bank/src/tags.ts` uses the same lookup, "throw before returning anything" pattern and error-message prefix as `seed-level.ts` and `distractors.ts`. Keying the topic by template id follows the existing `concept_load` precedent.
+- **It does no more than the brief asked.** E-23 matches the code, and no fixture, data file or pre-existing test changed.
+- **I re-ran the full gate:** `bun test` 2180 pass / 0 fail; `typecheck`, `lint` and `format:check` clean.
+
+**Flags settled**
+- **The worker's extra format-mismatch throw:** confirmed.
+- **Topic stored by template id rather than as a tenth `Template` field:** confirmed.
+- **The generator's silent `geometry_id` / `name` rule:** moved into T-026, as the brief's Out of scope asked.
+
+**Envelope:** all conditions hold.
+- The tester returned pass and the gate is green.
+- No dependency was added.
+- `openapi.yaml`, migrations and the plan are untouched.
+- No text a child will read was added.
+- `Test changes: none`, and the diff modifies no pre-existing test.
+- The criteria were approved by Dkaattae.
+- The only files outside Constraints are `runs/` (orchestrator log) and the sweep files.
+
+**Commits**
+- `8e56530` (reviewer: review, approve):
+  - adds the `## Review` section to the brief;
+  - sets Status `approved` and Next step `human` (merge PR #84);
+  - adds the reviewer's Sessions row.
+- `75e7d02` (sweep):
+  - deletes `/home/user/geo-discovery-zone/tasks/T-024-emit-api-tag-set.md`;
+  - removes T-024 from `/home/user/geo-discovery-zone/tasks.md`;
+  - amends T-026: a new template needs a `TEMPLATE_TOPICS` entry, plus the carried-forward generator rule;
+  - amends T-040: `tagQuestions` is the last stage to wire up, and `region` can be absent;
+  - `/home/user/geo-discovery-zone/PROGRESS.md`: adds the T-024 entry under Completed tasks and fixes the stale "A question has no tags yet" line.
+- **Push confirmed:** `origin/claude/friendly-archimedes-dw9utb` is at `75e7d02`, and the local branch is in sync.
+
+**Worth knowing**
+- **No new tasks were created.** Both follow-ups went into T-026 and T-040, which already own those areas.
+- **One wording slip in the PR body.** The table header says "verbatim", but criterion 28's row drops the brief's parenthetical listing each tag's source. The brief in git history (`8e56530`) has the full text.
+- **The brief no longer has a final Status line**, because the sweep deleted it. Its last state, in `8e56530`, is Status `approved` and Next step `human`.
+
+## Ended — 2026-10-15
+Reviewer marked PR #84 ready. Run ends; merging is Dkaattae's.
