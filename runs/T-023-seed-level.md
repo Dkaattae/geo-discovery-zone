@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -49,3 +49,48 @@ If a person approves in the orchestrator's session, their words are recorded her
 
 ## Resumed — human approval — 2026-10-15
 The person answered in the orchestrator's session: "approved, go ahead with the worker". `Approved:` now records that approval. Resuming at `worker`.
+
+## Round 2 — worker — 2026-10-15
+`Next step` on entry: `worker` → on exit: `task-expander`. `Status`: `awaiting approval` → `blocked`. Pushed: `47a6e28`.
+
+**TL;DR.** I built the level stage and the whole suite passes, but I've set T-023 to **blocked**: criterion 16 contradicts the brief's own definition of a "near" distractor, so it can't pass for Nevada (NV) whatever the code does. **Next step: `task-expander`** to amend criterion 16, then Dkaattae re-approves. The fix I recommend needs no code change.
+
+The work is pushed to `claude/stoic-lamport-zeq0c3`. `origin/claude/stoic-lamport-zeq0c3` now ends at commit `47a6e28` ("T-023 worker: seedLevels stage, LEVEL_SEED_WEIGHTS, E-22; blocked on criterion 16").
+
+**Why it is blocked**
+- The brief says a distractor is near when its state borders the question's state, or is in the same region.
+- Criterion 16 says the capital questions for HI, CA and NV have "0 near distractors, E-21". E-21 actually says 0 *same-region* distractors, which is not the same thing, because shared borders still count.
+- In the committed bank, NV's three wrong answers are Sacramento, Salt Lake City and Salem, and CA, UT and OR all border Nevada. So NV has 3 near distractors, and "strictly lower than with 3 near" can't hold for it. HI (0 near) and CA (2 near) do pass.
+- **Proposed fix, for the expander:** drop NV from the criterion (keep HI and CA, or HI alone) and correct the parenthetical to "0 same-region distractors". The current code passes that.
+- **The other fix:** count only same-region distractors as near for capital questions. That means changing criteria 14 and 15, the code and E-22 as well.
+
+**What I built**
+- `/home/user/geo-discovery-zone/question-bank/src/seed-level.ts` (new):
+  - The stage is `seedLevels(questions, entities, templates = TEMPLATES)`. The weights live in one exported constant, `LEVEL_SEED_WEIGHTS`.
+  - Population and area ranks fall into buckets at ranks 10, 20 and 35. Population weighs 1 per bucket, area 0.5. A missing or unusable rank counts as the middle bucket (ranks 21–35).
+  - Each near distractor adds 0.5. Each template has its own concept-load value (capital 1, the two map templates 0, unknown templates 1).
+  - `familiarity_bonus` is 0 for every question.
+- `/home/user/geo-discovery-zone/question-bank/src/seed-level.test.ts` (new): 11 tests of my own.
+- `/home/user/geo-discovery-zone/engineering-decisions.md`: adds E-22.
+- `/home/user/geo-discovery-zone/question-bank/src/generate.ts`: one header comment line changed, nothing else.
+
+**Results**
+- `bun test` passes: 2085 tests, 0 failures. `typecheck`, `lint` and `format:check` are all clean.
+- Over the committed bank the 150 levels run from 3.5 to 9.
+- Criterion 20 (every weight in the constant matters): I changed each of the 24 numbers by +1 and by −1, and every change moved at least one level.
+- No tests made stale. No new dependency, and `package.json` and `bun.lock` are unchanged.
+
+**Decisions that need an owner**
+- **0–18 bounds are outside the constant.** They are now `LEVEL_MIN` / `LEVEL_MAX`, kept out of `LEVEL_SEED_WEIGHTS`. As a weight, lowering the minimum could never change a level, which would fail criterion 20, and 0–18 is the contract's range rather than something to tune. Reviewer to confirm or overturn.
+- **A wrong answer that matches no state counts as far rather than throwing.** `buildChoices` never produces one. Reviewer to confirm.
+
+**Worth knowing**
+- **Prettier in a fresh container:** `node_modules` was missing. Running `bun run format` before `bun install --frozen-lockfile` used a different prettier and rewrote two existing test files. I reverted both before committing. Other roles should install first.
+- **Same session id:** my Sessions row has the same id as the expander's (`cse_01U46hLUXQXCwTAjFRk3oYmE`). That is expected in a relayed run, and I noted it in the row.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-023-seed-level.md`. The Handoff section there has the full NV table, where each criterion is implemented, and how to run everything.
+
+## Halted — Status: blocked — 2026-10-15
+The header reads `Status: blocked`, `Next step: task-expander`. `Status: blocked` is a halt condition, so no role is spawned. What the worker asked for, quoted: "**Next step: `task-expander`** to amend criterion 16, then Dkaattae re-approves."
+
+**What a human has to decide:** whether to send the task to the `task-expander` to amend criterion 16, and then re-approve the amended brief.
