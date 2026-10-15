@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #83)
 **Approved:** Dkaattae (person, in the orchestrator session) — 2026-10-15: "approved, go ahead with the worker" — re-approval of the brief with criterion 16 amended (NV dropped). See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
@@ -18,6 +18,7 @@
 | task-expander (amend c16) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
 | worker (after re-approval) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
 | tester | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (orchestrated run, same id: independence is a freshly spawned subagent context, not a separate session) |
+| reviewer | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (orchestrated run, same id) |
 
 > **TL;DR.** Give every generated question a `level` in 0–18 from plan §1.4's
 > formula, as a **new pure stage after `buildChoices`**, with every weight in one
@@ -460,6 +461,47 @@ seam, no fixture touched.
 20's test works only because the constant is a plain, unfrozen object read when
 the function is called. If a later task freezes it, that test will throw rather
 than pass quietly.
+
+## Review
+
+> **TL;DR. Approve, inside the envelope.** The code is small and fits
+> `generate.ts` / `distractors.ts` in shape, purity, and error style. Nothing
+> landed outside the Constraints, each role stayed in its lane, and the gate is
+> green when re-run (2118 pass, 0 fail, typecheck, lint and format:check exit 0).
+> There are two small findings, neither blocking, and both go to T-025.
+
+- **Every role's work is in the PR.** Each Sessions row has a commit on this
+  branch. The expander's commits touch only `tasks/` and `tasks.md`, the
+  tester's only its verify file and the brief, and the orchestrator's only
+  `runs/` and the brief's header.
+- **Envelope:** tester pass. No dependency. No `openapi.yaml`, migration or plan
+  change. No text a child reads. `Test changes: none`, and the diff deletes or
+  modifies no pre-existing test. No product decision was settled outside the
+  two approvals Dkaattae gave.
+- **Finding 1 (non-blocking, amends T-025):** `levelFor`'s `weights`
+  parameter (`seed-level.ts:164`) has no caller that passes it. `levelFor` and
+  `nearDistractorCount` are exported, and nothing outside the module imports
+  them. This is a small speculative surface. T-025 is the task that would use
+  it (comparing weight sets), so it decides whether to keep or drop it.
+- **Finding 2 (non-blocking, amends T-025):** this is the tester's note. The
+  criterion-20 test mutates `LEVEL_SEED_WEIGHTS` at runtime, so freezing the
+  constant would break it. It is recorded in T-025, which owns any change to
+  the constant.
+- **Worker flags, disposed:**
+  - *Clamp bounds outside the constant:* **confirmed.** 0–18 is the contract's
+    `Level` range, not a weight, and criterion 20 lists no clamp.
+  - *Unmatched distractor counts as far:* **confirmed.** `buildChoices` never
+    produces one, and the brief names only an unknown entity or template as an
+    error.
+  - *Map templates nearly always get 3 near, and the 3.5–9 range:* **deferred
+    to T-025**, now written into its entry.
+  - *Prettier in a fresh container:* run `bun install --frozen-lockfile` before
+    formatting. The worker caught it and reverted, and nothing in the diff is
+    affected. It is recorded in PROGRESS.
+- **Queue:** T-023 deleted. T-024 amended (emit tags on `seedLevels`'s output,
+  do not recompute `level`). T-025 amended (where the weights are, plus the
+  flags above). I created no new entries, because T-025 already owns the
+  weights.
 
 ## Notes
 
