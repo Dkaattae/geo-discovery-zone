@@ -343,6 +343,7 @@ since the note above: Q1 is still open, and nobody has decided the proposed
 split.
 **Skipped again, 2026-10-15, for T-021.** Same reason.
 **Skipped again, 2026-10-15, for T-023.** Same reason.
+**Skipped again, 2026-10-15, for T-024.** Same reason.
 
 ---
 
@@ -352,7 +353,7 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-024 — Emit the API tag set · S · todo
+### T-024 — Emit the API tag set · S · doing
 **Depends on:** T-021
 `scope`, `entity_type`, `topic`, `region`, `format`, `age_band`, `level` — the
 filters `openapi.yaml` exposes on `GET /questions`, all of which the backend
