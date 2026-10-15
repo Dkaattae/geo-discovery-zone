@@ -95,3 +95,36 @@ Dkaattae, in the orchestrator's session: "approved, continue with the worker".
 - **Setup:** a fresh checkout needs `bun install --frozen-lockfile` in `question-bank/` before typecheck, lint or format will run. The lockfile is unchanged.
 
 **Contradictions with the brief:** none. The region counts in criterion 8 and the 11 fallback states in criterion 9 match the bank exactly.
+
+## Round 3 — tester — 2026-10-15
+`Next step` on entry: `tester` → on exit: `reviewer`. `Status` → `verified — pass`.
+
+**T-022 verdict: pass.** All 24 acceptance criteria hold. The commit is pushed to `claude/awesome-cerf-v617fy` as `7fd16bb`, and local HEAD matches the remote. Status is now `verified — pass`. Next step: `reviewer`.
+
+**How independent this check was.** It is weaker than a separate session. `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01Jqx2eXa4GKKb9X3m5AiHbb`, the same id the Sessions table lists for the expander and the worker. This run is orchestrated (`runs/T-022-distractor-strategies.md` exists), so all roles share one id and the check proves nothing either way. My independence rests only on being a freshly spawned subagent: I did not see the work being done or the worker's reasoning. That relies on the orchestrator having spawned me correctly. The Verdict and my Sessions row say this.
+
+**What I did**
+- **New file:** `/home/user/geo-discovery-zone/question-bank/src/distractors-verify.test.ts`, 44 tests, named `T-022 criterion N: …`. They work out every expected distractor themselves, with their own great-circle distance, tiers and id tie-break. `distractors.ts` was read only for entry points and the name of the parallel list (`choiceGeometryIds`, recorded in E-21).
+- **Edge cases tested:**
+  - decoy entities that fail each rule for being a candidate (other scope, other type, bad centroid, blank text)
+  - `map_click` versus `map_identify` candidates without a `geometry_id`
+  - four entities at exactly the same distance, to test the id tie-break
+  - whole inputs of 4 states (become questions) and 3 states (reported, `found: 2`)
+  - a pool with only two distinct capitals once case and spaces are ignored
+  - seven kinds of bad centroid on the question's own state
+  - `correctIndex` staying the same over the bank, the bank reversed, and 150 subsets
+- **Results:**
+  - whole `question-bank` suite: 2074 pass, 0 fail, also with the proxy variables pointed at nothing, so no network
+  - typecheck, lint and `format:check`: clean
+- **Brief:** I filled in the Verdict (a criterion table and a mutation table), added my Sessions row and set Status and Next step. There was no test change request, because no existing test went stale.
+
+**Mutations:** I made 15 deliberate breaks to `distractors.ts` and reverted each one with `git checkout`; `git diff` is clean. 14 of them turned at least one test red. The one that stayed green was removing the murmur3 finalizer, leaving plain FNV-1a. That is correct: the resulting 13/12/12/13 split per template still meets criterion 15 as written. The finalizer is a quality choice recorded in E-21, not something the criteria require. The reviewer may want to weigh this.
+
+**Points for the reviewer**
+- **Criteria 19, 23 and 24 were checked with git, not in a test.** A test should not depend on git history.
+- **Criterion 24 is read as the worker's diff.** The worker's commit `fc71d87` touches only `question-bank/src/`, `engineering-decisions.md` and the brief. The branch also changes `tasks.md` (expander) and `runs/` (orchestrator), which the brief and the loop expect.
+- **One harmless formatting quirk:** the reworded comment in `generate.ts` has an over-long line. `format:check` passes regardless.
+
+**Files**
+- `/home/user/geo-discovery-zone/question-bank/src/distractors-verify.test.ts`
+- `/home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md`
