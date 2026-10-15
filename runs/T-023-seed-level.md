@@ -125,3 +125,30 @@ Brief: /home/user/geo-discovery-zone/tasks/T-023-seed-level.md
 
 ## Resumed — human re-approval — 2026-10-15
 The person answered in the orchestrator's session: "approved, go ahead with the worker". Their words are now in the `Approved:` line. Resuming at `worker`.
+
+## Round 4 — worker — 2026-10-15
+`Next step` on entry: `worker` → on exit: `tester`. `Status`: `awaiting approval` → `awaiting verification`. Pushed: `bc04eda`.
+
+**TL;DR.** T-023 is ready for the tester. The stage already passes the amended criterion 16, so no code changed. The whole gate is green. Status is `awaiting verification` and Next step is `tester`, which needs a fresh session. I pushed commit `bc04eda` to `claude/stoic-lamport-zeq0c3`, and `git log origin/claude/stoic-lamport-zeq0c3 -1` shows it.
+
+- **Approval:** Dkaattae re-approved the brief on 2026-10-15 after criterion 16 was amended to drop NV.
+- **Criterion 16:** I checked it over the committed bank with a throwaway script, which I did not commit. For the 3-near comparison I used the same 50 entities, gave the question's state every other state as a border, and kept its own ranks:
+
+  | State | Actual level | 3-near level | Strictly lower |
+  |---|---|---|---|
+  | HI | 7.5 (0 near) | 9 | yes |
+  | CA | 4 (2 near) | 4.5 | yes |
+  | NV (excluded) | 6.5 (3 near) | 6.5 | no, which the amendment expects |
+
+- **Gate:** the `question-bank` suite gives 2085 pass and 0 fail. `typecheck`, `lint` and `format:check` are clean, and the working tree was clean before the brief edit.
+- **Brief updates:** I added a worker (after re-approval) row to Sessions. The session id is the same as earlier rows because this is a relayed run. I replaced the Handoff's "Why blocked" section with the criterion 16 table, marked criterion 16 as passing in the criteria table, and added a worker Note.
+- **Tests made stale:** none.
+- **Flags still open for the reviewer:** the earlier worker raised these, and they are recorded in the Handoff. Both are worker decisions the reviewer should confirm or overturn:
+  - the clamp bounds `LEVEL_MIN` and `LEVEL_MAX` sit outside `LEVEL_SEED_WEIGHTS`;
+  - a distractor that matches no entity counts as far.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-023-seed-level.md
+- /home/user/geo-discovery-zone/question-bank/src/seed-level.ts
+- /home/user/geo-discovery-zone/question-bank/src/seed-level.test.ts
+- /home/user/geo-discovery-zone/engineering-decisions.md (E-22)
