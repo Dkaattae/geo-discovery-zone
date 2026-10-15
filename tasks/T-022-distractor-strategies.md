@@ -1,7 +1,7 @@
 # T-022 — Distractor strategies
 
-**Status:** `changes requested`
-**Next step:** `tester` — come back and fix Review finding 1 (one assertion in `distractors-verify.test.ts`), then hand back to `reviewer`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-15, in the orchestrator's session: "approved, continue with the worker". See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
@@ -18,6 +18,7 @@ draft until the reviewer approves it
 | worker | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
 | tester | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent; see Verdict) |
 | reviewer | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent) — changes requested |
+| tester | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent; fixed Review finding 1) |
 
 ## Goal
 
@@ -436,6 +437,27 @@ Reviewer may want to decide whether that matters.
 `git` commands (above), not in a test, because a test must not depend on git
 history. All values came from the committed bank in `question-bank/data/us-states/`.
 No network, no fixture edited, no source edited.
+
+### Round 2: Review finding 1 fixed
+
+**TL;DR. Still pass.** I replaced the E-21 "is the highest E number" pin with a
+check that keeps working after later entries land. Whole suite 2074 pass / 0 fail;
+typecheck, lint and format:check clean. Next: reviewer.
+
+- **Changed:** `distractors-verify.test.ts`, criterion 18. The test is now
+  "exactly one E-21 heading, following E-20, and every E-n number is distinct".
+  I dropped `Math.max(...nums) === 21` and added `toContain(20)` and
+  `new Set(nums).size === nums.length`, the same shape as
+  `highest-point-verify.test.ts`'s E-8 check. Exactly-one-E-21 is unchanged.
+- **No test change request was needed.** This test was added on this branch
+  (`7fd16bb`), so it was not pre-existing. The reviewer said the same.
+- **Mutation check** (on `engineering-decisions.md`, reverted from a copy, `git
+  status` clean): appending an `## E-22` heading kept criterion 18 green (3/3).
+  Appending a second `## E-21` turned this test red (1 fail).
+- **Independence:** the same caveat as above applies. This is an orchestrated
+  run, so the shared session id proves nothing. My independence rests only on
+  being a freshly spawned subagent.
+- **Finding 2** (comment widths in source) is source, so it is not mine to touch.
 
 ## Notes
 

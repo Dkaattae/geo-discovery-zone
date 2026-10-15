@@ -673,10 +673,14 @@ describe("T-022 criterion 18: engineering-decisions.md E-21", () => {
     const next = t.indexOf("\n## ", start + 1);
     return t.slice(start, next === -1 ? undefined : next);
   };
-  test("exactly one E-21 heading, and it is the highest E number", () => {
+  test("exactly one E-21 heading, following E-20, and every E-n number is distinct", () => {
+    // "The next unused E-n" holds at the time of writing; a later, higher
+    // entry is not a failure of this one (same shape as
+    // highest-point-verify.test.ts's E-8 check). Review finding 1.
     const nums = [...text().matchAll(/^## E-(\d+)\b/gm)].map((m) => Number(m[1]));
     expect(nums.filter((n) => n === 21).length).toBe(1);
-    expect(Math.max(...nums)).toBe(21);
+    expect(nums).toContain(20);
+    expect(new Set(nums).size).toBe(nums.length);
   });
   test("names the parallel list exactly as the code spells it", () => {
     const click = run(bank()).questions.find((q) => q.format === "map_click") as GeneratedQuestion;
