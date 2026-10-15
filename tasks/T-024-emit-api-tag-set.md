@@ -1,7 +1,7 @@
 # T-024 — Emit the API tag set on generated questions
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #84
 **Approved:** Dkaattae (in the orchestrator session) — 2026-10-15. See `runs/T-024-emit-api-tag-set.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-024
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d |
 | worker | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d (orchestrated subagent; `$CLAUDE_CODE_REMOTE_SESSION_ID` is the parent session's, so it matches the expander's row) |
 | tester | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d (orchestrated run, same id: independence is a freshly spawned subagent context, not a separate session) |
+| reviewer | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d (orchestrated subagent, same parent session id) |
 
 ## Goal
 
@@ -420,6 +421,63 @@ The worker's file alone misses four mutations; my file catches all of them.
   belongs in `tasks.md` (T-026), per the brief.
 - **Tests made stale:** none found. Topic is keyed by id, so the four pinned
   nine-field tests are untouched and still green.
+
+## Review
+
+> **TL;DR. Approve, inside the envelope.** `tagQuestions` is small, pure, and
+> written in the same idiom as `seedLevels` and `buildChoices`. Nothing landed
+> outside the Constraints, and no pre-existing test changed. Gate re-run here:
+> `bun test` 2180 pass / 0 fail; typecheck, lint and format:check clean.
+> PR #84 marked ready, with no escalation note. Next: Dkaattae merges.
+
+**Commits and lanes**
+
+- **Every Sessions row has a commit in PR #84**: expander `7f72993`/`9098cd1`,
+  worker `033b6ec`, tester `5588c60`, plus the orchestrator's run-log commits.
+- **Expander** touched only `tasks.md` and `tasks/`. **Tester** touched only
+  `tasks/` and a new test file (`tags-verify.test.ts`), no source.
+  **Worker** touched `tags.ts`, `tags.test.ts`, `templates.ts`,
+  `engineering-decisions.md` and the brief, all within Constraints.
+
+**Quality**
+
+- **Fits the codebase.** The first-wins `Map` lookup over entities and
+  templates, the resolve-then-map "throw before returning anything" shape, the
+  `tagQuestions:` error prefix and keying a per-template value by id (like
+  `LEVEL_SEED_WEIGHTS.concept_load`) all match `seed-level.ts` and
+  `distractors.ts`.
+- **Not more than needed.** The fourth `topics` parameter exists so tests can
+  build a template with no topic, or a bad one (criteria 16 and 17). The same
+  pattern exists in `seedLevels`'s `templates` default.
+- **Docs true.** E-23 matches the code. The `PROGRESS.md` line "A question
+  has no tags yet" was stale; it is fixed in the sweep.
+- **Honesty intact.** No fixture, data or pre-existing test changed. The
+  tester's mutation table shows four gaps in the worker's own tests, and the
+  tester's file closes them.
+
+**Flags disposed of**
+
+- **Format-mismatch throw (worker):** confirmed. A question whose `format`
+  disagrees with its template is not something to pick a side on silently
+  (CLAUDE.md, "Flag uncertain data"). The throw costs nothing on pipeline
+  output.
+- **Topic by id, not a tenth `Template` field (worker, E-23):** confirmed. It
+  keeps plan §1.2's nine-field record and the four pinned tests. Criterion 18's
+  test catches a template added without a topic. T-026 is amended to say a new
+  template needs a `TEMPLATE_TOPICS` entry.
+- **The generator's silent `geometry_id` / `name` rule (brief, Out of scope):**
+  carried into T-026 as instructed.
+
+**Non-blocking findings:** none needed a new entry. T-040 is amended because
+the tag stage is now the last stage it wires: nothing writes questions yet, and
+`region` can be absent, which the backend's `region: str | None` accepts.
+
+**Envelope:** tester pass; suite, typecheck, lint and format green; changes
+outside Constraints are only `runs/` (orchestrator log), `tasks.md` and the
+sweep; no dependency; no `openapi.yaml`, migration or plan change; no
+child-facing text (the tags are enum values and copied region names); `Test
+changes: none`, and the diff modifies no pre-existing test; no product
+decision settled (the topic values were in the person-approved criteria).
 
 ## Notes
 
