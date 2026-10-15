@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -46,3 +46,6 @@ The `Approved:` stamp itself was accepted (commit `f3eaca8`). Spawning the `work
 - `level` comes from a new pure stage after `buildChoices`, and `buildChoices` itself stays unchanged.
 
 If a person approves in the orchestrator's session, their words are recorded here and the run resumes at `worker`.
+
+## Resumed — human approval — 2026-10-15
+The person answered in the orchestrator's session: "approved, go ahead with the worker". `Approved:` now records that approval. Resuming at `worker`.

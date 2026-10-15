@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** orchestrator — 2026-10-15, unattended run. See `runs/T-023-seed-level.md`.
+**Approved:** Dkaattae (person, in the orchestrator session) — 2026-10-15: "approved, go ahead with the worker". See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
 **Branch:** `claude/stoic-lamport-zeq0c3`
