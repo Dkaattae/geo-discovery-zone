@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -199,3 +199,48 @@ My first draft let M12 through. I added a criterion 18 test that sets every rank
 - Status is `pass` and Next step is `reviewer`.
 - My tester row is in the Sessions table.
 - The `## Verdict` has a criterion-by-criterion table and the mutation list.
+
+## Round 6 — reviewer — 2026-10-15
+`Next step` on entry: `reviewer` → on exit: `human` (merge PR #83). `Status`: `pass` → `approved`, then the brief was deleted in the sweep. Pushed: `e4a7205` (review), `c72753e` (sweep).
+
+**I approved T-023 (PR #83) and marked it ready for review. It sits inside the envelope with no escalation, so it is routine for Dkaattae to merge. The sweep is in the PR, and the push landed: the remote head is `c72753e`, matching local.**
+
+- **Verdict:** approve. PR #83 is now `draft: false`, open and not merged. I updated its body with a TL;DR, the review, a per-criterion verification table, what was chosen not to do, and the 28 acceptance criteria verbatim (criterion 16 as amended).
+- **Gate, re-run by me:** `question-bank` `bun test` 2118 pass, 0 fail. `typecheck`, `lint` and `format:check` all exit 0. The frontend doc-guard tests that read `PROGRESS.md` and `tasks.md` pass (272 pass, 0 fail).
+- **Every role's work is in the PR:** each Sessions row has a commit on `claude/stoic-lamport-zeq0c3`. Each role stayed in its lane:
+  - the expander touched only `tasks/` and `tasks.md`;
+  - the tester touched only `seed-level-verify.test.ts` and the brief;
+  - the orchestrator touched only `runs/` and the brief's header.
+- **Envelope:**
+  - the tester passed;
+  - no dependency was added;
+  - no `openapi.yaml`, migration or plan change;
+  - no text a child reads;
+  - `Test changes: none`, and no pre-existing test was touched;
+  - the brief was approved by a person (Dkaattae), twice.
+
+**Two findings, neither blocking. Both went into T-025 rather than new entries, because T-025 already owns the weights:**
+1. `levelFor`'s alternate `weights` parameter (`question-bank/src/seed-level.ts`) has no caller that passes it. `levelFor` and `nearDistractorCount` are exported, but nothing outside the module imports them. T-025 decides whether to keep or drop them.
+2. The tester's criterion-20 test changes `LEVEL_SEED_WEIGHTS` while it runs, so freezing the constant later would break that test.
+
+**What I decided on the worker's flags:**
+- **Clamp bounds stay outside the constant:** confirmed. 0–18 is the API's allowed range, not a weight.
+- **A distractor that matches no entity counts as far:** confirmed.
+- **Map questions almost always get 3 near distractors, and levels only span 3.5–9:** left for T-025 to settle while tuning.
+
+**Sweep (commit `c72753e`), after the review was committed into the brief (`T-023 reviewer: review, approve`):**
+- Deleted `/home/user/geo-discovery-zone/tasks/T-023-seed-level.md`.
+- Removed T-023 from `/home/user/geo-discovery-zone/tasks.md`, and amended two entries:
+  - **T-024:** emit tags on `seedLevels`'s output, and do not compute `level` again.
+  - **T-025:** where the weights live, plus the flags above.
+- `/home/user/geo-discovery-zone/PROGRESS.md`: added a T-023 entry under "Completed tasks", including where it differed from the brief (the criterion 16 / NV amendment), and updated the question-bank section, which said questions have no `level`.
+
+**Worth knowing:**
+- **`gh pr edit` and `gh pr ready` failed** because GitHub's GraphQL API is blocked from this session. I updated the body through the REST API instead, and marked it ready with `POST /repos/Dkaattae/geo-discovery-zone/pulls/83/ccr/ready_for_review`. A re-read of the PR shows `draft: false`.
+- **The root `PROGRESS.md` and `tasks.md` are not prettier-clean**, on `main` as well. No check covers them.
+- **The brief no longer exists, so it has no final Status line.** Its last committed state (`HEAD~1`) is Status `approved`, Next step `human` (merge PR #83), with the reviewer's Sessions row and a `## Review` section.
+
+**Next:** a person merges PR #83.
+
+## Ended — 2026-10-15
+The reviewer marked PR #83 ready. The run ends here; merging is Dkaattae's.
