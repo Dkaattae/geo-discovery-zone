@@ -166,3 +166,32 @@ Dkaattae, in the orchestrator's session: "approved, continue with the worker".
 **Files**
 - /home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md (`## Review` section, header, Sessions row)
 - PR comment: https://github.com/Dkaattae/geo-discovery-zone/pull/82#issuecomment-6197543954
+
+## Round 5 — tester — 2026-10-15
+`Next step` on entry: `tester` — come back and fix Review finding 1 … → on exit: `reviewer`. `Status` → `pass`.
+
+**TL;DR. T-022 is still a pass, and Review finding 1 is fixed.** The criterion 18 test no longer requires E-21 to be the highest entry in `engineering-decisions.md`, so a later E-22 will not turn it red. The whole suite is green. The push landed as `c567dfc` on `claude/awesome-cerf-v617fy`: local HEAD and the remote match. Next step: `reviewer`.
+
+**Independence: weaker than a separate session.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01Jqx2eXa4GKKb9X3m5AiHbb`, the same id the expander, worker and reviewer rows show. This is an orchestrated run (`runs/T-022-distractor-strategies.md` exists), so that check proves nothing either way. My independence rests only on being a freshly spawned subagent, which depends on the orchestrator having spawned me correctly. The Verdict says so.
+
+**What changed**
+- **One test:** in `question-bank/src/distractors-verify.test.ts`, the criterion 18 test is now "exactly one E-21 heading, following E-20, and every E-n number is distinct".
+  - **Removed:** `expect(Math.max(...nums)).toBe(21)`.
+  - **Added:** `toContain(20)` and a check that no E-n number repeats, the same shape as the E-8 check in `highest-point-verify.test.ts`.
+  - **Kept:** the exactly-one-E-21 assertion.
+  - **No test change request:** I added this test on this branch in `7fd16bb`, so it was not pre-existing, and the reviewer agreed.
+- **The brief, `tasks/T-022-distractor-strategies.md`:**
+  - **Header:** Status is `pass`, Next step is `reviewer`.
+  - **Sessions:** new tester row.
+  - **Verdict:** new "Round 2: Review finding 1 fixed" section.
+
+**Evidence**
+- **Suite, run in `question-bank/`:** `bun test` gives 2074 pass, 0 fail. `typecheck`, `lint` and `format:check` are clean.
+- **Mutations:** I edited `engineering-decisions.md` temporarily, restored it from a copy, and `git status` was clean afterwards.
+  - **Extra `## E-22` heading:** criterion 18 stayed green, 3 of 3.
+  - **Second `## E-21` heading:** the changed test went red.
+- **Review finding 2 (comment widths):** not touched. It is in source files, so it is not the tester's to change.
+
+Files:
+- /home/user/geo-discovery-zone/question-bank/src/distractors-verify.test.ts
+- /home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md
