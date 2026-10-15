@@ -352,23 +352,6 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-023 — Seed `level` deterministically · M · doing
-**Depends on:** T-022
-`base_level(template) + entity_obscurity + distractor_tightness + concept_load −
-familiarity_bonus`, using the rank fields already on entities (plan §1.4).
-**Since T-022 (PR #82):** seed `level` on the `GeneratedQuestion`s that
-`buildChoices` in `question-bank/src/distractors.ts` returns, not on drafts.
-`distractor_tightness` can be read from the tier each distractor came from
-(E-21): the 11 small-region states get looser capital questions by construction.
-**Done when:** every generated question has a level in 0–18 and the weights are
-in one documented place.
-**Expanded 2026-10-15** into `tasks/T-023-seed-level.md`. Two scope calls are
-flagged for the approver. **`familiarity_bonus` is 0** for every question: home
-state depends on the player, and no "famous states" list exists to read.
-**`level` is added by a new stage after `buildChoices`**, which itself stays
-unchanged; adding it inside `buildChoices` would turn two pre-existing
-`distractors` tests red. The decision is recorded as `E-22`.
-
 ### T-024 — Emit the API tag set · S · todo
 **Depends on:** T-021
 `scope`, `entity_type`, `topic`, `region`, `format`, `age_band`, `level` — the
@@ -387,12 +370,32 @@ them. That is a template/format consistency rule living in the generator. If
 this task adds the format cross-check to `validateTemplate`, move that rule
 there too, so a template that omits them is refused rather than quietly
 patched.
+**Since T-023 (PR #83):** `level` exists. `seedLevels` in
+`question-bank/src/seed-level.ts` (E-22) is a stage after `buildChoices` and
+returns each question with `level` added; nothing else sets it. Emit the tag set
+on its output, or as a stage after it, rather than computing `level` again.
 **Done when:** every generated question carries all seven and matches the schema.
 
 ### T-025 — Hand-check 30 generated questions · S · todo
 **Depends on:** T-023
 Read them as a child would. Tune the weights until the ordering looks sane; the
 plan expects this to be a manual pass, not a computed one.
+**Since T-023 (PR #83):** every weight is in `LEVEL_SEED_WEIGHTS`
+(`question-bank/src/seed-level.ts`), and `engineering-decisions.md` E-22 lists
+each key and value; a shape test fails if the two drift, so change both
+together. What to look at while tuning:
+- **The map templates nearly always get 3 near distractors** (only AK has 2 and
+  HI 0), so `distractor_tightness` barely separates map questions.
+- **Levels over the bank run 3.5 to 9.** Whether that band is right for "which
+  state is highlighted" is this task's call.
+- **`familiarity_bonus` is 0**, and the term stays in the formula. A "famous
+  states" list, if proposed, needs a person's approval (content rule).
+- **`levelFor(…, weights)` has an alternate-weights parameter no caller uses**,
+  and `levelFor` / `nearDistractorCount` are exported with no importer outside
+  the module. Use them to compare weight sets side by side, or drop them.
+- **The criterion-20 test in `seed-level-verify.test.ts` mutates
+  `LEVEL_SEED_WEIGHTS` at runtime.** Freezing the constant would make it throw;
+  if you freeze it, that test needs an attended Test change request.
 **Done when:** 30 are reviewed and the weight changes are recorded.
 
 ### T-026 — Templates for the topics the app has never shown · M · todo
