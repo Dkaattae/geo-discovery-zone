@@ -1,9 +1,9 @@
 # T-022 — Distractor strategies
 
 **Status:** `awaiting approval`
-**Next step:** `human` — approve the brief (orchestrator stamp refused by the harness; see `runs/`), then `worker`. Opus recommended: this
+**Next step:** `worker`. Opus recommended: this
 decides which wrong answers a child sees, which is data correctness.
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-15, in the orchestrator's session: "approved, continue with the worker". See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
 **Branch:** `claude/awesome-cerf-v617fy`

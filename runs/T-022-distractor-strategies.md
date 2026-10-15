@@ -1,7 +1,7 @@
 # T-022 — Distractor strategies — run log
 
 **Task:** T-022 · **Branch:** `claude/awesome-cerf-v617fy` · **PR:** #82
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker` — once `Approved:` is filled in. `Status` → `awaiting approval`.
@@ -62,3 +62,7 @@ two scope calls the expander flagged: `openapi.yaml` left out of scope, and the
 same-animal/climate/crop guards moved to T-026. If you approve in the
 orchestrator's session, your words are recorded here and the line written; the
 run then resumes at `worker`.
+
+## Resumed — human approval — 2026-10-15
+Dkaattae, in the orchestrator's session: "approved, continue with the worker".
+`Approved:` line written with those words; `Next step` set back to `worker`.
