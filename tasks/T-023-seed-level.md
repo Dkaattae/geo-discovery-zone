@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae (person, in the orchestrator session) — 2026-10-15: "approved, go ahead with the worker" — re-approval of the brief with criterion 16 amended (NV dropped). See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
@@ -17,6 +17,7 @@
 | worker | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (same id as the expander: relayed run, process.md "Two things break") |
 | task-expander (amend c16) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
 | worker (after re-approval) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
+| tester | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (orchestrated run, same id: independence is a freshly spawned subagent context, not a separate session) |
 
 > **TL;DR.** Give every generated question a `level` in 0–18 from plan §1.4's
 > formula, as a **new pure stage after `buildChoices`**, with every weight in one
@@ -380,6 +381,85 @@ bun run typecheck && bun run lint && bun run format:check   # all clean
 None.
 
 ## Verdict
+
+> **TL;DR. Pass.** All 28 criteria hold. My verify file
+> (`question-bank/src/seed-level-verify.test.ts`, 33 tests) is green. The whole
+> gate is green: 2118 pass, 0 fail, typecheck, lint and format:check exit 0.
+> 12 source mutations, each reverted, each turned at least one of my tests red.
+> Next: **reviewer**.
+
+**Independence, stated plainly.** This run is orchestrated (`runs/T-023-seed-level.md`
+exists), so `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_01U46hLUXQXCwTAjFRk3oYmE`) is
+the same id as every other row in Sessions. The session-id check therefore proves
+nothing. My independence rests on being a freshly spawned subagent with its own
+context: I did not watch the work and cannot see the worker's reasoning. That is
+weaker evidence than a separate session, because it depends on the orchestrator
+having spawned me correctly.
+
+**How expected values were set.** From the criteria, never from `seed-level.ts`. I
+read its source for entry points, signatures and to plan mutations. Most criteria
+are relational, so the tests compare the stage with itself under controlled
+changes. The synthetic set is four real states (CO, KS, NE, WY) cloned with
+distinct regions and no borders, so the three distractors are always the other
+three. Putting k of them into CO's `borders` sets the near count to exactly k.
+No network (whole suite run with all six proxy variables on `127.0.0.1:1`), no
+seam, no fixture touched.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | 150 out, ids and order equal to input |
+| 2 | pass | every level `number`, finite, 0–18 over the bank |
+| 3 | pass | keys = input keys + `level`; rest deep-equal |
+| 4 | pass | deep-frozen inputs, no throw, deep-equal after; no `level` on inputs |
+| 5 | pass | two calls deep-equal |
+| 6 | pass | reversed entities, levels equal by id |
+| 7 | pass | transitive import scan of `seed-level.ts` (comments stripped): no `Math.random`, `Date`, `performance`, `fetch`, `node:`, `fs`, `Bun.`, `process.`, `require`; relative imports only |
+| 8 | pass | base pairs (2,3), (2,4.5), (0,5), (1,1.25), (5,12): difference = d within 1e-9 on every unclamped question (>500 compared) |
+| 9 | pass | bases 0 and 18 × near 0–3 × population and area rank each over 1–50 and `null` (full 51×51 grid) × 3 templates: all in 0–18 |
+| 10 | pass | full 50×50 rank grid, near 0 and 3, 3 templates: no step up in either rank lowers the level |
+| 11 | pass | base 2, near 0–3, 3 templates: (50,50) > (1,1) |
+| 12 | pass | `null`, absent, `0`, `-3`, `2.5`, `NaN`, `"12"`: identical levels, per rank and both, no throw, in range |
+| 13 | pass | a single real rank reproduces the missing rank's level in every context tried (pop and area separately); E-22 states `missing_rank_bucket: 2` |
+| 14 | pass | 9×9 rank grid incl. bucket boundaries and `null`, near k → k+1 never lower |
+| 15 | pass | same grid at base 2: 3 near > 0 near for all three templates |
+| near def. | pass | shared non-blank region = near, exactly like borders; `""` and `"   "` regions = far |
+| 16 | pass | HI and CA capital levels are strictly below their own level with every other state in their borders (ranks unchanged) |
+| 17 | pass | `concept_load` keys are template ids; an unknown valid id passes `validateTemplate`, gets in-range levels, shifted by exactly `concept_load_default − concept_load["tpl-capital-of"]` |
+| 18 | pass | `familiarity_bonus === 0`; `seedLevels` has ≤3 params; no profile/player/home/famous identifiers in code; with every rank set to 25, level is a function of (template, near count by my own oracle) alone, so no per-entity bonus |
+| 19 | pass | each template's 50 questions take ≥2 distinct levels |
+| 20 | pass | every numeric leaf of `LEVEL_SEED_WEIGHTS` (12 leaves) at +1 and −1, applied at runtime and restored in `finally`: each changes ≥1 level over the bank plus synthetic variants (AK ranks null, bases 0 and 18, unknown template ids). Code reading found no weight-like literal outside the constant. `LEVEL_MIN`/`LEVEL_MAX` sit outside it, which matches criterion 20's list (the clamp bounds are not in it). Reviewer may weigh the worker's note on this |
+| 21 | pass | one `## E-22`, E-n numbers distinct; five terms, `seedLevels`, `LEVEL_SEED_WEIGHTS`; each key and its value on one line; near/far, missing rank, home state/famous, "Revisit when" |
+| 22 | pass | no `level` key from `generate` or `buildChoices`; `git diff f71caf6 HEAD`: `distractors.ts` untouched, `generate.ts` a one-line comment change |
+| 23 | pass | `templates.ts` untouched since `f71caf6`; each `TEMPLATES` entry has exactly the nine keys and validates |
+| 24 | pass | transitive import walk from `build.ts`, `refresh.ts`, `normalize.ts` never reaches `seed-level.ts`; no diff under `data/`, `sample-data/`, `src/fixtures/` |
+| 25 | pass | no diff in `package.json` or `bun.lock` |
+| 26 | pass | `git diff --name-status f71caf6 HEAD`: only test change is `A seed-level.test.ts`; no existing test modified or deleted |
+| 27 | pass | no diff in `openapi.yaml`, `backend/`, `frontend/` |
+| 28 | pass | `bun test` 2118 pass / 0 fail; typecheck, lint, format:check exit 0 |
+| Constraints: errors | pass | unknown `entityId` / `templateId` throws, naming the question id |
+
+**Mutations made to `question-bank/src/seed-level.ts`, each reverted with
+`git checkout` (tree clean afterwards):**
+
+- **M1** region never near → near/far definition test red.
+- **M2** rank `0` counted as usable → criterion 12 red.
+- **M3** clamp removed → criterion 9 red.
+- **M4** bucket comparison inverted → criteria 10 and 11 red.
+- **M5** default `concept_load` replaced by 0 → criteria 17 and 20 red.
+- **M6** stage writes a field onto input questions → criteria 3 and 4 red.
+- **M7** near weight sign flipped → criteria 14, 15 and 16 red.
+- **M8** missing-rank bucket hard-coded as `2` → criterion 20 red.
+- **M9** missing rank given bucket 4 (harder than rank 50) → criteria 13 and 20 red.
+- **M10** `Math.random()` added → criterion 7 red.
+- **M11** unknown-entity throw disabled → the errors constraint test red.
+- **M12** −1 for CA only (a "famous state" bonus) → the criterion 18 no-per-entity-bonus test red. My first draft missed this one, so I added that test.
+
+**Tests made stale:** none. I checked the diff myself, and the worker's "None" holds.
+
+**Worth knowing for the reviewer.** Mutating `LEVEL_SEED_WEIGHTS` in criterion
+20's test works only because the constant is a plain, unfrozen object read when
+the function is called. If a later task freezes it, that test will throw rather
+than pass quietly.
 
 ## Notes
 
