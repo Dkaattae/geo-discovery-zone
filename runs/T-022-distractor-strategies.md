@@ -66,3 +66,32 @@ run then resumes at `worker`.
 ## Resumed — human approval — 2026-10-15
 Dkaattae, in the orchestrator's session: "approved, continue with the worker".
 `Approved:` line written with those words; `Next step` set back to `worker`.
+
+## Round 2 — worker — 2026-10-15
+`Next step` on entry: `worker` → on exit: `tester`. `Status` → `awaiting verification`.
+
+**TL;DR.** T-022 is built and pushed. The new `buildChoices()` in `question-bank/src/distractors.ts` returns all 150 questions over the committed 50-state bank and reports nothing back as short. The whole suite passes (2030 pass, 0 fail), and typecheck, lint and format are clean. The brief is at Status `awaiting verification`, Next step `tester`. Tests made stale: none.
+
+**Push:** commit `fc71d87` ("T-022 worker: buildChoices distractor stage, E-21") is on `origin/claude/awesome-cerf-v617fy`, the brief's `Branch:` header. I was already on that branch, and `git log origin/claude/awesome-cerf-v617fy -1` shows the commit.
+
+**Files**
+- `/home/user/geo-discovery-zone/question-bank/src/distractors.ts` (new): `buildChoices(drafts, entities, templates = TEMPLATES)` returns `{ questions, shortPools }`.
+  - Distractors are picked tier by tier, nearest first by great-circle distance, with ties broken by entity `id`. A choice with the same text as the answer or another choice is skipped.
+  - `correctIndex` comes from a hash of the draft id (FNV-1a plus the murmur3 finalizer, mod 4). Over the bank the 150 positions split 34/34/40/42.
+  - `map_click` questions carry `choiceGeometryIds`, a list of codes parallel to `choices`.
+  - A draft with too few distractors, or whose own entity has no usable centroid, goes into `shortPools` with `draftId`, `found` and `reason`.
+  - A draft naming an entity or template not in the input throws with the draft id.
+- `/home/user/geo-discovery-zone/question-bank/src/distractors.test.ts` (new): 18 tests covering criteria 1–17, 20 and 22.
+- `/home/user/geo-discovery-zone/question-bank/src/templates.ts` and `/home/user/geo-discovery-zone/question-bank/src/generate.ts`: doc comments only. No values changed, and `generate.ts` still imports only `./templates` and `./types`.
+- `/home/user/geo-discovery-zone/engineering-decisions.md`: new E-21, with everything criterion 18 asks for.
+- `/home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md`: Sessions row, Handoff, Notes and Status updated.
+
+**Flags, each with a proposed owner**
+- **Same session id as the expander.** `$CLAUDE_CODE_REMOTE_SESSION_ID` returned `cse_01Jqx2eXa4GKKb9X3m5AiHbb`, the expander's id, because this orchestrated run spawns its subagents under one remote session. The tester should record its own id and judge independence from that; this is recorded in the Handoff.
+- **`choiceGeometryIds` is on `map_click` only.** Criterion 12 leaves other formats open. Reviewer to confirm, or T-051 to change when it renders the map.
+- **Duplicate ids are not rejected.** If two input entities or templates share an id, `buildChoices` keeps the first; `generate()` already throws on both. Reviewer to decide whether that needs a follow-up.
+- **`tasks.md` not edited.** Criterion 24 limits the diff, so I did not check for or add the T-026 and T-040/T-051 notes the brief mentions. That is left to the sweep.
+- **My tests share the distance formula.** They work out the expected distractors on their own but call the same `greatCircleKm`, so a wrong formula would still pass them. The tester should compute distance independently.
+- **Setup:** a fresh checkout needs `bun install --frozen-lockfile` in `question-bank/` before typecheck, lint or format will run. The lockfile is unchanged.
+
+**Contradictions with the brief:** none. The region counts in criterion 8 and the 11 fallback states in criterion 9 match the bank exactly.
