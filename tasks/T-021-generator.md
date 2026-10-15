@@ -1,7 +1,7 @@
 # T-021 — Generator: entities × templates → question drafts
 
-**Status:** pass
-**Next step:** reviewer
+**Status:** sweep refused
+**Next step:** human — apply `### Sweep to apply` under `## Review`, then mark PR #80 ready. Approved inside the envelope.
 **Approved:** orchestrator — 2026-10-15, unattended run. See `runs/T-021-generator.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-021
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj |
 | worker | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj |
 | tester | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj (orchestrated: shared id, freshly spawned subagent) |
+| reviewer | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj (orchestrated: shared id, freshly spawned subagent) |
 
 **Worker model:** Opus. The task fixes a record shape that T-022, T-023, T-024,
 T-026, T-040 and T-051 all build on, and settles how a `map_click` answer is
@@ -432,6 +433,197 @@ and against the full T-020 literal. Both now go red.
 
 **Not done**
 - **`bun run build` not run.** It needs the network. See 24.
+
+## Review
+
+_Written by `reviewer`, 2026-10-15._
+
+**TL;DR. Approved, inside the envelope, but the harness refused the sweep.**
+Nothing blocks. The code is small, pure and in the house style, and every role
+stayed in its lane. The sweep is written out below for a person (or, after
+about an hour, the orchestrator) to apply verbatim. **Then a person marks PR #80
+ready.** It stays draft until the sweep is in.
+
+**Checks**
+- **PR #80 open, draft, not merged.**
+- **Every role's commit is in the PR.** expander `0048c71`, `bd06b04`; worker
+  `b0102e1`; tester `a6ed390`. Orchestrator run-log commits `4969315`,
+  `2f3f2d2`, `7c226e3`.
+- **Lanes.** The expander touched only `tasks.md` and the brief. The tester
+  touched only `generate-verify.test.ts` and the brief. No source in either.
+- **Constraints.** The diff is `generate.ts`, `generate.test.ts`,
+  `generate-verify.test.ts`, `engineering-decisions.md`, `tasks.md`
+  (expander), this brief and `runs/T-021-generator.md` (orchestrator). Nothing
+  under `data/`, `sample-data/`, `backend/`, `frontend/`, and no change to
+  `openapi.yaml`, `templates.ts`, `package.json` or `bun.lock`.
+- **Re-run by me in `question-bank/`:** `bun test` 2012 pass / 0 fail,
+  `typecheck`, `lint` and `format:check` clean. CI: `question-bank` and
+  `backend (lint, format, test)` green. The e2e, integration, frontend and
+  Postgres jobs were still running when I looked; this diff touches none of
+  their inputs.
+
+**Envelope: inside.** Tester passed; no dependency; no `openapi.yaml`,
+migration or plan change; no pre-existing test touched (`Test changes: none`).
+**No new child-facing text:** prompts come only from the T-020 templates
+Dkaattae approved, filled with existing names, and nothing is written or
+served. E-20 is an engineering decision about the data shape, not a product
+one. The product call (whether to commit generated output) was left open, as
+the brief required.
+
+**For the person reading this, not escalations:**
+- **The brief was approved by the orchestrator, unread** (D-3). E-20 fixes a
+  shape that T-022, T-023, T-024, T-026, T-040 and T-051 will build on. If you
+  read one thing in this PR, read E-20 in `engineering-decisions.md`.
+- **The tester's independence is the weaker kind.** All roles ran under one
+  session id, `cse_01FsXqnpENQjfQBQc9Pmhmfj`. The tester's Verdict says so, and
+  its mutation table (14 mutations, all red) is the evidence that it tested
+  independently. This is the known P-14 gap, not new to this task.
+
+**Findings. None block.**
+1. **Fit.** `generate.ts` follows `templates.ts`: named exports, interfaces with
+   doc comments, `field?: T | undefined` with keys omitted, and errors prefixed
+   with the function name. Its emptiness rule matches `templates-verify.test.ts`
+   T-020 criterion 21, as the brief asked. Nothing speculative: no options, no
+   placeholder `choices`, no build wiring.
+2. **Docs true.** E-20 matches the code. `PROGRESS.md`'s "generate nothing yet"
+   line is now stale, and the sweep below rewrites it.
+3. **`tasks.md` still says E-20 for T-070** (two places). The sweep below
+   amends T-070 to take the next unused number.
+
+**The worker's flags, disposed of**
+- **Implicit `geometry_id` / `name` requirements: kept.** Without them,
+  criteria 8 and 11 could not hold for a template whose `requires` omitted
+  those fields. **Deferred to T-024** (amended below) to move the rule into
+  `validateTemplate`, so a bad template is refused rather than patched.
+- **An entity with no usable id throws: kept.** A skip report has to name the
+  entity, and refusing malformed input fits criteria 18 and 19. Decided here.
+- **Non-string `geometry_id` reported as `notText`: kept.** This is criterion
+  17's rule applied to the code field. Decided here.
+- **No brace guard on token values: deferred to T-026** (amended below). No
+  current value contains a brace. T-026 brings the free-text fields (landmark
+  names, climate phrases) where one could appear.
+- **Shared session id: acknowledged above.** This is P-14, already in
+  `process-tasks.md`. No new ticket.
+
+**Where findings went.** I amended existing entries rather than adding new
+ones. T-022, T-024, T-026 and T-051 each already own the area and would have to
+settle the question anyway. Deleted from the queue: T-021 only.
+
+### Sweep to apply
+
+Apply exactly this, on branch `claude/amazing-carson-zrp4qz`, then commit, push
+and mark PR #80 ready. Nothing below requires judgement.
+
+**1. Delete** `tasks/T-021-generator.md` (`git rm`).
+
+**2. `tasks.md`**
+
+- **Delete the whole T-021 entry.** That is everything from the line
+  `### T-021 — Generator: entities × templates → questions · M · doing` up to,
+  but not including, `### T-022 — Distractor strategies · M · todo`.
+- **T-070.** Replace these two lines:
+  ```
+  `3cedfe8`. The next decision entry was `E-20`, but T-021 (expanded
+  2026-10-15) asks for an `E-n` too, so take the next unused number.
+  ```
+  with:
+  ```
+  `3cedfe8`. `E-20` went to T-021 (PR #80); take the next unused number,
+  `E-21` unless something else lands first.
+  ```
+- **T-070's Done when.** Replace the line
+  ```
+  decision to keep them is written down in `engineering-decisions.md` as `E-20`).
+  ```
+  with:
+  ```
+  decision to keep them is written down in `engineering-decisions.md` as the next
+  unused `E-n`, `E-21` at the time of writing).
+  ```
+- **T-022.** Insert immediately before its line
+  `**Done when:** strategies are named on templates, not hardcoded, and a test`:
+  ```
+  **Since T-021 (PR #80):** build on `generate()` in
+  `question-bank/src/generate.ts`, which returns `QuestionDraft`s carrying the
+  correct `answer` only. `engineering-decisions.md` E-20 settles `map_click`: the
+  `answer` is the state's `name` and the click target rides beside it as
+  `answerGeometryId`. So `choices` are names, and every choice also needs its
+  `geometry_id` in a parallel code list for T-051 to map a tap to a
+  `choiceIndex`. Naming that list, and adding it to `openapi.yaml`, is this task's.
+  ```
+- **T-024.** Insert immediately after its line
+  `and the validator rejects a tenth on purpose.`:
+  ```
+  **Since T-021 (PR #80):** the generator silently adds `geometry_id` to a
+  `map_identify` template's required fields, and `name` to one whose
+  `answer_field` is `geometry_id`, because the draft cannot be built without
+  them. That is a template/format consistency rule living in the generator. If
+  this task adds the format cross-check to `validateTemplate`, move that rule
+  there too, so a template that omits them is refused rather than quietly
+  patched.
+  ```
+- **T-026.** Insert immediately after its line
+  `` `DISTRACTOR_STRATEGIES` plus T-022's implementation of it. ``:
+  ```
+  **Since T-021 (PR #80):** `generate()` fills `{token}`s verbatim and does not
+  guard against a value that itself contains `{` or `}`; no current field has
+  one. A new template that puts a free-text field (a landmark name, a climate
+  phrase) into its prompt should add a check that such a pair is skipped and
+  reported rather than emitted with a brace in it. Array- and number-valued
+  answers are reported as `notText` today; this task decides how they become text.
+  ```
+- **T-051.** Insert immediately after its line
+  `` field. T-020's `tpl-click-the-map` sets `answer_field: "geometry_id"`. ``:
+  ```
+  **Since T-021 (PR #80), `engineering-decisions.md` E-20:** a generated
+  `map_click` question's `answer` is the state's `name`, with the code carried
+  separately as `answerGeometryId`. E-20 expects T-022 to give `choices` a
+  parallel list of `geometry_id`s, so the client maps a tap on region `X` to the
+  choice whose code is `X` and sends its `choiceIndex`. The backend grading stays
+  as it is.
+  ```
+
+**3. `PROGRESS.md`**
+
+- **Question bank section.** Replace:
+  ```
+  - **Question templates exist but generate nothing yet** (T-020):
+    `src/templates.ts` holds the template record, three templates and a
+    validator. T-021 is the first reader.
+  ```
+  with:
+  ```
+  - **Templates and a generator, writing nothing yet** (T-020, T-021):
+    `src/templates.ts` holds the template record, three templates and a
+    validator. `src/generate.ts` turns entities × templates into question drafts
+    (150 over the committed bank) and reports pairs with missing data. A draft
+    has no `choices`, `level` or tags yet (T-022, T-023, T-024), and nothing
+    writes or serves the output.
+  ```
+- **Completed tasks.** Insert as the first bullet under
+  `### Earlier tasks, on-process`, above the T-020 bullet, followed by a blank line:
+  ```
+  - **T-021 — the generator: entities × templates → question drafts** (PR #80,
+    2026-10-15). `question-bank/src/generate.ts` exports `generate(entities,
+    templates = TEMPLATES)`, which returns `{ drafts, skipped }`: 150 drafts and
+    no skips over the committed bank. Ids are `gen:<templateId>:<entityId>`. A
+    pair with a blank required field, or a non-string value that would have to
+    become text, is skipped and reported; an invalid or duplicate input throws
+    before anything is drafted. `engineering-decisions.md` E-20 records the draft
+    shape and `map_click`: `answer` is the state's name, the code is
+    `answerGeometryId`. Nothing in the build imports it, and no output is written.
+    *Where it differed from the brief:* the generator also requires `geometry_id`
+    for `map_identify` and `name` for a code answer even when a template's
+    `requires` omits them (T-024 may move that into `validateTemplate`). It
+    throws on an entity with no usable id, which no criterion asked for. Token
+    values are not guarded against braces (left to T-026). Run orchestrated with
+    one session id across all roles, so the tester's independence rests on being
+    a freshly spawned subagent (`P-14`). The harness refused the reviewer's sweep.
+  ```
+
+**4. Nothing else.** No change to `geoquizdataplan.md`, `process-tasks.md` or
+`engineering-decisions.md`. After applying, `bun run format:check` in
+`question-bank/` is unaffected, since only Markdown changes.
 
 ## Notes
 
