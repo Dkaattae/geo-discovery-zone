@@ -128,3 +128,41 @@ Dkaattae, in the orchestrator's session: "approved, continue with the worker".
 **Files**
 - `/home/user/geo-discovery-zone/question-bank/src/distractors-verify.test.ts`
 - `/home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md`
+
+## Round 4 — reviewer — 2026-10-15
+`Next step` on entry: `reviewer` → on exit: `tester` — come back and fix Review finding 1 (one assertion in `distractors-verify.test.ts`), then hand back to `reviewer`. `Status` → `changes requested`.
+
+**TL;DR: T-022 is sent back to the `tester` to fix one assertion.** The worker's code needs no changes. PR #82 is still draft, and I did not sweep. I pushed `f18c693` to `claude/awesome-cerf-v617fy` and confirmed that HEAD matches origin.
+
+**Brief header now reads**
+- **Status:** `changes requested`
+- **Next step:** `tester`, to fix Review finding 1 and then hand back to `reviewer`.
+
+**Findings**
+1. **Blocking: `question-bank/src/distractors-verify.test.ts:679`.** The line `expect(Math.max(...nums)).toBe(21);` requires E-21 to stay the highest entry in `engineering-decisions.md`.
+   - **Why it blocks:** the first unrelated task that adds an `E-22` will go red. Clearing that would take a test change request a person has to approve (D-14/D-15). It is the same "expiring baseline" problem E-12 removed.
+   - **The rule it breaks:** the repo already says the opposite at `question-bank/src/highest-point-verify.test.ts:645-654`: "a later, higher entry is not a failure of this one".
+   - **The fix:** replace line 679 with a check that still holds after later entries land, e.g. `expect(new Set(nums).size).toBe(nums.length)`. Keep line 678 (exactly one E-21).
+   - **No person needed:** the tester added this test on this branch, so it can change it directly without a test change request.
+2. **Non-blocking, no task:** four comment lines run past 100 columns (`distractors.ts:103`, `228`, `234` and `generate.ts:9`). This is cosmetic, and `format:check` passes.
+
+**What I checked**
+- **PR state:** open, draft, not merged.
+- **Role commits:** every role in the Sessions table has a commit in the PR.
+- **Lanes (D-7):** each role stayed in its own. The expander only touched `tasks/` and `tasks.md`, and the tester touched no source.
+- **Constraints:** nothing changed outside them. No new dependency, no pre-existing test changed, and no change to `openapi.yaml`, a migration or the plan.
+- **Approval:** `Approved:` holds Dkaattae's words, a person's approval. The orchestrator's own stamp was refused and reverted.
+- **Suite:** I ran it myself in `question-bank/`. 2074 pass, 0 fail; typecheck, lint and format:check are clean. CI's question-bank job passed.
+
+**Worker and tester flags, all decided in the brief:**
+- Keep `choiceGeometryIds` on `map_click` only.
+- No follow-up for duplicate ids, since `generate()` already throws on them.
+- The unpinned murmur3 finalizer is acceptable; criterion 15 is the contract and E-21 explains it.
+- The shared `greatCircleKm` concern is closed by the tester's independent haversine.
+- The `sibling_capitals_same_region` naming is correct.
+
+**For the next reviewer:** once finding 1 is fixed, everything else is inside the envelope, so the PR should be marked ready with no escalation note. The sweep should also rewrite the three `tasks.md` notes that say the list is "named in the `E-n` T-022 records" so they name `choiceGeometryIds` (E-21).
+
+**Files**
+- /home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md (`## Review` section, header, Sessions row)
+- PR comment: https://github.com/Dkaattae/geo-discovery-zone/pull/82#issuecomment-6197543954
