@@ -1,7 +1,7 @@
 # T-022 — Distractor strategies
 
-**Status:** `verified — pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — come back and fix Review finding 1 (one assertion in `distractors-verify.test.ts`), then hand back to `reviewer`
 **Approved:** Dkaattae — 2026-10-15, in the orchestrator's session: "approved, continue with the worker". See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
@@ -17,6 +17,7 @@ draft until the reviewer approves it
 | task-expander | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
 | worker | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
 | tester | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent; see Verdict) |
+| reviewer | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent) — changes requested |
 
 ## Goal
 
@@ -459,3 +460,77 @@ No network, no fixture edited, no source edited.
 - **Worker, on `sibling_capitals_same_region` naming.** The strategy picks by
   the template's `answer_field`, so it would pick names, not capitals, on a
   name template. Criterion 11 needs exactly this. The doc comment now says so.
+
+## Review
+
+**TL;DR. Changes requested, tester only.** The implementation is good and I would
+approve it as it stands. One tester assertion goes red the moment *any* later task
+adds `E-22`, which would force a person-gated test change request (D-14/D-15) onto
+an unrelated task. Needs `tester` to come back and fix finding 1. No worker or
+expander change. PR #82 stays draft, and I did not sweep.
+
+**Checked**
+- **PR state:** open, draft, not merged.
+- **Every role's work is in the PR:** expander (`e494529`, `ebf0812`, `417ae71`),
+  worker (`fc71d87`), tester (`7fd16bb`), plus orchestrator run-log commits.
+- **Lanes (D-7):** the expander touched only `tasks/` and `tasks.md`. The worker
+  touched `question-bank/src/`, `engineering-decisions.md` and the brief. The
+  tester added one new test file and edited the brief, with no source. The
+  orchestrator touched `runs/` and the brief header.
+- **Constraints:** nothing outside `question-bank/src/`, `engineering-decisions.md`,
+  `tasks*` and `runs/`. No `package.json` or lockfile change. No `openapi.yaml`,
+  backend, data or fixtures. No pre-existing test modified (`Test changes: none`).
+- **Suite, run by me** in `question-bank/`: `bun test` 2074 pass / 0 fail.
+  `typecheck`, `lint` and `format:check` are clean. CI's question-bank job passes.
+- **Approval:** a person's. `Approved:` is Dkaattae's words, relayed after the
+  orchestrator's own stamp was refused and reverted (`28c69b1`, `1889a29`).
+
+### Findings
+
+1. **Blocking. `question-bank/src/distractors-verify.test.ts:679`**,
+   `expect(Math.max(...nums)).toBe(21);`. This pins E-21 as the *highest* entry in
+   `engineering-decisions.md`. Criterion 18 asks for "the next unused `E-n`"
+   *at the time it is written*. It does not ask that nothing comes after. Once
+   this merges, the first task to add an `E-22` goes red for no fault of its own.
+   Clearing that would need a D-14 test change request and a person in a live
+   session (D-15), on a task that has nothing to do with distractors. That is the
+   expiring-baseline shape E-12 removed. The repo has already written down the
+   rule to follow: `highest-point-verify.test.ts:645-654` says "a later, higher
+   entry is not a failure of this one", and checks only `toContain(8)` and that no
+   number repeats.
+   **Acceptable when** line 679 is replaced by a check that holds after later
+   entries land, for example `expect(new Set(nums).size).toBe(nums.length)`. Line
+   678, exactly one `E-21`, stays. This test was added on this branch, so the
+   tester changes it itself and needs no test change request. Rerun the whole suite
+   afterwards.
+2. **Non-blocking, no task.** Four comment lines exceed the 100-column width the
+   rest of the file keeps: `distractors.ts:103`, `228`, `234` and `generate.ts:9`.
+   Prettier does not rewrap comments, so `format:check` passes. This is cosmetic
+   and not worth a queue entry. Whoever next edits those comments can rewrap them.
+
+### Flags disposed
+
+- **`choiceGeometryIds` only on `map_click` (worker):** decided, keep it.
+  `map_identify` already has `highlightGeometryId`, and an extra list would go
+  unused. If rendering needs it elsewhere, T-051 owns that change.
+- **Duplicate entity or template ids, where the first one wins (worker):**
+  decided, no follow-up. `buildChoices` is fed the inputs `generate()` was given,
+  and `generate()` already throws on duplicates.
+- **The murmur3 finalizer is not pinned by any test (tester):** decided, that is
+  acceptable. Criterion 15 is the contract. E-21 records why the finalizer exists,
+  which is what stops someone from "simplifying" it away.
+- **The worker's tests share `greatCircleKm` (worker):** closed. The tester's file
+  uses its own haversine, and the Euclidean mutation went red in 3 tests.
+- **`sibling_capitals_same_region` picks by `answer_field` (worker):** decided,
+  correct. Criterion 11 requires it, and the `DISTRACTOR_STRATEGIES` doc comment
+  now says so.
+
+### For the next reviewer
+
+- **The envelope, once finding 1 is fixed:** everything else is inside it. The
+  tester passed, the approval is a person's, no child-facing text was written
+  (choices reuse existing `name` / `capital` values), and nothing touches the
+  contract, a migration or the plan. Expect "mark ready, no escalation note".
+- **The sweep has one extra trim.** Three `tasks.md` notes say the list is "named
+  in the `E-n` T-022 records" (under T-040 and T-051, and the T-026 note's
+  sibling). Rewrite them to name `choiceGeometryIds` (E-21).
