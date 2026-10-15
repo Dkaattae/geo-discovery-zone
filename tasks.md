@@ -342,6 +342,7 @@ amendment; the re-record needs a Test change request row for each.
 since the note above: Q1 is still open, and nobody has decided the proposed
 split.
 **Skipped again, 2026-10-15, for T-021.** Same reason.
+**Skipped again, 2026-10-15, for T-023.** Same reason.
 
 ---
 
@@ -351,7 +352,7 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-023 — Seed `level` deterministically · M · todo
+### T-023 — Seed `level` deterministically · M · doing
 **Depends on:** T-022
 `base_level(template) + entity_obscurity + distractor_tightness + concept_load −
 familiarity_bonus`, using the rank fields already on entities (plan §1.4).
@@ -361,6 +362,12 @@ familiarity_bonus`, using the rank fields already on entities (plan §1.4).
 (E-21): the 11 small-region states get looser capital questions by construction.
 **Done when:** every generated question has a level in 0–18 and the weights are
 in one documented place.
+**Expanded 2026-10-15** into `tasks/T-023-seed-level.md`. Two scope calls are
+flagged for the approver. **`familiarity_bonus` is 0** for every question: home
+state depends on the player, and no "famous states" list exists to read.
+**`level` is added by a new stage after `buildChoices`**, which itself stays
+unchanged; adding it inside `buildChoices` would turn two pre-existing
+`distractors` tests red. The decision is recorded as `E-22`.
 
 ### T-024 — Emit the API tag set · S · todo
 **Depends on:** T-021
