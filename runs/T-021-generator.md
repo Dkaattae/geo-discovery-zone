@@ -1,7 +1,7 @@
 # T-021 — Generator: entities × templates → question drafts — run log
 
 **Task:** T-021 · **Branch:** `claude/amazing-carson-zrp4qz` · **PR:** #80
-**Started:** 2026-10-15 · **Outcome:** ready for merge once a person marks PR #80 ready
+**Started:** 2026-10-15 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -149,3 +149,8 @@ amended) and the two `PROGRESS.md` edits. Checks in `question-bank/` after the
 sweep: format:check, typecheck and lint clean; `bun test` 2012 pass, 0 fail
 (proxy variables pointed at `127.0.0.1:1`). PR #80 is left draft: the
 orchestrator holds no PR tool. A person marks it ready and merges.
+
+## PR marked ready — 2026-10-15
+On Dkaattae's instruction in the orchestrator session ("mark the PR ready"), PR
+#80 was taken out of draft. CI on `4a9bf54` was green when it was marked: all
+seven check runs succeeded. Merging is Dkaattae's.
