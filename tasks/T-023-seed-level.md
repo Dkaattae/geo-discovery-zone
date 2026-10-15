@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae (person, in the orchestrator session) — 2026-10-15: "approved, go ahead with the worker" — re-approval of the brief with criterion 16 amended (NV dropped). See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE |
 | worker | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (same id as the expander: relayed run, process.md "Two things break") |
 | task-expander (amend c16) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
+| worker (after re-approval) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
 
 > **TL;DR.** Give every generated question a `level` in 0–18 from plan §1.4's
 > formula, as a **new pure stage after `buildChoices`**, with every weight in one
@@ -284,45 +285,32 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
-> **TL;DR.** The stage is built and the whole gate is green, but **criterion 16
-> contradicts the brief's own near/far definition for NV**, so it cannot pass as
-> written. Status `blocked`, back to **task-expander** to amend criterion 16 (then
-> human re-approval). No code change is expected from the fix: the implementation
-> follows the brief's near definition exactly.
+> **TL;DR.** The stage is built (`seedLevels` and `LEVEL_SEED_WEIGHTS` in
+> `question-bank/src/seed-level.ts`). It now meets **all 28 criteria, including
+> the amended criterion 16**. The whole gate is green: 2085 pass, 0 fail, and
+> typecheck, lint and format:check are clean. No code changed after the
+> amendment. Next: **tester**, in a fresh session.
 
-### Why blocked: criterion 16 versus the near definition
+### Criterion 16, after the amendment (re-checked 2026-10-15)
 
-- **The brief defines near** as "in the question entity's `borders`, or the same
-  non-blank `region`". Criteria 14 and 15 rely on that definition.
-- **Criterion 16 says** HI, CA and NV's `tpl-capital-of` questions have "0 near
-  distractors, E-21". E-21 says **0 same-region** distractors. That is a
-  different thing, because the borders half of the definition still applies.
-- **What the committed bank actually gives**, by the brief's definition:
+- **No code change was needed.** The amendment took the fix the earlier worker
+  recommended (drop NV), and the implementation already follows the brief's
+  near definition.
+- **Checked over the committed bank with a throwaway script, not committed.**
+  The synthetic 3-near set is the same 50 entities, with the question entity's
+  `borders` set to every other state, so all three distractors are near and the
+  ranks stay its own:
 
-  | State | Distractors (`choices` minus the answer) | Near count |
-  |---|---|---|
-  | HI | Sacramento, Salem, Carson City | **0** (no borders, alone in `Pacific`) |
-  | CA | Carson City (NV), Salem (OR), Salt Lake City (UT) | **2** (NV and OR border CA) |
-  | NV | Sacramento (CA), Salt Lake City (UT), Salem (OR) | **3** (all three border NV) |
+  | State | Actual near | Actual level | Synthetic 3-near level | Strictly lower |
+  |---|---|---|---|---|
+  | HI | 0 | 7.5 | 9 | yes |
+  | CA | 2 | 4 | 4.5 | yes |
+  | NV (excluded) | 3 | 6.5 | 6.5 | no, as the amendment expects |
 
-- **So for NV, "the level with 3 near distractors and its own ranks" is its
-  actual level.** "Strictly lower" cannot hold for any tightness that is a
-  function of the near count. HI and CA do pass.
-- **What I did not do: build to my reading of it.** I could have made NV pass by
-  (a) counting near per strategy tier, so `sibling_capitals_same_region` ignores
-  `borders`, or (b) adding a second, same-region-only weight. (a) breaks the
-  brief's near definition, which criteria 14 and 15 test. (b) passes or fails
-  criterion 16 depending on how the tester builds its synthetic "3 near" set,
-  which is building to my reading of the criterion.
-- **Proposed fixes, for task-expander, with re-approval by Dkaattae:**
-  1. **Replace NV with HI and CA only, or with HI alone.** HI is 0 near, CA is 2.
-     Correct the parenthetical to "0 same-region distractors". This is the
-     smallest change, and the current code passes it.
-  2. Or redefine near for the capital strategy as same-region only, matching
-     the tier in `tierOf`. Then criteria 14 and 15 need the same change, and
-     E-22 and the code change with them.
-  My recommendation is option 1. Borders are a fair signal of confusability for
-  capitals too: Carson City is a plausible wrong answer for California.
+- **The earlier block, for the record:** the old criterion 16 counted NV as 0
+  near, from E-21's *same-region* count. By this brief's near definition NV has
+  3 near, because its three distractors' states all border it. See the
+  task-expander Note below.
 
 ### What changed, file by file
 
@@ -350,7 +338,7 @@ Required reading for the worker and the tester.
 | 10, 11 | `rankBucket`: the count of `rank_bucket_edges` the rank is strictly above. Weights 1 (population) and 0.5 (area) |
 | 12, 13 | `usableRank`: a positive integer, or missing. Missing means bucket `missing_rank_bucket` = 2, the bucket of ranks 21–35 |
 | 14, 15 | `near_distractor_weight` 0.5 × near count, from `nearDistractorCount` |
-| **16** | **Blocked**: see above. HI and CA pass, NV cannot |
+| 16 | `nearDistractorCount` plus `near_distractor_weight`. HI 7.5 < 9 and CA 4 < 4.5. See the table above |
 | 17 | `concept_load[template.id]`, else `concept_load_default` (1) |
 | 18 | `familiarity_bonus: 0` in the constant, subtracted. No player input exists |
 | 19 | Over the bank: identify 3.5–8, capital 4–9, click 4.5–9 |
@@ -383,7 +371,7 @@ Required reading for the worker and the tester.
 cd question-bank
 bun install --frozen-lockfile   # fresh container: node_modules was absent
 bun test src/seed-level.test.ts # 11 pass
-bun test                        # 2085 pass, 0 fail
+bun test                        # 2085 pass, 0 fail (re-run after re-approval)
 bun run typecheck && bun run lint && bun run format:check   # all clean
 ```
 
@@ -413,6 +401,10 @@ None.
     change is expected from this amendment. Confirm against the amended
     criterion 16, then set `Status: awaiting verification` and hand to the
     tester.
+
+- **Worker, 2026-10-15, after re-approval.** Re-checked the amended criterion
+  16 (table in the Handoff) and re-ran the whole gate: green. No code change and
+  nothing new to flag. Status set to `awaiting verification`.
 
 - **Worker, 2026-10-15.**
   - **Model.** Ran on Opus, as the brief asked.
