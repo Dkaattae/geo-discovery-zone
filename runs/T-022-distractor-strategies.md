@@ -1,7 +1,7 @@
 # T-022 — Distractor strategies — run log
 
 **Task:** T-022 · **Branch:** `claude/awesome-cerf-v617fy` · **PR:** #82
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker` — once `Approved:` is filled in. `Status` → `awaiting approval`.
@@ -195,3 +195,40 @@ Dkaattae, in the orchestrator's session: "approved, continue with the worker".
 Files:
 - /home/user/geo-discovery-zone/question-bank/src/distractors-verify.test.ts
 - /home/user/geo-discovery-zone/tasks/T-022-distractor-strategies.md
+
+## Round 6 — reviewer — 2026-10-15
+`Next step` on entry: `reviewer` → on exit: `human` (merge PR #82; routine, no escalation). `Status` → `approved` (commit `ab04293`); brief then deleted in the sweep (`7f0f57d`).
+
+**TL;DR: T-022 is approved, inside the envelope, and PR #82 is marked ready with no escalation note. The sweep is in the PR. Next: Dkaattae merges.** Nothing else is owed by any role.
+
+**Round 2 check**
+- **Finding 1 is fixed** in `c567dfc`. The criterion 18 test in `question-bank/src/distractors-verify.test.ts` no longer asserts that E-21 is the highest entry. It now checks there is exactly one `E-21`, that `E-20` exists, and that no E-number repeats. That commit touched only the test file and the brief, so the tester stayed in its lane.
+- **I read `distractors.ts` fresh** and agree with round 1. It fits the style of `generate.ts`, does no more than it needs to, and has no scope creep. The round-1 decisions on the worker's and tester's flags stand.
+- **Suite, run by me** in `question-bank/`: `bun test` 2074 pass / 0 fail. `typecheck`, `lint` and `format:check` are clean.
+- **CI:** the question-bank, backend, postgres and integration jobs passed. The frontend and e2e jobs were still running when I checked; this diff touches neither.
+
+**Envelope (every condition holds)**
+- The approval and `Test changes: none` are a person's.
+- No dependency was added.
+- Nothing touches `openapi.yaml`, a migration or the plan.
+- No child-facing text was written: the choices reuse existing `name` and `capital` values.
+- Nothing changed outside the brief's Constraints except `tasks.md` (the expander) and `runs/` (the orchestrator).
+
+**Commits pushed to `claude/awesome-cerf-v617fy`** (confirmed on the remote; the PR head is `7f0f57d`)
+- **`ab04293`:** the round-2 review section in the brief, `Status: approved`, `Next step: human`, and my Sessions row.
+- **`7f0f57d`, the sweep:**
+  - `tasks/T-022-distractor-strategies.md` deleted. Its last state, including my review, is in `ab04293`.
+  - `/home/user/geo-discovery-zone/tasks.md`: the T-022 entry is deleted.
+  - T-023 now says to seed `level` on `buildChoices`' output, with the distractor tier as an input to `distractor_tightness`.
+  - T-026's guard note now points at the guards' data under T-026 instead of the deleted T-022 entry, and its two other mentions of T-022 are updated.
+  - T-040 and T-056 now name `choiceGeometryIds` (E-21).
+  - No task was deleted from the queue, because none became unnecessary.
+  - `/home/user/geo-discovery-zone/PROGRESS.md`: a T-022 entry under Completed tasks, an updated question-bank bullet, and two corrected Known-gaps lines: seven small regions rather than four, and the same-value guard now owned by T-026.
+
+**PR #82**
+- **Body rewritten:** TL;DR, files changed, the evidence for each criterion, decisions and what was not done, the queue trim, and the acceptance criteria verbatim.
+- **Marked ready:** `draft: false`, open, not merged.
+- **How it was done:** `gh` GraphQL is blocked in this environment, so I used the REST PATCH and the CCR `ready_for_review` route.
+
+## Ended — 2026-10-15
+Roles in order: task-expander → (G2 halt: stamp refused as self-approval; Dkaattae approved in session) → worker → tester (pass) → reviewer (changes requested, tester to fix one assertion) → tester (pass) → reviewer (approved, swept, PR marked ready). Rounds: 0 fail, 0 blocked. PR #82 is Dkaattae's to merge.
