@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -122,3 +122,6 @@ Brief: /home/user/geo-discovery-zone/tasks/T-023-seed-level.md
 
 ## Halted — G2, re-approval needed — 2026-10-15
 `Approved:` reads `pending` after the amendment. Asked the person to re-approve in the orchestrator session.
+
+## Resumed — human re-approval — 2026-10-15
+The person answered in the orchestrator's session: "approved, go ahead with the worker". Their words are now in the `Approved:` line. Resuming at `worker`.
