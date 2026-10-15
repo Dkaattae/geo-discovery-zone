@@ -978,3 +978,64 @@ also make `choices` a list of codes that need a name join to display.
 **Revisit when** a template's answer is a code that has no `name` to stand for
 it (a pin on an unnamed point, say), or T-051 finds that a click must be graded
 on the client by code rather than by index.
+
+## E-21 — Distractors come nearest-first in tiers; the correct position is a hash of the draft id
+
+**2026-10-15 (T-022).** `question-bank/src/distractors.ts` `buildChoices(drafts,
+entities, templates)` turns `generate()`'s drafts into four-option questions:
+`choices` and `correctIndex`, plus `choiceGeometryIds` on `map_click`. It is a
+separate stage after `generate()`, not part of it, because a draft is built from
+one entity and a distractor needs the others.
+
+**The parallel code list is `choiceGeometryIds`.** On a `map_click` question,
+entry `i` is the `geometry_id` of the entity whose `name` is `choices[i]`, so
+`choiceGeometryIds[correctIndex] === answerGeometryId`. This settles the name E-20
+left to T-022. It enters `openapi.yaml` and `backend/app/models.py` with the task
+that makes the backend serve generated questions (T-040 or T-051), not before
+(E-14: the contract follows what the backend serves).
+
+**Tiers, then nearest first.** A candidate is another entity of the same `type`
+and `scope` with non-blank choice text and a finite `centroid` (and a
+`geometry_id`, for `map_click`). Candidates are taken in tier order, and within a
+tier by ascending great-circle distance between centroids, ties broken by
+ascending entity `id`. A candidate whose text matches the answer or an
+already-taken distractor (trimmed, lower-cased) is skipped.
+- `sibling_capitals_same_region`: same `region`, then everything else.
+- `neighbours_first`: in `borders`, then same `region`, then everything else.
+
+*Why nearest.* A distractor near the answer is the one a child could actually
+confuse with it, which is the whole point of §1.2 ("Ohio / Indiana / Illinois /
+Iowa"). It needs no data beyond the `centroid` every state already has, and it
+gives one answer for every reader, so a tester can compute the expected
+distractors from the bank without reading the code.
+
+**The small-region fallback.** Three distractors need a region of four states.
+Seven of the 13 regions are smaller, and their 11 states top up from the last
+tier, nearest first: HI, CA, NV (alone in their region: 0 same-region
+distractors), AZ, NM (1), and AK, OR, WA, KS, MO, NE (2). For the map templates
+AK and HI have no borders, so their first tier is empty and the same fallback
+applies. The options not taken: skipping these states would drop a fifth of the
+capital questions; "the nearest region" needs a region adjacency table that does
+not exist.
+
+**The correct position.** `correctIndex` is FNV-1a (32-bit) over the draft id's
+UTF-16 code units, passed through the murmur3 32-bit finalizer, modulo 4
+(`correctIndexFor`). The answer is spliced into the nearest-first distractor
+list at that index. It depends on the id alone, so a draft keeps its position
+over a subset or a reordering of the bank, and the output is deterministic with
+no `Math.random`. The finalizer is there because FNV-1a's low bits depend only on
+the low bits of each byte: `% 4` of it alone gave every template the identical
+position pattern. Over the committed bank the 150 positions split 34 / 34 / 40 /
+42.
+
+**A short pool is reported, not thrown.** A draft that cannot get three
+distractors with distinct text, or whose own entity has no usable centroid,
+comes back in `shortPools` (`draftId`, `found`, `reason`) instead of as a
+question. A draft naming an entity or template not in the input is a caller
+bug, and throws with the draft id.
+
+**Revisit when** a world-scope bank arrives (great-circle distance between
+country centroids misleads for large or oddly shaped countries), when T-023 wants
+`distractor_tightness` to loosen the pick for younger players, or when T-026
+adds templates whose answers can coincide (same state animal, climate or crop)
+and needs a guard beyond same-text.

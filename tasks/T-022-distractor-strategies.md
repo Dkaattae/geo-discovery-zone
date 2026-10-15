@@ -1,8 +1,7 @@
 # T-022 — Distractor strategies
 
-**Status:** `awaiting approval`
-**Next step:** `worker`. Opus recommended: this
-decides which wrong answers a child sees, which is data correctness.
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-15, in the orchestrator's session: "approved, continue with the worker". See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
@@ -16,6 +15,7 @@ draft until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
+| worker | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
 
 ## Goal
 
@@ -282,6 +282,87 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR.** Built: new `buildChoices()` in `question-bank/src/distractors.ts`,
+a separate stage after `generate()`, plus E-21. Over the committed bank it
+returns 150 questions and nothing in `shortPools`. Whole suite green (2030 pass,
+0 fail), typecheck, lint and format clean. **Tests made stale: none.**
+
+**Note for the tester on sessions.** The worker row in Sessions shows the same
+session id as the expander (`cse_01Jqx2eXa4GKKb9X3m5AiHbb`). That is what
+`$CLAUDE_CODE_REMOTE_SESSION_ID` returned in this orchestrated run: the
+orchestrator spawned both roles as subagents under one remote session. The
+tester should record its own id and judge independence against that.
+
+**Files changed**
+- `question-bank/src/distractors.ts` (new): `buildChoices`, `correctIndexFor`,
+  `greatCircleKm`, `CHOICE_COUNT`, types `GeneratedQuestion`, `ShortPool`,
+  `BuildChoicesResult`.
+- `question-bank/src/distractors.test.ts` (new): 18 worker tests, one or more
+  per criterion 1-17, 20, 22.
+- `question-bank/src/templates.ts`: doc comment on `DISTRACTOR_STRATEGIES` only.
+  Values untouched.
+- `question-bank/src/generate.ts`: module doc comment only (the "T-022's" line).
+  Imports still exactly `./templates` and `./types`.
+- `engineering-decisions.md`: new **E-21**.
+
+**The function**
+
+```ts
+buildChoices(
+  drafts: readonly QuestionDraft[],
+  entities: readonly Entity[],
+  templates: readonly Template[] = TEMPLATES,
+): { questions: GeneratedQuestion[]; shortPools: ShortPool[] }
+// ShortPool = { draftId: string; found: number; reason: "too_few_candidates" | "no_centroid" }
+```
+
+The "reports" in the criteria are `shortPools`. Questions keep draft order.
+
+**Criterion → where it lives**
+
+| # | Where |
+|---|---|
+| 1-5 | `buildChoices` / `questionFor`; question is `{ ...draft, choices, correctIndex }` |
+| 6, 7 | `tierOf` + `byTierThenNearest` (tier, then distance, then `id` with `<`); same-text skip in `questionFor` |
+| 8, 9, 10 | fall out of 6/7 over the bank; no special-casing of any state |
+| 11 | `tierOf` switches on `template.distractor_strategy` only |
+| 12 | field **`choiceGeometryIds`**, set on `map_click` questions only |
+| 13-15 | `correctIndexFor(draft.id)`: FNV-1a 32-bit + murmur3 fmix32, `% 4`. Bank split 34/34/40/42; every value appears for every template |
+| 16 | `shortPools`; own centroid not two finite numbers → `found: 0, reason: "no_centroid"` |
+| 17 | all drafts are resolved before any question is built, so a throw returns nothing |
+| 18 | `engineering-decisions.md` E-21 |
+| 20 | imports: `./generate` (type-only, erased), `./templates`, `./types`. No I/O, `Date`, `Math.random` |
+| 21 | nothing imports `distractors.ts` |
+| 22-24 | values unchanged; no `package.json` or `bun.lock` change; diff is only `question-bank/src/` + `engineering-decisions.md` + this brief |
+
+**Deliberately not done**
+- **`openapi.yaml` / backend.** Out of scope per the brief. E-21 says the field
+  enters them with T-040 or T-051.
+- **`choiceGeometryIds` on other formats.** Only on `map_click`. Criterion 12
+  leaves it open; `map_identify` already has `highlightGeometryId` and a list
+  there would be unused. Reviewer to confirm, or T-051 to change when it
+  renders.
+- **Duplicate entity ids or template ids** in `buildChoices`' input are not
+  rejected: first one wins. `generate()` already throws on both, and no
+  criterion asks for it. Reviewer to decide whether that is worth a follow-up.
+- **No `tasks.md` edit.** Criterion 24 bounds the diff. The brief's Out of
+  scope mentions notes on T-026 and T-040/T-051 in `tasks.md`; I did not check
+  or add them, as that is the sweep's job.
+
+**Contradictions with the brief:** none found. Every count in criterion 8 and
+the 11 states in criterion 9 matched the bank exactly.
+
+**How to run** (in `question-bank/`; a fresh checkout needs `bun install
+--frozen-lockfile` first, or typecheck/lint/format fail for missing tools):
+
+```
+bun test src/distractors.test.ts
+bun test && bun run typecheck && bun run lint && bun run format:check
+```
+
+**Tests made stale:** none. No pre-existing test was modified or deleted, and
+none goes red.
+
 ## Verdict
 
 ## Notes
@@ -294,3 +375,16 @@ Required reading for the worker and the tester.
   every reader, and is what makes a distractor tight. Pinning the order, not
   just the tier, is also what lets the tester compute the expected distractors
   from the data without reading the implementation.
+
+- **Worker, on the correct position.** Plain FNV-1a `% 4` gave all three
+  templates the same 13/12/12/13 pattern: its low bits depend only on each
+  byte's low bits, so the template part of the id barely moved them. Adding the
+  murmur3 finalizer fixed that. Recorded in E-21 because a reader would
+  otherwise "simplify" it away.
+- **Worker, on the tests' independence.** `distractors.test.ts` recomputes the
+  expected distractors with its own tier walk and sort rather than calling the
+  module's comparator. It still shares `greatCircleKm`, so a wrong distance
+  formula would pass it. The tester should compute distance independently.
+- **Worker, on `sibling_capitals_same_region` naming.** The strategy picks by
+  the template's `answer_field`, so it would pick names, not capitals, on a
+  name template. Criterion 11 needs exactly this. The doc comment now says so.

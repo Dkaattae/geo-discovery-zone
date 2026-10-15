@@ -5,8 +5,8 @@
  * data has a hole in it is skipped and reported, never emitted with a blank.
  *
  * A draft is not yet an openapi.yaml `Question`: it carries the correct answer
- * only. `choices` and `correctIndex` are T-022's, `level` is T-023's, the tag
- * set is T-024's. The draft shape and the `map_click` representation are
+ * only. `choices` and `correctIndex` are added after it by `buildChoices` in
+ * distractors.ts (T-022), `level` is T-023's, the tag set is T-024's. The draft shape and the `map_click` representation are
  * recorded in engineering-decisions.md E-20.
  *
  * Pure: no network, no file, no clock, no randomness. Nothing in the build
