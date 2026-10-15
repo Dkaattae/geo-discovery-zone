@@ -152,3 +152,50 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/src/seed-level.ts
 - /home/user/geo-discovery-zone/question-bank/src/seed-level.test.ts
 - /home/user/geo-discovery-zone/engineering-decisions.md (E-22)
+
+## Round 5 — tester — 2026-10-15
+`Next step` on entry: `tester` → on exit: `reviewer`. `Status`: `awaiting verification` → `pass`. Pushed: `8fd5b17`.
+
+**Verdict: pass.** T-023 meets all 28 acceptance criteria. The whole suite and every gate are green, and the tests caught all 12 mutations I tried. Next step is the **reviewer**. My work is pushed to `claude/stoic-lamport-zeq0c3` as commit `8fd5b17`, and the remote matches HEAD.
+
+**How independent this check is.** This was an orchestrated run (`runs/T-023-seed-level.md` exists), so every role shares the session id `cse_01U46hLUXQXCwTAjFRk3oYmE`. Matching the id against the brief's Sessions table therefore proves nothing. The only independence is that I was spawned fresh with my own context and never saw the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly. The Verdict says this, and my Sessions row records it.
+
+**What I did**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/seed-level-verify.test.ts`, 33 tests, all passing. Expected values come from the criteria, not from `seed-level.ts`.
+- **Small synthetic set:** four real states (CO, KS, NE, WY), each given its own region and no borders. That fixes the near-distractor count exactly, from 0 to 3. Ranks sweep 1–50, `null` and the invalid values criterion 12 lists.
+- **Real data:** criterion 16 and the bank-wide criteria (1–6, 19) run on the 50 committed state files.
+- **Criterion 20:** the test changes each of the 12 numbers in `LEVEL_SEED_WEIGHTS` by +1 and −1 at runtime and puts the value back in a `finally`. Every change moves at least one level.
+- **Criteria 22–27:** checked with `git diff` against the commit before the task (`f71caf6`):
+  - `distractors.ts`, `templates.ts`, data, fixtures, `package.json`, `bun.lock`, `openapi.yaml`, `backend/` and `frontend/` are untouched.
+  - `generate.ts` has one comment line changed.
+  - The only test change is the newly added `seed-level.test.ts`; no existing test was modified or deleted.
+- **Gate:** `bun test` gives 2118 pass and 0 fail, run with all six proxy variables pointed at `127.0.0.1:1` so nothing can reach the network. `typecheck`, `lint` and `format:check` all exit 0.
+
+**Mutations to `seed-level.ts`, each reverted (tree clean afterwards)**
+
+| # | What I broke | Test that went red |
+|---|---|---|
+| M1 | Same region no longer counts as near | near/far definition |
+| M2 | A rank of 0 treated as a real rank | 12 |
+| M3 | Clamp to 0–18 removed | 9 |
+| M4 | Rank buckets inverted | 10, 11 |
+| M5 | `concept_load` default replaced by 0 | 17, 20 |
+| M6 | Stage writes onto its input questions | 3, 4 |
+| M7 | Near-distractor weight sign flipped | 14, 15, 16 |
+| M8 | Missing-rank bucket hard-coded as `2` | 20 |
+| M9 | Missing rank given bucket 4 (harder than rank 50) | 13, 20 |
+| M10 | `Math.random` added | 7 |
+| M11 | Unknown-entity throw disabled | errors constraint |
+| M12 | A −1 for CA only, i.e. a "famous state" bonus | 18 |
+
+My first draft let M12 through. I added a criterion 18 test that sets every rank equal and checks the level depends only on the template and my own near-distractor count. It now catches M12.
+
+**For the reviewer**
+- **Clamp bounds:** `LEVEL_MIN` and `LEVEL_MAX` sit outside `LEVEL_SEED_WEIGHTS`. Criterion 20's list doesn't name clamp bounds, so I don't count this against it. The worker flagged it as a call for you.
+- **Fragile test:** the criterion 20 test changes the constant at runtime, which only works because it is a plain, unfrozen object. If a later task freezes it, that test will throw rather than pass quietly.
+- **Tests made stale:** none. I checked the diff myself rather than taking the worker's word.
+
+**Brief updates** in `/home/user/geo-discovery-zone/tasks/T-023-seed-level.md`:
+- Status is `pass` and Next step is `reviewer`.
+- My tester row is in the Sessions table.
+- The `## Verdict` has a criterion-by-criterion table and the mutation list.
