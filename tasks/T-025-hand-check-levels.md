@@ -106,7 +106,9 @@ Terms used below:
    decimal place, and every level the formula produces is a multiple of 0.5, so
    rounding loses nothing.
 4. Each row shows the question's **level under the final weights**. The value
-   must equal what `seedLevels` returns for that id, at the same precision.
+   must equal what `seedLevels` returns for that id. It is shown exactly, or
+   rounded to one decimal place and within 0.05 of the computed value. Final
+   weights need not keep levels on multiples of 0.5.
 5. Each row carries a **verdict under the final weights**: exactly one of
    `about right`, `too easy` or `too hard`. Every row marked `too easy` or
    `too hard` also carries a sentence saying why it was left that way. A row
