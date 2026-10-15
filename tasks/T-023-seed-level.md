@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
 **Branch:** `claude/stoic-lamport-zeq0c3`
-**PR:** opened draft at expand time, built from the branch above (number recorded below once known)
+**PR:** #83, opened draft at expand time, built from the branch above. It stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
