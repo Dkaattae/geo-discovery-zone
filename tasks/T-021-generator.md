@@ -6,7 +6,7 @@
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-021
 **Branch:** `claude/amazing-carson-zrp4qz`
-**PR:** opened draft at expand time against the branch above (number in the Sessions note below once known)
+**PR:** #80, opened draft at expand time, built from the branch above. It stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
