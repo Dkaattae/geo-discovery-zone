@@ -71,6 +71,38 @@ export const QUESTION_FORMATS = [
 export type QuestionFormat = (typeof QUESTION_FORMATS)[number];
 
 /**
+ * `Topic` in `backend/app/models.py` (the source of truth, E-14), all ten
+ * values. The tag stage (`tags.ts`) assigns nothing outside this list, and
+ * `tags.test.ts` fails if it drifts from the backend's enum.
+ */
+export const TOPICS = [
+  "location",
+  "capital",
+  "climate",
+  "agriculture",
+  "wildlife",
+  "landmark",
+  "size",
+  "physical",
+  "superlative",
+  "elevation",
+] as const;
+
+export type Topic = (typeof TOPICS)[number];
+
+/**
+ * Each template's topic, by template id. Kept beside `TEMPLATES` rather than
+ * as a tenth `Template` field so the record stays plan §1.2's nine fields
+ * (engineering-decisions.md E-23). A template with no entry here has no topic,
+ * and the tag stage refuses its questions rather than guessing one.
+ */
+export const TEMPLATE_TOPICS: Readonly<Record<string, Topic>> = {
+  "tpl-identify-on-map": "location",
+  "tpl-capital-of": "capital",
+  "tpl-click-the-map": "location",
+};
+
+/**
  * Names of the ways wrong answers are chosen. `buildChoices` in
  * `distractors.ts` implements them (T-022, engineering-decisions.md E-21).
  * Within each tier, nearest centroid first.
