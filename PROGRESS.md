@@ -263,6 +263,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   allowlist — the sandboxed session that wired it up cannot itself accept a
   trust prompt, so the first real proof is still the first live run on a
   trusted machine.
+- **`/next-task` starts an orchestrated run** (`.claude/skills/next-task/`,
+  by hand, 2026-10-15). It checks there is room for a new task — no live brief
+  in `tasks/`, a session branch with nothing unmerged on it — then hands over to
+  `.claude/agents/orchestrator.md`, starting with the `task-expander`, which
+  picks the task. It restates none of the orchestrator's rules, so the two
+  cannot drift; it adds only the expander's "no brief yet" prompt and the
+  frictions T-021's run hit (refused stamp, refused sweep, stop-hook nags,
+  one shared session id).
 - CI on every PR and push to `main`, six jobs: `frontend` and `question-bank`
   (typecheck, lint, test), `backend` (ruff + the suite on SQLite),
   `backend-postgres` (the same suite against a Postgres service container),
