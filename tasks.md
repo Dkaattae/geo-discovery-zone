@@ -351,7 +351,7 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-022 — Distractor strategies · M · todo
+### T-022 — Distractor strategies · M · doing
 **Depends on:** T-021
 `sibling_capitals_same_region` and neighbours-first for map questions. Ohio /
 Indiana / Illinois / Iowa is a real question; Ohio / Hawaii / Texas / Alaska is
@@ -394,6 +394,14 @@ correct `answer` only. `engineering-decisions.md` E-20 settles `map_click`: the
 `choiceIndex`. Naming that list, and adding it to `openapi.yaml`, is this task's.
 **Done when:** strategies are named on templates, not hardcoded, and a test
 asserts distractors come from the same region.
+**Expanded 2026-10-15** into `tasks/T-022-distractor-strategies.md`. Two
+scope calls, flagged for the approver: the parallel code list is named and
+recorded as an `E-n` but does **not** enter `openapi.yaml` (E-14: it follows
+the backend, and nothing serves generated questions until T-040/T-051); and
+the same-animal, same-climate and same-crop guards move to T-026, with the
+templates they guard. **Seven regions are too small, not four:** with four
+choices a region needs four states, so Pacific Northwest (AK, OR, WA) and
+Great Plains (KS, MO, NE) fall short too — 11 states in all.
 
 ### T-023 — Seed `level` deterministically · M · todo
 **Depends on:** T-022
@@ -433,6 +441,10 @@ plan expects this to be a manual pass, not a computed one.
 **New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
 topic is one template plus the curated field behind it, and none needs new
 infrastructure once T-021 lands:
+**Since T-022's expansion (2026-10-15):** the same-animal, same-climate and
+same-crop guards described under T-022 and below are **this task's**, landing
+with the template each one guards. T-022 guarantees only that no two choices
+share the same text.
 **Since T-020 (PR #79):** each new template is an entry in `TEMPLATES` and must
 pass `validateTemplate`. A new distractor rule is a new name in
 `DISTRACTOR_STRATEGIES` plus T-022's implementation of it.
@@ -583,6 +595,10 @@ now in `openapi.yaml` and on `backend/app/models.py`'s `Entity`
 owed while you are in that schema: `openapi.yaml`'s `topLivestock.description`
 says "Empty where no state has an honest standout". It should say "where the
 state has no honest standout".
+**Since T-022's expansion (2026-10-15):** generated `map_click` questions
+carry a list of `geometry_id`s parallel to `choices`, named in the `E-n` T-022
+records. It is not in `openapi.yaml` or `backend/app/models.py` yet (E-14). If
+this loader serves generated questions, it adds that field to both.
 **Done when:** a documented command turns a pipeline build into a served bank,
 running it twice changes nothing, and the app serves states that were never
 hand-written.
@@ -657,6 +673,10 @@ separately as `answerGeometryId`. E-20 expects T-022 to give `choices` a
 parallel list of `geometry_id`s, so the client maps a tap on region `X` to the
 choice whose code is `X` and sends its `choiceIndex`. The backend grading stays
 as it is.
+**Since T-022's expansion (2026-10-15):** the parallel list's name is in the
+`E-n` T-022 records, not in `openapi.yaml`. Whichever of T-040 and this task
+first serves a generated `map_click` question adds it to the contract and the
+backend model.
 **Done when:** a `map_click` question can be shown, answered by tapping the map,
 and graded, with the same asymmetric reveal as the other two.
 
