@@ -1,7 +1,7 @@
 # T-022 — Distractor strategies
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-15, in the orchestrator's session: "approved, continue with the worker". See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
@@ -16,6 +16,7 @@ draft until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
 | worker | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb |
+| tester | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent; see Verdict) |
 
 ## Goal
 
@@ -364,6 +365,76 @@ bun test && bun run typecheck && bun run lint && bun run format:check
 none goes red.
 
 ## Verdict
+
+**TL;DR. Pass.** All 24 criteria hold. 44 new tests in
+`question-bank/src/distractors-verify.test.ts` recompute every expected
+distractor from the bank with their own haversine and tier walk; whole suite
+2074 pass / 0 fail, typecheck, lint and format clean. Next: reviewer.
+
+**Independence: weaker than a separate session.** `$CLAUDE_CODE_REMOTE_SESSION_ID`
+is `cse_01Jqx2eXa4GKKb9X3m5AiHbb`, the same id listed as expander and worker.
+This is an orchestrated run (`runs/T-022-distractor-strategies.md` exists), where
+every spawned role shares one id, so the check proves nothing either way. My
+independence rests on being a freshly spawned subagent with its own context: I
+did not see the work done or the worker's reasoning. That depends on the
+orchestrator having spawned me correctly, not on anything I could verify.
+
+**Criterion → verdict → evidence** (test names are `T-022 criterion N: …`)
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | 150 questions, ids = draft ids, `shortPools` `[]` |
+| 2, 3, 4, 5 | pass | 4 non-blank choices; `choices[correctIndex] === answer`; distinct after trim/lower-case (incl. a padded upper-case copy of the answer, skipped); every draft field deep-equal |
+| 6, 7 | pass | all 150 questions' distractors equal an independent tier + haversine + id-tiebreak oracle; Ohio spot checks; tier-2 top-up; decoys for scope, type, NaN / short centroid, blank text; `map_click` needs `geometry_id`, `map_identify` does not; id tie-break with four co-located twins |
+| 8 | pass | 39 states with 3 same-region (incl. IA MN ND SD AR LA OK TX); KS MO NE AK OR WA = 2; AZ NM = 1; HI CA NV = 0 and equal to the 3 nearest states' capitals |
+| 9 | pass | out-of-region set is exactly the 11 |
+| 10 | pass | AK, HI identify + click: 4 choices, `borders` `[]`, match oracle |
+| 11 | pass | capital template switched to `neighbours_first`: Ohio gets the 3 nearest bordering states' capitals |
+| 12 | pass | `choiceGeometryIds` on all 50 `map_click`, parallel by name, `[correctIndex] === answerGeometryId` |
+| 13 | pass | two runs deep-equal |
+| 14 | pass | same index over bank, reversed bank, and 3 subsets per state (own + 3 far, 3 near reversed, every 7th) |
+| 15 | pass | every index ≥ 20 of 150 and present for each template |
+| 16 | pass | 4-state groups (3 groups incl. HI/AK) → 12 questions; 3-state groups → 9 reports, `found: 2`; 2 distinct capitals → reported `found: 2`; own centroid missing / null / NaN / Infinity / 1 / 3 numbers / strings → reported, no throw, others built |
+| 17 | pass | unknown `entityId`, unknown `templateId` → throws naming that draft's id |
+| 18 | pass | one `## E-21`, highest E number, names `` `choiceGeometryIds` `` (the only extra array key on a question), tiers, "Why nearest", the 11 codes, draft-id position |
+| 19 | pass | `git diff e494529~1 HEAD -- '*.test.ts'` shows only the new `distractors.test.ts`; no pre-existing test modified; suite + typecheck + lint + format:check green |
+| 20 | pass | imports only `./generate` `./templates` `./types`; no fetch / `node:` / fs / `Bun.` / `Date` / `Math.random` / `performance.` / `process.`; deep-frozen inputs do not throw and stay deep-equal |
+| 21 | pass | transitive import walk from build / refresh / normalize never reaches `distractors.ts` |
+| 22 | pass | `TEMPLATES` and `DISTRACTOR_STRATEGIES` equal the pre-T-022 values (copied from `e494529~1`), before and after a run |
+| 23 | pass | no `package.json` or `bun.lock` in `git diff --name-only e494529~1 HEAD` |
+| 24 | pass, read as the worker's diff | worker commit `fc71d87` touches only `question-bank/src/`, `engineering-decisions.md` and this brief. The branch also changes `tasks.md` (expander, `e494529`) and `runs/` (orchestrator), which the brief's own Out of scope and the loop expect. Nothing under `openapi.yaml`, `backend/`, `frontend/`, `question-bank/data/` or fixtures |
+
+**Mutations to `distractors.ts`** (each run against my file, then reverted with
+`git checkout`; `git diff` is clean):
+
+| Mutation | Red tests |
+|---|---|
+| Euclidean degrees instead of great-circle | 3 (crit 6/7 oracle, 8 HI/CA/NV, 10) |
+| reversed id tie-break | 1 (tie-break) |
+| no skip of answer-equal text | 1 (crit 4) |
+| no border tier | 3 (crit 7, 7 Ohio, 11) |
+| no region tier | 5 (crit 6, 8, 9) |
+| index depends on input length | 1 (crit 14) |
+| `map_click` ignores missing `geometry_id` | 1 |
+| answer code pushed at end of `choiceGeometryIds` | 1 (crit 12) |
+| no own-centroid guard | 7 (crit 16 centroid cases) |
+| case-sensitive same-text | 2 (crit 4, 16) |
+| `correctIndex` always 0 | 1 (crit 15) |
+| scope ignored | 1 |
+| strategy chosen by format | 1 (crit 11) |
+| unknown template does not throw | 1 (crit 17) |
+| **FNV-1a without the murmur3 finalizer** | **0** |
+
+The last one stays green, and correctly so. Without the finalizer the split is
+the 13/12/12/13 pattern the worker's note describes, which still meets
+criterion 15 as written (≥ 20 each, every value for every template). The
+finalizer is a quality choice E-21 records, not something a criterion pins.
+Reviewer may want to decide whether that matters.
+
+**Not tested by me:** nothing skipped. Criteria 19, 23 and 24 were checked with
+`git` commands (above), not in a test, because a test must not depend on git
+history. All values came from the committed bank in `question-bank/data/us-states/`.
+No network, no fixture edited, no source edited.
 
 ## Notes
 
