@@ -7,8 +7,8 @@ decides which wrong answers a child sees, which is data correctness.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
 **Branch:** `claude/awesome-cerf-v617fy`
-**PR:** opened draft at expand time, built from the branch above (number in the
-expander's Sessions row once known)
+**PR:** #82, opened draft at expand time, built from the branch above. It stays
+draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
