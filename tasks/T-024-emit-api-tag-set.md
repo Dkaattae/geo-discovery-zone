@@ -1,7 +1,7 @@
 # T-024 — Emit the API tag set on generated questions
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae (in the orchestrator session) — 2026-10-15. See `runs/T-024-emit-api-tag-set.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-024
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d |
+| worker | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d (orchestrated subagent; `$CLAUDE_CODE_REMOTE_SESSION_ID` is the parent session's, so it matches the expander's row) |
 
 ## Goal
 
@@ -249,9 +250,93 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR.** Built the tag stage `tagQuestions` in new `question-bank/src/tags.ts`;
+topics are assigned by template id in `TEMPLATE_TOPICS` (no tenth `Template`
+field), so **no existing test goes stale**. Whole suite green (2134 pass, 0
+fail), typecheck, lint and format:check clean. Next: tester.
+
+**Files changed**
+
+- **`question-bank/src/tags.ts`** (new): `tagQuestions(questions, entities,
+  templates = TEMPLATES, topics = TEMPLATE_TOPICS)` and `TaggedQuestion`.
+- **`question-bank/src/templates.ts`**: added exported `TOPICS` (the ten
+  backend `Topic` values), type `Topic`, and `TEMPLATE_TOPICS` (template id →
+  topic). `Template`, `TEMPLATES`, `validateTemplate` unchanged.
+- **`question-bank/src/tags.test.ts`** (new): worker tests, incl. both backend
+  cross-checks.
+- **`engineering-decisions.md`**: new `E-23` appended; E-1–E-22 untouched.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 4, 13 | `tagQuestions` maps `{...question, scope, entityType, topic, region?, ageBand}`; nothing else touched, `level` copied |
+| 2, 7–12, 14 | over the bank: `tags.test.ts` › "tagQuestions over the committed bank" |
+| 3 | only camelCase keys are added |
+| 5, 6 | no writes to inputs; builds new maps and objects |
+| 15 | `region` spread only when `nonBlankString(region)`; otherwise no key |
+| 16 | `topicFor` throws `tagQuestions: template <id> has no topic defined` |
+| 17 | `topicFor` throws naming the template id when the topic is not in `TOPICS` |
+| 18 | `tags.test.ts` › "every TEMPLATES entry has a topic in TOPICS" |
+| 19 | throws `tagQuestions: question <id> names entity/template …` |
+| 20, 21, 22 | `tags.test.ts` › "cross-checks against backend/app/models.py" (`backendEnum` parses `class <Name>(StrEnum):`; `readFileSync` throws if the file is missing; a `length > 0` assertion fails on a missing class or zero values) |
+| 23 | `tags.ts` is imported only by `tags.test.ts` |
+| 24, 25 | only the four files above changed; `package.json`/`bun.lock` untouched |
+| 26 | `tags.ts` imports types and `templates.ts` only; no I/O |
+| 27 | see How to run |
+| 28 | `engineering-decisions.md` E-23 |
+
+**How the tester constructs the hard cases**
+
+- **Template with no topic (16):** any template whose `id` is not a key of
+  `TEMPLATE_TOPICS`, e.g. `{ ...capitalOf, id: "tpl-orphan" }`, run through
+  generate → buildChoices → seedLevels with `[orphan]`, then
+  `tagQuestions(qs, entities, [orphan])`. The 4th argument defaults to
+  `TEMPLATE_TOPICS`.
+- **Bad topic (17):** pass the 4th argument: `tagQuestions(qs, entities,
+  [orphan], { "tpl-orphan": "geography" })`. It is typed
+  `Readonly<Record<string, unknown>>` so no cast is needed.
+- **Age band 2/3 (11):** `{ ...capitalOf, min_age_band: 2 }` keeps id
+  `tpl-capital-of`, so it has a topic.
+
+**Deliberately not done**
+
+- **No `topic` field on `Template`**, per the brief's stale-test warning;
+  reasoning in E-23.
+- **`validateTemplate` does not check topics.** The record has no topic field;
+  criterion 17 is met by the tag stage throwing.
+- **PROGRESS.md not updated** (line ~206 still says "A question has no tags yet
+  (T-024)"). Reviewer to update in the sweep.
+
+**Beyond the brief (flag)**
+
+- **A `format` mismatch throws.** If a question's `format` differs from its
+  template's, `tagQuestions` throws naming the question, rather than keeping
+  one silently. Criteria 4 and 12 would otherwise conflict for such input. No
+  pipeline output triggers it. Reviewer to confirm or overturn.
+
+**Contradictions with the brief:** none found.
+
+**How to run**
+
+```bash
+cd question-bank && bun install --frozen-lockfile   # node_modules was absent in this env
+bun test src/tags.test.ts
+bun test && bun run typecheck && bun run lint && bun run format:check
+```
+
+Caution: without `bun install`, `bun run format` falls back to a global
+prettier 3.8.1 and rewrites two unrelated test files. I reverted that; the
+committed tree is formatted by the pinned 3.9.6.
+
+**Tests made stale:** none.
+
 ## Verdict
 
 ## Notes
+
+- Worker: chose topic-by-id (`TEMPLATE_TOPICS`) over a tenth `Template` field to keep plan §1.2's record and the four pinned tests intact; same keying as `LEVEL_SEED_WEIGHTS.concept_load`. Owner to confirm: reviewer (E-23).
+- Worker: the session id in Sessions is shared with the expander because both ran as subagents of one orchestrated session. The tester should record its own and judge isolation from that.
 
 - Picked T-024 as the first task whose dependencies are done. Skipped: T-064
   (depends on T-040), T-070 (waiting on Q1), T-084 (sequenced after T-070 (a);

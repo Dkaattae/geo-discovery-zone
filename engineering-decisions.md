@@ -1112,3 +1112,58 @@ buckets is easier for T-025 to tune by reading 30 questions than a slope.
 world-scope bank arrives (rank counts other than 50, and region near/far means
 something else for countries), a player profile exists to carry a home state,
 or Elo ratings replace seeded levels (plan §1.4).
+
+## E-23 — The `GET /questions` tags are added by a stage after `seedLevels`; a template's topic is assigned by id, outside the record
+
+**2026-10-15 (T-024).** `question-bank/src/tags.ts` `tagQuestions(questions,
+entities, templates = TEMPLATES, topics = TEMPLATE_TOPICS)` takes the questions
+`seedLevels` returned and returns them, in input order, with five tags added and
+nothing else changed. `format` and `level` are already on every question
+(E-20, E-22) and are carried through, not recomputed. A stage of its own, for
+E-22's reason: it keeps the earlier stages' output, and the tests that pin it,
+unchanged. Pure; nothing in the build imports it.
+
+**Where each tag comes from.** Wire names are `openapi.yaml`'s camelCase
+`Question` properties, which is what `backend/app/store.py` reads from a served
+bank (`ageBand`, not the Python attribute `age_band`):
+
+| Tag | Source |
+|---|---|
+| `scope` | the entity's `scope` |
+| `entityType` | the entity's `type` |
+| `region` | the entity's `region`, verbatim (not trimmed, not slugged) |
+| `topic` | `TEMPLATE_TOPICS[template.id]` |
+| `ageBand` | the template's `min_age_band` |
+| `format` | already on the question, from the template; must equal it |
+| `level` | already on the question, from `seedLevels` |
+
+**Topics of the three templates:** `tpl-identify-on-map` → `location`,
+`tpl-click-the-map` → `location`, `tpl-capital-of` → `capital`.
+
+**How a template gets its topic, and why.** `TEMPLATE_TOPICS` in
+`templates.ts`, a map from template id to topic, beside `TEMPLATES`, not a tenth
+`Template` field. Plan §1.2 defines the record as nine fields, and four
+existing tests pin exactly those nine (or `TEMPLATES` deep-equal to the T-020
+records); a tenth field would make them stale and need an approved Test change
+request for a tag the plan files under §1.3, not §1.2. The cost is that a new
+template can be added without a topic, so the stage refuses rather than
+defaults: a template with no entry, or an entry outside `TOPICS`, makes
+`tagQuestions` throw naming the template id, and a test fails when any
+`TEMPLATES` entry has no entry. `concept_load` (E-22) is keyed the same way.
+
+**Holes.** An entity whose `region` is absent, `null` or blank yields questions
+with no `region` key at all, never `""` or `null`: a blank, not a guess. A
+question whose `entityId` or `templateId` is not in the input, or whose `format`
+differs from its template's, makes the stage throw naming the question.
+
+**Backend cross-checks** (E-14: `backend/app/models.py` is the source of truth).
+`question-bank/src/tags.test.ts` reads `models.py` and asserts that
+`QUESTION_FORMATS` equals `class QuestionFormat` and that `TOPICS` (exported from
+`templates.ts`) equals `class Topic`, as sets. Each fails, rather than skips,
+when the file cannot be read, the class is missing, or it yields no values.
+`Scope` and `EntityType` are not cross-checked: question-bank's `EntityType`
+is a deliberate subset of the backend's.
+
+**Revisit when** T-026 adds templates or topics (each needs a
+`TEMPLATE_TOPICS` entry), a template needs more than one topic, or the plan
+moves topic into the template record.
