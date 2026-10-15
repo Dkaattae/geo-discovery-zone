@@ -203,8 +203,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   four-option questions with `choices`, `correctIndex` and, on `map_click`,
   `choiceGeometryIds` (E-21). `src/seed-level.ts` `seedLevels` (T-023) adds a
   `level` in 0–18 from plan §1.4's formula, every weight in
-  `LEVEL_SEED_WEIGHTS` (E-22). A question has no tags yet (T-024), and nothing
-  writes or serves the output.
+  `LEVEL_SEED_WEIGHTS` (E-22). `src/tags.ts` `tagQuestions` (T-024) adds the
+  other five `GET /questions` tags (`scope`, `entityType`, `topic`, `region`,
+  `ageBand`; E-23). Nothing writes or serves the output.
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
   `state-animals.test.ts` (T-012), `landmarks.test.ts` and
@@ -354,6 +355,24 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-024 — generated questions carry the full `GET /questions` tag set** (PR
+  #84, 2026-10-15). `question-bank/src/tags.ts` exports `tagQuestions(questions,
+  entities, templates = TEMPLATES, topics = TEMPLATE_TOPICS)`, a stage after
+  `seedLevels`. It adds `scope`, `entityType` and `region` from the entity,
+  `topic` from `TEMPLATE_TOPICS`, and `ageBand` from the template's
+  `min_age_band`. `format` and `level` pass through unchanged. Over the
+  committed bank: 150 questions, 100 `location` and 50 `capital`. A blank region
+  omits the key. A missing or unknown topic, entity or template throws.
+  `templates.ts` gained `TOPICS`, and `tags.test.ts` checks `TOPICS` and
+  `QUESTION_FORMATS` against `backend/app/models.py`. E-23 records it. Nothing
+  in the build imports it.
+  *Where it differed from the brief:* topic is keyed by template id rather than
+  being a tenth `Template` field, so no existing test went stale. The stage also
+  throws when a question's `format` disagrees with its template's, which no
+  criterion asked for (the reviewer confirmed it). The generator's silent
+  `geometry_id`/`name` rule stays in `generate.ts`, and that note moved to
+  T-026. Run orchestrated with one session id across the roles (`P-14`).
 
 - **T-023 — generated questions get a seeded `level`** (PR #83, 2026-10-15).
   `question-bank/src/seed-level.ts` exports `seedLevels(questions, entities,

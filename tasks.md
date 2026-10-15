@@ -353,30 +353,6 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-024 — Emit the API tag set · S · doing
-**Depends on:** T-021
-`scope`, `entity_type`, `topic`, `region`, `format`, `age_band`, `level` — the
-filters `openapi.yaml` exposes on `GET /questions`, all of which the backend
-already implements and filters on.
-**Since T-020 (PR #79):** `QUESTION_FORMATS` in `question-bank/src/templates.ts`
-is a hand copy of the nine formats, with nothing tying it to the backend's
-`QuestionFormat` enum (`backend/app/models.py`), the source of truth under E-14.
-Emitting `format` makes that drift visible, so add the cross-check here. Whether
-a template carries `topic` is also this task's call: the record has nine fields,
-and the validator rejects a tenth on purpose.
-**Since T-021 (PR #80):** the generator silently adds `geometry_id` to a
-`map_identify` template's required fields, and `name` to one whose
-`answer_field` is `geometry_id`, because the draft cannot be built without
-them. That is a template/format consistency rule living in the generator. If
-this task adds the format cross-check to `validateTemplate`, move that rule
-there too, so a template that omits them is refused rather than quietly
-patched.
-**Since T-023 (PR #83):** `level` exists. `seedLevels` in
-`question-bank/src/seed-level.ts` (E-22) is a stage after `buildChoices` and
-returns each question with `level` added; nothing else sets it. Emit the tag set
-on its output, or as a stage after it, rather than computing `level` again.
-**Done when:** every generated question carries all seven and matches the schema.
-
 ### T-025 — Hand-check 30 generated questions · S · todo
 **Depends on:** T-023
 Read them as a child would. Tune the weights until the ordering looks sane; the
@@ -417,6 +393,17 @@ one. A new template that puts a free-text field (a landmark name, a climate
 phrase) into its prompt should add a check that such a pair is skipped and
 reported rather than emitted with a brace in it. Array- and number-valued
 answers are reported as `notText` today; this task decides how they become text.
+**Since T-024 (PR #84):** a template's topic is not a field on the record. It
+is an entry in `TEMPLATE_TOPICS` (`question-bank/src/templates.ts`, E-23), keyed
+by template id. A new template with no entry makes `tagQuestions` throw, and a
+test fails on any `TEMPLATES` entry without one, so add both together. `TOPICS`
+is the backend's ten values, cross-checked against `backend/app/models.py`.
+**Carried from T-024's Out of scope:** `generate.ts` still silently adds
+`geometry_id` to a `map_identify` template's required fields, and `name` to one
+whose `answer_field` is `geometry_id`. T-024 put the format cross-check in a
+test, not in `validateTemplate`, so the rule stayed in the generator. When this
+task adds templates, move it into `validateTemplate`, so a template that omits
+those fields is refused rather than quietly patched.
 
 | Topic | Template | Needs |
 |---|---|---|
@@ -563,6 +550,14 @@ state has no honest standout".
 (`engineering-decisions.md` E-21). It is not in `openapi.yaml` or
 `backend/app/models.py` yet (E-14). If this loader serves generated questions,
 it adds that field to both.
+**Since T-024 (PR #84):** the pipeline's last stage is now `tagQuestions`
+(`question-bank/src/tags.ts`, E-23): `generate` → `buildChoices` →
+`seedLevels` → `tagQuestions` gives 150 questions carrying all seven
+`GET /questions` tags in camelCase (`scope`, `entityType`, `topic`, `region`,
+`format`, `ageBand`, `level`). Nothing writes that output or imports the stage
+yet; wiring it to a file this loader reads is this task's job. `region` is
+absent, not blank, when an entity has none (`Question.region` is optional in
+`models.py`).
 **Done when:** a documented command turns a pipeline build into a served bank,
 running it twice changes nothing, and the app serves states that were never
 hand-written.
