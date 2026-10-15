@@ -1,7 +1,7 @@
 # T-022 — Distractor strategies
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #82; routine, no escalation)
 **Approved:** Dkaattae — 2026-10-15, in the orchestrator's session: "approved, continue with the worker". See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
@@ -19,6 +19,7 @@ draft until the reviewer approves it
 | tester | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent; see Verdict) |
 | reviewer | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent) — changes requested |
 | tester | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent; fixed Review finding 1) |
+| reviewer | 2026-10-15 | cse_01Jqx2eXa4GKKb9X3m5AiHbb (orchestrated subagent) — approved, round 2 |
 
 ## Goal
 
@@ -556,3 +557,35 @@ expander change. PR #82 stays draft, and I did not sweep.
 - **The sweep has one extra trim.** Three `tasks.md` notes say the list is "named
   in the `E-n` T-022 records" (under T-040 and T-051, and the T-026 note's
   sibling). Rewrite them to name `choiceGeometryIds` (E-21).
+
+### Round 2: approved
+
+**TL;DR. Approved, inside the envelope.** Finding 1 is fixed as asked, and
+nothing else moved. PR #82 is marked ready with no escalation note. The sweep
+rides in the next commit, which deletes this brief. Next: Dkaattae merges.
+
+- **Finding 1, fixed:** `distractors-verify.test.ts` criterion 18 now checks
+  exactly one `E-21`, that `E-20` exists, and that all E-numbers are distinct.
+  `Math.max(...) === 21` is gone. The fix commit `c567dfc` touches only that
+  test file and this brief, so the tester stayed in its lane.
+- **Finding 2:** stays non-blocking with no task, as decided in round 1.
+- **Suite, run by me** in `question-bank/`: `bun test` 2074 pass / 0 fail;
+  `typecheck`, `lint` and `format:check` clean. CI's question-bank, backend and
+  integration jobs pass. Frontend and e2e were still running when I checked,
+  and this diff touches neither.
+- **Re-read `distractors.ts` cold:** it fits the module style of `generate.ts`
+  (pure, a doc header, throws only on caller bugs, reports the rest). It is not
+  more than it needs to be. No change to the round-1 flag dispositions.
+- **Envelope:** the tester passed. The approval and `Test changes: none` are a
+  person's. Nothing changed outside the Constraints except `tasks.md` (the
+  expander) and `runs/` (the orchestrator). No dependency, no `openapi.yaml`,
+  no migration, no plan change. No child-facing text: choices reuse existing
+  `name` and `capital` values. No product decision was settled outside the
+  approved brief.
+- **Sweep:** delete this brief and the T-022 entry. Log it in `PROGRESS.md`.
+  Rewrite T-040 and T-056's notes to name `choiceGeometryIds` (E-21). Point
+  T-023 at `buildChoices`' output and the tier as a `distractor_tightness`
+  input. Re-home T-026's guard note now that the T-022 entry is gone.
+  Correct the stale "four regions" and "guard (T-022)" lines in `PROGRESS.md`
+  Known gaps. Nothing was deleted from the queue: no remaining task became
+  unnecessary.
