@@ -2,7 +2,7 @@
 
 **Status:** awaiting approval
 **Next step:** worker
-**Approved:** pending
+**Approved:** orchestrator — 2026-10-15, unattended run. See `runs/T-021-generator.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-021
 **Branch:** `claude/amazing-carson-zrp4qz`
