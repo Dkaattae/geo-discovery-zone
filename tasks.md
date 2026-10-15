@@ -198,7 +198,8 @@ down the `top_crops` blind spot? Either way: must the guard survive a refresh
 where only `sources.built_at` and the fixture moved? The expander's survey for
 this half (more guards than the entry says: `highest-point-in-state-verify.test.ts`
 pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
-`3cedfe8`. The next decision entry is `E-20`.
+`3cedfe8`. The next decision entry was `E-20`, but T-021 (expanded
+2026-10-15) asks for an `E-n` too, so take the next unused number.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -339,6 +340,7 @@ amendment; the re-record needs a Test change request row for each.
 **Skipped again by the expander, 2026-10-13, for T-020.** Nothing has changed
 since the note above: Q1 is still open, and nobody has decided the proposed
 split.
+**Skipped again, 2026-10-15, for T-021.** Same reason.
 
 ---
 
@@ -348,7 +350,7 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-021 — Generator: entities × templates → questions · M · todo
+### T-021 — Generator: entities × templates → questions · M · doing
 **Depends on:** T-020
 Skip any entity missing a template's `requires` fields rather than emitting a
 question with a hole in it.
