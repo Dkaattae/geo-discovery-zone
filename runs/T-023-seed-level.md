@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -37,3 +37,12 @@
 - /home/user/geo-discovery-zone/tasks/T-023-seed-level.md
 - /home/user/geo-discovery-zone/tasks.md (T-023 set to `doing` with an expansion note; T-084 skip line)
 - PR: https://github.com/Dkaattae/geo-discovery-zone/pull/83
+
+## Halted — worker spawn refused — 2026-10-15
+The `Approved:` stamp itself was accepted (commit `f3eaca8`). Spawning the `worker` against it was then refused by the harness's auto-mode classifier, reason given: "Instruction Poisoning". This matches the T-078 shape: an unattended orchestrator stamp is treated as self-approval. Halted under G2. The worker did not run, and the brief's `Next step` is still `worker`.
+
+**What a human has to decide:** whether to approve the T-023 brief (`tasks/T-023-seed-level.md`, PR #83), including the expander's two flagged scope calls:
+- `familiarity_bonus` is 0 for every question, with the home-state part deferred to serving time.
+- `level` comes from a new pure stage after `buildChoices`, and `buildChoices` itself stays unchanged.
+
+If a person approves in the orchestrator's session, their words are recorded here and the run resumes at `worker`.
