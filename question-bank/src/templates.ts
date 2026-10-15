@@ -71,13 +71,14 @@ export const QUESTION_FORMATS = [
 export type QuestionFormat = (typeof QUESTION_FORMATS)[number];
 
 /**
- * Names of the ways wrong answers are chosen. Only names: no function sits
- * behind them until T-022.
+ * Names of the ways wrong answers are chosen. `buildChoices` in
+ * `distractors.ts` implements them (T-022, engineering-decisions.md E-21).
+ * Within each tier, nearest centroid first.
  *
- * - `neighbours_first`: entities that border the answer, topped up from the
- *   same region.
- * - `sibling_capitals_same_region`: capitals of other entities in the answer's
- *   region.
+ * - `neighbours_first`: entities that border the answer, then the same region,
+ *   then any other.
+ * - `sibling_capitals_same_region`: the same region, then any other. With
+ *   capitals as the answer field, those are sibling capitals.
  */
 export const DISTRACTOR_STRATEGIES = ["neighbours_first", "sibling_capitals_same_region"] as const;
 
