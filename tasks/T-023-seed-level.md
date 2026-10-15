@@ -1,8 +1,8 @@
 # T-023 — Seed `level` deterministically
 
-**Status:** `blocked`
-**Next step:** `task-expander`
-**Approved:** `pending` — re-approval needed after criterion 16 is amended. The first approval (Dkaattae, 2026-10-15, "approved, go ahead with the worker") covered the brief before the amendment. Dkaattae's decision on the block, in the orchestrator session, 2026-10-15: "go with the worker's fix, drop NV from criterion 16". See `runs/T-023-seed-level.md`.
+**Status:** `awaiting approval`
+**Next step:** `worker`
+**Approved:** `pending` — re-approval needed: criterion 16 is now amended (NV dropped, HI and CA kept), and only that criterion changed. The first approval (Dkaattae, 2026-10-15, "approved, go ahead with the worker") covered the brief before the amendment. Dkaattae's decision on the block, in the orchestrator session, 2026-10-15: "go with the worker's fix, drop NV from criterion 16". See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
 **Branch:** `claude/stoic-lamport-zeq0c3`
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE |
 | worker | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (same id as the expander: relayed run, process.md "Two things break") |
+| task-expander (amend c16) | 2026-10-15 | cse_01U46hLUXQXCwTAjFRk3oYmE (relayed run, same id) |
 
 > **TL;DR.** Give every generated question a `level` in 0–18 from plan §1.4's
 > formula, as a **new pure stage after `buildChoices`**, with every weight in one
@@ -119,10 +120,15 @@ same count of near distractors.
     distractors (`k` in 0–2), the one with `k + 1` never has a lower level.
 15. Not constant: at `base_difficulty: 2`, a question with 3 near distractors
     gets a strictly higher level than an otherwise-equal one with 0.
-16. Over the committed bank, `tpl-capital-of`'s questions for HI, CA and NV
-    (0 near distractors, E-21) each get a strictly lower level than they would
-    with 3 near distractors and their own ranks. The tester computes the
-    3-near value with a synthetic entity set and the same ranks.
+16. Over the committed bank, `tpl-capital-of`'s questions for HI and CA each
+    get a strictly lower level than they would with 3 near distractors and
+    their own ranks. The tester computes the 3-near value with a synthetic
+    entity set and the same ranks. E-21 lists both as having 0 *same-region*
+    distractors; by this brief's near definition HI has 0 near (no `borders`,
+    alone in `Pacific`) and CA has 2 (NV and OR are in CA's `borders`). NV is
+    deliberately not in this criterion: all three of its distractors' states
+    border it, so it has 3 near and its actual level is the 3-near level.
+    *(Amended 2026-10-15 after the worker's block; see Notes.)*
 
 **`concept_load` and `familiarity_bonus`**
 
@@ -388,6 +394,25 @@ None.
 ## Verdict
 
 ## Notes
+
+- **Task-expander, 2026-10-15 — criterion 16 amended.**
+  - **What changed:** NV removed from criterion 16; HI and CA remain. The
+    parenthetical "0 near distractors, E-21" was wrong: E-21 counts
+    *same-region* distractors, while this brief's near definition also counts
+    `borders`. The criterion now states each state's near count under the
+    brief's definition (HI 0, CA 2), checked against `us-state-hi.json`
+    (`borders: []`, region `Pacific`) and `us-state-ca.json` (`borders`
+    includes `us-state-nv` and `us-state-or`).
+  - **Why this fix:** Dkaattae's decision on the block, "go with the worker's
+    fix, drop NV from criterion 16". The alternative (same-region-only near
+    for capitals) was not taken, so criteria 14, 15 and the near definition
+    are unchanged.
+  - **Nothing else changed.** Criteria 1–15 and 17–28, Out of scope,
+    Constraints and Context are as first approved.
+  - **For the worker after re-approval:** the worker's Handoff says no code
+    change is expected from this amendment. Confirm against the amended
+    criterion 16, then set `Status: awaiting verification` and hand to the
+    tester.
 
 - **Worker, 2026-10-15.**
   - **Model.** Ran on Opus, as the brief asked.
