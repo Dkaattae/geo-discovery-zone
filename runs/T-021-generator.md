@@ -66,3 +66,26 @@
 **Problems found**
 - **Formatter run reformatted an unrelated test:** running `bun run format` before `bun install` used a global prettier, which changed an existing test (`highest-point-metres-verify.test.ts`). I reverted it and none of that change is committed. Run `bun install --frozen-lockfile` first so the pinned 3.9.6 is used.
 - **`tasks.md` still says E-20 for T-070:** T-070's "Done when" still names `E-20`, which this task has now taken. The sweep should change it to E-21. I left `tasks.md` alone because it is outside this task's scope.
+
+## Round 3 — tester — 2026-10-15
+`Next step` on entry: `tester` (`Status: awaiting verification`) → on exit: `reviewer` (`Status: pass`)
+
+**T-021 tester: pass.** All 29 acceptance criteria hold. In `question-bank/` the full suite passes (2012 pass, 0 fail, with every proxy variable pointed at `127.0.0.1:1`), and typecheck, lint and format:check are clean. The brief now reads Status `pass`, Next step `reviewer`. My commit `a6ed390` is on `claude/amazing-carson-zrp4qz`, and the remote head matches it.
+
+**Independence is the weaker kind.** This is an orchestrated run (`runs/T-021-generator.md` exists). My session id, `cse_01FsXqnpENQjfQBQc9Pmhmfj`, is the same one listed for task-expander and worker. Under the orchestrator that match is expected and proves nothing. My independence rests only on being a freshly spawned subagent that did not see the work or the worker's reasoning, which depends on the orchestrator having spawned me correctly. The Verdict says this. The worker's Handoff asked for a tester with a different id, which this run could not supply, so a human should decide whether that matters.
+
+**What I did**
+- **New file `/home/user/geo-discovery-zone/question-bank/src/generate-verify.test.ts`**: 63 tests, one `describe` per criterion. Expected values come from the criteria; I read `generate.ts` only for its signature. Skip-report checks only require the field to be named, so they don't depend on the worker's `missing` / `notText` split.
+- **Brief `/home/user/geo-discovery-zone/tasks/T-021-generator.md`**: Verdict written with a criterion → verdict → evidence table, my Sessions row added, Status and Next step updated.
+- **Mutation check on `generate.ts`**: 14 real mutations, every one turned at least one test red. All were reverted; `generate.ts` is byte-identical to its backup and `git status` was clean after the commit.
+  - Two other mutations stayed green, but neither changed what the code does, so there was nothing for a test to catch.
+  - One mutation (the generator writing to `TEMPLATES`) first went unnoticed: earlier tests had already changed the shared export before criterion 20's test took its "before" copy. I fixed criteria 20 and 25 to compare against a copy taken at module load and against the full three T-020 template records; that mutation now fails 2 tests.
+- **Criteria 23 and 26 checked against the diff**: `git diff origin/main...HEAD` touches nothing under data, sample-data, backend or frontend, and leaves `openapi.yaml`, `templates.ts`, `package.json` and `bun.lock` alone.
+- **Tests made stale: none.** No existing test was modified or deleted.
+
+**Not done**
+- **`bun run build` was not run**, because it reaches the network. For criterion 24 I checked instead that nothing `build.ts`, `refresh.ts` or `normalize.ts` imports, directly or through other files, leads to `generate.ts` or `templates.ts`. That is how the criterion itself says byte-identical output is guaranteed.
+
+**For the reviewer:** two of the worker's judgment calls are not covered by any criterion. I left both untested and flagged them in the Verdict.
+- **An entity with no usable id makes the generator throw.**
+- **No guard against a `{` inside a filled-in value.** Criterion 7 asks for values filled in verbatim and for no brace in any prompt, and a value containing a brace would break one or the other. No committed value has one today.
