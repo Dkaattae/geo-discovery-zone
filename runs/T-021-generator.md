@@ -1,7 +1,7 @@
 # T-021 — Generator: entities × templates → question drafts — run log
 
 **Task:** T-021 · **Branch:** `claude/amazing-carson-zrp4qz` · **PR:** #80
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** halted — needs human (sweep refused)
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -89,3 +89,53 @@
 **For the reviewer:** two of the worker's judgment calls are not covered by any criterion. I left both untested and flagged them in the Verdict.
 - **An entity with no usable id makes the generator throw.**
 - **No guard against a `{` inside a filled-in value.** Criterion 7 asks for values filled in verbatim and for no brace in any prompt, and a value containing a brace would break one or the other. No committed value has one today.
+
+## Round 4 — reviewer — 2026-10-15
+`Next step` on entry: `reviewer` (`Status: pass`) → on exit: `human — apply ### Sweep to apply under ## Review, then mark PR #80 ready. Approved inside the envelope.` (`Status: sweep refused`)
+
+**T-021 is approved and inside the envelope, but the harness refused the sweep.** PR #80 stays draft. A person needs to apply the written-out sweep and then mark the PR ready. Nothing blocks the work, and there is no escalation.
+
+**Status: sweep refused. Next step: human** (D-16)
+- **Refused action:** the classifier blocked deleting the brief and editing `tasks.md` / `PROGRESS.md` ("Irreversible Local Destruction"). None of it was applied, and I did not try another route.
+- **Where the sweep is:** written out under `## Review` → `### Sweep to apply` in `/home/user/geo-discovery-zone/tasks/T-021-generator.md`. It is mechanical: exact text to replace or insert in `tasks.md` and `PROGRESS.md`, plus `git rm` of the brief. A person applies it, or the orchestrator does after about an hour.
+- **Push landed:** commit `c65a221` is on `origin/claude/amazing-carson-zrp4qz` and matches local HEAD. The `Next step: human…` header matches the `human*` check in `blocked-run-notice.yml`, so the PR should get the `waiting on a human` label.
+- **PR body:** updated to the verdict, with all 29 criteria and what verified each, how the worker's flags were disposed of, and the queue changes the sweep makes. Draft flag not changed.
+
+**Checks**
+- **PR #80:** open, draft, not merged.
+- **Every role's work is in the PR:** expander `0048c71`/`bd06b04`, worker `b0102e1`, tester `a6ed390`, plus the orchestrator's run-log commits.
+- **Each role stayed in its lane:**
+  - the expander touched only `tasks.md` and the brief;
+  - the tester touched only `generate-verify.test.ts` and the brief.
+- **Constraints held:** nothing under `data/`, `sample-data/`, `backend/` or `frontend/` changed, and `openapi.yaml`, `templates.ts`, `package.json` and `bun.lock` are untouched.
+- **Tests (I re-ran them):** in `question-bank/`, 2012 pass / 0 fail, and typecheck, lint and format:check are clean.
+- **CI:** `question-bank` and `backend (lint, format, test)` are green. The e2e, integration, frontend and Postgres jobs were still running when I checked, and this diff touches none of their inputs.
+
+**Why it is inside the envelope**
+- No dependency was added.
+- No `openapi.yaml`, migration or plan change.
+- `Test changes: none`.
+- No new child-facing text: prompts come only from the templates Dkaattae already approved, and nothing is written or served.
+- E-20 is an engineering decision about the data shape, not a product decision.
+
+**Worth a glance, not an escalation** (both noted in the PR body)
+- **The brief was approved by the orchestrator without being read.** E-20 sets the shape that six later tasks build on.
+- **All roles shared one session id** (P-14).
+
+**Worker's flags, disposed of**
+- **Implicit `geometry_id` / `name` requirements:** kept. Deferred to T-024 to move them into `validateTemplate`.
+- **An entity with no id throws:** kept, decided here.
+- **A non-string `geometry_id` is reported:** kept, decided here.
+- **No brace guard on token values:** deferred to T-026.
+
+**Queue changes in the pending sweep**
+- **Deleted:** T-021.
+- **T-070:** no longer names E-20 (two places).
+- **Amended:** T-022 (build on `generate()`, plus E-20's parallel code list), T-024, T-026 and T-051.
+- **Added:** nothing. Every finding fit an existing task.
+
+## Halted — sweep refused — 2026-10-15
+Halted at 2026-10-15T15:35Z on `Next step: human`, `Status: sweep refused`.
+Branch head at the halt: `c65a221`. Per D-16 the orchestrator waits about an
+hour for a person; if none has answered by the check-in, it applies exactly
+`### Sweep to apply` and leaves the PR draft for a person to mark ready.
