@@ -344,6 +344,7 @@ split.
 **Skipped again, 2026-10-15, for T-021.** Same reason.
 **Skipped again, 2026-10-15, for T-023.** Same reason.
 **Skipped again, 2026-10-15, for T-024.** Same reason.
+**Skipped again, 2026-10-15, for T-025.** Same reason.
 
 ---
 
@@ -353,7 +354,7 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-025 — Hand-check 30 generated questions · S · todo
+### T-025 — Hand-check 30 generated questions · S · doing
 **Depends on:** T-023
 Read them as a child would. Tune the weights until the ordering looks sane; the
 plan expects this to be a manual pass, not a computed one.
