@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae (in the orchestrator session) — 2026-10-15. See `runs/T-024-emit-api-tag-set.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-024
 **Branch:** `claude/friendly-archimedes-dw9utb`

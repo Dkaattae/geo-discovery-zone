@@ -1,7 +1,7 @@
 # T-024 — Emit the API tag set on generated questions — run log
 
 **Task:** T-024 · **Branch:** `claude/friendly-archimedes-dw9utb` · **PR:** #84
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`
@@ -43,3 +43,7 @@
 The orchestrator tried to write the unattended `Approved:` line into the brief header. The harness refused it as self-approval (`[Self-Approval]`), as it did on T-078. The header still reads `Approved: pending`, so G2 stops the worker from being spawned.
 
 What a person has to decide: **approve T-024's criteria (PR #84) or not.** If they approve in the orchestrator's session, their words go here and the orchestrator writes the line. Otherwise they edit `Approved:` themselves and start the `worker` step.
+
+## Approved by a person — 2026-10-15
+
+The person replied in the orchestrator's session, verbatim: "approve". The orchestrator wrote `Approved:` on their behalf and resumed at `Next step: worker`.
