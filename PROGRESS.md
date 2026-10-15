@@ -198,9 +198,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - **Templates and a generator, writing nothing yet** (T-020, T-021):
   `src/templates.ts` holds the template record, three templates and a
   validator. `src/generate.ts` turns entities × templates into question drafts
-  (150 over the committed bank) and reports pairs with missing data. A draft
-  has no `choices`, `level` or tags yet (T-022, T-023, T-024), and nothing
-  writes or serves the output.
+  (150 over the committed bank) and reports pairs with missing data.
+  `src/distractors.ts` `buildChoices` (T-022) turns those drafts into
+  four-option questions with `choices`, `correctIndex` and, on `map_click`,
+  `choiceGeometryIds` (E-21). A question has no `level` or tags yet (T-023,
+  T-024), and nothing writes or serves the output.
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
   `state-animals.test.ts` (T-012), `landmarks.test.ts` and
@@ -350,6 +352,27 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-022 — distractor strategies: drafts become four-option questions** (PR
+  #82, 2026-10-15). `question-bank/src/distractors.ts` exports
+  `buildChoices(drafts, entities, templates = TEMPLATES)`, a separate stage
+  after `generate()`. It returns `{ questions, shortPools }`: 150 questions and
+  no short pools over the committed bank. Distractors come in tiers set by the
+  template's `distractor_strategy` (borders, then region, then the rest),
+  nearest centroid first by great-circle distance, ties by `id`. The 11 states
+  in regions under four states top up from outside the region. `correctIndex`
+  is FNV-1a plus the murmur3 finalizer over the draft id, `% 4`, and splits
+  34/34/40/42. `map_click` questions carry `choiceGeometryIds`.
+  `engineering-decisions.md` E-21 records all of it. Nothing in the build
+  imports it.
+  *Where it differed from the brief:* the queue said four regions were too
+  small, and the expander found seven (11 states). The `openapi.yaml` half of
+  the queue entry moved to T-040/T-051, and the same-value guards moved to
+  T-026, both flagged in the brief Dkaattae approved. The orchestrator's own
+  approval stamp was refused and reverted, and Dkaattae then approved. One
+  review round went back to the tester: an assertion that E-21 was the
+  *highest* E-entry would have expired with the next entry. Run orchestrated,
+  with one session id across the roles (`P-14`).
 
 - **T-021 — the generator: entities × templates → question drafts** (PR #80,
   2026-10-15). `question-bank/src/generate.ts` exports `generate(entities,
@@ -1351,14 +1374,15 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   elsewhere, with its substance awaiting a human read on PR #69. So all four
   topic fields now have data
   and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
-  T-021/T-026, a same-value distractor guard (T-022), and something serving
+  T-026 (templates plus a same-value distractor guard) and something serving
   them (T-040, T-050).
 - **One region vocabulary, settled** (T-017, PR #49): the served bank's thirteen
   values, used by both halves and enforced by a closed-set test over the curated
   table, the built bank and `content.json`. What is *not* settled is whether each
   state's assignment is the right member of the thirteen — 35 rows are hand
-  curation awaiting a human read on PR #49, and four regions hold one or two
-  states, which T-022 needs a distractor fallback for.
+  curation awaiting a human read on PR #49. Seven regions hold fewer than four
+  states; T-022 (PR #82) tops their 11 states' distractors up nearest-first
+  from outside the region (E-21).
 
 **Verification and process.**
 

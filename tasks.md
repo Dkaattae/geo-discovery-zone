@@ -351,62 +351,14 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-022 — Distractor strategies · M · doing
-**Depends on:** T-021
-`sibling_capitals_same_region` and neighbours-first for map questions. Ohio /
-Indiana / Illinois / Iowa is a real question; Ohio / Hawaii / Texas / Alaska is
-free (plan §1.2). **T-017 is done (PR #49)** — "same region" is now one
-documented 13-value vocabulary, used by both the pipeline and the served bank.
-
-**Four of the thirteen regions are too small to draw distractors from, and this
-task has to have an answer for them** (found by T-017's reviewer, PR #49). The
-settled assignment leaves `Great Basin` = Nevada, `Pacific` = Hawaii and
-`Pacific West` = California with **one state each**, and `Southwest` = Arizona +
-New Mexico with two. `sibling_capitals_same_region` cannot produce a single
-same-region distractor for HI, CA or NV, nor three for AZ/NM. This follows from
-`content.json`'s frozen anchor values and the approved product decision, so it
-is not a defect to fix in the data — but the strategy needs a named fallback
-(nearest region, neighbouring states, or skip the entity for that template) and
-a test that the fallback fires for exactly those states rather than silently
-emitting a question with two choices.
-**Three same-value guards are now waiting on this, not just same-region:**
-`wildlife` needs a same-animal guard (20 of 50 states share an animal, T-012),
-`climate` needs a same-climate one (41 of 50 states fall into ten
-substantively-interchangeable groups, T-014/PR #44 — listed under T-026), and
-`agriculture` needs a same-crop one (T-015/PR #46: nine states' whole crop list
-is `corn, soybeans`; `apples` spans six states and `wheat` four — listed under
-T-026). The first two are invisible to a string compare, which is what makes
-them this task's problem rather than the curation tasks'. **`agriculture` is the
-opposite case and worth separating:** its collisions *are* exact string matches,
-deliberately, because crops genuinely repeat across states. A same-string check
-catches them — what it cannot decide is that the right response is to gate the
-reverse question direction rather than to reshuffle distractors.
-**Since T-020 (PR #79):** the naming half is done. Every template carries a
-`distractor_strategy` from `DISTRACTOR_STRATEGIES` in `templates.ts`, and its doc
-comment says what each name is meant to do. This task implements those names and
-may rewrite the comments.
-**Since T-021 (PR #80):** build on `generate()` in
-`question-bank/src/generate.ts`, which returns `QuestionDraft`s carrying the
-correct `answer` only. `engineering-decisions.md` E-20 settles `map_click`: the
-`answer` is the state's `name` and the click target rides beside it as
-`answerGeometryId`. So `choices` are names, and every choice also needs its
-`geometry_id` in a parallel code list for T-051 to map a tap to a
-`choiceIndex`. Naming that list, and adding it to `openapi.yaml`, is this task's.
-**Done when:** strategies are named on templates, not hardcoded, and a test
-asserts distractors come from the same region.
-**Expanded 2026-10-15** into `tasks/T-022-distractor-strategies.md`. Two
-scope calls, flagged for the approver: the parallel code list is named and
-recorded as an `E-n` but does **not** enter `openapi.yaml` (E-14: it follows
-the backend, and nothing serves generated questions until T-040/T-051); and
-the same-animal, same-climate and same-crop guards move to T-026, with the
-templates they guard. **Seven regions are too small, not four:** with four
-choices a region needs four states, so Pacific Northwest (AK, OR, WA) and
-Great Plains (KS, MO, NE) fall short too — 11 states in all.
-
 ### T-023 — Seed `level` deterministically · M · todo
 **Depends on:** T-022
 `base_level(template) + entity_obscurity + distractor_tightness + concept_load −
 familiarity_bonus`, using the rank fields already on entities (plan §1.4).
+**Since T-022 (PR #82):** seed `level` on the `GeneratedQuestion`s that
+`buildChoices` in `question-bank/src/distractors.ts` returns, not on drafts.
+`distractor_tightness` can be read from the tier each distractor came from
+(E-21): the 11 small-region states get looser capital questions by construction.
 **Done when:** every generated question has a level in 0–18 and the weights are
 in one documented place.
 
@@ -441,13 +393,13 @@ plan expects this to be a manual pass, not a computed one.
 **New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
 topic is one template plus the curated field behind it, and none needs new
 infrastructure once T-021 lands:
-**Since T-022's expansion (2026-10-15):** the same-animal, same-climate and
-same-crop guards described under T-022 and below are **this task's**, landing
-with the template each one guards. T-022 guarantees only that no two choices
-share the same text.
+**Since T-022 (PR #82):** the same-animal, same-climate and same-crop guards
+described below are **this task's**, landing with the template each one guards.
+`buildChoices` (`question-bank/src/distractors.ts`, E-21) guarantees only that
+no two choices share the same text (trimmed, lower-cased).
 **Since T-020 (PR #79):** each new template is an entry in `TEMPLATES` and must
 pass `validateTemplate`. A new distractor rule is a new name in
-`DISTRACTOR_STRATEGIES` plus T-022's implementation of it.
+`DISTRACTOR_STRATEGIES` plus a case in `tierOf` in `distractors.ts` (T-022).
 **Since T-021 (PR #80):** `generate()` fills `{token}`s verbatim and does not
 guard against a value that itself contains `{` or `}`; no current field has
 one. A new template that puts a free-text field (a landmark name, a climate
@@ -480,8 +432,8 @@ the part a duplicate check will miss: "Black bear" (LA) vs "American black bear"
 squirrel" (KY) vs "Eastern gray squirrel" (NC); "Horse" (NJ) vs "Morgan horse"
 (VT); "Desert bighorn sheep" (NV) vs "Rocky Mountain bighorn sheep" (CO). Two of
 those offered as four options is a question with two right answers to a
-nine-year-old. Whoever writes the distractor rule (T-022) needs a same-animal
-guard, not a same-string one.
+nine-year-old. The `wildlife` template needs a same-animal guard, not a
+same-string one: T-022 (PR #82) shipped only the same-string one.
 
 **`landmark`'s data exists now (T-013, PR #43) — for 44 states, not 50.** DE, IA,
 KS, MS, OK and RI are deliberately blank (no defensible kid-recognisable,
@@ -595,10 +547,11 @@ now in `openapi.yaml` and on `backend/app/models.py`'s `Entity`
 owed while you are in that schema: `openapi.yaml`'s `topLivestock.description`
 says "Empty where no state has an honest standout". It should say "where the
 state has no honest standout".
-**Since T-022's expansion (2026-10-15):** generated `map_click` questions
-carry a list of `geometry_id`s parallel to `choices`, named in the `E-n` T-022
-records. It is not in `openapi.yaml` or `backend/app/models.py` yet (E-14). If
-this loader serves generated questions, it adds that field to both.
+**Since T-022 (PR #82):** generated `map_click` questions carry
+`choiceGeometryIds`, a list of `geometry_id`s parallel to `choices`
+(`engineering-decisions.md` E-21). It is not in `openapi.yaml` or
+`backend/app/models.py` yet (E-14). If this loader serves generated questions,
+it adds that field to both.
 **Done when:** a documented command turns a pipeline build into a served bank,
 running it twice changes nothing, and the app serves states that were never
 hand-written.
@@ -673,10 +626,11 @@ separately as `answerGeometryId`. E-20 expects T-022 to give `choices` a
 parallel list of `geometry_id`s, so the client maps a tap on region `X` to the
 choice whose code is `X` and sends its `choiceIndex`. The backend grading stays
 as it is.
-**Since T-022's expansion (2026-10-15):** the parallel list's name is in the
-`E-n` T-022 records, not in `openapi.yaml`. Whichever of T-040 and this task
-first serves a generated `map_click` question adds it to the contract and the
-backend model.
+**Since T-022 (PR #82):** the parallel list is `choiceGeometryIds`
+(`engineering-decisions.md` E-21), set on `map_click` questions only, with
+`choiceGeometryIds[correctIndex] === answerGeometryId`. It is not in
+`openapi.yaml`. Whichever of T-040 and this task first serves a generated
+`map_click` question adds it to the contract and the backend model.
 **Done when:** a `map_click` question can be shown, answered by tapping the map,
 and graded, with the same asymmetric reveal as the other two.
 
