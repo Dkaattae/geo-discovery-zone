@@ -1,7 +1,7 @@
 # T-021 — Generator: entities × templates → question drafts
 
-**Status:** awaiting verification
-**Next step:** tester
+**Status:** pass
+**Next step:** reviewer
 **Approved:** orchestrator — 2026-10-15, unattended run. See `runs/T-021-generator.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-021
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj |
 | worker | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj |
+| tester | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj (orchestrated: shared id, freshly spawned subagent) |
 
 **Worker model:** Opus. The task fixes a record shape that T-022, T-023, T-024,
 T-026, T-040 and T-051 all build on, and settles how a `map_click` answer is
@@ -333,7 +334,104 @@ and format:check are all green. **Tests made stale: none.** Next: tester.
 
 ## Verdict
 
-_Written by `tester`._
+_Written by `tester`, 2026-10-15._
+
+**TL;DR. Pass.** All 29 criteria hold. 63 new tests in
+`question-bank/src/generate-verify.test.ts`. The whole `question-bank/` suite is
+green (2012 pass, 0 fail, run with every proxy variable pointed at
+`127.0.0.1:1`), and so are typecheck, lint and format:check. **Tests made stale:
+none**, confirmed. Next: reviewer.
+
+**Independence: the weaker kind.** This is an orchestrated run
+(`runs/T-021-generator.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_01FsXqnpENQjfQBQc9Pmhmfj`, the same id the Sessions table lists for
+task-expander and worker. That match is expected under the orchestrator and
+proves nothing either way. My independence rests only on being a freshly
+spawned subagent with its own context: I did not see the work being done or the
+worker's reasoning. That is weaker evidence than a separate session, because it
+depends on the orchestrator having spawned me correctly, and I cannot check
+that myself. The worker's Handoff asked for a tester with a different id. This
+run could not supply one, so a human has to decide whether that matters.
+
+**Method.** I read `generate.ts` only for its signature (`generate(entities,
+templates = TEMPLATES)` → `{ drafts, skipped }`). Every expected value comes from
+the criteria. Skip-report assertions check that a field is *named*, under any
+array key, and do not depend on the worker's `missing` / `notText` split.
+
+| # | Verdict | Evidence (`describe` in `generate-verify.test.ts`, unless stated) |
+|---|---|---|
+| 1 | pass | 50 entities → 150 drafts, `skipped` `[]`, and the same with the template list defaulted |
+| 2 | pass | 50 per template; each entity's template ids are exactly the three |
+| 3 | pass | Colorado prompt/`Denver`, Alaska `Juneau` |
+| 4 | pass | Colorado identify: prompt, `Colorado`, `08` |
+| 5 | pass | Colorado click: prompt, `Colorado`, `answerGeometryId` `08`, no `highlightGeometryId` own key |
+| 6 | pass | six non-empty strings on all 150; ids/format carried through on a synthetic template |
+| 7 | pass | no braces in the bank; multi-token prompt with repeated token, `$&`/`$1` and surrounding spaces filled verbatim |
+| 8 | pass | iff `map_identify`, checked on all 150 + synthetic |
+| 9 | pass | iff `answer_field` is `geometry_id`, all 150 + a synthetic `multiple_choice` code-answer template |
+| 10 | pass | capital-of answer = `capital` for all 50; synthetic `state_animal` answer |
+| 11 | pass | code answer is `name`; no prompt/answer equals any of the 50 codes; no all-digit answer |
+| 12 | pass | 150 distinct; same id over a 3-entity subset and with both lists reversed |
+| 13 | pass | disjoint from the 26 `content.json` question ids |
+| 14 | pass | `undefined`, `null`, `""`, `"   "`, `[]`, key absent → no draft, one report naming the field, no throw; two missing fields both named; `"X"`, `["corn"]` (in `requires` only) and `0` count as present |
+| 15 | pass | empty capital loses only capital-of; 50 + 1 gap → 152 drafts, 1 skip |
+| 16 | pass | `country` → capital-of only, no report; out-of-scope `city` with a gap → nothing, no report |
+| 17 | pass | `answer_field: top_crops` over `["corn"]` → no draft, one report naming `top_crops`; number/array/object as token or answer; `highest_point_m: 0` as answer is reported rather than rendered `"0"` |
+| 18 | pass | invalid template in the middle or at the end → throws, message has its id and a `validateTemplate` problem, nothing returned |
+| 19 | pass | duplicate template id throws; duplicate entity id throws; distinct ids do not |
+| 20 | pass | TEMPLATES (vs a module-load snapshot) and entities deep-equal after calls; mutating every returned draft and report array leaves both unchanged |
+| 21 | pass | two calls deep-equal in order, with and without skips |
+| 22 | pass | no draft string contains any committed fun fact text; a `reviewed: false` and a `reviewed: true` sentinel never reach a draft, even through a template that names `fun_facts` |
+| 23 | pass | `git diff --stat origin/main...HEAD` touches only `engineering-decisions.md`, `generate.ts`, `generate.test.ts`, `runs/`, `tasks.md` and this brief, plus now my test file. `generate.ts` has no fetch, file write, `Bun.`, `Date` or `Math.random` |
+| 24 | pass | the transitive relative-import closure of `build.ts`, `refresh.ts` and `normalize.ts` contains neither `generate.ts` nor `templates.ts`. `bun run build` was not run, because it reaches Wikidata. Byte-identity follows from the import graph, which is how the criterion states it |
+| 25 | pass | TEMPLATES equals the three T-020 records, all nine fields, at load and after every call; `templates.ts` is not in the diff |
+| 26 | pass | `package.json` and `bun.lock` are not in the diff. `dependency-set.test.ts` is green |
+| 27 | pass | `generate.ts` imports only `./templates` and `./types`; the suite is green with proxies pointed at `127.0.0.1:1` |
+| 28 | pass | `bun test` 2012/0, `typecheck`, `lint` (0/0) and `format:check` all clean. No pre-existing test was touched |
+| 29 | pass | `engineering-decisions.md` E-20 (E-19 was the last): `answer` is `name`, the code is in `answerGeometryId`, guidance for T-022/T-051 (name `choices`, `correctIndex`, a parallel code list), and the option not taken (code as `answer`) with its cost |
+
+**Mutations to `generate.ts`, all reverted** (`diff` against a backup is empty,
+and `git status` shows only my test file):
+
+| Mutation | Red in my file |
+|---|---|
+| emptiness ignores whitespace (`value === ""`) | 2 |
+| empty array not missing | 1 |
+| code answer = `geometry_id` | 3 |
+| highlight on every format | 3 |
+| `applies_to` filter removed | 2 |
+| id gets a time component | 4 |
+| duplicate entity check off | 1 |
+| duplicate template check off | 1 |
+| invalid-template throw off | 2 |
+| non-string check off | 9 |
+| token value trimmed | 1 |
+| only the first token replaced | 1 |
+| generator writes `base_difficulty` on `templates[0]` | 2 |
+| generator writes `region` on every entity | 2 |
+
+Two mutations stayed green, and both were equivalent (no change in behaviour). Prefixing the token value
+with `"" +` changes nothing. Stopping the `requires` loop at the first missing field
+changes nothing either, because the text-field pass then adds the rest. The
+`base_difficulty` mutation first passed against a per-test snapshot: earlier
+tests had already mutated the shared export before the snapshot was taken. I
+hardened criteria 20 and 25 to compare against a snapshot taken at module load
+and against the full T-020 literal. Both now go red.
+
+**On the Handoff's judgment calls**
+- **Implicit `geometry_id`/`name` requirements.** These are consistent with
+  criteria 8, 11 and 14. No current template triggers them. Not separately
+  tested.
+- **Entity with no usable id throws.** No criterion covers this. It does not
+  contradict 19. Not tested. The reviewer may rule on it.
+- **Non-string `geometry_id` → reported.** Consistent with 17's intent. Not
+  separately tested.
+- **No brace guard on token values.** Criterion 7's "verbatim" and "no `{`"
+  would conflict for a value containing a brace. No committed value has one, so
+  the committed-bank test holds. This is for the reviewer, as the Handoff says.
+
+**Not done**
+- **`bun run build` not run.** It needs the network. See 24.
 
 ## Notes
 
