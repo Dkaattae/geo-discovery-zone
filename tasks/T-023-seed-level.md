@@ -2,7 +2,7 @@
 
 **Status:** `blocked`
 **Next step:** `task-expander`
-**Approved:** Dkaattae (person, in the orchestrator session) — 2026-10-15: "approved, go ahead with the worker". See `runs/T-023-seed-level.md`.
+**Approved:** `pending` — re-approval needed after criterion 16 is amended. The first approval (Dkaattae, 2026-10-15, "approved, go ahead with the worker") covered the brief before the amendment. Dkaattae's decision on the block, in the orchestrator session, 2026-10-15: "go with the worker's fix, drop NV from criterion 16". See `runs/T-023-seed-level.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-023
 **Branch:** `claude/stoic-lamport-zeq0c3`

@@ -1,7 +1,7 @@
 # T-023 — Seed `level` deterministically — run log
 
 **Task:** T-023 · **Branch:** `claude/stoic-lamport-zeq0c3` · **PR:** #83
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: none (no brief) → on exit: `worker`. `Status` → `awaiting approval`.
@@ -94,3 +94,6 @@ Brief: `/home/user/geo-discovery-zone/tasks/T-023-seed-level.md`. The Handoff se
 The header reads `Status: blocked`, `Next step: task-expander`. `Status: blocked` is a halt condition, so no role is spawned. What the worker asked for, quoted: "**Next step: `task-expander`** to amend criterion 16, then Dkaattae re-approves."
 
 **What a human has to decide:** whether to send the task to the `task-expander` to amend criterion 16, and then re-approve the amended brief.
+
+## Resumed — human decision on the block — 2026-10-15
+The person answered in the orchestrator's session: "go with the worker's fix, drop NV from criterion 16". Their words are now in the brief's `Approved:` line, which reads `pending` again because the amended brief needs re-approval. Resuming at `task-expander`. The spawn prompt is the unchanged template.
