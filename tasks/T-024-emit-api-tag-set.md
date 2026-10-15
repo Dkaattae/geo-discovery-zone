@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-024
 **Branch:** `claude/friendly-archimedes-dw9utb`
-**PR:** opened draft at expand time against the branch above (number in the PR list; see Sessions/Notes)
+**PR:** #84, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
