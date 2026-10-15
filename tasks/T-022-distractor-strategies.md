@@ -3,7 +3,7 @@
 **Status:** `awaiting approval`
 **Next step:** `worker` — once `Approved:` is filled in. Opus recommended: this
 decides which wrong answers a child sees, which is data correctness.
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-15, unattended run. See `runs/T-022-distractor-strategies.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-022
 **Branch:** `claude/awesome-cerf-v617fy`
