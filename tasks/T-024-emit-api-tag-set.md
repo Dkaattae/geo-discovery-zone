@@ -1,7 +1,7 @@
 # T-024 — Emit the API tag set on generated questions
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae (in the orchestrator session) — 2026-10-15. See `runs/T-024-emit-api-tag-set.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-024
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d |
 | worker | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d (orchestrated subagent; `$CLAUDE_CODE_REMOTE_SESSION_ID` is the parent session's, so it matches the expander's row) |
+| tester | 2026-10-15 | cse_0148WgLerEA66mjfXXfy932d (orchestrated run, same id: independence is a freshly spawned subagent context, not a separate session) |
 
 ## Goal
 
@@ -332,6 +333,93 @@ committed tree is formatted by the pinned 3.9.6.
 **Tests made stale:** none.
 
 ## Verdict
+
+> **TL;DR. Pass.** All 28 criteria hold. My verify file
+> (`question-bank/src/tags-verify.test.ts`, 46 tests) is green, and so is the
+> whole gate: `bun test` 2180 pass / 0 fail, `typecheck`, `lint`, `format:check`
+> exit 0. 33 mutations (source, `templates.ts`, `backend/app/models.py`), each
+> reverted, each turned at least one test red. Next: **reviewer**.
+
+**Independence, stated plainly.** This run is orchestrated
+(`runs/T-024-emit-api-tag-set.md` exists), so `$CLAUDE_CODE_REMOTE_SESSION_ID`
+(`cse_0148WgLerEA66mjfXXfy932d`) is the same as the expander's and worker's
+rows. The id check proves nothing here. My independence rests on being a freshly
+spawned subagent with its own context: I did not watch the work and cannot see
+the worker's reasoning. That is weaker than a separate session, because it rests
+on the orchestrator having spawned me correctly, not on anything I can check.
+
+**Expected values** came from the criteria, `backend/app/models.py` and the
+committed bank. `tags.ts` was read for the signature
+`tagQuestions(questions, entities, templates?, topics?)` and the export names
+(`TOPICS`, `TEMPLATE_TOPICS`) only.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `criterion 1` tests: ids/length over bank, reversed input stays reversed, `[]` → `[]` |
+| 2 | pass | 150 out; all seven keys own, non-null, non-undefined |
+| 3 | pass | no `entity_type`/`age_band`/`min_age_band`/`entity_id` |
+| 4 | pass | keys = input keys + the five exactly (+ four on a region hole); every input key deep-equal; the ten named fields checked |
+| 5 | pass | deep-equal before/after (questions, entities, templates, `TEMPLATES`); deep-frozen inputs do not throw; outputs are new objects |
+| 6 | pass | two calls deep-equal |
+| 7, 8 | pass | 150 `us` / `state`; and an entity changed to `world` / `country` changes only its questions (not hard-coded) |
+| 9 | pass | equals entity's region; CO = `Mountain West`; `"  mountain  WEST "` kept verbatim |
+| 10 | pass | per-template topic; 100 location / 50 capital |
+| 11 | pass | 150 × `1`; `min_age_band` 2 and 3 on capital-of give 2 / 3 to its questions only |
+| 12 | pass | format equals template's per question |
+| 13 | pass | `Object.is` level per question; hand-set `17.25` survives |
+| 14 | pass | members of `Topic`/`Scope`/`EntityType`/`QuestionFormat` parsed independently from models.py; ageBand integer in {1,2,3}; level finite 0–18; region non-blank trimmed |
+| 15 | pass | absent / `null` / `""` / whitespace: no `region` key, other six present, no throw, other states keep theirs |
+| 16 | pass | orphan template mixed with good questions throws naming it, returns nothing; `{}` topic map refuses `tpl-capital-of` |
+| 17 | pass | `geography` on new and on existing template throws naming it; `null`/`undefined`/`""`/`"Capital"`/`1` refused; valid `landmark` honoured |
+| 18 | pass | every `TEMPLATES` id in `TEMPLATE_TOPICS`, value in backend `Topic`; mutation dropping click's entry turns it red |
+| 19 | pass | unknown entity (mixed in), entity omitted from input, template omitted: each throws with the question id, returns nothing |
+| 20 | pass | by mutation of the worker's `tags.test.ts` cross-check (below) |
+| 21 | pass | by mutation of the worker's test, plus my own independent `TOPICS` = `class Topic` set test |
+| 22 | pass | models.py moved away, emptied, class renamed, class reduced to `pass`: the cross-check tests **fail**, none skip |
+| 23 | pass | transitive relative-import walk from `build.ts` + `refresh.ts` excludes `tags.ts`; mutation adding the import turns it red |
+| 24 | pass | `git diff --name-only origin/main...HEAD`: `engineering-decisions.md`, `question-bank/src/{tags,tags.test,templates}.ts`, `runs/…`, `tasks.md`, `tasks/…`. Nothing under the forbidden paths, `openapi.yaml` untouched |
+| 25 | pass | same diff: `package.json`, `bun.lock` unchanged |
+| 26 | pass | static scan of `tags.ts` and its runtime imports (`./templates` only) for fs/env/clock/random/fetch; both T-024 test files pass with all proxy vars pointed at `127.0.0.1:1` |
+| 27 | pass | 2180 pass / 0 fail (2134 before my file), typecheck, lint, format:check exit 0 |
+| 28 | pass | one `E-23`, highest number; names stage, module, sources, three topics, camelCase, region omission, `tags.test.ts`; `git diff d10edd5 HEAD -- engineering-decisions.md` removes no line |
+
+**Mutations** (each applied by script, reverted, `git status` clean after):
+
+| Mutation | Worker's `tags.test.ts` | My verify file |
+|---|---|---|
+| models.py `Topic` + `geography` / − `elevation` | red (TOPICS cross-check) | red |
+| models.py `QuestionFormat` + `quiz` / − `click_profile` | red (QF cross-check) | — (not mine) |
+| `TOPICS` + `geography` / − `elevation` | red | red |
+| `QUESTION_FORMATS` + `quiz` / − `click_profile` | red | — |
+| class `Topic` / `QuestionFormat` renamed | red | red |
+| class body reduced to `pass` (zero values), each | red | red |
+| models.py emptied; models.py moved away | red (fail, 0 skip) | red |
+| region `""` on hole; whitespace region kept | red | red |
+| region trimmed | **green** | red |
+| missing topic defaults to `location` | red | red |
+| topic membership check removed | red | red |
+| `scope` / `entityType` hard-coded | **green** | red |
+| `ageBand` constant 1 | red | red |
+| `level` rounded | red | red |
+| unknown entity skipped; filter instead of throw (partial output) | red | red |
+| input question mutated | red | red |
+| `age_band` key added | red | red |
+| first question dropped | red | red |
+| `TEMPLATE_TOPICS` click → capital; click entry removed | red | red |
+| `build.ts` imports `./tags` | **green** | red |
+| `tags.ts` reads `process.env` | **green** | red |
+
+The worker's file alone misses four mutations; my file catches all of them.
+
+**For the reviewer:**
+
+- **Format-mismatch throw (worker's flag).** Not exercised by any criterion; it
+  does not fire on pipeline output. Confirm or overturn.
+- **PROGRESS.md** still says questions have no tags (worker's note).
+- **Out-of-scope carry-forward**: the `generate.ts` silent required-field note
+  belongs in `tasks.md` (T-026), per the brief.
+- **Tests made stale:** none found. Topic is keyed by id, so the four pinned
+  nine-field tests are untouched and still green.
 
 ## Notes
 
