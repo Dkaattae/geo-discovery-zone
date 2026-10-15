@@ -127,7 +127,7 @@ the three are picked as follows.
    fewer.
 10. **A state with no borders still gets a full question.** Over the committed
     bank, the `tpl-identify-on-map` and `tpl-click-the-map` questions for AK and
-    HI each have 4 choices, with distractors from tier 2 and then tier 3.
+    HI each have 4 choices, picked per criterion 7 with tier 1 empty.
 11. **The strategy is read from the template, not from the format or the
     template id.** Take a copy of `tpl-capital-of` with only
     `distractor_strategy` changed to `neighbours_first`. Over the committed
@@ -160,10 +160,10 @@ the three are picked as follows.
 16. When a draft has fewer than three candidates with distinct text, it is
     **not** returned as a question. It comes back in the reports instead, with
     its draft `id` and how many distractors were found. Both edges:
-    - With 4 states as the whole input (the answer's plus 3 more), every draft
-      becomes a question.
-    - With 3 states as the whole input, every draft is reported and none
-      becomes a question.
+    - With 4 committed states as the whole input (the answer's plus 3 more),
+      every draft becomes a question.
+    - With 3 committed states as the whole input, every draft is reported and
+      none becomes a question.
     The same happens when the draft entity's own `centroid` is missing or not
     two finite numbers. In neither case does the function throw.
 17. A draft whose `entityId` is not among the input entities, or whose
