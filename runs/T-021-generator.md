@@ -1,7 +1,7 @@
 # T-021 — Generator: entities × templates → question drafts — run log
 
 **Task:** T-021 · **Branch:** `claude/amazing-carson-zrp4qz` · **PR:** #80
-**Started:** 2026-10-15 · **Outcome:** halted — needs human (sweep refused)
+**Started:** 2026-10-15 · **Outcome:** ready for merge once a person marks PR #80 ready
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: no brief (`tasks/` empty) → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
@@ -139,3 +139,13 @@ Halted at 2026-10-15T15:35Z on `Next step: human`, `Status: sweep refused`.
 Branch head at the halt: `c65a221`. Per D-16 the orchestrator waits about an
 hour for a person; if none has answered by the check-in, it applies exactly
 `### Sweep to apply` and leaves the PR draft for a person to mark ready.
+
+## Resumed — sweep applied on instruction — 2026-10-15
+Dkaattae, in the orchestrator session, about 15 minutes after the halt: "apply
+the sweep now". The orchestrator re-read the header (`Status: sweep refused`),
+read only `### Sweep to apply`, and applied exactly that list: `git rm` of the
+brief, the `tasks.md` edits (T-021 deleted; T-070, T-022, T-024, T-026, T-051
+amended) and the two `PROGRESS.md` edits. Checks in `question-bank/` after the
+sweep: format:check, typecheck and lint clean; `bun test` 2012 pass, 0 fail
+(proxy variables pointed at `127.0.0.1:1`). PR #80 is left draft: the
+orchestrator holds no PR tool. A person marks it ready and merges.

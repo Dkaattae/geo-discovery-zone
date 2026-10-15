@@ -195,9 +195,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
-- **Question templates exist but generate nothing yet** (T-020):
+- **Templates and a generator, writing nothing yet** (T-020, T-021):
   `src/templates.ts` holds the template record, three templates and a
-  validator. T-021 is the first reader.
+  validator. `src/generate.ts` turns entities × templates into question drafts
+  (150 over the committed bank) and reports pairs with missing data. A draft
+  has no `choices`, `level` or tags yet (T-022, T-023, T-024), and nothing
+  writes or serves the output.
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
   `state-animals.test.ts` (T-012), `landmarks.test.ts` and
@@ -339,6 +342,23 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-021 — the generator: entities × templates → question drafts** (PR #80,
+  2026-10-15). `question-bank/src/generate.ts` exports `generate(entities,
+  templates = TEMPLATES)`, which returns `{ drafts, skipped }`: 150 drafts and
+  no skips over the committed bank. Ids are `gen:<templateId>:<entityId>`. A
+  pair with a blank required field, or a non-string value that would have to
+  become text, is skipped and reported; an invalid or duplicate input throws
+  before anything is drafted. `engineering-decisions.md` E-20 records the draft
+  shape and `map_click`: `answer` is the state's name, the code is
+  `answerGeometryId`. Nothing in the build imports it, and no output is written.
+  *Where it differed from the brief:* the generator also requires `geometry_id`
+  for `map_identify` and `name` for a code answer even when a template's
+  `requires` omits them (T-024 may move that into `validateTemplate`). It
+  throws on an entity with no usable id, which no criterion asked for. Token
+  values are not guarded against braces (left to T-026). Run orchestrated with
+  one session id across all roles, so the tester's independence rests on being
+  a freshly spawned subagent (`P-14`). The harness refused the reviewer's sweep.
 
 - **T-020 — the template record, three templates and a validator** (PR #79,
   2026-10-13). `question-bank/src/templates.ts` holds `Template` (plan §1.2's
