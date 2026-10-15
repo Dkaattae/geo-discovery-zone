@@ -198,7 +198,8 @@ down the `top_crops` blind spot? Either way: must the guard survive a refresh
 where only `sources.built_at` and the fixture moved? The expander's survey for
 this half (more guards than the entry says: `highest-point-in-state-verify.test.ts`
 pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
-`3cedfe8`. The next decision entry is `E-20`.
+`3cedfe8`. `E-20` went to T-021 (PR #80); take the next unused number,
+`E-21` unless something else lands first.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -303,7 +304,8 @@ entries go red on the first refresh, and on T-084's re-record. Whatever (a)
 decides about surviving a refresh has to cover these two pins as well as the
 four bank guards.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
-decision to keep them is written down in `engineering-decisions.md` as `E-20`).
+decision to keep them is written down in `engineering-decisions.md` as the next
+unused `E-n`, `E-21` at the time of writing).
 
 ### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · todo
 **Depends on:** — (T-077's guard landed in PR #77, so this is a fix, not a
@@ -339,6 +341,7 @@ amendment; the re-record needs a Test change request row for each.
 **Skipped again by the expander, 2026-10-13, for T-020.** Nothing has changed
 since the note above: Q1 is still open, and nobody has decided the proposed
 split.
+**Skipped again, 2026-10-15, for T-021.** Same reason.
 
 ---
 
@@ -347,19 +350,6 @@ split.
 Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
-
-### T-021 — Generator: entities × templates → questions · M · todo
-**Depends on:** T-020
-Skip any entity missing a template's `requires` fields rather than emitting a
-question with a hole in it.
-**Since T-020 (PR #79):** read `TEMPLATES` from `question-bank/src/templates.ts`
-and call `validateTemplate` on each before use. Copy the records, do not mutate
-them: `TEMPLATES` is an exported mutable array. `tpl-click-the-map`'s answer is a
-`geometry_id`, and `backend/app/grading.py:39` grades `map_click` by
-`choiceIndex`, so this task decides what goes in `choices` for it. A FIPS code
-must never be a label a child sees. T-051 owns the client side.
-**Done when:** the generator produces questions for all 50 states and skips
-cleanly where data is absent.
 
 ### T-022 — Distractor strategies · M · todo
 **Depends on:** T-021
@@ -395,6 +385,13 @@ reverse question direction rather than to reshuffle distractors.
 `distractor_strategy` from `DISTRACTOR_STRATEGIES` in `templates.ts`, and its doc
 comment says what each name is meant to do. This task implements those names and
 may rewrite the comments.
+**Since T-021 (PR #80):** build on `generate()` in
+`question-bank/src/generate.ts`, which returns `QuestionDraft`s carrying the
+correct `answer` only. `engineering-decisions.md` E-20 settles `map_click`: the
+`answer` is the state's `name` and the click target rides beside it as
+`answerGeometryId`. So `choices` are names, and every choice also needs its
+`geometry_id` in a parallel code list for T-051 to map a tap to a
+`choiceIndex`. Naming that list, and adding it to `openapi.yaml`, is this task's.
 **Done when:** strategies are named on templates, not hardcoded, and a test
 asserts distractors come from the same region.
 
@@ -416,6 +413,13 @@ is a hand copy of the nine formats, with nothing tying it to the backend's
 Emitting `format` makes that drift visible, so add the cross-check here. Whether
 a template carries `topic` is also this task's call: the record has nine fields,
 and the validator rejects a tenth on purpose.
+**Since T-021 (PR #80):** the generator silently adds `geometry_id` to a
+`map_identify` template's required fields, and `name` to one whose
+`answer_field` is `geometry_id`, because the draft cannot be built without
+them. That is a template/format consistency rule living in the generator. If
+this task adds the format cross-check to `validateTemplate`, move that rule
+there too, so a template that omits them is refused rather than quietly
+patched.
 **Done when:** every generated question carries all seven and matches the schema.
 
 ### T-025 — Hand-check 30 generated questions · S · todo
@@ -432,6 +436,12 @@ infrastructure once T-021 lands:
 **Since T-020 (PR #79):** each new template is an entry in `TEMPLATES` and must
 pass `validateTemplate`. A new distractor rule is a new name in
 `DISTRACTOR_STRATEGIES` plus T-022's implementation of it.
+**Since T-021 (PR #80):** `generate()` fills `{token}`s verbatim and does not
+guard against a value that itself contains `{` or `}`; no current field has
+one. A new template that puts a free-text field (a landmark name, a climate
+phrase) into its prompt should add a check that such a pair is skipped and
+reported rather than emitted with a brace in it. Array- and number-valued
+answers are reported as `notText` today; this task decides how they become text.
 
 | Topic | Template | Needs |
 |---|---|---|
@@ -641,6 +651,12 @@ true:
 
 So a tap has to become a `choiceIndex` on the client, or the payload gains a
 field. T-020's `tpl-click-the-map` sets `answer_field: "geometry_id"`.
+**Since T-021 (PR #80), `engineering-decisions.md` E-20:** a generated
+`map_click` question's `answer` is the state's `name`, with the code carried
+separately as `answerGeometryId`. E-20 expects T-022 to give `choices` a
+parallel list of `geometry_id`s, so the client maps a tap on region `X` to the
+choice whose code is `X` and sends its `choiceIndex`. The backend grading stays
+as it is.
 **Done when:** a `map_click` question can be shown, answered by tapping the map,
 and graded, with the same asymmetric reveal as the other two.
 
