@@ -72,3 +72,34 @@ The person replied in the orchestrator's session, verbatim: "approve". The orche
 - **Formatting trap in this environment.** `node_modules` was missing, so `bun run format` used a global prettier 3.8.1 and rewrote two unrelated test files. I reverted both before installing from the lockfile, which left `package.json` and `bun.lock` unchanged. Nothing for anyone to do; the warning is also in the Handoff.
 
 **Tests made stale:** none.
+
+## Round 3 — tester — 2026-10-15
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-024 tester verdict: pass.** All 28 acceptance criteria hold. The whole gate is green: `bun test` 2180 pass and 0 fail, and `typecheck`, `lint` and `format:check` all exit 0. **Next step: reviewer.** I pushed commit 5588c60 to `claude/friendly-archimedes-dw9utb`, and the remote ref matches HEAD.
+
+**How independent this check was:** this is an orchestrated run (`runs/T-024-emit-api-tag-set.md` exists). My `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_0148WgLerEA66mjfXXfy932d`) is the same as the expander's and the worker's rows, so the session-id check proves nothing. My independence rests only on being a freshly spawned subagent with its own context. That is weaker than a separate session, and the brief's Verdict and Sessions row say so.
+
+**What I did**
+- **Handoff and branch:** the handoff is present. Every file it names (`tags.ts`, `tags.test.ts`, `templates.ts`, E-23) is on the branch.
+- **New tests:** I wrote `/home/user/geo-discovery-zone/question-bank/src/tags-verify.test.ts`, 46 tests named by criterion. The expected values come from the criteria, `backend/app/models.py` and the committed bank. I read `tags.ts` only for its signature and export names.
+- **Criteria 20–22 (the worker's backend cross-check tests):** checked by changing `models.py` and `templates.ts` on purpose:
+  - adding or removing a value in `Topic` or `QuestionFormat`, on either side, turns the matching test red;
+  - renaming the class, emptying its values, emptying the file, or moving the file away makes them fail, never skip.
+- **Criteria 24–25:** checked by `git diff origin/main...HEAD`. Nothing under the forbidden paths changed, and `openapi.yaml`, `package.json` and `bun.lock` are unchanged.
+- **Criterion 26:** both T-024 test files also pass with every proxy variable pointed at `127.0.0.1:1`, so they make no network calls.
+- **Mutations:** I made 33 deliberate breaks, ran them by script, and reverted each one; `git status` was clean afterwards. My file goes red on all of them. The worker's `tags.test.ts` alone stays green on four:
+  - region trimmed;
+  - `scope` / `entityType` hard-coded;
+  - `build.ts` importing `./tags`;
+  - `tags.ts` reading `process.env`.
+- **Tests made stale:** none. Topics are assigned by template id, so the four tests that pin the nine-field template record are untouched and still green.
+
+**Left for the reviewer** (also written in the Verdict)
+- **Format-mismatch throw:** the worker added a throw when a question's `format` differs from its template's. No criterion asks for it. Confirm or overturn it.
+- **`PROGRESS.md`** still says questions have no tags.
+- **Out-of-scope note:** carry the `generate.ts` silent required-field note forward into `tasks.md` (T-026), as the brief asks.
+
+**Files**
+- `/home/user/geo-discovery-zone/question-bank/src/tags-verify.test.ts` (new)
+- `/home/user/geo-discovery-zone/tasks/T-024-emit-api-tag-set.md`: Verdict with per-criterion and mutation tables, Status `pass`, Next step `reviewer`, my Sessions row.
