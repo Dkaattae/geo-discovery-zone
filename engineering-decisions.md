@@ -1039,3 +1039,76 @@ country centroids misleads for large or oddly shaped countries), when T-023 want
 `distractor_tightness` to loosen the pick for younger players, or when T-026
 adds templates whose answers can coincide (same state animal, climate or crop)
 and needs a guard beyond same-text.
+
+## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` is 0
+
+**2026-10-15 (T-023).** `question-bank/src/seed-level.ts` `seedLevels(questions,
+entities, templates)` takes the questions `buildChoices` returned and returns
+them with `level` added, nothing else changed. Every number it uses is in the
+exported constant `LEVEL_SEED_WEIGHTS` in the same module. It is a separate
+stage, not a field `buildChoices` sets, for E-21's own reason one step on: a
+level needs the distractors, so it comes after them. It also keeps
+`buildChoices`'s output, and the tests that pin it, unchanged.
+
+**The formula** (plan §1.4), clamped to 0–18 (`LEVEL_MIN`, `LEVEL_MAX`: the
+contract's `Level` range, not a weight, so not in the constant) and not rounded:
+
+```
+level = base_level(template)      the template's base_difficulty
+      + entity_obscurity          population_rank_weight * bucket(population_rank)
+                                  + area_rank_weight * bucket(area_rank)
+      + distractor_tightness      near_distractor_weight * (near distractors, 0-3)
+      + concept_load              concept_load[template id], else concept_load_default
+      - familiarity_bonus         familiarity_bonus, 0 for every question
+```
+
+**The constant, as the code spells it:**
+
+```
+rank_bucket_edges: [10, 20, 35]
+population_rank_weight: 1
+area_rank_weight: 0.5
+missing_rank_bucket: 2
+near_distractor_weight: 0.5
+concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 1, "tpl-click-the-map": 0 }
+concept_load_default: 1
+familiarity_bonus: 0
+```
+
+- **Buckets.** A rank's bucket is the number of `rank_bucket_edges` it is
+  strictly above: ranks 1–10 → 0, 11–20 → 1, 21–35 → 2, 36 and up → 3. Rank 1
+  is the largest, so a small, thinly populated state is harder. Population
+  weighs double area: a child has heard of a populous state more often than of
+  a large one.
+- **Missing rank.** A rank that is `null`, absent, or not a positive integer
+  (`0`, `-3`, `2.5`, `NaN`, a string) counts as bucket `missing_rank_bucket`
+  (2), the bucket of ranks 21–35. So a missing rank is never harder than rank 50
+  or easier than rank 1: it is a middling state, not a guessed extreme. Each rank
+  is read on its own.
+- **Near and far.** A distractor is **near** when its entity is in the question
+  entity's `borders`, or has the same non-blank `region`. Every other distractor
+  is **far**. A distractor's entity is found by `choiceGeometryIds` on a
+  `map_click` question, otherwise by choice text among same-type, same-scope
+  entities (trimmed, lower-cased); if several match it is near when any of them
+  is, and if none does it is far.
+- **`concept_load`.** A capital is a recalled fact with nothing on screen to
+  lean on; the map templates show the shape. The values are a first guess.
+- **Why `familiarity_bonus` is 0.** The plan's two sources are the player's home
+  state and "very famous" entities. A home state is per-player, so it belongs at
+  serving time, not in a stored level. No list of famous states exists in the
+  bank, and a guessed one is what "prefer a blank field to a guessed one" rules
+  out. The term stays in the formula and the constant so T-025 can set it.
+
+Over the committed bank the 150 levels run from 3.5 (Texas, identify on map) to
+9 (Delaware, Rhode Island and others, capital and click). The map templates
+nearly always get 3 near distractors, so tightness mostly separates the 11
+small-region states of E-21.
+
+**The option not taken:** a continuous `(rank - 1) / 49` scale instead of
+buckets. It needs no edges, but the plan says "bucketed", and a handful of
+buckets is easier for T-025 to tune by reading 30 questions than a slope.
+
+**Revisit when** T-025 hand-checks 30 questions and the ordering looks wrong, a
+world-scope bank arrives (rank counts other than 50, and region near/far means
+something else for countries), a player profile exists to carry a home state,
+or Elo ratings replace seeded levels (plan §1.4).

@@ -201,8 +201,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (150 over the committed bank) and reports pairs with missing data.
   `src/distractors.ts` `buildChoices` (T-022) turns those drafts into
   four-option questions with `choices`, `correctIndex` and, on `map_click`,
-  `choiceGeometryIds` (E-21). A question has no `level` or tags yet (T-023,
-  T-024), and nothing writes or serves the output.
+  `choiceGeometryIds` (E-21). `src/seed-level.ts` `seedLevels` (T-023) adds a
+  `level` in 0–18 from plan §1.4's formula, every weight in
+  `LEVEL_SEED_WEIGHTS` (E-22). A question has no tags yet (T-024), and nothing
+  writes or serves the output.
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
   `state-animals.test.ts` (T-012), `landmarks.test.ts` and
@@ -352,6 +354,25 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-023 — generated questions get a seeded `level`** (PR #83, 2026-10-15).
+  `question-bank/src/seed-level.ts` exports `seedLevels(questions, entities,
+  templates = TEMPLATES)`, a stage after `buildChoices`, which returns each
+  question with `level` added: `base_difficulty` + bucketed population and area
+  rank + 0.5 per near distractor + a per-template `concept_load` −
+  `familiarity_bonus` (0), clamped to 0–18 and not rounded. Every number is in
+  `LEVEL_SEED_WEIGHTS`, listed key by key in `engineering-decisions.md` E-22. A
+  missing rank counts as the 21–35 bucket. Over the committed bank levels run
+  3.5 to 9. Nothing in the build imports it.
+  *Where it differed from the brief:* criterion 16 named NV among the
+  zero-near capital questions, from E-21's same-region count; by the brief's
+  own near definition (borders or region) NV has 3 near. The worker blocked,
+  Dkaattae chose to drop NV, and the expander amended the criterion; no code
+  changed. The clamp bounds live beside the constant as `LEVEL_MIN`/`LEVEL_MAX`
+  (the contract's range, not a weight), which the reviewer confirmed. The
+  brief needed a person's approval twice, because the orchestrator's own stamp
+  was refused. Tuning, and an unused alternate-weights parameter, went to
+  T-025. Run orchestrated, with one session id across the roles (`P-14`).
 
 - **T-022 — distractor strategies: drafts become four-option questions** (PR
   #82, 2026-10-15). `question-bank/src/distractors.ts` exports
