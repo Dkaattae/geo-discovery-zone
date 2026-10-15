@@ -934,3 +934,47 @@ curated-table edit and an offline rebuild, nothing more.
 
 **Revisit when** a fourth state needs an override, or a reviewer wants a
 different source of record than that revision.
+
+## E-20 — A generated question starts as a draft; a `map_click` answer is a name with its code beside it
+
+**2026-10-15 (T-021).** `question-bank/src/generate.ts` turns entities ×
+templates into question drafts. Two things in it could reasonably have gone
+another way.
+
+**The draft shape.** A draft (`QuestionDraft`) carries `id`, `entityId`,
+`templateId`, `format`, `prompt` and `answer`, plus `highlightGeometryId` on a
+`map_identify` draft and `answerGeometryId` when the template's `answer_field`
+is `geometry_id`. It is **not** an openapi.yaml `Question`: it has no `level`
+(T-023), no tags (T-024), and no `choices` or `correctIndex` (T-022). Each later
+task adds its own fields rather than replacing a placeholder. The `id` is
+`gen:<templateId>:<entityId>`: it depends on that pair only, so it survives a
+re-run over a subset or a reordering, and the `gen:` prefix keeps it clear of
+the hand-written `q-…` ids T-040 will upsert beside it.
+
+**The `map_click` answer.**
+- The child-facing `answer` is the entity's `name` ("Colorado"), never its
+  `geometry_id`. A FIPS code is never a label a child sees.
+- The click target is carried separately as `answerGeometryId` ("08"). Nothing
+  downstream joins on `answer`: `conventions.md`, "Join on codes, never on
+  names".
+- **What T-022 and T-051 build from this.** T-022 builds `choices` for a
+  `map_click` question as entity `name`s, the correct one being `answer`, and
+  sets `correctIndex` to its position. For every choice it should also carry
+  that entity's `geometry_id` in a parallel, code-valued list, so T-051's
+  renderer maps a click on region `X` to the choice whose code is `X`, and the
+  backend keeps grading by `choiceIndex` (`backend/app/grading.py`
+  `CHOICE_FORMATS`) without learning about maps. Names are the labels; codes
+  are the join. The exact name of that parallel list is T-022's to choose and
+  record in `openapi.yaml`.
+
+**The option not taken:** making `answer` the `geometry_id` itself, with the
+name looked up later for display. It is the more literal reading of
+`answer_field: geometry_id`, but it puts a FIPS code in the one field every
+downstream reader treats as the label. Every consumer — distractors, the
+review UI, the client, a log line read by a parent — would have to remember to
+translate it, and the first one that forgot would show a child "08". It would
+also make `choices` a list of codes that need a name join to display.
+
+**Revisit when** a template's answer is a code that has no `name` to stand for
+it (a pin on an unnamed point, say), or T-051 finds that a click must be graded
+on the client by code rather than by index.

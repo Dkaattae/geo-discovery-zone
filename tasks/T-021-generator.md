@@ -1,7 +1,7 @@
 # T-021 — Generator: entities × templates → question drafts
 
-**Status:** awaiting approval
-**Next step:** worker
+**Status:** awaiting verification
+**Next step:** tester
 **Approved:** orchestrator — 2026-10-15, unattended run. See `runs/T-021-generator.md`.
 **Test changes:** none
 **From:** [`tasks.md`](../tasks.md) T-021
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj |
+| worker | 2026-10-15 | cse_01FsXqnpENQjfQBQc9Pmhmfj |
 
 **Worker model:** Opus. The task fixes a record shape that T-022, T-023, T-024,
 T-026, T-040 and T-051 all build on, and settles how a `map_click` answer is
@@ -267,7 +268,68 @@ Required reading for the worker and the tester:
 
 ## Handoff
 
-_Written by `worker`._
+_Written by `worker`, 2026-10-15._
+
+**TL;DR.** Built `generate()` in `question-bank/src/generate.ts`, with 20 worker
+tests beside it, and recorded E-20. The committed bank gives 150 drafts and 0
+skips. In `question-bank/` the full suite (1949 pass, 0 fail), typecheck, lint
+and format:check are all green. **Tests made stale: none.** Next: tester.
+
+**Files changed**
+- **`question-bank/src/generate.ts`** (new). The generator.
+- **`question-bank/src/generate.test.ts`** (new). Worker tests, 20 cases.
+- **`engineering-decisions.md`**. Appends **E-20**, the draft shape and the `map_click` representation (criterion 29). E-20 was unused. `tasks.md` T-070's "Done when" still names `E-20`, and its line 201 already says to take the next unused number. The sweep should change that wording to E-21.
+- **This brief**. Handoff, Notes, Status, Sessions.
+- Nothing under `question-bank/data/`, `sample-data/`, `backend/`, `frontend/` or `openapi.yaml`. `templates.ts`, `package.json` and `bun.lock` are untouched.
+
+**The API, for the tester**
+- `export function generate(entities: readonly Entity[], templates: readonly Template[] = TEMPLATES): GenerateResult`
+- `export interface GenerateResult { drafts: QuestionDraft[]; skipped: SkippedPair[] }`
+- `export interface QuestionDraft { id; entityId; templateId; format: QuestionFormat; prompt; answer; highlightGeometryId?: string | undefined; answerGeometryId?: string | undefined }`. The optional keys are **omitted**, never set to `undefined`.
+- `export interface SkippedPair { templateId: string; entityId: string; missing: EntityField[]; notText: EntityField[] }`. There is one entry per skipped pair. `missing` covers criterion 14's emptiness (absent, `undefined`, `null`, blank after trim, `[]`). `notText` covers criterion 17: a value that is present, has to become text and is not a string.
+- `export function draftId(templateId, entityId)` returns `gen:<templateId>:<entityId>`.
+- **Order**: templates in input order, then entities in input order within each.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1–5 | `generate` + `draftFor`. Tests: "over the committed bank" |
+| 6–10 | `draftFor` builds the draft. Tokens are filled with `String.replace` and a function, so a `$` in a value is not treated as a pattern |
+| 11 | `answerIsCode` branch: `answer` is `name`, and the code goes to `answerGeometryId` |
+| 12–13 | `draftId`. A template id cannot contain `:`, so the id parses unambiguously. The `gen:` prefix cannot match content.json's `q-…` ids |
+| 14–17 | `draftFor` (`missing` / `notText`). `applies_to` filtering in `generate` happens before any check, so out-of-scope pairs are never reported |
+| 18–19 | `checkInputs`. It runs before any drafting, so a throw means nothing is generated |
+| 20–22 | Drafts hold only primitive strings copied from the entity. The generator writes to nothing it was given. `fun_facts` is never read unless a template names it, and an array would then be `notText` |
+| 23–27 | No I/O in `generate.ts`. Nothing in the pipeline imports it |
+| 28 | See "How to run" |
+| 29 | `engineering-decisions.md` E-20 |
+
+**Judgment calls. Each has an owner.**
+- **Implicitly required fields.**
+  - **What I decided:** a `map_identify` draft also requires `geometry_id`, and a code answer also requires `name`, even when a template's `requires` omits them. Otherwise criterion 8 or 11 could not hold, and the alternative is a draft with a hole in it. A pair missing one is skipped under `missing`. No current template triggers this.
+  - **Who decides:** tester to confirm against 8, 11 and 14. Or T-024, which owns template/format cross-checks, could move it into `validateTemplate`.
+- **An entity with no usable `id` throws.** It could not be named in a skip report.
+  - **Who decides:** the tester, as an extension of criterion 19. The reviewer may overturn it.
+- **`geometry_id` must be a string** wherever it is copied onto a draft. Otherwise the pair is reported under `notText`.
+  - **Who decides:** tester.
+- **Prompt values are filled verbatim, not trimmed** (criterion 7). A value that itself contains `{` would put a brace in a prompt. That is unguarded because no entity has one.
+  - **Who decides:** the reviewer, on whether to add a guard. If added, it belongs to T-026, which brings new fields.
+
+**Deliberately not done**
+- **No `choices`, `level`, tags, or file writes.** These are out of scope per the brief.
+- **No wiring into build or refresh.** Same reason.
+
+**Contradictions with the brief**
+- **None in the criteria.**
+- **Sessions table.** This worker session's id, `cse_01FsXqnpENQjfQBQc9Pmhmfj`, is the **same** as the task-expander's. The orchestrated run reused one remote session id across both roles. The tester must not run under it. Owner: orchestrator / human, to start the tester in a session with a different id.
+
+**How to run** (in `question-bank/`, after `bun install --frozen-lockfile`)
+- `bun test src/generate.test.ts`
+- `bun test`
+- `bun run typecheck && bun run lint && bun run format:check`
+
+**Tests made stale:** none.
 
 ## Verdict
 
@@ -288,3 +350,11 @@ _Written by `tester`._
 - **Picked over T-064, T-070 and T-084.** T-064 waits on T-040. T-070 waits on
   Q1. T-084 waits on T-070 (a). All three are as recorded in `tasks.md`, and
   nothing has changed since 2026-10-13.
+- **Worker, 2026-10-15.** The brief matched the code. Nothing was already built, and the survey held. One surprise: the
+  global `prettier` that `bun run format` resolved before `bun install` reformatted
+  an unrelated existing test (`highest-point-metres-verify.test.ts`). I reverted it
+  and nothing of it is committed. Run `bun install --frozen-lockfile` first so the
+  pinned 3.9.6 is the one used.
+- **Worker: id scheme.** I chose `gen:<templateId>:<entityId>` over a `q-…` id
+  derived from the entity's postal code. It needs no lookup, it cannot collide
+  with the hand-written ids, and it parses back unambiguously.
