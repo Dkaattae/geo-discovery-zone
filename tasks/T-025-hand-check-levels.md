@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved, escalated`
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approve"), covering the amended criterion 13 (c). The first approval ("approved, go ahead") covered the criteria before the amendment. See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
@@ -22,6 +22,7 @@ draft until the reviewer approves it.
 | task-expander | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; amended criterion 13 (c) after `blocked`) |
 | worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; round 2, after the 13 (c) amendment) |
 | tester | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; round 2, re-verify after the 13 (c) amendment) |
+| reviewer | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent) |
 
 **Worker model:** Opus. This task is a judgement about question difficulty for
 children, which `process.md` ("Choosing the worker's model") gives to Opus.
@@ -561,6 +562,63 @@ synthetic corpus, which passes.
 person to judge, per the brief's Kind.
 
 **Tests made stale:** none found. No pre-existing test was modified.
+
+## Review
+
+### Reviewer, 2026-10-16
+
+**TL;DR: approved, escalated.** The work is good and in scope: one value in
+`seed-level.ts`, the E-22 record, and the tester's own test file. It is
+escalated because the brief's Review checklist is a person's judgement about
+what children find hard, and the band decision is close to a product call.
+**Needed: Dkaattae works the Review checklist on PR #85, then merges.**
+
+- **Lanes:** expander commits touch only `tasks/` and `tasks.md`; worker
+  commits only `seed-level.ts`, `engineering-decisions.md` and the brief;
+  tester commits only `hand-check-levels-verify.test.ts` and the brief;
+  orchestrator commits only `runs/` and the brief. Every Sessions row has a
+  commit on this branch.
+- **Suite, rerun by the reviewer:** 2212 pass, 0 fail; typecheck, lint and
+  format:check clean. CI question-bank, backend, postgres and integration jobs
+  green on `98809be`.
+- **Envelope:** no dependency, no `openapi.yaml`/migration/plan change, no
+  pre-existing test touched (`Test changes: none`, criterion 17 hashes them).
+  No new child-facing text, but the levels decide which child sees which
+  question, so it goes to a person.
+
+**Findings (none blocks):**
+
+1. **Permanent pins from task-scoped criteria.** `hand-check-levels-verify.test.ts`
+   criteria 11, 13 (c) premise, 14, 15 and 17 pin `TEMPLATES`, the bank data,
+   `content.json`, every `package.json`/lockfile and every older test file at
+   `aa88101`. They say "nothing moved during T-025", but they stay in the suite
+   after merge. T-026, T-040, T-064, T-084 and any dependency add will turn them
+   red and need an attended Test change request. The tester encoded the
+   criteria faithfully; this is a brief-shape problem. **Filed:** amended T-070
+   (a), which already owns pinned-digest guards; a note on each task it hits;
+   and P-17 for the loop.
+2. **Providence and the "largest city" reason.** The record marks Denver and
+   Honolulu `too hard` because each is its state's largest city. Providence is
+   Rhode Island's largest city too, and its row is `about right` at 10, the
+   bank's maximum. That may be right, since a child is less likely to have
+   heard of Providence, but the record does not say so. **For the person
+   working the checklist.** Carried into T-085, which owns that input.
+3. **Band wording.** "1st grade (hard) to 5th grade (easy)": 3.5 renders as
+   grade 1, band 1.5 (medium to hard) under §1.4, not hard. A small
+   imprecision. **Filed:** T-086.
+
+**Worker flags, disposed:**
+
+- **Fact fields or a familiarity list** (inset AK/HI, capital is largest city):
+  **new T-085**, which needs a person to pick an option first.
+- **E-22 "Revisit when" still names T-025 as a future trigger:** **T-086**.
+  The trigger fired, and the answer is T-085.
+- **No `base_difficulty` change:** agreed. Identify < click < capital now holds
+  for every state.
+- **Relabel of the "blocked" tests:** done by the tester in round 2.
+- **`levelFor`'s unused `weights` parameter:** out of scope for this brief,
+  and the queue entry asked for it. **T-086.**
+- **Shared session id:** already P-14.
 
 ## Notes
 
