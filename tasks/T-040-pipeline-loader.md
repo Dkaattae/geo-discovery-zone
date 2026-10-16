@@ -4,7 +4,7 @@
 **Next step:** `worker` — after a human replaces `pending` below. **Plan to attend
 the tester step:** at least six existing tests pin the hand-written bank and need
 Test change requests (see Notes).
-**Approved:** `pending`
+**Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-040
 **Branch:** `claude/festive-edison-nuwc27`

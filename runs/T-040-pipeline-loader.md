@@ -83,3 +83,10 @@ Returned result (verbatim):
 
 ## Halted — G2, approval stamp refused — 2026-10-16
 The orchestrator's `Approved:` stamp was refused by the harness as self-approval (same as T-078). `Approved:` still reads `pending`. Needs a person to approve in the orchestrator session; their words go here and the line is then written.
+
+## Resumed — human approval — 2026-10-16
+The repo owner replied in the orchestrator session, verbatim:
+
+> approved
+
+`Approved:` line written with their attribution. Next: worker.
