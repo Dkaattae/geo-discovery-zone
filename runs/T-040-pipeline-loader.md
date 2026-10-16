@@ -90,3 +90,46 @@ The repo owner replied in the orchestrator session, verbatim:
 > approved
 
 `Approved:` line written with their attribution. Next: worker.
+
+## Round 3 — worker — 2026-10-16
+`Next step` on entry: `worker` → on exit: `tester` (attended)
+Status on exit: `awaiting verification` · Push: `25c7847`
+
+Returned result (verbatim):
+
+**T-040 is built and handed to the tester. The app now serves the 50 pipeline states and 100 generated questions (`map_click` stays out). 21 existing tests are red on purpose and need Test change requests, so a person has to be at the tester step.**
+
+Commit `25c7847` is on `claude/festive-edison-nuwc27`, the brief's `Branch:` header. `git log origin/claude/festive-edison-nuwc27 -1` shows it, and the working tree is clean. The brief now reads Status `awaiting verification`, Next step `tester` (attended); my Sessions row and the `## Handoff` are written.
+
+**What was built:**
+- **Question file:** `cd question-bank && bun run ./src/write-questions.ts` runs the four stages over the committed entity bank and writes `question-bank/data/questions/us-states.json` (150 questions, `map_click` included). A drift test in `question-bank/src/question-file.test.ts` fails when the committed file is stale.
+- **Served bank:** `make -C backend content` (`backend/app/content_build.py`) rebuilds `backend/app/data/content.json` from the entities and the question file. It keeps only fields the API contract defines and only fun facts marked reviewed, and drops `map_click`. A drift test sits with the rest in `backend/tests/test_content_build.py` (25 tests, criteria 5–27).
+- **Byte-stable:** running both commands twice left the files identical and `git status` clean.
+- **Archive:** the old hand-written bank is in `archive/hand-written-bank/content.json`, identical to `aa88101`.
+- **Docs:** `backend/README.md`, `conventions.md` (Layout and Commands), the `openapi.yaml` `topLivestock` wording, and a new E-24 in `engineering-decisions.md`.
+
+**Suite results (this session):**
+
+| Suite | Result |
+|---|---|
+| `make -C backend check` | lint and format pass; 549 pass, **13 fail** |
+| question-bank `bun test` | 2233 pass, **8 fail**; typecheck, lint, format:check pass |
+| frontend | 376 pass, 1 fail; typecheck has 2 errors in `UsMap.tsx` |
+| e2e, backend integration | not run, no Docker here |
+
+- **The 21 backend and question-bank failures are all stale by design.** They pin the old 15-state, 26-question bank, its ids, the `aa88101` bytes, or "E-23 is the highest entry". Each is listed by exact name in the Handoff with a proposed change.
+- **The frontend failure is the environment, not this change.** `react-simple-maps` can't be installed here (the registry returns 403), and stashing my changes gives the same failure. `conventions-doc.test.ts` passes 81/81.
+- **One test still passes but no longer checks anything.** `test_excluded_questions_do_not_come_back` excludes ids that no longer exist; it is noted in the Handoff.
+
+**Decisions for someone else:**
+- **Two e2e tests probably fail in CI (tester to raise a Test change request).** I could not run them, and the brief says the progress test is unaffected.
+  - The second half of the progress test in `e2e/tests/progress.spec.ts` will rarely fill any state now that there are 100 questions at 2 per state.
+  - `e2e/tests/app.ts` looks up answers by prompt plus choices. Four pairs of map questions share both (PA/DE, MA/RI, ME/NH, NC/SC), so it can answer wrongly while trying to answer correctly.
+- **Criterion 33 conflicts with the Constraints section (reviewer to confirm).** Criterion 33 forbids `package.json` changes; Constraints expect a script entry. I followed the criterion, so the command is a file path rather than a `"questions"` script.
+  - Adding the script turns two more byte-pinned tests red.
+  - The path form gets past `conventions-doc.test.ts` only because its regex skips a leading `./`.
+- **Size budget (T-026's expander):** `question-bank/data/` is now about 148 KB against a 200 KB cap that a test enforces.
+- **Session id (tester):** my session id is the same as the expander's, because this orchestrated run shares one id across its subagents.
+
+## Halted — next step needs an attended tester — 2026-10-16
+Header reads `Next step: tester — attended`. A spawned tester cannot take test-change approvals (D-15), so the orchestrator stops rather than run a tester that can only raise the request and halt. Branch head at halt: `25c7847`.
