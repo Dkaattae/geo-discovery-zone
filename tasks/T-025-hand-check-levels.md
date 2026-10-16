@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approve"), covering the amended criterion 13 (c). The first approval ("approved, go ahead") covered the criteria before the amendment. See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
@@ -20,6 +20,7 @@ draft until the reviewer approves it.
 | worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW |
 | tester | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent) |
 | task-expander | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; amended criterion 13 (c) after `blocked`) |
+| worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; round 2, after the 13 (c) amendment) |
 
 **Worker model:** Opus. This task is a judgement about question difficulty for
 children, which `process.md` ("Choosing the worker's model") gives to Opus.
@@ -292,6 +293,43 @@ cannot check them.
 
 ## Handoff
 
+### Round 2 (worker, 2026-10-16, after the 13 (c) amendment)
+
+**TL;DR:** Nothing changed in code or in E-22. The restated criterion 13 (c)
+already holds under the committed weights. The suite is green, 2211 pass and
+0 fail. **Next: tester**, to re-verify 13 (c) as restated and give a fresh
+verdict on the whole brief.
+
+- **Approval checked.** `Approved:` names Dkaattae, 2026-10-16, and covers
+  the amended 13 (c).
+- **Files changed:** this brief only (Status, Next step, Sessions, this
+  section). Nothing was changed in `seed-level.ts`, `engineering-decisions.md`
+  or any test.
+- **Restated 13 (c) is met by the round-1 weights.** It now exempts exactly
+  `missing_rank_bucket` and `concept_load_default`. Every other number (each
+  `rank_bucket_edges` element, `population_rank_weight`, `area_rank_weight`,
+  `near_distractor_weight`, each of the three `concept_load` entries and
+  `familiarity_bonus`) moves at least one of the 150 levels at +1 and at -1.
+  The tester's existing test checks this: `hand-check-levels-verify.test.ts`,
+  "T-025 criteria 10-13: what must still hold" > "criterion 13: +1 / -1 on
+  each number except missing_rank_bucket and concept_load_default changes a
+  level". It passes.
+- **The exemption's fallback holds.** The T-023 criterion-20 liveness test in
+  `seed-level-verify.test.ts` passes unmodified as part of the full suite.
+- **Possible test cleanup (tester's own file, tester's call):** the two
+  `criterion 13 (blocked): …` tests and their comment still describe the
+  clause as blocked. They now pin the premises of the exemption, so they are
+  still true. Only the label and the comment are out of date. **Owner: tester**,
+  who may relabel them because it wrote them on this branch.
+- **The `Fault:` line was left in place.** The Notes say it stays until the
+  task reaches `pass`.
+- **How to run:** `cd question-bank && bun test && bun run typecheck && bun run
+  lint && bun run format:check`. All four are clean. node_modules was already
+  present this time.
+- **Tests made stale:** none.
+
+### Round 1 (worker, 2026-10-16)
+
 **TL;DR:** One weight changed: `concept_load["tpl-capital-of"]` 1 → 2. The
 30-question record, the band decision and the updated constant block and range
 sentence are in E-22. The suite is green with no stale tests. **Criterion 13's
@@ -516,3 +554,6 @@ person to judge, per the brief's Kind.
   `process.md` step 2 says amended criteria are re-approved. Nobody can
   approve in this orchestrated run, so the worker will refuse to start until a
   person writes their name and the date there.
+- **Worker (round 2), 2026-10-16:** I confirmed that no change is needed for
+  the restated 13 (c), as the amendment's Notes predicted. The only work was
+  the survey and the full suite run.
