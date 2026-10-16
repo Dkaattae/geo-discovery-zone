@@ -1,7 +1,7 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025 — run log
 
 **Task:** T-086 · **Branch:** `claude/wonderful-heisenberg-0ekakv` · **PR:** #86
-**Started:** 2026-10-16 · **Outcome:** in progress
+**Started:** 2026-10-16 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-16
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -123,3 +123,38 @@ What a human has to decide: approve or refuse the tester's Test change request. 
 
 ## Resumed — 2026-10-16
 The person resolved the halt in an attended `tester` session; I neither saw nor relayed the approval. Branch head on resume: `f196d58` ("T-086 tester: record approval (Dkaattae) and pass verdict"), after `a0bec65` ("T-086 tester: apply approved test change request"). Header now reads `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-16`. The person wrote in this session: "ci is green. please proceed". Verdict tally: 0 fail, 0 blocked.
+
+## Round 4 — reviewer — 2026-10-16
+`Next step` on entry: `reviewer` → on exit: `human` merges PR #86 (inside the envelope; no escalation) — read from the header at `3a5171f`; the sweep in `f88362e` then deleted the brief.
+
+**I approved T-086 with no escalation, and the sweep is pushed.** PR #86 is now marked ready for review, nothing in it needs a separate decision, and a person needs to merge it. Its new head is `f88362e` on `claude/wonderful-heisenberg-0ekakv`. CI was still running on that head when I finished; on the previous head (`7f5f3ff`) all six jobs passed.
+
+**What I checked**
+- **Every role's work is in the PR.** The expander, worker, tester (orchestrated and attended) and orchestrator each have commits on the PR. No work is sitting on another branch.
+- **Each role stayed in its lane.** The expander changed only `tasks/` and `tasks.md`, and the tester changed only tests and the brief. The one older test that changed is `hand-check-levels-verify.test.ts` criterion 10, the pin on the module's exported function signatures. That change is the Test change request row Dkaattae approved, and it came in the tester's commit `a0bec65`.
+- **The diff is small and fits the module.** It removes the unused `weights` parameter from `levelFor` and the `export` on `levelFor` and `nearDistractorCount`, and corrects E-22 in place. No level or weight moved, no dependency was added, and nothing changed that a child reads, the API contract or the schema.
+- **The question-bank suite passes on my rerun, after the sweep as well:** 2235 pass, 0 fail, and typecheck, lint and format:check are clean.
+
+**The worker's flags, decided**
+- **Remove all three pieces: confirmed.** T-085 will edit `levelFor` in place, so it needs neither an export nor an alternate-weights argument.
+- **`const weights = LEVEL_SEED_WEIGHTS;` inside `levelFor`: confirmed.** It keeps the function body unchanged and matches how the module's other helpers take their weights.
+- **The `runs/` file under criterion 13: ruled met.** `runs/` is where the orchestrator is supposed to write its log, so it is not task output.
+- **One session id for every role:** this is already ticket `P-14`, so there was nothing new to file.
+
+**One finding that does not block.** The tester's new `question-bank/src/seed-level-loose-ends-verify.test.ts` permanently pins the 150 seeded levels, `engineering-decisions.md` outside E-22, and the count of `## E-n` headings. The next task that adds a decision entry will turn it red and need a person to approve a test change. I did not send it back: the tester encoded the criteria faithfully, and whether such checks should stay in the suite is the open loop question in P-17. Instead I added a "Since T-086" note to P-17, T-070, T-085 and T-026, saying which of these checks each one will break.
+
+**Commits pushed and confirmed on the remote**
+- `3a5171f` T-086 reviewer: approve, record review (adds the `## Review` section, Status and a Sessions row to the brief)
+- `f88362e` T-086 reviewer: the sweep. It deletes the brief and the T-086 queue entry, logs the task in `PROGRESS.md` under "Completed tasks", and amends T-070, T-085, T-026 and P-17.
+
+I updated the PR body with all 14 criteria word for word and what verified each, the decisions above, and what I chose not to do.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/question-bank/src/seed-level-loose-ends-verify.test.ts
+- /home/user/geo-discovery-zone/tasks/T-086-seed-level-loose-ends.md (deleted in the sweep)
+
+## Ended — 2026-10-16
+Reviewer approved and marked PR #86 ready. The PR is Dkaattae's to merge. Run over.
