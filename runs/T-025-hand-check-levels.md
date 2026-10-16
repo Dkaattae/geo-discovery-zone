@@ -296,3 +296,12 @@ Header: `Status: blocked`, `Next step: human`. Branch head at halt: `f29d835`.
 This is not `Status: sweep refused`, so the one-hour fallback does not apply, and
 the orchestrator never applies a sweep on `Status: blocked`. No check-in scheduled.
 The PR is a person's: delete the brief, work the Review checklist, mark ready, merge.
+
+## Sweep applied at the person's request — 2026-10-16
+The person asked in the orchestrator session, verbatim:
+
+> I looked at the pr, it asks me to run a sweep? can you run it
+
+The orchestrator read only `### Sweep to apply` and applied its step 1 exactly:
+`git rm tasks/T-025-hand-check-levels.md`. Steps 2 (Review checklist) and 3
+(mark ready, merge) are the person's.
