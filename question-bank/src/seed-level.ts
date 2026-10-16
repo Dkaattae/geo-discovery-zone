@@ -48,7 +48,7 @@ export const LEVEL_SEED_WEIGHTS = {
   /** Per template id. A capital is a recalled fact; a map shows the shape. */
   concept_load: {
     "tpl-identify-on-map": 0,
-    "tpl-capital-of": 1,
+    "tpl-capital-of": 2,
     "tpl-click-the-map": 0,
   } as Readonly<Record<string, number>>,
   /** `concept_load` for a template id with no entry above. */

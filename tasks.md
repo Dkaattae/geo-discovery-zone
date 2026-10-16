@@ -148,6 +148,8 @@ it is worth doing in parallel rather than after.
 
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
 **Depends on:** T-040 (corrected by T-065's reviewer, per the expander's note below)
+**Since T-025 (PR #85):** `hand-check-levels-verify.test.ts` criterion 14 pins
+`sample-data/` at `aa88101`, so the purge turns it red (T-070).
 Split out of T-010's Q3: `sample-data/` (one committed state, with its own
 README) stays alongside the full 50-state commit for now, on purpose — kept
 until the committed bank is shown to work end to end. Once that is proven, it is
@@ -200,6 +202,15 @@ this half (more guards than the entry says: `highest-point-in-state-verify.test.
 pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
 `3cedfe8`. `E-20` went to T-021 (PR #80); take the next unused number,
 `E-21` unless something else lands first.
+**Since T-025 (PR #85): a fifth guard, and a wider one.**
+`hand-check-levels-verify.test.ts` pins these at `aa88101`: `TEMPLATES`
+(criterion 11), every file under `question-bank/data/`, `sample-data/` and
+`src/fixtures/` plus `backend/app/data/content.json` (14), every
+`package.json`/lockfile/`pyproject.toml` in the repo (15), and every
+question-bank test file (17). Criteria 1 and 13 (c) also assume exactly the
+three templates, each with its own `concept_load` entry. Unlike the field
+guards, these are not limited to the bank. Any dependency add or any edit to
+an older test turns them red too. Whatever Q1 decides should cover this file.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -313,6 +324,9 @@ safety net). Touches the query, so it moves the fixture and every digest guard �
 sequence it with T-070 (a). **Gates switching on the monthly refresh routine**
 alongside T-070 (a): since T-077, a live refresh blanks Alaska's capital, with a
 warning, instead of shipping `Q29445`.
+**Since T-025 (PR #85):** a data or fixture change also turns
+`hand-check-levels-verify.test.ts` criterion 14 red, and criterion 2 too if a
+choice label moves (T-070).
 **New 2026-10-13, from T-077's worker.** The query reads the right item: Alaska's
 P36 points at `Q29445`, which is Juneau. It has no `en` label any more, only a
 `mul` ("default for all languages") label `Juneau`, with labels in about 20 other
@@ -344,6 +358,7 @@ split.
 **Skipped again, 2026-10-15, for T-021.** Same reason.
 **Skipped again, 2026-10-15, for T-023.** Same reason.
 **Skipped again, 2026-10-15, for T-024.** Same reason.
+**Skipped again, 2026-10-15, for T-025.** Same reason.
 
 ---
 
@@ -353,30 +368,62 @@ Today's 26 questions are hand-written. The plan's central claim is that they
 should be generated (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-025 — Hand-check 30 generated questions · S · todo
-**Depends on:** T-023
-Read them as a child would. Tune the weights until the ordering looks sane; the
-plan expects this to be a manual pass, not a computed one.
-**Since T-023 (PR #83):** every weight is in `LEVEL_SEED_WEIGHTS`
-(`question-bank/src/seed-level.ts`), and `engineering-decisions.md` E-22 lists
-each key and value; a shape test fails if the two drift, so change both
-together. What to look at while tuning:
-- **The map templates nearly always get 3 near distractors** (only AK has 2 and
-  HI 0), so `distractor_tightness` barely separates map questions.
-- **Levels over the bank run 3.5 to 9.** Whether that band is right for "which
-  state is highlighted" is this task's call.
-- **`familiarity_bonus` is 0**, and the term stays in the formula. A "famous
-  states" list, if proposed, needs a person's approval (content rule).
+### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo — **waiting on a person**
+**Depends on:** a person's choice between the options below
+**New 2026-10-16, from T-025's reviewer (PR #85).** T-025's hand-check
+(`engineering-decisions.md` E-22, "T-025 hand-check of 30 questions") left six
+of 30 rows `too hard`, and no weight can fix them, because the formula sees
+only rank and near-distractor count:
+- **Map, both templates: HI and AK.** A state drawn apart from the mainland, or
+  in an inset, is easy to pick out. Its ranks still put it with RI and VT.
+- **Capital: Denver and Honolulu.** Each is its state's largest city, so it is
+  likelier to be a name a child has met.
+**Options (a person picks one, because a familiarity list needs approval under
+the content rule):**
+- **A fact field per input**, such as "drawn apart from the mainland" (AK, HI)
+  or "capital is the largest city". These are checkable facts, not guesses
+  about fame. A new term in the formula, a new key in `LEVEL_SEED_WEIGHTS`, and
+  a new E-22 bullet.
+- **A person-approved `familiarity_bonus` list.** The term and the key exist
+  already.
+- **Accept it**, and record in E-22 that seeded levels are this coarse until
+  Elo (plan §1.4).
+**Check while there:** Providence is Rhode Island's largest city too, but T-025
+marked its row `about right`, at the bank's maximum of 10. A "largest city"
+input would lower it with Denver and Honolulu. Decide whether that is wanted.
+**Test cost:** a new `LEVEL_SEED_WEIGHTS` key, or a changed level, turns
+`hand-check-levels-verify.test.ts` red (criteria 4, 7, 8, 10, 10a), and
+probably `seed-level-verify.test.ts` criterion 20. Plan to attend the tester
+step (D-14, D-15).
+**Done when:** the chosen option has landed and E-22 records it, or E-22 says
+why the coarseness is accepted.
+
+### T-086 — `seed-level.ts` and E-22 loose ends after T-025 · S · todo
+**Depends on:** —
+**New 2026-10-16, from T-025's reviewer (PR #85).** Three small things T-025
+was not allowed to touch:
 - **`levelFor(…, weights)` has an alternate-weights parameter no caller uses**,
   and `levelFor` / `nearDistractorCount` are exported with no importer outside
-  the module. Use them to compare weight sets side by side, or drop them.
-- **The criterion-20 test in `seed-level-verify.test.ts` mutates
-  `LEVEL_SEED_WEIGHTS` at runtime.** Freezing the constant would make it throw;
-  if you freeze it, that test needs an attended Test change request.
-**Done when:** 30 are reviewed and the weight changes are recorded.
+  the module. T-025 used neither. Keep them and say why, or drop them.
+  `hand-check-levels-verify.test.ts` criterion 10 pins `seed-level.ts`'s
+  exports and signatures at `aa88101`, so dropping them needs an attended Test
+  change request.
+- **E-22's "Revisit when" still names T-025** ("T-025 hand-checks 30 questions
+  and the ordering looks wrong") as a future trigger. That trigger has fired:
+  the ordering was wrong in ways weights cannot fix, and T-085 is the answer.
+  Reword it.
+- **E-22's band paragraph says "1st grade (hard)".** Level 3.5 renders under
+  §1.4 as grade 1, band 1.5, which is between medium and hard. Make it
+  accurate. `hand-check-levels-verify.test.ts` criterion 9 reads that
+  paragraph: keep "<min grade> … to … <max grade>" in one sentence.
+**Done when:** each of the three is settled and E-22 is true.
 
 ### T-026 — Templates for the topics the app has never shown · M · todo
 **Depends on:** T-021, and the curation task for whichever topic
+**Since T-025 (PR #85):** a new template turns `hand-check-levels-verify.test.ts`
+criteria 1, 11 and 13 (c) red, because they assume exactly today's three
+templates, each with its own `concept_load` entry. It also needs its own
+`LEVEL_SEED_WEIGHTS.concept_load` value (E-22). Plan to attend the tester step (T-070).
 **New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
 topic is one template plus the curated field behind it, and none needs new
 infrastructure once T-021 lands:
@@ -523,6 +570,9 @@ queue: every curation and generation task above is invisible until it exists.
 
 ### T-040 — Loader: pipeline JSON → the served bank · M · todo
 **Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
+**Since T-025 (PR #85):** if this task rewrites `backend/app/data/content.json`,
+`hand-check-levels-verify.test.ts` criterion 14 goes red (it pins that file at
+`aa88101`). The same applies to a new dependency (criterion 15). Plan to attend the tester step (T-070).
 **Rewritten 2026-08-24.** The old entry said "replace the hand-written
 `frontend/src/data/` with generated data, bundled at build time". That directory
 is gone and the app fetches everything from the API, so the task moved

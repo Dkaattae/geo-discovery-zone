@@ -203,7 +203,7 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   four-option questions with `choices`, `correctIndex` and, on `map_click`,
   `choiceGeometryIds` (E-21). `src/seed-level.ts` `seedLevels` (T-023) adds a
   `level` in 0–18 from plan §1.4's formula, every weight in
-  `LEVEL_SEED_WEIGHTS` (E-22). `src/tags.ts` `tagQuestions` (T-024) adds the
+  `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions (T-025). `src/tags.ts` `tagQuestions` (T-024) adds the
   other five `GET /questions` tags (`scope`, `entityType`, `topic`, `region`,
   `ageBand`; E-23). Nothing writes or serves the output.
 - Tests cover the built bank across `data-us-states.test.ts` and
@@ -355,6 +355,26 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-025 — 30 generated questions hand-checked; one level weight tuned** (PR
+  #85, 2026-10-16). `LEVEL_SEED_WEIGHTS.concept_load["tpl-capital-of"]` went
+  1 → 2. A capital question now sits one level above click-the-map and two
+  above identify for the same state. Under T-023 the capital and click
+  questions had tied for 49 of 50 states. Levels over the bank now run 3.5 to
+  10 (grade 1 to grade 5). E-22 holds the 30-row record, the weights tried and
+  rejected, and the band decision. Its verdicts: 24 `about right` and 6
+  `too hard` (HI and AK on both map templates, Denver, Honolulu). No weight can
+  fix those six; T-085 owns them. `familiarity_bonus` stays 0, and nothing
+  serves these levels yet (T-040).
+  *Where it differed from the brief:* criterion 13 (c) could not hold over
+  the committed bank for any weights, because `missing_rank_bucket` and
+  `concept_load_default` are never read there. The tester blocked, and the
+  expander exempted those two. Dkaattae re-approved, and no code changed. The
+  tester's verify file pins the bank data, `content.json`, every lockfile and
+  every older test at `aa88101`, so later tasks will turn it red (T-070 (a),
+  P-17). The ordering itself is a person's judgement, and PR #85's Review
+  checklist holds it. Run orchestrated, with one session id across the roles
+  (`P-14`).
 
 - **T-024 — generated questions carry the full `GET /questions` tag set** (PR
   #84, 2026-10-15). `question-bank/src/tags.ts` exports `tagQuestions(questions,
