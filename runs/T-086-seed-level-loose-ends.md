@@ -1,7 +1,7 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025 — run log
 
 **Task:** T-086 · **Branch:** `claude/wonderful-heisenberg-0ekakv` · **PR:** #86
-**Started:** 2026-10-16 · **Outcome:** in progress
+**Started:** 2026-10-16 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-16
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -72,3 +72,51 @@ I ran no build, test or pipeline command. Bash was used only for git, plus two s
 - **Tester:** criterion 13's diff also includes `runs/T-086-seed-level-loose-ends.md`, which the orchestrator wrote. The criterion's list of allowed files doesn't name `runs/`, so it's your call whether that counts.
 - **Reviewer:** confirm removing all three, or send it back to `task-expander` if T-085 is expected to need `levelFor` exported. Also confirm the local-const approach in `levelFor`.
 - **Orchestrator / process owner:** the session-id variable returns the orchestrator's id to every role. My Sessions row therefore matches the expander's, so the table can't show that the worker and tester ran in separate sessions in this run.
+
+## Round 3 — tester — 2026-10-16
+`Next step` on entry: `tester` — **attended**: one pre-existing test is stale by design and needs a Test change request a person approves (D-14, D-15) → on exit: `human` — start an **attended** `tester` session for T-086 to approve or refuse the Test change request row below (D-14, D-15)
+
+**TL;DR: T-086 is halted at `test changes requested`, and the next step is a human.** Criteria 1–13 hold. Criterion 14 (whole suite green) does not yet: exactly one existing test is red, and it went stale because of this task's own change. I wrote a Test change request asking to modify it. Only a person can approve it, in an attended `tester` session, so I changed no existing test.
+
+**Independence:** this is an orchestrated run (`runs/T-086-seed-level-loose-ends.md` exists). My `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01H1X3vo49b7U5nujJi7mYCb`, the same id the brief lists for task-expander and worker, so the session check proves nothing. My independence rests only on being a freshly spawned subagent that did not see the work. That depends on the orchestrator having spawned me correctly, which I cannot check myself. The Verdict says this.
+
+**Pushed:** commit `4009ee5` ("T-086 tester: verify criteria, request approval for one stale test") is on `claude/wonderful-heisenberg-0ekakv`. That branch is the brief's `Branch:` header and the one I was standing on. I fetched the remote afterwards and its head equals my HEAD.
+
+**What I did:**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/seed-level-loose-ends-verify.test.ts`, 23 tests covering criteria 1–12, all green. The baselines at `41811f9` come from a git worktree of that commit and are stored as sha256 digests:
+  - the 150 levels by id;
+  - `LEVEL_SEED_WEIGHTS`;
+  - `engineering-decisions.md` outside E-22's body;
+  - the hand-check table.
+- **Mutations:** I made six, and each turned its matching test red. All are reverted.
+  - re-export `levelFor`
+  - re-add the `weights` parameter
+  - change a weight
+  - restore E-22 to its `41811f9` text
+  - "1st grade (hard)" → "(medium)"
+  - edit E-1
+- **Brief updated** (`/home/user/geo-discovery-zone/tasks/T-086-seed-level-loose-ends.md`):
+  - header: Status `test changes requested`, Next step `human`, Test changes `requested`, plus a Fault line;
+  - my tester row in the Sessions table;
+  - a `## Test change request` section and a `## Verdict` section.
+
+**Test change request (one row):**
+
+| Test | Action | Why stale | Becomes |
+|---|---|---|---|
+| `question-bank/src/hand-check-levels-verify.test.ts` › "T-025 criteria 10-13: what must still hold" › "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's" (added in `236b0e0` by the T-025 tester) | modify | It pins `export function nearDistractorCount(…)` and `export function levelFor(…, weights …)`. Criteria 2–4 removed both exports. | An exact-equality check on the six remaining export signatures, unchanged from today's pin |
+
+**Suite on this branch:**
+- **question-bank:** 2234 pass, 1 fail (the stale pin above). Typecheck, lint and format check are clean.
+- **Backend:** 537 passed, 9 skipped.
+- **Frontend:** 375 pass, 1 fail. `react-simple-maps` is missing because `bun install` gets a 403 from the proxy, the known issue in `PROGRESS.md`. No frontend file is changed.
+- **PR CI:** I could not read it, because `gh pr checks` goes through GraphQL, which returns 403 here.
+
+**For the reviewer, criterion 13:** the diff also contains `runs/T-086-seed-level-loose-ends.md`, which is the orchestrator's run log and not task output. I counted criterion 13 as met; the reviewer may overrule that.
+
+**To finish:** a person starts an attended `tester` session for T-086 and approves or refuses the row. That tester applies what was approved, reruns the whole suite, and records pass or fail.
+
+## Halted — test change request — 2026-10-16
+Raised in commit `4009ee5`. Header reads `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
+
+What a human has to decide: approve or refuse the tester's Test change request. Per D-15 that approval must be given in an attended `tester` session for T-086, not to the orchestrator. Once that tester finishes, its header names the next role and a new run starts from there.
