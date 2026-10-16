@@ -1099,7 +1099,21 @@ familiarity_bonus: 0
   state and "very famous" entities. A home state is per-player, so it belongs at
   serving time, not in a stored level. No list of famous states exists in the
   bank, and a guessed one is what "prefer a blank field to a guessed one" rules
-  out. The term stays in the formula and the constant so T-025 can set it.
+  out. The term stays in the formula and the constant, at 0, so that a reviewed
+  input can fill it without a new term. T-025 left it at 0 (the record below);
+  whether it is ever set is T-085's question.
+- **What the module exports** (2026-10-16, T-086). `seedLevels`,
+  `LEVEL_SEED_WEIGHTS`, `LEVEL_MIN`, `LEVEL_MAX`, `LevelSeedWeights` and
+  `LeveledQuestion`. Three things T-023 had and T-086 removed, because nothing
+  used them: no module imported `levelFor` or `nearDistractorCount`, no caller
+  passed `levelFor` a `weights` argument, and no queued task names a call to
+  either.
+  - **`levelFor`'s `weights` parameter: removed.** `levelFor` reads
+    `LEVEL_SEED_WEIGHTS` at call time. T-025 tuned by overriding the constant in
+    place, not through the parameter.
+  - **The `export` on `levelFor`: removed.** `seedLevels` is its only caller.
+  - **The `export` on `nearDistractorCount`: removed.** `levelFor` is its only
+    caller.
 
 Over the committed bank the 150 levels run from 3.5 (California and Texas,
 identify on map) to 10 (Delaware, Maine, New Hampshire, Rhode Island, Vermont
@@ -1110,10 +1124,12 @@ distractors, so tightness mostly separates the 11 small-region states of E-21.
 buckets. It needs no edges, but the plan says "bucketed", and a handful of
 buckets is easier for T-025 to tune by reading 30 questions than a slope.
 
-**Revisit when** T-025 hand-checks 30 questions and the ordering looks wrong, a
-world-scope bank arrives (rank counts other than 50, and region near/far means
-something else for countries), a player profile exists to carry a home state,
-or Elo ratings replace seeded levels (plan §1.4).
+**Revisit when** T-085 settles the inputs the weights cannot reach (a state
+drawn apart from the mainland, a capital that is the largest city; T-025's
+hand-check below found them), a world-scope bank arrives (rank counts other
+than 50, and region near/far means something else for countries), a player
+profile exists to carry a home state, or Elo ratings replace seeded levels
+(plan §1.4).
 
 ### T-025 hand-check of 30 questions (2026-10-16)
 
@@ -1194,7 +1210,9 @@ nothing but those two. It still points the right way for both, so it stays.
 
 **The band.** The final levels run 3.5 to 10, which renders under plan §1.4 as
 1st grade (hard) to 5th grade (easy), `floor(3.5 / 2) = 1` to
-`floor(10 / 2) = 5`. That is right for these three templates: they are the
+`floor(10 / 2) = 5`; level 3.5 is band `3.5 - 2 = 1.5`, exactly on the
+Medium/Hard boundary, which the app's `band_label` and `bandLabel` render as
+Hard (T-086). That is right for these three templates: they are the
 first questions a child meets about US states, so they should start below the
 seven-to-ten-year-olds the app is for and reach into the grades where state
 capitals are a fair stretch, and Setup's three-or-four-level window (§3.3)

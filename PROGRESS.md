@@ -356,6 +356,22 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-086 — `seed-level.ts` and E-22 loose ends after T-025** (PR #86,
+  2026-10-16). `levelFor`'s unused `weights` parameter and the `export` on
+  `levelFor` and `nearDistractorCount` are removed; `seedLevels` is the
+  module's only function export, and E-22 records why. E-22's "Revisit when"
+  now names T-085 instead of T-025, the `familiarity_bonus` bullet no longer
+  says T-025 will set it, and the band paragraph adds that level 3.5 is band
+  1.5, on the Medium/Hard boundary, rendered Hard. No level or weight moved.
+  *Where it differed from the brief:* the queue entry's premise ("between
+  medium and hard", so "hard" was wrong) was half right; the expander's survey
+  found the app renders 3.5 as Hard, so only the boundary was added. Removing
+  the exports made one T-025 signature pin stale; Dkaattae approved its change
+  in an attended tester session. The tester's verify file adds permanent pins
+  on the levels and on `engineering-decisions.md` outside E-22, so the next
+  `E-n` entry turns it red (T-070 (a), P-17). Run orchestrated, one session
+  id across the roles (`P-14`).
+
 - **T-025 — 30 generated questions hand-checked; one level weight tuned** (PR
   #85, 2026-10-16). `LEVEL_SEED_WEIGHTS.concept_load["tpl-capital-of"]` went
   1 → 2. A capital question now sits one level above click-the-map and two

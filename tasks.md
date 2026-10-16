@@ -211,6 +211,12 @@ question-bank test file (17). Criteria 1 and 13 (c) also assume exactly the
 three templates, each with its own `concept_load` entry. Unlike the field
 guards, these are not limited to the bank. Any dependency add or any edit to
 an older test turns them red too. Whatever Q1 decides should cover this file.
+**Since T-086 (PR #86): a sixth guard, on the decisions log itself.**
+`seed-level-loose-ends-verify.test.ts` criterion 12 pins
+`engineering-decisions.md` outside E-22 (sha256) and the `## E-n` heading
+count (23) at `41811f9`; criterion 10 pins the 150 seeded levels and
+`LEVEL_SEED_WEIGHTS`. The first task that adds or edits any other `E-n` entry,
+this one included, turns it red. Whatever Q1 decides should cover it (P-17).
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -359,6 +365,7 @@ split.
 **Skipped again, 2026-10-15, for T-023.** Same reason.
 **Skipped again, 2026-10-15, for T-024.** Same reason.
 **Skipped again, 2026-10-15, for T-025.** Same reason.
+**Skipped again, 2026-10-16, for T-086.** Same reason.
 
 ---
 
@@ -395,28 +402,17 @@ input would lower it with Denver and Honolulu. Decide whether that is wanted.
 `hand-check-levels-verify.test.ts` red (criteria 4, 7, 8, 10, 10a), and
 probably `seed-level-verify.test.ts` criterion 20. Plan to attend the tester
 step (D-14, D-15).
+**Since T-086 (PR #86):** `seed-level-loose-ends-verify.test.ts` turns red
+too: criterion 10 pins the 150 levels (sha) and `LEVEL_SEED_WEIGHTS` at
+`41811f9`, and criterion 12 pins `engineering-decisions.md` outside E-22 and
+the `## E-n` count (23), so a new `E-n` entry also breaks it. Its criteria 1-8
+read E-22 prose: keep the "What the module exports" bullet, the band
+paragraph's `3.5 - 2 = 1.5`, and a `**Revisit when**` that names T-085 and the
+other three triggers, or list those rows in the Test change request.
+`levelFor` and `nearDistractorCount` are no longer exported (E-22); edit
+`levelFor` in place.
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
-
-### T-086 — `seed-level.ts` and E-22 loose ends after T-025 · S · todo
-**Depends on:** —
-**New 2026-10-16, from T-025's reviewer (PR #85).** Three small things T-025
-was not allowed to touch:
-- **`levelFor(…, weights)` has an alternate-weights parameter no caller uses**,
-  and `levelFor` / `nearDistractorCount` are exported with no importer outside
-  the module. T-025 used neither. Keep them and say why, or drop them.
-  `hand-check-levels-verify.test.ts` criterion 10 pins `seed-level.ts`'s
-  exports and signatures at `aa88101`, so dropping them needs an attended Test
-  change request.
-- **E-22's "Revisit when" still names T-025** ("T-025 hand-checks 30 questions
-  and the ordering looks wrong") as a future trigger. That trigger has fired:
-  the ordering was wrong in ways weights cannot fix, and T-085 is the answer.
-  Reword it.
-- **E-22's band paragraph says "1st grade (hard)".** Level 3.5 renders under
-  §1.4 as grade 1, band 1.5, which is between medium and hard. Make it
-  accurate. `hand-check-levels-verify.test.ts` criterion 9 reads that
-  paragraph: keep "<min grade> … to … <max grade>" in one sentence.
-**Done when:** each of the three is settled and E-22 is true.
 
 ### T-026 — Templates for the topics the app has never shown · M · todo
 **Depends on:** T-021, and the curation task for whichever topic
@@ -424,6 +420,10 @@ was not allowed to touch:
 criteria 1, 11 and 13 (c) red, because they assume exactly today's three
 templates, each with its own `concept_load` entry. It also needs its own
 `LEVEL_SEED_WEIGHTS.concept_load` value (E-22). Plan to attend the tester step (T-070).
+**Since T-086 (PR #86):** a new template also turns
+`seed-level-loose-ends-verify.test.ts` criterion 10 red (it pins exactly 150
+seeded levels and `LEVEL_SEED_WEIGHTS`), and criterion 12 if an `E-n` entry is
+added.
 **New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
 topic is one template plus the curated field behind it, and none needs new
 infrastructure once T-021 lands:
