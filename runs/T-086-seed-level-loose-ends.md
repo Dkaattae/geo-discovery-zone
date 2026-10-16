@@ -34,3 +34,41 @@
 - **Worker model:** Sonnet is enough.
 
 I ran no build, test or pipeline command. Bash was used only for git, plus two small file edits.
+
+## Round 2 — worker — 2026-10-16
+`Next step` on entry: `worker` (after a human approves below) → on exit: `tester` — **attended**: one pre-existing test is stale by design and needs a Test change request a person approves (D-14, D-15)
+
+**TL;DR:** T-086 is built and pushed in commit `23b3227` on `claude/wonderful-heisenberg-0ekakv`. I removed all three unused pieces in `seed-level.ts` and corrected E-22 in place. Levels and weights are unchanged. One existing test now fails on purpose, so the tester step needs a person present to approve a Test change request (D-14, D-15).
+
+- **Status:** `awaiting verification`
+- **Next step:** `tester`, attended by a person
+- **Push:** `git log origin/claude/wonderful-heisenberg-0ekakv -1` shows `23b3227 T-086 worker: …`
+
+**Why everything was removed:** the brief only lets you keep an item if a caller in the repo or a queued task uses it. Nothing does, and T-085 does not name a call to `levelFor`. So `levelFor`'s `weights` parameter, the `export` on `levelFor` and the `export` on `nearDistractorCount` are all gone.
+
+**Files changed:**
+- **`/home/user/geo-discovery-zone/question-bank/src/seed-level.ts`**
+  - Both exports and the `weights` parameter are removed.
+  - `levelFor` now opens with `const weights = LEVEL_SEED_WEIGHTS;`, so the rest of its body is byte-identical. Because the `weights.familiarity_bonus;` line is unchanged, criterion 12's baseline test still passes. That leaves one stale test instead of two.
+  - The header comment no longer says T-025 will tune it.
+- **`/home/user/geo-discovery-zone/engineering-decisions.md`** (inside E-22 only):
+  - New bullet, "What the module exports", records the three removals and why.
+  - The `familiarity_bonus` sentence that said T-025 would set it is reworded.
+  - "Revisit when" now names T-085 instead of T-025; the other three triggers are kept.
+  - The band paragraph now gives `3.5 - 2 = 1.5`: the Medium/Hard boundary, which the app shows as Hard.
+- **`/home/user/geo-discovery-zone/tasks/T-086-seed-level-loose-ends.md`:** Handoff, Notes, my Sessions row, Status and Next step.
+
+**Test now failing (stale):**
+- **Test:** `hand-check-levels-verify.test.ts` › `T-025 criteria 10-13: what must still hold` › `criterion 10: exported names and function signatures of seed-level.ts equal aa88101's`.
+- **Proposed fix:** take the two removed entries out of `AA88101_EXPORT_SIGNATURES` and keep the other six pinned.
+
+**Suite results:**
+- **question-bank:** 2211 pass, 1 fail (the stale test). Typecheck, lint and format check are clean.
+- **backend:** 537 passed, 9 skipped.
+- **frontend:** 375 pass, 1 fail. This is the 403 already noted in `PROGRESS.md`: the agent proxy blocks the `pkg.dev` registry, so `react-simple-maps` can't install. I changed no frontend files, so CI has to close this part of criterion 14.
+- **Side effect:** a frontend lint test rewrote `frontend/README.md` while dependencies were half-installed. I reverted it; the tester may see the same thing.
+
+**Decisions for others:**
+- **Tester:** criterion 13's diff also includes `runs/T-086-seed-level-loose-ends.md`, which the orchestrator wrote. The criterion's list of allowed files doesn't name `runs/`, so it's your call whether that counts.
+- **Reviewer:** confirm removing all three, or send it back to `task-expander` if T-085 is expected to need `levelFor` exported. Also confirm the local-const approach in `levelFor`.
+- **Orchestrator / process owner:** the session-id variable returns the orchestrator's id to every role. My Sessions row therefore matches the expander's, so the table can't show that the worker and tester ran in separate sessions in this run.
