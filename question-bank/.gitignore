@@ -14,3 +14,7 @@ node_modules
 data/*
 !data/us-states
 data/us-states/*.review.json
+# The committed question file (T-040, E-24): `data/questions/` is tracked too,
+# written by `bun run ./src/write-questions.ts` from data/us-states/ and checked against a
+# fresh render by src/question-file.test.ts.
+!data/questions

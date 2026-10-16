@@ -218,7 +218,7 @@ async def test_map_progress_counts_one_entity_family(
     client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     body = (await client.get(f"/profiles/{DEMO_PROFILE_ID}/progress", headers=auth_headers)).json()
-    assert body["mapProgress"] == {"entityType": "state", "scope": "us", "filled": 1, "total": 15}
+    assert body["mapProgress"] == {"entityType": "state", "scope": "us", "filled": 1, "total": 50}
 
 
 async def test_suggested_levels_are_centred_on_the_last_session(

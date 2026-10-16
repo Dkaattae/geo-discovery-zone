@@ -12,6 +12,7 @@ question-bank/   Wikidata → entity JSON pipeline (TypeScript, bun)
 e2e/             Playwright end-to-end suite, run against a real docker compose stack (TypeScript, bun)
 fixtures/        data shared across languages and suites — see "Shared fixtures" below
 tasks/           brief for the task in flight; empty when nothing is
+archive/         the retired hand-written question bank (archive/hand-written-bank/), never served; kept until the owner purges it
 openapi.yaml     the contract between frontend and backend; follows the backend once both are built (engineering-decisions.md E-14)
 ```
 
@@ -67,6 +68,7 @@ bun run build              # live: query.wikidata.org → data/us-states/
 bun run build -- --offline --out data/us-states   # offline: recorded fixture → same path, byte-identical
 bun run build:sample       # offline replay of the recorded fixture → sample-data/
 bun run refresh            # live refresh of data/us-states/ + fixture; exit 0 changed, 1 failed, 2 unchanged
+bun run ./src/write-questions.ts   # data/us-states/ → data/questions/us-states.json, every generated question; offline, byte-stable
 bun run typecheck
 bun run lint               # oxlint, not eslint (E-15); fails on any warning
 bun run format:check       # pinned prettier over src/**/*.ts (E-16); `bun run format` rewrites
@@ -84,6 +86,7 @@ make -C backend test              # the suite on SQLite, the default
 make -C backend check             # lint + format check + test — what CI runs
 make -C backend migrate           # alembic upgrade head
 make -C backend revision m="add streaks"   # a new migration from model changes
+make -C backend content           # question-bank/data/ → backend/app/data/content.json, the served bank
 ```
 
 `backend/README.md` has the full command list, including `test-postgres`,

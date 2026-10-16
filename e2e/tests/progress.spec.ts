@@ -10,7 +10,7 @@
  * They answer **on purpose** rather than at random (see `fetchAnswerKey`).
  * Progress is earned: the level moves after four right answers in a row, and a
  * state fills in on the map after four right answers about that state. Random
- * answers over fifteen states produce neither reliably, so a test that played
+ * answers over fifty states produce neither reliably, so a test that played
  * randomly and asserted "progress went up" would be asserting a coin flip. The
  * random path is covered in `quiz.spec.ts`, where the point is that both
  * outcomes work rather than what they add up to.
@@ -138,13 +138,14 @@ test("a session that is quit early still counts what was answered", async ({ pag
  * cannot move on the first day.
  *
  * Mastery is +0.25 per right answer and a state fills in above 0.7, so a state
- * needs **four** right answers about it. The shipped bank has at most **two**
- * questions per state (26 questions over 15 states), and a session never repeats
- * a question. So the most any state can reach in one sitting is 0.5, and a
- * child's whole first session — even a perfect one — colours in nothing.
- * Mastery is stored on the profile, so it accumulates: a second sitting over the
- * same bank gets those states to 1.0. Measured against the API: 26 right answers
- * fill in 0 of 15, and 52 fill in 11.
+ * needs **four** right answers about it. The served bank has exactly **two**
+ * questions per state (100 questions over 50 states, T-040), and a session never
+ * repeats a question. So the most any state can reach in one sitting is 0.5, and
+ * a child's whole first session — even a perfect one — colours in nothing.
+ * Mastery is stored on the profile, so it accumulates: a second sitting gets the
+ * states asked about both times to 1.0. Measured against the API (T-040 tester,
+ * four runs each): two sittings of 26 right answers fill in 0 to 3 of 50 — a coin
+ * flip — and two of 50 fill in 15 to 18, so a sitting here is 50 questions.
  *
  * That is a content gap, not a bug — it goes away when there are more questions
  * per state (`tasks.md` T-050) — but it is worth a test that says so out loud,
@@ -156,9 +157,9 @@ test("the map fills in once a child has come back a second time", async ({ page 
   await signedInWithProfile(page, "map-fills");
   expect(await placesFilled(page), "a new explorer should start with an empty map").toBe(0);
 
-  const BANK = 26;
+  const SITTING = 50;
   await startQuiz(page, "A bit of both");
-  await playCorrectly(page, answerKey, BANK);
+  await playCorrectly(page, answerKey, SITTING);
   await finishSession(page);
   await backHome(page);
   expect(
@@ -168,7 +169,7 @@ test("the map fills in once a child has come back a second time", async ({ page 
 
   // Come back. The same questions are offered again and mastery accumulates.
   await startQuiz(page, "A bit of both");
-  await playCorrectly(page, answerKey, BANK);
+  await playCorrectly(page, answerKey, SITTING);
   await finishSession(page);
   await backHome(page);
 

@@ -25,8 +25,8 @@ async def test_content_version_counts_what_was_seeded(
 ) -> None:
     body = (await client.get("/content/version")).json()
     assert_matches(spec, "ContentVersion", body)
-    assert body["counts"]["entities"] == 15
-    assert body["counts"]["questions"] == 26
+    assert body["counts"]["entities"] == 50
+    assert body["counts"]["questions"] == 100
 
 
 async def test_the_bank_is_seeded_from_the_shipped_question_bank(
@@ -51,7 +51,7 @@ async def test_join_keys_survive_the_remap(client: httpx.AsyncClient) -> None:
 async def test_a_question_carries_the_geometry_id_its_prompt_highlights(
     client: httpx.AsyncClient, spec: dict[str, Any]
 ) -> None:
-    body = (await client.get("/questions/q-co-loc-1")).json()
+    body = (await client.get("/questions/gen:tpl-identify-on-map:us-state-co")).json()
     assert_matches(spec, "Question", body)
     assert body["highlightGeometryId"] == "08"
     assert body["format"] == "map_identify"
@@ -76,7 +76,11 @@ async def test_every_seeded_question_has_a_usable_answer_key(
 
 async def test_answer_keys_are_withheld_on_request(client: httpx.AsyncClient) -> None:
     """Omitted, not nulled — the client must not see a key it was refused."""
-    body = (await client.get("/questions/q-co-loc-1", params={"includeAnswerKey": False})).json()
+    body = (
+        await client.get(
+            "/questions/gen:tpl-identify-on-map:us-state-co", params={"includeAnswerKey": False}
+        )
+    ).json()
     assert "correctIndex" not in body
     assert body["choices"]
 
@@ -109,10 +113,13 @@ async def test_age_band_filters_are_independent_of_level(client: httpx.AsyncClie
 
 
 async def test_excluded_questions_do_not_come_back(client: httpx.AsyncClient) -> None:
+    excluded = {"gen:tpl-identify-on-map:us-state-co", "gen:tpl-capital-of:us-state-co"}
+    everything = (await client.get("/questions", params={"limit": 500})).json()
+    assert excluded <= {q["id"] for q in everything["data"]}
     body = (
-        await client.get("/questions", params={"exclude": "q-co-loc-1,q-co-cap-1", "limit": 500})
+        await client.get("/questions", params={"exclude": ",".join(sorted(excluded)), "limit": 500})
     ).json()
-    assert {"q-co-loc-1", "q-co-cap-1"}.isdisjoint({q["id"] for q in body["data"]})
+    assert excluded.isdisjoint({q["id"] for q in body["data"]})
 
 
 async def test_entities_search_is_case_insensitive(client: httpx.AsyncClient) -> None:
@@ -130,7 +137,7 @@ async def test_pagination_walks_the_whole_set_once(
 ) -> None:
     seen: list[str] = []
     cursor: str | None = None
-    for _ in range(20):
+    for _ in range(30):
         params: dict[str, Any] = {"limit": 4}
         if cursor:
             params["cursor"] = cursor
@@ -140,8 +147,8 @@ async def test_pagination_walks_the_whole_set_once(
         cursor = page["page"]["nextCursor"]
         if not page["page"]["hasMore"]:
             break
-    assert len(seen) == 26
-    assert len(set(seen)) == 26
+    assert len(seen) == 100
+    assert len(set(seen)) == 100
 
 
 async def test_a_forged_cursor_is_refused(client: httpx.AsyncClient) -> None:
@@ -159,9 +166,9 @@ async def test_a_bundle_carries_its_entities_and_questions(
     response = await client.get("/bundles/us")
     body = response.json()
     assert_matches(spec, "Bundle", body)
-    assert len(body["entities"]) == 15
-    assert len(body["questions"]) == 26
-    assert body["entityCount"] == 15
+    assert len(body["entities"]) == 50
+    assert len(body["questions"]) == 100
+    assert body["entityCount"] == 50
 
 
 async def test_a_bundle_is_immutable_per_content_version(client: httpx.AsyncClient) -> None:
