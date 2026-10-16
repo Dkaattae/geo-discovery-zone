@@ -359,6 +359,7 @@ split.
 **Skipped again, 2026-10-15, for T-023.** Same reason.
 **Skipped again, 2026-10-15, for T-024.** Same reason.
 **Skipped again, 2026-10-15, for T-025.** Same reason.
+**Skipped again, 2026-10-16, for T-086.** Same reason.
 
 ---
 
@@ -398,7 +399,7 @@ step (D-14, D-15).
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
 
-### T-086 — `seed-level.ts` and E-22 loose ends after T-025 · S · todo
+### T-086 — `seed-level.ts` and E-22 loose ends after T-025 · S · doing
 **Depends on:** —
 **New 2026-10-16, from T-025's reviewer (PR #85).** Three small things T-025
 was not allowed to touch:
