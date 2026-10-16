@@ -1,16 +1,16 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — **attended**: one pre-existing test is stale by design and needs a Test change request a person approves (D-14, D-15)
+**Status:** `test changes requested`
+**Next step:** `human` — start an **attended** `tester` session for T-086 to approve or refuse the Test change request row below (D-14, D-15)
 **Approved:** orchestrator — 2026-10-16, unattended run. See `runs/T-086-seed-level-loose-ends.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-086
 **Branch:** `claude/wonderful-heisenberg-0ekakv`. The orchestrator assigned this
 branch, and this line is the authority for every later role (`process.md`, "When
 the environment names the branch for you").
 **PR:** #86, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it.
-**Fault:**
+**Fault:** test changes are waiting for a person's approval: one pre-existing test (`hand-check-levels-verify.test.ts` criterion 10 signature pin) is stale by this task's own change. Every other criterion verified; see Verdict.
 
 **Sessions:**
 
@@ -18,6 +18,7 @@ draft until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb |
 | worker | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (same value as the expander's: `$CLAUDE_CODE_REMOTE_SESSION_ID` reports the orchestrating session to every subagent it spawns, so it cannot tell roles apart in this run) |
+| tester | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (orchestrated: same id as every role; independence rests on being a freshly spawned subagent, not on a separate session) |
 
 **Worker model:** Sonnet is enough. This is a documentation correction plus one
 small keep-or-drop call about unused exports; nothing here changes a level, a
@@ -333,7 +334,70 @@ It needs a Test change request approved by a person in the tester's session.
   "option not taken" paragraph, plan §1.4 or the label functions.
 - Did not touch any pre-existing test (D-14).
 
+## Test change request
+
+Written by `tester` (D-14). **No test below has been changed.** Awaiting a
+person's decision in an attended tester session (D-15).
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 10-13: what must still hold` › "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's" | `236b0e0`, T-025 tester: pinned that T-025 changed no exported name or signature of `seed-level.ts` while tuning weights | Criteria 2, 3 and 4 of this brief: E-22 now records the `export` on `levelFor` and on `nearDistractorCount` as removed and `levelFor`'s `weights` parameter as removed, so `AA88101_EXPORT_SIGNATURES` entries 6 (`export function nearDistractorCount(…)`) and 7 (`export function levelFor(…, weights: LevelSeedWeights = LEVEL_SEED_WEIGHTS, )`) can no longer appear. Currently red: actual export list is the other six. | modify | Name: "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's, less the two exports T-086 removed (E-22)". Asserts `exportSignatures()` `toEqual` exactly these six strings in this order, unchanged from today's pin: `export const LEVEL_SEED_WEIGHTS = {`, `export const LEVEL_MIN = 0;`, `export const LEVEL_MAX = 18;`, `export type LevelSeedWeights = typeof LEVEL_SEED_WEIGHTS;`, `export interface LeveledQuestion extends GeneratedQuestion {`, `export function seedLevels( questions: readonly GeneratedQuestion[], entities: readonly Entity[], templates: readonly Template[] = TEMPLATES, ): LeveledQuestion[] {`. A comment on the constant cites T-086 and this request. Still exact equality, so any added, removed or changed export still turns it red. (Non-export of `levelFor`/`nearDistractorCount` and `levelFor`'s four parameters are already pinned by the new `seed-level-loose-ends-verify.test.ts` criterion 4 tests.) | *(pending: a person's answer in an attended tester session)* |
+
+No count floor is affected. Criterion 12's `BASELINE` in the same file is **not** stale: it still passes (the worker kept the `weights.familiarity_bonus;` line via a local const).
+
 ## Verdict
+
+**TL;DR: not yet a verdict — test changes requested.** Every criterion except
+14's suite-green clause holds, verified by 23 new tests (all green, 6 mutations
+each turned the matching test red). The suite has exactly one red test, the
+stale criterion-10 signature pin above, which only a person can approve
+changing. Next: a human starts an attended `tester` session for T-086.
+
+**Independence:** orchestrated run (`runs/T-086-seed-level-loose-ends.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01H1X3vo49b7U5nujJi7mYCb`,
+the same id listed as task-expander and worker, so the session check proves
+nothing. My independence rests only on being a freshly spawned subagent with
+its own context that did not see the work or the worker's reasoning; that
+depends on the orchestrator having spawned me correctly, which I cannot verify.
+
+**New test file:** `question-bank/src/seed-level-loose-ends-verify.test.ts`
+(23 tests). Baselines at `41811f9` computed from a `git worktree` of
+`41811f9` and embedded as sha256 digests (CI is shallow).
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | E-22 bullet records `weights` parameter **removed**; test "criterion 1" |
+| 2 | met | `export` on `levelFor` **removed**; test "criterion 2" |
+| 3 | met | `export` on `nearDistractorCount` **removed**; test "criterion 3" |
+| 4 | met | `levelFor` params end at `entities`; neither declaration starts with `export`; neither is on the module namespace at runtime; no `.ts`/`.tsx` in `question-bank/` or `frontend/src` imports either |
+| 5 | met | one `**Revisit when**` paragraph, names T-085, keeps world-scope / home state / Elo (§1.4), no T-025 future |
+| 6 | met | old sentence gone; bullet keeps `home state`, `famous`, "term stays in the formula and the constant" |
+| 7 | met | band paragraph: "level 3.5 is band `3.5 - 2 = 1.5`" |
+| 8 | met | "1st grade (hard)", "5th grade (easy)", 3.5 "on the Medium/Hard boundary ... render as Hard"; matches `band_label` (`band < 1.5` → Medium, else Hard) |
+| 9 | met | `hand-check-levels-verify.test.ts` criterion 9 (unchanged file) passes; mirrored in new test |
+| 10 | met | 150 levels by id sha-equal to `41811f9`; `LEVEL_SEED_WEIGHTS` deep-equal |
+| 11 | met | header + separator + 30 rows sha-equal to `41811f9` |
+| 12 | met | file outside E-22's body sha-equal; heading unchanged; 23 `## E-n` headings |
+| 13 | met, with a note | `git diff --stat 41811f9` outside `tasks/`, `tasks.md`, `PROGRESS.md`: `engineering-decisions.md`, `question-bank/src/seed-level.ts`, `runs/T-086-seed-level-loose-ends.md`, plus this tester's test file. The `runs/` file is the orchestrator's mandated run log (process.md), not task output; I read the criterion's intent (no code/dependency/contract change) as met. No package, lockfile, backend, frontend, plan or `openapi.yaml` change. Reviewer may overrule. |
+| 14 | **not met yet** | see suite below |
+
+**Suite (this branch, with my test file):**
+
+- `question-bank` `bun test`: 2234 pass, **1 fail**: `hand-check-levels-verify.test.ts` › "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's" (the stale pin; Test change request row 1). `typecheck`, `lint` (0/0), `format:check` clean.
+- `make -C backend test`: 537 passed, 9 skipped.
+- `frontend` `bun test`: 375 pass, 1 fail — `Cannot find package 'react-simple-maps'` from `UsMap.tsx`. Environment: the proxy 403 on `bun install` noted in `PROGRESS.md`; no frontend file is in the diff. Could not read PR CI (`gh` GraphQL 403); CI's frontend job is the check.
+
+**Mutations (all reverted, `git status` clean apart from the new test file):**
+
+- re-add `export` on `levelFor` → criterion 4 export test red
+- re-add `weights` parameter to `levelFor` → criterion 4 parameter test red
+- `concept_load["tpl-capital-of"]` 2 → 1 → both criterion 10 tests red
+- restore `engineering-decisions.md` to `41811f9` → criteria 1–7 tests red (10 tests)
+- "1st grade (hard)" → "1st grade (medium)" → both criterion 8 tests red
+- insert a line into E-1 → criterion 12 outside-E-22 test red
+
+**To finish:** an attended tester asks a person about row 1, applies it if
+approved, reruns the whole suite, and records pass/fail.
 
 ## Notes
 
