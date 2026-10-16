@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights — run log
 
 **Task:** T-025 · **Branch:** `claude/practical-clarke-s0b2y4` · **PR:** #85
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -144,3 +144,43 @@ as a halt condition, so the two readings disagree. The orchestrator asked the
 person which applies rather than picking one.
 The person chose: **"Relay to expander (Recommended)"**. Relaying to the
 `task-expander` (blocked round 1 of 2).
+
+## Round 4 — task-expander — 2026-10-16
+`Next step` on entry: `task-expander` (Status: `blocked`) → on exit: `worker` (Status: `awaiting approval`, Approved: `pending`)
+
+**TL;DR:** I rewrote criterion 13's third clause (13c) so that it can be met, and pushed the change. The brief now waits for a person to approve it again. The worker will refuse to start until someone replaces `Approved: pending` with their name and the date. This orchestrated run cannot do that step itself.
+
+**Pushed:** commit `be1b658` on `claude/practical-clarke-s0b2y4`, which is the brief's `Branch:` header. I checked that the local head and `origin/claude/practical-clarke-s0b2y4` are the same commit. The commit touches only `tasks/T-025-hand-check-levels.md`.
+
+**What changed in the brief**
+- **Criterion 13** is now three clauses, each checked on its own. (a) and (b) say the same as before.
+- **13 (c), restated:** a +1 or −1 change to any single number in `LEVEL_SEED_WEIGHTS` must still change at least one of the 150 levels. There are exactly two exceptions: `missing_rank_bucket` and `concept_load_default`.
+  - Every element of `rank_bucket_edges` and every `concept_load` entry is explicitly covered, and no other key is exempt.
+  - The two are exempt because the committed bank never reads them: every state has both ranks, and every template has its own `concept_load` entry.
+  - Their liveness is left to the T-023 criterion-20 test, which uses a synthetic corpus. Criterion 17 already requires that test to pass unmodified.
+  - An italic note under the criterion keeps the original wording and says why it changed.
+- **Unchanged:** every other criterion, Out of scope, Constraints and the Review checklist are word for word as first approved.
+
+**Header**
+- **Status:** `awaiting approval`
+- **Next step:** `worker`
+- **Approved:** reset to `pending`, because `process.md` step 2 says amended criteria must be approved again. The line notes that Dkaattae's earlier approval covered the criteria before the amendment.
+- **Fault:** left as it was. The template says it is cleared only when the task reaches `pass`.
+
+**Also recorded**
+- A task-expander row in the Sessions table. The session id is the same as every other row (`cse_016eUpyD7jeyBpLWPeaAbRgW`), because this is an orchestrated run.
+- A Notes entry saying:
+  - The worker only needs to confirm that no code or record change is needed.
+  - The tester then re-checks 13 (c) and gives a fresh verdict on the whole brief.
+  - A person must approve before either of those can happen.
+
+**PR #85** is still a draft, and its body now carries the restated 13 (c) and a re-approval request at the top. **One slip:** my first update call sent the literal text "PLACEHOLDER" as the PR body. I replaced it seconds later through the REST API with the correct body and checked it: the placeholder is gone and criteria 1–17 are all there.
+
+**Next step: human.** Approve the amended brief by writing a name and date in the `Approved:` line. After that, the worker runs, then the tester.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md
+
+## Halted — G2, amended brief needs re-approval — 2026-10-16
+`Approved:` is back to `pending`. No worker spawned. Waiting for the person to
+approve the amended criterion 13 (c).
