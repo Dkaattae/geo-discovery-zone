@@ -557,6 +557,9 @@ so use `<state>` → animal phrasing only, and pick distractors from values the
 state does *not* carry.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
+**Skipped by the expander, 2026-10-16. Its `Depends on:` is incomplete.** The
+Done-when needs a generated question to be *loaded*, and nothing loads one until
+**T-040** lands. **Depends on: T-040** as well. T-040 was taken instead.
 
 ---
 
@@ -611,6 +614,11 @@ absent, not blank, when an entity has none (`Question.region` is optional in
 **Done when:** a documented command turns a pipeline build into a served bank,
 running it twice changes nothing, and the app serves states that were never
 hand-written.
+**Expanded 2026-10-16, and halted on three product questions** (brief
+`tasks/T-040-pipeline-loader.md`): what happens to the 26 reviewed hand-written
+questions and 15 `funFactDetail` texts, whether generated question output is
+committed, and whether `map_click` is served before T-051. A split into a
+`question-bank` writer and the Python loader is proposed there.
 
 ### T-056 — The map cannot fill in on a child's first day · M · todo
 **Depends on:** T-050 (or T-021, whichever gets there first)
