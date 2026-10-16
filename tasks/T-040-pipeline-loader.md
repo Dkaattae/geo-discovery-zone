@@ -1,7 +1,7 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `awaiting verification`
-**Next step:** `tester`: approved rows applied in `0032410`; criterion verification continues in the same attended session.
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
 **Test changes:** `approved — the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G (no name given; answered "Approved" to all 24 rows), 2026-10-16`
 **From:** [`tasks.md`](../tasks.md) T-040
@@ -559,6 +559,61 @@ suites. It predates the task loop.
 | 24 | `e2e/tests/app.ts` › `fetchAnswerKey` / `answerDeliberately` (helpers behind `progress.spec.ts` and `quiz.spec.ts`), and `e2e/tests/progress.spec.ts` › "the map fills in once a child has come back a second time" (**red in CI**) | `1f1bbbf`, PR #27: answer on purpose, and the map fills after two sittings | c11: 4 pairs of `map_identify` questions share a prompt and choice set (the Handoff's PA/DE, MA/RI, ME/NH, NC/SC). The prompt+choices key picks the wrong state: CI shows "the server graded … differently than the key says". c6 also breaks the premise: two sittings of 26 over 100 questions fill 0–3 of 50 states (4 API runs) | modify | **app.ts**: the key maps question id → answer. `startQuiz` calls the new `watchServedQuestions`, which records the id from each `next-question`/`review-round` response. `answerDeliberately` looks up that id and also asserts the screen shows that answer. **progress.spec.ts**: the same test, with each sitting 50 questions (`SITTING = 50`) instead of 26. The API measured 15–18 of 50 filled after two sittings; first sitting still 0. Docstrings say 50 states / 100 questions. Same assertions (`0` after one, `> 0` after two) || approved — "Approved", tester session, 2026-10-16 |
 
 ## Verdict
+
+**TL;DR: pass.** All 36 criteria hold. CI on `f99a775` is green on all six
+jobs, e2e included. The 24 stale pre-existing tests were changed only after a
+person approved them, in this session.
+
+- **Independence: a separate session.** This tester ran in
+  `cse_016YSBLmf5yThtJbxs5c2P8G`, started directly by a person. The expander
+  and worker ran in `cse_01EuEUiM5FxMkMiBTb77d5NA`. It is not an orchestrated
+  subagent.
+- **Test changes, all 24 rows applied as written** (`0032410`):
+  - Header line: `approved — the person attending tester session
+    cse_016YSBLmf5yThtJbxs5c2P8G (no name given; answered "Approved" to all 24
+    rows), 2026-10-16`.
+  - The person's words in this session, in full: "Approved".
+  - Every deleted or modified test, with its reason, is in the table above.
+    None were deleted; all 24 are modifies. Row 23 re-pins T-025 c17's digest
+    because rows 15, 16 and 20 edit three of the files it digests.
+- **New tests:** `backend/tests/test_t040_tester_criteria.py`, 32 tests. They are
+  written from the criteria, with expected values read from the committed inputs
+  and `openapi.yaml`, never from `content.json`. Where the worker's tests sample
+  one question per reveal kind, these walk every served question.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `bun run ./src/write-questions.ts` writes 150 questions (50 each of map_identify, multiple_choice and map_click). It is in conventions.md Commands with the path |
+| 2 | pass | Ran twice: md5 `8e886ec2…` both times, `git status` clean. No fetch, clock or random in either file |
+| 3 | pass | `question-file.test.ts` drift + companion. Mutation: "Juneau"→"Juneaux" in the committed file turns both red |
+| 4 | pass | `make -C backend content` ran twice: md5 `0cde0eb6…` both times, tree clean. `test_c4_*` |
+| 5 | pass | `test_c4_c5_*`, `test_c5_*`, plus the worker's drift test |
+| 6–7 | pass | `test_c6_*`, `test_c7_*` (exactly the index ids, `us-state-la` in, `us-state-lo` out) |
+| 8–10 | pass | `test_c8_*` (all 17 pairs × 50 states), `test_c9_*` (6 / 26), `test_c10_*` (keys ⊆ `Entity`/`Question`, through `allOf`) |
+| 11–15 | pass | `test_c11_*` … `test_c15_*`. c15 fetches every one of the 100 with `includeAnswerKey=false` |
+| 16–19 | pass | `test_c16_*` … `test_c19_*`. Mutation: ignoring `reviewed` turns c17 and c18 red |
+| 20–22 | pass | Full location and capital sessions (every question, correct), plus a 100-answer wrong session. Mutation: a capital reveal set to `map_highlight` turns the capital case red |
+| 23–24 | pass | `test_c23_*`, `test_c24_*` (changed capital served, a dropped entity leaves no rows) |
+| 25 | pass | location/capital: 50 distinct, one per state. mixed: 100 distinct, both formats |
+| 26–28 | pass | Archive sha `81edf041…` (= aa88101's file). No non-test reader of `archive/`. conventions.md Layout line |
+| 29–32 | pass | README, `_source`, `topLivestock` wording, a single new E-24 |
+| 33 | pass | Pinned by question-bank T-025 c15 (every package.json and lockfile byte-identical), which is green |
+| 34 | pass | `test_c34_*`: only `0001_initial_schema.py`, and no `create_all` |
+| 35 | pass | No new test opens a socket. All read committed files or use the in-process client |
+| 36 | pass | Local: backend `make check` gives 594 pass, 9 skip. question-bank gives 2241 pass, 0 fail, with typecheck, lint and format clean. CI: all six jobs green on `f99a775` |
+
+**Mutation that was inconclusive, and what replaced it.** Adding `map_click` to
+`SERVED_FORMATS` made the loader fail to write, so the API tests never saw it.
+Instead, a `map_click` question was injected straight into `content.json`.
+c6, c11, c12 and c25 went red. An injected `stateAnimal` was not served at all:
+the API's model drops it, so c10 holds through the API. Every mutation was
+reverted, and the tree was clean after each.
+
+**Not run here:** the frontend suite and e2e. There is no Docker daemon, and
+the frontend registry returns 403. Both are green in CI on `f99a775`.
+
+**For the reviewer:** the worker's "Found" item 2 (criterion 33 vs the
+Constraints' `scripts` entry) is still open and still the reviewer's call.
 
 ## Notes
 
