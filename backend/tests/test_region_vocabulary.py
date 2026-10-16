@@ -98,16 +98,18 @@ def region_offenders(node: Any, where: str) -> list[tuple[str, Any]]:
 # -- criterion 3 -------------------------------------------------------------
 
 
-def test_the_fifteen_served_states_keep_the_region_they_carry_today() -> None:
+def test_the_fifteen_anchor_states_keep_the_region_they_carry_today() -> None:
+    """T-040 replaced the 15 hand-copied states with the 50 pipeline ones; the
+    15 anchors are still served, each with the region criterion 3 fixed."""
     served = {entity["name"]: entity.get("region") for entity in content()["entities"]}
-    assert served == ANCHORS
+    assert {name: served.get(name) for name in ANCHORS} == ANCHORS
 
 
-def test_content_json_still_serves_exactly_those_fifteen_states() -> None:
-    """Criterion 3 freezes 15 rows; a 16th would mean the file was edited."""
+def test_content_json_serves_the_fifty_pipeline_states_the_fifteen_anchors_among_them() -> None:
+    """Criterion 3 froze 15 rows until T-040 served the 50 pipeline states."""
     entities = content()["entities"]
-    assert len(entities) == 15
-    assert {entity["name"] for entity in entities} == set(ANCHORS)
+    assert len(entities) == 50
+    assert set(ANCHORS) <= {entity["name"] for entity in entities}
 
 
 async def test_the_api_returns_the_same_region_for_each_anchor(
@@ -115,7 +117,7 @@ async def test_the_api_returns_the_same_region_for_each_anchor(
 ) -> None:
     body = (await client.get("/entities", params={"limit": 500})).json()
     served = {row["name"]: row.get("region") for row in body["data"]}
-    assert served == ANCHORS
+    assert {name: served.get(name) for name in ANCHORS} == ANCHORS
 
 
 # -- criterion 4 -------------------------------------------------------------
@@ -130,7 +132,7 @@ def test_both_entities_and_questions_in_content_json_were_checked() -> None:
     document = content()
     entity_regions = [entity.get("region") for entity in document["entities"]]
     question_regions = [question.get("region") for question in document["questions"]]
-    assert len(entity_regions) == 15
+    assert len(entity_regions) == 50
     assert len(question_regions) > 0
     assert all(value in VOCABULARY for value in entity_regions)
     assert all(value in VOCABULARY for value in question_regions if value is not None)

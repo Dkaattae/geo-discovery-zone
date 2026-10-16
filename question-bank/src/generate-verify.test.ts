@@ -15,7 +15,8 @@ import type { Entity } from "./types";
 
 const SRC = import.meta.dirname;
 const STATES_DIR = join(SRC, "..", "data", "us-states");
-const CONTENT = resolve(SRC, "..", "..", "backend", "app", "data", "content.json");
+// The hand-written bank, archived by T-040 when the served content.json became the generated one.
+const CONTENT = resolve(SRC, "..", "..", "archive", "hand-written-bank", "content.json");
 
 const IDENTIFY = "tpl-identify-on-map";
 const CAPITAL = "tpl-capital-of";

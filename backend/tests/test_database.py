@@ -269,7 +269,7 @@ def test_the_seeded_bank_is_queryable_rather_than_scanned(
         assert all(abs(question["level"] - 7) <= 1.5 for question in near_seven)
 
         page, total = store.list_entities(session, limit=4)
-        assert len(page) == 4 and total == 15
+        assert len(page) == 4 and total == 50
 
 
 def test_a_second_page_does_not_repeat_the_first(own_database: tuple[Engine, str]) -> None:
@@ -278,7 +278,7 @@ def test_a_second_page_does_not_repeat_the_first(own_database: tuple[Engine, str
         store.ensure_content_loaded(session)
         first, total = store.list_entities(session, offset=0, limit=6)
         second, _ = store.list_entities(session, offset=6, limit=6)
-        assert total == 15
+        assert total == 50
         assert not {entity["id"] for entity in first} & {entity["id"] for entity in second}
 
 

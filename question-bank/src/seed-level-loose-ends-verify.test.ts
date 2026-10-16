@@ -353,17 +353,26 @@ describe("T-086 criteria 10-12: what must not move", () => {
     expect(sha(table.join("\n"))).toBe(BASE_TABLE_SHA);
   });
 
-  test("criterion 12: engineering-decisions.md outside E-22's body is byte-identical to 41811f9's", () => {
-    const lines = decisionLines();
+  // T-040 appended E-24; everything 41811f9 had outside E-22's body is still pinned.
+  test("criterion 12: engineering-decisions.md outside E-22's body, up to the first heading after E-23, is byte-identical to 41811f9's", () => {
+    const all = decisionLines();
+    const later = all.findIndex((l) => Number(l.match(/^## E-(\d+)\b/)?.[1]) > 23);
+    const lines = later < 0 ? all : [...all.slice(0, later - 1), ""];
     const [s, e] = e22Bounds(lines);
     const outside = [...lines.slice(0, s + 1), ...lines.slice(e)].join("\n");
     expect(sha(outside)).toBe(BASE_OUTSIDE_E22_SHA);
   });
 
-  test("criterion 12: E-22's heading line is unchanged and no ## E-n heading is added or removed", () => {
+  // T-040 appended E-24, so headings above E-23 are allowed; none of 41811f9's may go.
+  test("criterion 12: E-22's heading line is unchanged and no ## E-n heading up to E-23 is added or removed", () => {
     const lines = decisionLines();
     const [s] = e22Bounds(lines);
     expect(lines[s]).toBe(BASE_E22_HEADING);
-    expect(lines.filter((l) => /^## E-\d+/.test(l)).length).toBe(BASE_E_HEADING_COUNT);
+    expect(
+      lines.filter((l) => {
+        const n = l.match(/^## E-(\d+)/)?.[1];
+        return n !== undefined && Number(n) <= 23;
+      }).length,
+    ).toBe(BASE_E_HEADING_COUNT);
   });
 });

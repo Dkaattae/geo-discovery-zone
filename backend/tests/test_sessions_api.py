@@ -237,7 +237,8 @@ async def test_answering_a_question_never_served_is_refused(
     client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session, served = await start(client, auth_headers)
-    other = "q-co-cap-1" if served["question"]["id"] != "q-co-cap-1" else "q-co-loc-1"
+    capital, location = "gen:tpl-capital-of:us-state-co", "gen:tpl-identify-on-map:us-state-co"
+    other = capital if served["question"]["id"] != capital else location
     response = await client.post(
         f"/sessions/{session['id']}/answers",
         headers=auth_headers,
