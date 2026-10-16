@@ -1070,7 +1070,7 @@ population_rank_weight: 1
 area_rank_weight: 0.5
 missing_rank_bucket: 2
 near_distractor_weight: 0.5
-concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 1, "tpl-click-the-map": 0 }
+concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 2, "tpl-click-the-map": 0 }
 concept_load_default: 1
 familiarity_bonus: 0
 ```
@@ -1092,17 +1092,19 @@ familiarity_bonus: 0
   entities (trimmed, lower-cased); if several match it is near when any of them
   is, and if none does it is far.
 - **`concept_load`.** A capital is a recalled fact with nothing on screen to
-  lean on; the map templates show the shape. The values are a first guess.
+  lean on; the map templates show the shape. T-025 raised the capital's load
+  from 1 to 2 after reading 30 questions (the record below); the map values
+  are still the T-023 first guess.
 - **Why `familiarity_bonus` is 0.** The plan's two sources are the player's home
   state and "very famous" entities. A home state is per-player, so it belongs at
   serving time, not in a stored level. No list of famous states exists in the
   bank, and a guessed one is what "prefer a blank field to a guessed one" rules
   out. The term stays in the formula and the constant so T-025 can set it.
 
-Over the committed bank the 150 levels run from 3.5 (Texas, identify on map) to
-9 (Delaware, Rhode Island and others, capital and click). The map templates
-nearly always get 3 near distractors, so tightness mostly separates the 11
-small-region states of E-21.
+Over the committed bank the 150 levels run from 3.5 (California and Texas,
+identify on map) to 10 (Delaware, Maine, New Hampshire, Rhode Island, Vermont
+and West Virginia, capital). The map templates nearly always get 3 near
+distractors, so tightness mostly separates the 11 small-region states of E-21.
 
 **The option not taken:** a continuous `(rank - 1) / 49` scale instead of
 buckets. It needs no edges, but the plan says "bucketed", and a handful of
@@ -1112,6 +1114,92 @@ buckets is easier for T-025 to tune by reading 30 questions than a slope.
 world-scope bank arrives (rank counts other than 50, and region near/far means
 something else for countries), a player profile exists to carry a home state,
 or Elo ratings replace seeded levels (plan §1.4).
+
+### T-025 hand-check of 30 questions (2026-10-16)
+
+**2026-10-16 (T-025).** The 30 questions are the three templates for CA, TX,
+FL, NY, WA, CO, KY, HI, AK and RI, read as a seven-to-ten-year-old would meet
+them. Prompts and choices are what `buildChoices` returns over the committed
+bank; "T-023" is the level under the T-023 weights, "Final" under the constant
+above. Every verdict is for the final level.
+
+| State | Template | Prompt | Correct | Distractors | T-023 | Final | Verdict | Why left that way |
+|---|---|---|---|---|---|---|---|---|
+| CA | tpl-identify-on-map | Which state is highlighted? | California | Nevada, Oregon, Arizona | 3.5 | 3.5 | about right | |
+| TX | tpl-identify-on-map | Which state is highlighted? | Texas | Oklahoma, New Mexico, Louisiana | 3.5 | 3.5 | about right | |
+| FL | tpl-identify-on-map | Which state is highlighted? | Florida | Georgia, Alabama, South Carolina | 4.5 | 4.5 | about right | |
+| NY | tpl-identify-on-map | Which state is highlighted? | New York | Vermont, Connecticut, Massachusetts | 4.5 | 4.5 | about right | |
+| WA | tpl-identify-on-map | Which state is highlighted? | Washington | Oregon, Idaho, Alaska | 5 | 5 | about right | |
+| CO | tpl-identify-on-map | Which state is highlighted? | Colorado | Wyoming, Utah, Nebraska | 5.5 | 5.5 | about right | |
+| KY | tpl-identify-on-map | Which state is highlighted? | Kentucky | Tennessee, Indiana, Ohio | 7 | 7 | about right | |
+| HI | tpl-identify-on-map | Which state is highlighted? | Hawaii | California, Oregon, Nevada | 6.5 | 6.5 | too hard | A chain of islands against three mainland choices is among the easiest map questions, but its ranks put it in the same buckets as Rhode Island and Vermont, and the one input that sets it apart, 0 near distractors, is worth 1.5; raising that weight lifts the other 48 states instead (tried below). |
+| AK | tpl-identify-on-map | Which state is highlighted? | Alaska | Washington, Oregon, Montana | 6 | 6 | too hard | The largest state, usually drawn in its own inset, is easy to pick out, but the population term (rank 48) outweighs its area rank of 1; lowering it needs an input the formula does not have (see the proposal below). |
+| RI | tpl-identify-on-map | Which state is highlighted? | Rhode Island | Massachusetts, Connecticut, New Hampshire | 8 | 8 | about right | |
+| CA | tpl-capital-of | What is the capital of California? | Sacramento | Carson City, Salem, Salt Lake City | 4 | 5 | about right | |
+| TX | tpl-capital-of | What is the capital of Texas? | Austin | Oklahoma City, Baton Rouge, Little Rock | 4.5 | 5.5 | about right | |
+| FL | tpl-capital-of | What is the capital of Florida? | Tallahassee | Atlanta, Columbia, Montgomery | 5.5 | 6.5 | about right | |
+| NY | tpl-capital-of | What is the capital of New York? | Albany | Harrisburg, Trenton, Dover | 5.5 | 6.5 | about right | |
+| WA | tpl-capital-of | What is the capital of Washington? | Olympia | Salem, Juneau, Boise | 6 | 7 | about right | |
+| CO | tpl-capital-of | What is the capital of Colorado? | Denver | Cheyenne, Salt Lake City, Helena | 6.5 | 7.5 | too hard | Denver is also Colorado's largest city, so it is likelier to be a name the child has met than Olympia or Frankfort; whether a nine-year-old has heard of Denver is not something this reading can check, and the bank has no field for "the capital is the largest city", so it is left. |
+| KY | tpl-capital-of | What is the capital of Kentucky? | Frankfort | Nashville, Charleston, Raleigh | 8 | 9 | about right | |
+| HI | tpl-capital-of | What is the capital of Hawaii? | Honolulu | Sacramento, Salem, Carson City | 7.5 | 8.5 | too hard | Honolulu is Hawaii's largest city by far and the likeliest Hawaiian place name a child knows, but nothing in the bank says so, and adding it would be a familiarity guess that needs a person's approval. |
+| AK | tpl-capital-of | What is the capital of Alaska? | Juneau | Olympia, Salem, Helena | 7 | 8 | about right | |
+| RI | tpl-capital-of | What is the capital of Rhode Island? | Providence | Boston, Hartford, Concord | 9 | 10 | about right | |
+| CA | tpl-click-the-map | Find California on the map. | California | Nevada, Oregon, Arizona | 4.5 | 4.5 | about right | |
+| TX | tpl-click-the-map | Find Texas on the map. | Texas | Oklahoma, New Mexico, Louisiana | 4.5 | 4.5 | about right | |
+| FL | tpl-click-the-map | Find Florida on the map. | Florida | Georgia, Alabama, South Carolina | 5.5 | 5.5 | about right | |
+| NY | tpl-click-the-map | Find New York on the map. | New York | Vermont, Connecticut, Massachusetts | 5.5 | 5.5 | about right | |
+| WA | tpl-click-the-map | Find Washington on the map. | Washington | Oregon, Idaho, Alaska | 6 | 6 | about right | |
+| CO | tpl-click-the-map | Find Colorado on the map. | Colorado | Wyoming, Utah, Nebraska | 6.5 | 6.5 | about right | |
+| KY | tpl-click-the-map | Find Kentucky on the map. | Kentucky | Tennessee, Indiana, Ohio | 8 | 8 | about right | |
+| HI | tpl-click-the-map | Find Hawaii on the map. | Hawaii | California, Oregon, Nevada | 7.5 | 7.5 | too hard | Hawaii sits apart from the mainland on any US map, so it is easier to find than Kentucky, but its ranks match Rhode Island's buckets and its 0 near distractors are worth only 1.5, for the same reason as the identify row. |
+| AK | tpl-click-the-map | Find Alaska on the map. | Alaska | Washington, Oregon, Montana | 7 | 7 | too hard | The largest state, in its own corner of the map, is easy to find, but its population bucket outweighs its area bucket, and swapping those weights would push Florida, New York and Kentucky up with nothing gained elsewhere. |
+| RI | tpl-click-the-map | Find Rhode Island on the map. | Rhode Island | Massachusetts, Connecticut, New Hampshire | 9 | 9 | about right | |
+
+**Which weights changed:** one. Every other key of `LEVEL_SEED_WEIGHTS` holds
+its T-023 value.
+
+- `concept_load["tpl-capital-of"]`: 1 → 2. Under 1 the capital question tied
+  click-the-map for every state but CA (Kentucky 8 and 8, Rhode Island 9 and
+  9), yet a capital is a second fact about a state that a child can only use
+  once the state's name and place are known, with nothing on screen to reason
+  from, so it now sits one step above click and two above identify for the
+  same state.
+
+**Weights tried and not adopted** (scratch runs, not committed):
+
+- `near_distractor_weight` 0.5 → 1 lowered Hawaii only 1.5 relative to the
+  rest and lifted the other 48 states of each map template by 1.5, moving the
+  whole band up without fixing the order.
+- `area_rank_weight` 0.5 → 1 helped Alaska but pushed Hawaii, Florida, New
+  York and Kentucky up; Florida's shape is among the easiest, so the trade is
+  worse.
+- Moving a `rank_bucket_edges` value to pull Florida or Colorado into an
+  easier bucket was rejected: an edge chosen to move one named state is a
+  familiarity list in disguise.
+
+**What the reading found the formula cannot express.** The four `too hard`
+map rows (Hawaii and Alaska, both map templates) share one cause: a state that
+is drawn apart from the mainland is easy to see, and the only inputs are
+population and area rank. The two `too hard` capital rows share another: the
+capital is the state's largest city. Both need a new input, not a weight, and
+either a fact field (drawn in an inset; capital is the largest city) or a
+`familiarity_bonus` list. A list needs a person's approval (the content rule
+above), so `familiarity_bonus` stays 0.
+
+**Map questions and the near-distractor term.** 48 of each map template's 50
+questions have 3 near distractors; only Hawaii (0) and Alaska (2) differ. For
+map questions the term is a constant +1.5 everywhere else, so it separates
+nothing but those two. It still points the right way for both, so it stays.
+
+**The band.** The final levels run 3.5 to 10, which renders under plan §1.4 as
+1st grade (hard) to 5th grade (easy), `floor(3.5 / 2) = 1` to
+`floor(10 / 2) = 5`. That is right for these three templates: they are the
+first questions a child meets about US states, so they should start below the
+seven-to-ten-year-olds the app is for and reach into the grades where state
+capitals are a fair stretch, and Setup's three-or-four-level window (§3.3)
+then shows a second grader the big map states and a fifth grader the small
+states' capitals. Nothing in these templates belongs above grade 5.
 
 ## E-23 — The `GET /questions` tags are added by a stage after `seedLevels`; a template's topic is assigned by id, outside the record
 

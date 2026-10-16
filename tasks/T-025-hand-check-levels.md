@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `awaiting approval`
-**Next step:** `worker` (after a human approves below)
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approved, go ahead"). See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
@@ -17,6 +17,7 @@ draft until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-15 | cse_016eUpyD7jeyBpLWPeaAbRgW |
+| worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW |
 
 **Worker model:** Opus. This task is a judgement about question difficulty for
 children, which `process.md` ("Choosing the worker's model") gives to Opus.
@@ -272,6 +273,100 @@ cannot check them.
 
 ## Handoff
 
+**TL;DR:** One weight changed: `concept_load["tpl-capital-of"]` 1 → 2. The
+30-question record, the band decision and the updated constant block and range
+sentence are in E-22. The suite is green with no stale tests. **Criterion 13's
+last clause cannot be met over the committed bank by any weight values**
+(details below), so the tester should judge it, and probably send it to the
+expander.
+
+**Files changed**
+
+- **`question-bank/src/seed-level.ts`**: one value. `"tpl-capital-of": 1` →
+  `2` inside `LEVEL_SEED_WEIGHTS.concept_load`. No key, comment, export or
+  signature changed.
+- **`engineering-decisions.md`, E-22 only**:
+  - the constant block now reads `"tpl-capital-of": 2`
+  - the `concept_load` bullet's "first guess" wording now says T-025 raised
+    the capital's load and the map values are still the T-023 guess
+  - the range sentence is now "3.5 (California and Texas, identify on map) to
+    10 (Delaware, Maine, New Hampshire, Rhode Island, Vermont and West
+    Virginia, capital)"
+  - a new `### T-025 hand-check of 30 questions (2026-10-16)` subsection at the
+    end of E-22, just before `## E-23`. It holds the 30-row table, "Which
+    weights changed", the weights tried and not adopted, what the formula
+    cannot express, the map near-distractor finding, and the band decision.
+- **This brief**: Status, Next step, Sessions, Handoff, Notes.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1–5 | The E-22 table: 30 rows, columns State, Template, Prompt, Correct, Distractors (comma-separated, in `choices` order with the correct one taken out), T-023, Final, Verdict, Why left that way |
+| 6 | E-22 "**Which weights changed:** one." Just one key is listed |
+| 7 | E-22 fenced block under "The constant, as the code spells it:" |
+| 8 | E-22 range sentence, above "The option not taken" |
+| 9 | E-22 "**The band.**" paragraph: 3.5–10 → grade 1 to grade 5 |
+| 10, 10a, 11, 12 | Only one value changed in `seed-level.ts`. `TEMPLATES` was not touched and `familiarity_bonus` is still 0 |
+| 13 | Levels are finite, in range, and 9/10/9 distinct per template. The ±1 clause: see "Contradicts the brief" |
+| 14, 15 | `git diff aa88101 --stat` touches none of those paths |
+| 16 | The record is a `###` subsection with no new `## E-` heading. E-23 is still the highest |
+| 17 | `bun test` 2180 pass, 0 fail. `typecheck`, `lint` and `format:check` are clean |
+
+**Verdict counts:** 24 `about right`, 6 `too hard`, 0 `too easy`.
+- **Too hard, map:** HI and AK on both map templates.
+- **Too hard, capital:** CO (Denver) and HI (Honolulu).
+- **Cause:** none of these can be fixed with a weight. The formula only sees
+  rank and near count.
+
+**Contradicts the brief: criterion 13's third clause cannot be met.** "Changing
+any single number in `LEVEL_SEED_WEIGHTS` by +1 or −1 still changes at least
+one of the 150 levels" fails for two keys, under the T-023 weights and under
+any values:
+- **`missing_rank_bucket`**: every state in the committed bank has a usable
+  `population_rank` and `area_rank`, so this value is never read.
+- **`concept_load_default`**: all three templates have a `concept_load` entry,
+  so the default is never read.
+
+Fixing either would need a key removed (criterion 10), a template changed
+(criterion 11) or data changed (criterion 14). The T-023 criterion-20 test
+avoids this by adding a synthetic corpus (null-rank AK, renamed templates), and
+it passes. I did not build anything to satisfy my own reading of the clause.
+**Owner: tester to rule, then task-expander to restate it**, probably as
+"every number except these two", or "over the T-023 criterion-20 corpus".
+Reproduce with a scratch script that sets each leaf ±1 and compares the 150
+levels from `seedLevels(buildChoices(generate(bank)))`.
+
+**Deliberately not done**
+- **No familiarity list and no new input.** The record proposes two fact
+  fields, "drawn in an inset" (AK, HI) and "capital is the largest city", or a
+  person-approved `familiarity_bonus` list. Either one changes the formula.
+  **Owner: reviewer to file it as a `tasks.md` entry at the sweep.** It is out
+  of scope here.
+- **`near_distractor_weight`, `area_rank_weight` and the bucket edges were
+  tried and kept.** The record gives the reasons.
+- **No `base_difficulty` change was needed.** Identify < click < capital is now
+  the order for every state.
+- **E-22's "Revisit when" was left as written.** It still names T-025 as a
+  trigger. **Owner: reviewer**, who may reword it at the sweep.
+- **No committed script.** The scratch scripts lived in the session scratchpad.
+
+**How to run**
+- `cd question-bank && bun install --frozen-lockfile` first. node_modules was
+  absent in this container, and without it `typecheck` and `lint` fail on
+  missing binaries.
+- Then `bun test && bun run typecheck && bun run lint && bun run format:check`.
+- To recompute the T-023 column, set
+  `LEVEL_SEED_WEIGHTS.concept_load["tpl-capital-of"] = 1` at runtime. Every
+  other T-023 value is unchanged, so this is the whole T-023 weight set.
+
+**Tests made stale:** none.
+
+**Same session id as the expander.** The Sessions table shows
+`cse_016eUpyD7jeyBpLWPeaAbRgW` for both rows. That is what
+`$CLAUDE_CODE_REMOTE_SESSION_ID` returned. The tester must run in a different
+session.
+
 ## Verdict
 
 ## Notes
@@ -281,3 +376,13 @@ cannot check them.
   `tasks.md`. T-025 is the first entry whose dependency (T-023, PR #83) is done.
 - **Not on the light path**, although it is sized S: it has more than four
   criteria, and the deliverable is a judgement about what children find hard.
+- **Worker, 2026-10-16:** The capital and click-the-map templates gave the
+  same level for 49 of the 50 states under T-023 (all but CA). That cross-template tie was
+  the one problem a weight could fix.
+- **Worker, 2026-10-16:** The within-template problems found (HI, AK, Denver,
+  Honolulu) all come from inputs the formula lacks: how a state is drawn, and
+  whether the capital is a city a child has heard of. Weights cannot reach
+  them.
+- **Worker, 2026-10-16:** The verdicts are one reader's judgement, not play
+  data. Where a verdict depended on what a child has heard of, the row says
+  so. **Owner: the person working the Review checklist.**
