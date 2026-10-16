@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights — run log
 
 **Task:** T-025 · **Branch:** `claude/practical-clarke-s0b2y4` · **PR:** #85
-**Started:** 2026-10-15 · **Outcome:** in progress
+**Started:** 2026-10-15 · **Outcome:** halted — needs human (approved, escalated)
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -241,3 +241,58 @@ from `Next step: worker`.
 The Review checklist (whether the ordering, the band and the verdict reasons are sane) is for a person. I did not test it.
 
 Brief: `/home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md`
+
+## Round 7 — reviewer — 2026-10-16
+`Next step` on entry: `reviewer` (Status: `pass`) → on exit: `human` (Status: `blocked`)
+
+**T-025 is approved and escalated, but PR #85 is still a draft.** The harness refused one sweep step, deleting the brief (auto-mode classifier, "Irreversible Local Destruction"). I did not try another route. Brief is now `Status: blocked`, `Next step: human`. Pushed to `claude/practical-clarke-s0b2y4` at `f29d835`, and the remote head matches.
+
+**What Dkaattae has to do**, also at the top of the PR body:
+1. Delete `tasks/T-025-hand-check-levels.md` on the branch, then commit and push. The rest of the sweep is already committed.
+2. Work the brief's Review checklist on PR #85 and say there who checked it.
+3. Mark the PR ready, then merge.
+
+**Why it is escalated:** it is a curation task. The levels decide which question a child gets at which grade, and the band decision is close to a product call. Only a person can judge the ordering. The orchestrator's one-hour fallback for a refused sweep does not apply to an escalation.
+
+**The review**
+- **Every role's work is in the PR, and each stayed in its lane.**
+  - expander: `tasks/` and `tasks.md` only
+  - worker: `seed-level.ts` (one value), E-22 and the brief
+  - tester: its own `hand-check-levels-verify.test.ts` and the brief
+  - orchestrator: `runs/` and the brief
+- **Checks are green.** I reran the suite: 2212 pass, 0 fail, and typecheck, lint and format:check are clean. CI on `98809be` was green for question-bank, backend, postgres and integration; frontend and e2e were still running when I looked.
+- **Nothing breaks the envelope except the content judgement.** No dependency, no `openapi.yaml`, migration or plan change, no pre-existing test touched (`Test changes: none`), and no new child-facing text.
+- **The work itself is good and in scope:** the capital `concept_load` goes 1 → 2, and E-22 gets the 30-row record and the band decision.
+
+**Findings (none blocks)**
+1. **The tester's file keeps checking "nothing else changed" after merge.** It pins `TEMPLATES`, the bank data, `content.json`, every lockfile and every older test file to `aa88101`. T-026, T-040, T-064, T-084 and any dependency add will turn it red, and each will need an attended Test change request.
+   - I amended T-070 (a), which already owns this kind of pin, and added a note to each of those tasks.
+   - I added P-17 in `process-tasks.md` for the loop, because the cause is how the criteria were written, not the tester.
+2. **Providence is judged inconsistently.** Denver and Honolulu are marked `too hard` because each is its state's largest city. Providence is too, but its row says `about right` at the bank's maximum of 10, with no reason given. This is for the person's checklist, and I carried it into T-085.
+3. **The band wording is slightly off.** E-22 says "1st grade (hard)", but level 3.5 is grade 1 between medium and hard. Filed as T-086.
+
+**The worker's flags**
+- **Fact fields or a familiarity list:** new T-085, which needs a person to choose an option first.
+- **E-22's out-of-date "Revisit when" and `levelFor`'s unused parameter:** new T-086.
+- **Leaving `base_difficulty` alone:** I agree with it.
+- **Renaming the "blocked" tests:** the tester already did it.
+
+**Sweep, committed**
+- `tasks.md`: T-025 deleted; T-085 and T-086 added; T-070, T-040, T-026, T-064 and T-084 amended.
+- `PROGRESS.md`: a Completed-tasks entry for T-025, and the seed-level line updated.
+- `process-tasks.md`: P-17.
+- The brief has a `## Review` section with a `### Sweep to apply` that lists the one remaining step.
+
+I updated the PR body with the escalation note, the criteria word for word, the verification table and the findings. Draft stays `true`.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+
+## Halted — reviewer escalation, brief deletion refused — 2026-10-16
+Header: `Status: blocked`, `Next step: human`. Branch head at halt: `f29d835`.
+This is not `Status: sweep refused`, so the one-hour fallback does not apply, and
+the orchestrator never applies a sweep on `Status: blocked`. No check-in scheduled.
+The PR is a person's: delete the brief, work the Review checklist, mark ready, merge.
