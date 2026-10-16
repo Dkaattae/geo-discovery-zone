@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker` (after a human approves below)
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-16, unattended run. See `runs/T-086-seed-level-loose-ends.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-086
 **Branch:** `claude/wonderful-heisenberg-0ekakv`. The orchestrator assigned this
