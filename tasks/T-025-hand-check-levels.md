@@ -1,8 +1,8 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `blocked`
-**Next step:** `task-expander`
-**Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approved, go ahead"). See `runs/T-025-hand-check-levels.md`.
+**Status:** `awaiting approval`
+**Next step:** `worker`
+**Approved:** `pending` — criterion 13 (c) was amended on 2026-10-16 and needs a fresh approval. The first approval (Dkaattae, 2026-10-16, orchestrator session, "approved, go ahead"; see `runs/T-025-hand-check-levels.md`) covered the criteria before that amendment.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
 **Branch:** `claude/practical-clarke-s0b2y4`. The orchestrator assigned this
@@ -19,6 +19,7 @@ draft until the reviewer approves it.
 | task-expander | 2026-10-15 | cse_016eUpyD7jeyBpLWPeaAbRgW |
 | worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW |
 | tester | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent) |
+| task-expander | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; amended criterion 13 (c) after `blocked`) |
 
 **Worker model:** Opus. This task is a judgement about question difficulty for
 children, which `process.md` ("Choosing the worker's model") gives to Opus.
@@ -151,10 +152,27 @@ Terms used below:
 12. **`familiarity_bonus` is still 0**, and no list of famous, familiar or
     well-known states (or of state ids picked for familiarity) is added
     anywhere under `question-bank/src/`.
-13. **Over the committed bank, under the final weights:** all 150 levels are
-    finite and within 0–18. Each of the three templates gives at least 2
-    distinct levels. Changing any single number in `LEVEL_SEED_WEIGHTS` by +1
-    or −1 still changes at least one of the 150 levels.
+13. **Over the committed bank, under the final weights** (three clauses,
+    each checked on its own):
+    - **(a)** all 150 levels are finite and within 0–18;
+    - **(b)** each of the three templates gives at least 2 distinct levels;
+    - **(c)** changing any single number in `LEVEL_SEED_WEIGHTS` by +1 or −1
+      still changes at least one of the 150 levels, **for every number except
+      exactly two: `missing_rank_bucket` and `concept_load_default`.** Every
+      element of `rank_bucket_edges` and every entry of `concept_load` is a
+      number of its own and is covered. No key other than those two is exempt.
+      The two are exempt because the committed bank never reads them: every
+      state has a usable `population_rank` and `area_rank`, and every
+      `TEMPLATES` id has its own `concept_load` entry. Their liveness is
+      covered instead by the T-023 criterion-20 test in
+      `seed-level-verify.test.ts`, whose synthetic corpus reaches both; that
+      test must still pass unmodified (criterion 17).
+
+    *Amended 2026-10-16 after the tester's `blocked` verdict. The original (c)
+    read "Changing any single number in `LEVEL_SEED_WEIGHTS` by +1 or −1 still
+    changes at least one of the 150 levels", with no exemption. It could not
+    hold under criteria 10, 11 and 14 for any weight values. (a) and (b) are
+    unchanged.*
 14. **No committed data moves.** Every file under `question-bank/data/`, under
     `question-bank/sample-data/`, and under `question-bank/src/fixtures/`, plus
     `backend/app/data/content.json`, is byte-identical to `aa88101`.
@@ -478,3 +496,23 @@ person to judge, per the brief's Kind.
 - **Worker, 2026-10-16:** The verdicts are one reader's judgement, not play
   data. Where a verdict depended on what a child has heard of, the row says
   so. **Owner: the person working the Review checklist.**
+- **Expander (amendment), 2026-10-16:** Criterion 13 (c) restated after the
+  tester's `blocked` verdict. **Only that clause changed.** (a) and (b), and
+  every other criterion, Out of scope, Constraints and the Review checklist,
+  are word-for-word as approved. The fix exempts exactly
+  `missing_rank_bucket` and `concept_load_default`, the two numbers the
+  committed bank never reads, and points their liveness at the T-023
+  criterion-20 synthetic corpus, which criterion 17 already requires to pass
+  unmodified. I took the tester's first suggestion over "covered by
+  criterion 20" alone because it keeps a check over the real bank for every
+  other number.
+- **What the next rounds have to do.** The Verdict found no fault in the
+  worker's output, and the amendment asks nothing new of the code or the E-22
+  record. **Worker:** after the fresh approval, confirm no change is needed
+  and hand off. **Tester:** re-verify 13 (c) as restated, then give a fresh
+  verdict on the whole brief. The `Fault:` line stays until the task reaches
+  `pass` (`tasks/TEMPLATE.md`).
+- **Needs a person:** the `Approved:` line went back to `pending`, because
+  `process.md` step 2 says amended criteria are re-approved. Nobody can
+  approve in this orchestrated run, so the worker will refuse to start until a
+  person writes their name and the date there.
