@@ -1,7 +1,7 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025
 
-**Status:** `awaiting approval`
-**Next step:** `worker` (after a human approves below)
+**Status:** `awaiting verification`
+**Next step:** `tester` — **attended**: one pre-existing test is stale by design and needs a Test change request a person approves (D-14, D-15)
 **Approved:** orchestrator — 2026-10-16, unattended run. See `runs/T-086-seed-level-loose-ends.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-086
@@ -17,6 +17,7 @@ draft until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb |
+| worker | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (same value as the expander's: `$CLAUDE_CODE_REMOTE_SESSION_ID` reports the orchestrating session to every subagent it spawns, so it cannot tell roles apart in this run) |
 
 **Worker model:** Sonnet is enough. This is a documentation correction plus one
 small keep-or-drop call about unused exports; nothing here changes a level, a
@@ -251,6 +252,104 @@ for a fresh approval.
 
 ## Handoff
 
+**TL;DR:** all three unused API pieces are **removed** (no use exists that the
+criteria would accept), E-22 is corrected in place, and levels are unchanged.
+**One** pre-existing test is red by design (criterion 10 signature pin, below).
+It needs a Test change request approved by a person in the tester's session.
+
+**What changed, file by file**
+
+- `question-bank/src/seed-level.ts`
+  - `nearDistractorCount`: `export` dropped; body unchanged.
+  - `levelFor`: `export` and the `weights` parameter dropped. The first line of
+    the body is `const weights = LEVEL_SEED_WEIGHTS;`, so the rest of the body,
+    including the `weights.familiarity_bonus;` line, is byte-identical. That
+    keeps `hand-check-levels-verify.test.ts` criterion 12's baseline green, and
+    `withWeights` (which mutates the constant in place) still works.
+  - Header comment line 15: "so T-025 can tune it in one place" → "so it is
+    tuned in one place" (allowed by Out of scope, since the file was edited
+    anyway; not checked).
+- `engineering-decisions.md`, inside E-22 only:
+  - `familiarity_bonus` bullet: "so T-025 can set it" reworded; still says the
+    term stays in the formula and the constant, and points at T-085.
+  - New bullet **"What the module exports"** recording the three removals.
+  - **Revisit when**: the T-025 trigger is replaced by T-085; world-scope bank,
+    home-state profile and Elo triggers kept verbatim.
+  - **The band** paragraph: one clause appended to the second sentence, giving
+    `3.5 - 2 = 1.5`, the Medium/Hard boundary, and that the app renders it as
+    Hard. Still 2 sentences.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1–3 | E-22 bullet "What the module exports": each of the three marked **removed**, with the reason |
+| 4 | `seed-level.ts` `levelFor` (no param after `entities`, no `export`), `nearDistractorCount` (no `export`); `grep -rn "levelFor\|nearDistractorCount" --include=*.ts .` finds only `seed-level.ts` and the test's string pins |
+| 5 | E-22 `**Revisit when**` paragraph (the only one) |
+| 6 | E-22 bullet "Why `familiarity_bonus` is 0" |
+| 7–8 | E-22 `**The band.**` paragraph; checked against `backend/app/levels.py:35` `band_label` (`band < 1.5` → Medium, else Hard) and `frontend/src/lib/level.ts:20` |
+| 9 | `hand-check-levels-verify.test.ts` criterion 9 passes |
+| 10 | `hand-check-levels-verify.test.ts` criteria 4/7/8/10a (levels by id, constant values) all pass; `LEVEL_SEED_WEIGHTS` untouched |
+| 11 | The hand-check table is not in the diff |
+| 12 | `git diff 41811f9 -- engineering-decisions.md` has three hunks, all between `## E-22 ` and `## E-23` |
+| 13 | `git diff --stat 41811f9` outside `tasks/` and `tasks.md`: `engineering-decisions.md`, `seed-level.ts`, and `runs/T-086-seed-level-loose-ends.md`. The `runs/` file is the orchestrator's run log, not worker output; criterion 13's exception list does not name `runs/`, so **tester to judge** whether that counts (it is process record, not code) |
+| 14 | See "Suite" below |
+
+**Tests made stale**
+
+- `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 10-13:
+  what must still hold` › `criterion 10: exported names and function signatures
+  of seed-level.ts equal aa88101's`.
+  - **Stale because** criteria 1–3/4: `AA88101_EXPORT_SIGNATURES` pins
+    `export function nearDistractorCount(…)` and `export function levelFor(…,
+    weights: LevelSeedWeights = LEVEL_SEED_WEIGHTS, )`, which are no longer
+    exports.
+  - **Proposed:** modify, not delete: remove those two entries from
+    `AA88101_EXPORT_SIGNATURES` (leaving the other six exact signatures pinned,
+    as the brief's Constraints require), and note in a comment that T-086
+    removed them per E-22. Optionally add a new test that `levelFor` and
+    `nearDistractorCount` are not exported and `levelFor` has four parameters.
+  - No count floor is affected.
+- **Not stale:** criterion 12's `BASELINE` line `seed-level.ts:weights.familiarity_bonus;`
+  still matches (see the local-const choice above).
+
+**Suite (run on this branch)**
+
+- `question-bank`: `bun test` 2211 pass, **1 fail** (the stale test above);
+  `typecheck`, `lint` (0 warnings, 0 errors), `format:check` clean. Needed
+  `bun install --frozen-lockfile` first; no lockfile change.
+- `make -C backend test`: 537 passed, 9 skipped.
+- `frontend`: `bun test` 375 pass, 1 fail. **Environment, not this change:**
+  `bun install --frozen-lockfile` gets a 403 from the agent proxy on the
+  `pkg.dev` registry (`d3-array`), so `react-simple-maps` is not installed and
+  `UsMap.tsx` cannot load. This is the known 403 in `PROGRESS.md` (line ~876);
+  no frontend file is touched. CI's frontend job is the check for criterion 14
+  here. Note: one frontend lint test rewrote `frontend/README.md` with
+  prettier while deps were half-installed; I reverted it, so watch for it.
+
+**What I deliberately did not do**
+
+- No change to `seedLevels`, weights, templates, the hand-check record, the
+  "option not taken" paragraph, plan §1.4 or the label functions.
+- Did not touch any pre-existing test (D-14).
+
 ## Verdict
 
 ## Notes
+
+- **Keep or drop was decided by the criteria, not by taste.** Keeping any of
+  the three needed a named caller or a queued task id that calls it. None
+  exists: T-085 changes the formula's inputs but names no call to `levelFor`
+  with alternate weights. So all three are removed. **Reviewer to confirm**, or
+  send back to `task-expander` if T-085 is expected to want `levelFor` exported.
+- **`const weights = LEVEL_SEED_WEIGHTS;` inside `levelFor`** rather than
+  rewriting each `weights.` to `LEVEL_SEED_WEIGHTS.`: smaller diff, and it
+  keeps criterion 12's baseline line, so one stale test instead of two.
+  **Reviewer to confirm or overturn.**
+- **The band paragraph keeps "1st grade (hard)"**, which was already right
+  (the brief's survey caught that the queue entry's "between medium and hard"
+  premise was half right). Only the band-1.5 arithmetic and boundary were
+  added.
+- **Session ids** in this run are the orchestrator's for every role, so the
+  Sessions table cannot prove tester/worker separation here. **Orchestrator /
+  process owner to note** in the run log; not this task's to fix.

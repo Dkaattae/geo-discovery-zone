@@ -12,7 +12,7 @@
  *         - familiarity_bonus           0 for now: see E-22
  *
  * then clamped to 0–18. Not rounded. Every number the computation uses lives
- * in `LEVEL_SEED_WEIGHTS`, so T-025 can tune it in one place.
+ * in `LEVEL_SEED_WEIGHTS`, so it is tuned in one place.
  *
  * Pure: no network, no file, no clock, no randomness, and inputs are never
  * mutated. Nothing in the build imports this module.
@@ -145,7 +145,7 @@ function entitiesForChoice(
  * counts as near when any entity it could be is near, which is order-free;
  * one that matches no entity counts as far.
  */
-export function nearDistractorCount(
+function nearDistractorCount(
   question: GeneratedQuestion,
   own: Entity,
   template: Template,
@@ -160,14 +160,18 @@ export function nearDistractorCount(
   return near;
 }
 
-/** The level for one question, from its parts. Unclamped values never escape. */
-export function levelFor(
+/**
+ * The level for one question, from its parts. Unclamped values never escape.
+ * Reads `LEVEL_SEED_WEIGHTS` at call time; there is no alternate-weights
+ * parameter (E-22).
+ */
+function levelFor(
   question: GeneratedQuestion,
   own: Entity,
   template: Template,
   entities: readonly Entity[],
-  weights: LevelSeedWeights = LEVEL_SEED_WEIGHTS,
 ): number {
+  const weights = LEVEL_SEED_WEIGHTS;
   const conceptLoad = Object.hasOwn(weights.concept_load, template.id)
     ? (weights.concept_load[template.id] as number)
     : weights.concept_load_default;
