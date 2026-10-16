@@ -462,15 +462,17 @@ describe("T-025 criteria 6-9: the weight decision is recorded and matches the co
 
 // ---- criteria 10-13: what must still hold ----
 
-/** At aa88101, from `seed-level.ts` as it was. */
+/**
+ * At aa88101, from `seed-level.ts` as it was, less the two exports T-086 removed
+ * (`nearDistractorCount` and `levelFor`, recorded in E-22). T-086 Test change
+ * request row 1, approved by Dkaattae 2026-10-16. Still exact equality.
+ */
 const AA88101_EXPORT_SIGNATURES = [
   "export const LEVEL_SEED_WEIGHTS = {",
   "export const LEVEL_MIN = 0;",
   "export const LEVEL_MAX = 18;",
   "export type LevelSeedWeights = typeof LEVEL_SEED_WEIGHTS;",
   "export interface LeveledQuestion extends GeneratedQuestion {",
-  "export function nearDistractorCount( question: GeneratedQuestion, own: Entity, template: Template, entities: readonly Entity[], ): number {",
-  "export function levelFor( question: GeneratedQuestion, own: Entity, template: Template, entities: readonly Entity[], weights: LevelSeedWeights = LEVEL_SEED_WEIGHTS, ): number {",
   "export function seedLevels( questions: readonly GeneratedQuestion[], entities: readonly Entity[], templates: readonly Template[] = TEMPLATES, ): LeveledQuestion[] {",
 ];
 const AA88101_LEVELS_SHA = "b2edf333e42c802cf984e18fcad4d328e4d1d46343371c2c583520321fcd5d23";
@@ -505,7 +507,7 @@ describe("T-025 criteria 10-13: what must still hold", () => {
     expect([LEVEL_MIN, LEVEL_MAX]).toEqual([0, 18]);
   });
 
-  test("criterion 10: exported names and function signatures of seed-level.ts equal aa88101's", () => {
+  test("criterion 10: exported names and function signatures of seed-level.ts equal aa88101's, less the two exports T-086 removed (E-22)", () => {
     expect(exportSignatures()).toEqual(AA88101_EXPORT_SIGNATURES);
   });
 
