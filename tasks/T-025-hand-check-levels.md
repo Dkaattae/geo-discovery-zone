@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `task-expander`
 **Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approved, go ahead"). See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
@@ -10,7 +10,7 @@ branch, and this line is the authority for every later role (`process.md`, "When
 the environment names the branch for you").
 **PR:** #85, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it.
-**Fault:**
+**Fault:** tester — criterion 13's last clause (±1 on any single number changes a level) cannot hold over the committed bank for `missing_rank_bucket` or `concept_load_default` under any weights, given criteria 10, 11 and 14. Criterion needs restating; every other criterion verified.
 
 **Sessions:**
 
@@ -18,6 +18,7 @@ draft until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-10-15 | cse_016eUpyD7jeyBpLWPeaAbRgW |
 | worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW |
+| tester | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent) |
 
 **Worker model:** Opus. This task is a judgement about question difficulty for
 children, which `process.md` ("Choosing the worker's model") gives to Opus.
@@ -368,6 +369,97 @@ levels from `seedLevels(buildChoices(generate(bank)))`.
 session.
 
 ## Verdict
+
+**TL;DR: blocked, on criterion 13's third clause only.** It cannot be met over
+the committed bank by any weight values, so it is a brief problem, not a code
+problem. Every other criterion (1–12, 13's first two clauses, 14–17) passes, with
+31 new tests, and the whole suite is green. **Next: task-expander** restates
+clause 13c. The worker does not need to change anything.
+
+**Independence.** This run is orchestrated (`runs/T-025-hand-check-levels.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_016eUpyD7jeyBpLWPeaAbRgW`, the
+same id as the expander and worker rows. Every orchestrator-spawned role shares
+that id, so the session check proves nothing here. My independence rests only on
+being a freshly spawned subagent with its own context. I did not see the worker's
+conversation or reasoning. That is weaker evidence than a separate session,
+because it depends on the orchestrator having spawned me correctly.
+
+**Tests:** `question-bank/src/hand-check-levels-verify.test.ts` (31 tests).
+Baselines at `aa88101` are embedded as sha256 digests, because CI checks out
+shallow. I computed them once from a `git worktree` of `aa88101`, which I have
+since removed.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | The E-22 table has 30 rows, the 30 required ids each once, and `TEMPLATES` ids are the 3 templates |
+| 2 | pass | Prompt, correct answer and distractor set equal `buildChoices` output for every row, and no `{`/`}` is left in any prompt |
+| 3 | pass | The T-023 column is within 0.05 of `seedLevels` with the brief's T-023 weights set at runtime, and every computed value is a multiple of 0.5 |
+| 4 | pass | The Final column is within 0.05 of `seedLevels` under the committed constant |
+| 5 | pass | Each verdict is one of the three. All 6 `too hard` rows carry a sentence |
+| 6 | pass | The "Which weights changed" bullets name exactly the changed keys (`concept_load["tpl-capital-of"]` 1 → 2) with old → new and a reason |
+| 7 | pass | The fenced block parses to an object deep-equal to `LEVEL_SEED_WEIGHTS`, with no duplicate keys |
+| 8 | pass | The range sentence says 3.5 and 10. The computed minimum and maximum are 3.5 (CA, TX identify) and 10 (DE, ME, NH, RI, VT, WV capital). All the states it names are correct |
+| 9 | pass | The "**The band.**" paragraph is 1–5 sentences and names "1st grade … to 5th grade", which is floor(3.5/2)=1 and floor(10/2)=5 |
+| 10 | pass | The key sets of the constant and of `concept_load` are unchanged. `LEVEL_MIN`/`LEVEL_MAX` are 0/18. Export signatures match `aa88101` |
+| 10a | pass | With the T-023 weights set at runtime, the 150 `[id, level]` pairs hash to `aa88101`'s digest. The constant is restored afterwards |
+| 11 | pass | The `TEMPLATES` digest equals `aa88101`'s |
+| 12 | pass | `familiarity_bonus` is 0. The famous/familiar/well-known hits in non-test `src/` are exactly the 6 lines present at `aa88101`. `seed-level.ts` names no state |
+| 13a, 13b | pass | All 150 levels are finite and in 0–18. Distinct levels per template are 9 (identify), 10 (capital) and 9 (click) |
+| **13c** | **blocked** | See below |
+| 14 | pass | Manifest digests of `data/`, `sample-data/` and `src/fixtures/`, and the `content.json` hash, equal `aa88101` |
+| 15 | pass | All 8 tracked package/lock/pyproject files are byte-identical, and none was added |
+| 16 | pass | `## E-` headings are exactly 1..23, once each |
+| 17 | pass | The 48 test files at `aa88101` are present and hash-identical. Full suite under the loopback proxy: **2211 pass, 0 fail** (2180 before + 31 new). `typecheck`, `lint` (0 warnings) and `format:check` are clean |
+
+**Criterion 13c: why it is blocked.** The clause reads "Changing any single
+number in `LEVEL_SEED_WEIGHTS` by +1 or −1 still changes at least one of the 150
+levels". It fails for two keys:
+
+- **`missing_rank_bucket`**: every state in the committed bank has a usable
+  positive-integer `population_rank` and `area_rank`, so this value is never read.
+- **`concept_load_default`**: all three `TEMPLATES` ids have their own
+  `concept_load` entry, so the default is never read.
+
+I ran ±1 on each key over the committed bank, with the code at this branch and
+again with the code at `aa88101`. All four runs left all 150 levels unchanged.
+No compliant change can fix it: making either key live would need a key removed
+(criterion 10), a template changed (criterion 11) or data changed (criterion 14).
+The test file pins both premises in two tests (`criterion 13 (blocked): …`) and
+checks 13c for every other number, which passes. I wrote no test for the
+literal clause.
+
+**Suggested restatement for the expander** (its call, not mine): "every number
+except `missing_rank_bucket` and `concept_load_default`, which the committed bank
+never reads". Or say the clause is already covered by the T-023 criterion-20
+synthetic corpus, which passes.
+
+**Mutations** (each reverted; `git status` clean afterwards apart from the new test file):
+
+| Mutation | Went red |
+|---|---|
+| Final level of CA capital in the table 5 → 4 | c4 |
+| TX distractor New Mexico → Arkansas | c2 |
+| KY capital T-023 level 8 → 8.5 | c3 |
+| Constant block capital load 2 → 1 | c7 |
+| `seed-level.ts` capital load 2 → 3 | c4, c6 (both), c7, c8 |
+| Range sentence maximum 10 → 9.5 | c8 |
+| RI click row deleted | c1 |
+| AK click "why" emptied | c5 |
+| CA identify verdict → "fine" | c5 |
+| Unchanged `area_rank_weight` added to the changed list | c6 |
+| Band paragraph "5th grade" → "4th grade" | c9. The first version survived this because "above grade 5" appears elsewhere in the paragraph. I tightened the test to require "<min> … to … <max>" in one sentence |
+| `## E-24` appended | c16 |
+| near-distractor term zeroed in the formula | c3, c4, c8, c9, c10a, c13c |
+| `familiarity_bonus` line with a famous-states list | c12 (both) |
+| A byte changed in `us-state-ri.json` | c2, c14 |
+| A line appended to `tags.test.ts` | c17 |
+| First `base_difficulty: 2` → 3 in `templates.ts` | c3, c4, c8, c9, c10a, c11 |
+| `seedLevels` return type changed | c10 |
+
+**Not tested here: the Review checklist.** Whether the ordering is sane is for a
+person to judge, per the brief's Kind.
+
+**Tests made stale:** none found. No pre-existing test was modified.
 
 ## Notes
 
