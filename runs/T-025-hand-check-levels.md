@@ -206,3 +206,38 @@ from `Next step: worker`.
 - **Out-of-date labels (tester's call):** in its own test file, the two `criterion 13 (blocked): …` tests and their comment still call the clause blocked. What they check is still true, so only the wording is stale.
 - **Tests made stale:** none.
 - **Push:** commit `4ae0b09` ("T-025 worker: confirm restated criterion 13 (c) holds, no change needed; hand to tester"). `git log origin/claude/practical-clarke-s0b2y4 -1` shows it on the brief's branch.
+
+## Round 6 — tester — 2026-10-16
+`Next step` on entry: `tester` (Status: `awaiting verification`) → on exit: `reviewer` (Status: `pass`)
+
+**T-025 tester, round 2: pass.** The restated criterion 13 (c) holds over the committed bank. Nothing in the code or in E-22 has changed since round 1 verified criteria 1–17, so all of them still hold. **Next step: reviewer**, and a person works through the Review checklist.
+
+- **Pushed:** commit `710ec2c` on `claude/practical-clarke-s0b2y4` (the brief's `Branch:` header). Local HEAD and the remote branch are the same commit.
+- **Brief header:** Status `pass`, Next step `reviewer`, `Fault:` cleared, and my Sessions row added. The new "Round 2" Verdict sits above the round-1 one.
+
+**Independence.** This is an orchestrated run (`runs/T-025-hand-check-levels.md` exists). The session id `cse_016eUpyD7jeyBpLWPeaAbRgW` is the same in every Sessions row, so the session check proves nothing. My independence rests only on being a fresh subagent that never saw the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly. The Verdict says so.
+
+**Evidence**
+
+| Criterion | Verdict | How it was checked |
+|---|---|---|
+| 1–12, 13 (a), 13 (b), 14–16 | pass | Since round 1 (`git diff 236b0e0 HEAD`), only the brief and the run log changed. The round-1 tests were re-run and pass |
+| 13 (c) | pass | +1 and −1 on each of the 10 numbers that are not exempt changes at least one of the 150 levels. A new test pins the full list of 12 numbers and checks that the two exempt ones (`missing_rank_bucket`, `concept_load_default`) move no level |
+| 17 | pass | `bun test`: 2212 pass, 0 fail. `typecheck`, `lint` and `format:check` are clean. The T-023 criterion-20 test passes and its file is unmodified |
+
+**Changes to `/home/user/geo-discovery-zone/question-bank/src/hand-check-levels-verify.test.ts`.** The tester wrote this file for this task, so no pre-existing test was touched.
+- **Added** one test: "criterion 13 (c): every number is covered, and exactly missing_rank_bucket and concept_load_default are exempt".
+- **Renamed** the two `criterion 13 (blocked): …` tests to `criterion 13 (c) exemption premise: …`, and updated their comment. Their assertions are unchanged.
+
+**Mutations** (both reverted; `seed-level.ts` was restored from a copy):
+
+| Mutation in `seed-level.ts` | What went red |
+|---|---|
+| `area_rank_weight` term multiplied by 0 | The main 13 (c) test, plus the tests for criteria 3, 4, 8, 9 and 10a |
+| `concept_load_default` made to count in the per-template branch | Only the new exemption test |
+
+**Tests made stale:** none. No test change request was raised.
+
+The Review checklist (whether the ordering, the band and the verdict reasons are sane) is for a person. I did not test it.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md`
