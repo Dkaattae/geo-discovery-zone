@@ -133,3 +133,6 @@ Commit `25c7847` is on `claude/festive-edison-nuwc27`, the brief's `Branch:` hea
 
 ## Halted — next step needs an attended tester — 2026-10-16
 Header reads `Next step: tester — attended`. A spawned tester cannot take test-change approvals (D-15), so the orchestrator stops rather than run a tester that can only raise the request and halt. Branch head at halt: `25c7847`.
+
+## Owner's choice on the tester — 2026-10-16
+Asked to "run the tester here, I'm watching". The orchestrator explained that a spawned tester's approved test edits are refused (D-15) and that it could not play the tester itself without losing the tester's independence, having read the worker's report. Owner chose: **new session** — an attended tester for T-040 in a fresh session on `claude/festive-edison-nuwc27`. This run ends here.
