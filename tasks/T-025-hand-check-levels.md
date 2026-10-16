@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — criterion 13 (c) was amended on 2026-10-16 and needs a fresh approval. The first approval (Dkaattae, 2026-10-16, orchestrator session, "approved, go ahead"; see `runs/T-025-hand-check-levels.md`) covered the criteria before that amendment.
+**Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approve"), covering the amended criterion 13 (c). The first approval ("approved, go ahead") covered the criteria before the amendment. See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
 **Branch:** `claude/practical-clarke-s0b2y4`. The orchestrator assigned this

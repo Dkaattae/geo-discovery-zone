@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights — run log
 
 **Task:** T-025 · **Branch:** `claude/practical-clarke-s0b2y4` · **PR:** #85
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -184,3 +184,11 @@ Files:
 ## Halted — G2, amended brief needs re-approval — 2026-10-16
 `Approved:` is back to `pending`. No worker spawned. Waiting for the person to
 approve the amended criterion 13 (c).
+
+## Resumed — human re-approval — 2026-10-16
+The person approved the amended brief in the orchestrator session. Their words, verbatim:
+
+> approve
+
+The orchestrator wrote the `Approved:` line recording this and resumed the relay
+from `Next step: worker`.
