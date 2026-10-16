@@ -614,10 +614,42 @@ describe("T-025 criteria 10-13: what must still hold", () => {
     }
   });
 
-  // Criterion 13's last clause, as written, covers these two keys too. Over
-  // the committed bank neither is ever read, so no value of either can move a
-  // level. These tests pin why; the clause itself is reported `blocked`.
-  test("criterion 13 (blocked): every state in the committed bank has a usable population_rank and area_rank", () => {
+  test("criterion 13 (c): every number is covered, and exactly missing_rank_bucket and concept_load_default are exempt", () => {
+    const keys = leaves(current()).map((l) => l.key);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys.sort()).toEqual(
+      [
+        "rank_bucket_edges[0]",
+        "rank_bucket_edges[1]",
+        "rank_bucket_edges[2]",
+        "population_rank_weight",
+        "area_rank_weight",
+        "missing_rank_bucket",
+        "near_distractor_weight",
+        "concept_load_default",
+        "familiarity_bonus",
+        ...TPL_IDS.map((t) => `concept_load["${t}"]`),
+      ].sort(),
+    );
+    // The amended clause says the two exemptions exist because the committed
+    // bank never reads them. Confirm that directly: +1 / -1 on either moves
+    // no level. If this ever goes red, the exemption has stopped being true.
+    const base = levelsById();
+    const final = current();
+    for (const leaf of leaves(final)) {
+      if (leaf.key !== "missing_rank_bucket" && leaf.key !== "concept_load_default") continue;
+      for (const delta of [1, -1]) {
+        const w = structuredClone(final);
+        leaf.set(w, leaf.get(final) + delta);
+        const after = withWeights(w, levelsById);
+        const moved = [...base].some(([id, v]) => after.get(id) !== v);
+        expect({ key: leaf.key, delta, moved }).toEqual({ key: leaf.key, delta, moved: false });
+      }
+    }
+  });
+
+  // The premises the amended clause 13 (c) gives for its two exemptions.
+  test("criterion 13 (c) exemption premise: every state in the committed bank has a usable population_rank and area_rank", () => {
     for (const e of bank()) {
       const r = e as unknown as Record<string, unknown>;
       for (const k of ["population_rank", "area_rank"]) {
@@ -635,7 +667,7 @@ describe("T-025 criteria 10-13: what must still hold", () => {
     }
   });
 
-  test("criterion 13 (blocked): every template in TEMPLATES has its own concept_load entry", () => {
+  test("criterion 13 (c) exemption premise: every template in TEMPLATES has its own concept_load entry", () => {
     for (const t of TEMPLATES)
       expect({ id: t.id, has: Object.hasOwn(LEVEL_SEED_WEIGHTS.concept_load, t.id) }).toEqual({
         id: t.id,

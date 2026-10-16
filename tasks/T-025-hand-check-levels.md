@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approve"), covering the amended criterion 13 (c). The first approval ("approved, go ahead") covered the criteria before the amendment. See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
@@ -10,7 +10,7 @@ branch, and this line is the authority for every later role (`process.md`, "When
 the environment names the branch for you").
 **PR:** #85, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it.
-**Fault:** tester — criterion 13's last clause (±1 on any single number changes a level) cannot hold over the committed bank for `missing_rank_bucket` or `concept_load_default` under any weights, given criteria 10, 11 and 14. Criterion needs restating; every other criterion verified.
+**Fault:**
 
 **Sessions:**
 
@@ -21,6 +21,7 @@ draft until the reviewer approves it.
 | tester | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent) |
 | task-expander | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; amended criterion 13 (c) after `blocked`) |
 | worker | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; round 2, after the 13 (c) amendment) |
+| tester | 2026-10-16 | cse_016eUpyD7jeyBpLWPeaAbRgW (orchestrated: shared id, fresh subagent; round 2, re-verify after the 13 (c) amendment) |
 
 **Worker model:** Opus. This task is a judgement about question difficulty for
 children, which `process.md` ("Choosing the worker's model") gives to Opus.
@@ -425,6 +426,50 @@ levels from `seedLevels(buildChoices(generate(bank)))`.
 session.
 
 ## Verdict
+
+### Round 2 (tester, 2026-10-16, after the 13 (c) amendment)
+
+**TL;DR: pass.** Restated criterion 13 (c) holds over the committed bank, and
+nothing in code or E-22 has changed since round 1's verification, so criteria
+1-17 all hold. Full suite 2212 pass, 0 fail; typecheck, lint, format:check
+clean. **Next: reviewer**, plus a person for the Review checklist.
+
+**Independence.** Orchestrated run (`runs/T-025-hand-check-levels.md` exists).
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_016eUpyD7jeyBpLWPeaAbRgW`, the same as
+every other row, so the session check proves nothing. My independence rests only
+on being a freshly spawned subagent with its own context that did not see the
+worker's reasoning. That is weaker than a separate session, because it depends
+on the orchestrator having spawned me correctly.
+
+**On the branch.** `git diff 236b0e0 HEAD` (round-1 tester commit to the worker's
+round-2 handoff) touches only this brief and the run log, as the Handoff says.
+`seed-level.ts`, `engineering-decisions.md` and every test are as round 1
+verified them, so the round-1 table above stands for 1-13 (b) and 14-17.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1-12, 13 (a), 13 (b), 14-16 | pass | Unchanged since round 1; the same tests re-run green |
+| **13 (c)** | **pass** | "+1 / -1 on each number except missing_rank_bucket and concept_load_default changes a level" passes for all 10 non-exempt numbers. New test "criterion 13 (c): every number is covered, and exactly missing_rank_bucket and concept_load_default are exempt" pins the full list of 12 numbers (3 edges, 6 scalars, 3 `concept_load` entries) and confirms the two exempt ones really move no level. Its premise tests (renamed from `criterion 13 (blocked): ...` to `criterion 13 (c) exemption premise: ...`, assertions untouched) pass |
+| 17 | pass | Full suite **2212 pass, 0 fail** (2211 + 1 new). The T-023 criterion-20 liveness test in `seed-level-verify.test.ts` passes unmodified (the criterion-17 hash test covers the file) |
+
+**Changes to the test file** (`question-bank/src/hand-check-levels-verify.test.ts`,
+written by the tester on this branch for this task, so not a pre-existing test):
+one test added, two test names and one comment relabelled from "blocked" to
+"exemption premise". No assertion was loosened.
+
+**Mutations** (each reverted, `seed-level.ts` restored from a copy, `git status` clean apart from the test file):
+
+| Mutation in `seed-level.ts` | Went red |
+|---|---|
+| `area_rank_weight` term multiplied by 0 (non-exempt number made dead) | 13 (c) main test, plus c3, c4, c8, c9, c10a |
+| `concept_load_default` added into the per-template branch (exempt number made live) | the new 13 (c) exemption test only |
+
+**Not tested: the Review checklist.** A person checks the ordering, the band
+and the verdict reasons before merge.
+
+**Tests made stale:** none.
+
+### Round 1 (tester, 2026-10-16)
 
 **TL;DR: blocked, on criterion 13's third clause only.** It cannot be met over
 the committed bank by any weight values, so it is a brief problem, not a code
