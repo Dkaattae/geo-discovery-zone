@@ -55,3 +55,48 @@ The person approved the brief in the orchestrator session. Their words, verbatim
 
 The orchestrator wrote the `Approved:` line recording this and resumed the relay
 from `Next step: worker`.
+
+## Round 2 — worker — 2026-10-16
+`Next step` on entry: `worker` (after a human approves below) → on exit: `tester`
+
+**TL;DR:** T-025 is handed to the tester with Status `awaiting verification` and Next step `tester`. I changed one weight, `concept_load["tpl-capital-of"]` from 1 to 2. The 30-question record is in E-22, and the full suite is green. One problem the tester needs to rule on: the last part of criterion 13 cannot be met by any weight values over the committed bank.
+
+**Push:** `git log origin/claude/practical-clarke-s0b2y4 -1` shows `a4efb23 T-025 worker: hand-check 30 questions, raise capital concept_load to 2`. That is the brief's `Branch:` header, and it is the branch I was on.
+
+**Files changed**
+- `/home/user/geo-discovery-zone/question-bank/src/seed-level.ts`: one value, `"tpl-capital-of": 1` → `2`. No key, export or signature changed.
+- `/home/user/geo-discovery-zone/engineering-decisions.md`, E-22 only:
+  - The constant block and the `concept_load` "first guess" wording are updated.
+  - The range sentence now says 3.5 (California and Texas, identify on map) to 10 (capital of Delaware, Maine, New Hampshire, Rhode Island, Vermont and West Virginia).
+  - A new `### T-025 hand-check of 30 questions (2026-10-16)` subsection sits just before `## E-23`. It holds:
+    - the 30-row table
+    - the weight that changed, and the reason
+    - the weights I tried and did not adopt
+    - what the formula cannot express
+    - what the near-distractor term does on map questions
+    - the band decision: 3.5–10 is 1st grade to 5th grade
+- `/home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md`: Sessions row, Status, Next step, Handoff and Notes.
+
+**Why the capital weight changed:** under the old weights, the capital question and the click-the-map question had the same level for 49 of the 50 states. A capital is a second fact you only learn once you know the state, so it now sits one level above click and two above identify for every state.
+
+**What I found**
+- **Verdicts:** 24 `about right`, 6 `too hard`, 0 `too easy`.
+- **Map rows marked too hard:** Hawaii and Alaska, on both map templates. Both are drawn apart from the mainland, so they are easy to spot, but the formula sees only population and area rank.
+- **Capital rows marked too hard:** Denver and Honolulu. Each is its state's largest city, and the bank has no field that says so.
+- **Why I left them:** no weight can fix either problem. The fix needs a new fact field ("drawn in an inset", "capital is the largest city") or a list of familiar states, which needs a person's approval. **Owner: reviewer**, to file it in `tasks.md` at the sweep.
+- **Near-distractor term on maps:** 48 of the 50 map questions in each template have 3 near distractors. The term only separates Hawaii (0) and Alaska (2), so the record says that.
+
+**Criterion 13 cannot be met as written.** Changing either of two values by ±1 never changes any of the 150 levels, under the old weights or any others:
+- **`missing_rank_bucket`:** every state in the committed bank has both ranks, so this value is never read.
+- **`concept_load_default`:** all three templates have their own `concept_load` entry, so the default is never read.
+
+Making either one count would mean removing a key, changing a template or changing data, and criteria 10, 11 and 14 forbid all three. The existing T-023 criterion-20 test only passes because it adds made-up cases on top of the bank. I recorded this in the Handoff instead of building around it. **Owner: tester to rule, then task-expander to restate the criterion.**
+
+**Checks:**
+- `bun test` in `question-bank/`: 2180 pass, 0 fail.
+- `typecheck`, `lint` and `format:check` are clean.
+- `node_modules` was missing in this container. I ran `bun install --frozen-lockfile` first, which changed no file in the repo.
+- Nothing under the data or fixture folders, and no package or lock file, differs from `aa88101`. E-23 is still the highest entry.
+- **Tests made stale:** none.
+
+**Same session id for both roles:** `$CLAUDE_CODE_REMOTE_SESSION_ID` returned `cse_016eUpyD7jeyBpLWPeaAbRgW`, the same id as the expander's row. The tester has to run in a different session.
