@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights
 
-**Status:** `approved, escalated`
-**Next step:** `human`
+**Status:** `blocked`
+**Next step:** `human`. Approved and escalated, but the harness refused the sweep's brief deletion. See `## Review` > `### Sweep to apply`.
 **Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approve"), covering the amended criterion 13 (c). The first approval ("approved, go ahead") covered the criteria before the amendment. See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
@@ -571,7 +571,8 @@ person to judge, per the brief's Kind.
 `seed-level.ts`, the E-22 record, and the tester's own test file. It is
 escalated because the brief's Review checklist is a person's judgement about
 what children find hard, and the band decision is close to a product call.
-**Needed: Dkaattae works the Review checklist on PR #85, then merges.**
+**Needed: Dkaattae applies the one remaining sweep step below, works the
+Review checklist on PR #85, marks it ready and merges.**
 
 - **Lanes:** expander commits touch only `tasks/` and `tasks.md`; worker
   commits only `seed-level.ts`, `engineering-decisions.md` and the brief;
@@ -619,6 +620,23 @@ what children find hard, and the band decision is close to a product call.
 - **`levelFor`'s unused `weights` parameter:** out of scope for this brief,
   and the queue entry asked for it. **T-086.**
 - **Shared session id:** already P-14.
+
+### Sweep to apply
+
+The harness refused one step: deleting this brief (auto-mode classifier,
+"Irreversible Local Destruction"). Everything else in the sweep is already
+committed on this branch: `tasks.md` (T-025 deleted; T-085 and T-086 added;
+T-070, T-040, T-026, T-064 and T-084 amended), `PROGRESS.md` (Completed-tasks
+entry and the seed-level line) and `process-tasks.md` (P-17). This is an
+escalation, so the orchestrator's one-hour fallback does not apply. A person
+does this:
+
+1. **Delete `tasks/T-025-hand-check-levels.md`**: `git rm
+   tasks/T-025-hand-check-levels.md`, then commit and push to
+   `claude/practical-clarke-s0b2y4`. Nothing else changes.
+2. **Work the Review checklist** (above) on PR #85, and say in the PR who
+   checked it. Finding 2 (Providence) belongs to the checklist.
+3. **Mark PR #85 ready**, then merge.
 
 ## Notes
 

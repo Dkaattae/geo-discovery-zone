@@ -625,3 +625,26 @@ an attended tester session for one digest. A grep for the file name across
 **Done when:** a brief whose criteria change a file that a pre-existing test pins
 byte for byte says so before the worker starts; or a `D-n` entry records why
 the halt is accepted.
+
+### P-17 — "Nothing else moved during this task" criteria become permanent pins · S · todo
+**Depends on:** —
+**New 2026-10-16, from T-025's reviewer (PR #85).** T-025's criteria 11, 14,
+15 and 17 said `TEMPLATES`, the bank data, `content.json`, every
+`package.json`/lockfile and every older test file are "byte-identical to
+`aa88101`". The tester encoded them faithfully, as sha256 pins in
+`hand-check-levels-verify.test.ts`. A guard that only had to hold for one task
+now stays in the suite after merge. T-026, T-040, T-064, T-084 and any
+dependency add will each turn it red and need an attended Test change request
+(D-14, D-15). That is T-070 (a)'s pinned-digest problem, made wider: the field
+guards cover the bank, and these cover the whole repo.
+**Options to weigh, not a decision:**
+- **`tasks/TEMPLATE.md` and `task-expander.md`** mark such criteria as
+  "verified at hand-off", meaning the Verdict carries the diff command and its
+  output, not a committed test.
+- **`tester.md`** says a task-scoped no-change criterion is verified by
+  executed procedure (the P-6 route), not pinned.
+- **Accept it**, with a D-n entry, and let T-070 (a)'s Q1 answer cover it.
+
+**This is a process-file change**, so it is done by hand.
+**Done when:** a brief's "nothing else moved" criterion no longer leaves a
+permanent pin behind, or a D-n entry records why it should.
