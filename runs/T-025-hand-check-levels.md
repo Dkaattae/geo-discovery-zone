@@ -192,3 +192,17 @@ The person approved the amended brief in the orchestrator session. Their words, 
 
 The orchestrator wrote the `Approved:` line recording this and resumed the relay
 from `Next step: worker`.
+
+## Round 5 — worker — 2026-10-16
+`Next step` on entry: `worker` (Status: `awaiting approval`) → on exit: `tester` (Status: `awaiting verification`)
+
+**TL;DR:** T-025 worker round 2 is done, and nothing in the code or in E-22 needed to change. The restated criterion 13 (c) already holds under the committed weights, and the whole suite is green. Next step: **tester**.
+
+- **Approval:** checked before starting. The `Approved:` line names Dkaattae, 2026-10-16, and covers the amended 13 (c).
+- **What changed:** only the brief, `/home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md`. I set Status to `awaiting verification` and Next step to `tester`, added a round-2 worker row to Sessions (id `cse_016eUpyD7jeyBpLWPeaAbRgW`, the shared orchestrated id), added a "Round 2" Handoff section above the round-1 one, and added one line to Notes.
+- **13 (c) as restated:** every number except `missing_rank_bucket` and `concept_load_default` moves at least one of the 150 levels at both +1 and −1. The tester's existing test checks exactly this and passes: `question-bank/src/hand-check-levels-verify.test.ts`, "T-025 criteria 10-13: what must still hold" > "criterion 13: +1 / -1 on each number except missing_rank_bucket and concept_load_default changes a level".
+- **The two exempt numbers:** the T-023 criterion-20 test in `seed-level-verify.test.ts` covers their liveness instead, and it passes unmodified.
+- **Suite:** `bun test` gives 2211 pass, 0 fail. `typecheck`, `lint` and `format:check` are clean.
+- **Out-of-date labels (tester's call):** in its own test file, the two `criterion 13 (blocked): …` tests and their comment still call the clause blocked. What they check is still true, so only the wording is stale.
+- **Tests made stale:** none.
+- **Push:** commit `4ae0b09` ("T-025 worker: confirm restated criterion 13 (c) holds, no change needed; hand to tester"). `git log origin/claude/practical-clarke-s0b2y4 -1` shows it on the brief's branch.
