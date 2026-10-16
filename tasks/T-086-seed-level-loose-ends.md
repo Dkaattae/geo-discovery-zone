@@ -1,16 +1,15 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025
 
-**Status:** `test changes requested`
-**Next step:** `human` — start an **attended** `tester` session for T-086 to approve or refuse the Test change request row below (D-14, D-15)
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-16, unattended run. See `runs/T-086-seed-level-loose-ends.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-16`
 **From:** [`tasks.md`](../tasks.md) T-086
 **Branch:** `claude/wonderful-heisenberg-0ekakv`. The orchestrator assigned this
 branch, and this line is the authority for every later role (`process.md`, "When
 the environment names the branch for you").
 **PR:** #86, opened draft at expand time, built from the branch above. It stays
 draft until the reviewer approves it.
-**Fault:** test changes are waiting for a person's approval: one pre-existing test (`hand-check-levels-verify.test.ts` criterion 10 signature pin) is stale by this task's own change. Every other criterion verified; see Verdict.
 
 **Sessions:**
 
@@ -19,6 +18,7 @@ draft until the reviewer approves it.
 | task-expander | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb |
 | worker | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (same value as the expander's: `$CLAUDE_CODE_REMOTE_SESSION_ID` reports the orchestrating session to every subagent it spawns, so it cannot tell roles apart in this run) |
 | tester | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (orchestrated: same id as every role; independence rests on being a freshly spawned subagent, not on a separate session) |
+| tester (attended, test change request) | 2026-10-16 | cse_014vmM26fHC8f62WKpRdPnGD (a separate session, started by a person; not listed under any other role) |
 
 **Worker model:** Sonnet is enough. This is a documentation correction plus one
 small keep-or-drop call about unused exports; nothing here changes a level, a
@@ -336,16 +336,51 @@ It needs a Test change request approved by a person in the tester's session.
 
 ## Test change request
 
-Written by `tester` (D-14). **No test below has been changed.** Awaiting a
-person's decision in an attended tester session (D-15).
+Written by `tester` (D-14). Decided by a person in an attended tester session
+(D-15) and applied in `T-086 tester: apply approved test change request`.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 10-13: what must still hold` › "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's" | `236b0e0`, T-025 tester: pinned that T-025 changed no exported name or signature of `seed-level.ts` while tuning weights | Criteria 2, 3 and 4 of this brief: E-22 now records the `export` on `levelFor` and on `nearDistractorCount` as removed and `levelFor`'s `weights` parameter as removed, so `AA88101_EXPORT_SIGNATURES` entries 6 (`export function nearDistractorCount(…)`) and 7 (`export function levelFor(…, weights: LevelSeedWeights = LEVEL_SEED_WEIGHTS, )`) can no longer appear. Currently red: actual export list is the other six. | modify | Name: "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's, less the two exports T-086 removed (E-22)". Asserts `exportSignatures()` `toEqual` exactly these six strings in this order, unchanged from today's pin: `export const LEVEL_SEED_WEIGHTS = {`, `export const LEVEL_MIN = 0;`, `export const LEVEL_MAX = 18;`, `export type LevelSeedWeights = typeof LEVEL_SEED_WEIGHTS;`, `export interface LeveledQuestion extends GeneratedQuestion {`, `export function seedLevels( questions: readonly GeneratedQuestion[], entities: readonly Entity[], templates: readonly Template[] = TEMPLATES, ): LeveledQuestion[] {`. A comment on the constant cites T-086 and this request. Still exact equality, so any added, removed or changed export still turns it red. (Non-export of `levelFor`/`nearDistractorCount` and `levelFor`'s four parameters are already pinned by the new `seed-level-loose-ends-verify.test.ts` criterion 4 tests.) | *(pending: a person's answer in an attended tester session)* |
+| 1 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 10-13: what must still hold` › "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's" | `236b0e0`, T-025 tester: pinned that T-025 changed no exported name or signature of `seed-level.ts` while tuning weights | Criteria 2, 3 and 4 of this brief: E-22 now records the `export` on `levelFor` and on `nearDistractorCount` as removed and `levelFor`'s `weights` parameter as removed, so `AA88101_EXPORT_SIGNATURES` entries 6 (`export function nearDistractorCount(…)`) and 7 (`export function levelFor(…, weights: LevelSeedWeights = LEVEL_SEED_WEIGHTS, )`) can no longer appear. Currently red: actual export list is the other six. | modify | Name: "criterion 10: exported names and function signatures of seed-level.ts equal aa88101's, less the two exports T-086 removed (E-22)". Asserts `exportSignatures()` `toEqual` exactly these six strings in this order, unchanged from today's pin: `export const LEVEL_SEED_WEIGHTS = {`, `export const LEVEL_MIN = 0;`, `export const LEVEL_MAX = 18;`, `export type LevelSeedWeights = typeof LEVEL_SEED_WEIGHTS;`, `export interface LeveledQuestion extends GeneratedQuestion {`, `export function seedLevels( questions: readonly GeneratedQuestion[], entities: readonly Entity[], templates: readonly Template[] = TEMPLATES, ): LeveledQuestion[] {`. A comment on the constant cites T-086 and this request. Still exact equality, so any added, removed or changed export still turns it red. (Non-export of `levelFor`/`nearDistractorCount` and `levelFor`'s four parameters are already pinned by the new `seed-level-loose-ends-verify.test.ts` criterion 4 tests.) | **approved** — Dkaattae, 2026-10-16, in attended tester session `cse_014vmM26fHC8f62WKpRdPnGD` (answer: "Approve row 1"). Applied as written. |
 
 No count floor is affected. Criterion 12's `BASELINE` in the same file is **not** stale: it still passes (the worker kept the `weights.familiarity_bonus;` line via a local const).
 
 ## Verdict
+
+### Attended tester, 2026-10-16: pass
+
+**TL;DR: pass.** Dkaattae approved Test change request row 1 in this session;
+it is applied exactly as written and the question-bank suite is green
+(2235 pass, 0 fail). Every criterion 1–14 now holds. Next: `reviewer`.
+
+- **Independence:** session `cse_014vmM26fHC8f62WKpRdPnGD` is a separate
+  session a person started, not listed under task-expander or worker. The
+  original verification below was done by the orchestrated tester.
+- **Approval:** header reads `Test changes: approved — Dkaattae, 2026-10-16`.
+  The person's words in this session: "Approve row 1"; name to record:
+  "Dkaattae".
+- **Test modified (the only one):** `question-bank/src/hand-check-levels-verify.test.ts`
+  › `T-025 criteria 10-13: what must still hold` › criterion 10 signature pin.
+  Renamed to "…equal aa88101's, less the two exports T-086 removed (E-22)";
+  the `nearDistractorCount` and `levelFor` entries dropped from
+  `AA88101_EXPORT_SIGNATURES`; the other six signatures unchanged and still
+  exact-equal; comment cites T-086 and this request. Reason: criteria 2–4 remove
+  those two exports. No test deleted; no count floor affected.
+- **Mutation:** re-adding `export` on `levelFor` turns the modified test red
+  (reverted).
+- **Rows refused:** none.
+
+| Check | Result |
+|---|---|
+| `question-bank` `bun test` | 2235 pass, 0 fail |
+| `typecheck` / `lint` / `format:check` | clean / 0 warnings 0 errors / clean |
+| `make -C backend test` | 537 passed, 9 skipped |
+| `frontend` `bun test` | **not runnable here**: 369 pass, 7 fail, all `Cannot find package` (`@eslint/js`, `react/jsx-runtime`, …), deps uninstallable through the proxy (known 403, `PROGRESS.md`). No frontend file is in the diff; CI's frontend job on the previous head (`234aa65`) was green and is the check for this push. |
+| CI before this push | only `question-bank` red, on exactly this one test |
+
+Criterion 13's `runs/` note below stands for the reviewer to judge.
+
+### Orchestrated tester (earlier)
 
 **TL;DR: not yet a verdict — test changes requested.** Every criterion except
 14's suite-green clause holds, verified by 23 new tests (all green, 6 mutations
