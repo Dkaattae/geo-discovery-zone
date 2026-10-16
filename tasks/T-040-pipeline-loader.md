@@ -7,7 +7,7 @@ set `Next step: task-expander` so the criteria can be finished against the answe
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-040
 **Branch:** `claude/festive-edison-nuwc27`
-**PR:** opened draft at expand time from the branch above (number recorded in the PR list; see the expander's commit)
+**PR:** #88, opened draft at expand time from the branch above
 **Fault:** the queue entry needs three product decisions an agent may not make (what happens to the 26 reviewed hand-written questions, whether generated question output is committed, and whether `map_click` is served before T-051); the expander halted rather than guess.
 
 **Sessions:**
