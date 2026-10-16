@@ -1,7 +1,7 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025 — run log
 
 **Task:** T-086 · **Branch:** `claude/wonderful-heisenberg-0ekakv` · **PR:** #86
-**Started:** 2026-10-16 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-16 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-16
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -120,3 +120,6 @@ I ran no build, test or pipeline command. Bash was used only for git, plus two s
 Raised in commit `4009ee5`. Header reads `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
 
 What a human has to decide: approve or refuse the tester's Test change request. Per D-15 that approval must be given in an attended `tester` session for T-086, not to the orchestrator. Once that tester finishes, its header names the next role and a new run starts from there.
+
+## Resumed — 2026-10-16
+The person resolved the halt in an attended `tester` session; I neither saw nor relayed the approval. Branch head on resume: `f196d58` ("T-086 tester: record approval (Dkaattae) and pass verdict"), after `a0bec65` ("T-086 tester: apply approved test change request"). Header now reads `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-16`. The person wrote in this session: "ci is green. please proceed". Verdict tally: 0 fail, 0 blocked.
