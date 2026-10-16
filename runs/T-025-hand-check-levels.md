@@ -100,3 +100,45 @@ Making either one count would mean removing a key, changing a template or changi
 - **Tests made stale:** none.
 
 **Same session id for both roles:** `$CLAUDE_CODE_REMOTE_SESSION_ID` returned `cse_016eUpyD7jeyBpLWPeaAbRgW`, the same id as the expander's row. The tester has to run in a different session.
+
+## Round 3 — tester — 2026-10-16
+`Next step` on entry: `tester` → on exit: `task-expander` (Status: `blocked`)
+
+**T-025 tester verdict: blocked, so the task goes back to the task-expander.** One clause of the brief can't be met, criterion 13's third. Every other criterion passes and the whole suite is green. The worker's code needs no change; the brief needs that clause restated.
+
+**Pushed:** commit `236b0e0` on `claude/practical-clarke-s0b2y4`. That is the brief's `Branch:` header, and I confirmed the remote head matches local.
+
+**Brief header now reads:**
+- **Status:** `blocked`
+- **Next step:** `task-expander`
+- **Fault:** filled in, naming criterion 13's last clause.
+- **Sessions:** tester row added.
+- **Verdict:** written, with a table of each criterion and its evidence, plus the mutations I ran.
+
+**Why 13c is blocked.** The clause says changing any single number in `LEVEL_SEED_WEIGHTS` by +1 or −1 still changes at least one of the 150 levels. Two numbers are never read over the committed bank:
+- **`missing_rank_bucket`:** all 50 states have usable population and area ranks, so the missing-rank value is never used.
+- **`concept_load_default`:** all three templates have their own `concept_load` entry, so the default is never used.
+
+I changed each by ±1 against this branch and again against `aa88101`: all 150 levels stayed the same in all four runs. No change the brief allows can fix this. It would need a key removed, a template changed or data changed, which criteria 10, 11 and 14 forbid. Two tests record why the two keys are never read, and the ±1 test covers every other number and passes. I wrote no test for the clause as worded. A possible restatement for the expander: "every number except these two, which the committed bank never reads". Or point to the existing T-023 criterion-20 test, which covers this with a synthetic corpus and passes.
+
+**Everything else passes:** criteria 1–12, 13's first two clauses, and 14–17. The 30-row table matches what `buildChoices` and `seedLevels` produce. The weight-change list, the constant block, the range sentence (3.5 to 10) and the band paragraph (1st to 5th grade) all match the code. The formula, `TEMPLATES`, the data files, the dependency files and the 48 older test files are byte- or hash-identical to `aa88101`.
+
+**Suite:** `bun test` under the loopback proxy gives 2211 pass, 0 fail (2180 before plus 31 new). `typecheck`, `lint` and `format:check` are clean.
+
+**Mutations:** I made 18 deliberate breaks and each one turned at least one test red. One first got through: changing "5th grade" to "4th grade" in the band paragraph. I tightened that test to need "<min grade> … to … <max grade>" in one sentence, and it then caught it. Every mutation was reverted and the scratch worktree removed.
+
+**Independence is the weaker kind.** This run is orchestrated, so my session id (`cse_016eUpyD7jeyBpLWPeaAbRgW`) is the same as the expander's and worker's, and the id check proves nothing. My independence rests only on being a freshly spawned subagent that did not see the worker's reasoning. The Verdict says so.
+
+**Not checked by tests:** the Review checklist, whether the difficulty ordering makes sense for children. A person has to judge that.
+
+No tests were made stale and no existing test was modified.
+
+Files:
+- /home/user/geo-discovery-zone/question-bank/src/hand-check-levels-verify.test.ts
+- /home/user/geo-discovery-zone/tasks/T-025-hand-check-levels.md
+
+## Paused — Status: blocked — 2026-10-16
+G3 count: fail 0, blocked 1 (bound is 2 each). The header routes to `task-expander`,
+which `run-loop.sh` would relay. But `orchestrator.md` also lists `Status: blocked`
+as a halt condition, so the two readings disagree. The orchestrator asked the
+person which applies rather than picking one.
