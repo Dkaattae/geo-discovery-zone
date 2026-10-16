@@ -645,6 +645,13 @@ guards cover the bank, and these cover the whole repo.
   executed procedure (the P-6 route), not pinned.
 - **Accept it**, with a D-n entry, and let T-070 (a)'s Q1 answer cover it.
 
+**Second instance, 2026-10-16, from T-086's reviewer (PR #86).** T-086's
+criteria 10-12 ("must not move") became sha pins in
+`seed-level-loose-ends-verify.test.ts` on the seeded levels and on
+`engineering-decisions.md` outside E-22, plus the `## E-n` heading count. That
+file is meant to grow ("a task may add an entry"), so the very next task that
+adds a decision pays an attended Test change request. The pattern is now
+repeating per task, not a one-off.
 **This is a process-file change**, so it is done by hand.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.
