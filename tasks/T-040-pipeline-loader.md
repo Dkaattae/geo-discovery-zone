@@ -1,8 +1,8 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `blocked`
-**Next step:** `human` — answer Q1–Q3 under "Questions for a human" below, then
-set `Next step: task-expander` so the criteria can be finished against the answers
+**Status:** `answered — criteria to finish`
+**Next step:** `task-expander` — Q1–Q3 answered under "Questions for a human";
+finish the criteria against the answers
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-040
@@ -125,6 +125,17 @@ recommendation is **no**: exclude the 50 `tpl-click-the-map` questions, so the
 `question-bank` command that writes the tagged questions (E-23's unwired
 stage), and (ii) the Python loader and the served-bank swap. (i) is useful on
 its own and moves no served byte.
+
+### Answers — from the repo owner, in the orchestrator session, 2026-10-16
+
+Recorded verbatim by the orchestrator, which did not read the questions' detail
+and adds no interpretation. The expander turns these into criteria.
+
+> Q1, use the newly generated questions, but keep the hand written question in a folder, in case I need it. will purge them, after the whole app first round is done
+>
+> Q2, a but maybe just once a quarter, or once a month
+>
+> Q3, you can adjust the task order, put T051 before the map click.
 
 ## Acceptance criteria
 

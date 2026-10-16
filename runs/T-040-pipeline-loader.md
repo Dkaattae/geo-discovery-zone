@@ -46,3 +46,12 @@ The brief file changed on disk after my last commit, and I did not re-read it, s
 
 ## Halted — 2026-10-16
 Header reads `Status: blocked`, `Next step: human`. The expander asks a person to answer Q1–Q3 (quoted above) in the brief, then set `Next step: task-expander`. Checkpoint: working tree clean after the expander returned; branch head `9ae4331` matched origin.
+
+## Resumed — human answers — 2026-10-16
+The repo owner answered in the orchestrator session. Recorded verbatim in the brief under "Questions for a human" and here:
+
+> Q1, use the newly generated questions, but keep the hand written question in a folder, in case I need it. will purge them, after the whole app first round is done
+> Q2, a but maybe just once a quarter, or once a month
+> Q3, you can adjust the task order, put T051 before the map click.
+
+Header set to `Status: answered — criteria to finish`, `Next step: task-expander`. Next: fresh task-expander.
