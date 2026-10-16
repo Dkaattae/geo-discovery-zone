@@ -142,3 +142,5 @@ G3 count: fail 0, blocked 1 (bound is 2 each). The header routes to `task-expand
 which `run-loop.sh` would relay. But `orchestrator.md` also lists `Status: blocked`
 as a halt condition, so the two readings disagree. The orchestrator asked the
 person which applies rather than picking one.
+The person chose: **"Relay to expander (Recommended)"**. Relaying to the
+`task-expander` (blocked round 1 of 2).
