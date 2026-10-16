@@ -1,7 +1,7 @@
 # T-086 — `seed-level.ts` and E-22 loose ends after T-025
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — ready for a person to merge`
+**Next step:** `human` merges PR #86 (inside the envelope; no escalation)
 **Approved:** orchestrator — 2026-10-16, unattended run. See `runs/T-086-seed-level-loose-ends.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-16`
 **From:** [`tasks.md`](../tasks.md) T-086
@@ -19,6 +19,7 @@ draft until the reviewer approves it.
 | worker | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (same value as the expander's: `$CLAUDE_CODE_REMOTE_SESSION_ID` reports the orchestrating session to every subagent it spawns, so it cannot tell roles apart in this run) |
 | tester | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (orchestrated: same id as every role; independence rests on being a freshly spawned subagent, not on a separate session) |
 | tester (attended, test change request) | 2026-10-16 | cse_014vmM26fHC8f62WKpRdPnGD (a separate session, started by a person; not listed under any other role) |
+| reviewer | 2026-10-16 | cse_01H1X3vo49b7U5nujJi7mYCb (orchestrated: same id as every role, `P-14`) |
 
 **Worker model:** Sonnet is enough. This is a documentation correction plus one
 small keep-or-drop call about unused exports; nothing here changes a level, a
@@ -452,3 +453,45 @@ approved, reruns the whole suite, and records pass/fail.
 - **Session ids** in this run are the orchestrator's for every role, so the
   Sessions table cannot prove tester/worker separation here. **Orchestrator /
   process owner to note** in the run log; not this task's to fix.
+
+## Review
+
+**TL;DR: approve, inside the envelope.** The change is small, in the module's
+own idiom, and E-22 is now true. One non-blocking finding: the tester's new
+file adds more permanent digest pins, which P-17 and T-070 already own; both
+amended, plus T-085's test cost. Next: a person merges PR #86.
+
+- **Every role's work is in the PR.** Expander `146c64f`/`88b85d6`, worker
+  `23b3227`, tester `4009ee5`/`a0bec65`/`f196d58`, orchestrator log commits.
+- **Lanes held.** Expander touched only `tasks/` and `tasks.md`; tester touched
+  only tests and the brief; the one pre-existing test modified (`a0bec65`) is
+  exactly Test change request row 1, approved by Dkaattae (a person), and
+  comes from a `tester` commit.
+- **Suite rerun here:** question-bank 2235 pass / 0 fail, typecheck, lint,
+  format:check clean.
+
+**Worker flags, disposed**
+
+- **Remove all three (param + two exports): confirmed.** T-085 changes the
+  formula's inputs, which means editing `levelFor` in place; it needs neither
+  an export nor an alternate-weights argument.
+- **`const weights = LEVEL_SEED_WEIGHTS;` local alias: confirmed.** It keeps
+  the body identical and matches the module's other helpers (`rankBucket`,
+  `entityObscurity`), which take `weights: LevelSeedWeights`.
+- **Band paragraph keeps "1st grade (hard)": confirmed.** Matches `band_label`.
+- **Session ids:** already `P-14`; nothing new to file.
+- **`runs/` under criterion 13: met.** `runs/` is the orchestrator's own lane
+  (`process.md` roles table); it is process record, not task output.
+
+**Finding 1 (non-blocking): new permanent pins.**
+`question-bank/src/seed-level-loose-ends-verify.test.ts` criteria 10 and 12
+pin the 150 levels, `LEVEL_SEED_WEIGHTS`, `engineering-decisions.md` outside
+E-22 and the `## E-n` heading count (23) at `41811f9`. The first task to add
+any `E-n` entry, or edit any entry but E-22, turns it red; T-085 and T-026
+will too, via levels. Its criteria 1-8 also read E-22's prose (T-085 must keep
+naming itself in "Revisit when", or request a change). This is the same
+pattern P-17 describes, from the same kind of "nothing else moved" criterion.
+Not a send-back: the tester encoded the criteria faithfully, and the fix is a
+loop decision. **Amended:** P-17 (second instance, wider: the decisions log
+itself), T-070 (a sixth guard), T-085 (test cost).
+
