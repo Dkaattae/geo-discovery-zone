@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker` (after a human approves below)
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-16, in the orchestrator session ("approved, go ahead"). See `runs/T-025-hand-check-levels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-025
 **Branch:** `claude/practical-clarke-s0b2y4`. The orchestrator assigned this

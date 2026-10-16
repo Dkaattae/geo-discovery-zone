@@ -1,7 +1,7 @@
 # T-025 — Hand-check 30 generated questions and tune the level weights — run log
 
 **Task:** T-025 · **Branch:** `claude/practical-clarke-s0b2y4` · **PR:** #85
-**Started:** 2026-10-15 · **Outcome:** halted — needs human
+**Started:** 2026-10-15 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-15
 `Next step` on entry: (no brief) → on exit: `worker` (after a human approves below)
@@ -47,3 +47,11 @@ self-approval (same as T-078). The header still reads `Approved: pending`, so G2
 holds and no worker was spawned. A person must approve the brief — either in this
 session (the orchestrator records their words here and writes the line) or by
 editing the header themselves.
+
+## Resumed — human approval — 2026-10-16
+The person approved the brief in the orchestrator session. Their words, verbatim:
+
+> approved, go ahead
+
+The orchestrator wrote the `Approved:` line recording this and resumed the relay
+from `Next step: worker`.
