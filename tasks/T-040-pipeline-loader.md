@@ -1,13 +1,13 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `test changes requested`
-**Next step:** `human` — approve or refuse rows 25–32 under "Test change request" (review finding B1) in the attended tester session that raised them. Then `reviewer` again.
+**Status:** `pass`
+**Next step:** `reviewer` — B1's rows 25–32 are applied in `2da025b`; the sweep can now delete `tasks.md`'s `### T-040`.
 **Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
-**Test changes:** `requested` — rows 25–32 (B1). Rows 1–24 were approved by the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G ("Approved"), 2026-10-16
+**Test changes:** `approved — the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G (no name given): rows 1–24 "Approved", 2026-10-16; rows 25–32 "approve all", 2026-10-19`
 **From:** [`tasks.md`](../tasks.md) T-040
 **Branch:** `claude/festive-edison-nuwc27`
 **PR:** #88, opened draft at expand time from the branch above
-**Fault:** review finding B1: the sweep deletes the `### T-040` queue entry, and T-010's criterion 16 test pins it. Rows 25–32 wait for a person's approval.
+**Fault:**
 
 **Sessions:**
 
@@ -578,16 +578,30 @@ slack.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 25 | `question-bank/src/committed-bank.test.ts` › "T-010 criteria 11–16" › "criterion 16 — tasks.md T-040 reads the committed bank, and PROGRESS.md records it" | `1d34d53`, T-010 c16: the T-040 queue entry says it reads the committed bank. The decision behind it is E-6, which criteria 11–14 in the same describe still assert | B1: T-040's own sweep deletes that queue entry (P-17: a criterion about wording that outlives its entry) | modify | "criterion 16 — PROGRESS.md records the committed bank": one expect, `PROGRESS.md` matches `question-bank/data/us-states`. The three `tasks.md` expects are removed. A comment cites this row | |
-| 26 | `question-bank/src/climate-kid-verify.test.ts` › floor table entry `"committed-bank.test.ts": { tests: 33, expects: 58 }` (the "…still declares at least 33 tests and 58 expectations" test) | `775671c`, T-014 tester: nothing already verified is weakened | row 25 removes exactly 3 expects | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
-| 27 | `question-bank/src/climate-kid.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
-| 28 | `question-bank/src/landmarks-verify.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
-| 29 | `question-bank/src/landmarks.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
-| 30 | `question-bank/src/state-animals.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
-| 31 | `question-bank/src/climate-kid-verify.test.ts` › "committed-bank.test.ts's expect count really is 58, so the lowered floor is not slack" | `775671c`, T-014 tester: the floor is exact | as row 26 | modify | "…really is 55, so the lowered floor is not slack": the exact count is 55 | |
-| 32 | `question-bank/src/hand-check-levels-verify.test.ts` › "T-025 criteria 14-17" › "criterion 17: every question-bank test file at aa88101 is present and unmodified" | `236b0e0`, T-025 c17 (already re-pinned once by row 23) | rows 25–30 modify six of the 48 digested files | modify | Same name and list. The digest is re-pinned from `001107cd…` to `db741fc0…`, and the comment names rows 15/16/20 and B1 | |
+| 25 | `question-bank/src/committed-bank.test.ts` › "T-010 criteria 11–16" › "criterion 16 — tasks.md T-040 reads the committed bank, and PROGRESS.md records it" | `1d34d53`, T-010 c16: the T-040 queue entry says it reads the committed bank. The decision behind it is E-6, which criteria 11–14 in the same describe still assert | B1: T-040's own sweep deletes that queue entry (P-17: a criterion about wording that outlives its entry) | modify | "criterion 16 — PROGRESS.md records the committed bank": one expect, `PROGRESS.md` matches `question-bank/data/us-states`. The three `tasks.md` expects are removed. A comment cites this row || approved — "approve all", tester session, 2026-10-19 |
+| 26 | `question-bank/src/climate-kid-verify.test.ts` › floor table entry `"committed-bank.test.ts": { tests: 33, expects: 58 }` (the "…still declares at least 33 tests and 58 expectations" test) | `775671c`, T-014 tester: nothing already verified is weakened | row 25 removes exactly 3 expects | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 || approved — "approve all", tester session, 2026-10-19 |
+| 27 | `question-bank/src/climate-kid.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 || approved — "approve all", tester session, 2026-10-19 |
+| 28 | `question-bank/src/landmarks-verify.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 || approved — "approve all", tester session, 2026-10-19 |
+| 29 | `question-bank/src/landmarks.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 || approved — "approve all", tester session, 2026-10-19 |
+| 30 | `question-bank/src/state-animals.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 || approved — "approve all", tester session, 2026-10-19 |
+| 31 | `question-bank/src/climate-kid-verify.test.ts` › "committed-bank.test.ts's expect count really is 58, so the lowered floor is not slack" | `775671c`, T-014 tester: the floor is exact | as row 26 | modify | "…really is 55, so the lowered floor is not slack": the exact count is 55 || approved — "approve all", tester session, 2026-10-19 |
+| 32 | `question-bank/src/hand-check-levels-verify.test.ts` › "T-025 criteria 14-17" › "criterion 17: every question-bank test file at aa88101 is present and unmodified" | `236b0e0`, T-025 c17 (already re-pinned once by row 23) | rows 25–30 modify six of the 48 digested files | modify | Same name and list. The digest is re-pinned from `001107cd…` to `db741fc0…`, and the comment names rows 15/16/20 and B1 || approved — "approve all", tester session, 2026-10-19 |
 
 ## Verdict
+
+**Round 2 (2026-10-19): still pass.** This round fixes review finding B1. The
+person in this session approved rows 25–32 with the words "approve all". They
+are applied exactly as written in `2da025b`: one test modified, five floors
+lowered from 58 to 55 expects (exactly the 3 removed), one exact count from 58
+to 55, and one digest re-pinned. No test was deleted.
+
+- **Local results.** question-bank `bun test` gives 2241 pass, 0 fail, with
+  format, typecheck and lint clean. Backend `make check` gives 594 pass, 9 skip.
+- **Sweep simulated.** It stays 2241/0 with `tasks.md`'s `### T-040` section
+  removed.
+
+Round 1 follows.
+
 
 **TL;DR: pass.** All 36 criteria hold. CI on `f99a775` is green on all six
 jobs, e2e included. The 24 stale pre-existing tests were changed only after a
