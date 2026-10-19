@@ -1,7 +1,7 @@
 # T-040 — Loader: pipeline JSON → the served bank — run log
 
 **Task:** T-040 · **Branch:** `claude/festive-edison-nuwc27` · **PR:** #88
-**Started:** 2026-10-16 · **Outcome:** halted — needs human
+**Started:** 2026-10-16 · **Outcome:** ready for merge (escalated — needs content read before merge)
 
 ## Round 1 — task-expander — 2026-10-16
 `Next step` on entry: (no brief) → on exit: `human`
@@ -190,3 +190,42 @@ Header reads `Next step: tester, attended`. A spawned tester cannot take test-ch
 
 ## Resumed after attended tester (B1) — 2026-10-19
 The attended tester raised rows 25–32 for B1 (`3245e4b`), the person approved them there, the tester applied them (`2da025b`) and returned `pass` (`76fa6e7`). Owner in the orchestrator session: "ci fixed, please proceed". Header: `Status: pass`, `Next step: reviewer`. G0–G4 pass. Next: reviewer.
+
+## Round 5 — reviewer — 2026-10-19
+`Next step` on entry: `reviewer` → on exit: `human` (brief deleted by the sweep; last header read `Status: escalated`)
+Push: `8fe8524` · PR #88 marked ready, not merged
+
+Returned result (verbatim):
+
+**TL;DR: T-040 is approved, escalated, swept and marked ready. PR #88 is no longer a draft. Nothing was merged.** B1, the round-1 blocker, is fixed exactly as requested. The PR must not be merged until a person has read the text children will now see: the 50 T-011 fun facts, which become the reveal headline (35 of those states were never served before), the 100 generated prompts and choices, and Louisiana's id change. The other escalation reasons are one `openapi.yaml` description string and the size (about 10k lines, mostly generated JSON). **Next: Dkaattae reads that content, then merges.**
+
+**Checks before approving**
+- **PR state:** open, draft, not merged. `main` has not moved since the base `0c95913`.
+- **Every role's commit is on `claude/festive-edison-nuwc27`:** expander, worker, tester (both rounds) and reviewer round 1.
+- **Lanes:** B1 tester commit `2da025b` touches only the 7 test files that rows 25–32 name, and each change matches its row. Commits `3245e4b` and `76fa6e7` touch only the brief. Orchestrator commits touch only `runs/`.
+- **Test changes:** a person approved all 32 rows in attended tester session `cse_016YSBLmf5yThtJbxs5c2P8G`, not an orchestrator stamp. All are modifies, none deleted. The modified pre-existing tests come only from `0032410` and `2da025b`.
+- **Code read:** `content_build.py`, `question-file.ts` and `write-questions.ts`. They follow the codebase's idioms, nothing exceeds the brief's scope, and nothing landed outside the Constraints.
+
+**Suites on the swept tree (run here)**
+- **Backend:** `make -C backend check` gives 594 pass, 9 skip.
+- **question-bank:** 2241 pass, 0 fail; typecheck, lint and format:check clean.
+- **frontend:** lint and format:check clean. `bun test` gives 376 pass, 1 fail + 1 error. Both come from `react-simple-maps` missing here (the registry returns 403), the same environmental failure the worker reported.
+- **Not run here:** e2e and integration (no Docker). CI was green on all six jobs at `f99a775`. It was still running on `0de3b60` when I checked and will run again on the new head `8fe8524`, but I did not see a result for either.
+
+**Commits pushed** (the push landed; local HEAD = `origin/claude/festive-edison-nuwc27` = `8fe8524`)
+- **Round-2 review in the brief:** Status `escalated`, Next step `human`, and a Sessions row added.
+- **`8fe8524`, the sweep:**
+  - The brief is deleted, and the T-040 entry is deleted from `tasks.md`.
+  - The prepared sweep from the round-1 review comment applied cleanly. `tasks.md` and `PROGRESS.md` had not changed since `d2d4110`.
+  - T-050 and T-056 are rewritten. T-026, T-051, T-064, T-070 and T-085 are amended. T-087 is new.
+  - The `PROGRESS.md` T-040 line now says 32 rows (the prepared sweep said 24) and records the B1 round.
+  - `process-tasks.md` P-17 records B1 as its third instance, with a cheap partial guard: the expander greps the tests for its own task id.
+
+**PR #88**
+- **Ready, not merged:** `draft: false`.
+- **Body:** opens with the escalation, then the review, the worker flags and how each was settled, the test-change summary, suite results, the sweep, what I chose not to do, and the 36 acceptance criteria verbatim with what verified each.
+- **Changed route:** `gh pr edit` failed because GraphQL is blocked, so the body was set through the REST API (`gh api PATCH`).
+- **Attribution line missing:** GitHub dropped the "Generated with Claude Code" line from the end of the body.
+
+## Ended — 2026-10-19
+Reviewer marked PR #88 ready, escalated. No role merges (D-4). For a person: read the children's content named above, then merge.
