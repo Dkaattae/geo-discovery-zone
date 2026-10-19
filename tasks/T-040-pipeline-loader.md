@@ -1,7 +1,7 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `pass`
-**Next step:** `reviewer` — B1's rows 25–32 are applied in `2da025b`; the sweep can now delete `tasks.md`'s `### T-040`.
+**Status:** `escalated`
+**Next step:** `human` — PR #88 is ready but **escalated**: do not merge without reading the 50 served fun facts (PR #41 checklist) and the 100 generated prompts. See `## Review`, round 2.
 **Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
 **Test changes:** `approved — the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G (no name given): rows 1–24 "Approved", 2026-10-16; rows 25–32 "approve all", 2026-10-19`
 **From:** [`tasks.md`](../tasks.md) T-040
@@ -18,6 +18,7 @@
 | worker | 2026-10-16 | cse_01EuEUiM5FxMkMiBTb77d5NA |
 | tester (attended, started directly by a person) | 2026-10-16 | cse_016YSBLmf5yThtJbxs5c2P8G |
 | reviewer | 2026-10-19 | cse_01EuEUiM5FxMkMiBTb77d5NA |
+| reviewer (round 2, after B1) | 2026-10-19 | cse_01EuEUiM5FxMkMiBTb77d5NA (orchestrated: same id as every orchestrated role, P-14) |
 
 ## Why this task, and not T-026
 
@@ -659,6 +660,30 @@ the frontend registry returns 403. Both are green in CI on `f99a775`.
 Constraints' `scripts` entry) is still open and still the reviewer's call.
 
 ## Review
+
+### Round 2 (2026-10-19): approved, escalated, swept
+
+**TL;DR: approved.** B1 is fixed exactly as requested. The sweep is applied in
+this PR, and the PR is marked ready but **escalated**: a person must read the
+child-facing text before merging.
+
+- **B1: closed.** `2da025b` (tester) touches only the 7 test files that rows
+  25–32 name, and each change matches its row. A person approved them in the
+  tester's own session ("approve all"), not an orchestrator stamp. None deleted.
+- **Lanes:** the round-2 tester commits are `3245e4b` and `76fa6e7` (brief only)
+  plus `2da025b` (tests only). Orchestrator `8fc04f1` and `0de3b60` touch only
+  `runs/`. `main` has not moved since the base `0c95913`.
+- **Sweep:** the prepared sweep from the round-1 review comment applied cleanly.
+  `tasks.md` and `PROGRESS.md` had not changed since `d2d4110`. Two additions:
+  the `PROGRESS.md` T-040 line now says 32 rows (not 24) and records the B1
+  round, and `process-tasks.md` P-17 gains this as its third instance.
+- **Suites, on the swept tree:** see the PR body.
+- **Escalated for:** text a child reads (50 fun facts, 35 of them new to the
+  app, plus 100 generated prompts and their choices), one `openapi.yaml`
+  description string, and size (about 10k lines, mostly generated JSON). Round 1
+  below has the detail.
+
+### Round 1
 
 **TL;DR: sent back to an attended `tester`, for one pre-existing test the sweep
 turns red.** The work itself is good and would be approved. But the sweep must
