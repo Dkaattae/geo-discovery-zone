@@ -136,3 +136,6 @@ Header reads `Next step: tester — attended`. A spawned tester cannot take test
 
 ## Owner's choice on the tester — 2026-10-16
 Asked to "run the tester here, I'm watching". The orchestrator explained that a spawned tester's approved test edits are refused (D-15) and that it could not play the tester itself without losing the tester's independence, having read the worker's report. Owner chose: **new session** — an attended tester for T-040 in a fresh session on `claude/festive-edison-nuwc27`. This run ends here.
+
+## Resumed after attended tester — 2026-10-19
+The attended tester (session cse_016YSBLmf5yThtJbxs5c2P8G) raised a 24-row test change request (`bb0678a`), the person approved it there, and the tester applied it and returned `pass` (`acaa4a1`). Header on resume: `Status: pass`, `Next step: reviewer`. Owner in the orchestrator session: "ci is fixed, please proceed". G0–G4 pass. Next: reviewer.
