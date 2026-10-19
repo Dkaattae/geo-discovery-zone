@@ -1,7 +1,7 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` — merge decision on PR #88 (see `## Review`, "Escalated")
 **Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
 **Test changes:** `approved — the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G (no name given; answered "Approved" to all 24 rows), 2026-10-16`
 **From:** [`tasks.md`](../tasks.md) T-040
@@ -17,6 +17,7 @@
 | task-expander (criteria finished after Q1–Q3) | 2026-10-16 | cse_01EuEUiM5FxMkMiBTb77d5NA |
 | worker | 2026-10-16 | cse_01EuEUiM5FxMkMiBTb77d5NA |
 | tester (attended, started directly by a person) | 2026-10-16 | cse_016YSBLmf5yThtJbxs5c2P8G |
+| reviewer | 2026-10-19 | cse_01EuEUiM5FxMkMiBTb77d5NA |
 
 ## Why this task, and not T-026
 
@@ -614,6 +615,70 @@ the frontend registry returns 403. Both are green in CI on `f99a775`.
 
 **For the reviewer:** the worker's "Found" item 2 (criterion 33 vs the
 Constraints' `scripts` entry) is still open and still the reviewer's call.
+
+## Review
+
+**TL;DR: approved, and escalated.** The code is small, pure where it should be,
+in the house style, and stays inside the Constraints. Nothing blocks. **Escalated
+because this PR is the one that puts 50 fun facts and 100 generated prompts in
+front of children**, and the substance read of those facts (PR #41's checklist)
+is still listed as open in `PROGRESS.md`. It also touches `openapi.yaml` (one
+description string). A person decides the merge.
+
+- **PR state:** open, draft, not merged. Marked ready by this review.
+- **Every role's work is in the PR.** Expander `02c0ff7`, `9ae4331`, `bb74d5c`;
+  worker `25c7847`; tester `bb0678a`, `0032410`, `f99a775`, `acaa4a1`. All on
+  `claude/festive-edison-nuwc27`, the `Branch:` header and the PR head.
+- **Lanes (D-7):** expander commits touch only `tasks/` and `tasks.md`. Tester
+  commits touch only tests and the brief. The worker's commit modifies no
+  pre-existing test (only new test files). Orchestrator commits touch only
+  `runs/` and the brief header.
+- **Test changes (D-14, D-15):** approved by a person in the tester's own
+  session, not an orchestrator stamp. All 24 modifies are in one tester commit
+  (`0032410`), in the 12 files the rows name. None deleted.
+- **Suite, re-run here on `f834062`:** `make -C backend check` 594 pass, 9 skip.
+  `question-bank` `bun test` 2241 pass, 0 fail; typecheck, lint, format:check
+  clean. Both commands rerun: tree clean. Frontend and e2e not run here (registry
+  403, no Docker); the tester reports all six CI jobs green on `f99a775`, and CI
+  on `f834062` was queued at review time.
+
+### Findings — none blocking
+
+1. **Worker flag: the command is `bun run ./src/write-questions.ts`, not a
+   `package.json` script. Decided: accepted.** Criterion 33 forbids a
+   `package.json` change and outranks the Constraints' "expected to change"
+   list. The `./` keeps the line honest under `conventions-doc.test.ts`: it names
+   a file, not a script. A named script is deferred to **new T-087**, which also
+   owns running both regeneration commands after a refresh.
+2. **Worker flag: `question-bank/data/` is at about 148 KB of a 200 KB cap.
+   Deferred: amended into T-026**, the task whose templates grow the file.
+3. **Worker flag: e2e answer key and the map-fill premise.** Closed by the
+   tester's row 24 (key on question id; 50-question sittings). No action.
+4. **Worker flag: one session id across expander and worker.** Already
+   P-14. No action.
+5. **Worker flag: `bun run format` before `bun install` used another
+   prettier.** Environmental. No file in the diff was affected. No action.
+6. **The E-n guards were loosened, so queue notes went stale.** Rows 19–22 let a
+   new `## E-n` after E-23 pass T-025 c16 and T-086 c12. T-026, T-085 and T-070
+   still said a new E-n turns them red. **Corrected in the sweep.**
+7. **`reviewed_fun_fact` also skips a reviewed entry whose text is blank.**
+   Stricter than criterion 16, in the direction CLAUDE.md prefers (a blank field
+   over a guessed one). Noted, not queued.
+8. **Paths are written twice, in `content_build.py` and `question-file.ts`.**
+   Two languages, so no shared constant is possible. The two drift tests catch
+   a mismatch. Noted, not queued.
+
+### Escalated — do not merge without a decision on these
+
+- **Text a child reads (D-4a).** Every served `funFact` is now one of the 50
+  T-011 facts (35 states never served before), and it is the correct-answer
+  reveal headline. They are `reviewed: true`, but `PROGRESS.md` still lists their
+  substance read as open, with the checklist on PR #41. Also new: 100 generated
+  prompts and their distractor choices, and Louisiana's id change.
+- **`openapi.yaml`** — one description string (criterion 31). No schema change.
+- **Size.** 10k added lines, most of them the two generated JSON files. The
+  hand-written code (`content_build.py`, `question-file.ts`,
+  `write-questions.ts`) is about 320 lines and was read in full.
 
 ## Notes
 
