@@ -777,7 +777,8 @@ describe("T-012 criterion 12 — nothing already verified is weakened", () => {
    * named exempt from "loosened" by the criterion itself.
    */
   const PINNED: Record<string, { tests: number; expects: number }> = {
-    "committed-bank.test.ts": { tests: 33, expects: 58 },
+    // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
+    "committed-bank.test.ts": { tests: 33, expects: 55 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     "normalize.test.ts": { tests: 14, expects: 31 },

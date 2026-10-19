@@ -828,8 +828,9 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
         .map((f) => `${f}\t${sha(readFileSync(join(SRC, f)))}\n`)
         .join(""),
     );
-    // Re-pinned by T-040's approved Test change request, which modified three files in this
-    // list: generate.test.ts, generate-verify.test.ts and tags-verify.test.ts.
-    expect(digest).toBe("001107cd832a21aa0e79790639a38234dc276e9799093472972edb6183c0e909");
+    // Re-pinned by T-040's approved Test change requests: rows 15, 16 and 20 modified
+    // generate.test.ts, generate-verify.test.ts and tags-verify.test.ts; B1 modified
+    // committed-bank.test.ts and lowered its floor in five files here.
+    expect(digest).toBe("db741fc065d526dd442bae56ae50a15966783a6040bccd44614ac09e7c880f00");
   });
 });
