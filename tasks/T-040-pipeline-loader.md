@@ -623,8 +623,8 @@ turns red.** The work itself is good and would be approved. But the sweep must
 delete T-040's `tasks.md` entry, and
 `question-bank/src/committed-bank.test.ts` (T-010 criterion 16) asserts that
 entry exists. The reviewer may not edit a test, so the PR stays draft and
-unswept. After the row lands, the next reviewer sweeps (the prepared sweep is on
-PR #88) and marks it ready, **escalated** for the reasons below.
+unswept. After the row lands, the next reviewer sweeps (the prepared sweep is in the
+[review comment on PR #88](https://github.com/Dkaattae/geo-discovery-zone/pull/88#issuecomment-6271139144)) and marks it ready, **escalated** for the reasons below.
 
 - **PR state:** open, draft, not merged. Left draft.
 - **Every role's work is in the PR.** Expander `02c0ff7`, `9ae4331`, `bb74d5c`;
