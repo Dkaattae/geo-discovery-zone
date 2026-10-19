@@ -139,3 +139,51 @@ Asked to "run the tester here, I'm watching". The orchestrator explained that a 
 
 ## Resumed after attended tester — 2026-10-19
 The attended tester (session cse_016YSBLmf5yThtJbxs5c2P8G) raised a 24-row test change request (`bb0678a`), the person approved it there, and the tester applied it and returned `pass` (`acaa4a1`). Header on resume: `Status: pass`, `Next step: reviewer`. Owner in the orchestrator session: "ci is fixed, please proceed". G0–G4 pass. Next: reviewer.
+
+## Round 4 — reviewer — 2026-10-19
+`Next step` on entry: `reviewer` → on exit: `tester` (attended), then `reviewer`
+Status on exit: `changes requested` · Push: `b0ab3a3` · PR #88 still draft
+
+Returned result (verbatim):
+
+**T-040 is sent back to an attended `tester` for one test change.** The work itself is good and I would approve it. The problem is the sweep: it has to delete T-040's entry from `tasks.md`, and an older test checks that this entry exists. Reviewers may not change tests, so PR #88 stays draft and I have not swept it. **Next: a person attends a `tester` session and approves one Test change request row.**
+
+**Blocking finding (B1)**
+- **The test:** `question-bank/src/committed-bank.test.ts:295-304`, "T-010 criteria 11–16 › criterion 16 — tasks.md T-040 reads the committed bank, and PROGRESS.md records it".
+- **What happened:** I applied the sweep locally and ran the suites. This was the only new failure: `expect(t040).toBeTruthy()` got `undefined`. It is another instance of P-17 (a criterion about a doc's wording that outlives the doc).
+- **What fixes it:** a row, approved by a person, that drops the test's `tasks.md` half and keeps its `PROGRESS.md` half. Deleting the test is also fine if the person prefers. Keeping a finished T-040 entry in `tasks.md` to keep it green is not.
+
+**State I left**
+- **Brief:** Status `changes requested`; Next step `tester`, attended, then `reviewer`. It has a reviewer row in Sessions and a `## Review` section with B1, the other findings and the escalation list.
+- **Commits** on `claude/festive-edison-nuwc27`: `d2d4110`, `86f126a`, `b0ab3a3`. The push landed: the remote head is `b0ab3a3`.
+- **PR #88:** still open and draft.
+- **PR comment:** https://github.com/Dkaattae/geo-discovery-zone/pull/88#issuecomment-6271139144. It repeats the findings and has the whole sweep ready as a collapsed diff (tasks.md, PROGRESS.md, deleting the brief), written against `d2d4110`. The next reviewer can check it and apply it rather than redo it.
+
+**Review checks, all clean**
+- **Every role's work is on the branch:** expander, worker and tester commits are all there.
+- **Each role stayed in its lane:** the expander touched only `tasks/` and `tasks.md`; the tester touched only tests and the brief; the worker modified no existing test.
+- **The 24 test changes** are all in one tester commit (`0032410`) and match the rows. A person approved them in the tester's own session, not through an orchestrator stamp.
+- **Suites I re-ran on `f834062`:**
+  - `make -C backend check`: 594 pass, 9 skip.
+  - `question-bank`: 2241 pass, 0 fail; typecheck, lint and format:check clean.
+  - Running both regeneration commands leaves the tree clean.
+  - Not run: frontend (`react-simple-maps` can't install here) and e2e (no Docker). The tester reports all six CI jobs green on `f99a775`; CI on `f834062` was still queued when I checked.
+
+**Flags the worker raised, all decided**
+- **Command is a file path, not a `package.json` script:** accepted, because criterion 33 forbids changing `package.json`. A named script, plus telling whoever runs a refresh to regenerate both files, goes to a new T-087 in the prepared sweep.
+- **`question-bank/data/` is about 148 KB of its 200 KB cap:** added to T-026's entry.
+- **e2e answer key and the map-fill premise:** already fixed by the tester's row 24.
+- **One session id shared across roles:** already ticketed as P-14.
+- **Prettier run before `bun install`:** environmental, no file affected; no action.
+
+**The prepared sweep also:**
+- **Rewrites T-050 and T-056** to the work still left at 50 states.
+- **Updates T-026, T-051, T-064, T-070 and T-085.** Some of their notes went stale when the tester's approved rows let a new `E-n` entry pass two older checks.
+
+**Once B1 is fixed, the PR is marked ready but escalated, not routine:**
+- **Text children read:** the 50 T-011 fun facts become the reveal headline after a right answer, 35 of them for states never served before. `PROGRESS.md` still lists their content check (the PR #41 checklist) as open. The 100 generated prompts and their answer choices are new too.
+- **`openapi.yaml`:** one description string changed.
+- **Size:** about 10k added lines, mostly the two generated JSON files.
+
+## Halted — next step needs an attended tester — 2026-10-19
+Header reads `Next step: tester, attended`. A spawned tester cannot take test-change approvals (D-15). Branch head at halt: `b0ab3a3`.
