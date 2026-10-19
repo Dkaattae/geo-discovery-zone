@@ -3,18 +3,18 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-10-13_
+_Last updated: 2026-10-19_
 
 ## In one paragraph
 
 The **whole stack is built and runs**: a React app, a FastAPI backend serving all
 29 operations in `openapi.yaml`, a database that survives restarts (SQLite or
 Postgres), accounts with hashed passwords, and one Docker image that serves both
-halves on one origin. What is thin is the **content**: 15 hand-written states and
-26 questions in two formats, where the plan describes 50 states generated from
-templates across ten topics. The pipeline that builds all 50 states works and has
-run live — nothing connects it to the app yet. That bridge is §D of
-[`tasks.md`](tasks.md) and it is the highest-leverage work left.
+halves on one origin. Since T-040 (PR #88) the app serves the
+pipeline's **50 states** and **100 generated questions**, two per state, in two
+formats and two topics. What is thin now is the **variety**: the plan describes
+ten topics, and the curated fields for four more are waiting on templates
+(T-026) and a third format (T-051).
 
 ## Layout
 
@@ -356,6 +356,32 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-040 — the pipeline bank is the served bank** (PR #88, 2026-10-19). The
+  app now serves the 50 committed pipeline states and 100 generated questions
+  (one `map_identify`, one capital `multiple_choice` per state).
+  `bun run ./src/write-questions.ts` writes all 150 generated questions to
+  `question-bank/data/questions/us-states.json`; `make -C backend content`
+  (`app/content_build.py`) maps that file and the entity bank to
+  `backend/app/data/content.json` through two allowlists. Both files are
+  committed, each has a drift test, and E-24 records why. The 26 hand-written
+  questions are archived byte-for-byte in `archive/hand-written-bank/`, unserved.
+  Louisiana's id is now `us-state-la`.
+  *Where it differed from the brief:* the question command is a file path, not
+  a `package.json` script, because criterion 33 forbade a `package.json` change
+  (T-087 picks that up). `grading.py` needed no change: the loader sets
+  `reveal` per format. The brief said the e2e progress test's premise still
+  held. It did not: four pairs of map questions share a prompt and choices, and
+  two 26-question sittings rarely filled a state. The tester rekeyed the e2e
+  answer key on question id and made each sitting 50. 32 Test change request
+  rows changed pre-existing tests, none deleted, all approved by a person in an
+  attended tester session. Two of them loosened the `E-n` guards, so a new `E-n`
+  no longer turns T-025 c16 or T-086 c12 red. Rows 25–32 came from review: the
+  sweep deletes `tasks.md`'s T-040 entry, which T-010 c16 pinned, so that test
+  now checks only `PROGRESS.md` and five expect floors dropped 58 → 55 (P-17).
+  It cost one extra reviewer → attended tester round. Expander and worker ran
+  orchestrated in one session; the tester ran attended, in its own session.
+  Escalated at review for the 50 fun facts now in front of children (PR #41's
+  substance read) and one `openapi.yaml` string.
 - **T-086 — `seed-level.ts` and E-22 loose ends after T-025** (PR #86,
   2026-10-16). `levelFor`'s unused `weights` parameter and the `export` on
   `levelFor` and `nearDistractorCount` are removed; `seedLevels` is the
@@ -1422,18 +1448,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Content — the big one.**
 
-- The app serves **15 states and 26 questions**, in **2 of 9 formats** and **2 of
-  10 topics**. A child who learns those fifteen has finished it, and the map can
-  never fill past 30%. (§D of `tasks.md`)
-- **The pipeline's 50 states never reach the app.** `backend/app/data/content.json`
-  was hand-copied from the deleted `frontend/src/data/`; no loader bridges the two
-  (T-040).
+- The app serves **50 states and 100 generated questions**, in **2 of 9
+  formats** and **2 of 10 topics** (T-040, PR #88). Two questions per state is
+  thin: a child meets every question in two sittings.
+- **Regenerating is by hand.** After the entity bank changes, two commands
+  rewrite the question file and `content.json`, and a drift test is red until
+  both are run (E-24). Nothing prompts for them yet (T-087).
 - Fun facts: all 50 exist in the **pipeline** bank, curated and marked
   `reviewed: true` (T-011, PR #41). Two things are still open. Their **substance**
   — are they true, do they read well to a nine-year-old — is a human read, and
-  the checklist for it lives on PR #41 rather than in any test. And nothing
-  serves them: the app's fun facts are still the 15 hand-written ones in
-  `backend/app/data/content.json` until T-040 and T-050.
+  the checklist for it lives on PR #41 rather than in any test. Since T-040
+  (PR #88) they are served: each is the reveal headline after a right answer.
 - `state_animal` is **50 of 50** (T-012, PR #42) but, like the fun facts, its
   substance — is each animal really that state's, does it read to a nine-year-old
   — is a human read, and the checklist for it lives on PR #42 rather than in any
@@ -1450,8 +1475,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   elsewhere, with its substance awaiting a human read on PR #69. So all four
   topic fields now have data
   and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
-  T-026 (templates plus a same-value distractor guard) and something serving
-  them (T-040, T-050).
+  T-026 (templates plus a same-value distractor guard) and both committed
+  files being regenerated (T-087).
 - **One region vocabulary, settled** (T-017, PR #49): the served bank's thirteen
   values, used by both halves and enforced by a closed-set test over the curated
   table, the built bank and `content.json`. What is *not* settled is whether each
@@ -1487,7 +1512,7 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 **Behaviour.**
 
 - **The map cannot fill in during a child's first session.** A state needs four
-  right answers; the bank has at most two questions per state. A perfect first
+  right answers; the bank has exactly two questions per state. A perfect first
   sitting colours in nothing, and it takes a second visit (T-056).
 - A **React hydration warning** (#418) on first load of the production build. The
   app recovers; the cause is unfound (T-048).
@@ -1508,17 +1533,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 Broken into small, independently landable tasks in [`tasks.md`](tasks.md) — that
 is the queue to work from. §4 of the plan is the authority on sequencing: **do
-not build the world until the US loop feels good**, and the US loop is fifteen
-states deep.
+not build the world until the US loop feels good**, and the US loop is fifty
+states wide but only two questions deep per state.
 
 The shortest path to an app that is worth playing for an hour:
 
-1. **T-040** — a loader, so the pipeline's output becomes the served bank. It is
-   now the only thing between the curated 50-state bank and a child (T-011
-   landed the fun facts, PR #41).
-2. **T-050** — 50 states in the app, and a map that can actually fill.
-3. **T-026 starting with superlatives** — a third topic for free, since the rank
-   fields are already populated.
+1. **T-026 starting with superlatives** — a third topic for free, since the rank
+   fields are already populated. It also adds questions per state, which is
+   what the map needs to fill (T-056).
+2. **T-051** — `map_click`, the third v1 format; the question file already
+   holds it.
+3. **T-050** — check that selection and levels behave over the larger bank.
 
 CI now guards all of it: the backend, the Postgres path and the compose stack
 run on every pull request (T-009, T-052).

@@ -64,7 +64,11 @@ again 2026-10-12, after T-083 retired that workaround and made `--quiet` keep
 the summary (PR #76): T-070 gained a stale describe name to fix. Swept again
 2026-10-13, after T-078 pointed `bun run build`'s live pass and the fixture's
 `regenerate_with` at `bun run refresh`'s route (PR #78): T-070 now also owns the
-fixture byte pins a refresh turns red, and T-084 points there._
+fixture byte pins a refresh turns red, and T-084 points there. Swept again
+2026-10-19, after T-040 made the 50 pipeline states and 100 generated
+questions the served bank (PR #88): T-040 deleted; T-050 and T-056 rewritten to
+what is left of them; T-026, T-051, T-064, T-070 and T-085 updated; T-087
+new._
 
 ## How this list is ordered
 
@@ -91,15 +95,16 @@ is that gap.
 
 | | Shipped | Contract / plan describes |
 |---|---|---|
-| **States** | **15**, hand-written | 50 (the pipeline already builds all 50) |
-| **Questions** | **26** | generated from templates × entities (§1.2) |
+| **States** | **50**, from the pipeline bank (T-040) | 50 |
+| **Questions** | **100**, generated: two per state (T-040) | generated from templates × entities (§1.2) |
 | **Question formats** | **2** — `map_identify`, `multiple_choice` | 9 — plus `map_click`, `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` |
 | **Topics** | **2** — location, capital | 10 — plus climate, agriculture, wildlife, landmark, size, physical, superlative, elevation |
 | **Map** | US states, `us-atlas`, mastered states fill in | + shaded relief (§2.6), physical features (§2.4) |
 | **Backend** | all 29 contract operations, SQLite or Postgres | — |
 
 So: a child sees a highlighted state and picks its name, or picks a capital
-city from four choices, over 15 states. **The Setup screen's three buttons —
+city from four choices, over 50 states. A third generated format, `map_click`,
+is in the committed question file but not served until T-051. **The Setup screen's three buttons —
 "Places on the map", "Capital cities", "A bit of both" — are the whole topic
 menu**, and picking the default means only ever seeing the first format. That is
 not a bug; it is how much bank exists.
@@ -142,14 +147,16 @@ Nothing in section A is queued: T-075 (PR #66) closed the last gap.
 ## B. Finish the US entity table
 
 The pipeline works and has run live against all 50 states; the *data* is not
-finished. Each of these is independent. Nothing here reaches the app until T-040
-bridges the pipeline to the served bank — but the curation is the long pole, so
-it is worth doing in parallel rather than after.
+finished. Each of these is independent. Since T-040 (PR #88) the bank is what the app
+serves, so a curated field reaches a child once a template asks about it
+(T-026) and both committed files are regenerated (T-087).
 
 ### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
-**Depends on:** T-040 (corrected by T-065's reviewer, per the expander's note below)
+**Depends on:** — (T-040 landed in PR #88: the committed bank is now served end
+to end, which is the precondition this entry names)
 **Since T-025 (PR #85):** `hand-check-levels-verify.test.ts` criterion 14 pins
-`sample-data/` at `aa88101`, so the purge turns it red (T-070).
+`sample-data/` at `aa88101`, so the purge turns it red (T-070). T-040 narrowed
+that pin to exclude `data/questions/` only; `sample-data/` is still in it.
 Split out of T-010's Q3: `sample-data/` (one committed state, with its own
 README) stays alongside the full 50-state commit for now, on purpose — kept
 until the committed bank is shown to work end to end. Once that is proven, it is
@@ -320,9 +327,17 @@ T-078 had to re-pin the main one (approved row, Dkaattae) just to change
 entries go red on the first refresh, and on T-084's re-record. Whatever (a)
 decides about surviving a refresh has to cover these two pins as well as the
 four bank guards.
+**Amended 2026-10-19 by T-040's reviewer (PR #88): two of the guards were
+loosened in passing.** Under approved rows, `hand-check-levels-verify.test.ts`
+criterion 14 now excludes `question-bank/data/questions/` and checks the old
+`content.json` at `archive/hand-written-bank/content.json`; criterion 16 allows
+any gap-free `E-1..E-max`; criterion 17's digest was re-pinned. In
+`seed-level-loose-ends-verify.test.ts` criterion 12 now stops at E-23, so a new
+`E-n` no longer turns it red. An edit to E-1..E-23 still does. Whatever Q1
+decides starts from these.
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as the next
-unused `E-n`, `E-21` at the time of writing).
+unused `E-n`, `E-25` at the time of writing).
 
 ### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · todo
 **Depends on:** — (T-077's guard landed in PR #77, so this is a fix, not a
@@ -371,8 +386,8 @@ split.
 
 ## C. Question generation
 
-Today's 26 questions are hand-written. The plan's central claim is that they
-should be generated (§1.2), and generation is what turns curated fields
+Since T-040 (PR #88) every served question is generated, as the plan's central
+claim asks (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
 ### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo — **waiting on a person**
@@ -404,8 +419,9 @@ probably `seed-level-verify.test.ts` criterion 20. Plan to attend the tester
 step (D-14, D-15).
 **Since T-086 (PR #86):** `seed-level-loose-ends-verify.test.ts` turns red
 too: criterion 10 pins the 150 levels (sha) and `LEVEL_SEED_WEIGHTS` at
-`41811f9`, and criterion 12 pins `engineering-decisions.md` outside E-22 and
-the `## E-n` count (23), so a new `E-n` entry also breaks it. Its criteria 1-8
+`41811f9`, and criterion 12 pins `engineering-decisions.md` outside E-22 up to
+E-23. Since T-040 (PR #88) a new `E-n` after E-23 no longer breaks it, but an
+edit to E-1..E-21 or E-23 does. Its criteria 1-8
 read E-22 prose: keep the "What the module exports" bullet, the band
 paragraph's `3.5 - 2 = 1.5`, and a `**Revisit when**` that names T-085 and the
 other three triggers, or list those rows in the Test change request.
@@ -422,8 +438,18 @@ templates, each with its own `concept_load` entry. It also needs its own
 `LEVEL_SEED_WEIGHTS.concept_load` value (E-22). Plan to attend the tester step (T-070).
 **Since T-086 (PR #86):** a new template also turns
 `seed-level-loose-ends-verify.test.ts` criterion 10 red (it pins exactly 150
-seeded levels and `LEVEL_SEED_WEIGHTS`), and criterion 12 if an `E-n` entry is
-added.
+seeded levels and `LEVEL_SEED_WEIGHTS`). Since T-040 (PR #88) a new `E-n`
+entry no longer turns criterion 12 red.
+**Since T-040 (PR #88): getting a question to the app is two commands, and the
+bank has a size budget.** `cd question-bank && bun run ./src/write-questions.ts`
+rewrites `data/questions/us-states.json`, then `make -C backend content` rewrites
+`backend/app/data/content.json`; each has a drift test, so a new template that
+skips either is red. The loader serves a question only if its format is in
+`SERVED_FORMATS` (`backend/app/content_build.py`), and a new topic also needs a
+Setup button. `question-bank/data/` is about 148 KB against
+`committed-bank.test.ts`'s 200 KB cap, and each new question adds about 580
+bytes, so one 50-question template fits and two may not. Plan to compact the
+file or raise the cap with an `E-n`.
 **New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
 topic is one template plus the curated field behind it, and none needs new
 infrastructure once T-021 lands:
@@ -557,118 +583,63 @@ so use `<state>` → animal phrasing only, and pick distractors from values the
 state does *not* carry.
 **Done when:** at least one new topic reaches the app end to end — generated,
 loaded, selectable at Setup, and answerable.
-**Skipped by the expander, 2026-10-16. Its `Depends on:` is incomplete.** The
-Done-when needs a generated question to be *loaded*, and nothing loads one until
-**T-040** lands. **Depends on: T-040** as well. T-040 was taken instead.
+**Skipped by the expander, 2026-10-16, for T-040**, which this Done-when needed
+to load a generated question. T-040 landed in PR #88, so that dependency is met.
 
 ---
 
 ## D. The bank the app serves
 
-The pipeline builds 50 states. The app serves 15 hand-written ones. **Nothing
-connects them** — `backend/app/data/content.json` was copied from the old
-`frontend/src/data/` by hand in PR #16, and `frontend/src/data/` has since been
-deleted. This section is that bridge, and it is the highest-leverage work in the
-queue: every curation and generation task above is invisible until it exists.
-
-### T-040 — Loader: pipeline JSON → the served bank · M · todo
-**Depends on:** — (T-010 landed in PR #37; this is its follow-on, not its blocker)
-**Since T-025 (PR #85):** if this task rewrites `backend/app/data/content.json`,
-`hand-check-levels-verify.test.ts` criterion 14 goes red (it pins that file at
-`aa88101`). The same applies to a new dependency (criterion 15). Plan to attend the tester step (T-070).
-**Rewritten 2026-08-24.** The old entry said "replace the hand-written
-`frontend/src/data/` with generated data, bundled at build time". That directory
-is gone and the app fetches everything from the API, so the task moved
-downstream: a Python command that reads `question-bank/`'s output and upserts
-into `entities` and `questions`, idempotent on id.
-**T-010 resolved 2026-09-12 (E-6): the loader reads the committed
-`question-bank/data/us-states/`.** That JSON is tracked in git, not generated at
-deploy time — seeding needs no live Wikidata run when this loader runs. This
-task does not get to re-decide that; it consumes the committed bank as-is.
-
-Half of it already exists — `store.ensure_content_loaded` reads
-`app/data/content.json` at startup, keyed on content version, and reloading is a
-no-op. What is missing is the step before it: taking the pipeline's shape into
-that shape. Plan §5.3 is explicit that this is the Python loader's job and not
-`DbSink`'s, and Alembic still owns the schema.
-**Amended 2026-10-03 by T-068's reviewer (PR #69).** `Entity.topLivestock` is
-now in `openapi.yaml` and on `backend/app/models.py`'s `Entity`
-(`engineering-decisions.md` E-18), so the loader has a slot to fill. It is 24 of
-50 states, and `[]` is a real value for the rest, not a gap. One wording slip is
-owed while you are in that schema: `openapi.yaml`'s `topLivestock.description`
-says "Empty where no state has an honest standout". It should say "where the
-state has no honest standout".
-**Since T-022 (PR #82):** generated `map_click` questions carry
-`choiceGeometryIds`, a list of `geometry_id`s parallel to `choices`
-(`engineering-decisions.md` E-21). It is not in `openapi.yaml` or
-`backend/app/models.py` yet (E-14). If this loader serves generated questions,
-it adds that field to both.
-**Since T-024 (PR #84):** the pipeline's last stage is now `tagQuestions`
-(`question-bank/src/tags.ts`, E-23): `generate` → `buildChoices` →
-`seedLevels` → `tagQuestions` gives 150 questions carrying all seven
-`GET /questions` tags in camelCase (`scope`, `entityType`, `topic`, `region`,
-`format`, `ageBand`, `level`). Nothing writes that output or imports the stage
-yet; wiring it to a file this loader reads is this task's job. `region` is
-absent, not blank, when an entity has none (`Question.region` is optional in
-`models.py`).
-**Done when:** a documented command turns a pipeline build into a served bank,
-running it twice changes nothing, and the app serves states that were never
-hand-written.
-**Expanded 2026-10-16, and halted on three product questions** (brief
-`tasks/T-040-pipeline-loader.md`): what happens to the 26 reviewed hand-written
-questions and 15 `funFactDetail` texts, whether generated question output is
-committed, and whether `map_click` is served before T-051. A split into a
-`question-bank` writer and the Python loader is proposed there.
-**Answered by the repo owner, 2026-10-16; criteria finished the same day.**
-Serve generated questions only and archive the hand-written bank in
-`archive/hand-written-bank/` until the owner purges it; commit the generated
-question output (regenerated by hand, monthly or quarterly); do not serve
-`map_click` here — T-051 now serves it as well as rendering it.
+T-040 (PR #88) bridged the pipeline to the app: `backend/app/data/content.json`
+is generated from `question-bank/data/` and the 50 states are served
+(`engineering-decisions.md` E-24). What is left here is making that bank behave
+well at its new size, and the third format.
 
 ### T-056 — The map cannot fill in on a child's first day · M · todo
-**Depends on:** T-050 (or T-021, whichever gets there first)
-**New 2026-08-24, found by the browser suite.** "The map is the progress bar" is
-one of the four things that shape every decision in this repo. Today the progress
-bar **cannot move on day one**, however well a child does.
+**Depends on:** a third and fourth question per state (T-051 serves a third,
+T-026 adds more), or a design decision below
+**New 2026-08-24, found by the browser suite. Rewritten 2026-10-19 by T-040's
+reviewer (PR #88)** with the 50-state numbers. "The map is the progress bar" is
+one of the four things that shape every decision in this repo. Today the
+progress bar **cannot move on day one**, however well a child does.
 
-The arithmetic, measured against a running server rather than reasoned about:
+The arithmetic:
 
 - Mastery moves **+0.25** per right answer and a state fills in above **0.7** —
   so a state needs **four** right answers about it.
-- The shipped bank has **at most two questions per state** (26 questions over 15
-  states; 11 states have two, 4 have one).
+- The served bank has **exactly two questions per state** (100 over 50, T-040).
 - A session never repeats a question.
 
-So the most any state can reach in one sitting is **0.5**. A perfect first
-session — all 26 answered correctly — colours in **0 of 15**. Mastery is stored
-on the profile, so a *second* full sitting takes those states to 1.0: 52 right
-answers fills in 11 of 15. A child's first session ends with the same empty map
-it started with, and nothing on screen explains why.
+So the most any state can reach in one sitting is **0.5**, and a perfect first
+session colours in nothing. Mastery is stored on the profile, so a second sitting
+can finish a state: T-040's tester measured two sittings of 50 right answers
+filling **15–18 of 50**, and two of 26 filling 0–3.
 
-This is a content gap and it dissolves on its own once there are four or more
-questions per state (T-050, T-021). It is filed separately because it is the
-thing to check *after* the bank grows — and because if the bank is going to stay
-small for a while, the alternative is to revisit the 0.7 threshold or show
-partial mastery on the map, which is a design decision rather than more data.
-`e2e/tests/progress.spec.ts` has a test that documents the current behaviour and
-fails when the premise stops being true.
+It dissolves once there are four or more served questions per state. T-051's
+`map_click` makes three, so that alone is not enough. If the bank is going to
+stay at two or three per state for a while, the alternative is to revisit the
+0.7 threshold or show partial mastery on the map, which is a design decision
+rather than more data. `e2e/tests/progress.spec.ts` has a test that documents
+the current behaviour and fails when the premise stops being true.
 **Done when:** a good first session visibly colours something in.
 
-### T-050 — Grow the served bank from 15 states to 50 · M · todo
-**Depends on:** T-040 (T-011 landed in PR #41 — all 50 curated facts exist in the
-pipeline bank; nothing serves them yet)
-**New 2026-08-24.** The bank is Alaska, Arizona, California, Colorado, Florida,
-Hawaii, Kansas, Louisiana, Maine, Michigan, Minnesota, Nevada, New York, Texas,
-Washington. A child who learns those fifteen has finished the app, and the map —
-which is the progress bar — can never fill past 30%.
+### T-050 — Check selection and levels at 50 states · M · todo
+**Depends on:** —
+**Rewritten 2026-10-19 by T-040's reviewer (PR #88).** This entry was "Grow the
+served bank from 15 states to 50". T-040 did that: the app serves the 50
+pipeline states, each with its reviewed fun fact, and 100 generated questions.
+What is left is the pass this entry always said the size needed:
 
-This is mostly the payoff of T-040 and T-011 rather than new work, but it needs
-its own pass: 50 states means the level spread has to still make sense, the
-review queue has to behave at that size, and `store.candidate_questions`'s
-in-Python selection pool wants a look (it is fine at 26 questions and documented
-as the place to move filtering into SQL when it is not).
-**Done when:** the app serves 50 states with reviewed prose, and a session at
-any level draws sensibly from the whole set.
+- **Level spread.** Seeded levels now run 3.5 to 10 over the served bank
+  (E-22). Check that a child at each band gets a sensible share of it, and
+  that the HI/AK/Denver/Honolulu rows T-085 owns do not dominate a band.
+- **Review queue** at 100 questions rather than 26.
+- **`store.candidate_questions`** selects in Python. It was documented as fine
+  at 26 questions and the place to move filtering into SQL when it is not.
+  Measure it at 100, and at T-026's size.
+
+**Done when:** a session at any level draws sensibly from the whole set, or
+this is dropped with the measurement that shows it already does.
 
 ### T-051 — Render a third question format in the client · M · todo
 **Depends on:** T-020
@@ -705,9 +676,31 @@ as it is.
 its committed question file but withholds them from the served bank and leaves
 `choiceGeometryIds` out of the contract. Putting them in the served bank, and
 adding `choiceGeometryIds` to `openapi.yaml` and `backend/app/models.py`, is
-now this task's job. **Depends on: T-040** as well, for that part.
+now this task's job. T-040 landed in PR #88: add `map_click` to
+`SERVED_FORMATS` in `backend/app/content_build.py`, map its `choiceGeometryIds`
+there (the loader's field list is an allowlist), and rerun `make -C backend
+content`. The question file already holds the 50 `map_click` questions.
 **Done when:** a `map_click` question can be shown, answered by tapping the map,
 and graded, with the same asymmetric reveal as the other two.
+
+### T-087 — A bank refresh regenerates the question file and the served bank · S · todo
+**Depends on:** —
+**New 2026-10-19, from T-040's reviewer (PR #88).** T-040 left two hand-run
+commands: `cd question-bank && bun run ./src/write-questions.ts`, then
+`make -C backend content`. A changed `bun run refresh` moves the entity bank, so
+both drift tests go red until someone runs both. That is the intended guard
+(E-24), but nothing tells the person running the refresh which commands to run.
+Two things:
+- **A named script.** T-040's criterion 33 forbade a `package.json` change, so
+  the question-file command is a file path. A `"questions"` script would make it
+  `bun run questions`. It turns two `package.json` byte pins red (T-025 c15,
+  T-079 c20), so plan to attend the tester step.
+- **Say it where the refresh is run.** Either `bun run refresh` prints the two
+  commands when it changes the bank, or the refresh docs list them. Chaining
+  them into the refresh is the bigger option, and it was out of T-040's scope.
+**Done when:** a person running a changed refresh is told, by the command or by
+the doc next to it, to regenerate both files, and the question-file command is
+either a named script or the reason it is not is written down.
 
 ---
 
