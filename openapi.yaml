@@ -1486,7 +1486,7 @@ components:
           description: >-
             Hand-curated farm animals and animal products the state is known for
             (T-068). Never a plant crop (those are `topCrops`), a fish, a horse or
-            bees. Empty where no state has an honest standout.
+            bees. Empty where the state has no honest standout.
           items:
             type: string
         animals:

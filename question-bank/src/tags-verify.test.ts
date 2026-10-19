@@ -578,10 +578,10 @@ describe("T-024 criterion 28: engineering-decisions.md E-23", () => {
     return t.slice(start, next === -1 ? undefined : next);
   };
 
-  test("exactly one E-23, it is the highest, and E-1..E-22 all still exist", () => {
+  // "It is the highest" held until T-040 appended E-24.
+  test("exactly one E-23, and E-1..E-22 all still exist", () => {
     const nums = [...text().matchAll(/^## E-(\d+) /gm)].map((m) => Number(m[1]));
     expect(nums.filter((n) => n === 23).length).toBe(1);
-    expect(Math.max(...nums)).toBe(23);
     for (let n = 1; n <= 22; n++) expect(nums).toContain(n);
   });
 

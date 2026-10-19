@@ -652,6 +652,14 @@ criteria 10-12 ("must not move") became sha pins in
 file is meant to grow ("a task may add an entry"), so the very next task that
 adds a decision pays an attended Test change request. The pattern is now
 repeating per task, not a one-off.
+**Third instance, 2026-10-19, from T-040's reviewer (PR #88).** T-010's
+criterion 16 pinned the wording of `tasks.md`'s `### T-040` entry in
+`committed-bank.test.ts`, so T-040's own sweep (which must delete that entry)
+turned it red, and five "nothing weakened" expect floors pinned its count. It
+took one extra reviewer → attended-tester round (8 rows) to finish a task that
+was otherwise approved. A cheap partial guard, whichever option is taken: the
+expander greps the test suites for its own task id and lists any hit as a stale
+test up front, so the request is raised in the first attended tester session.
 **This is a process-file change**, so it is done by hand.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.

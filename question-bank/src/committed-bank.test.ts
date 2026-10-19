@@ -292,14 +292,9 @@ describe("T-010 criteria 11–16 — the rules and the docs say the same thing",
     expect(read("conventions.md")).toMatch(/data\/us-states/);
   });
 
-  test("criterion 16 — tasks.md T-040 reads the committed bank, and PROGRESS.md records it", () => {
-    const t040 = read("tasks.md")
-      .split(/^### /m)
-      .find((s) => s.startsWith("T-040"));
-    expect(t040).toBeTruthy();
-    expect(t040).toMatch(/question-bank\/data\/us-states/);
-    expect(t040?.toLowerCase()).toMatch(/no live wikidata|without a live|needs no live/);
-
+  // The tasks.md half went with T-040's queue entry, which T-040's sweep deletes
+  // (T-040 Test change request, B1). The decision it protected is E-6, criteria 11-14.
+  test("criterion 16 — PROGRESS.md records the committed bank", () => {
     expect(read("PROGRESS.md")).toMatch(/question-bank\/data\/us-states/);
   });
 });

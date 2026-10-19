@@ -12,7 +12,15 @@ import { TEMPLATES, type Template } from "./templates";
 import type { Entity } from "./types";
 
 const STATES_DIR = join(import.meta.dirname, "..", "data", "us-states");
-const CONTENT = join(import.meta.dirname, "..", "..", "backend", "app", "data", "content.json");
+// The hand-written bank, archived by T-040 when the served content.json became the generated one.
+const CONTENT = join(
+  import.meta.dirname,
+  "..",
+  "..",
+  "archive",
+  "hand-written-bank",
+  "content.json",
+);
 
 function loadBank(): Entity[] {
   return readdirSync(STATES_DIR)

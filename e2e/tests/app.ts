@@ -120,6 +120,7 @@ export async function openSetup(page: Page): Promise<void> {
 }
 
 export async function startQuiz(page: Page, quizType: string): Promise<void> {
+  watchServedQuestions(page);
   await openSetup(page);
   await topicButtons(page).filter({ hasText: quizType }).click();
   await page.getByRole("button", { name: "Start", exact: true }).click();
@@ -193,13 +194,45 @@ async function gradedCorrect(page: Page): Promise<boolean> {
  * Needed because progress is earned, not given. Mastery moves +0.25 per correct
  * answer and a state fills in on the map at 0.7, so it takes four right answers
  * about one state; the level moves after four correct in a row. Random answers
- * across fifteen states will not reliably do either, so the tests that check
+ * across fifty states will not reliably do either, so the tests that check
  * progress persists have to be able to answer on purpose.
  */
 export type AnswerKey = Map<string, string>;
 
-function keyOf(prompt: string, choices: string[]): string {
-  return `${prompt.trim()}::${[...choices].sort().join("|")}`;
+/**
+ * Keyed on question id, not on what the screen shows. The generated bank has
+ * questions a child cannot tell apart by prompt and choices alone: "Which state
+ * is highlighted?" over the same four names is asked of Pennsylvania and of
+ * Delaware, and only the highlighted shape differs. The id comes from the
+ * response that served the question (`watchServedQuestions`).
+ */
+const SERVES = /\/api\/v1\/sessions\/[^/]+\/(next-question|review-round)$/;
+const lastServed = new WeakMap<Page, Promise<string | undefined>>();
+const watched = new WeakSet<Page>();
+
+/**
+ * Remembers which question the server last served to this page.
+ *
+ * The response event fires when its headers arrive, before the app has the body
+ * to render, so by the time a fresh question is on screen the promise stored
+ * here is the one for that question.
+ */
+export function watchServedQuestions(page: Page): void {
+  if (watched.has(page)) return;
+  watched.add(page);
+  page.on("response", (response) => {
+    if (response.request().method() !== "POST") return;
+    if (!SERVES.test(new URL(response.url()).pathname)) return;
+    lastServed.set(
+      page,
+      response
+        .json()
+        .then((body: { question?: { id?: string }; served?: { question?: { id?: string } } }) =>
+          (body.served ?? body).question?.id,
+        )
+        .catch(() => undefined),
+    );
+  });
 }
 
 export async function fetchAnswerKey(request: APIRequestContext): Promise<AnswerKey> {
@@ -208,15 +241,15 @@ export async function fetchAnswerKey(request: APIRequestContext): Promise<Answer
   });
   expect(response.ok(), "could not read the question bank").toBeTruthy();
   const body = (await response.json()) as {
-    data: { prompt: string; choices?: string[]; correctIndex?: number }[];
+    data: { id: string; choices?: string[]; correctIndex?: number }[];
   };
 
   const key: AnswerKey = new Map();
   for (const question of body.data) {
-    const { prompt, choices, correctIndex } = question;
+    const { id, choices, correctIndex } = question;
     if (!choices || correctIndex === undefined) continue;
     const answer = choices[correctIndex];
-    if (answer) key.set(keyOf(prompt, choices), answer);
+    if (answer) key.set(id, answer);
   }
   expect(key.size, "the bank served no answerable questions").toBeGreaterThan(0);
   return key;
@@ -234,8 +267,11 @@ export async function answerDeliberately(
   const options = choiceButtons(page);
   const labels = (await options.allInnerTexts()).map((label) => label.trim());
 
-  const answer = key.get(keyOf(prompt, labels));
-  expect(answer, `no answer key for: ${prompt} [${labels.join(", ")}]`).toBeTruthy();
+  const id = await lastServed.get(page);
+  expect(id, "no served question was seen; was the quiz started with startQuiz?").toBeTruthy();
+  const answer = key.get(id!);
+  expect(answer, `no answer key for ${id}: ${prompt} [${labels.join(", ")}]`).toBeTruthy();
+  expect(labels, `the screen does not show ${id}'s answer`).toContain(answer!);
 
   const index =
     want === "correct"

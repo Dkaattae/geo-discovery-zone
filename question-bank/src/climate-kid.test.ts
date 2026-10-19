@@ -878,7 +878,8 @@ describe("T-014 criterion 19 — nothing already verified is weakened", () => {
    * pre-T-014 ones, since this task is the one making the edit.
    */
   const PINNED: Record<string, { tests: number; expects: number }> = {
-    "committed-bank.test.ts": { tests: 33, expects: 58 },
+    // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
+    "committed-bank.test.ts": { tests: 33, expects: 55 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     // T-071 row 6 deleted one dependency-pin test from this file (E-16).

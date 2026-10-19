@@ -687,10 +687,11 @@ function walkFiles(d: string): string[] {
   });
 }
 
-function manifestSha(dir: string): string {
+function manifestSha(dir: string, except: string[] = []): string {
   return sha(
     walkFiles(join(REPO, dir))
       .map((p) => relative(REPO, p))
+      .filter((r) => !except.some((prefix) => r.startsWith(prefix)))
       .sort()
       .map((r) => `${r}\t${sha(readFileSync(join(REPO, r)))}\n`)
       .join(""),
@@ -698,9 +699,11 @@ function manifestSha(dir: string): string {
 }
 
 describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified", () => {
-  test("criterion 14: question-bank/data, sample-data and src/fixtures are byte-identical to aa88101", () => {
+  // T-040 added question-bank/data/questions/ (its committed question file); everything
+  // that was under data/ at aa88101 is still pinned.
+  test("criterion 14: question-bank/data (outside T-040's data/questions/), sample-data and src/fixtures are byte-identical to aa88101", () => {
     expect({
-      data: manifestSha("question-bank/data"),
+      data: manifestSha("question-bank/data", ["question-bank/data/questions/"]),
       sample: manifestSha("question-bank/sample-data"),
       fixtures: manifestSha("question-bank/src/fixtures"),
     }).toEqual({
@@ -710,8 +713,9 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     });
   });
 
-  test("criterion 14: backend/app/data/content.json is byte-identical to aa88101", () => {
-    expect(sha(readFileSync(join(REPO, "backend", "app", "data", "content.json")))).toBe(
+  // T-040 archived this file byte-for-byte and replaced the served one with the generated bank.
+  test("criterion 14: aa88101's backend/app/data/content.json survives byte-identical as archive/hand-written-bank/content.json", () => {
+    expect(sha(readFileSync(join(REPO, "archive", "hand-written-bank", "content.json")))).toBe(
       "81edf041acb6eb71135e09799a7f092fb00f8573ae52f894aa976d25650264fa",
     );
   });
@@ -749,14 +753,16 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     expect(tracked).toEqual(Object.keys(AT_AA88101).sort());
   });
 
-  test("criterion 16: the highest E-n is E-23, and E-1..E-23 each appear exactly once", () => {
+  // Later tasks may append E-24 onward (T-040 did); none of E-1..E-23 may move.
+  test("criterion 16: E-1..E-23 each appear exactly once, and every E-n heading is E-1..E-max with no gap or repeat", () => {
     const heads = readFileSync(DECISIONS, "utf8")
       .split("\n")
       .map((l) => l.match(/^## E-(\d+)\b/)?.[1])
       .filter((x): x is string => x !== undefined)
       .map(Number);
-    expect(Math.max(...heads)).toBe(23);
-    expect([...heads].sort((a, b) => a - b)).toEqual(Array.from({ length: 23 }, (_, i) => i + 1));
+    const max = Math.max(...heads);
+    expect(max).toBeGreaterThanOrEqual(23);
+    expect([...heads].sort((a, b) => a - b)).toEqual(Array.from({ length: max }, (_, i) => i + 1));
   });
 
   test("criterion 17: every question-bank test file at aa88101 is present and unmodified", () => {
@@ -822,6 +828,9 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
         .map((f) => `${f}\t${sha(readFileSync(join(SRC, f)))}\n`)
         .join(""),
     );
-    expect(digest).toBe("5eefead563dd9e8b360d5a6a53f1e3eb9f00c7424ae798cbb5c1d91a64387cd5");
+    // Re-pinned by T-040's approved Test change requests: rows 15, 16 and 20 modified
+    // generate.test.ts, generate-verify.test.ts and tags-verify.test.ts; B1 modified
+    // committed-bank.test.ts and lowered its floor in five files here.
+    expect(digest).toBe("db741fc065d526dd442bae56ae50a15966783a6040bccd44614ac09e7c880f00");
   });
 });

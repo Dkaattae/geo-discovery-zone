@@ -1157,7 +1157,8 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
    * assertions this task rewrote are re-checked below rather than counted.
    */
   const FLOORS: Record<string, { tests: number; expects: number }> = {
-    "committed-bank.test.ts": { tests: 33, expects: 58 },
+    // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
+    "committed-bank.test.ts": { tests: 33, expects: 55 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
     "fun-facts.test.ts": { tests: 30, expects: 59 },
     // T-071 row 6 deleted one dependency-pin test from this file (E-16).
@@ -1200,12 +1201,12 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     }
   });
 
-  test("committed-bank.test.ts's expect count really is 58, so the lowered floor is not slack", () => {
+  test("committed-bank.test.ts's expect count really is 55, so the lowered floor is not slack", () => {
     // Criterion 16(a) exempts the harness extraction from "loosened"; this
     // pins that the floor three files carry was lowered exactly as far as the
     // extraction forced and no further.
     const source = readFileSync(join(PKG, "src/committed-bank.test.ts"), "utf8");
-    expect([...source.matchAll(/expect\(/g)].length).toBe(58);
+    expect([...source.matchAll(/expect\(/g)].length).toBe(55);
   });
 
   test("the offline runner still fails a non-zero build rather than swallowing it", () => {
