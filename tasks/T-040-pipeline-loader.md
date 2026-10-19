@@ -1,13 +1,13 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `changes requested`
-**Next step:** `tester`, **attended** — needs `tester` to raise and apply a one-row Test change request for blocking finding B1 under `## Review`, approved by a person in its own session (D-14, D-15). Then `reviewer` again.
+**Status:** `test changes requested`
+**Next step:** `human` — approve or refuse rows 25–32 under "Test change request" (review finding B1) in the attended tester session that raised them. Then `reviewer` again.
 **Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
-**Test changes:** `approved — the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G (no name given; answered "Approved" to all 24 rows), 2026-10-16`
+**Test changes:** `requested` — rows 25–32 (B1). Rows 1–24 were approved by the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G ("Approved"), 2026-10-16
 **From:** [`tasks.md`](../tasks.md) T-040
 **Branch:** `claude/festive-edison-nuwc27`
 **PR:** #88, opened draft at expand time from the branch above
-**Fault:**
+**Fault:** review finding B1: the sweep deletes the `### T-040` queue entry, and T-010's criterion 16 test pins it. Rows 25–32 wait for a person's approval.
 
 **Sessions:**
 
@@ -558,6 +558,34 @@ suites. It predates the task loop.
 | 22 | same › "criterion 12: E-22's heading line is unchanged and no ## E-n heading is added or removed" | `4009ee5`, T-086 c12 | c32 | modify | "…and no ## E-n heading up to E-23 is added or removed": the count of headings with n ≤ 23 is still `BASE_E_HEADING_COUNT` (23) || approved — "Approved", tester session, 2026-10-16 |
 | 23 | `question-bank/src/hand-check-levels-verify.test.ts` › "T-025 criteria 14-17: …" › "criterion 17: every question-bank test file at aa88101 is present and unmodified" (**knock-on**: green now, red once rows 15, 16 and 20 land) | `236b0e0`, T-025 c17: digest of the 48 test files | rows 15, 16 and 20 modify three of the 48 files | modify | Same name and list. The digest is re-pinned from `5eefead5…` to `001107cd…` (the bytes after rows 15, 16 and 20), with a comment citing T-040 and those three files || approved — "Approved", tester session, 2026-10-16 |
 | 24 | `e2e/tests/app.ts` › `fetchAnswerKey` / `answerDeliberately` (helpers behind `progress.spec.ts` and `quiz.spec.ts`), and `e2e/tests/progress.spec.ts` › "the map fills in once a child has come back a second time" (**red in CI**) | `1f1bbbf`, PR #27: answer on purpose, and the map fills after two sittings | c11: 4 pairs of `map_identify` questions share a prompt and choice set (the Handoff's PA/DE, MA/RI, ME/NH, NC/SC). The prompt+choices key picks the wrong state: CI shows "the server graded … differently than the key says". c6 also breaks the premise: two sittings of 26 over 100 questions fill 0–3 of 50 states (4 API runs) | modify | **app.ts**: the key maps question id → answer. `startQuiz` calls the new `watchServedQuestions`, which records the id from each `next-question`/`review-round` response. `answerDeliberately` looks up that id and also asserts the screen shows that answer. **progress.spec.ts**: the same test, with each sitting 50 questions (`SITTING = 50`) instead of 26. The API measured 15–18 of 50 filled after two sittings; first sitting still 0. Docstrings say 50 states / 100 questions. Same assertions (`0` after one, `> 0` after two) || approved — "Approved", tester session, 2026-10-16 |
+
+### Round 2 — review finding B1 (raised 2026-10-19)
+
+The reviewer's sweep deletes `tasks.md`'s `### T-040` entry, and row 25's test
+pins that entry. Dropping its three `tasks.md` expects lowers
+`committed-bank.test.ts` from 58 to 55 expects. Five "nothing weakened" floors
+pin 58, so each drops by **exactly** the 3 removed (rows 26–30). One test pins
+the exact count (row 31). The row 23 digest moves again (row 32).
+
+The reviewer also allowed deleting the whole test. This request takes the
+modify path instead, because it keeps the `PROGRESS.md` check.
+
+With all 8 drafted: question-bank `bun test` gives 2241 pass, 0 fail, and
+format:check is clean. It stays 2241/0 with the `### T-040` section removed from
+`tasks.md`, which simulates the sweep. Mutation check: dropping row 25's
+remaining expect as well turns 3 floor tests red, so the lowered floors are not
+slack.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 25 | `question-bank/src/committed-bank.test.ts` › "T-010 criteria 11–16" › "criterion 16 — tasks.md T-040 reads the committed bank, and PROGRESS.md records it" | `1d34d53`, T-010 c16: the T-040 queue entry says it reads the committed bank. The decision behind it is E-6, which criteria 11–14 in the same describe still assert | B1: T-040's own sweep deletes that queue entry (P-17: a criterion about wording that outlives its entry) | modify | "criterion 16 — PROGRESS.md records the committed bank": one expect, `PROGRESS.md` matches `question-bank/data/us-states`. The three `tasks.md` expects are removed. A comment cites this row | |
+| 26 | `question-bank/src/climate-kid-verify.test.ts` › floor table entry `"committed-bank.test.ts": { tests: 33, expects: 58 }` (the "…still declares at least 33 tests and 58 expectations" test) | `775671c`, T-014 tester: nothing already verified is weakened | row 25 removes exactly 3 expects | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
+| 27 | `question-bank/src/climate-kid.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
+| 28 | `question-bank/src/landmarks-verify.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
+| 29 | `question-bank/src/landmarks.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
+| 30 | `question-bank/src/state-animals.test.ts` › same floor entry | `bc544e3`, T-014 | as row 26 | modify | `{ tests: 33, expects: 55 }`, with a comment citing B1 | |
+| 31 | `question-bank/src/climate-kid-verify.test.ts` › "committed-bank.test.ts's expect count really is 58, so the lowered floor is not slack" | `775671c`, T-014 tester: the floor is exact | as row 26 | modify | "…really is 55, so the lowered floor is not slack": the exact count is 55 | |
+| 32 | `question-bank/src/hand-check-levels-verify.test.ts` › "T-025 criteria 14-17" › "criterion 17: every question-bank test file at aa88101 is present and unmodified" | `236b0e0`, T-025 c17 (already re-pinned once by row 23) | rows 25–30 modify six of the 48 digested files | modify | Same name and list. The digest is re-pinned from `001107cd…` to `db741fc0…`, and the comment names rows 15/16/20 and B1 | |
 
 ## Verdict
 
