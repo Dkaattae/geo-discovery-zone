@@ -187,3 +187,6 @@ Returned result (verbatim):
 
 ## Halted — next step needs an attended tester — 2026-10-19
 Header reads `Next step: tester, attended`. A spawned tester cannot take test-change approvals (D-15). Branch head at halt: `b0ab3a3`.
+
+## Resumed after attended tester (B1) — 2026-10-19
+The attended tester raised rows 25–32 for B1 (`3245e4b`), the person approved them there, the tester applied them (`2da025b`) and returned `pass` (`76fa6e7`). Owner in the orchestrator session: "ci fixed, please proceed". Header: `Status: pass`, `Next step: reviewer`. G0–G4 pass. Next: reviewer.
