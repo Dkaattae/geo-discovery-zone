@@ -1,7 +1,7 @@
 # T-040 — Loader: pipeline JSON → the served bank
 
-**Status:** `approved — escalated`
-**Next step:** `human` — merge decision on PR #88 (see `## Review`, "Escalated")
+**Status:** `changes requested`
+**Next step:** `tester`, **attended** — needs `tester` to raise and apply a one-row Test change request for blocking finding B1 under `## Review`, approved by a person in its own session (D-14, D-15). Then `reviewer` again.
 **Approved:** Dkaattae (repo owner) — 2026-10-16, said "approved" in the orchestrator session after the orchestrator stamp was refused. See `runs/T-040-pipeline-loader.md`.
 **Test changes:** `approved — the person attending tester session cse_016YSBLmf5yThtJbxs5c2P8G (no name given; answered "Approved" to all 24 rows), 2026-10-16`
 **From:** [`tasks.md`](../tasks.md) T-040
@@ -618,14 +618,15 @@ Constraints' `scripts` entry) is still open and still the reviewer's call.
 
 ## Review
 
-**TL;DR: approved, and escalated.** The code is small, pure where it should be,
-in the house style, and stays inside the Constraints. Nothing blocks. **Escalated
-because this PR is the one that puts 50 fun facts and 100 generated prompts in
-front of children**, and the substance read of those facts (PR #41's checklist)
-is still listed as open in `PROGRESS.md`. It also touches `openapi.yaml` (one
-description string). A person decides the merge.
+**TL;DR: sent back to an attended `tester`, for one pre-existing test the sweep
+turns red.** The work itself is good and would be approved. But the sweep must
+delete T-040's `tasks.md` entry, and
+`question-bank/src/committed-bank.test.ts` (T-010 criterion 16) asserts that
+entry exists. The reviewer may not edit a test, so the PR stays draft and
+unswept. After the row lands, the next reviewer sweeps (the prepared sweep is on
+PR #88) and marks it ready, **escalated** for the reasons below.
 
-- **PR state:** open, draft, not merged. Marked ready by this review.
+- **PR state:** open, draft, not merged. Left draft.
 - **Every role's work is in the PR.** Expander `02c0ff7`, `9ae4331`, `bb74d5c`;
   worker `25c7847`; tester `bb0678a`, `0032410`, `f99a775`, `acaa4a1`. All on
   `claude/festive-edison-nuwc27`, the `Branch:` header and the PR head.
@@ -642,7 +643,27 @@ description string). A person decides the merge.
   403, no Docker); the tester reports all six CI jobs green on `f99a775`, and CI
   on `f834062` was queued at review time.
 
-### Findings — none blocking
+### Blocking
+
+**B1. `question-bank/src/committed-bank.test.ts:295-304` pins the queue entry
+this PR's sweep must delete.** The test is "T-010 criteria 11–16 › criterion 16 —
+tasks.md T-040 reads the committed bank, and PROGRESS.md records it". It finds
+the `### T-040` section of `tasks.md` and asserts it exists, mentions
+`question-bank/data/us-states` and says no live Wikidata run is needed. Applied
+here, the sweep turned it red (`expect(t040).toBeTruthy()`, received
+`undefined`); every other suite stayed as before. It is a P-17 pin: a criterion
+about a queue entry's wording that outlives the entry.
+- **Acceptable:** a Test change request row, approved by a person, that
+  modifies the test to drop its `tasks.md` half. The decision it protected is
+  E-6 (asserted by criteria 11–14 in the same describe), and the rest of the
+  test (`PROGRESS.md` names `question-bank/data/us-states`) still holds.
+  Deleting the test is also acceptable if the person prefers it.
+- **Not acceptable:** keeping a finished T-040 entry in `tasks.md` to keep the
+  test green.
+- **Who:** `tester`, attended. The tester commit must touch only that test file
+  and the brief.
+
+### Findings — not blocking
 
 1. **Worker flag: the command is `bun run ./src/write-questions.ts`, not a
    `package.json` script. Decided: accepted.** Criterion 33 forbids a
@@ -668,7 +689,7 @@ description string). A person decides the merge.
    Two languages, so no shared constant is possible. The two drift tests catch
    a mismatch. Noted, not queued.
 
-### Escalated — do not merge without a decision on these
+### Escalated, once B1 is fixed — do not merge without a decision on these
 
 - **Text a child reads (D-4a).** Every served `funFact` is now one of the 50
   T-011 facts (35 states never served before), and it is the correct-answer
