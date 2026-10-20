@@ -1,14 +1,13 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** a person — 2026-10-20, in the orchestrator session ("approved, start the worker"). See `runs/T-064-purge-sample-data.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-20`
 **From:** [`tasks.md`](../tasks.md) T-064
 **Branch:** `claude/optimistic-pascal-wk81ey`
 **PR:** #89, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:** test changes are waiting for approval: 39 rows, every one made stale by criteria 1–2 deleting `sample-data/` and `build:sample`. A person must approve them in an attended tester session (D-15).
 
 **Sessions:**
 
@@ -309,6 +308,35 @@ Results on this branch (worker, 2026-10-20):
 - **Unexplained once**: during the first frontend run, `frontend/README.md` was rewritten (one `*` escaped to `\*`, a prettier-style edit). I reverted it with `git checkout`, and it did not happen again in two later runs. **Owner: the tester, if it recurs. Otherwise a `tasks.md` entry at the reviewer's sweep** for a frontend test that may leak writes.
 
 ## Verdict
+
+### Round 2 — attended tester, 2026-10-20: **pass**
+
+**TL;DR: pass. Dkaattae approved all 39 Test change request rows in this session, and they are applied exactly as written. `question-bank` now has 2232 pass and 0 fail, and typecheck, lint and format:check are clean.** Next step: the reviewer.
+- **Approval.** Header: `Test changes: approved — Dkaattae, 2026-10-20`. Dkaattae's own words in this session: *"Approve all 39 rows"*, with the name to record given as *"Dkaattae"*.
+- **Independence: a separate session.** This is session `cse_015g2kHcuVVqxLfCPu3KuyUZ`. A person started it directly, and it does not appear in the Sessions table as expander or worker. Unlike round 1, this is the strong kind of independence.
+- **Frontend: not runnable here.** `bun install` in `frontend/` gets a 403 from `europe-west1-npm.pkg.dev`, the same gap round 1 hit. `src/conventions-doc.test.ts` passes 81/81. No file under `frontend/` changed. CI's frontend job decides the rest.
+
+**Rows applied.** Commit `2def022` (`T-064 tester: apply approved test change request`) holds only test files.
+
+| Rows | Action | What it did |
+|---|---|---|
+| 1, 6–7, 9–10, 12, 15–17, 19–20 | delete | Sample-vs-bank comparisons and their describes, loaders, `SAMPLE` constants and sample-only comments |
+| 4–5, 23–27, 29 | delete | Sample README tests and sample byte or digest pins, with `SAMPLE`, `SAMPLE_DIGEST`, `SAMPLE_DIR` and `SAMPLE_DIGESTS_AT_E10F94D` |
+| 2, 13, 21, 30 | modify | Only the sample's part is dropped. The bank and table assertions stay exact |
+| 3, 8, 11, 14, 18, 22 | modify | The `reviewed: false` scans read `data/` only, are renamed, and keep `> 51` and the per-path assertion |
+| 28 | modify | The sample key leaves `DEFAULT_BRANCH_DIGESTS`. The vacuity test asserts the exact 51-path set |
+| 31, 32 | modify | `question-bank/package.json` is re-pinned to `5286f4f7…3f72`, which matches `sha256sum` of the file |
+| 33 | modify | The T-025 criterion 17 aggregate is re-pinned `db741fc0…` → `dd1c8a7f…`. My script recomputes the old value on the unedited tree, so the method matches the test's |
+| 34–39 | modify | Floors are lowered by exactly the deletions: committed-bank 32/54 (5 tables), fun-facts 28/54 (5), state-animals tests 40 (4), landmarks tests 50 (2), landmarks-verify tests 35 (2), and the exact count `toBe(54)` |
+
+**Checks after applying:**
+- **Floors recounted** with the floors' own regexes: committed-bank 32/54, fun-facts 28/54, state-animals 40/74, landmarks 50/88, landmarks-verify 35/70. Each equals its new floor or sits above it, as the brief predicted.
+- **Suite:** 2232 pass, 0 fail. That is 2251 tests before, minus the 19 approved deletions. `purge-sample-data-verify.test.ts` › criterion 13 is now green.
+- **Criterion 12 mutation, re-run.** I inserted `"reviewed": false,` into `data/us-states/us-state-wy.json`. All six modified scans (rows 3, 8, 11, 14, 18, 22) went red, along with the T-010 criterion 9 guard. The file was restored, and `sha256sum -c` against the saved digest gave OK.
+
+**Left as is, outside the rows:** `highest-point-verify.test.ts`'s header still says "the other 51 paths must digest to it untouched". With the sample gone, that is now 50. Row 28 approved dropping only the sample phrase, so I changed nothing else. It is a comment, and it is noted here for the reviewer.
+
+### Round 1 — orchestrated tester, 2026-10-20: blocked on the Test change request
 
 **TL;DR: blocked on a Test change request. The production change meets every criterion this tester can check, but 30 pre-existing tests are red (31 counting a green one that breaks criterion 13), and all of them are stale because of this task.** 39 rows are below. Nobody can approve them in an orchestrated run, so the task halts for a person (`Next step: human`).
 - **Not a fail.** No criterion is unmet by the source. The reds are tests pinning the deleted directory or the old `package.json`.
