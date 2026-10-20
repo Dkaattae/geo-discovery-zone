@@ -1,7 +1,7 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven — run log
 
 **Task:** T-064 · **Branch:** `claude/optimistic-pascal-wk81ey` · **PR:** #89
-**Started:** 2026-10-20 · **Outcome:** halted — needs human
+**Started:** 2026-10-20 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-20
 `Next step` on entry: (no brief) → on exit: `worker` (after approval below)
@@ -48,3 +48,6 @@ Orchestrator stamped `Approved:` under `orchestrator.md` "Approval": unattended 
 
 ## Halted — worker spawn refused — 2026-10-20
 G0–G4 passed (`Next step: worker`, G1 clean, `Approved:` stamped, 0 fail / 0 blocked, branch = header). The harness's auto-mode classifier refused the worker spawn ("Instruction Poisoning"), the same shape as T-078's refused self-approval. Halted under G2: a person must approve the brief in the orchestrator's session before the worker runs. Brief header left as the expander wrote it apart from the `Approved:` line.
+
+## Human approval — 2026-10-20
+The person in the orchestrator session wrote: "approved, start the worker". `Approved:` line rewritten to record it. Resuming at `Next step: worker`.
