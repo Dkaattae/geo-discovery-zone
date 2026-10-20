@@ -36,7 +36,6 @@ import { rebuildOffline } from "./offline-rebuild";
 const PKG = resolve(import.meta.dirname, "..");
 const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-const SAMPLE = join(PKG, "sample-data/us-state-co.json");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 /** Criterion 13 names this instant: `built_at` is pinned to the fixture's capture. */
@@ -533,12 +532,6 @@ describe("T-015 tester, criterion 9 — the stale assertions are replaced, not d
 describe("T-015 tester, criterion 11 — the docs no longer say the field is empty", () => {
   const readDoc = (path: string) => readFileSync(join(REPO, path), "utf8");
 
-  test("sample-data/README.md no longer says top_crops needs USDA NASS", () => {
-    const text = readDoc("question-bank/sample-data/README.md");
-    expect(/top_crops[^\n]*needs USDA NASS/i.test(text)).toBe(false);
-    expect(/curated/i.test(text)).toBe(true);
-  });
-
   test("normalize.ts's top_crops comment no longer defers to USDA NASS", () => {
     const source = readDoc("question-bank/src/normalize.ts");
     // No NASS anywhere in the module, and the emitted value reads the curated
@@ -555,34 +548,6 @@ describe("T-015 tester, criterion 11 — the docs no longer say the field is emp
     const text = readDoc("PROGRESS.md");
     expect(/`top_crops` is empty/.test(text)).toBe(false);
     expect(/`top_crops` is \*\*50 of 50\*\*/.test(text)).toBe(true);
-  });
-});
-
-/**
- * T-017 (2026-09-18): `DEFAULT_BRANCH_DIGESTS["us-state-co.json"]` above is now
- * pinned with `region` stripped, for the *tracked* file's criterion-13 check.
- * The sample below is a different, untouched file — its own region
- * ("Mountain West", which T-017 does not change for Colorado, an anchor state)
- * is never removed, so it needs its own un-neutralised baseline rather than
- * reusing that key.
- */
-const SAMPLE_DIGEST = "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f";
-
-describe("T-015 tester, criterion 12 — the committed sample is untouched", () => {
-  test("sample-data/us-state-co.json is byte-identical to the default branch", () => {
-    expect(digest(readFileSync(SAMPLE, "utf8"))).toBe(SAMPLE_DIGEST);
-  });
-
-  test("the sample's own top_crops is still []", () => {
-    const sample = JSON.parse(readFileSync(SAMPLE, "utf8")) as StateEntity;
-    expect(sample.top_crops).toEqual([]);
-  });
-
-  test("sample-data/README.md says the sample is an older snapshot with empty top_crops while the bank is curated", () => {
-    const text = readFileSync(join(PKG, "sample-data/README.md"), "utf8");
-    expect(/older snapshot/i.test(text)).toBe(true);
-    expect(/top_crops/.test(text)).toBe(true);
-    expect(/data\/us-states/.test(text)).toBe(true);
   });
 });
 

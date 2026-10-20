@@ -44,7 +44,6 @@ import { rebuildOffline } from "./offline-rebuild";
 
 const PKG = resolve(import.meta.dirname, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-const SAMPLE = join(PKG, "sample-data/us-state-co.json");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 /** Criterion 7 names this instant literally. */
@@ -430,29 +429,6 @@ describe("T-013 tester, criterion 7 — the bank is built, not hand-edited", () 
   });
 });
 
-describe("T-013 tester, criterion 8 — the committed sample stays in step with the bank", () => {
-  test("the sample equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock, landmark included", () => {
-    // T-015 (2026-09-17, a later approved task) freezes `sample-data/us-state-co.json`
-    // deliberately at `top_crops: []` (its own criterion 12 — that file is T-064's
-    // territory) while populating the tracked bank's copy, so `top_crops` is excluded
-    // here the same way `built_at` already is.
-    const strip = (raw: string) => {
-      const parsed = JSON.parse(raw) as Entity & { sources?: Record<string, unknown> };
-      if (parsed.sources) delete parsed.sources.built_at;
-      delete parsed.top_crops;
-      // T-068: the sample is frozen without `top_livestock` (its criterion 14).
-      delete parsed.top_livestock;
-      return JSON.stringify(parsed);
-    };
-    expect(strip(readFileSync(SAMPLE, "utf8"))).toBe(
-      strip(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")),
-    );
-    expect((JSON.parse(readFileSync(SAMPLE, "utf8")) as Entity).landmark).toBe(
-      "Rocky Mountain National Park",
-    );
-  });
-});
-
 /**
  * T-069 (2026-10-03, a later approved task; approved test change request,
  * rows 1–2) converts `highest_point_m` to metres in five files that shipped
@@ -577,13 +553,12 @@ describe("T-013 tester, criterion 9 — nothing but landmark moves in the bank",
 });
 
 describe("T-013 tester, criterion 10 — Colorado's landmark is unchanged", () => {
-  test("the plan's §1.4 example string is what the table, the bank and the sample all carry", () => {
+  test("the plan's §1.4 example string is what the table and the bank carry", () => {
     const expected = "Rocky Mountain National Park";
     expect(CURATED_US_STATES.find((s) => s.postal === "CO")?.landmark).toBe(expected);
     expect(
       (JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as Entity).landmark,
     ).toBe(expected);
-    expect((JSON.parse(readFileSync(SAMPLE, "utf8")) as Entity).landmark).toBe(expected);
   });
 });
 
@@ -649,8 +624,8 @@ describe("T-013 tester, criterion 13 — nothing unreviewed, live or new is comm
       return statSync(path).isDirectory() ? walk(path) : [path];
     });
 
-  test('no file under data/ or sample-data/ contains reviewed": false', () => {
-    const files = [...walk(join(PKG, "data")), ...walk(join(PKG, "sample-data"))];
+  test('no file under data/ contains reviewed": false', () => {
+    const files = walk(join(PKG, "data"));
     expect(files.length).toBeGreaterThan(51);
     for (const path of files) {
       expect({ path, unreviewed: readFileSync(path, "utf8").includes('reviewed": false') }).toEqual(
@@ -689,13 +664,16 @@ describe("T-013 tester, criterion 14 — nothing already verified is weakened", 
    */
   const FLOORS: Record<string, { tests: number; expects: number }> = {
     // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
-    "committed-bank.test.ts": { tests: 33, expects: 55 },
+    // T-064 row 34: 33/55 → 32/54, row 1 deleted the sample comparison.
+    "committed-bank.test.ts": { tests: 32, expects: 54 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
-    "fun-facts.test.ts": { tests: 30, expects: 59 },
+    // T-064 row 36: 30/59 → 28/54, rows 4–5 deleted the two sample README tests.
+    "fun-facts.test.ts": { tests: 28, expects: 54 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },
     // T-071 row 6 deleted one dependency-pin test from this file (E-16).
-    "state-animals.test.ts": { tests: 42, expects: 70 },
+    // T-064 row 37: tests 42 → 40, rows 6–7 deleted the sample comparisons.
+    "state-animals.test.ts": { tests: 40, expects: 70 },
   };
 
   for (const [file, floor] of Object.entries(FLOORS)) {

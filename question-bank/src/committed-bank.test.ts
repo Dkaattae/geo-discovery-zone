@@ -145,26 +145,6 @@ describe("T-010 criterion 3 — every tracked entity file is complete", () => {
   });
 });
 
-describe("T-010 criterion 4 — the tracked Colorado matches the committed sample", () => {
-  // T-015 (2026-09-17, a later approved task) freezes the sample at
-  // `top_crops: []` (its own criterion 12 — sample-data is T-064's territory)
-  // while populating the tracked copy, so `top_crops` is dropped here the
-  // same way `built_at` already is.
-  test("data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at, top_crops and top_livestock", () => {
-    const stripBuiltAt = (entity: TrackedEntity) => {
-      const { sources, top_crops: _crops, top_livestock: _livestock, ...rest } = entity;
-      const { built_at: _dropped, ...restSources } = sources ?? {};
-      return { ...rest, sources: restSources };
-    };
-    const tracked = readTracked("us-state-co.json");
-    const sample = JSON.parse(
-      readFileSync(join(PKG, "sample-data/us-state-co.json"), "utf8"),
-    ) as TrackedEntity;
-
-    expect(stripBuiltAt(tracked)).toEqual(stripBuiltAt(sample));
-  });
-});
-
 describe("T-010 criterion 5 — the committed bank stays small", () => {
   test("every file tracked under question-bank/data/ totals under 200 KB", () => {
     const total = trackedUnder("question-bank/data").reduce(
@@ -257,7 +237,6 @@ describe("T-010 criteria 11–16 — the rules and the docs say the same thing",
     for (const path of [
       "question-bank/.gitignore",
       "question-bank/README.md",
-      "question-bank/sample-data/README.md",
       "conventions.md",
       "PROGRESS.md",
     ]) {

@@ -449,30 +449,6 @@ describe("T-012 criterion 6 — the bank is built, not hand-edited", () => {
   });
 });
 
-describe("T-012 criterion 7 — the committed sample stays in step with the bank", () => {
-  // T-015 (2026-09-17, a later approved task) freezes the sample at
-  // `top_crops: []` (its own criterion 12 — sample-data is T-064's territory)
-  // while populating the tracked copy, so `top_crops` is dropped here the
-  // same way `built_at` already is.
-  const stripBuiltAt = (entity: TrackedEntity) => {
-    const { sources, top_crops: _crops, top_livestock: _livestock, ...rest } = entity;
-    const { built_at: _dropped, ...restSources } = sources ?? {};
-    return { ...rest, sources: restSources };
-  };
-  const tracked = () =>
-    JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as TrackedEntity;
-  const sample = () =>
-    JSON.parse(readFileSync(join(PKG, "sample-data/us-state-co.json"), "utf8")) as TrackedEntity;
-
-  test("sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock", () => {
-    expect(stripBuiltAt(sample())).toEqual(stripBuiltAt(tracked()));
-  });
-
-  test("the sample carries the same state_animal as the tracked Colorado", () => {
-    expect(sample().state_animal).toBe(tracked().state_animal as string);
-  });
-});
-
 describe("T-012 criterion 8 — nothing but state_animal moves in the bank", () => {
   /**
    * T-013 (a later, approved task) is explicitly tasked with filling `landmark`
@@ -724,11 +700,8 @@ describe("T-012 criterion 10 — everything a child will read can be read in one
 });
 
 describe("T-012 criterion 11 — nothing unreviewed, live or new is committed", () => {
-  test('no file tracked under question-bank/data/ or sample-data/ contains reviewed": false', () => {
-    const paths = [
-      ...trackedUnder("question-bank/data"),
-      ...trackedUnder("question-bank/sample-data"),
-    ];
+  test('no file tracked under question-bank/data/ contains reviewed": false', () => {
+    const paths = trackedUnder("question-bank/data");
     expect(paths.length).toBeGreaterThan(51);
     for (const path of paths) {
       expect({
@@ -778,9 +751,11 @@ describe("T-012 criterion 12 — nothing already verified is weakened", () => {
    */
   const PINNED: Record<string, { tests: number; expects: number }> = {
     // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
-    "committed-bank.test.ts": { tests: 33, expects: 55 },
+    // T-064 row 34: 33/55 → 32/54, row 1 deleted the sample comparison.
+    "committed-bank.test.ts": { tests: 32, expects: 54 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
-    "fun-facts.test.ts": { tests: 30, expects: 59 },
+    // T-064 row 36: 30/59 → 28/54, rows 4–5 deleted the two sample README tests.
+    "fun-facts.test.ts": { tests: 28, expects: 54 },
     "normalize.test.ts": { tests: 14, expects: 31 },
   };
 

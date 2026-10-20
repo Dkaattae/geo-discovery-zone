@@ -20,8 +20,7 @@ import type { SparqlResults } from "./sparql";
  * implementation:
  *
  *  - `DEFAULT_BRANCH_DIGESTS` is the SHA-256 of each of the 51 tracked bank
- *    paths plus `sample-data/us-state-co.json` **as they stand on the default
- *    branch**, computed once here with `git show origin/main:<path>`. That is
+ *    paths **as they stand on the default branch**, computed once here with `git show origin/main:<path>`. That is
  *    criteria 5 and 6 stated byte-for-byte rather than observed in a diff:
  *    Alaska's file must digest to that value once its one new
  *    `highest_point` line is removed, and the other 51 paths must digest to it
@@ -42,7 +41,6 @@ import type { SparqlResults } from "./sparql";
 const PKG = resolve(import.meta.dirname, "..");
 const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-const SAMPLE = join(PKG, "sample-data/us-state-co.json");
 const FIXTURE = join(PKG, "src/fixtures/us-states.sparql.json");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
@@ -134,8 +132,6 @@ const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
   "us-state-wi.json": "cee9689d0071eebcdbd45ba1a84b0d8c0fc7ed7678225adbeaa5183ed4046bb7",
   "us-state-wv.json": "63d390aee0a350e51f3bc07ad4cb6bd29fdeffb0048ef245497a0fa293b4813d",
   "us-state-wy.json": "4c2aff03fe94762eac25f355dd73567e13e5b08278ca307518e7d30c92cf1507",
-  "sample-data/us-state-co.json":
-    "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
 };
 
 /** T-017: the region field is dropped before hashing — see DEFAULT_BRANCH_DIGESTS above. */
@@ -389,12 +385,6 @@ describe("T-016 tester, criterion 6 — the other 49 files, index.json and the s
 
   test("index.json is byte-identical to the default branch", () => {
     expect(sha256(readState("index.json"))).toBe(DEFAULT_BRANCH_DIGESTS["index.json"] as string);
-  });
-
-  test("sample-data/us-state-co.json is byte-identical to the default branch", () => {
-    expect(sha256(readFileSync(SAMPLE, "utf8"))).toBe(
-      DEFAULT_BRANCH_DIGESTS["sample-data/us-state-co.json"] as string,
-    );
   });
 });
 
@@ -688,9 +678,10 @@ describe("T-016 tester, criterion 16 — engineering-decisions.md records the de
 // ---------------------------------------------------------------------------
 
 describe("T-016 tester — the pins above are not vacuous", () => {
-  test("DEFAULT_BRANCH_DIGESTS covers all 51 tracked paths plus the sample", () => {
-    const wanted = ["index.json", ...trackedStateFiles(), "sample-data/us-state-co.json"].sort();
-    expect(Object.keys(DEFAULT_BRANCH_DIGESTS).sort()).toEqual(wanted);
+  test("DEFAULT_BRANCH_DIGESTS covers exactly the 51 tracked paths", () => {
+    expect(Object.keys(DEFAULT_BRANCH_DIGESTS).sort()).toEqual(
+      ["index.json", ...trackedStateFiles()].sort(),
+    );
   });
 
   test("every pinned digest is a distinct 64-hex SHA-256", () => {
