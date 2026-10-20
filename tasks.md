@@ -402,7 +402,7 @@ other three triggers, or list those rows in the Test change request.
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
 
-### T-026 — Templates for the topics the app has never shown · L · doing — **awaiting approval**
+### T-026 — Templates for the topics the app has never shown · L · doing — **awaiting verification**
 **Depends on:** T-021, and the curation task for whichever topic
 **Expanded 2026-10-20** (`tasks/T-026-biggest-state-superlative.md`, PR #91).
 Dkaattae answered Q1 (a), next-ranked on total area, and Q2 No, one task for
@@ -570,6 +570,35 @@ T-040 (PR #88) bridged the pipeline to the app: `backend/app/data/content.json`
 is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). What is left here is making that bank behave
 well at its new size, and the third format.
+
+### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person**
+**Depends on:** T-026, and a person's choice between the options below
+**New 2026-10-20, from T-026's worker.** T-026's crop rule (brief call C3)
+removes crops grown by the state, its neighbours and its region. Its
+farm-animal rule removes only the animals the state lists. Approving C3
+accepted the risk that "a far-away crop the state also grows" is offered
+as wrong. Reading the 74 generated agriculture questions shows that risk is
+common, not rare. Nearest-first ordering picks crops from just outside the
+region, and those are the likeliest to be grown there too. Examples the
+worker is fairly sure of (from general knowledge, not a committed source):
+- **Crops:** Minnesota and North Dakota offered "sugar beets" (both lead the
+  country). Washington offered "wheat", "barley" and "alfalfa hay". Oregon
+  offered "wheat" and "hay". Texas offered "corn" and "peaches". California
+  offered "cherries", "potatoes" and "apples". Alaska offered "potatoes".
+  Oklahoma offered "peanuts" and "hay". New York and New Jersey offered
+  "sweet corn" and "potatoes".
+- **Farm animals:** Texas offered "sheep" and "chickens". Minnesota offered
+  "pigs". Iowa offered "chickens" and "turkeys". North Carolina offered
+  "chickens".
+**Options:** (a) a person-approved "also grown/raised" list per state, used
+as an exclusion; (b) farthest-first ordering, as T-026 did for climate (E-25),
+which mostly offers Hawaii's and Alaska's crops; (c) take the answer from a
+source that ranks crops, so a distractor can be checked against it; (d) accept
+the risk and record it in E-25.
+**Test cost:** changes the committed question file and `content.json`, so
+both drift tests need a regeneration. T-026's own tests pin the current
+distractors only through the rules, not by value.
+**Done when:** the chosen option has landed and E-25 records it.
 
 ### T-056 — The map cannot fill in on a child's first day · M · todo
 **Depends on:** a third and fourth question per state (T-051 serves a third,

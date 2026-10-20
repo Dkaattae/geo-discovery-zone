@@ -32,8 +32,19 @@ export type Topic =
   | "superlative"
   | "elevation";
 
-/** What the session picker offers. `mixed` draws across topics. */
-export type SessionTopic = "location" | "capital" | "mixed";
+/**
+ * What the session picker offers: every topic with served questions (T-026),
+ * and `mixed`, which draws across topics.
+ */
+export type SessionTopic =
+  | "location"
+  | "capital"
+  | "superlative"
+  | "wildlife"
+  | "landmark"
+  | "climate"
+  | "agriculture"
+  | "mixed";
 
 export interface Problem {
   type?: string | undefined;

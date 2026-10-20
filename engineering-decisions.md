@@ -1070,7 +1070,7 @@ population_rank_weight: 1
 area_rank_weight: 0.5
 missing_rank_bucket: 2
 near_distractor_weight: 0.5
-concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 2, "tpl-click-the-map": 0 }
+concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 2, "tpl-click-the-map": 0, "tpl-biggest-state": 2, "tpl-state-animal-of": 2, "tpl-landmark-in": 2, "tpl-climate-of": 3, "tpl-crop-of": 2, "tpl-farm-animal-of": 1 }
 concept_load_default: 1
 familiarity_bonus: 0
 ```
@@ -1119,6 +1119,26 @@ Over the committed bank the 150 levels run from 3.5 (California and Texas,
 identify on map) to 10 (Delaware, Maine, New Hampshire, Rhode Island, Vermont
 and West Virginia, capital). The map templates nearly always get 3 near
 distractors, so tightness mostly separates the 11 small-region states of E-21.
+
+**The six T-026 templates (2026-10-20, T-026).** Each has its own
+`concept_load` entry, a first guess no one has hand-checked yet (that is
+T-050 and T-085):
+
+- `"tpl-biggest-state": 2` — comparing four states' sizes is recall, like a
+  capital, with nothing on screen to reason from.
+- `"tpl-state-animal-of": 2`, `"tpl-landmark-in": 2`, `"tpl-crop-of": 2` — a
+  second fact about a named state, the capital's reasoning.
+- `"tpl-climate-of": 3` — the same, and each choice is a long phrase to read.
+- `"tpl-farm-animal-of": 1` — every choice is one of six farm animals a child
+  already knows.
+
+All six have `base_difficulty` 2, like the capital. Over the committed bank
+the 265 new levels run from 3 (California and Texas, farm animal) to 10 (state
+animal and landmark for the small north-eastern states and West Virginia).
+`nearDistractorCount` means little for these: it measures geographic nearness,
+the superlative's next-ranked states are near or far by accident, and a
+list-valued choice (a crop, a farm animal) matches no entity by text, so it
+always counts as far.
 
 **The option not taken:** a continuous `(rank - 1) / 49` scale instead of
 buckets. It needs no edges, but the plan says "bucketed", and a handful of
@@ -1326,3 +1346,68 @@ review entries are orphaned, not migrated (no production deployment, plan §5.4)
 T-051 serves `map_click`, T-026 adds templates (both files regenerate), or the
 committed question file outgrows `question-bank/data/`'s 200 KB budget
 (`committed-bank.test.ts`; at T-040 the data directory is about 148 KB).
+
+## E-25 — T-026's distractor guards: one strategy per new template, the person-approved lists in `distractors.ts`, and a 400 KB bank budget
+
+**2026-10-20 (T-026).** Six new templates (superlative, wildlife, landmark,
+climate, crops, farm animals) each have their own `distractor_strategy` in
+`question-bank/src/templates.ts`. `buildChoices` implements them in
+`distractors.ts`. They are E-21's rules plus guards:
+
+- **`next_ranked_by_area`** (superlative, plan §1.8, Q1 (a)): the wrong
+  choices are exactly the states ranked `area_rank` + 1, + 2 and + 3 on total
+  area. There are no tiers and no distance. Delaware, Connecticut and Rhode
+  Island (ranks 48–50) cannot have three smaller states, so their drafts are
+  reported as short pools, and the superlative has 47 questions.
+- **`state_animals_neighbours_first`**, **`landmarks_neighbours_first`**:
+  E-21's `neighbours_first` tiers, never offering both members of a
+  same-thing pair (`SAME_ANIMAL_PAIRS`, `SAME_LANDMARK_PAIRS`). Landmarks
+  also never offer a trap for the answer's state (`LANDMARK_TRAPS`, e.g. "Mount
+  Washington" in the Washington question).
+- **`climates_outside_group`**: never the climate of a state in the answer
+  state's same-climate group (`SAME_CLIMATE_GROUPS`, ten groups, 41 states).
+  **Farthest first**, one tier. This is the one exception to nearest-first.
+  Neighbouring states in different groups still read alike ("hot humid
+  summers and mild winters…" for Alabama against Tennessee's phrase). Nearest
+  first gave several questions two choices a child could not tell apart.
+- **`crops_not_grown_nearby`**: the answer is the first crop the state lists.
+  The wrong choices are crops other states list, nearest first, but never one
+  that the state, a state it borders, or a state in its region lists (brief
+  call C3).
+- **`livestock_not_raised`**: the answer is the first farm animal listed. The
+  wrong choices are any other state's animal the state does not list.
+- Both agriculture strategies never offer both members of an
+  `AGRICULTURE_SAME_THING_PAIRS` pair (`cattle`/`dairy cows`, `corn`/`sweet
+  corn`, `hay`/`alfalfa hay`, `potatoes`/`sweet potatoes`).
+
+**The lists are person-approved and copied verbatim** from the T-026 brief.
+Each sits beside the criterion number it serves. Changing one is a brief's
+decision, not a worker's.
+
+**A list-valued answer field becomes text** (T-026 criterion 7). When
+`answer_field` holds an array of strings, the draft's `answer` is the first
+entry. A distractor may be any entry of another entity's list. An empty list
+is still `missing`, and a number is still `notText`.
+
+**`validateTemplate` now refuses** a `map_identify` template without
+`geometry_id` in `requires`, and a `geometry_id`-answer template without
+`name`. `generate()` used to add those fields silently (T-024's carried-over
+note).
+
+**The served reveal.** `content_build.py` gives every `superlative` question
+`reveal: "map_highlight"` (`REVEAL_BY_TOPIC`), so a correct answer lights the
+state up too. Every other question keeps its format's reveal.
+
+**The bank budget: 400 KB, up from 200 KB** (brief call C6). The 265 new
+questions take `question-bank/data/` from about 148 KB to about 311 KB. The
+question file alone is about 250 KB, and climate phrases are the longest
+choices. The cap is a T-010 tester assertion in `committed-bank.test.ts`, so
+moving it is a Test change request (D-14). It is not part of this entry's
+change. Compacting the file (no indentation) was not enough on its own. It
+takes the question file from about 250 KB to about 178 KB, and that still
+leaves the folder at about 239 KB.
+
+**Revisit when** a world-scope bank arrives (rank counts other than 50,
+regions and borders between countries), a reviewer reads the crop and
+farm-animal questions and finds a "not grown nearby" wrong answer the state
+does grow (C3's accepted risk), or the bank nears 400 KB.

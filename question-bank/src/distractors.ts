@@ -86,12 +86,170 @@ function readField(entity: Entity, field: string): unknown {
     : undefined;
 }
 
-/** The answer field's value, or `name` when that field is `geometry_id` (E-20). */
-function choiceTextOf(entity: Entity, template: Template): unknown {
-  return readField(
+/**
+ * The texts an entity can offer as a choice: its answer field's value, or
+ * `name` when that field is `geometry_id` (E-20). A list-valued field
+ * (`top_crops`, `top_livestock`) offers each of its non-blank strings, in
+ * order (T-026).
+ */
+function choiceTextsOf(entity: Entity, template: Template): string[] {
+  const value = readField(
     entity,
     template.answer_field === "geometry_id" ? "name" : template.answer_field,
   );
+  if (Array.isArray(value)) return value.filter(nonBlankString);
+  return nonBlankString(value) ? [value] : [];
+}
+
+// ---------------------------------------------------------------------------
+// T-026's person-approved lists. Each is copied verbatim from
+// tasks/T-026-biggest-state-superlative.md; the criterion number is beside it.
+// Add or remove nothing here without the brief's approval: a list that looks
+// wrong is reported, not fixed.
+
+/** Criterion 12: same animal to a reader, never both in one question. */
+export const SAME_ANIMAL_PAIRS: readonly (readonly [string, string])[] = [
+  ["Black bear", "American black bear"],
+  ["Grizzly bear", "California grizzly bear"],
+  ["Gray squirrel", "Eastern gray squirrel"],
+  ["Horse", "Morgan horse"],
+  ["Desert bighorn sheep", "Rocky Mountain bighorn sheep"],
+];
+
+/** Criterion 16: two NASA museums, never both in one question. */
+export const SAME_LANDMARK_PAIRS: readonly (readonly [string, string])[] = [
+  ["U.S. Space & Rocket Center", "Space Center Houston"],
+];
+
+/**
+ * Criteria 18 and 19: landmarks that are never a wrong choice in the named
+ * state's question, keyed by postal code. Criterion 18 is from `tasks.md`
+ * T-026; criterion 19 is brief call C4, the expander's own geography.
+ */
+export const LANDMARK_TRAPS: Readonly<Record<string, readonly string[]>> = {
+  WA: ["Mount Washington"],
+  MO: ["St. Louis Cathedral"],
+  NC: ["Chimney Rock", "Great Smoky Mountains National Park"],
+  CO: ["Chimney Rock"],
+  MT: ["Yellowstone National Park"],
+  ID: ["Yellowstone National Park"],
+  AZ: ["Hoover Dam"],
+  NJ: ["Statue of Liberty"],
+};
+
+/**
+ * Criteria 21 and 23: states whose `climate_kid` phrases describe the same
+ * climate (T-014 criterion 17, via `tasks.md` T-026), by postal code. A
+ * question never offers the climate of a state in the answer state's group.
+ * AK, CA, CO, FL, HI, MO, NY, OK and TX are in no group and constrain nothing.
+ */
+export const SAME_CLIMATE_GROUPS: Readonly<Record<string, readonly string[]>> = {
+  "Great Plains": ["IA", "NE", "KS", "SD", "ND"],
+  "Northern Rockies": ["MT", "WY", "ID"],
+  "Interior Southwest": ["AZ", "NM", "UT", "NV"],
+  "Pacific Northwest": ["OR", "WA"],
+  "Southern New England": ["CT", "MA", "RI"],
+  "Northern New England": ["NH", "VT", "ME"],
+  "Mid-Atlantic": ["NJ", "PA", "MD", "DE"],
+  "Great Lakes / Upper Midwest": ["OH", "IN", "IL", "MI", "WI", "MN"],
+  "Deep South": ["AL", "GA", "MS", "SC", "LA"],
+  "Upland South": ["TN", "AR", "KY", "NC", "VA", "WV"],
+};
+
+/**
+ * Criteria 31 and 34 (brief call C5): the same thing, or too close for a
+ * child to tell apart. Never both in one question, crops or farm animals.
+ */
+export const AGRICULTURE_SAME_THING_PAIRS: readonly (readonly [string, string])[] = [
+  ["cattle", "dairy cows"],
+  ["corn", "sweet corn"],
+  ["hay", "alfalfa hay"],
+  ["potatoes", "sweet potatoes"],
+];
+
+/** `us-state-wa` → `WA`. Anything else has no postal code and matches no list. */
+function postalCodeOf(entity: Entity): string | null {
+  const match = /^us-state-([a-z]{2})$/.exec(entity.id);
+  return match ? (match[1] as string).toUpperCase() : null;
+}
+
+function climateGroupOf(entity: Entity): string | null {
+  const code = postalCodeOf(entity);
+  if (code === null) return null;
+  for (const [group, codes] of Object.entries(SAME_CLIMATE_GROUPS)) {
+    if (codes.includes(code)) return group;
+  }
+  return null;
+}
+
+function pairsFor(strategy: DistractorStrategy): readonly (readonly [string, string])[] {
+  switch (strategy) {
+    case "state_animals_neighbours_first":
+      return SAME_ANIMAL_PAIRS;
+    case "landmarks_neighbours_first":
+      return SAME_LANDMARK_PAIRS;
+    case "crops_not_grown_nearby":
+    case "livestock_not_raised":
+      return AGRICULTURE_SAME_THING_PAIRS;
+    default:
+      return [];
+  }
+}
+
+/** True when `a` and `b` are the two members of one pair, either way round. */
+function isPair(pairs: readonly (readonly [string, string])[], a: string, b: string): boolean {
+  return pairs.some(
+    ([x, y]) => (sameText(a, x) && sameText(b, y)) || (sameText(a, y) && sameText(b, x)),
+  );
+}
+
+function textsOfField(entity: Entity, field: string): string[] {
+  const value = readField(entity, field);
+  if (Array.isArray(value)) return value.filter(nonBlankString);
+  return nonBlankString(value) ? [value] : [];
+}
+
+/**
+ * A predicate that is true for a candidate (entity and text) the strategy
+ * never offers as a wrong answer to `own`'s question.
+ */
+function exclusionFor(
+  strategy: DistractorStrategy,
+  own: Entity,
+  entities: readonly Entity[],
+): (other: Entity, text: string) => boolean {
+  switch (strategy) {
+    case "landmarks_neighbours_first": {
+      const code = postalCodeOf(own);
+      const traps =
+        code !== null && Object.hasOwn(LANDMARK_TRAPS, code) ? LANDMARK_TRAPS[code] : [];
+      return (_, text) => (traps ?? []).some((trap) => sameText(trap, text));
+    }
+    case "climates_outside_group": {
+      const group = climateGroupOf(own);
+      return (other) => group !== null && climateGroupOf(other) === group;
+    }
+    case "crops_not_grown_nearby": {
+      // Grown by the state itself, a state it borders, or a state in its
+      // region (criteria 26–28).
+      const borders: unknown = own.borders;
+      const region = own.region;
+      const nearby = entities.filter(
+        (e) =>
+          e.id === own.id ||
+          (Array.isArray(borders) && borders.includes(e.id)) ||
+          (nonBlankString(region) && e.region === region),
+      );
+      const grown = nearby.flatMap((e) => textsOfField(e, "top_crops"));
+      return (_, text) => grown.some((crop) => sameText(crop, text));
+    }
+    case "livestock_not_raised": {
+      const raised = textsOfField(own, "top_livestock");
+      return (_, text) => raised.some((animal) => sameText(animal, text));
+    }
+    default:
+      return () => false;
+  }
 }
 
 function sameText(a: string, b: string): boolean {
@@ -132,12 +290,71 @@ function tierOf(strategy: DistractorStrategy, own: Entity, other: Entity): numbe
   switch (strategy) {
     case "sibling_capitals_same_region":
       return sameRegion ? 0 : 1;
-    case "neighbours_first": {
+    case "neighbours_first":
+    case "state_animals_neighbours_first":
+    case "landmarks_neighbours_first": {
       const borders: unknown = own.borders;
       if (Array.isArray(borders) && borders.includes(other.id)) return 0;
       return sameRegion ? 1 : 2;
     }
+    // One tier: the exclusions do the work. Nearest first, except climate,
+    // which is farthest first (`farthestFirst`).
+    case "climates_outside_group":
+    case "crops_not_grown_nearby":
+    case "livestock_not_raised":
+      return 0;
+    // Never sorted: `nextRankedByArea` picks by rank alone.
+    case "next_ranked_by_area":
+      return 0;
   }
+}
+
+function usableRank(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : null;
+}
+
+/**
+ * Plan §1.8, T-026 criteria 8–9: the entities ranked `area_rank` + 1, + 2 and
+ * + 3 among same-type, same-scope entities, in that order. `found` counts how
+ * many of the three exist with exactly one entity at the rank and usable text.
+ */
+function nextRankedByArea(
+  draft: QuestionDraft,
+  own: Entity,
+  template: Template,
+  entities: readonly Entity[],
+): Candidate[] | ShortPool {
+  const rank = usableRank(own.area_rank);
+  const picked: Candidate[] = [];
+  if (rank !== null) {
+    for (let step = 1; step <= DISTRACTOR_COUNT; step++) {
+      const atRank = entities.filter(
+        (e) =>
+          e.id !== own.id &&
+          e.type === own.type &&
+          e.scope === own.scope &&
+          usableRank(e.area_rank) === rank + step,
+      );
+      const only = atRank.length === 1 ? atRank[0] : undefined;
+      const text = only === undefined ? undefined : choiceTextsOf(only, template)[0];
+      if (only === undefined || text === undefined) break;
+      if (sameText(text, draft.answer) || picked.some((p) => sameText(p.text, text))) break;
+      picked.push({ entity: only, text, distance: 0 });
+    }
+  }
+  if (picked.length < DISTRACTOR_COUNT) {
+    return { draftId: draft.id, found: picked.length, reason: "too_few_candidates" };
+  }
+  return picked;
+}
+
+/**
+ * Climate only, a worker's call in T-026 (Handoff): neighbouring states
+ * outside one same-climate group still read alike ("hot humid summers and mild
+ * winters…"), so the climate distractors come farthest first.
+ */
+function farthestFirst(strategy: DistractorStrategy): boolean {
+  return strategy === "climates_outside_group";
 }
 
 function byTierThenNearest(
@@ -147,9 +364,59 @@ function byTierThenNearest(
   return (a, b) => {
     const tier = tierOf(strategy, own, a.entity) - tierOf(strategy, own, b.entity);
     if (tier !== 0) return tier;
-    if (a.distance !== b.distance) return a.distance - b.distance;
+    if (a.distance !== b.distance) {
+      return farthestFirst(strategy) ? b.distance - a.distance : a.distance - b.distance;
+    }
     return a.entity.id < b.entity.id ? -1 : a.entity.id > b.entity.id ? 1 : 0;
   };
+}
+
+/**
+ * Up to three distractors, tiered and nearest-first, skipping any candidate
+ * whose text matches the answer or an earlier pick, that the strategy
+ * excludes, or that forms a same-thing pair with the answer or a pick.
+ */
+function nearestDistractors(
+  draft: QuestionDraft,
+  own: Entity,
+  template: Template,
+  entities: readonly Entity[],
+): Candidate[] | ShortPool {
+  const origin = centroidOf(own);
+  if (origin === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
+
+  const strategy = template.distractor_strategy;
+  const isClick = draft.format === "map_click";
+  const candidates: Candidate[] = [];
+  for (const other of entities) {
+    if (other.id === own.id || other.type !== own.type || other.scope !== own.scope) continue;
+    const texts = choiceTextsOf(other, template);
+    if (texts.length === 0) continue;
+    const at = centroidOf(other);
+    if (at === null) continue;
+    if (isClick && !nonBlankString(other.geometry_id)) continue;
+    const distance = greatCircleKm(origin, at);
+    for (const text of texts) candidates.push({ entity: other, text, distance });
+  }
+  // Stable: an entity's own texts keep their listed order at equal distance.
+  candidates.sort(byTierThenNearest(strategy, own));
+
+  const excluded = exclusionFor(strategy, own, entities);
+  const pairs = pairsFor(strategy);
+  const picked: Candidate[] = [];
+  for (const candidate of candidates) {
+    if (picked.length === DISTRACTOR_COUNT) break;
+    if (sameText(candidate.text, draft.answer)) continue;
+    if (picked.some((p) => sameText(p.text, candidate.text))) continue;
+    if (excluded(candidate.entity, candidate.text)) continue;
+    if (isPair(pairs, candidate.text, draft.answer)) continue;
+    if (picked.some((p) => isPair(pairs, p.text, candidate.text))) continue;
+    picked.push(candidate);
+  }
+  if (picked.length < DISTRACTOR_COUNT) {
+    return { draftId: draft.id, found: picked.length, reason: "too_few_candidates" };
+  }
+  return picked;
 }
 
 function questionFor(
@@ -158,32 +425,16 @@ function questionFor(
   template: Template,
   entities: readonly Entity[],
 ): GeneratedQuestion | ShortPool {
-  const origin = centroidOf(own);
-  if (origin === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
-
+  // Every strategy reports an own entity with no usable centroid, as E-21
+  // says, even `next_ranked_by_area`, which orders by rank alone.
+  if (centroidOf(own) === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
   const isClick = draft.format === "map_click";
-  const candidates: Candidate[] = [];
-  for (const other of entities) {
-    if (other.id === own.id || other.type !== own.type || other.scope !== own.scope) continue;
-    const text = choiceTextOf(other, template);
-    if (!nonBlankString(text)) continue;
-    const at = centroidOf(other);
-    if (at === null) continue;
-    if (isClick && !nonBlankString(other.geometry_id)) continue;
-    candidates.push({ entity: other, text, distance: greatCircleKm(origin, at) });
-  }
-  candidates.sort(byTierThenNearest(template.distractor_strategy, own));
-
-  const picked: Candidate[] = [];
-  for (const candidate of candidates) {
-    if (picked.length === DISTRACTOR_COUNT) break;
-    if (sameText(candidate.text, draft.answer)) continue;
-    if (picked.some((p) => sameText(p.text, candidate.text))) continue;
-    picked.push(candidate);
-  }
-  if (picked.length < DISTRACTOR_COUNT) {
-    return { draftId: draft.id, found: picked.length, reason: "too_few_candidates" };
-  }
+  const found =
+    template.distractor_strategy === "next_ranked_by_area"
+      ? nextRankedByArea(draft, own, template, entities)
+      : nearestDistractors(draft, own, template, entities);
+  if (!Array.isArray(found)) return found;
+  const picked = found;
 
   const correctIndex = correctIndexFor(draft.id);
   const choices = picked.map((p) => p.text);
