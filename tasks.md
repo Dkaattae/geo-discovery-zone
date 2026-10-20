@@ -402,8 +402,12 @@ other three triggers, or list those rows in the Test change request.
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
 
-### T-026 — Templates for the topics the app has never shown · M · todo
+### T-026 — Templates for the topics the app has never shown · M · doing — **blocked on a person**
 **Depends on:** T-021, and the curation task for whichever topic
+**Expanded 2026-10-20, scoped to the superlative topic, and halted:**
+`tasks/T-026-biggest-state-superlative.md` asks Q1 (next-ranked distractors on
+total area contradict "avoid contested rankings" for about a third of the
+states) and Q2 (split the other topics into one entry each).
 **Since T-025 (PR #85):** a new template turns `hand-check-levels-verify.test.ts`
 criteria 1, 11 and 13 (c) red, because they assume exactly today's three
 templates, each with its own `concept_load` entry. It also needs its own
