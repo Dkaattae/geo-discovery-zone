@@ -1,7 +1,7 @@
 # T-026 — A third topic: "Which of these states is the biggest?"
 
-**Status:** `blocked`
-**Next step:** `human` — answer **Q1** and **Q2** under "Questions for a human" below, then set this back to `task-expander`, which finishes the criteria for a fresh approval
+**Status:** `expanding`
+**Next step:** `task-expander` — Q1 and Q2 answered by Dkaattae (see "Answers" under "Questions for a human"); finish the criteria for approval
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-026
@@ -77,6 +77,15 @@ Each also ships curated text whose substance still awaits a human read on PRs #4
 - **On merge, the reviewer re-files the remaining topics** as one entry each (wildlife, landmark, climate, agriculture), carrying the notes now under T-026.
 
 Yes or no.
+
+### Answers — Dkaattae, 2026-10-20, in the orchestrator session
+
+Verbatim: "Q1, a. Q2, N, this task covers all."
+
+- **Q1 → (a)**
+- **Q2 → No.** Don't split it. This task covers every topic.
+
+Recorded by the orchestrator, verbatim; the expander interprets them.
 
 ## Goal
 

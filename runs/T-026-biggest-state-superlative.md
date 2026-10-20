@@ -48,3 +48,7 @@ Gate: `Next step: human`, `Status: blocked` (G0 routes to a human). G1 passes (d
 Orchestrator note: working tree was clean on return and local HEAD matched `origin` at `f47c18e`, so the "changed on disk" notice left no uncommitted change.
 
 What a human has to decide, quoted from the expander: "answer Q1 and Q2 in the brief, set `Next step: task-expander`, and rerun the expander."
+
+## Resumed — 2026-10-20
+Dkaattae answered in the orchestrator session, verbatim: "Q1, a. Q2, N, this task covers all."
+Orchestrator wrote that quote into the brief under "Questions for a human" → "Answers", and set the header to `Status: expanding`, `Next step: task-expander`, as the expander's halt asked a person to do. `Approved:` still `pending`.
