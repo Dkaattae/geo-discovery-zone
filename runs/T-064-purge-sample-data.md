@@ -142,3 +142,6 @@ The worker's 30 reds match its Handoff exactly. The extra stale items it found a
 
 ## Halted — test change request — 2026-10-20
 Raised in commit `c14d9e3`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not read by the orchestrator. Resumes only in an attended `tester` session for T-064 (D-15).
+
+## Approval offered to the orchestrator — 2026-10-20
+The person wrote in the orchestrator session: "approved, apply all 39 rows". Not acted on, per `orchestrator.md` and D-15: the orchestrator does not approve, stamp or relay a test change request, and spawns no tester for it. The person was told to give the approval in an attended `tester` session for T-064. Brief unchanged.
