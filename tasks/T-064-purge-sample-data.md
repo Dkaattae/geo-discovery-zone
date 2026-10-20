@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-20, unattended run. See `runs/T-064-purge-sample-data.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-064
 **Branch:** `claude/optimistic-pascal-wk81ey`
