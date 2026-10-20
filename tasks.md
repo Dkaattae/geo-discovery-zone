@@ -151,7 +151,7 @@ finished. Each of these is independent. Since T-040 (PR #88) the bank is what th
 serves, so a curated field reaches a child once a template asks about it
 (T-026) and both committed files are regenerated (T-087).
 
-### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · todo
+### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · doing
 **Depends on:** — (T-040 landed in PR #88: the committed bank is now served end
 to end, which is the precondition this entry names)
 **Since T-025 (PR #85):** `hand-check-levels-verify.test.ts` criterion 14 pins
