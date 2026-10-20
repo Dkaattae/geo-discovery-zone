@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker` — once a human replaces `pending` below. Read "Calls this brief makes" first: approving the brief approves those calls
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-20, in the orchestrator session ("approved"), C1–C7 included. See `runs/T-026-biggest-state-superlative.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-026
 **Branch:** `claude/serene-ramanujan-msepc5`

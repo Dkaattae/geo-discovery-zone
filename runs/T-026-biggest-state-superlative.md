@@ -93,3 +93,6 @@ Orchestrator wrote that quote into the brief under "Questions for a human" → "
 
 ## Halted — awaiting human approval — 2026-10-20
 G5 passes (Status and Next step both changed). The expander returned asking for a human read of content calls C1–C7, and a person is in the session, so the orchestrator did not write the unattended `Approved:` stamp. It asked Dkaattae to approve or strike calls instead.
+
+## Approved — 2026-10-20
+Dkaattae, in the orchestrator session, verbatim: "approved" (asked to approve or strike C1–C7). The orchestrator wrote the `Approved:` line with that attribution.
