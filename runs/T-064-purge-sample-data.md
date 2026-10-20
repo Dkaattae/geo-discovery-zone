@@ -1,7 +1,7 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven — run log
 
 **Task:** T-064 · **Branch:** `claude/optimistic-pascal-wk81ey` · **PR:** #89
-**Started:** 2026-10-20 · **Outcome:** in progress
+**Started:** 2026-10-20 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-20
 `Next step` on entry: (no brief) → on exit: `worker` (after approval below)
@@ -148,3 +148,54 @@ The person wrote in the orchestrator session: "approved, apply all 39 rows". Not
 
 ## Resumed — 2026-10-20
 An attended tester session applied the approved test change request and returned (`7baaef0`, `2def022`, `76f53c6`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-20`. The person said in the orchestrator session: "ci is fixed please proceed". G0–G4 pass; spawning the reviewer.
+
+## Round 4 — reviewer — 2026-10-20
+`Next step` on entry: `reviewer` → on exit: `human` (merge; inside the envelope, no escalation)
+
+**T-064 is approved and inside the envelope, so there is no escalation. PR #89 is swept, marked ready for review, and waiting for Dkaattae to merge it.** Both pushes landed: the branch head on `origin/claude/optimistic-pascal-wk81ey` is `7786356`, the same as local, and the PR shows `draft: false`. CI started again on the new head; on the previous head (`1c876eb`) every job I saw finish was green.
+
+**Review**
+- **Every role has a commit in the PR.** Expander `0808287`/`b24dbbe`, worker `9070e43`, tester `c14d9e3`/`7baaef0`/`2def022`/`76f53c6`, plus the orchestrator's run-log commits. Nothing is stranded on another branch.
+- **Each role stayed in its own files (D-7).**
+  - The expander touched only `tasks.md` and the brief.
+  - The worker touched no test file, and its changes are exactly the brief's Constraints list.
+  - The tester's only commit that edits existing tests is `2def022`, and every hunk in it matches one of the 39 rows.
+  - Two files fall outside Constraints, both expected: the orchestrator's `runs/` log and the tester's new `purge-sample-data-verify.test.ts`.
+- **Test approval was a person's.** All 39 rows were approved by Dkaattae in the attended tester session `cse_015g2kHcuVVqxLfCPu3KuyUZ`, not stamped by the orchestrator. So nothing had to be copied into the PR body as an escalation.
+- **Rest of the envelope holds.** No dependency, lockfile, `openapi.yaml`, migration or plan change, and no text a child will read.
+- **Tests:**
+  - **question-bank (my run):** `bun test` gives 2232 pass and 0 fail, before and after the sweep. typecheck, lint and format:check are clean.
+  - **frontend (local):** only `conventions-doc.test.ts` and the five doc-guard tests could run, because the package registry returns 403 here. They pass.
+  - **CI on `1c876eb`:** frontend, question-bank, backend, backend (postgres) and integration all passed. e2e was still running when I last checked.
+
+**Findings (none block the merge)**
+1. **`PROGRESS.md:133` still said "one committed sample run".** Criterion 6 only matched the literal `sample-data`, so it missed this line. I corrected it in the sweep, as part of updating `PROGRESS.md`.
+2. **Two stale phrases remain in `highest-point-verify.test.ts`:** the header says "other 51 paths", and a describe name still mentions the sample. I added them to T-070, which already edits that file under an attended test change request.
+3. **One unexplained rewrite of `frontend/README.md` during a worker test run.** It never happened again. I added it to T-076, which owns that file.
+4. **T-064 is the fourth instance of P-17.** Pins from earlier tasks went red even though T-064 added no dependency. I noted it on P-17 in `process-tasks.md`, which `run-loop.sh` does not block edits to.
+
+**Open questions from earlier roles, all closed**
+- **README example placement (worker):** confirmed as it is.
+- **Modify or delete the `reviewed: false` scans (worker):** settled by Dkaattae's approval of those rows.
+- **Frontend environment failure (worker):** settled by CI's green frontend job.
+- **README rewrite (worker) and the header's "51" count (tester):** deferred to T-076 and T-070, as above.
+
+**Commits**
+- **`cde22b4`:** adds the `## Review` section to the brief, sets Status to `approved` and Next step to `human` (merge), and adds my Sessions row.
+- **`7786356` (sweep):**
+  - deletes the brief and T-064's entry in `tasks.md`;
+  - adds a "Last swept" note to `tasks.md`;
+  - logs T-064 under Completed tasks in `PROGRESS.md` and fixes line 133;
+  - amends T-070, T-076 and P-17.
+
+**PR body:** the criteria verbatim, what verified each one, a summary of the test changes, the findings and where each went, and what I chose not to do. I added no new tasks, because each finding already had an owner.
+
+Files changed:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/tasks/T-064-purge-sample-data.md (deleted; the review is kept in commit `cde22b4`)
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/89
+
+## Ended — 2026-10-20
+PR ready for review; merge is a person's (D-4). Orchestrator stops here.
