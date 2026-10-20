@@ -1,14 +1,14 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** a person — 2026-10-20, in the orchestrator session ("approved, start the worker"). See `runs/T-064-purge-sample-data.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-064
 **Branch:** `claude/optimistic-pascal-wk81ey`
 **PR:** #89, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:**
+**Fault:** test changes are waiting for approval: 39 rows, every one made stale by criteria 1–2 deleting `sample-data/` and `build:sample`. A person must approve them in an attended tester session (D-15).
 
 **Sessions:**
 
@@ -16,6 +16,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-10-20 | cse_0155zx41KsbKu7xBvuZNrYFV |
 | worker | 2026-10-20 | cse_0155zx41KsbKu7xBvuZNrYFV (orchestrated subagent; the remote session id is shared with the expander's, so the tester must check isolation by its own spawn, not this id) |
+| tester | 2026-10-20 | cse_0155zx41KsbKu7xBvuZNrYFV (orchestrated subagent, freshly spawned; same shared id, so its independence rests on the spawn, not the id) |
 
 > **Not a light brief.** `tasks.md` sizes this `S`, but it needs more than four
 > criteria, and the deletion makes pre-existing tests stale in at least eleven
@@ -307,6 +308,94 @@ Results on this branch (worker, 2026-10-20):
 - **Unexplained once**: during the first frontend run, `frontend/README.md` was rewritten (one `*` escaped to `\*`, a prettier-style edit). I reverted it with `git checkout`, and it did not happen again in two later runs. **Owner: the tester, if it recurs. Otherwise a `tasks.md` entry at the reviewer's sweep** for a frontend test that may leak writes.
 
 ## Verdict
+
+**TL;DR: blocked on a Test change request. The production change meets every criterion this tester can check, but 30 pre-existing tests are red (31 counting a green one that breaks criterion 13), and all of them are stale because of this task.** 39 rows are below. Nobody can approve them in an orchestrated run, so the task halts for a person (`Next step: human`).
+- **Not a fail.** No criterion is unmet by the source. The reds are tests pinning the deleted directory or the old `package.json`.
+- **Needed next:** a person starts a `tester` session for T-064 that they are attending, and approves or refuses each row there.
+
+**Independence: weaker than a separate session.** This tester is a freshly spawned subagent under the orchestrator (`runs/T-064-purge-sample-data.md` exists). Its `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_0155zx41KsbKu7xBvuZNrYFV`) is the same id the Sessions table lists for the expander and the worker, so the id check proves nothing here. Independence rests only on the orchestrator having spawned a fresh context. I did not see the worker's reasoning, only its Handoff.
+
+### Criterion → verdict → evidence
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `purge-sample-data-verify.test.ts` › criterion 1 (two tests, plus a non-vacuity check). Mutations: an untracked file in the directory turns the existence test red; `git add` of it turns both red. |
+| 2 | met | › criteria 2 and 3 › "criterion 2 …". Mutation: re-adding a `build:sample` script turns it red. |
+| 3 | met | › "criterion 3 …". Same mutation turns it red. |
+| 4 | met (one-off) | `git show 97780b5:question-bank/package.json \| grep -v '"build:sample"' \| diff - question-bank/package.json` shows no difference. numstat is `0 1`. |
+| 5 | met | › criterion 5. Scans the four docs and every tracked non-test `.ts` under `question-bank/src/`, nested ones included. Mutations: a mention appended to `conventions.md` turns it red, and so does a comment in `src/queries/*.ts`. |
+| 6 | met | › criterion 6. Mutation: a mention above `## Completed tasks` turns it red. The same mention appended below it stays green, as the criterion requires. |
+| 7 | met | › criterion 7. README names `data/us-states/us-state-co.json`, and the test requires it to be tracked. Mutations: replacing it with a directory-only mention turns it red, and so does naming `us-state-zz.json`. |
+| 8 | met (one-off) | `git diff --stat 97780b5 HEAD -- question-bank/data question-bank/src/fixtures` is empty. |
+| 9 | met (one-off) | `git diff --name-only 97780b5 HEAD -- frontend backend e2e .github .claude openapi.yaml Dockerfile docker-compose.yml geoquizdataplan.md 'process*.md'` is empty. |
+| 10 | met (one-off) | No lockfile or `pyproject.toml` differs from base. The tracked manifest set is identical. `dependencies`/`devDependencies` of all three `package.json` compare equal as JSON. |
+| 11 | met (one-off) | The only changed line in non-test `question-bank/src/*.ts` is `- *   bun run build:sample …` in `build.ts`'s header comment. |
+| 12 | met | Pre-existing `committed-bank.test.ts` › "T-010 criterion 9 …" › "no file tracked under question-bank/data/ contains reviewed: false anywhere" scans only `data/`. Mutation: inserting `"reviewed": false,` into `data/us-states/us-state-wy.json` turned it red. The file was restored with `git checkout`, and its sha256 was checked against the saved one. |
+| 13 | **not yet met: needs approved rows** | › criterion 13 is red today and names 11 files: the rows below. It goes green only once they are applied. It exempts only `git-exit-guard.criteria.test.ts`, the exemption the criterion names. |
+| 14 | **red: needs approved rows** | `question-bank` `bun test`: 2220 pass, 31 fail (the worker's 30 plus my criterion-13 test). typecheck passes. lint gives 0 warnings and 0 errors. format:check passes. Frontend: this environment cannot install `react-simple-maps` (403 from `europe-west1-npm.pkg.dev`, reproduced). The PR's CI job "frontend (typecheck, lint, test)" is **success** on the branch head `d16f329`. CI "question-bank" is failure, from the stale tests. |
+| 15 | met so far | The worker edited no pre-existing test: `git diff 97780b5 HEAD -- '*.test.ts'` is empty. I edited none either. They wait for approval. |
+
+**Why criteria 4 and 8–11 have no committed test.** Each one compares the branch with base `97780b5`. CI clones shallow, so base cannot be reached there. Pinning `frontend/`, `.claude/`, the bank and every manifest by digest would make each later task that touches them stale, which is the cost this task is paying now (T-070 Q1). I ran the commands above once, on this branch at `d16f329`, and recorded the result here.
+
+**New test file:** `question-bank/src/purge-sample-data-verify.test.ts` has 10 tests. 9 pass. The criterion 13 test is red until the rows are applied, and it then stays as the regression test.
+
+**Handoff claims checked:** the 30 reds match its list exactly. The extra stale items it found are real: `highest-point-in-state-verify.test.ts` T-079 criterion 20, the `highest-point-verify.test.ts` vacuity test, the exact `toBe(55)`, and the floors. My own count of the floors agrees with its table. The one-off rewrite of `frontend/README.md` did not recur in my frontend run (`git status` was clean afterwards).
+
+## Test change request
+
+Raised by the tester, 2026-10-20. **Nothing below has been applied yet.** Every row is stale for the same reason: criterion 1 deletes `question-bank/sample-data/` and criterion 2 deletes `build:sample`, so a test that reads, hashes or lists the sample, or pins the old `question-bank/package.json`, now fails or breaks criterion 13. All paths are `question-bank/src/`. Line numbers are at `d16f329`.
+
+**Introduced.** `git log -S` returns `4e1550e` (T-071, the prettier reformat) as the earliest commit for every row in the T-010…T-016 files, because the reformat rewrote each line. The task that actually wrote the test is the one its `describe` names, and that is the task given below.
+
+**Deletions also take their now-unused helpers.** The `SAMPLE` / `SAMPLE_DIR` / `SAMPLE_DIGEST` / `SAMPLE_DIGESTS_AT_E10F94D` constants, the `sample()` / `stripBuiltAt` helpers inside a deleted describe, and the comments that describe only the sample are removed with the row that leaves them unused. Lint would otherwise fail on unused bindings. Nothing else in those files moves.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `committed-bank.test.ts:153` › "T-010 criterion 4 — the tracked Colorado matches the committed sample" › "data/us-states/us-state-co.json equals sample-data/us-state-co.json except sources.built_at, top_crops and top_livestock" | `4e1550e`; T-010: kept the sample in step with the bank | crit 1: nothing left to compare against | delete (the whole describe and its `:149-152` comment) | — | |
+| 2 | `committed-bank.test.ts:256` › "T-010 criteria 11–16 — …" › "criterion 11 — no shipped file still asserts the bank is not stored in git" | `4e1550e`; T-010: no doc claims the bank is untracked | crit 1: `sample-data/README.md` no longer exists, so `read()` throws | modify | Same name. The path list drops `"question-bank/sample-data/README.md"`, and the test still asserts that each of `question-bank/.gitignore`, `question-bank/README.md`, `conventions.md` and `PROGRESS.md` does not contain "regenerated from Wikidata, not stored in git" | |
+| 3 | `fun-facts.test.ts:172` › "T-011 criterion 2 — …" › 'no file tracked under question-bank/data/ or sample-data/ contains reviewed": false' | `4e1550e`; T-011: no unreviewed prose committed | crit 1: `trackedUnder("question-bank/sample-data")` throws on an empty listing | modify | Renamed 'no file tracked under question-bank/data/ contains reviewed": false'. `paths` is `trackedUnder("question-bank/data")` alone. It keeps `expect(paths.length).toBeGreaterThan(51)` and the per-path `{ path, hasUnreviewed: false }` assertion unchanged | |
+| 4 | `fun-facts.test.ts:396` › "T-011 criterion 11 — the docs this change falsifies are true again" › "11(a) — sample-data/README.md no longer calls the sample's fun fact unreviewed Wikipedia prose" | `4e1550e`; T-011: that README's fun-fact claim | crit 1: the README is deleted | delete | — | |
+| 5 | `fun-facts.test.ts:404` › same describe › "11(a) — sample-data/README.md no longer says nothing has reached an entity's fun-fact field" | `4e1550e`; T-011: same | crit 1 | delete | — | |
+| 6 | `state-animals.test.ts:467` › "T-012 criterion 7 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock" | `4e1550e`; T-012: sample in step with the bank | crit 1 | delete | — | |
+| 7 | `state-animals.test.ts:471` › same describe › "the sample carries the same state_animal as the tracked Colorado" | `4e1550e`; T-012: same | crit 1 | delete (the describe goes with rows 6–7) | — | |
+| 8 | `state-animals.test.ts:727` › "T-012 criterion 11 — …" › 'no file tracked under question-bank/data/ or sample-data/ contains reviewed": false' | `4e1550e`; T-012: no unreviewed text | crit 1, as row 3 | modify | As row 3: renamed '…under question-bank/data/ contains reviewed": false', `data/` only, `> 51` and the per-path `{ path, unreviewed: false }` kept | |
+| 9 | `landmarks.test.ts:522` › "T-013 criterion 8 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json equals the tracked Colorado in every field but …" | `4e1550e`; T-013: sample in step with the bank | crit 1 | delete | — | |
+| 10 | `landmarks.test.ts:526` › same describe › "the sample carries the same landmark as the tracked Colorado" | `4e1550e`; T-013: same | crit 1 | delete (the describe goes with rows 9–10) | — | |
+| 11 | `landmarks.test.ts:693` › "T-013 criterion 13 — …" › 'no file tracked under question-bank/data/ or sample-data/ contains reviewed": false' | `4e1550e`; T-013: no unreviewed text | crit 1, as row 3 | modify | As row 8 | |
+| 12 | `landmarks-verify.test.ts:434` › "T-013 tester, criterion 8 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock, landmark included" | `4e1550e`; T-013 tester: same | crit 1 | delete (the describe goes) | — | |
+| 13 | `landmarks-verify.test.ts:580` › "T-013 tester, criterion 10 — Colorado's landmark is unchanged" › "the plan's §1.4 example string is what the table, the bank and the sample all carry" | `4e1550e`; T-013 tester: CO landmark pinned in three places | crit 1: the third place is gone | modify | Renamed "the plan's §1.4 example string is what the table and the bank carry". It keeps the two exact `toBe("Rocky Mountain National Park")` assertions, on `CURATED_US_STATES` CO and on `data/us-states/us-state-co.json`, and drops only the sample's | |
+| 14 | `landmarks-verify.test.ts:652` › "T-013 tester, criterion 13 — …" › 'no file under data/ or sample-data/ contains reviewed": false' | `4e1550e`; T-013 tester: no unreviewed text | crit 1: `walk()` throws ENOENT on the missing directory | modify | Renamed 'no file under data/ contains reviewed": false'. `files = walk(join(PKG, "data"))` alone. It keeps `> 51` and the per-file `{ path, unreviewed: false }` | |
+| 15 | `climate-kid.test.ts:583` › "T-014 criterion 13 — the committed sample stays in step with the bank" › "sample-data/us-state-co.json carries the same climate_kid as the tracked Colorado" | `4e1550e`; T-014: sample in step with the bank | crit 1 | delete | — | |
+| 16 | `climate-kid.test.ts:594` › same describe › "sample-data/us-state-co.json was not touched by this task (git status is clean for it)" | `4e1550e`; T-014: the sample was untouched | **green, but breaks crit 13**: it runs `git diff` on the path | delete (the describe goes with rows 15–16) | — | |
+| 17 | `climate-kid.test.ts:618` › "T-014 criterion 14 — Colorado's phrase is unchanged" › "the sample carries exactly this string" | `4e1550e`; T-014: the CO phrase in the sample | crit 1. The table and the tracked file stay pinned by the two sibling tests in that describe | delete | — | |
+| 18 | `climate-kid.test.ts:831` › "T-014 criterion 18 — …" › 'no file tracked under question-bank/data/ or sample-data/ contains reviewed": false' | `4e1550e`; T-014: no unreviewed text | crit 1, as row 3 | modify | As row 8 | |
+| 19 | `climate-kid-verify.test.ts:744` › "T-014 tester, criterion 13 — the committed sample stays in step with the bank" › "the sample equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock" | `4e1550e`; T-014 tester | crit 1 | delete | — | |
+| 20 | `climate-kid-verify.test.ts:761` › same describe › "climate_kid in particular is present and equal in both" | `4e1550e`; T-014 tester | crit 1. The tracked file's phrase stays pinned by row 21 | delete (the describe goes with rows 19–20) | — | |
+| 21 | `climate-kid-verify.test.ts:770` › "T-014 tester, criterion 14 — Colorado's phrase is unchanged" › "the curated table, the tracked file and the sample all carry the pinned string" | `4e1550e`; T-014 tester | crit 1 | modify | Renamed "the curated table and the tracked file both carry the pinned string". It keeps both exact `toBe(COLORADO_PHRASE)` assertions, on the table's CO and on `data/us-states/us-state-co.json`, and drops only the sample's | |
+| 22 | `climate-kid-verify.test.ts:1122` › "T-014 tester, criterion 18 — …" › 'no file under data/ or sample-data/ contains reviewed": false' | `4e1550e`; T-014 tester | crit 1, as row 14 | modify | As row 14 | |
+| 23 | `top-crops-verify.test.ts:536` › "T-015 tester, criterion 11 — the docs no longer say the field is empty" › "sample-data/README.md no longer says top_crops needs USDA NASS" | `4e1550e`; T-015 tester: README stopped claiming NASS | crit 1: the README is deleted | delete | — | |
+| 24 | `top-crops-verify.test.ts:572` › "T-015 tester, criterion 12 — the committed sample is untouched" › "sample-data/us-state-co.json is byte-identical to the default branch" | `4e1550e`; T-015 tester: the sample frozen | crit 1 | delete | — | |
+| 25 | `top-crops-verify.test.ts:576` › same describe › "the sample's own top_crops is still []" | `4e1550e`; T-015 tester | crit 1 | delete | — | |
+| 26 | `top-crops-verify.test.ts:581` › same describe › "sample-data/README.md says the sample is an older snapshot with empty top_crops while the bank is curated" | `4e1550e`; T-015 tester | crit 1 | delete (the describe and the `:561-569` comment and constant go with rows 24–26) | — | |
+| 27 | `highest-point-verify.test.ts:394` › "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched" › "sample-data/us-state-co.json is byte-identical to the default branch" | `4e1550e`; T-016 tester | crit 1 | delete | — | |
+| 28 | `highest-point-verify.test.ts:691` › "T-016 tester — the pins above are not vacuous" › "DEFAULT_BRANCH_DIGESTS covers all 51 tracked paths plus the sample". Also the `"sample-data/us-state-co.json"` key in `DEFAULT_BRANCH_DIGESTS` (`:137`), which rows 27 and 28 both read | `4e1550e`; T-016 tester: the digest map is complete | crit 1: the key's file is gone. If the key goes without this test changing, the test turns red | modify | The key is removed from `DEFAULT_BRANCH_DIGESTS`. The test is renamed "DEFAULT_BRANCH_DIGESTS covers exactly the 51 tracked paths" and asserts `Object.keys(DEFAULT_BRANCH_DIGESTS).sort()` `toEqual(["index.json", ...trackedStateFiles()].sort())`, still an exact set. The header comment at `:22-23` drops "plus `sample-data/us-state-co.json`" | |
+| 29 | `highest-point-metres-verify.test.ts:670` › "T-069 tester, criterion 12 — nothing else in the bank moved" › "sample-data/ is byte-identical to main" | `1386de3`, T-069 tester: the sample untouched by the metres change | crit 1: `readdirSync` throws | delete | — | |
+| 30 | `hand-check-levels-verify.test.ts:704` › "T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified" › "criterion 14: question-bank/data (outside T-040's data/questions/), sample-data and src/fixtures are byte-identical to aa88101" | `236b0e0`, T-025 tester: data/sample/fixtures frozen | crit 1: the sample manifest is now empty | modify | Renamed "criterion 14: question-bank/data (outside T-040's data/questions/) and src/fixtures are byte-identical to aa88101". The `sample:` key is dropped from both sides. The `data` (`a67db502…d6`) and `fixtures` (`b7fe3a94…76`) digests are unchanged | |
+| 31 | `hand-check-levels-verify.test.ts:723` › same describe › "criterion 15: every package.json and lockfile is byte-identical to aa88101, and none was added" | `236b0e0`, T-025 tester: no dependency moved | crit 2: removing `build:sample` changes `question-bank/package.json`'s bytes. Its dependencies are unchanged (crit 10, checked) | modify | Same name and assertions. Only the `question-bank/package.json` value becomes `5286f4f725a98f5e54d45cf2646be5b38152ffc87ba5ac91039b919c49ec3f72`, with a comment "re-pinned by T-064 row 31: build:sample removed (its criterion 2)". The other seven digests and the tracked-manifest-set check are unchanged | |
+| 32 | `highest-point-in-state-verify.test.ts:473` › "T-079 tester, criterion 20 — every package.json and bun.lock is byte-identical to 323254c" › "question-bank/package.json" | `2a1202d`, T-079 tester: no dependency moved | crit 2, as row 31 | modify | Same name. It expects `5286f4f725a98f5e54d45cf2646be5b38152ffc87ba5ac91039b919c49ec3f72`, with the same comment. The other five entries and "no other package.json or bun.lock is tracked" are unchanged | |
+| 33 | `hand-check-levels-verify.test.ts:768` › same describe as row 30 › "criterion 17: every question-bank test file at aa88101 is present and unmodified" | `236b0e0`, T-025 tester: older tests untouched | rows 1–39 edit ten of the 48 files it hashes, so its aggregate digest moves | modify | Same name, the same 48-file list, presence check and `toBe(48)`. The final `toBe(…)` digest is re-pinned to the aggregate computed after rows 1–32 and 34–39 are applied, and the comment gains "Re-pinned by T-064's approved Test change request rows 1–39" | |
+| 34 | Floor for `committed-bank.test.ts`, `{ tests: 33, expects: 55 }`, in five tables: `climate-kid-verify.test.ts:1161` (T-014 tester crit 19), `climate-kid.test.ts:882` (T-014 crit 19), `landmarks-verify.test.ts:692`, `landmarks.test.ts:752`, `state-animals.test.ts:781` | `4e1550e`; T-014/T-013/T-012 "nothing weakened" floors | row 1 deletes 1 test and 1 expect from that file | modify | `{ tests: 32, expects: 54 }` in all five, each with a comment "T-064 row 1 deleted the sample comparison". Lowered by exactly row 1 | |
+| 35 | `climate-kid-verify.test.ts:1204` › "T-014 tester, criterion 19 — nothing weakened" › "committed-bank.test.ts's expect count really is 55, so the lowered floor is not slack" | `2da025b`, T-040 tester row B1 | row 1 removes one `expect(` | modify | Renamed "… really is 54 …", asserting `toBe(54)` exactly | |
+| 36 | Floor for `fun-facts.test.ts`, `{ tests: 30, expects: 59 }`, in the same five tables (`climate-kid-verify:1163`, `climate-kid:884`, `landmarks-verify:694`, `landmarks:754`, `state-animals:783`) | `4e1550e`; same floors | rows 4–5 delete 2 tests and 5 expects (3 + 2) | modify | `{ tests: 28, expects: 54 }` in all five, with a comment citing T-064 rows 4–5 | |
+| 37 | Floor for `state-animals.test.ts` tests, 42, in `climate-kid-verify:1165`, `climate-kid:886`, `landmarks:757` and `landmarks-verify:698` | `4e1550e`; same floors | rows 6–7 delete 2 tests (2 expects; the count goes 76 → 74, still above every expects floor of 73 or 70) | modify | `tests: 40` in all four. The expects floors (73, 73, 73, 70) are unchanged. Each carries a comment citing T-064 rows 6–7 | |
+| 38 | Floor for `landmarks.test.ts` tests, 52, in `climate-kid-verify:1167` and `climate-kid:888` | `4e1550e`; same floors | rows 9–10 delete 2 tests (3 expects; 91 → 88, which still meets the floor of 88) | modify | `tests: 50` in both. The expects floor of 88 is unchanged. Each carries a comment citing T-064 rows 9–10 | |
+| 39 | Floor for `landmarks-verify.test.ts` tests, 36, in `climate-kid-verify:1168` and `climate-kid:889` | `4e1550e`; same floors | row 12 deletes 1 test (2 expects). With row 13's dropped expect, 73 → 70, still above the floor of 69 | modify | `tests: 35` in both. The expects floor of 69 is unchanged. Each carries a comment citing T-064 row 12 | |
+
+**Not on the list, checked:** `git-exit-guard.criteria.test.ts:623` and `:687` hold string literals only, which criterion 13 exempts. No frontend, e2e or backend test mentions the sample. `highest-point-verify.test.ts`'s T-016 criterion 10 guards (expect count > 10 in `landmarks-verify`, `climate-kid-verify` and `top-crops-verify`) and `region-vocabulary.test.ts`'s T-017 criterion 6 guards still hold after these rows. The rows do not remove the region neutralisation or the "region removal actually drops" tests.
+
+**After all 39 rows**, the expected result is that `purge-sample-data-verify.test.ts` › criterion 13 goes green and the question-bank suite goes to 0 fail. The tester applying the rows re-runs the whole suite to confirm that, and re-counts the floors, before a pass.
+
+To approve: start the `tester` step for T-064 in a session you are attending, and answer it there, row by row. It fills in Decision, sets the header's `Test changes:` to `approved — <name>, <date>`, and applies exactly the approved rows. Or make the approved edits yourself, by hand, and set `Next step: tester`.
 
 ## Notes
 
