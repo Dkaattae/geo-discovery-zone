@@ -1,7 +1,7 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven — run log
 
 **Task:** T-064 · **Branch:** `claude/optimistic-pascal-wk81ey` · **PR:** #89
-**Started:** 2026-10-20 · **Outcome:** in progress
+**Started:** 2026-10-20 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-20
 `Next step` on entry: (no brief) → on exit: `worker` (after approval below)
@@ -96,3 +96,49 @@ The person in the orchestrator session wrote: "approved, start the worker". `App
 - **Judgement call:** I proposed modifying the `reviewed: false` scans rather than deleting them, which keeps changes to the floors smaller. The tester proposes and a person approves.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-064-purge-sample-data.md
+
+## Round 3 — tester — 2026-10-20
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-064 tester: halted on a Test change request (39 rows) that a person has to approve.** Nothing in the source fails a criterion. The 30 question-bank tests that are red, plus one green test that breaks criterion 13, are all stale because this task deleted `sample-data/` and `build:sample`. This run is orchestrated, so nobody can approve them here. **Next step: a person starts an attended `tester` session for T-064 and approves or refuses each row there.**
+
+- **Pushed:** commit `c14d9e3` to `claude/optimistic-pascal-wk81ey`. `origin` points at the same commit.
+- **Brief header:** Status `test changes requested`, Next step `human`, Test changes `requested`, and a Fault line is set. I added my Sessions row and wrote the Verdict and Test change request sections.
+- **Pre-existing tests:** none edited. All row changes wait for approval.
+
+**Independence is weaker than a separate session.** `runs/T-064-purge-sample-data.md` exists, so this is an orchestrated run. My session id (`cse_0155zx41KsbKu7xBvuZNrYFV`) is the same one listed for the expander and the worker, so the id check proves nothing. Independence rests only on the orchestrator having spawned me as a fresh context. I saw the worker's Handoff, not its reasoning. The Verdict says this.
+
+**Criteria**
+
+| # | Result | How it was checked |
+|---|---|---|
+| 1, 2, 3, 5, 6, 7 | met | New tests; each one went red when I deliberately broke it, then I reverted |
+| 4, 8, 9, 10, 11 | met | One-off `git diff` against base `97780b5`, recorded in the Verdict |
+| 12 | met | Existing `committed-bank.test.ts` T-010 criterion 9 went red when I put `"reviewed": false` into `us-state-wy.json`; file restored and its sha256 checked |
+| 13 | not yet | My new test for it is red and lists the 11 stale files; it goes green once the rows are applied |
+| 14 | red | question-bank `bun test` is 2220 pass, 31 fail. Typecheck, lint and format:check pass |
+| 15 | met so far | No pre-existing test changed on the branch |
+
+- **Why 4 and 8–11 have no committed test:** CI clones shallow, so base can't be reached from a test. Pinning `frontend/`, `.claude/` and the manifests by digest would make later tasks stale, which is the cost this task is paying now (T-070 Q1).
+- **Frontend tests:** they can't run here. Installing `react-simple-maps` fails with a 403 from `europe-west1-npm.pkg.dev`, which I reproduced. The PR's CI job "frontend (typecheck, lint, test)" passes on the branch head `d16f329`. The only red CI job is question-bank, from the stale tests.
+
+**The request (39 rows)**
+- **Deletes (21):** tests that compare the sample with the bank, digest pins on the sample, and tests of the sample's README. This includes `climate-kid.test.ts:594`, which is green but runs `git diff` on the sample path, against criterion 13.
+- **Modifies (12):**
+  - six `reviewed: false` scans narrowed to `data/` only;
+  - two "table, bank and sample all carry it" tests drop only the sample's assertion;
+  - `committed-bank` criterion 11's file list drops the sample README;
+  - the `DEFAULT_BRANCH_DIGESTS` sample key is removed, with its exact-set completeness test;
+  - `hand-check-levels` criterion 14 drops its `sample:` key;
+  - both `question-bank/package.json` pins are re-pinned to `5286f4f725a98f5e54d45cf2646be5b38152ffc87ba5ac91039b919c49ec3f72` (`hand-check-levels` criterion 15 and T-079 criterion 20 in `highest-point-in-state-verify.test.ts`).
+- **Re-pin (1):** `hand-check-levels` criterion 17, the aggregate digest of 48 test files, recomputed after the other rows are applied.
+- **Count floors (5 rows):** each drops by exactly the deletions in its file: committed-bank to 32/54 plus the exact `toBe(55)` becoming 54, fun-facts to 28/54, state-animals tests to 40, landmarks to 50, landmarks-verify to 35.
+
+The worker's 30 reds match its Handoff exactly. The extra stale items it found are real and are in the rows.
+
+**Files**
+- /home/user/geo-discovery-zone/question-bank/src/purge-sample-data-verify.test.ts (new, 10 tests: 9 pass, the criterion 13 test red until the rows are applied)
+- /home/user/geo-discovery-zone/tasks/T-064-purge-sample-data.md (Verdict, Test change request, header, Sessions row)
+
+## Halted — test change request — 2026-10-20
+Raised in commit `c14d9e3`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not read by the orchestrator. Resumes only in an attended `tester` session for T-064 (D-15).
