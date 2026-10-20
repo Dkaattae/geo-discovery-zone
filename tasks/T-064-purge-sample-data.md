@@ -1,7 +1,7 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge; inside the envelope, no escalation)
 **Approved:** a person — 2026-10-20, in the orchestrator session ("approved, start the worker"). See `runs/T-064-purge-sample-data.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-20`
 **From:** [`tasks.md`](../tasks.md) T-064
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 | worker | 2026-10-20 | cse_0155zx41KsbKu7xBvuZNrYFV (orchestrated subagent; the remote session id is shared with the expander's, so the tester must check isolation by its own spawn, not this id) |
 | tester | 2026-10-20 | cse_0155zx41KsbKu7xBvuZNrYFV (orchestrated subagent, freshly spawned; same shared id, so its independence rests on the spawn, not the id) |
 | tester (attended) | 2026-10-20 | cse_015g2kHcuVVqxLfCPu3KuyUZ (a separate session started by a person, to settle the Test change request) |
+| reviewer | 2026-10-20 | cse_0155zx41KsbKu7xBvuZNrYFV (orchestrated subagent, freshly spawned; same shared id) |
 
 > **Not a light brief.** `tasks.md` sizes this `S`, but it needs more than four
 > criteria, and the deletion makes pre-existing tests stale in at least eleven
@@ -306,6 +307,41 @@ Results on this branch (worker, 2026-10-20):
 - `question-bank/` typecheck, lint (0 warnings, 0 errors), format:check: pass. `question-bank/node_modules` was missing at the start; `bun install --frozen-lockfile` fixed it, lockfile unchanged.
 - `frontend/` `bun test`: 376 pass, 1 fail. The fail is an unhandled error: `Cannot find package 'react-simple-maps'` from `src/components/UsMap.tsx`. `bun install --frozen-lockfile` in `frontend/` fails here with a **403** from `europe-west1-npm.pkg.dev` (the lockfile's resolved registry), and `BUN_CONFIG_REGISTRY` does not override it. This is the environment, not this change: no frontend file changed. `frontend/src/conventions-doc.test.ts` passes, 81/81. `eslint` and `prettier --check .` run directly both pass. **Owner: the tester re-runs this where the frontend installs. If it is still red there, a human decides.** That install may also have removed packages that were present before; I cannot tell.
 - **Unexplained once**: during the first frontend run, `frontend/README.md` was rewritten (one `*` escaped to `\*`, a prettier-style edit). I reverted it with `git checkout`, and it did not happen again in two later runs. **Owner: the tester, if it recurs. Otherwise a `tasks.md` entry at the reviewer's sweep** for a frontend test that may leak writes.
+
+## Review
+
+### Reviewer, 2026-10-20: **approve, inside the envelope**
+
+**TL;DR: approve. The production change is five small doc/manifest edits and three deletions, the 39 test edits match the approved rows one for one and come only from the tester's commit, and every suite is green locally and in CI. No escalation. Two stale test comments and a one-off frontend README rewrite go to existing tasks; `PROGRESS.md:133` is corrected in the sweep.**
+
+**Branch and lanes**
+- **Every role has a commit in PR #89:** expander `0808287`, `b24dbbe`; worker `9070e43`; tester `c14d9e3`, `7baaef0`, `2def022`, `76f53c6`; orchestrator run-log commits.
+- **Expander** touched only `tasks.md` and the brief (D-7).
+- **Worker** touched no test file. Its diff is exactly the Constraints list.
+- **Tester** touched only test files and the brief. `2def022` is the only commit that edits a pre-existing test, and each hunk maps to a row (1–39).
+- **Outside Constraints, and fine:** `runs/T-064-purge-sample-data.md` (orchestrator log) and `question-bank/src/purge-sample-data-verify.test.ts` (the tester's new test).
+
+**Checks run here** (branch head `1c876eb`)
+- `question-bank`: `bun test` 2232 pass, 0 fail. typecheck, lint (0/0) and format:check pass.
+- `frontend`: `src/conventions-doc.test.ts` 81/81. The rest cannot install here (registry 403). CI "frontend (typecheck, lint, test)" is **success** on `1c876eb`, as are question-bank, backend, backend (postgres) and integration.
+
+**Envelope (D-4)**
+- Tester pass; suites green. No dependency, lockfile, `openapi.yaml`, migration or plan change. No child-facing text.
+- **Pre-existing tests:** 39 rows, approved by **Dkaattae**, a person, in an attended tester session (`Test changes: approved — Dkaattae, 2026-10-20`), not an orchestrator stamp. So nothing needs copying into the PR body as an escalation.
+- **Brief approval:** a person, in the orchestrator session.
+
+**Findings, none blocking**
+1. **`PROGRESS.md:133` still says "one committed sample run".** Criterion 6 checked the literal `sample-data`, and this line has no such literal, so it slipped through. It is a live claim the sweep owns, so the sweep corrects it (reconciliation, `process.md` step 6.5).
+2. **`highest-point-verify.test.ts` keeps two stale phrases** that rows 27–28 did not cover: the header's "the other 51 paths must digest to it" (now 50), and the describe "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched". The tester was right to leave them alone. **Deferred to T-070**, which already edits that file under an attended request and already carries one stale-name rename for it (T-083's amendment). Amended there, no new task.
+3. **One-off rewrite of `frontend/README.md`** (`*` → `\*`) during the worker's first frontend run. It did not recur for the worker (twice) or the tester. **Deferred to T-076**, which owns that file and prettier's effect on it. Amended there, no new task.
+4. **T-064 is the fourth instance of P-17.** T-025's criteria 15 and 17 and T-079's criterion 20 pins all went red on a task that touched no dependency. Noted on P-17. Worth recording too: this tester did the right thing for its own criteria 4 and 8–11 by verifying them once instead of pinning.
+
+**Flags disposed**
+- **Worker, README example placement:** confirmed. A pointer in the existing layout entry is the smallest edit that meets criterion 7.
+- **Worker, modify vs delete for the `reviewed: false` scans:** settled by Dkaattae's approval of rows 3, 8, 11, 14, 18 and 22 as modifies.
+- **Worker, frontend env failure:** settled. CI's frontend job is green on the head.
+- **Worker, `frontend/README.md` rewrite:** finding 3, deferred to T-076.
+- **Tester, `highest-point-verify.test.ts` header "51":** finding 2, deferred to T-070.
 
 ## Verdict
 
