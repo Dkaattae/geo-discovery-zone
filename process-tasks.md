@@ -660,6 +660,13 @@ took one extra reviewer → attended-tester round (8 rows) to finish a task that
 was otherwise approved. A cheap partial guard, whichever option is taken: the
 expander greps the test suites for its own task id and lists any hit as a stale
 test up front, so the request is raised in the first attended tester session.
+**Fourth instance, 2026-10-20, from T-064's reviewer (PR #89).** T-064 removed
+one script line from `question-bank/package.json` and added no dependency, yet
+three pins from earlier tasks went red: T-025 criteria 15 and 17 and T-079
+criterion 20. Each needed its own row. The counter-example is in the same PR:
+its tester verified T-064's own "nothing else moved" criteria (4, 8–11) once,
+by `git diff` against base, recorded the output in the Verdict, and pinned
+nothing. That is the first option above, done by hand.
 **This is a process-file change**, so it is done by hand.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.

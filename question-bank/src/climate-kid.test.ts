@@ -579,27 +579,6 @@ describe("T-014 criterion 12 — the bank is built, not hand-edited", () => {
   });
 });
 
-describe("T-014 criterion 13 — the committed sample stays in step with the bank", () => {
-  test("sample-data/us-state-co.json carries the same climate_kid as the tracked Colorado", () => {
-    const tracked = JSON.parse(
-      readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
-    ) as TrackedEntity;
-    const sample = JSON.parse(
-      readFileSync(join(PKG, "sample-data/us-state-co.json"), "utf8"),
-    ) as TrackedEntity;
-    expect(sample.climate_kid).toBe(tracked.climate_kid as string);
-    expect(sample.climate_kid).toBe("dry and cold in the mountains, drier plains to the east");
-  });
-
-  test("sample-data/us-state-co.json was not touched by this task (git status is clean for it)", () => {
-    const { status, stdout } = git(["diff", "--name-only", "--", "question-bank/sample-data"]);
-    // A clean checkout returns status 0 with no output; either way, the file
-    // this task must not move is absent from any diff there is.
-    expect(status).toBe(0);
-    expect(stdout).not.toContain("us-state-co.json");
-  });
-});
-
 describe("T-014 criterion 14 — Colorado's phrase is unchanged", () => {
   const EXPECTED = "dry and cold in the mountains, drier plains to the east";
 
@@ -611,13 +590,6 @@ describe("T-014 criterion 14 — Colorado's phrase is unchanged", () => {
   test("the tracked Colorado file carries exactly this string", () => {
     const entity = JSON.parse(
       readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8"),
-    ) as TrackedEntity;
-    expect(entity.climate_kid).toBe(EXPECTED);
-  });
-
-  test("the sample carries exactly this string", () => {
-    const entity = JSON.parse(
-      readFileSync(join(PKG, "sample-data/us-state-co.json"), "utf8"),
     ) as TrackedEntity;
     expect(entity.climate_kid).toBe(EXPECTED);
   });
@@ -828,11 +800,8 @@ describe("T-014 criterion 17 — everything a person has to read is in one place
 });
 
 describe("T-014 criterion 18 — nothing unreviewed, live or new is committed", () => {
-  test('no file tracked under question-bank/data/ or sample-data/ contains reviewed": false', () => {
-    const paths = [
-      ...trackedUnder("question-bank/data"),
-      ...trackedUnder("question-bank/sample-data"),
-    ];
+  test('no file tracked under question-bank/data/ contains reviewed": false', () => {
+    const paths = trackedUnder("question-bank/data");
     expect(paths.length).toBeGreaterThan(51);
     for (const path of paths) {
       expect({
@@ -879,14 +848,19 @@ describe("T-014 criterion 19 — nothing already verified is weakened", () => {
    */
   const PINNED: Record<string, { tests: number; expects: number }> = {
     // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
-    "committed-bank.test.ts": { tests: 33, expects: 55 },
+    // T-064 row 34: 33/55 → 32/54, row 1 deleted the sample comparison.
+    "committed-bank.test.ts": { tests: 32, expects: 54 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
-    "fun-facts.test.ts": { tests: 30, expects: 59 },
+    // T-064 row 36: 30/59 → 28/54, rows 4–5 deleted the two sample README tests.
+    "fun-facts.test.ts": { tests: 28, expects: 54 },
     // T-071 row 6 deleted one dependency-pin test from this file (E-16).
-    "state-animals.test.ts": { tests: 42, expects: 73 },
+    // T-064 row 37: tests 42 → 40, rows 6–7 deleted the sample comparisons.
+    "state-animals.test.ts": { tests: 40, expects: 73 },
     // T-071 row 5 deleted one dependency-pin test from this file (E-16).
-    "landmarks.test.ts": { tests: 52, expects: 88 },
-    "landmarks-verify.test.ts": { tests: 36, expects: 69 },
+    // T-064 row 38: tests 52 → 50, rows 9–10 deleted the sample comparisons.
+    "landmarks.test.ts": { tests: 50, expects: 88 },
+    // T-064 row 39: tests 36 → 35, row 12 deleted the sample comparison.
+    "landmarks-verify.test.ts": { tests: 35, expects: 69 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },
   };

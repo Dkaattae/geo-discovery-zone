@@ -169,11 +169,8 @@ describe("T-011 criterion 2 — every fact is shaped like a FunFact, and every o
     }
   });
 
-  test('no file tracked under question-bank/data/ or sample-data/ contains reviewed": false', () => {
-    const paths = [
-      ...trackedUnder("question-bank/data"),
-      ...trackedUnder("question-bank/sample-data"),
-    ];
+  test('no file tracked under question-bank/data/ contains reviewed": false', () => {
+    const paths = trackedUnder("question-bank/data");
     expect(paths.length).toBeGreaterThan(51);
     for (const path of paths) {
       expect({
@@ -392,22 +389,6 @@ describe("T-011 criterion 11 — the docs this change falsifies are true again",
   const read = (path: string) => readFileSync(join(REPO, path), "utf8");
   /** Docs wrap; compare on the text alone. */
   const flat = (text: string) => text.replace(/\s+/g, " ");
-
-  test("11(a) — sample-data/README.md no longer calls the sample's fun fact unreviewed Wikipedia prose", () => {
-    const readme = flat(read("question-bank/sample-data/README.md"));
-    expect(readme.length).toBeGreaterThan(0);
-    // The sample's own fun fact, described as raw/unreviewed reference prose.
-    expect(readme).not.toMatch(/The fun fact is [^.]*\braw Wikipedia prose\b/i);
-    expect(readme).not.toMatch(/fun fact[^.]*\bis\b[^.]*\bnot shippable text\b/i);
-  });
-
-  test("11(a) — sample-data/README.md no longer says nothing has reached an entity's fun-fact field", () => {
-    const readme = flat(read("question-bank/sample-data/README.md"));
-    expect(readme).not.toMatch(
-      /nothing (reaches|has reached|reached) an entity's fun.?[Ff]act field/i,
-    );
-    expect(readme).not.toMatch(/until then nothing reaches/i);
-  });
 
   const e6 = () =>
     flat(

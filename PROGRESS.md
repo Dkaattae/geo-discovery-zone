@@ -114,8 +114,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   warning, locally and in CI. typescript-eslint cannot load against the
   package's `typescript@7`.
 - **Formatted by prettier pinned exact** (T-071, E-16): `bun run format:check`
-  over `src/**/*.ts`, locally and as CI's Format step; JSON under `data/`,
-  `sample-data/` and `src/fixtures/` is outside the glob. The approved dependency
+  over `src/**/*.ts`, locally and as CI's Format step; JSON under `data/` and
+  `src/fixtures/` is outside the glob. The approved dependency
   set is pinned in one file, `src/dependency-set.test.ts`, not nine.
 - Curated override table for the things Wikidata is bad at: FIPS join keys,
   regions, animals, kid-facing climate phrasing (§1.7, §1.9). Wikidata's FIPS is
@@ -130,8 +130,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (T-011).
   Both `bun run build`'s live pass and `bun run refresh` request a draft only
   for a state with no curated fact (`draftMissingFunFacts`; T-063, T-078).
-- `EntitySink` seam, one committed sample run, and a recorded fixture of a real
-  50-row response so `--offline` reproduces a full build with no network.
+- `EntitySink` seam, and a recorded fixture of a real 50-row response so
+  `--offline` reproduces a full build with no network.
 - **`bun run refresh` refreshes the committed bank from live Wikidata** (T-063,
   PR #68) and prints a per-state, per-field change summary, or `bank unchanged`
   with exit code 2. A changed refresh also re-records the fixture, so the
@@ -355,6 +355,21 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-064 — `question-bank/sample-data/` is gone** (PR #89, 2026-10-20). The
+  one-state sample, its README and the `build:sample` script are deleted, and
+  `question-bank/README.md` now points at `data/us-states/us-state-co.json` as
+  the example entity. No pipeline code changed. *Where it differed from the
+  brief:* it was sized S and was really M, as the expander said. Almost all the
+  work was 39 Test change request rows across 12 test files, all approved by a
+  person in an attended tester session: 19 tests deleted, the `reviewed: false`
+  scans narrowed to `data/`, two `package.json` digest pins and T-025's
+  test-file aggregate re-pinned (P-17's fourth instance), and five count floors
+  lowered by exactly the deletions. The worker found what the expander's list
+  missed (a T-079 manifest pin, the floors). The tester verified criteria 4 and
+  8–11 once by `git diff` against base rather than pinning them. The review
+  found one live claim the criteria's string match missed,
+  `PROGRESS.md`'s "one committed sample run", fixed in the sweep.
 
 - **T-040 — the pipeline bank is the served bank** (PR #88, 2026-10-19). The
   app now serves the 50 committed pipeline states and 100 generated questions

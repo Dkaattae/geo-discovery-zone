@@ -30,10 +30,6 @@ import { rebuildOffline } from "./offline-rebuild";
  *    Note the six states with no `landmark` (DE, IA, KS, MS, OK, RI) hash to
  *    exactly the values `landmarks-verify.test.ts` independently pinned for
  *    them, which is a cross-check that the two digest routes agree.
- *  - **Criterion 13** says the sample equals the tracked Colorado *in every
- *    field* but `sources.built_at`. `climate-kid.test.ts` compares only
- *    `climate_kid` and a `git diff` name list; the whole-object comparison is
- *    below.
  *  - **Criterion 16's** "exactly one file carries the dead-loopback proxy
  *    literal" scan excludes `climate-kid.test.ts` from its own sweep. The scan
  *    below excludes nothing: it sweeps every `*.ts` under `question-bank/src/`,
@@ -65,7 +61,6 @@ import { rebuildOffline } from "./offline-rebuild";
 const PKG = resolve(import.meta.dirname, "..");
 const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-const SAMPLE = join(PKG, "sample-data/us-state-co.json");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
 /** Criterion 12 and the brief's Constraints both name this instant literally. */
@@ -740,39 +735,12 @@ describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", ()
   });
 });
 
-describe("T-014 tester, criterion 13 — the committed sample stays in step with the bank", () => {
-  test("the sample equals the tracked Colorado in every field but sources.built_at, top_crops and top_livestock", () => {
-    // T-015 (2026-09-17, a later approved task) freezes the sample at
-    // `top_crops: []` (its own criterion 12) while populating the tracked
-    // copy, so it is excluded here the same way `built_at` already is.
-    const strip = (raw: string) => {
-      const parsed = JSON.parse(raw) as { sources?: Record<string, unknown> };
-      if (parsed.sources) delete parsed.sources["built_at"];
-      delete (parsed as Record<string, unknown>)["top_crops"];
-      // T-068: the sample is frozen without `top_livestock` (its criterion 14).
-      delete (parsed as Record<string, unknown>)["top_livestock"];
-      return JSON.stringify(parsed);
-    };
-    expect(strip(readFileSync(SAMPLE, "utf8"))).toBe(
-      strip(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")),
-    );
-  });
-
-  test("climate_kid in particular is present and equal in both", () => {
-    const sample = JSON.parse(readFileSync(SAMPLE, "utf8")) as Entity;
-    const tracked = JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as Entity;
-    expect(sample.climate_kid).toBe(COLORADO_PHRASE);
-    expect(tracked.climate_kid).toBe(COLORADO_PHRASE);
-  });
-});
-
 describe("T-014 tester, criterion 14 — Colorado's phrase is unchanged", () => {
-  test("the curated table, the tracked file and the sample all carry the pinned string", () => {
+  test("the curated table and the tracked file both carry the pinned string", () => {
     expect(CURATED_US_STATES.find((s) => s.postal === "CO")?.climate_kid).toBe(COLORADO_PHRASE);
     expect(
       (JSON.parse(readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8")) as Entity).climate_kid,
     ).toBe(COLORADO_PHRASE);
-    expect((JSON.parse(readFileSync(SAMPLE, "utf8")) as Entity).climate_kid).toBe(COLORADO_PHRASE);
   });
 
   test("it is the string the plan's §1.4 example and openapi.yaml's climateKid example print", () => {
@@ -1119,8 +1087,8 @@ describe("T-014 tester, criterion 17 — everything a person has to read is in o
 });
 
 describe("T-014 tester, criterion 18 — nothing unreviewed, live or new is committed", () => {
-  test('no file under data/ or sample-data/ contains reviewed": false', () => {
-    const files = [...walk(join(PKG, "data")), ...walk(join(PKG, "sample-data"))];
+  test('no file under data/ contains reviewed": false', () => {
+    const files = walk(join(PKG, "data"));
     expect(files.length).toBeGreaterThan(51);
     for (const path of files) {
       expect({ path, unreviewed: readFileSync(path, "utf8").includes('reviewed": false') }).toEqual(
@@ -1158,14 +1126,19 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
    */
   const FLOORS: Record<string, { tests: number; expects: number }> = {
     // 58 → 55 by T-040's Test change request B1: criterion 16 lost its three tasks.md expects.
-    "committed-bank.test.ts": { tests: 33, expects: 55 },
+    // T-064 row 34: 33/55 → 32/54, row 1 deleted the sample comparison.
+    "committed-bank.test.ts": { tests: 32, expects: 54 },
     "data-us-states.test.ts": { tests: 6, expects: 14 },
-    "fun-facts.test.ts": { tests: 30, expects: 59 },
+    // T-064 row 36: 30/59 → 28/54, rows 4–5 deleted the two sample README tests.
+    "fun-facts.test.ts": { tests: 28, expects: 54 },
     // T-071 row 6 deleted one dependency-pin test from this file (E-16).
-    "state-animals.test.ts": { tests: 42, expects: 73 },
+    // T-064 row 37: tests 42 → 40, rows 6–7 deleted the sample comparisons.
+    "state-animals.test.ts": { tests: 40, expects: 73 },
     // T-071 row 5 deleted one dependency-pin test from this file (E-16).
-    "landmarks.test.ts": { tests: 52, expects: 88 },
-    "landmarks-verify.test.ts": { tests: 36, expects: 69 },
+    // T-064 row 38: tests 52 → 50, rows 9–10 deleted the sample comparisons.
+    "landmarks.test.ts": { tests: 50, expects: 88 },
+    // T-064 row 39: tests 36 → 35, row 12 deleted the sample comparison.
+    "landmarks-verify.test.ts": { tests: 35, expects: 69 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },
   };
@@ -1201,12 +1174,13 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     }
   });
 
-  test("committed-bank.test.ts's expect count really is 55, so the lowered floor is not slack", () => {
+  test("committed-bank.test.ts's expect count really is 54, so the lowered floor is not slack", () => {
     // Criterion 16(a) exempts the harness extraction from "loosened"; this
     // pins that the floor three files carry was lowered exactly as far as the
     // extraction forced and no further.
     const source = readFileSync(join(PKG, "src/committed-bank.test.ts"), "utf8");
-    expect([...source.matchAll(/expect\(/g)].length).toBe(55);
+    // T-064 row 35: 55 → 54, row 1 deleted one expect.
+    expect([...source.matchAll(/expect\(/g)].length).toBe(54);
   });
 
   test("the offline runner still fails a non-zero build rather than swallowing it", () => {

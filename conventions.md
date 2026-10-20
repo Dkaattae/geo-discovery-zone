@@ -66,7 +66,6 @@ cd frontend && bun test                     # the frontend suite
 cd question-bank && bun install
 bun run build              # live: query.wikidata.org → data/us-states/
 bun run build -- --offline --out data/us-states   # offline: recorded fixture → same path, byte-identical
-bun run build:sample       # offline replay of the recorded fixture → sample-data/
 bun run refresh            # live refresh of data/us-states/ + fixture; exit 0 changed, 1 failed, 2 unchanged
 bun run ./src/write-questions.ts   # data/us-states/ → data/questions/us-states.json, every generated question; offline, byte-stable
 bun run typecheck

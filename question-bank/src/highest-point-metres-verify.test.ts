@@ -34,7 +34,6 @@ import type { SparqlResults, SparqlRow, SparqlTransport } from "./sparql";
  */
 const PKG = resolve(import.meta.dirname, "..");
 const DATA_DIR = join(PKG, "data/us-states");
-const SAMPLE_DIR = join(PKG, "sample-data");
 const FIXTURES = join(PKG, "src/fixtures");
 const MAIN_FIXTURE = join(FIXTURES, "us-states.sparql.json");
 const ELEVATION_FIXTURE = join(FIXTURES, "us-states-elevation.sparql.json");
@@ -666,23 +665,7 @@ describe("T-069 tester, criterion 12 — nothing else in the bank moved", () => 
       expect(sha256(withoutElevationLine(raw))).toBe(MAIN_AT_E10F94D[name]?.rest as string);
     });
   }
-
-  test("sample-data/ is byte-identical to main", () => {
-    const names = readdirSync(SAMPLE_DIR).sort();
-    expect(names).toEqual(Object.keys(SAMPLE_DIGESTS_AT_E10F94D).sort());
-    const digests = Object.fromEntries(
-      names.map((n) => [n, sha256(readFileSync(join(SAMPLE_DIR, n), "utf8"))]),
-    );
-    expect(digests).toEqual(SAMPLE_DIGESTS_AT_E10F94D);
-  });
 });
-
-/** `git show e10f94d:question-bank/sample-data/<name> | sha256sum`. */
-const SAMPLE_DIGESTS_AT_E10F94D: Record<string, string> = {
-  "README.md": "92c74154dc75c172020317ad3133b92eb9eedf74f374632c1a5ed6a3c0c2708a",
-  "index.json": "8e90e3ecc300d4829ef539db2af204df4885213caafd83f9983c6a7de270dee2",
-  "us-state-co.json": "88db1cb06c0bb0c494327703c50cb5afefdf48cc0bc878615ef4277cb28b338f",
-};
 
 describe("T-069 tester, criterion 13 — the bank is still built, not hand-edited", () => {
   test("an offline rebuild reproduces every file in data/us-states/ byte for byte", () => {

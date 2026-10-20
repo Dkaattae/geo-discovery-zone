@@ -701,14 +701,12 @@ function manifestSha(dir: string, except: string[] = []): string {
 describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified", () => {
   // T-040 added question-bank/data/questions/ (its committed question file); everything
   // that was under data/ at aa88101 is still pinned.
-  test("criterion 14: question-bank/data (outside T-040's data/questions/), sample-data and src/fixtures are byte-identical to aa88101", () => {
+  test("criterion 14: question-bank/data (outside T-040's data/questions/) and src/fixtures are byte-identical to aa88101", () => {
     expect({
       data: manifestSha("question-bank/data", ["question-bank/data/questions/"]),
-      sample: manifestSha("question-bank/sample-data"),
       fixtures: manifestSha("question-bank/src/fixtures"),
     }).toEqual({
       data: "a67db5024454f4604068fa61b3020489b14f603caa4e4ec81b70af8c973fb8d6",
-      sample: "0b5706a03954dbb98bab692faeb1bc405b0f4edea0789525e4f9ce29a27b10de",
       fixtures: "b7fe3a940c8b232710015de66f972308ce72e872bf76b3c27eedc35c16cf7676",
     });
   });
@@ -729,8 +727,9 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
       "frontend/bun.lock": "5ec60daccc0422c6a67e520b46e372be8a16b04bf2a37b3170f087ef69afc733",
       "frontend/package.json": "22870bb992a6e2db8770998ce5cb0b095ce785fcc16801f6bf9deb25e33e332f",
       "question-bank/bun.lock": "6bb53377c455e7936275e795c81aa62b41fcb239017b4dd9a744dfd38bda34d1",
+      // re-pinned by T-064 row 31: build:sample removed (its criterion 2)
       "question-bank/package.json":
-        "c00e1069eb97d80bd1a838a2c9d9e3e72c22e79e34bd7307ae088e599850b676",
+        "5286f4f725a98f5e54d45cf2646be5b38152ffc87ba5ac91039b919c49ec3f72",
     };
     const now = Object.fromEntries(
       Object.keys(AT_AA88101).map((p) => [
@@ -831,6 +830,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // Re-pinned by T-040's approved Test change requests: rows 15, 16 and 20 modified
     // generate.test.ts, generate-verify.test.ts and tags-verify.test.ts; B1 modified
     // committed-bank.test.ts and lowered its floor in five files here.
-    expect(digest).toBe("db741fc065d526dd442bae56ae50a15966783a6040bccd44614ac09e7c880f00");
+    // Re-pinned by T-064's approved Test change request rows 1–39.
+    expect(digest).toBe("dd1c8a7fb97552837a5989532dd6b919ad780b3c351162b95e5dbeaa18f304b5");
   });
 });
