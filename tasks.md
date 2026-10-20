@@ -68,7 +68,10 @@ fixture byte pins a refresh turns red, and T-084 points there. Swept again
 2026-10-19, after T-040 made the 50 pipeline states and 100 generated
 questions the served bank (PR #88): T-040 deleted; T-050 and T-056 rewritten to
 what is left of them; T-026, T-051, T-064, T-070 and T-085 updated; T-087
-new._
+new. Swept again 2026-10-20, after T-064 deleted `question-bank/sample-data/`
+and `build:sample` (PR #89): T-064 deleted; T-070 lost the sample from its
+guard list and gained two stale phrases to fix; T-076 gained a one-off README
+rewrite to check._
 
 ## How this list is ordered
 
@@ -151,49 +154,6 @@ finished. Each of these is independent. Since T-040 (PR #88) the bank is what th
 serves, so a curated field reaches a child once a template asks about it
 (T-026) and both committed files are regenerated (T-087).
 
-### T-064 — Purge `question-bank/sample-data/` once the full bank is proven · S · doing
-**Depends on:** — (T-040 landed in PR #88: the committed bank is now served end
-to end, which is the precondition this entry names)
-**Since T-025 (PR #85):** `hand-check-levels-verify.test.ts` criterion 14 pins
-`sample-data/` at `aa88101`, so the purge turns it red (T-070). T-040 narrowed
-that pin to exclude `data/questions/` only; `sample-data/` is still in it.
-Split out of T-010's Q3: `sample-data/` (one committed state, with its own
-README) stays alongside the full 50-state commit for now, on purpose — kept
-until the committed bank is shown to work end to end. Once that is proven, it is
-redundant and this task removes it, updating anything that pointed at it as an
-example (`question-bank/README.md`, `conventions.md`).
-**One thing it must not miss — and it is five files now, not one.**
-`committed-bank.test.ts` (T-010 criterion 4), `landmarks.test.ts` (T-013
-criterion 8), `landmarks-verify.test.ts` (T-013 tester criterion 8),
-`state-animals.test.ts` (T-012 criterion 7) and `climate-kid-verify.test.ts`
-(T-014 tester criterion 13) all compare the tracked `us-state-co.json` against
-`sample-data/us-state-co.json`. Deleting `sample-data/` makes every one of them
-throw, so this task removes or re-points all five — found by T-010's tester as
-one file, and grown by every curation task since (T-015/PR #46 touched all five
-to exclude `top_crops`, the sample being frozen while the bank moved).
-**The count going up each cycle is itself the argument for doing this sooner.**
-**Smaller since T-011 (PR #41):** `sample-data/fun-facts.review.json` is already
-gone. It held Colorado's raw `reviewed: false` Wikipedia draft, which T-011's
-criterion 2 banned from anything tracked under `sample-data/`, and
-`sample-data/README.md` no longer advertises it. What is left to delete is
-`us-state-co.json`, `index.json` and that README.
-**Done when:** `sample-data/` is deleted, or this task is dropped with the reason
-it turned out still to earn its place.
-**Amended 2026-10-03 by T-068's reviewer (PR #69).** The same five comparisons
-now exclude `top_livestock` as well as `top_crops`. That makes two fields the
-sample is frozen without. `sample-data/README.md` is now further from true: it
-says `build:sample` gives the "same output" and explains only the `top_crops`
-gap. Criterion 14 froze it on purpose. Deleting the directory fixes both
-problems. If this task is dropped instead, the README must be corrected.
-**Skipped by the expander, 2026-09-22 — and its `Depends on: —` is wrong.** The
-entry's own precondition is "kept until the committed bank is shown to work end
-to end", and nothing serves the committed bank yet: **T-040** is the loader and
-has not run, so the app still serves the hand-copied `content.json`. Deleting
-`sample-data/` now would be acting before the condition this entry names, and
-"dropped because it still earns its place" cannot be settled either while the
-thing that would retire it is unbuilt. **Depends on: T-040.** T-065 was taken
-instead.
-
 ### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo — **waiting on Q1**
 **Depends on:** a human answer to **Q1** below (blocks nothing, but every field task since T-068 has hit it, and the monthly refresh routine is gated on it)
 **Split 2026-10-06 (Dkaattae, answering the T-070 expander's Q2, PR #73).** This
@@ -211,8 +171,8 @@ pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
 `E-21` unless something else lands first.
 **Since T-025 (PR #85): a fifth guard, and a wider one.**
 `hand-check-levels-verify.test.ts` pins these at `aa88101`: `TEMPLATES`
-(criterion 11), every file under `question-bank/data/`, `sample-data/` and
-`src/fixtures/` plus `backend/app/data/content.json` (14), every
+(criterion 11), every file under `question-bank/data/` and
+`src/fixtures/` (T-064 dropped `sample-data/` from it, PR #89) plus `backend/app/data/content.json` (14), every
 `package.json`/lockfile/`pyproject.toml` in the repo (15), and every
 question-bank test file (17). Criteria 1 and 13 (c) also assume exactly the
 three templates, each with its own `concept_load` entry. Unlike the field
@@ -335,6 +295,18 @@ any gap-free `E-1..E-max`; criterion 17's digest was re-pinned. In
 `seed-level-loose-ends-verify.test.ts` criterion 12 now stops at E-23, so a new
 `E-n` no longer turns it red. An edit to E-1..E-23 still does. Whatever Q1
 decides starts from these.
+**Amended 2026-10-20 by T-064's reviewer (PR #89): the sample is gone, and
+two stale phrases are left in `highest-point-verify.test.ts`.** T-064 deleted
+`sample-data/`, so the five sample comparisons named in the 2026-10-03
+amendment above no longer exist, and `DEFAULT_BRANCH_DIGESTS` lost its sample
+key (approved rows, Dkaattae). Two phrases its rows did not cover are now
+untrue: the header comment's "the other 51 paths must digest to it" (50 now),
+and the describe "T-016 tester, criterion 6 — the other 49 files, index.json
+and the sample are untouched". Add them to this task's Test change request
+alongside the criterion 9 rename above. T-064 also re-pinned
+`question-bank/package.json` in `hand-check-levels-verify.test.ts` criterion 15
+and `highest-point-in-state-verify.test.ts` T-079 criterion 20, and re-pinned
+the criterion 17 aggregate (P-17).
 **Done when:** the pinned-digest guards no longer need a per-task exception (or the
 decision to keep them is written down in `engineering-decisions.md` as the next
 unused `E-n`, `E-25` at the time of writing).
@@ -816,6 +788,13 @@ and the "9. Screens" diagram are not in code fences, so T-075's formatting commi
 source. The rendered page was already flat; the source is what got worse.
 **Done when:** each of those blocks is fenced with its pre-`6d1b5df` content
 (from `6d1b5df^`), and `bun run format:check` in `frontend/` exits 0.
+**Amended 2026-10-20 by T-064's reviewer (PR #89): check nothing in the suite
+writes this file.** During T-064's worker run, one `bun test` in `frontend/`
+left `frontend/README.md` rewritten (a `*` escaped to `\*`, a prettier-style
+edit). It did not recur in two more worker runs or the tester's, and nobody
+found the cause. While fencing these blocks, run the frontend suite and confirm
+`git status` stays clean for this file. If something does write it, find the
+test and say so here.
 
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —
