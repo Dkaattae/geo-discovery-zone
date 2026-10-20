@@ -52,3 +52,44 @@ What a human has to decide, quoted from the expander: "answer Q1 and Q2 in the b
 ## Resumed — 2026-10-20
 Dkaattae answered in the orchestrator session, verbatim: "Q1, a. Q2, N, this task covers all."
 Orchestrator wrote that quote into the brief under "Questions for a human" → "Answers", and set the header to `Status: expanding`, `Next step: task-expander`, as the expander's halt asked a person to do. `Approved:` still `pending`.
+
+## Round 2 — task-expander — 2026-10-20
+`Next step` on entry: `task-expander` → on exit: `worker` (once a human replaces `pending`)
+`Status` on exit: `awaiting approval` · branch head: `a343987`
+
+**TL;DR:** The T-026 brief is ready for approval. I wrote 52 criteria for Dkaattae's answers (Q1 (a), Q2 No), so it now covers all six new templates. Approving it also approves seven content calls I had to make (C1–C7); those need a human read. Pushed `a343987` to `claude/serene-ramanujan-msepc5`, the brief's `Branch:` header, and the local head matches the remote. Draft PR #91 has a new title and a body summarising the criteria.
+
+**Status:** `awaiting approval`. **Next step:** `worker`, once a human replaces `Approved: pending`.
+
+**What I read Dkaattae's answers to mean**
+- **Q1 (a):** superlative distractors are exactly the states ranked r+1, r+2 and r+3 by total area (`area_km2`). That gives 47 questions, with Delaware, Connecticut and Rhode Island never the answer. The contested rows are accepted.
+- **Q1 (a), what I left out:** the optional "counting lakes and coastal water" line. It would be new child-facing text the answer didn't ask for, so it's out of scope (C7).
+- **Q2 No:** "covers all" means every row of the T-026 table in `tasks.md`. That is superlative, wildlife, landmark, climate, crops and farm animals: 265 new questions, 415 generated, 365 served.
+
+**Calls the approver needs to check** (listed in the brief and the PR body; strike any that are wrong and send the brief back to me):
+- **C1:** "Which is bigger?" is served by the superlative multiple-choice template. No `ab_compare` renderer and no `size`-topic questions. This is the one place my reading of "all" is narrower than it could be.
+- **C2:** every curated topic asks state → fact, never fact → state. `tasks.md` recommends this direction, and it stops the client's state card giving the answer away.
+- **C3:** crop distractors are never in the state's own list, a bordering state's list, or a same-region state's list, and the answer is the first crop listed. This is my rule. Some risk remains: a far-away crop the state also grows (sugar beets for Michigan) can still be offered as wrong.
+- **C4:** four landmark traps I added from my own geography, not from any committed source:
+  - Great Smoky Mountains is not a wrong choice in the North Carolina question.
+  - Yellowstone is not a wrong choice in the Montana or Idaho question.
+  - Hoover Dam is not a wrong choice in the Arizona question.
+  - Statue of Liberty is not a wrong choice in the New Jersey question.
+- **C5:** pairs that never share a question: cattle/dairy cows, corn/sweet corn, hay/alfalfa hay, potatoes/sweet potatoes. I found these by reading the committed values.
+- **C6:** the 200 KB cap on `question-bank/data/` may rise to at most 400 KB, with a new `E-n` entry and a Test change request. My estimate is about 310 KB after the change.
+- **C7:** no new reveal text and no area number shown.
+
+**Other things to know**
+- **Re-sized M → L**, in both the brief and the `tasks.md` T-026 heading.
+- **Expected red:**
+  - `hand-check-levels-verify.test.ts` (it assumes exactly three templates);
+  - `seed-level-loose-ends-verify.test.ts` criterion 10 (it pins the 150 levels);
+  - the bank cap in `committed-bank.test.ts`, if C6 is used.
+- **Plan to attend the tester step:** each red suite above needs a Test change request a person approves.
+- **Counts are derived, not run.** I took them from the committed entity files, not from the pipeline.
+- **Role rule slip:** I used `python3` (read-only) to tally the committed entity JSON. My Bash is meant to be git-only, but I ran no build, tests or pipeline.
+- **The commit touches only** `tasks/T-026-biggest-state-superlative.md` and `tasks.md`.
+- **The filename keeps its round-1 slug**, so the branch and the PR still point at it.
+
+## Halted — awaiting human approval — 2026-10-20
+G5 passes (Status and Next step both changed). The expander returned asking for a human read of content calls C1–C7, and a person is in the session, so the orchestrator did not write the unattended `Approved:` stamp. It asked Dkaattae to approve or strike calls instead.
