@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-026
 **Branch:** `claude/serene-ramanujan-msepc5`
-**PR:** opened draft at expand time against the branch above (number in the PR list; this brief predates it)
+**PR:** #91, opened draft at expand time against the branch above. Stays draft until the reviewer approves
 **Fault:** the plan says superlatives use next-ranked distractors *and* avoid contested rankings, and on the bank's `area_km2` (total area, water included) those two rules conflict for about a third of the states. Which one gives way is a content call for a person (expander, Q1).
 
 **Sessions:**
