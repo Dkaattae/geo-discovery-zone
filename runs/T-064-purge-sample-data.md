@@ -1,7 +1,7 @@
 # T-064 — Purge `question-bank/sample-data/` now the full bank is proven — run log
 
 **Task:** T-064 · **Branch:** `claude/optimistic-pascal-wk81ey` · **PR:** #89
-**Started:** 2026-10-20 · **Outcome:** halted — needs human
+**Started:** 2026-10-20 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-20
 `Next step` on entry: (no brief) → on exit: `worker` (after approval below)
@@ -145,3 +145,6 @@ Raised in commit `c14d9e3`. Header: `Test changes: requested`, `Status: test cha
 
 ## Approval offered to the orchestrator — 2026-10-20
 The person wrote in the orchestrator session: "approved, apply all 39 rows". Not acted on, per `orchestrator.md` and D-15: the orchestrator does not approve, stamp or relay a test change request, and spawns no tester for it. The person was told to give the approval in an attended `tester` session for T-064. Brief unchanged.
+
+## Resumed — 2026-10-20
+An attended tester session applied the approved test change request and returned (`7baaef0`, `2def022`, `76f53c6`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-20`. The person said in the orchestrator session: "ci is fixed please proceed". G0–G4 pass; spawning the reviewer.
