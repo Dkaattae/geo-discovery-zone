@@ -17,7 +17,6 @@ already has it; you only need to run the build to refresh it.
 ```bash
 bun install
 
-bun run build:sample     # offline: recorded fixture → sample-data/
 bun run build            # live: query.wikidata.org → data/us-states/
 bun run refresh          # live refresh of the committed bank + fixture, with a change summary
 bun run build -- --offline --out data/us-states   # offline refresh of the committed bank
@@ -184,8 +183,7 @@ src/
                           point's elevation with its unit — T-069)
 data/us-states/           the committed 50-state bank (E-6) — one file per
                           entity plus index.json, reproducible offline from
-                          those two fixtures
-sample-data/              output of one committed single-state run, kept as a
-                          teaching example of the entity shape (T-064 revisits
-                          this now that the full bank is committed alongside it)
+                          those two fixtures; read
+                          data/us-states/us-state-co.json for one complete
+                          entity record
 ```

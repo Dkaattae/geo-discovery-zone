@@ -5,7 +5,6 @@
   "description": "Build-time pipeline that turns structured facts into the geo quiz entity + question bank.",
   "scripts": {
     "build": "bun run src/build.ts",
-    "build:sample": "bun run src/build.ts --offline --states CO --out sample-data",
     "refresh": "bun run src/refresh.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives --format default src",

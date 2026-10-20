@@ -3,7 +3,6 @@
  * Build entity records for the 50 US states.
  *
  *   bun run build            # live: query.wikidata.org → data/us-states/
- *   bun run build:sample     # offline: recorded fixture → sample-data/
  *
  * Everything runs at build time and ships as JSON (§1.9): no runtime API calls,
  * no keys in the client, and no Wikipedia vandalism reaching a child mid-quiz.

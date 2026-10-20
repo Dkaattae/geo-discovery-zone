@@ -114,8 +114,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   warning, locally and in CI. typescript-eslint cannot load against the
   package's `typescript@7`.
 - **Formatted by prettier pinned exact** (T-071, E-16): `bun run format:check`
-  over `src/**/*.ts`, locally and as CI's Format step; JSON under `data/`,
-  `sample-data/` and `src/fixtures/` is outside the glob. The approved dependency
+  over `src/**/*.ts`, locally and as CI's Format step; JSON under `data/` and
+  `src/fixtures/` is outside the glob. The approved dependency
   set is pinned in one file, `src/dependency-set.test.ts`, not nine.
 - Curated override table for the things Wikidata is bad at: FIPS join keys,
   regions, animals, kid-facing climate phrasing (§1.7, §1.9). Wikidata's FIPS is
