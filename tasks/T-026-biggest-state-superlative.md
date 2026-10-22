@@ -3,7 +3,7 @@
 **Status:** `test changes requested`
 **Next step:** `human` — approve or refuse the 92 rows under "Test change request", in the attended tester session
 **Approved:** Dkaattae — 2026-10-20, in the orchestrator session ("approved"), C1–C7 included. See `runs/T-026-biggest-state-superlative.md`.
-**Test changes:** `approved — the session owner, attending tester session cse_01P7XSFjPfgo7AvC666zdJD1, 2026-10-22`
+**Test changes:** `approved — Dkaattae, 2026-10-22` (attended tester session cse_01P7XSFjPfgo7AvC666zdJD1)
 **From:** [`tasks.md`](../tasks.md) T-026
 **Branch:** `claude/serene-ramanujan-msepc5`
 **PR:** #91, opened draft at expand time against the branch above. Stays draft until the reviewer approves
@@ -448,7 +448,7 @@ Every one is red because of the count, template set or size this brief changes o
 
 ## Test change request
 
-**Status: approved, 2026-10-22, every row and A1–A3, by the person attending the tester's session.** Their answers, verbatim: "Approve rows 1–3", "Approve rows 4–78", "Approve rows 79–87", "Approve rows 88–92"; then "Approve A1", "Approve A2", "Approve A3".
+**Status: approved, 2026-10-22, every row and A1–A3, by Dkaattae, attending the tester's session.** Their answers, verbatim: "Approve rows 1–3", "Approve rows 4–78", "Approve rows 79–87", "Approve rows 88–92"; then "Approve A1", "Approve A2", "Approve A3". Name for the record: "use Dkaattae as the approver name".
 
 **S3** means: same name, same assertions, same numbers (150, 50 per template, 3 per entity), but the test runs over **only the three original templates** (`tpl-identify-on-map`, `tpl-capital-of`, `tpl-click-the-map`). Where it builds, it passes `TEMPLATES` filtered to those ids into `generate` / `buildChoices` / `seedLevels` / `tagQuestions`. Where it reads the committed file, it filters to those `templateId`s. The six new templates are pinned instead by `t026-tester-verify.test.ts` (counts 47/50/44/50/50/24, 415 in all, and the old 150 hashed against `main`).
 
