@@ -139,3 +139,6 @@ Dkaattae, in the orchestrator session, verbatim: "approved" (asked to approve or
 
 ## Halted — worker asks for decisions; tester must be attended — 2026-10-20
 G1 passes, G5 passes, and the push landed (`a6e3478`, clean tree). Halted on "a role returns asking for a decision": the worker's "Decisions for Dkaattae" 1–3, quoted above. The tester was not spawned. The worker asks for it to run in a different session and attended, because it will raise Test change requests that only a person in that session can approve (D-15).
+
+## Round 4 — tester (attended, outside this run) — 2026-10-22
+The tester ran in a separate session that Dkaattae attended (cse_01P7XSFjPfgo7AvC666zdJD1), not as a spawn from this run. Its commits run `d201e70`..`73ab9e0`. On return to this session the header read `Status: verified — pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-22`. Dkaattae, in this session: "ci is fixed". The orchestrator did not read the Verdict.
