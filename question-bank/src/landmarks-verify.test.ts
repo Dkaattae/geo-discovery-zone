@@ -641,9 +641,10 @@ describe("T-013 tester, criterion 13 — nothing unreviewed, live or new is comm
     expect(readdirSync(DATA_DIR).filter((n) => n.endsWith(".review.json"))).toEqual([]);
   });
 
-  test("the tracked bank is still well inside the 200 KB cap", () => {
+  test("the tracked bank is still well inside the 400 KB cap", () => {
     const bytes = walk(join(PKG, "data")).reduce((sum, p) => sum + statSync(p).size, 0);
-    expect(bytes).toBeLessThan(200 * 1024);
+    // Raised from 200 KB by T-026 (C6, E-25; approved Test change request rows 1-3).
+    expect(bytes).toBeLessThan(400 * 1024);
   });
 });
 

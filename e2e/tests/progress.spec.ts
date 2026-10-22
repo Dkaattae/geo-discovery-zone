@@ -49,7 +49,7 @@ test("signing out and back in starts where the child left off", async ({ page })
   const { username, profileName } = await signedInWithProfile(page, "resume");
   const startingLevel = await levelOnHome(page);
 
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, ENOUGH_TO_MOVE_THE_LEVEL);
   await finishSession(page);
   await backHome(page);
@@ -77,7 +77,7 @@ test("the level a child reaches is remembered between sittings", async ({ page }
   const { username, profileName } = await signedInWithProfile(page, "level-memory");
   const before = await levelOnHome(page);
 
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, ENOUGH_TO_MOVE_THE_LEVEL);
   await finishSession(page);
   await backHome(page);
@@ -97,7 +97,7 @@ test("progress belongs to the profile, not the browser", async ({ page }) => {
   const { profileName } = await signedInWithProfile(page, "second-profile");
   const fresh = await levelOnHome(page);
 
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, ENOUGH_TO_MOVE_THE_LEVEL);
   await finishSession(page);
   await backHome(page);
@@ -158,7 +158,7 @@ test("the map fills in once a child has come back a second time", async ({ page 
   expect(await placesFilled(page), "a new explorer should start with an empty map").toBe(0);
 
   const SITTING = 50;
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, SITTING);
   await finishSession(page);
   await backHome(page);
@@ -168,7 +168,7 @@ test("the map fills in once a child has come back a second time", async ({ page 
   ).toBe(0);
 
   // Come back. The same questions are offered again and mastery accumulates.
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, SITTING);
   await finishSession(page);
   await backHome(page);

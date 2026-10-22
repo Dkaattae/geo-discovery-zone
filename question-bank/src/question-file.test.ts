@@ -40,12 +40,15 @@ describe("T-040 — what the file holds today", () => {
   const doc = () =>
     JSON.parse(committed()) as {
       count: number;
-      questions: { id: string; format: string; entityId: string }[];
+      questions: { id: string; format: string; entityId: string; templateId: string }[];
     };
 
   test("150 questions: 50 per format, one per entity per template", () => {
-    const { count, questions } = doc();
-    expect(count).toBe(questions.length);
+    const { count, questions: all } = doc();
+    expect(count).toBe(all.length);
+    // T-026 (approved Test change request, S3): the three original templates.
+    const original = ["tpl-identify-on-map", "tpl-capital-of", "tpl-click-the-map"];
+    const questions = all.filter((q) => original.includes(q.templateId));
     expect(questions).toHaveLength(150);
     for (const format of ["map_identify", "multiple_choice", "map_click"]) {
       const ofFormat = questions.filter((q) => q.format === format);

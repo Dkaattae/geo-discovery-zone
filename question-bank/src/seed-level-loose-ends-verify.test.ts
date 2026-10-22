@@ -23,6 +23,7 @@ import { buildChoices } from "./distractors";
 import { generate } from "./generate";
 import * as seedLevel from "./seed-level";
 import { LEVEL_SEED_WEIGHTS, seedLevels } from "./seed-level";
+import { TEMPLATES } from "./templates";
 import type { Entity } from "./types";
 
 const SRC = import.meta.dirname;
@@ -325,9 +326,11 @@ describe("T-086 criteria 7-9: the band paragraph", () => {
 
 describe("T-086 criteria 10-12: what must not move", () => {
   test("criterion 10: the 150 seeded levels by id equal 41811f9's", () => {
+    // T-026 (approved Test change request, S3): the three original templates.
+    const original = TEMPLATES.slice(0, 3);
     const entities = bank();
-    const { questions } = buildChoices(generate(entities).drafts, entities);
-    const pairs = seedLevels(questions, entities)
+    const { questions } = buildChoices(generate(entities, original).drafts, entities, original);
+    const pairs = seedLevels(questions, entities, original)
       .map((q) => [q.id, q.level] as [string, number])
       .sort((a, b) => (a[0] < b[0] ? -1 : 1));
     expect(pairs.length).toBe(150);
@@ -335,7 +338,24 @@ describe("T-086 criteria 10-12: what must not move", () => {
   });
 
   test("criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to 41811f9's", () => {
-    expect(LEVEL_SEED_WEIGHTS).toEqual(BASE_WEIGHTS);
+    // T-026 (approved Test change request row 71): six concept_load keys are
+    // added, one per new template; everything 41811f9 had is unchanged.
+    const added = [
+      "tpl-biggest-state",
+      "tpl-state-animal-of",
+      "tpl-landmark-in",
+      "tpl-climate-of",
+      "tpl-crop-of",
+      "tpl-farm-animal-of",
+    ];
+    const load = { ...LEVEL_SEED_WEIGHTS.concept_load } as Record<string, number>;
+    expect(
+      Object.keys(load)
+        .filter((k) => !(k in BASE_WEIGHTS.concept_load))
+        .sort(),
+    ).toEqual([...added].sort());
+    for (const k of added) delete load[k];
+    expect({ ...LEVEL_SEED_WEIGHTS, concept_load: load }).toEqual(BASE_WEIGHTS);
   });
 
   test("criterion 11: the T-025 hand-check table (header, separator, 30 rows) is byte-identical to 41811f9's", () => {

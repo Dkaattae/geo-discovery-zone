@@ -65,19 +65,29 @@ function expected(own: Entity, tiers: ((e: Entity) => boolean)[], text: (e: Enti
   return taken;
 }
 
+/**
+ * T-026 (approved Test change request, S3): the three templates the T-022
+ * tests below were written for. The six T-026 templates are pinned by
+ * `t026-tester-verify.test.ts`.
+ */
+const ORIGINAL = TEMPLATES.filter((t) =>
+  ["tpl-identify-on-map", "tpl-capital-of", "tpl-click-the-map"].includes(t.id),
+);
+
 describe("over the committed bank", () => {
-  const { questions, shortPools } = run(bank);
-  const { drafts } = generate(bank);
+  const { questions } = run(bank);
+  const original = run(bank, ORIGINAL);
+  const originalDrafts = generate(bank, ORIGINAL).drafts;
 
   test("criterion 1: 150 questions, one per draft, nothing reported", () => {
     expect(bank).toHaveLength(50);
-    expect(questions).toHaveLength(150);
-    expect(shortPools).toEqual([]);
-    expect(questions.map((q) => q.id)).toEqual(drafts.map((d) => d.id));
+    expect(original.questions).toHaveLength(150);
+    expect(original.shortPools).toEqual([]);
+    expect(original.questions.map((q) => q.id)).toEqual(originalDrafts.map((d) => d.id));
   });
 
   test("criteria 2-5: shape, correctIndex, distinct text, draft fields kept", () => {
-    for (const [i, q] of questions.entries()) {
+    for (const [i, q] of original.questions.entries()) {
       expect(q.choices).toHaveLength(4);
       for (const c of q.choices) expect(c.trim()).not.toBe("");
       expect(Number.isInteger(q.correctIndex)).toBe(true);
@@ -86,7 +96,7 @@ describe("over the committed bank", () => {
       expect(q.choices[q.correctIndex]).toBe(q.answer);
       expect(new Set(q.choices.map((c) => c.trim().toLowerCase())).size).toBe(4);
       const { choices: _c, correctIndex: _i, choiceGeometryIds: _g, ...rest } = q;
-      expect(rest).toEqual(drafts[i]!);
+      expect(rest).toEqual(originalDrafts[i]!);
     }
   });
 
@@ -100,7 +110,7 @@ describe("over the committed bank", () => {
   });
 
   test("criterion 7: neighbours_first tiers and order, both map templates", () => {
-    for (const q of questions.filter((x) => x.templateId !== "tpl-capital-of")) {
+    for (const q of original.questions.filter((x) => x.templateId !== "tpl-capital-of")) {
       const own = byId.get(q.entityId)!;
       const borders = own.borders ?? [];
       const want = expected(
@@ -189,11 +199,12 @@ describe("over the committed bank", () => {
   });
 
   test("criterion 14: correctIndex depends on the draft id only", () => {
-    const reversed = run(bank.toReversed()).questions;
+    const reversed = run(bank.toReversed(), ORIGINAL).questions;
     const subset = run(
       bank.filter((e) => ["OH", "IN", "MI", "KY", "PA"].includes(e.id.slice(-2).toUpperCase())),
+      ORIGINAL,
     ).questions;
-    const full = new Map(questions.map((q) => [q.id, q.correctIndex]));
+    const full = new Map(original.questions.map((q) => [q.id, q.correctIndex]));
     for (const q of [...reversed, ...subset]) {
       expect(q.correctIndex).toBe(full.get(q.id)!);
       expect(q.correctIndex).toBe(correctIndexFor(q.id));
@@ -217,11 +228,11 @@ describe("short pools and bad input", () => {
   );
 
   test("criterion 16: 4 states give questions; 3 states give reports only", () => {
-    const ok = run(four);
+    const ok = run(four, ORIGINAL);
     expect(ok.questions).toHaveLength(12);
     expect(ok.shortPools).toEqual([]);
 
-    const short = run(four.slice(0, 3));
+    const short = run(four.slice(0, 3), ORIGINAL);
     expect(short.questions).toEqual([]);
     expect(short.shortPools).toHaveLength(9);
     for (const r of short.shortPools) {
@@ -234,7 +245,7 @@ describe("short pools and bad input", () => {
     for (const centroid of [undefined, [1], [Number.NaN, 40], ["1", 2]]) {
       const broken = { ...four[0]!, centroid } as Entity;
       const input = [broken, ...four.slice(1)];
-      const out = run(input);
+      const out = run(input, ORIGINAL);
       const own = out.shortPools.filter((r) => r.draftId.endsWith(broken.id));
       expect(own).toHaveLength(3);
       for (const r of own) expect(r.reason).toBe("no_centroid");
@@ -268,9 +279,11 @@ describe("short pools and bad input", () => {
   });
 
   test("criterion 22: strategy names unchanged", () => {
-    expect([...DISTRACTOR_STRATEGIES]).toEqual([
+    // T-026 (approved Test change request, PFX): the T-022 names stay first, in order.
+    expect([...DISTRACTOR_STRATEGIES].slice(0, 2)).toEqual([
       "neighbours_first",
       "sibling_capitals_same_region",
     ]);
+    expect(DISTRACTOR_STRATEGIES).toHaveLength(8);
   });
 });

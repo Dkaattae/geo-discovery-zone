@@ -146,13 +146,14 @@ describe("T-010 criterion 3 — every tracked entity file is complete", () => {
 });
 
 describe("T-010 criterion 5 — the committed bank stays small", () => {
-  test("every file tracked under question-bank/data/ totals under 200 KB", () => {
+  test("every file tracked under question-bank/data/ totals under 400 KB", () => {
     const total = trackedUnder("question-bank/data").reduce(
       (sum, path) => sum + statSync(join(REPO, path)).size,
       0,
     );
     expect(total).toBeGreaterThan(0);
-    expect(total).toBeLessThan(200 * 1024);
+    // Raised from 200 KB by T-026 (C6, E-25; approved Test change request rows 1-3).
+    expect(total).toBeLessThan(400 * 1024);
   });
 });
 

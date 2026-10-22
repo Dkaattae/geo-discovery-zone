@@ -102,7 +102,7 @@ test("a right answer earns a fact and a wrong one earns the reason", async ({
 
 test("the summary counts places, never a percentage or a score", async ({ page }) => {
   await signedInWithProfile(page, "summary");
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playQuestions(page, 3);
   await finishSession(page);
 

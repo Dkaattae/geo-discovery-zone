@@ -51,15 +51,20 @@ function backendEnum(name: string): string[] {
 
 const ADDED = ["scope", "entityType", "topic", "region", "ageBand"];
 
+/** T-026 (approved Test change request, S3): the three templates these tests were written for. */
+const ORIGINAL = TEMPLATES.slice(0, 3);
+
 describe("tagQuestions over the committed bank", () => {
   const entities = bank();
   const input = leveled(entities);
   const out = tagQuestions(input, entities);
 
   test("150 questions, ids in input order, all seven tags present", () => {
-    expect(out).toHaveLength(150);
-    expect(out.map((q) => q.id)).toEqual(input.map((q) => q.id));
-    for (const q of out) {
+    const originalInput = leveled(entities, ORIGINAL);
+    const originalOut = tagQuestions(originalInput, entities, ORIGINAL);
+    expect(originalOut).toHaveLength(150);
+    expect(originalOut.map((q) => q.id)).toEqual(originalInput.map((q) => q.id));
+    for (const q of originalOut) {
       for (const key of ["scope", "entityType", "topic", "region", "format", "ageBand", "level"]) {
         expect(q[key as keyof typeof q]).not.toBeNil();
       }
@@ -178,7 +183,9 @@ describe("holes and bad input", () => {
         else copy["region"] = region;
         return copy as unknown as Entity;
       });
-      const out = tagQuestions(input, holed).filter((q) => q.entityId === "us-state-co");
+      const out = tagQuestions(leveled(entities, ORIGINAL), holed, ORIGINAL).filter(
+        (q) => q.entityId === "us-state-co",
+      );
       expect(out).toHaveLength(3);
       for (const q of out) {
         expect(Object.hasOwn(q, "region")).toBe(false);

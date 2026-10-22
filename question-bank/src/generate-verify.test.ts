@@ -65,6 +65,15 @@ const T020_RECORDS: Template[] = [
   },
 ];
 
+/**
+ * T-026 (approved Test change request, S3): the three templates the T-021
+ * tests were written for. The six T-026 templates are pinned by
+ * `t026-tester-verify.test.ts`.
+ */
+const ORIGINAL_IDS = [IDENTIFY, CAPITAL, CLICK];
+const ORIGINAL = (): Template[] =>
+  structuredClone(TEMPLATES.filter((t) => ORIGINAL_IDS.includes(t.id)));
+
 /** A fresh parse per call: no test can mutate another's data. */
 function bank(): Entity[] {
   const files = readdirSync(STATES_DIR).filter((f) => /^us-state-[a-z]{2}\.json$/.test(f));
@@ -126,12 +135,14 @@ describe("T-021 criterion 1: committed bank gives exactly 150 drafts and no skip
   test("50 committed entities in, 150 drafts and an empty skip report out", () => {
     const entities = bank();
     expect(entities).toHaveLength(50);
-    const out = generate(entities, TEMPLATES);
+    const out = generate(entities, ORIGINAL());
     expect(out.drafts).toHaveLength(150);
     expect(out.skipped).toEqual([]);
   });
   test("the template list defaults to TEMPLATES", () => {
-    expect(generate(bank()).drafts).toHaveLength(150);
+    expect(generate(bank()).drafts.filter((d) => ORIGINAL_IDS.includes(d.templateId))).toHaveLength(
+      150,
+    );
   });
 });
 
@@ -144,7 +155,7 @@ describe("T-021 criterion 2: 50 drafts per template, 3 per entity, one per templ
   });
   test("each entity id appears on exactly 3 drafts, one from each template", () => {
     const entities = bank();
-    const { drafts } = generate(entities, TEMPLATES);
+    const { drafts } = generate(entities, ORIGINAL());
     for (const e of entities) {
       const mine = drafts.filter((d) => d.entityId === e.id);
       expect(mine.map((d) => d.templateId).sort()).toEqual([CAPITAL, CLICK, IDENTIFY]);
@@ -313,20 +324,20 @@ describe("T-021 criterion 11: a FIPS code is never a label a child sees", () => 
 
 describe("T-021 criterion 12: ids are unique and stable", () => {
   test("all 150 ids in one output are distinct", () => {
-    const ids = generate(bank(), TEMPLATES).drafts.map((d) => d.id);
+    const ids = generate(bank(), ORIGINAL()).drafts.map((d) => d.id);
     expect(new Set(ids).size).toBe(150);
   });
   test("the same pair gets the same id over a subset", () => {
-    const full = generate(bank(), TEMPLATES).drafts;
+    const full = generate(bank(), ORIGINAL()).drafts;
     const subset = bank().filter((e) => [COLORADO, ALASKA, "us-state-wy"].includes(e.id));
     expect(subset).toHaveLength(3);
-    const part = generate(subset, TEMPLATES).drafts;
+    const part = generate(subset, ORIGINAL()).drafts;
     expect(part).toHaveLength(9);
     for (const d of part) expect(draftOf(full, d.templateId, d.entityId).id).toBe(d.id);
   });
   test("the same pair gets the same id with entities and templates reversed", () => {
-    const full = generate(bank(), TEMPLATES).drafts;
-    const reversed = generate(bank().reverse(), templates().reverse()).drafts;
+    const full = generate(bank(), ORIGINAL()).drafts;
+    const reversed = generate(bank().reverse(), ORIGINAL().reverse()).drafts;
     expect(reversed).toHaveLength(150);
     for (const d of reversed) expect(draftOf(full, d.templateId, d.entityId).id).toBe(d.id);
   });
@@ -417,13 +428,13 @@ describe("T-021 criterion 14: missing data skips the pair and reports it", () =>
 
 describe("T-021 criterion 15: a skip is per pair, not per entity", () => {
   test("empty capital loses only the capital-of draft", () => {
-    const out = generate([synth({ capital: "" })], templates());
+    const out = generate([synth({ capital: "" })], ORIGINAL());
     expect(out.drafts.map((d) => d.templateId).sort()).toEqual([CLICK, IDENTIFY]);
     expect(out.skipped).toHaveLength(1);
     expect(out.skipped[0]?.templateId).toBe(CAPITAL);
   });
   test("a gap in one entity does not cost the other 50 anything", () => {
-    const out = generate([...bank(), synth({ capital: "" })], TEMPLATES);
+    const out = generate([...bank(), synth({ capital: "" })], ORIGINAL());
     expect(out.drafts).toHaveLength(152);
     expect(out.skipped).toHaveLength(1);
   });
@@ -450,7 +461,9 @@ describe("T-021 criterion 16: applies_to is respected and not reported", () => {
 });
 
 describe("T-021 criterion 17: a non-string value never becomes text", () => {
-  test("answer_field top_crops = ['corn']: no draft, one report naming top_crops", () => {
+  // T-026 criterion 7 reverses this (approved Test change request row 41): a
+  // list of strings is text, its first entry.
+  test("answer_field top_crops = ['corn']: one draft, answer 'corn', no report", () => {
     const t: Template = {
       ...tpl(CAPITAL),
       id: "tpl-top-crop",
@@ -460,9 +473,9 @@ describe("T-021 criterion 17: a non-string value never becomes text", () => {
     };
     expect(validateTemplate(t)).toEqual([]);
     const out = generate([synth({ top_crops: ["corn"] })], [t]);
-    expect(out.drafts).toEqual([]);
-    expect(out.skipped).toHaveLength(1);
-    expect(namedFields(out.skipped[0] as Skip)).toContain("top_crops");
+    expect(out.drafts).toHaveLength(1);
+    expect(out.drafts[0]?.answer).toBe("corn");
+    expect(out.skipped).toEqual([]);
   });
   const nonStrings: [string, unknown][] = [
     ["a number", 42],
@@ -476,6 +489,9 @@ describe("T-021 criterion 17: a non-string value never becomes text", () => {
       expect(out.skipped).toHaveLength(1);
       expect(namedFields(out.skipped[0] as Skip)).toContain("name");
     });
+    // T-026 criterion 7 reverses the string-array case (approved Test change
+    // request row 42); it is the test after this loop.
+    if (label === "an array") continue;
     test(`answer capital as ${label}: skipped, capital reported`, () => {
       const out = generate([synth({ capital: value })], [tpl(CAPITAL)]);
       expect(out.drafts).toEqual([]);
@@ -483,6 +499,15 @@ describe("T-021 criterion 17: a non-string value never becomes text", () => {
       expect(namedFields(out.skipped[0] as Skip)).toContain("capital");
     });
   }
+  test("answer capital as a string array: the first entry, no report", () => {
+    const out = generate([synth({ capital: ["Quel", "Other"] })], [tpl(CAPITAL)]);
+    expect(out.drafts.map((d) => d.answer)).toEqual(["Quel"]);
+    expect(out.skipped).toEqual([]);
+    const numbers = generate([synth({ capital: [42] })], [tpl(CAPITAL)]);
+    expect(numbers.drafts).toEqual([]);
+    expect(numbers.skipped).toHaveLength(1);
+    expect(numbers.skipped[0]?.notText).toContain("capital");
+  });
   test("answer_field highest_point_m = 0 (present, a number): skipped, not '0'", () => {
     const t: Template = {
       ...tpl(CAPITAL),
@@ -652,8 +677,11 @@ describe("T-021 criteria 23, 24, 27: no I/O, not wired into the pipeline", () =>
 
 describe("T-021 criterion 25: TEMPLATES unchanged", () => {
   test("still the three T-020 records, every field, at load and after every call above", () => {
-    expect(PRISTINE).toEqual(T020_RECORDS);
-    expect(TEMPLATES).toEqual(T020_RECORDS);
+    // T-026 (approved Test change request, PFX): the T-020 records stay first.
+    expect(PRISTINE.slice(0, 3)).toEqual(T020_RECORDS);
+    expect(TEMPLATES.slice(0, 3)).toEqual(T020_RECORDS);
+    expect(PRISTINE).toHaveLength(9);
+    expect(TEMPLATES).toHaveLength(9);
     for (const t of TEMPLATES) expect(validateTemplate(t)).toEqual([]);
   });
 });

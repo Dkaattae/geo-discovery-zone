@@ -26,7 +26,7 @@ async def test_content_version_counts_what_was_seeded(
     body = (await client.get("/content/version")).json()
     assert_matches(spec, "ContentVersion", body)
     assert body["counts"]["entities"] == 50
-    assert body["counts"]["questions"] == 100
+    assert body["counts"]["questions"] == 365  # T-026: six new templates
 
 
 async def test_the_bank_is_seeded_from_the_shipped_question_bank(
@@ -137,7 +137,7 @@ async def test_pagination_walks_the_whole_set_once(
 ) -> None:
     seen: list[str] = []
     cursor: str | None = None
-    for _ in range(30):
+    for _ in range(100):
         params: dict[str, Any] = {"limit": 4}
         if cursor:
             params["cursor"] = cursor
@@ -147,8 +147,8 @@ async def test_pagination_walks_the_whole_set_once(
         cursor = page["page"]["nextCursor"]
         if not page["page"]["hasMore"]:
             break
-    assert len(seen) == 100
-    assert len(set(seen)) == 100
+    assert len(seen) == 365  # T-026: six new templates
+    assert len(set(seen)) == 365
 
 
 async def test_a_forged_cursor_is_refused(client: httpx.AsyncClient) -> None:
@@ -167,7 +167,7 @@ async def test_a_bundle_carries_its_entities_and_questions(
     body = response.json()
     assert_matches(spec, "Bundle", body)
     assert len(body["entities"]) == 50
-    assert len(body["questions"]) == 100
+    assert len(body["questions"]) == 365  # T-026: six new templates
     assert body["entityCount"] == 50
 
 
