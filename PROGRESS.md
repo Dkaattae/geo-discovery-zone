@@ -369,7 +369,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   farthest-first, a worker's call the reviewer accepted, because neighbours
   in different same-climate groups still read alike. C3's accepted risk turned
   out common: many crop and farm-animal wrong answers are things the state does
-  grow or raise (T-088), and the review escalated it. The stale-test list was
+  grow or raise (T-088). The review escalated it, and Dkaattae decided it
+  follows this PR rather than blocking it. The stale-test list was
   about 20 times what the brief named: 92 Test change request rows, plus
   row 94 and three amendments, all approved by Dkaattae in an attended tester
   session. The harness refused the reviewer's sweep, so a person applied it.

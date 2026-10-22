@@ -214,3 +214,4 @@ The orchestrator read only `### Sweep to apply` and applied items 1–3 as writt
 Item 4, the checks: `question-bank` `bun test` 2306 pass, 0 fail. `make -C backend test` 618 passed, 9 skipped. The three frontend suite-count guards: 118 pass, 0 fail.
 Two lines are now out of date because of the decision: 2f's T-088 note ("Escalated on PR #91 for Dkaattae to decide whether this blocks that merge") and 3d's "the review escalated it". Applied verbatim anyway; they are not amended.
 PR #91 is still draft. Marking it ready and merging are Dkaattae's.
+Follow-up on Dkaattae's instruction ("yes, fix the two stale lines"): the T-088 note in `tasks.md` and the T-026 entry in `PROGRESS.md` now say T-088 follows the merge. The same three suites pass again: 2306 / 618 passed, 9 skipped / 118.

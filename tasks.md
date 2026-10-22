@@ -437,7 +437,7 @@ worker is fairly sure of (from general knowledge, not a committed source):
 `top_livestock` lists what a state is known for, not all it raises, so
 "not listed" is read as "not raised". From the committed file: Iowa is also
 offered "dairy cows", Minnesota "dairy cows", California "turkeys". Escalated
-on PR #91 for Dkaattae to decide whether this blocks that merge.
+on PR #91; Dkaattae decided 2026-10-22 that it follows the merge, not blocks it.
 **Options:** (a) a person-approved "also grown/raised" list per state, used
 as an exclusion; (b) farthest-first ordering, as T-026 did for climate (E-25),
 which mostly offers Hawaii's and Alaska's crops; (c) take the answer from a
