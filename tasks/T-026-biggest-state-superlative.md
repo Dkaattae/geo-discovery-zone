@@ -1,13 +1,13 @@
 # T-026 — Templates for the topics the app has never shown (superlative, wildlife, landmark, climate, agriculture)
 
-**Status:** `test changes requested`
-**Next step:** `human` — approve or refuse the 92 rows under "Test change request", in the attended tester session
+**Status:** `verified — pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-20, in the orchestrator session ("approved"), C1–C7 included. See `runs/T-026-biggest-state-superlative.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-22` (attended tester session cse_01P7XSFjPfgo7AvC666zdJD1)
 **From:** [`tasks.md`](../tasks.md) T-026
 **Branch:** `claude/serene-ramanujan-msepc5`
 **PR:** #91, opened draft at expand time against the branch above. Stays draft until the reviewer approves
-**Fault:** test changes are waiting for approval (92 rows: 78 question-bank, 9 backend, 5 e2e)
+**Fault:**
 
 **Sessions:**
 
@@ -433,18 +433,22 @@ Every one is red because of the count, template set or size this brief changes o
 
 ## Verdict
 
-**Not yet given — waiting on the Test change request below.** Everything else is verified.
+**Pass.** Every criterion has a test, and on `5ae8447` all six CI jobs are green: question-bank, frontend, backend (both), integration, and e2e.
 
-- **Independence:** separate session (`cse_01P7XSFjPfgo7AvC666zdJD1`), not the expander's or worker's `cse_019R9…`. Attended by a person.
-- **Tester tests (all green):**
-  - `question-bank/src/t026-tester-verify.test.ts`: 50 tests, criteria 1–35, 39, 50, 51.
-  - `backend/tests/test_t026_tester_criteria.py`: 15 tests, criteria 36, 37, 38, 46.
-  - `frontend/src/lib/t026-tester.criteria.test.ts`: 8 tests, criteria 40–45 through `choicePanel` and `SETUP_TOPICS`.
-  - `frontend/src/components/t026-setup.criteria.test.tsx`: the rendered Setup buttons (43–45). **Not run here**, because the frontend install 403s on its private mirror. CI's frontend job runs it.
-- **Negative criteria 48, 50 and 52:** `git diff main` shows no change to any `package.json`, lockfile, `pyproject.toml`, entity file, curated table, fixture or `openapi.yaml`. Criterion 49: the new tests contain no `fetch`, URL or mock.
-- **Mutation:** removing WA from `SAME_CLIMATE_GROUPS` turns criterion 23 red (reverted). The bank-reading tests are bound to the code through criterion 35, which re-renders the file and compares bytes.
-- **Pre-change pins are recorded hashes, not git reads:** CI checks out shallow, and the T-081 guard forbids a revision in a test's git call. They are the old 150 generated questions, the old 100 served questions and the entity files, all from `main` at `45b00d7`.
-- **The stale list is the worker's, checked:** 77 question-bank reds here, plus `seed-level-verify` criterion 20, which times out only on CI (78 there); 9 backend; 5 e2e. Each one is red only because of the template count, question count, cap, label or criterion 7. None is red because the code is wrong.
+- **Independence:** this was a separate, attended session (`cse_01P7XSFjPfgo7AvC666zdJD1`), not the expander's and worker's `cse_019R9…`. It is a different session id, not just a fresh subagent.
+- **Tester tests:**
+  - `question-bank/src/t026-tester-verify.test.ts` (50) covers criteria 1–35, 39, 50 and 51.
+  - `backend/tests/test_t026_tester_criteria.py` (15) covers 36–38 and 46.
+  - `frontend/src/lib/t026-tester.criteria.test.ts` (8) and `frontend/src/components/t026-setup.criteria.test.tsx` cover 40–45. The `.tsx` file runs in CI only, because the frontend install 403s here.
+  - Criteria 47 (e2e) and 48–52 are checked by CI plus `git diff main`: no change to a dependency, entity file, curated table, fixture or `openapi.yaml`, and no `fetch` or mock in the new tests.
+- **Pre-change pins** are recorded hashes from `main` at `45b00d7`: the old 150 generated questions, the old 100 served questions, and the entity files.
+- **Mutation:** removing WA from `SAME_CLIMATE_GROUPS` turns criterion 23 red (reverted). The bank-reading tests are bound to the code by criterion 35, which re-renders the file and compares bytes.
+- **Pre-existing tests changed under the approved Test change request:** rows 1–92 and 94, plus amendments A1–A3, all listed below. Approved by Dkaattae in this session ("Approve rows 1–3", "Approve rows 4–78", "Approve rows 79–87", "Approve rows 88–92", "Approve A1", "Approve A2", "Approve A3", "Approve row 94"). Header: `approved — Dkaattae, 2026-10-22`. None asserts less than before:
+  - **60 tests are scoped to the three original templates**, assertions unchanged.
+  - **Value pins keep the old values as the first entries** and pin the new totals.
+  - **Floors are kept**; c22 plays 200 answers instead of 100.
+  - **Row 94** drops only the premise that T-026 deliberately ended.
+- **Not verified here:** the brief's open owner calls are for review, not test. They are climate farthest-first, T-088 (crop and farm-animal distractors the state also grows or raises), and the Setup labels.
 
 ## Test change request
 
