@@ -1,7 +1,7 @@
 # T-026 — Templates for the topics the app has never shown (superlative, wildlife, landmark, climate, agriculture)
 
-**Status:** `verified — pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` — Dkaattae decides the escalation on PR #91 before merging (see `## Review`)
 **Approved:** Dkaattae — 2026-10-20, in the orchestrator session ("approved"), C1–C7 included. See `runs/T-026-biggest-state-superlative.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-22` (attended tester session cse_01P7XSFjPfgo7AvC666zdJD1)
 **From:** [`tasks.md`](../tasks.md) T-026
@@ -17,6 +17,7 @@
 | task-expander | 2026-10-20 | cse_019R9SRj6CMD4wWi2gd7WNAm (orchestrated; round 2, criteria written for Q1 (a) / Q2 No) |
 | worker | 2026-10-20 | cse_019R9SRj6CMD4wWi2gd7WNAm (orchestrated subagent; same remote session id as the expander, so the tester must run in a different one) |
 | tester | 2026-10-22 | cse_01P7XSFjPfgo7AvC666zdJD1 (attended; a separate session from the expander and worker) |
+| reviewer | 2026-10-22 | cse_019R9SRj6CMD4wWi2gd7WNAm (orchestrated subagent; same remote session id as the expander and worker, a fresh context that wrote none of the work) |
 
 The filename keeps its round-1 slug (`biggest-state-superlative`) so the branch, the PR and the run log still point at it. The task now covers every topic.
 
@@ -564,6 +565,59 @@ Every one is red because of the count, template set or size this brief changes o
 | 94 | new: `e2e/tests/progress.spec.ts` › "the map fills in once a child has come back a second time" | Its first-sitting-is-empty premise (2 questions per state, T-040) is stale: with 7 per state CI shows 2 states filled after one sitting. It was written to fail when the bank grew. | modify | Same name; drops only the "first sitting fills nothing" assertion and updates the doc comment. The empty start and "second sitting fills in > 0" stay. Not re-pinned to "first sitting > 0", which would flake. | approved ("Approve row 94") |
 
 Also, to keep lint clean after rows 18–21: `distractors.test.ts` dropped its describe-level `shortPools` and `drafts` bindings, which those rows had left unused.
+
+## Review
+
+**TL;DR.** **Approved, and escalated: do not merge without Dkaattae's decision on the agriculture questions.** The code is good. It fits the pipeline's idioms, stays inside the Constraints, and every role kept to its lane. But the farm-animal and crop questions mark true answers wrong for many of the biggest farm states, so Dkaattae must decide whether T-088 blocks this PR. The new child-facing text (six prompts, eight Setup labels) also needs a person's read.
+
+### Escalation: why this is not a routine merge
+
+| Envelope item | Holds? | Detail |
+|---|---|---|
+| Tester pass, suite green | yes | Verdict pass. CI green on `5ae8447`. The later commits change docs only. |
+| Nothing outside Constraints | yes, one small addition | `frontend/src/lib/topics.ts` is new. It holds the pure rule behind `Session.tsx` and the Setup list. `tasks.md` gained T-088 from the worker. Both are fine. |
+| No dependency | yes | |
+| No `openapi.yaml`, migration or plan change | yes | |
+| **No text a child reads** | **no** | Six prompts and eight Setup labels (below). 265 new questions reach children. |
+| Pre-existing tests changed only with a person's approval | yes | Rows 1–92, 94 and A1–A3, approved by Dkaattae in the attended tester session. Only `tester` commits (`f1b9de5`, `5ae8447`) touch pre-existing tests. The worker's commit touches none. |
+| **No product decision settled along the way** | **no** | Climate farthest-first (decided below). T-088 is left to Dkaattae. |
+| **Small enough to hold at once** | **no** | Size L: 43 files, about 12,000 lines of regenerated JSON. |
+
+### Findings
+
+None blocks in the sense of sending the work back to an agent. The criteria are met, and the one problem of substance was accepted when the brief was approved. That makes it a person's call, not a rework.
+
+1. **Agriculture distractors are often true (blocks merge until Dkaattae decides; not a send-back).** These are from the committed `question-bank/data/questions/us-states.json`:
+   - farm animals: Iowa is offered "chickens" and "dairy cows" as wrong; Minnesota "pigs" and "dairy cows"; Texas "sheep" and "chickens"; North Carolina "chickens"; California "turkeys";
+   - crops: Minnesota is offered "sugar beets" and "hay" as wrong; Texas "corn"; Washington "wheat", "barley" and "alfalfa hay".
+
+   The cause is `top_livestock` (24/50, six values) and `top_crops` (one to three per state). They list what a state is *known* for, not everything it raises. `livestock_not_raised` treats "not listed" as "not raised". The approved C3 accepted this risk for far-away crops. For farm animals it is the common case, in the states a child is most likely to know for farming. `CLAUDE.md`: "a wrong one in a quiz that claims to teach is not [fine]". **Reviewer's recommendation:** treat T-088 as blocking for `tpl-farm-animal-of` at least. The choice is Dkaattae's. Either merge #91 now and run T-088 next, or hold #91 until T-088 lands on its own branch.
+2. **Child-facing text for a person to read (escalated).**
+   - Prompts: "Which of these states is the biggest?", "What is the state animal of {name}?", "Which of these landmarks is in {name}?", "What kind of climate does {name} have?", "Which crop is {name} known for growing?", "Which farm animal is {name} known for?"
+   - Setup labels: "Places on the map", "Capital cities", "Biggest states", "State animals", "Famous sights", "Weather and climate", "Farms and crops", "A bit of everything".
+   - C4's four landmark traps are the expander's own geography. Dkaattae approved them with the brief, so they stand.
+3. **Superlative: the answer is on the wire (non-blocking).** The served `entity` of a superlative question *is* its answer. A child with the network tab open can read it, even with `includeAnswerKey=false`. The brief puts this in T-053's scope. **Amended T-053** so the fix covers it, because T-053 must settle the answer-key question anyway.
+4. **A single-topic session still cannot fill the map on day one (non-blocking).** Each new topic has one question per state (agriculture up to two). Mixed sessions now fill states in a first sitting (row 94 shows two after 50 answers), but "Capital cities" or "State animals" alone cannot. **Rewrote T-056** to cover what is left, rather than adding a new task.
+5. **Climate questions are easy and repetitive (non-blocking).** Farthest-first puts Hawaii's and Alaska's phrases in most climate questions. Seen in the Alabama and Michigan questions. **Amended T-050**, which already owns checking how the new bank behaves, to look at it.
+6. **Small doc nits, no task.** The doc comment on `nearestDistractors` (`distractors.ts`) still says "nearest-first", though climate goes farthest-first. E-24's "Revisit when" still mentions the 200 KB budget, which E-25 supersedes. Neither is worth a queue entry. The next task to touch either file can fix them.
+
+### Worker's flags, each disposed of
+
+| Flag | Disposition |
+|---|---|
+| Climate farthest-first | **Decided here: accepted.** A choice a child cannot tell apart from the answer is worse than an easy one, and E-25 records the call. Difficulty goes to T-050 (amended). Dkaattae may overrule it on the PR. |
+| T-088, true agriculture distractors | **Escalated to Dkaattae:** does T-088 block #91 or follow it? Finding 1 gives the reviewer's recommendation. Either way, T-088 owns the fix. |
+| `concept_load` first guesses | **Deferred** to T-050 / T-085, as E-22 already says. |
+| Setup labels | **Escalated**: the person reading the PR reviews them (finding 2). |
+| "A bit of both" → "A bit of everything" | **Closed.** The tester changed the e2e tests under approved rows. |
+| Landmark prompt avoids "famous" | **Accepted.** T-025's guard covers `question-bank/src/` only, so the "Famous sights" Setup label in `frontend/` does not trip it. |
+
+### Lanes
+
+- **Expander** (`fa93266`, `f47c18e`, `a343987`): only `tasks/` and `tasks.md`.
+- **Worker** (`a6e3478`): source, regenerated files, `engineering-decisions.md`, new tests and `tasks.md`. It touched no pre-existing test.
+- **Tester** (`d201e70` … `73ab9e0`): only tests and the brief.
+- **Orchestrator:** only `runs/` and header stamps.
 
 ## Notes
 
