@@ -1,7 +1,7 @@
 # T-026 — A third topic: "Which of these states is the biggest?" — run log
 
 **Task:** T-026 · **Branch:** `claude/serene-ramanujan-msepc5` · **PR:** #91
-**Started:** 2026-10-20 · **Outcome:** halted — needs human (reviewer approved and escalated; sweep refused; blocked)
+**Started:** 2026-10-20 · **Outcome:** ready for a human to mark ready and merge (sweep applied by orchestrator on Dkaattae's instruction)
 
 ## Round 1 — task-expander — 2026-10-20
 `Next step` on entry: none (no brief) → on exit: `human`
@@ -207,3 +207,10 @@ The code is good. The thing that needs Dkaattae is content: the crop and farm-an
 G5 passes and the push landed (`f4b3250`, clean tree). The header reads `Status: blocked`, not `sweep refused`, so the D-16 one-hour fallback does not apply: the orchestrator never applies a sweep on `Status: blocked`. No check-in was scheduled. The run ends here.
 
 What a human has to decide, quoted from the header: "(1) apply `### Sweep to apply` verbatim, (2) decide the escalation (T-088: block or follow), (3) mark PR #91 ready and merge, or hold it".
+
+## Sweep applied on Dkaattae's instruction — 2026-10-22
+Dkaattae, in this session, verbatim: "T-088 follows, apply the sweep". So T-088 does not block PR #91.
+The orchestrator read only `### Sweep to apply` and applied items 1–3 as written: deleted the brief, made edits 2a–2k to `tasks.md` and 3a–3g to `PROGRESS.md`. Every replacement was checked to match its quoted text exactly once.
+Item 4, the checks: `question-bank` `bun test` 2306 pass, 0 fail. `make -C backend test` 618 passed, 9 skipped. The three frontend suite-count guards: 118 pass, 0 fail.
+Two lines are now out of date because of the decision: 2f's T-088 note ("Escalated on PR #91 for Dkaattae to decide whether this blocks that merge") and 3d's "the review escalated it". Applied verbatim anyway; they are not amended.
+PR #91 is still draft. Marking it ready and merging are Dkaattae's.

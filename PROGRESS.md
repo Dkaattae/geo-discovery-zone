@@ -3,18 +3,18 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-10-19_
+_Last updated: 2026-10-22_
 
 ## In one paragraph
 
 The **whole stack is built and runs**: a React app, a FastAPI backend serving all
 29 operations in `openapi.yaml`, a database that survives restarts (SQLite or
 Postgres), accounts with hashed passwords, and one Docker image that serves both
-halves on one origin. Since T-040 (PR #88) the app serves the
-pipeline's **50 states** and **100 generated questions**, two per state, in two
-formats and two topics. What is thin now is the **variety**: the plan describes
-ten topics, and the curated fields for four more are waiting on templates
-(T-026) and a third format (T-051).
+halves on one origin. Since T-040 (PR #88) and T-026 (PR #91) the app serves
+the pipeline's **50 states** and **365 generated questions**, seven per state,
+in two formats and seven topics: location, capital, superlative, wildlife,
+landmark, climate and agriculture. What is thin now is the **format**: a third
+one, `map_click`, waits on T-051.
 
 ## Layout
 
@@ -195,17 +195,20 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
-- **Templates and a generator, writing nothing yet** (T-020, T-021):
-  `src/templates.ts` holds the template record, three templates and a
+- **Templates and a generator** (T-020, T-021, T-026):
+  `src/templates.ts` holds the template record, nine templates and a
   validator. `src/generate.ts` turns entities × templates into question drafts
-  (150 over the committed bank) and reports pairs with missing data.
+  (415 over the committed bank) and reports pairs with missing data.
   `src/distractors.ts` `buildChoices` (T-022) turns those drafts into
   four-option questions with `choices`, `correctIndex` and, on `map_click`,
-  `choiceGeometryIds` (E-21). `src/seed-level.ts` `seedLevels` (T-023) adds a
-  `level` in 0–18 from plan §1.4's formula, every weight in
-  `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions (T-025). `src/tags.ts` `tagQuestions` (T-024) adds the
-  other five `GET /questions` tags (`scope`, `entityType`, `topic`, `region`,
-  `ageBand`; E-23). Nothing writes or serves the output.
+  `choiceGeometryIds` (E-21). T-026 added one strategy per new template, with
+  the person-approved same-thing lists beside them (E-25). `src/seed-level.ts`
+  `seedLevels` (T-023) adds a `level` in 0–18 from plan §1.4's formula, every
+  weight in `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions
+  (T-025). `src/tags.ts` `tagQuestions` (T-024) adds the other five
+  `GET /questions` tags (`scope`, `entityType`, `topic`, `region`, `ageBand`;
+  E-23). `write-questions.ts` writes them to the committed question file
+  (T-040, E-24).
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
   `state-animals.test.ts` (T-012), `landmarks.test.ts` and
@@ -356,6 +359,22 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-026 — templates for every curated topic** (PR #91, 2026-10-22). Six
+  `multiple_choice` templates: the biggest of four states (next-ranked on total
+  area), state animal, landmark, climate, top crop and farm animal. That is 265
+  new questions: 415 generated, 365 served, seven per state. Each guard is a
+  person-approved list in `distractors.ts` (E-25). Superlatives reveal on the
+  map. Setup offers seven topics plus "A bit of everything", and the bank cap
+  rose to 400 KB. *Where it differed from the brief:* climate distractors go
+  farthest-first, a worker's call the reviewer accepted, because neighbours
+  in different same-climate groups still read alike. C3's accepted risk turned
+  out common: many crop and farm-animal wrong answers are things the state does
+  grow or raise (T-088), and the review escalated it. The stale-test list was
+  about 20 times what the brief named: 92 Test change request rows, plus
+  row 94 and three amendments, all approved by Dkaattae in an attended tester
+  session. The harness refused the reviewer's sweep, so a person applied it.
+  Expander, worker and reviewer ran orchestrated in one session id; the tester
+  ran attended, in its own.
 - **T-064 — `question-bank/sample-data/` is gone** (PR #89, 2026-10-20). The
   one-state sample, its README and the `build:sample` script are deleted, and
   `question-bank/README.md` now points at `data/us-states/us-state-co.json` as
@@ -1463,9 +1482,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Content — the big one.**
 
-- The app serves **50 states and 100 generated questions**, in **2 of 9
-  formats** and **2 of 10 topics** (T-040, PR #88). Two questions per state is
-  thin: a child meets every question in two sittings.
+- The app serves **50 states and 365 generated questions**, in **2 of 9
+  formats** and **7 of 10 topics** (T-040, T-026). `size`, `physical` and
+  `elevation` have no template.
+- **Some agriculture wrong answers are true.** The crop and farm-animal fields
+  list what a state is known for, not all it grows, so a "wrong" choice is
+  sometimes right: Iowa "chickens", Texas "sheep", Minnesota "sugar beets"
+  (T-088).
 - **Regenerating is by hand.** After the entity bank changes, two commands
   rewrite the question file and `content.json`, and a drift test is red until
   both are run (E-24). Nothing prompts for them yet (T-087).
@@ -1488,10 +1511,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   NASS) and was the last of the four topic fields. `top_livestock` followed
   as its sibling (T-068, PR #69, E-18): 24 of 50 states, deliberately blank
   elsewhere, with its substance awaiting a human read on PR #69. So all four
-  topic fields now have data
-  and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
-  T-026 (templates plus a same-value distractor guard) and both committed
-  files being regenerated (T-087).
+  topic fields now have data, and since T-026 (PR #91) each has a template
+  and is served.
 - **One region vocabulary, settled** (T-017, PR #49): the served bank's thirteen
   values, used by both halves and enforced by a closed-set test over the curated
   table, the built bank and `content.json`. What is *not* settled is whether each
@@ -1526,9 +1547,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Behaviour.**
 
-- **The map cannot fill in during a child's first session.** A state needs four
-  right answers; the bank has exactly two questions per state. A perfect first
-  sitting colours in nothing, and it takes a second visit (T-056).
+- **A single-topic first session cannot fill the map.** A state needs four
+  right answers. Since T-026 a mixed session has seven questions per state and
+  can fill states in, but each topic has only one per state (T-056).
 - A **React hydration warning** (#418) on first load of the production build. The
   app recovers; the cause is unfound (T-048).
 - `/geometry`, `/elevation-profiles` and `/superlative-axes` are implemented and
@@ -1549,13 +1570,12 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 Broken into small, independently landable tasks in [`tasks.md`](tasks.md) — that
 is the queue to work from. §4 of the plan is the authority on sequencing: **do
 not build the world until the US loop feels good**, and the US loop is fifty
-states wide but only two questions deep per state.
+states wide and, since T-026, seven questions deep per state.
 
 The shortest path to an app that is worth playing for an hour:
 
-1. **T-026 starting with superlatives** — a third topic for free, since the rank
-   fields are already populated. It also adds questions per state, which is
-   what the map needs to fill (T-056).
+1. **T-088** — the agriculture wrong answers that are true, before more
+   children meet them.
 2. **T-051** — `map_click`, the third v1 format; the question file already
    holds it.
 3. **T-050** — check that selection and levels behave over the larger bank.
