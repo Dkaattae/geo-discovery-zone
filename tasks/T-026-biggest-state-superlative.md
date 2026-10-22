@@ -1,7 +1,7 @@
 # T-026 — Templates for the topics the app has never shown (superlative, wildlife, landmark, climate, agriculture)
 
-**Status:** `approved — escalated`
-**Next step:** `human` — Dkaattae decides the escalation on PR #91 before merging (see `## Review`)
+**Status:** `blocked` — approved and escalated, but the harness refused the sweep (see `## Review` › "Sweep to apply")
+**Next step:** `human` — (1) apply `### Sweep to apply` verbatim, (2) decide the escalation (T-088: block or follow), (3) mark PR #91 ready and merge, or hold it
 **Approved:** Dkaattae — 2026-10-20, in the orchestrator session ("approved"), C1–C7 included. See `runs/T-026-biggest-state-superlative.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-22` (attended tester session cse_01P7XSFjPfgo7AvC666zdJD1)
 **From:** [`tasks.md`](../tasks.md) T-026
@@ -568,7 +568,7 @@ Also, to keep lint clean after rows 18–21: `distractors.test.ts` dropped its d
 
 ## Review
 
-**TL;DR.** **Approved, and escalated: do not merge without Dkaattae's decision on the agriculture questions.** The code is good. It fits the pipeline's idioms, stays inside the Constraints, and every role kept to its lane. But the farm-animal and crop questions mark true answers wrong for many of the biggest farm states, so Dkaattae must decide whether T-088 blocks this PR. The new child-facing text (six prompts, eight Setup labels) also needs a person's read.
+**TL;DR.** **Approved, and escalated: do not merge without Dkaattae's decision on the agriculture questions.** The code is good. It fits the pipeline's idioms, stays inside the Constraints, and every role kept to its lane. But the farm-animal and crop questions mark true answers wrong for many of the biggest farm states, so Dkaattae must decide whether T-088 blocks this PR. The new child-facing text (six prompts, eight Setup labels) also needs a person's read. **The harness refused the sweep**, so the PR stays draft. A person applies `### Sweep to apply` below, then marks it ready.
 
 ### Escalation: why this is not a routine merge
 
@@ -618,6 +618,240 @@ None blocks in the sense of sending the work back to an agent. The criteria are 
 - **Worker** (`a6e3478`): source, regenerated files, `engineering-decisions.md`, new tests and `tasks.md`. It touched no pre-existing test.
 - **Tester** (`d201e70` … `73ab9e0`): only tests and the brief.
 - **Orchestrator:** only `runs/` and header stamps.
+
+### Why the PR is still draft
+
+The auto-mode permission classifier refused the sweep: the deletion of `tasks.md`'s T-026 entry was refused as "Irreversible Local Destruction". By reviewer.md §4 and D-16, the reviewer did not look for another route. This is an **escalation**, so the status is `blocked`, not `sweep refused`, and the orchestrator's one-hour fallback does not apply. A person applies the list below, decides the escalation, and marks PR #91 ready.
+
+### Sweep to apply
+
+Apply this in branch `claude/serene-ramanujan-msepc5`, as one commit. Each edit is a copy, with no decisions in it. Where it says "replace", the old text is quoted exactly as it is at `4b6eb09`.
+
+**1. `tasks/T-026-biggest-state-superlative.md`: delete the file.** The PR body carries the criteria, and this section and the TCR stay in git history at the reviewer's commit.
+
+**2. `tasks.md`**
+
+- **2a. Delete the T-026 entry.** That is from the line `### T-026 — Templates for the topics the app has never shown · L · doing — **awaiting verification**` through the line `to load a generated question. T-040 landed in PR #88, so that dependency is met.`, both included (lines 405–564 at `4b6eb09`), plus the one blank line after it. The `---` before `## D. The bank the app serves` stays, with one blank line above it.
+- **2b. Sweep log.** Replace `rewrite to check._` (the end of the italic sweep-log paragraph, line 74) with:
+  ```
+  rewrite to check. Swept again 2026-10-22, after T-026 added six templates and
+  five Setup topics (PR #91): T-026 deleted; T-056 rewritten to what is left of
+  it; T-050, T-053, T-088, T-039 and §H's superlatives line updated._
+  ```
+- **2c. "Where the app is today" table.** Replace the line
+  `| **Questions** | **100**, generated: two per state (T-040) | generated from templates × entities (§1.2) |`
+  with
+  `| **Questions** | **365** served, generated: seven per state (T-040, T-026) | generated from templates × entities (§1.2) |`
+  and replace the line
+  `| **Topics** | **2** — location, capital | 10 — plus climate, agriculture, wildlife, landmark, size, physical, superlative, elevation |`
+  with
+  `| **Topics** | **7** — location, capital, superlative, wildlife, landmark, climate, agriculture (T-026) | 10 — plus size, physical, elevation |`
+- **2d. The paragraph under that table.** Replace these six lines:
+  ```
+  So: a child sees a highlighted state and picks its name, or picks a capital
+  city from four choices, over 50 states. A third generated format, `map_click`,
+  is in the committed question file but not served until T-051. **The Setup screen's three buttons —
+  "Places on the map", "Capital cities", "A bit of both" — are the whole topic
+  menu**, and picking the default means only ever seeing the first format. That is
+  not a bug; it is how much bank exists.
+  ```
+  with
+  ```
+  So: a child sees a highlighted state and picks its name, or picks one of four
+  answers about a named state (capital, state animal, landmark, climate, crop,
+  farm animal), or picks the biggest of four states, over 50 states. Setup offers
+  the seven topics plus "A bit of everything" (T-026, PR #91). A third generated
+  format, `map_click`, is in the committed question file but not served until
+  T-051.
+  ```
+- **2e. §B intro.** Replace
+  ```
+  serves, so a curated field reaches a child once a template asks about it
+  (T-026) and both committed files are regenerated (T-087).
+  ```
+  with
+  ```
+  serves, so a curated field reaches a child once a template asks about it
+  (since T-026, PR #91, every topic field has one) and both committed files are
+  regenerated (T-087).
+  ```
+- **2f. T-088.** Replace `**Depends on:** T-026, and a person's choice between the options below` with `**Depends on:** a person's choice between the options below (T-026 landed in PR #91)`. Then, directly after the line `"chickens".` that ends the farm-animal bullet, insert:
+  ```
+  **Since T-026's review (PR #91):** farm animals are the worse half.
+  `top_livestock` lists what a state is known for, not all it raises, so
+  "not listed" is read as "not raised". From the committed file: Iowa is also
+  offered "dairy cows", Minnesota "dairy cows", California "turkeys". Escalated
+  on PR #91 for Dkaattae to decide whether this blocks that merge.
+  ```
+- **2g. T-056, rewrite.** Replace the entry's whole body, from `**Depends on:** a third and fourth question per state (T-051 serves a third,` through `**Done when:** a good first session visibly colours something in.`, both included, with:
+  ```
+  **Depends on:** a design decision below
+  **Rewritten 2026-10-22 by T-026's reviewer (PR #91).** T-026 made it seven
+  served questions per state, so a **mixed** first sitting can now colour states
+  in. The e2e test's first-sitting-is-empty premise went red and was dropped
+  (T-026 Test change request row 94): CI saw two states fill after 50 right
+  answers. What is left is **single-topic sessions**, which Setup now leads with.
+  Each topic has one question per state (agriculture up to two), and a session
+  never repeats a question. Mastery is +0.25 per right answer and fills above
+  0.7, so a child who only plays "Capital cities" or "State animals" can fill no
+  state in their first sitting, and needs four sittings to fill any.
+  Options: revisit the 0.7 threshold, show partial mastery on the map, or let a
+  topic session count the same state's questions from other topics. Each is a
+  design decision, not more data.
+  **Done when:** a good first session in any Setup topic visibly colours
+  something in, or the gap is accepted and written down.
+  ```
+- **2h. T-050.** Replace `  Measure it at 100, and at T-026's size.` with `  Measure it at T-026's size: 365 served questions (PR #91).` Then, directly after that bullet, add:
+  ```
+  - **The six T-026 templates.** Their `concept_load` values are first guesses
+    (E-22), and `nearDistractorCount` means little for them. Climate
+    distractors go farthest-first (E-25), so Hawaii's and Alaska's phrases sit
+    in most climate questions: correct, but easy and repetitive. Check whether
+    the climate questions are too easy for their level.
+  ```
+- **2i. T-053.** Directly before its `**Done when:**` line, insert:
+  ```
+  **Since T-026 (PR #91):** a superlative question's served `entity` *is* its
+  answer, so `includeAnswerKey=false` does not hide it. Whatever is decided
+  here, decide it for the superlative's entity too.
+  ```
+- **2j. T-039.** Replace `  This may be the fastest of the three, and T-026 overlaps it.` with:
+  ```
+    T-026 (PR #91) serves area superlatives from `area_rank` without this endpoint.
+  ```
+- **2k. §H.** Replace
+  ```
+  - **Superlatives** — nearly free once entities carry rank fields (plan §1.8),
+    and the fastest new topic. Started in T-026 and T-039
+  ```
+  with
+  ```
+  - **Superlatives** — area "biggest" landed in T-026 (PR #91). Other axes,
+    `ab_compare` and region scopes are left, with T-039
+  ```
+
+**3. `PROGRESS.md`**
+
+- **3a.** Replace `_Last updated: 2026-10-19_` with `_Last updated: 2026-10-22_`.
+- **3b. "In one paragraph".** Replace
+  ```
+  halves on one origin. Since T-040 (PR #88) the app serves the
+  pipeline's **50 states** and **100 generated questions**, two per state, in two
+  formats and two topics. What is thin now is the **variety**: the plan describes
+  ten topics, and the curated fields for four more are waiting on templates
+  (T-026) and a third format (T-051).
+  ```
+  with
+  ```
+  halves on one origin. Since T-040 (PR #88) and T-026 (PR #91) the app serves
+  the pipeline's **50 states** and **365 generated questions**, seven per state,
+  in two formats and seven topics: location, capital, superlative, wildlife,
+  landmark, climate and agriculture. What is thin now is the **format**: a third
+  one, `map_click`, waits on T-051.
+  ```
+- **3c. Question bank section.** Replace the bullet that starts `- **Templates and a generator, writing nothing yet** (T-020, T-021):`, through its last line `` `ageBand`; E-23). Nothing writes or serves the output. ``, with:
+  ```
+  - **Templates and a generator** (T-020, T-021, T-026):
+    `src/templates.ts` holds the template record, nine templates and a
+    validator. `src/generate.ts` turns entities × templates into question drafts
+    (415 over the committed bank) and reports pairs with missing data.
+    `src/distractors.ts` `buildChoices` (T-022) turns those drafts into
+    four-option questions with `choices`, `correctIndex` and, on `map_click`,
+    `choiceGeometryIds` (E-21). T-026 added one strategy per new template, with
+    the person-approved same-thing lists beside them (E-25). `src/seed-level.ts`
+    `seedLevels` (T-023) adds a `level` in 0–18 from plan §1.4's formula, every
+    weight in `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions
+    (T-025). `src/tags.ts` `tagQuestions` (T-024) adds the other five
+    `GET /questions` tags (`scope`, `entityType`, `topic`, `region`, `ageBand`;
+    E-23). `write-questions.ts` writes them to the committed question file
+    (T-040, E-24).
+  ```
+- **3d. Completed tasks.** Insert as the first bullet under `### Earlier tasks, on-process`, before `- **T-064 — `:
+  ```
+  - **T-026 — templates for every curated topic** (PR #91, 2026-10-22). Six
+    `multiple_choice` templates: the biggest of four states (next-ranked on total
+    area), state animal, landmark, climate, top crop and farm animal. That is 265
+    new questions: 415 generated, 365 served, seven per state. Each guard is a
+    person-approved list in `distractors.ts` (E-25). Superlatives reveal on the
+    map. Setup offers seven topics plus "A bit of everything", and the bank cap
+    rose to 400 KB. *Where it differed from the brief:* climate distractors go
+    farthest-first, a worker's call the reviewer accepted, because neighbours
+    in different same-climate groups still read alike. C3's accepted risk turned
+    out common: many crop and farm-animal wrong answers are things the state does
+    grow or raise (T-088), and the review escalated it. The stale-test list was
+    about 20 times what the brief named: 92 Test change request rows, plus
+    row 94 and three amendments, all approved by Dkaattae in an attended tester
+    session. The harness refused the reviewer's sweep, so a person applied it.
+    Expander, worker and reviewer ran orchestrated in one session id; the tester
+    ran attended, in its own.
+  ```
+- **3e. Known gaps, content.** Replace
+  ```
+  - The app serves **50 states and 100 generated questions**, in **2 of 9
+    formats** and **2 of 10 topics** (T-040, PR #88). Two questions per state is
+    thin: a child meets every question in two sittings.
+  ```
+  with
+  ```
+  - The app serves **50 states and 365 generated questions**, in **2 of 9
+    formats** and **7 of 10 topics** (T-040, T-026). `size`, `physical` and
+    `elevation` have no template.
+  - **Some agriculture wrong answers are true.** The crop and farm-animal fields
+    list what a state is known for, not all it grows, so a "wrong" choice is
+    sometimes right: Iowa "chickens", Texas "sheep", Minnesota "sugar beets"
+    (T-088).
+  ```
+  Then replace
+  ```
+    topic fields now have data
+    and `wildlife`, `landmark`, `climate` and `agriculture` wait only on
+    T-026 (templates plus a same-value distractor guard) and both committed
+    files being regenerated (T-087).
+  ```
+  with
+  ```
+    topic fields now have data, and since T-026 (PR #91) each has a template
+    and is served.
+  ```
+- **3f. Known gaps, behaviour.** Replace
+  ```
+  - **The map cannot fill in during a child's first session.** A state needs four
+    right answers; the bank has exactly two questions per state. A perfect first
+    sitting colours in nothing, and it takes a second visit (T-056).
+  ```
+  with
+  ```
+  - **A single-topic first session cannot fill the map.** A state needs four
+    right answers. Since T-026 a mixed session has seven questions per state and
+    can fill states in, but each topic has only one per state (T-056).
+  ```
+- **3g. Next.** Replace
+  ```
+  states wide but only two questions deep per state.
+  ```
+  with
+  ```
+  states wide and, since T-026, seven questions deep per state.
+  ```
+  and replace
+  ```
+  1. **T-026 starting with superlatives** — a third topic for free, since the rank
+     fields are already populated. It also adds questions per state, which is
+     what the map needs to fill (T-056).
+  2. **T-051** — `map_click`, the third v1 format; the question file already
+     holds it.
+  3. **T-050** — check that selection and levels behave over the larger bank.
+  ```
+  with
+  ```
+  1. **T-088** — the agriculture wrong answers that are true, before more
+     children meet them.
+  2. **T-051** — `map_click`, the third v1 format; the question file already
+     holds it.
+  3. **T-050** — check that selection and levels behave over the larger bank.
+  ```
+
+**4. After applying,** run `cd question-bank && bun test`, `make -C backend test`, and `cd frontend && bun test src/stale-suite-counts.criteria.test.ts src/stale-suite-counts-guard.criteria.test.ts src/readme-suite-counts.criteria.test.ts`. Those suites read `tasks.md` and `PROGRESS.md`. Nothing in the text above states a number of tests above `## Completed tasks`, but the guards are the check, not this note.
 
 ## Notes
 
