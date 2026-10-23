@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`, once a person replaces `pending` below
-**Approved:** `pending`
+**Approved:** the person attending the orchestrator session — 2026-10-23: "approved, go ahead with the worker". See `runs/T-050-selection-at-365.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-050
 **Branch:** `claude/laughing-cerf-og9u2g`
