@@ -131,7 +131,10 @@ export const TEMPLATE_TOPICS: Readonly<Record<string, Topic>> = {
  * - `climates_outside_group`: one tier, **farthest** first, never a climate
  *   from the answer state's own same-climate group (`SAME_CLIMATE_GROUPS`).
  *   Neighbours outside a group still read alike, so distance works the other
- *   way here (T-026 Handoff).
+ *   way here (T-026 Handoff). Two caps (T-090, E-27): at most one wrong answer
+ *   from Hawaii or Alaska (`CLIMATE_FAR_PHRASE_STATES`), and never all three
+ *   from one same-climate group. A candidate that would break a cap is
+ *   skipped, and a pool the caps leave short is short; they are never relaxed.
  * - `crops_not_grown_nearby`: any crop some other state lists, nearest first,
  *   except crops the answer state, a bordering state or a same-region state
  *   lists, and never both members of an agriculture pair.
