@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question
 
-**Status:** `verified — pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — needs `tester` to come back and fix finding 1 (its own new test file trips the T-081 git guard; CI is red)
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). See `runs/T-090-climate-far-phrases.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi |
 | worker | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent; the remote session id is shared, the agent context is not) |
 | tester | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id, so the id check proves nothing here) |
+| reviewer | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id). Verdict: changes requested, back to `tester` |
 
 **Worker model:** Opus. This changes what a child reads in 50 questions.
 
@@ -355,6 +356,42 @@ cd backend && uv run python scripts/measure_selection.py --no-timing   # table D
 - **22 of 50 questions have the answer as the only phrase containing "cold"**, against 1 at `3279555`. My count matches E-27 (b) and lists the same states.
 - **This is the "only odd one out" item in the review checklist**, and the person reading the escalated review owns it.
 - **Durability caveat:** the `3279555` digests (criteria 7, 11, 12, 19) will go red when a later task deliberately regenerates non-climate questions, such as T-088's agriculture. That task's tester then raises a test change request.
+
+## Review
+
+**TL;DR**
+- **Changes requested, back to `tester`.** The implementation is good and I would approve it. But the question-bank suite is **red on the committed branch**: 3 failures, all in the pre-existing T-081 git guard, all caused by the tester's new `climate-far-phrases-verify.test.ts`. CI's `question-bank (typecheck, lint, test)` job fails on `92a320e` too.
+- **Why the Verdict said "0 fail":** the guard lists files with `git ls-files`, so it cannot see an untracked file. The tester ran the suite before committing the new file, so the guard never scanned it. Once committed, it does.
+- **Next:** `tester` fixes finding 1 in its own file only, re-runs the whole suite **after** committing, and hands back to `reviewer`. The worker owes nothing.
+
+### Finding 1 — blocks: the new verify test breaks the T-081 git guard (`tester`)
+
+- **Where:** `question-bank/src/climate-far-phrases-verify.test.ts:783` (`baseAvailable`, `git cat-file -e ${BASE}^{commit}`) and `:803` (`git diff --name-only ${BASE} -- …`, the criterion 20 test).
+- **What fails:** `src/git-exit-guard.criteria.test.ts`, "T-081 criteria 3–8":
+  - "every invocation uses a working-tree subcommand" (`cat-file` is not allowed);
+  - "no invocation is handed a revision" (both calls are handed `3279555`);
+  - "every invocation fails when git exits with a status it does not expect" (line 783's exit status is only read as a boolean).
+- **Reproduce:** `cd question-bank && bun test` on the branch as committed: 2360 pass, 3 fail.
+- **What would make it acceptable:** the criterion 20 check without a git call handed a revision. The file already has `treeDigest`, used for `measure_selection.py` and the entity tree. Pin `openapi.yaml`, `geoquizdataplan.md`, `frontend/`, `backend/migrations` and `backend/app/` (minus `content.json`) the same way, computed once from a worktree of `3279555`, as the other digests were. Then drop `baseAvailable` and the `git diff` test. This also means the check runs on CI instead of skipping.
+- **Not acceptable:** changing `git-exit-guard.criteria.test.ts`. It existed before this task (D-14).
+- **Then:** run the whole question-bank suite **after** the commit (or after `git add`), so the guard sees the file. Correct the Verdict's suite line.
+
+### Not blocking
+
+- **N1 — the content trade (worker's flag, also the tester's).** In 22 of 50 climate questions, the answer is now the only "cold" phrase (1 before). HI + CA + OR is the wrong-answer set in 18 of 50. There are 16 same-group near-twin pairs (3 before). I checked these against E-27 (b). They are the rule working as written, and the brief puts a stricter rule out of scope. **Disposition:** a person decides this at the escalated review. This PR will be escalated whatever happens, because it changes text a child reads. The approving reviewer files the person's choice as a follow-on task at sweep. It is not decided here.
+- **N2 — base-commit digests will go stale.** The pins for criteria 7, 11, 12 and 19 at `3279555` will go red when T-088 regenerates agriculture questions. That will mean a test change request (D-14). This repo already pins digests elsewhere (`climate-kid-verify.test.ts`), so this is not new. **Disposition:** at sweep, amend T-088's `tasks.md` entry to say its tester should expect this. T-088 has to regenerate the bank anyway, so it already owns the question. A new task would be redundant.
+- **Worker's other flags:**
+  - the `bun run format` slip was reverted before commit, and the diff confirms no existing test changed. Closed;
+  - the Status/Approved mismatch was the orchestrator's stamp order. No action;
+  - the expander's `python3` use touched no source. Its commits touch only `tasks/` and `tasks.md`. Closed.
+
+### What I checked, for the next reviewer
+
+- **Lanes:** the expander touched `tasks.md` and the brief only. The worker touched the files the Constraints list, plus the brief. The tester touched its test file and the brief. The orchestrator touched `runs/` and the brief header. Every role in Sessions has a commit on this branch.
+- **Code:** the `distractors.ts` diff is small, in the file's idiom, gated to `climates_outside_group`, and pure. `CLIMATE_FAR_PHRASE_STATES` sits beside the T-026 lists, as the Constraints ask. The comments are true. Nothing beyond the brief.
+- **Docs:** the E-25 amendment and E-27 match the code and the committed bank. E-26 is untouched.
+- **Other suites:** backend 627 passed, 9 skipped. Lint and format are clean. Typecheck, lint and format:check are clean in question-bank. Regeneration leaves no diff.
+- **Sweep not done**, because this is a send-back. The approving reviewer applies N2 to T-088.
 
 ## Notes
 
