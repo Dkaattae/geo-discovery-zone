@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question — run log
 
 **Task:** T-090 · **Branch:** `claude/eloquent-ptolemy-gmsovo` · **PR:** #93
-**Started:** 2026-10-23 · **Outcome:** in progress
+**Started:** 2026-10-23 · **Outcome:** halted — needs human
 
 Run by the orchestrator agent via `/next-task` in a Claude Code on the web session.
 Preflight: no live brief on `origin/main` or the branch; branch diff against `origin/main` empty.
@@ -65,3 +65,59 @@ writes the `Approved:` line, and spawns the worker.
 ## Resumed — human approval — 2026-10-23
 The person replied in the orchestrator session, verbatim: "approved". The
 orchestrator wrote the `Approved:` line from those words and resumes at `worker`.
+
+## Round 2 — worker — 2026-10-23
+`Next step` on entry: `worker` → on exit: `tester` · `Status` on entry: `awaiting approval` → on exit: `awaiting verification`
+
+**T-090 is built and ready for the tester.** No climate question now offers both Hawaii's and Alaska's phrases (0 of 50, down from 42), and nothing else in the bank changed. All tests pass in both suites, and typecheck, lint and format checks are clean. No existing test goes stale.
+
+**Decision needed:** a person has to accept or reject a trade the cap makes. With Alaska's phrase gone, the eastern states now get West Coast phrases as wrong answers:
+- In 22 of 50 questions the correct answer is now the only phrase that says "cold" (only Alaska's own was like that before), so a child can pick it out with little knowledge.
+- Hawaii, California and Oregon are the wrong-answer set in 18 of 50.
+- Washington's and Oregon's phrases, which read almost the same, appear together in 8.
+
+Every one of these follows the rules exactly as the brief wrote them. A stricter rule is out of scope in the brief, so I did not pick one. Owner: the person who reads the escalated review.
+
+Status is `awaiting verification`, Next step is `tester`. The commit `72927f7` is on `origin/claude/eloquent-ptolemy-gmsovo`; I checked with `git log` after pushing.
+
+**Changes**
+- **The rule** (`question-bank/src/distractors.ts`): a new list, `CLIMATE_FAR_PHRASE_STATES = ["HI", "AK"]`, and a check that skips any wrong answer that would break either cap. It only runs for climate questions. Comments are updated, and `question-bank/src/templates.ts` changed in a comment only.
+- **The bank**: `question-bank/data/questions/us-states.json` and `backend/app/data/content.json` were regenerated with the two documented commands.
+- **The record** (`engineering-decisions.md`): E-25 gets a dated note stating both caps, and a new E-27 holds:
+  - the ten states from E-26's climate table, read again;
+  - the new counts: 47 questions offer at least one of the two phrases, 0 offer both;
+  - the trade above;
+  - "keep 3" for how hard the climate topic is rated;
+  - California unchanged.
+- **My tests** (`question-bank/src/climate-far-phrases.test.ts`, new): small made-up inputs for each cap and its edge cases, plus one check across all 50 committed states.
+
+**Checked**
+- Against the base commit `3279555`, 42 climate questions changed their three wrong answers and nothing else. The question's id, wording, answer, answer position and difficulty level are unchanged.
+- Every question outside climate is identical in both files, and the counts are the same: 415 questions in the bank, 365 served, 50 climate, the same 3 short pools.
+- No dependency, lockfile, entity file or climate phrase changed, and nothing outside the expected files was touched.
+- Test results: question-bank 2315 pass, 0 fail. Backend 627 pass, 9 skipped. Backend lint and format check pass.
+
+**Re-reading the ten states**
+- California is unchanged and still too hard: its three wrong answers come from two groups, so neither cap applies.
+- Hawaii and Alaska are unchanged and still too hard, for the reason T-085 already owns.
+- New York and Rhode Island are now too hard, because each answer is the only cold phrase on offer.
+- Texas, Florida, Washington, Colorado and Kentucky read about right.
+
+**Notes for the next roles**
+- The brief's Status line read `awaiting approval`, but its Approved line names Dkaattae (2026-10-23), so I went ahead.
+- My Sessions row has the same session id as the expander's, because the orchestrator runs its subagents in one remote session. I noted this in the row so the tester is not misled.
+- An early `bun run format`, run before dependencies were installed, rewrote two existing test files. I reverted both before committing, so no existing test changed on the branch.
+
+The brief, with the Handoff, Notes and Sessions row, is at /home/user/geo-discovery-zone/tasks/T-090-climate-far-phrases.md.
+
+## Halted — role returned asking for a decision — 2026-10-23
+
+G5 passed (Status and Next step both moved). The header names `tester`, but the
+worker's result opens with "**Decision needed:** a person has to accept or reject
+a trade the cap makes", about text a child reads. Under orchestrator.md "The
+other halt conditions", the orchestrator copies the words here and stops rather
+than answer. The header is left as the worker wrote it (`Next step: tester`).
+
+**What a human has to decide:** accept or reject the trade quoted above, or say
+to continue to the tester and leave the call to the escalated review, as the
+worker's "Owner" line proposes.
