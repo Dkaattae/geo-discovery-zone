@@ -1,7 +1,7 @@
 # T-050 — Check selection and levels at 365 served questions
 
-**Status:** `awaiting approval`
-**Next step:** `worker`, once a person replaces `pending` below
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** the person attending the orchestrator session — 2026-10-23: "approved, go ahead with the worker". See `runs/T-050-selection-at-365.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-050
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator) |
+| worker | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator; `$CLAUDE_CODE_REMOTE_SESSION_ID` reads the same as the expander's, see Notes) |
 
 **Worker model:** Opus. The criteria are measurements, but item D is a hand-check
 of question difficulty, which is a judgement.
@@ -254,6 +255,69 @@ that. What only a person can judge:
 
 ## Handoff
 
+**TL;DR**
+- **E-26 is appended to `engineering-decisions.md`** with tables A–D, section E and a Findings list; every number came from `content.json` at sha256 `8481068a…a4b3` (unchanged from `main` `fb1f615`).
+- **No behaviour changed.** Nothing under `backend/app/`, the question bank, `frontend/` or `openapi.yaml` is touched. One new script and its inline-fixture tests.
+- **Four follow-ons for the reviewer to queue** (listed below). The backend suite and question-bank suite pass; the frontend suite could not install its dependencies here (details under "How to run").
+
+**Files changed**
+- `engineering-decisions.md`: E-26 appended after E-25. A blank separator line, then `## E-26 — …`. The first `len(main)` bytes are byte-identical to `main` (checked with a `startswith` over `git show main:engineering-decisions.md`).
+- `backend/scripts/measure_selection.py` (new): prints tables A–D, the HI/AK phrase counts, and section E's timing. Nothing in `app/` imports it. It reuses `selection.LEVEL_SPANS` and `selection.topic_matches`.
+- `backend/tests/test_measure_selection.py` (new): checks the script's pure functions on inline fixtures. Nothing in it reads `content.json` or pins a bank count.
+- This brief: Status, Sessions, Handoff, Notes.
+
+**Where each criterion lives**
+
+| Criteria | Where |
+|---|---|
+| 1–2 | `engineering-decisions.md` `## E-26` is the last `## E-` heading; the prefix up to it is `main`'s file |
+| 3 | E-26 "What was measured" (commit + sha256) and "To reproduce" (`uv run python scripts/measure_selection.py` from `backend/`) |
+| 4–8 | E-26 §A table: 37 rows × 8 topics, cells `pool within 1.5 / first span` |
+| 9–12 | E-26 §B table, T-085 column, lowest/highest bullets |
+| 13–15 | E-26 §C table, and the "When the review pool is empty" paragraph (`selection.py:60-63` → `65-72`) |
+| 16–18 | E-26 §D table and the "47 / 42" paragraph |
+| 19–20 | E-26 §E table and threshold paragraph |
+| 21–22 | E-26 Findings and `**Revisit when**` (names T-085, T-088, T-051) |
+| 23 | Below |
+| 24–27 | No file under the guarded paths changed; no lockfile or `pyproject.toml` change |
+| 28 | See "How to run" |
+
+**Follow-ons for the reviewer to queue (criterion 23)**
+- **Top-of-scale picks are uniform over the whole topic.** When no span up to 6 reaches a question (rows 14.5–18, and an 8th grader at 16 in four topics), choose from the questions nearest the session level instead of the whole topic.
+- **A single-topic review turn re-asks the same question.** Decide whether a review turn draws the queued state's questions from every topic (`store.review_questions` does this and has no caller), and whether a review round should count down on a non-review pick (`grading.py:146-147`). This is a product call.
+- **The climate distractor rule.** Offer at most one of Hawaii's and Alaska's phrases per question, and never three from one group. Then re-read table D and re-judge `concept_load["tpl-climate-of"]`.
+- **Add HI and AK `tpl-climate-of` to T-085's rows.** These are the T-085 cause on a seventh and eighth question.
+
+**What I deliberately did not do**
+- **Changed nothing the measurement found** (the brief's Out of scope).
+- **Did not edit `tasks.md`** (criterion 23).
+- **Did not migrate with Alembic for the timing.** The script uses `orm.Base.metadata.create_all` on a temp SQLite file. The query is the same, and this avoids the script depending on test fixtures.
+
+**Contradictions with the brief, and judgment calls**
+
+| What | What I did | Who should confirm or overturn |
+|---|---|---|
+| **Verdict direction in criterion 16** | The brief says D copies E-22's T-025 format. In that table, `too hard` means *the seeded level is higher than the question deserves*. `tasks.md` asks whether climate questions are "too easy for their level", which is the opposite wording. I followed E-22, said so in E-26, and marked CA, HI and AK `too hard`. | Reviewer, or the person at the Review checklist |
+| **Criterion 2's "line before"** | E-26 is preceded by one new blank separator line, as every other entry is. `main`'s bytes are an exact prefix. | Tester to read it that way, or bounce to the expander if it means something stricter |
+| **Section E timing** | The numbers are noisy. Across three runs, `mixed` was 5.3–5.7 ms and `agriculture` 1.2–2.7 ms. E-26 records the first run and gives the spread. | Tester's own run should land in the same order of magnitude, not the same digits |
+
+**How to run**
+- `cd backend && uv run python scripts/measure_selection.py` (add `--no-timing` for A–D only)
+- `make -C backend test` → all pass; the only skips are the Postgres-only tests (the new file included)
+- `cd backend && uv run ruff check . && uv run ruff format --check .` → clean
+- `cd question-bank && bun install --frozen-lockfile && bun test` → all pass, none fail
+- **`cd frontend && bun test` could not run clean here.** `bun install --frozen-lockfile` fails because the lockfile's tarballs point at `europe-west1-npm.pkg.dev/lovable-core-prod/…`, and the proxy refuses that host (403 on `d3-color@2.0.0`). Without `node_modules`, the eslint-gate tests fail and two `.tsx` test files cannot find `react/jsx-runtime` or `react-simple-maps`. No frontend file is touched, so CI's run is the real check.
+- **Side effect seen once:** after a frontend `bun test` run, `frontend/README.md` showed a one-character prettier-style escape (`2 * gradeOf` → `2 \* gradeOf`). I reverted it with `git checkout`, and it did not recur on the next run. It is probably a test that formats in place. It is not from this task.
+
+**Tests made stale:** none.
+
 ## Verdict
 
 ## Notes
+
+- **Session id.** `echo $CLAUDE_CODE_REMOTE_SESSION_ID` printed `cse_01454znq34eEJH6tPgL5JBMX`, the same value the expander recorded. The orchestrator spawns each role as a subagent of one remote session, so the variable cannot tell them apart. The tester should not rely on it alone to show independence; the orchestrator owns that question.
+- **The brief's "Status: awaiting approval" line was stale.** `Approved:` already carried the attending person's words (recorded in `runs/T-050-selection-at-365.md`), so I started.
+- **Surprise: the top of the scale.** Below the bank, a widened span lands on the easiest questions, which is fine. Above it, span 99 means *uniform over everything*. That is the one table A finding with a real cost.
+- **Surprise: review in a single topic** is almost always the identical question. The pool is topic-filtered before `review_pool` sees it.
+- **Surprise: `store.review_questions` has no caller** in `app/`.
+- **Climate.** HI/AK phrases appear in 47 of 50 questions. Farthest-first also gives California three "cold snowy winters" distractors, and gives Hawaii and Alaska three same-family opposites each.
