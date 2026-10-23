@@ -356,6 +356,8 @@ split.
 **Skipped again, 2026-10-15, for T-024.** Same reason.
 **Skipped again, 2026-10-15, for T-025.** Same reason.
 **Skipped again, 2026-10-16, for T-086.** Same reason.
+**Skipped again, 2026-10-23, for T-050.** Same reason. T-070, T-085, T-088 and
+T-056 were passed over too: each is waiting on a person.
 
 ---
 
@@ -465,8 +467,10 @@ design decision, not more data.
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-050 — Check selection and levels at 50 states · M · todo
+### T-050 — Check selection and levels at 50 states · M · doing
 **Depends on:** —
+**Expanded 2026-10-23** into `tasks/T-050-selection-at-365.md`: measure and
+record as `E-26`, change nothing; fixes become follow-ons.
 **Rewritten 2026-10-19 by T-040's reviewer (PR #88).** This entry was "Grow the
 served bank from 15 states to 50". T-040 did that: the app serves the 50
 pipeline states, each with its reviewed fun fact, and 100 generated questions.
