@@ -51,3 +51,33 @@ The orchestrator's `Approved:` stamp was refused by the harness as self-approval
 
 ## Resumed — human approval — 2026-10-23
 Dkaattae, in the orchestrator session, verbatim: "approved". Recorded on the brief's `Approved:` line. They gave no separate answer on the expander's "nearest vs band" question; the brief goes ahead as written (literal nearest).
+
+## Round 2 — worker — 2026-10-23
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR.** T-089 is built and pushed as `d4fb29d` on `claude/peaceful-maxwell-mbf9gd`. `git log origin/claude/peaceful-maxwell-mbf9gd -1` shows that commit. The brief is now Status `awaiting verification`, Next step `tester`. Past span 6, the selector now picks from the unasked questions nearest the session level instead of the whole topic. The tester will need a person to approve Test change request rows for 7 existing tests this change turns red; the brief predicted all 7.
+
+**What changed**
+- **`backend/app/selection.py`**: after the 1.5, 3 and 6 windows, if nothing is found, the pool is the unasked, topic-matching questions at the smallest distance from the session level, ties included. The function signature, return shape and purity are unchanged. `LEVEL_SPANS` keeps its `99.0` entry, with a comment, so `measure_selection.py` and its test stay byte-identical (criterion 14). The docstring no longer names `frontend/src/lib/session.ts`.
+- **`backend/tests/test_selection.py`**: 10 new tests (12 cases) added after the existing ones, on small fixtures written in the test file. The existing tests are untouched. 8 of the new cases fail against the old `selection.py`.
+- **`backend/README.md:210`** and **`openapi.yaml`**: only description text changed. The `serveNextQuestion` description now says "nearest", and `listQuestions` no longer names the client file.
+- **`engineering-decisions.md`**: new E-28 covering points (a) to (d) of criterion 13. E-1 to E-27 are untouched.
+
+**Test results**
+- **Backend:** `make -C backend test` gives 639 passed, 9 skipped. Ruff lint and format are clean.
+- **question-bank:** after `bun install --frozen-lockfile`, 2360 pass and 7 fail. Lint is clean.
+- **frontend:** 386 pass, 8 fail, the same as on the unchanged branch. `bun install` was refused by the proxy (403), so the eslint and prettier gate tests can't run. Nothing under `frontend/` changed.
+
+**Tests made stale** (all 7 in `question-bank/src/climate-far-phrases-verify.test.ts`; the proposed changes are in the brief's Handoff):
+- **"T-090 criterion 14: the re-read is a new E-n entry", all 5 tests.** The describe reads the newest E-n entry, which is now E-28. Proposal: pin it to `sectionOf(decisions, "E-27")` and change `toBe(27)` to `toContain(27)`.
+- **"T-090 criterion 20: no other surface changes", `openapi.yaml`.** Proposed new digest: `88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d`.
+- **Same describe, `backend/app` (except `content.json`).** Proposed new digest: `e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808`.
+- I computed both digests the same way the test does. That method reproduces the existing, unchanged `frontend` digest.
+
+**Flags, each owned by the reviewer**
+- **`99.0` kept in `LEVEL_SPANS`.** It now only marks "nearest" and the selector skips it. Confirm, or queue a rename for when `measure_selection.py` is allowed to change.
+- **Ties use exact float equality.** That is safe while levels are multiples of 0.5.
+- **`listQuestions` wording.** I did not check that `GET /questions` actually widens by `levelSpan`.
+- **Frontend side effect.** Running frontend `bun test` without `node_modules` rewrites `frontend/README.md`, on the unchanged branch too, apparently from the T-075 format-gate test. I reverted it and it is not in the commit. Decide whether to queue a fix in `tasks.md`.
+
+**Sessions row:** the session id I got is `cse_014mjPR9EwgWt5EDdiUihfx9`, the same as the expander's row, because this is an orchestrated subagent. The row says so.
