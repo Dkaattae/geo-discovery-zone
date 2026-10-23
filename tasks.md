@@ -373,6 +373,8 @@ split.
 T-056 were passed over too: each is waiting on a person.
 **Skipped again, 2026-10-23, for T-090.** Same reason. T-070, T-085 and T-088
 were passed over too: each is still waiting on a person.
+**Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
+T-091 and T-056 were passed over too: each is waiting on a person.
 
 ---
 
@@ -527,8 +529,13 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-089 — Above the bank's top level, a pick is drawn from the whole topic · S · todo
+### T-089 — Above the bank's top level, a pick is drawn from the whole topic · S · doing
 **Depends on:** —
+**Expanded 2026-10-23** into `tasks/T-089-nearest-above-bank.md`. The survey
+found that `frontend/src/lib/session.ts` does not exist and never did in this
+repo's history. Four references to it are stale and the brief removes them.
+E-28 will turn two T-090 pins red (`climate-far-phrases-verify.test.ts`
+criteria 14 and 20), so plan to attend the tester step.
 **New 2026-10-23, from T-050's reviewer (PR #92).** E-26 table A: the served
 bank tops out at level 10, so from session level 16.5 every topic, and from
 14.5–16 some (`location`, `agriculture`, `superlative`, `climate`), find no
