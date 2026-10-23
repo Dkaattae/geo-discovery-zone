@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). See `runs/T-090-climate-far-phrases.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi |
+| worker | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent; the remote session id is shared, the agent context is not) |
 
 **Worker model:** Opus. This changes what a child reads in 50 questions.
 
@@ -243,6 +244,58 @@ Criteria 1-13 and 15-20 are tests. These are not:
 
 ## Handoff
 
+**TL;DR**
+- **Both caps are built and the bank is regenerated.** 0 of 50 climate questions now offer both HI's and AK's phrases (42 before). Nothing else in the bank moved. Both suites, typecheck, lint and format pass. No stale tests.
+- **The cap has a content cost that a person must judge.** With Alaska's phrase gone, eastern states now draw West Coast phrases. HI + CA + OR is the wrong-answer set in 18 of 50. **In 22 of 50 the answer is the only phrase with "cold" in it** (1 before), so the answer is the odd one out. WA's and OR's near-twin phrases appear together in 8. All of this is the rule working as written. The brief left a stricter rule out of scope. E-27 (b) has the detail.
+- **Next:** the tester, then the reviewer. Expect the reviewer to escalate to a person, as the brief predicts. That person decides whether to accept this trade or queue a stricter rule.
+
+**Files changed**
+- `question-bank/src/distractors.ts`:
+  - new exported `CLIMATE_FAR_PHRASE_STATES` (`["HI", "AK"]`), next to the T-026 lists, with a comment naming T-090 and E-26;
+  - new `isFarPhraseState` and `breaksClimateCap`;
+  - one added line in `nearestDistractors`'s pick loop, for `climates_outside_group` only;
+  - comments updated on `SAME_CLIMATE_GROUPS`, `farthestFirst` and `nearestDistractors`.
+- `question-bank/src/templates.ts`: comment only, on the `climates_outside_group` strategy bullet.
+- `question-bank/data/questions/us-states.json`: regenerated with `bun run ./src/write-questions.ts`.
+- `backend/app/data/content.json`: regenerated with `make -C backend content`.
+- `engineering-decisions.md`: E-25's climate bullet gets a dated amendment, and there is a new **E-27**.
+- `question-bank/src/climate-far-phrases.test.ts`: new. Worker tests on inline fixtures, plus one bank-wide check over the committed entity files.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 2, 6 | `breaksClimateCap` far-phrase branch. The loop `continue`s and nothing is relaxed. The existing `too_few_candidates` path reports short pools. |
+| 3, 4 | `breaksClimateCap` group branch: `sameGroup + 1 >= 3` skips the third from one group. |
+| 5 | Unchanged sort (`byTierThenNearest`, farthest first, id tie-break), plus the existing exclusions, plus the cap check. |
+| 7 | The cap check is gated on `strategy === "climates_outside_group"`. My diff script shows every non-climate question deep-equal to `3279555` in both files. |
+| 8 | Both files regenerated. `committed-bank` and the backend drift tests pass. |
+| 9-11 | 0 offer both. 50 climate questions, 415 bank, 365 served, climate 50, same 3 short pools as base (superlative DE/CT/RI). 42 climate questions changed choices only. `id`, `prompt`, `answer`, `correctIndex`, answer position and `level` are all unchanged. |
+| 12, 13 | Non-climate questions deep-equal. `data/us-states/` and `seed-level.ts` untouched. |
+| 14 | E-27 (a)-(d). |
+| 15 | E-25 amendment under its `climates_outside_group` bullet, pointing at E-27. |
+| 16 | `templates.ts` strategy comment. `distractors.ts`: `SAME_CLIMATE_GROUPS`, `CLIMATE_FAR_PHRASE_STATES`, `farthestFirst`, `breaksClimateCap`, `nearestDistractors`. |
+| 17-20 | No package or lock change. Tests are offline. No phrase or list edited. `openapi.yaml`, `geoquizdataplan.md`, `frontend/`, `backend/` (apart from `content.json`), `backend/scripts/` and migrations show no diff against `3279555`. E-26's text is untouched: the edits are an E-25 amendment and an appended E-27. |
+
+**Deliberately not done**
+- **No stricter rule.** That includes one per group, no "only cold phrase" answer, and no fix for California. The brief puts these out of scope. E-27 (b) lays out the evidence for a person.
+- **`concept_load` not changed.** E-27 (c) judges keep 3.
+- **`PROGRESS.md` and `tasks.md` not touched.** That bookkeeping is the reviewer's sweep.
+
+**Contradicts the brief**
+- **None of the criteria.** The Goal's premise ("a child ... is left with a two-way pick") is partly undone in another way: 21 more questions now have the answer as the only cold phrase. E-27 (b) records this. Owner: **the person at the escalated review**, who decides whether to accept it or queue a stricter-rule follow-on.
+- **Small mismatch in the brief:** the survey says HI's question offers "ME RI MA". The committed file agrees, and so does the E-26 table. No issue.
+
+**How to run**
+```
+cd question-bank && bun install --frozen-lockfile && bun test && bun run typecheck && bun run lint && bun run format:check
+bun run ./src/write-questions.ts          # byte-stable: no diff after commit
+make -C backend content && make -C backend test lint format-check
+cd backend && uv run python scripts/measure_selection.py --no-timing   # table D and the "both in 0" line
+```
+
+**Tests made stale:** none. The full question-bank suite (2315 pass) and the backend suite (627 pass, 9 skipped) are green.
+
 ## Verdict
 
 ## Notes
@@ -252,3 +305,5 @@ Criteria 1-13 and 15-20 are tests. These are not:
   two groups, so that half does not touch CA. It is kept as written, because
   it is the queued rule and a guard. A stricter rule is left for a person
   instead of being chosen here.
+- Worker, 2026-10-23: the caps did exactly what the brief predicted: 0 offer both, and CA is unchanged. Reading all 50 afterwards showed a trade the survey could not see. Alaska's phrase was the only "cold" rival for most eastern states. Removing it makes the next farthest pick a West Coast phrase, so 21 more questions have the answer as the lone cold phrase, and WA/OR twins appear 8 times. I built to the criteria and put the numbers in E-27 (b) for a person, without choosing a stricter rule.
+- Worker, 2026-10-23: the pinned `bun run format` failed because `node_modules` was missing. The fallback rewrote two existing test files. I reverted both with `git checkout` before anything was committed. After `bun install --frozen-lockfile`, the pinned prettier passes. No existing test is changed in this branch.

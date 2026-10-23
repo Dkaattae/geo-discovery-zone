@@ -142,6 +142,8 @@ export const LANDMARK_TRAPS: Readonly<Record<string, readonly string[]>> = {
  * climate (T-014 criterion 17, via `tasks.md` T-026), by postal code. A
  * question never offers the climate of a state in the answer state's group.
  * AK, CA, CO, FL, HI, MO, NY, OK and TX are in no group and constrain nothing.
+ * T-090 also caps a group: it never supplies all three wrong answers
+ * (`breaksClimateCap`).
  */
 export const SAME_CLIMATE_GROUPS: Readonly<Record<string, readonly string[]>> = {
   "Great Plains": ["IA", "NE", "KS", "SD", "ND"],
@@ -155,6 +157,14 @@ export const SAME_CLIMATE_GROUPS: Readonly<Record<string, readonly string[]>> = 
   "Deep South": ["AL", "GA", "MS", "SC", "LA"],
   "Upland South": ["TN", "AR", "KY", "NC", "VA", "WV"],
 };
+
+/**
+ * T-090, from E-26 section D: the states whose `climate_kid` phrases a child
+ * spots at once as far away (Hawaii's island, Alaska's far north), by postal
+ * code. A climate question offers at most one wrong answer from this list.
+ * Not a distance rule: the list is these two states and nothing else.
+ */
+export const CLIMATE_FAR_PHRASE_STATES: readonly string[] = ["HI", "AK"];
 
 /**
  * Criteria 31 and 34 (brief call C5): the same thing, or too close for a
@@ -351,10 +361,33 @@ function nextRankedByArea(
 /**
  * Climate only, a worker's call in T-026 (Handoff): neighbouring states
  * outside one same-climate group still read alike ("hot humid summers and mild
- * winters…"), so the climate distractors come farthest first.
+ * winters…"), so the climate distractors come farthest first. Walking that
+ * order, two caps from T-090 skip a candidate (`breaksClimateCap`); they are
+ * never relaxed, so a pool they leave short is reported as short.
  */
 function farthestFirst(strategy: DistractorStrategy): boolean {
   return strategy === "climates_outside_group";
+}
+
+function isFarPhraseState(entity: Entity): boolean {
+  const code = postalCodeOf(entity);
+  return code !== null && CLIMATE_FAR_PHRASE_STATES.includes(code);
+}
+
+/**
+ * Climate only, T-090 (E-25, E-27): true when taking `candidate` after
+ * `picked` would give the question two wrong answers from
+ * `CLIMATE_FAR_PHRASE_STATES`, or all three wrong answers from one
+ * `SAME_CLIMATE_GROUPS` group. Two from one group is still allowed.
+ */
+function breaksClimateCap(picked: readonly Candidate[], candidate: Candidate): boolean {
+  if (isFarPhraseState(candidate.entity) && picked.some((p) => isFarPhraseState(p.entity))) {
+    return true;
+  }
+  const group = climateGroupOf(candidate.entity);
+  if (group === null) return false;
+  const sameGroup = picked.filter((p) => climateGroupOf(p.entity) === group).length;
+  return sameGroup + 1 >= DISTRACTOR_COUNT;
 }
 
 function byTierThenNearest(
@@ -375,6 +408,7 @@ function byTierThenNearest(
  * Up to three distractors, tiered and nearest-first, skipping any candidate
  * whose text matches the answer or an earlier pick, that the strategy
  * excludes, or that forms a same-thing pair with the answer or a pick.
+ * Climate also skips a candidate that would break a T-090 cap.
  */
 function nearestDistractors(
   draft: QuestionDraft,
@@ -411,6 +445,7 @@ function nearestDistractors(
     if (excluded(candidate.entity, candidate.text)) continue;
     if (isPair(pairs, candidate.text, draft.answer)) continue;
     if (picked.some((p) => isPair(pairs, p.text, candidate.text))) continue;
+    if (strategy === "climates_outside_group" && breaksClimateCap(picked, candidate)) continue;
     picked.push(candidate);
   }
   if (picked.length < DISTRACTOR_COUNT) {

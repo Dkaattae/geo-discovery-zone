@@ -1370,6 +1370,13 @@ climate, crops, farm animals) each have their own `distractor_strategy` in
   Neighbouring states in different groups still read alike ("hot humid
   summers and mild winters…" for Alabama against Tennessee's phrase). Nearest
   first gave several questions two choices a child could not tell apart.
+  **Amended 2026-10-23 (T-090):** two caps, applied while walking that order.
+  At most one wrong answer comes from Hawaii or Alaska
+  (`CLIMATE_FAR_PHRASE_STATES`, by postal code, not a distance rule), and no
+  single `SAME_CLIMATE_GROUPS` group supplies all three wrong answers (two is
+  allowed). A candidate that would break a cap is skipped. The caps are never
+  relaxed: a pool they leave with fewer than three is a short pool. What the
+  regenerated bank looks like is E-27.
 - **`crops_not_grown_nearby`**: the answer is the first crop the state lists.
   The wrong choices are crops other states list, nearest first, but never one
   that the state, a state it borders, or a state in its region lists (brief
@@ -1669,3 +1676,101 @@ topic is `agriculture`, with **74** questions.
 largest-city capitals, T-088 regenerates the agriculture questions, or T-051
 serves `map_click` (50 more questions, at the map levels). Any one of them
 moves every table above; rerun the script.
+
+## E-27 — Climate wrong answers: at most one of Hawaii's and Alaska's phrases, never three from one group; table D re-read
+
+**2026-10-23 (T-090).** `climates_outside_group` (E-25) now has two caps,
+checked while walking the farthest-first order in `nearestDistractors`
+(`question-bank/src/distractors.ts`, `breaksClimateCap`):
+
+- **At most one wrong answer from Hawaii or Alaska.** The list is
+  `CLIMATE_FAR_PHRASE_STATES` (`HI`, `AK`, by postal code). It is these two
+  states, not a distance rule. It holds in every climate question, including
+  HI's and AK's own.
+- **Never all three wrong answers from one `SAME_CLIMATE_GROUPS` group.** Two
+  from one group is still allowed. In the committed bank this cap changes
+  nothing. It is a guard.
+- **Never relaxed.** A candidate that would break a cap is skipped. If that
+  leaves fewer than three, the draft is a short pool (`too_few_candidates`),
+  never a question with a capped candidate let back in. No committed draft
+  is short because of the caps.
+
+Every other strategy is untouched. No `level` moved: `nearDistractorCount`
+counts bordering and same-region distractors, and the swap changed that count
+for no climate question.
+
+### (a) Table D, re-read on the regenerated bank
+
+Same ten states and same verdict meaning as E-26 section D: the verdict judges
+the seeded **level** against how the question reads to a seven- to
+ten-year-old. Rows from `uv run python scripts/measure_selection.py
+--no-timing` after `make -C backend content`.
+
+| State | Prompt | Correct | Distractor 1 | Distractor 2 | Distractor 3 | Level | Verdict | Why |
+|---|---|---|---|---|---|---|---|---|
+| CA | What kind of climate does California have? | sunny dry summers near the coast, hot deserts and snowy mountains further inland | cold snowy winters and cool breezy summers, especially up near the coast | cold snowy winters and warm humid summers, with strong storms off the coast | cold snowy winters, especially high in the mountains, and warm summers below | 5 | too hard | Unchanged (see (d)). All three wrong choices open with "cold snowy winters", so the one sunny phrase stands out. |
+| TX | What kind of climate does Texas have? | scorching hot summers, humid and stormy in the east, drier and milder out west | warm breezy weather all year, with wetter mountains and drier coasts nearby | cold snowy winters and cool breezy summers, especially up near the coast | cold snowy winters, especially high in the mountains, and warm summers below | 5 | about right | Alaska's phrase is replaced by New Hampshire's. Two "cold snowy winters" phrases are easy to rule out, and the pick is still between Hawaii's and Texas's, as before. |
+| FL | What kind of climate does Florida have? | hot muggy summers nearly all year, with sudden storms and mild winters | warm breezy weather all year, with wetter mountains and drier coasts nearby | wet mild winters and dry summers near the coast, drier and hotter to the east | wet mild winters and dry sunny summers near the coast, drier further east | 6 | about right | The level fits, but Washington's and Oregon's phrases are near twins (one same-climate group, allowed by the cap of two). A child can rule both out because they cannot both be right. Content flag, below. |
+| NY | What kind of climate does New York have? | cold snowy winters, heaviest near the lakes and mountains, and warm humid summers | warm breezy weather all year, with wetter mountains and drier coasts nearby | sunny dry summers near the coast, hot deserts and snowy mountains further inland | wet mild winters and dry sunny summers near the coast, drier further east | 6 | too hard | Alaska's phrase was the only other cold one. Now New York's is the only phrase with cold winters, against three warm or mild western ones, so a child who knows New York gets snow answers it at once. Easier than 6. |
+| WA | What kind of climate does Washington have? | wet mild winters and dry summers near the coast, drier and hotter to the east | warm breezy weather all year, with wetter mountains and drier coasts nearby | hot muggy summers nearly all year, with sudden storms and mild winters | cold snowy winters and cool breezy summers, especially up near the coast | 6.5 | about right | Unchanged: it never offered Alaska's phrase. |
+| CO | What kind of climate does Colorado have? | dry and cold in the mountains, drier plains to the east | warm breezy weather all year, with wetter mountains and drier coasts nearby | cold snowy winters and cool breezy summers, especially up near the coast | cold snowy winters and warm humid summers, with strong storms off the coast | 7 | about right | Alaska's phrase is replaced by Rhode Island's. Two cold New England phrases still compete with "dry and cold in the mountains". |
+| KY | What kind of climate does Kentucky have? | warm humid summers and cool winters, with occasional snow and ice storms | warm breezy weather all year, with wetter mountains and drier coasts nearby | wet mild winters and dry summers near the coast, drier and hotter to the east | sunny dry summers near the coast, hot deserts and snowy mountains further inland | 8.5 | about right | Alaska's phrase is replaced by California's. Kentucky's is still the only one with snow and ice in winter, as it nearly was before. The level is about right for a state a child knows less well. |
+| HI | What kind of climate does Hawaii have? | warm breezy weather all year, with wetter mountains and drier coasts nearby | cold snowy winters and cool breezy summers, especially up near the coast | cold snowy winters and warm humid summers, with strong storms off the coast | cold snowy winters with strong coastal storms, and warm humid summers | 9.5 | too hard | Unchanged: Alaska's own phrase was never offered, and Hawaii's phrase cannot be offered in Hawaii's own question. Still the only warm phrase against three "cold snowy winters". The level is T-085's cause, as in E-26. |
+| AK | What kind of climate does Alaska have? | long cold snowy winters inland, milder and rainy along the southern coast | hot muggy summers nearly all year, with sudden storms and mild winters | hot muggy summers, mild winters, and the chance of a strong coastal storm | hot muggy summers and mild winters, with thunderstorms common in the warm months | 8 | too hard | Unchanged: it offered neither phrase. Still the only cold phrase against three "hot muggy summers". T-085's cause, as in E-26. |
+| RI | What kind of climate does Rhode Island have? | cold snowy winters and warm humid summers, with strong storms off the coast | warm breezy weather all year, with wetter mountains and drier coasts nearby | sunny dry summers near the coast, hot deserts and snowy mountains further inland | wet mild winters and dry sunny summers near the coast, drier further east | 9.5 | too hard | Alaska's phrase was the only other cold one. Now Rhode Island's is the only cold-winter phrase against three western ones. E-26 read it as about right because both cold phrases took knowing the state. Now it does not, and 9.5 is high for that. |
+
+### (b) The new counts
+
+Of the 50 `tpl-climate-of` questions, **47** offer at least one of Hawaii's
+and Alaska's phrases (all 47 offer Hawaii's), and **0** offer both (42 at
+E-26). The three without either are still Alaska's, California's and
+Hawaii's own. 42 of the 50 questions changed, each by swapping Alaska's phrase
+for the next farthest one. The other 8 are byte-identical.
+
+**What the cap traded for, and why it needs a person.** Taking out Alaska's
+phrase moves each question one step down the farthest-first list. For the
+eastern half of the country that step is the West Coast:
+
+- **HI + CA + OR is now the set in 18 of 50 questions**, and HI + WA + OR in 8.
+  The repetition the task removed (Hawaii and Alaska everywhere) is now
+  Hawaii, California and Oregon in most eastern questions.
+- **The answer is the only phrase with "cold" in 22 of 50** (1 at E-26, Alaska's
+  own): CT, IA, IL, IN, MA, MD, ME, MI, MN, MO, NC, NH, NJ, NY, OH, PA, RI, VA,
+  VT, WI, WV, AK. Before, Alaska's phrase was the cold rival. Now a child who knows
+  only that the state has cold winters can pick it out. That is the review
+  checklist's "the answer is the only odd one out".
+- **Washington's and Oregon's phrases appear together in 8**, and Maine's and
+  New Hampshire's in 6 (3 same-group pairs in all at E-26, 16 now). Both pairs
+  are one same-climate group each, and the two-from-one-group allowance lets
+  them through. WA's and OR's phrases are near twins ("wet mild winters and
+  dry summers near the coast…").
+
+None of this breaks a T-090 criterion. Each is the rule working as written.
+Whether to accept it, or ask for a stricter rule (at most one per group, or a
+"no answer is the only cold or only warm phrase" check) is the content call
+the brief left out of scope. **Owner: the person reading T-090's escalated
+review.**
+
+### (c) `concept_load["tpl-climate-of"]` (3): keep
+
+Keep 3. What is wrong with the climate levels is not the concept. It is how
+the distractors give the answer away (NY, RI and the 22 above read easier than
+their levels) and the rank inputs T-085 owns (HI 9.5, AK 8). Lowering
+`concept_load` would move all 50 levels for a problem in about half of them,
+and it would hide the distractor problem rather than fix it. If a stricter
+rule lands, re-judge it then. Any move is a follow-on, not T-090.
+
+### (d) California
+
+**California's question is unchanged**, and that is what the rules predict.
+Its three wrong answers are Maine's and New Hampshire's (Northern New England)
+and Rhode Island's (Southern New England). That is two groups, so the group
+cap does not apply. It offers neither Hawaii's nor Alaska's phrase, so the
+far-phrase cap does not apply either. E-26's "three from one cold group" was
+wrong on this point. **California is still `too hard`**: all three wrong
+answers open with "cold snowy winters". Fixing it needs a stricter rule (Out
+of scope in the brief), which a person decides.
+
+**Revisit when** a person decides on a stricter group or "only odd one out"
+rule, T-085 changes HI's or AK's level, or a world-scope bank gives the caps
+a far-phrase list that is not just two US states.

@@ -6553,8 +6553,8 @@
       "answer": "hot sticky summers and mild winters, with strong thunderstorms much of the year",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east",
         "hot sticky summers and mild winters, with strong thunderstorms much of the year"
       ],
       "correctIndex": 3,
@@ -6574,9 +6574,9 @@
       "answer": "hot humid summers with strong storms, and mild winters that turn icy at times",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "wet mild winters and dry summers near the coast, drier and hotter to the east",
         "hot humid summers with strong storms, and mild winters that turn icy at times",
-        "wet mild winters and dry summers near the coast, drier and hotter to the east"
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 2,
       "level": 8,
@@ -6595,9 +6595,9 @@
       "answer": "scorching dry summers in the desert, cooler snowy winters up north",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "cold snowy winters and cool breezy summers, especially up near the coast",
         "scorching dry summers in the desert, cooler snowy winters up north",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters, especially high in the mountains, and warm summers below"
       ],
       "correctIndex": 2,
       "level": 6,
@@ -6638,8 +6638,8 @@
       "choices": [
         "dry and cold in the mountains, drier plains to the east",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters and cool breezy summers, especially up near the coast",
+        "cold snowy winters and warm humid summers, with strong storms off the coast"
       ],
       "correctIndex": 0,
       "level": 7,
@@ -6659,8 +6659,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "cold snowy winters and warm sticky summers, with all four seasons clearly felt",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 1,
       "level": 8.5,
@@ -6680,8 +6680,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "mild humid summers and cool damp winters, close to the ocean's moderating winds",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 1,
       "level": 9.5,
@@ -6700,8 +6700,8 @@
       "answer": "hot muggy summers nearly all year, with sudden storms and mild winters",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east",
         "hot muggy summers nearly all year, with sudden storms and mild winters"
       ],
       "correctIndex": 3,
@@ -6722,8 +6722,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "hot muggy summers and mild winters, with thunderstorms common in the warm months",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "wet mild winters and dry summers near the coast, drier and hotter to the east"
+        "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 1,
       "level": 6,
@@ -6763,9 +6763,9 @@
       "answer": "hot humid summers and freezing cold winters, with strong winds across the open fields",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
         "hot humid summers and freezing cold winters, with strong winds across the open fields",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 2,
       "level": 8,
@@ -6806,8 +6806,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "hot humid summers, cold snowy winters, and strong storms every spring",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry summers near the coast, drier and hotter to the east"
       ],
       "correctIndex": 1,
       "level": 6,
@@ -6827,8 +6827,8 @@
       "choices": [
         "warm sticky summers, icy cold winters, and plenty of storms each spring",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 7.5,
@@ -6848,8 +6848,8 @@
       "choices": [
         "hot dry summers and cold windy winters, with sudden storms sweeping the plains",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters and cool breezy summers, especially up near the coast",
+        "cold snowy winters, especially high in the mountains, and warm summers below"
       ],
       "correctIndex": 0,
       "level": 7.5,
@@ -6869,8 +6869,8 @@
       "choices": [
         "warm humid summers and cool winters, with occasional snow and ice storms",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "wet mild winters and dry summers near the coast, drier and hotter to the east"
+        "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
       ],
       "correctIndex": 0,
       "level": 8.5,
@@ -6889,8 +6889,8 @@
       "answer": "hot muggy summers most of the year, mild winters, and occasional powerful storms",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east",
         "hot muggy summers most of the year, mild winters, and occasional powerful storms"
       ],
       "correctIndex": 3,
@@ -6911,8 +6911,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "cold snowy winters with strong coastal storms, and warm humid summers",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 1,
       "level": 7.5,
@@ -6931,9 +6931,9 @@
       "answer": "hot humid summers and cold winters, milder and breezier close to the water",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
         "hot humid summers and cold winters, milder and breezier close to the water",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 2,
       "level": 7.5,
@@ -6953,8 +6953,8 @@
       "choices": [
         "cold snowy winters and cool breezy summers, especially up near the coast",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 9.5,
@@ -6974,8 +6974,8 @@
       "choices": [
         "long cold winters with heavy lake snow, and mild humid summers",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 5.5,
@@ -6995,8 +6995,8 @@
       "choices": [
         "bitterly cold snowy winters and warm humid summers, with big swings between them",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "hot muggy summers nearly all year, with sudden storms and mild winters"
       ],
       "correctIndex": 0,
       "level": 7.5,
@@ -7015,8 +7015,8 @@
       "answer": "hot humid summers and cold winters, with sudden storms and occasional ice",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
         "hot humid summers and cold winters, with sudden storms and occasional ice"
       ],
       "correctIndex": 3,
@@ -7036,8 +7036,8 @@
       "answer": "hot muggy summers nearly all year, with mild winters and frequent thunderstorms",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east",
         "hot muggy summers nearly all year, with mild winters and frequent thunderstorms"
       ],
       "correctIndex": 3,
@@ -7079,8 +7079,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "hot humid summers, and winters that turn cold and snowy up in the mountains",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "wet mild winters and dry summers near the coast, drier and hotter to the east"
+        "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
       ],
       "correctIndex": 1,
       "level": 6,
@@ -7100,8 +7100,8 @@
       "choices": [
         "bitterly cold winters and hot summers, with strong winds across the open plains",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "hot muggy summers nearly all year, with sudden storms and mild winters"
+        "hot muggy summers nearly all year, with sudden storms and mild winters",
+        "cold snowy winters and cool breezy summers, especially up near the coast"
       ],
       "correctIndex": 0,
       "level": 8.5,
@@ -7120,9 +7120,9 @@
       "answer": "hot windy summers and freezing cold winters, with sudden storms across the open plains",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "cold snowy winters and cool breezy summers, especially up near the coast",
         "hot windy summers and freezing cold winters, with sudden storms across the open plains",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters and warm humid summers, with strong storms off the coast"
       ],
       "correctIndex": 2,
       "level": 8.5,
@@ -7142,8 +7142,8 @@
       "choices": [
         "cold snowy winters, especially high in the mountains, and warm summers below",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 9.5,
@@ -7162,9 +7162,9 @@
       "answer": "hot humid summers and cold snowy winters, with occasional storms along the shore",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
         "hot humid summers and cold snowy winters, with occasional storms along the shore",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 2,
       "level": 7.5,
@@ -7183,8 +7183,8 @@
       "answer": "hot dry summers in the lowlands, cold snowy winters up in the mountains",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "cold snowy winters and cool breezy summers, especially up near the coast",
+        "cold snowy winters, especially high in the mountains, and warm summers below",
         "hot dry summers in the lowlands, cold snowy winters up in the mountains"
       ],
       "correctIndex": 3,
@@ -7226,8 +7226,8 @@
       "choices": [
         "cold snowy winters, heaviest near the lakes and mountains, and warm humid summers",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 6,
@@ -7246,8 +7246,8 @@
       "answer": "cold snowy winters near the lake, and warm humid summers the rest of the year",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east",
         "cold snowy winters near the lake, and warm humid summers the rest of the year"
       ],
       "correctIndex": 3,
@@ -7268,8 +7268,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "hot windy summers and mild winters, with sudden severe storms in spring",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters and cool breezy summers, especially up near the coast",
+        "cold snowy winters, especially high in the mountains, and warm summers below"
       ],
       "correctIndex": 1,
       "level": 7.5,
@@ -7309,9 +7309,9 @@
       "answer": "cold snowy winters and warm humid summers, changing a lot from place to place",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
         "cold snowy winters and warm humid summers, changing a lot from place to place",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 2,
       "level": 6,
@@ -7331,8 +7331,8 @@
       "choices": [
         "cold snowy winters and warm humid summers, with strong storms off the coast",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 9.5,
@@ -7352,8 +7352,8 @@
       "choices": [
         "hot muggy summers, mild winters, and the chance of a strong coastal storm",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "wet mild winters and dry summers near the coast, drier and hotter to the east"
+        "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 8.5,
@@ -7372,8 +7372,8 @@
       "answer": "cold windy winters and hot summers, with sudden storms sweeping the plains",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "hot muggy summers nearly all year, with sudden storms and mild winters",
+        "cold snowy winters and cool breezy summers, especially up near the coast",
         "cold windy winters and hot summers, with sudden storms sweeping the plains"
       ],
       "correctIndex": 3,
@@ -7394,8 +7394,8 @@
       "choices": [
         "hot humid summers and mild winters, with occasional snow in the higher hills",
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "wet mild winters and dry summers near the coast, drier and hotter to the east"
+        "wet mild winters and dry summers near the coast, drier and hotter to the east",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 0,
       "level": 7.5,
@@ -7415,8 +7415,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "scorching hot summers, humid and stormy in the east, drier and milder out west",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters and cool breezy summers, especially up near the coast",
+        "cold snowy winters, especially high in the mountains, and warm summers below"
       ],
       "correctIndex": 1,
       "level": 5,
@@ -7435,9 +7435,9 @@
       "answer": "dry hot summers in the lowlands, and cold snowy winters up in the mountains",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "cold snowy winters and cool breezy summers, especially up near the coast",
         "dry hot summers in the lowlands, and cold snowy winters up in the mountains",
-        "cold snowy winters and cool breezy summers, especially up near the coast"
+        "cold snowy winters and warm humid summers, with strong storms off the coast"
       ],
       "correctIndex": 2,
       "level": 7.5,
@@ -7457,8 +7457,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "hot humid summers near the coast, colder and snowier out in the mountains",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 1,
       "level": 7,
@@ -7478,8 +7478,8 @@
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
         "cold snowy winters, heavy in the mountains, and mild cool summers below",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 1,
       "level": 9.5,
@@ -7519,8 +7519,8 @@
       "answer": "bitterly cold snowy winters and warm humid summers, right in the middle of the country",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
+        "wet mild winters and dry sunny summers near the coast, drier further east",
         "bitterly cold snowy winters and warm humid summers, right in the middle of the country"
       ],
       "correctIndex": 3,
@@ -7540,9 +7540,9 @@
       "answer": "warm humid summers and cold snowy winters, especially high in the hills",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
+        "sunny dry summers near the coast, hot deserts and snowy mountains further inland",
         "warm humid summers and cold snowy winters, especially high in the hills",
-        "sunny dry summers near the coast, hot deserts and snowy mountains further inland"
+        "wet mild winters and dry sunny summers near the coast, drier further east"
       ],
       "correctIndex": 2,
       "level": 9.5,
@@ -7561,8 +7561,8 @@
       "answer": "cold snowy winters high in the mountains, and hot dry summers down in the valleys below",
       "choices": [
         "warm breezy weather all year, with wetter mountains and drier coasts nearby",
-        "long cold snowy winters inland, milder and rainy along the southern coast",
         "cold snowy winters and cool breezy summers, especially up near the coast",
+        "cold snowy winters and warm humid summers, with strong storms off the coast",
         "cold snowy winters high in the mountains, and hot dry summers down in the valleys below"
       ],
       "correctIndex": 3,
