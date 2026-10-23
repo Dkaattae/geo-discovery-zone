@@ -1,13 +1,13 @@
 # T-089 — Above the bank's top level, a pick is drawn from the whole topic
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). Orchestrator stamp was refused as self-approval; see `runs/T-089-nearest-above-bank.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-089
 **Branch:** `claude/peaceful-maxwell-mbf9gd`
 **PR:** #94, opened draft at expand time, built from the branch above
-**Fault:**
+**Fault:** test changes are waiting for approval. 3 rows cover the 7 stale T-090 pins in `question-bank/src/climate-far-phrases-verify.test.ts`, which this task's own change turns red by design. Owner: a person, in an attended tester session.
 
 **Sessions:**
 
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 |
 | worker | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent; the env var is the parent run's id, so it matches the expander's row) |
+| tester | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent, freshly spawned; same parent-run id as the rows above, so the id check cannot show separation) |
 
 **Worker model:** Opus. It changes which question a child is served, and it
 needs a Test change request drafted correctly.
@@ -362,6 +363,111 @@ digests in the same describe still pass.
 **Contradictions with the brief:** none found.
 
 ## Verdict
+
+**TL;DR.** No final verdict yet: **test changes requested**. All 20 criteria
+hold on this branch. The one blocker is that 7 T-090 pins in question-bank go
+red by design, and those need a person's approval (3 rows in the Test change
+request below). **Next:** a person starts a `tester` in a session they are
+attending and approves or refuses the rows there. If all 3 are approved and
+applied, nothing I found stands in the way of a pass.
+
+**Independence.** This run is orchestrated (`runs/T-089-nearest-above-bank.md`
+exists), so the session-id check proves nothing. My id
+(`cse_014mjPR9EwgWt5EDdiUihfx9`) matches the expander and worker rows because
+every orchestrated role shares the parent's id. My independence comes only from
+being a freshly spawned agent with its own context. I did not see the worker's
+reasoning, and I read the Handoff only. That is weaker evidence than a separate
+session, because it depends on the orchestrator having spawned me correctly.
+
+**My tests.** They are in `backend/tests/test_t089_tester_criteria.py`: 34
+cases, all on inline fixtures, 300 draws each with an injected
+`random.Random`, and no network. I took expected values from the criteria. The
+byte-identity criteria are pinned by sha256 digests of `origin/main` (2b4edb2)
+that I computed while writing them. No revision is handed to `git` at test
+time. The only `git` call is `ls-files`, with `check=True`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `test_criterion_1_…` builds the pool from 1.5/3/6 on its own, 8 cases including the inclusive edges at 1.5, 3 and 6, a topic case and an asked case |
+| 2 | met | `test_criterion_2_…` checks the first 4281 bytes of `test_selection.py` against main's sha256. The existing 19 tests pass |
+| 3 | met | The fixture with levels 3, 8, 10, 10 at L=16.5 draws only the level-10 questions. A general check at 5 levels (12.5 to 30) confirms every draw is at the minimum distance |
+| 4 | met | Both level-10 ids are drawn |
+| 5 | met | Levels 7, 7.5, 12 at L=0 draw `{b7}` |
+| 6 | met | 3 tests: L=16 and L=16.5 with 4/10 draw `{e10}`; 9.5/10 at 16.5 draws `{e10}` |
+| 7 | met | Asked level 10 → `{f9.5}` |
+| 8 | met | `capital` → `{t-cap9}`. In `mixed`, both topics are drawn at the tie and the level-9 question is never drawn |
+| 9 | met | `is_review` is False on every draw, at index 0 and at index 7 with a queue |
+| 10 | met | With all asked: the repeats exclude the last 6, at 3 levels; a topic-filtered recycle; `None` only for an empty bank |
+| 11 | met | At L=16.5 with the queued entity at level 3, both on the index-6 turn and on a forced turn: every draw is a review of the queued entity |
+| 12 | met | `git ls-files` scan. Hits only in the allowed files: `engineering-decisions.md`, `runs/…`, `tasks.md`, this brief. `frontend/src/lib/session.ts` is absent. My test file builds the string from parts so it does not hit itself |
+| 13 | met | The first 115324 bytes of `engineering-decisions.md` match main's sha256, and then `\n## E-28 ` follows. Numbering runs 1..28 with no gap. E-28 names T-089 and covers (a) to (d) |
+| 14 | met | Both files match main's sha256. `test_measure_selection.py` passes |
+| 15 | met | The `serveNextQuestion` description contains "nearest the session level" and "widest difficulty window". With both operations' `description` removed, the parsed spec's canonical-JSON sha256 equals main's |
+| 16 | met | `git diff origin/main --stat` touches no `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` |
+| 17 | met | `content.json` sha256 matches main. `git diff origin/main --stat -- question-bank/data` is empty |
+| 18 | met | `git diff origin/main --stat -- frontend` is empty. Only `0001_initial_schema.py` is under `migrations/versions` |
+| 19 | met | Read through the new tests (mine and the worker's): inline fixtures only, no I/O in the behaviour tests, no `content.json` reads for counts or levels |
+| 20 | met, pending the request | Backend and question-bank results below. The only reds are the 7 stale pins. Frontend reds are the environment's (see below) |
+
+**Mutations.** I applied each one to `backend/app/selection.py`, ran my file,
+and reverted. After the last one, `diff` against the saved copy was clean.
+
+- **M0, main's `selection.py`:** 10 red (criteria 3, 4, 5, 6 ×2, 7, 8 ×2, 12).
+- **M1, fallback ignores topic:** red on c1 (capital, 15.5) and c8.
+- **M2, fallback ignores asked:** red on c1 (asked case), c7 and c10 ×2.
+- **M3, span `<=` → `<`:** red on 4 c1 cases (the inclusive edges).
+- **M4, nearest pool truncated to one:** red on c4 and c8 (mixed).
+- **M5, fallback returns `is_review=True`:** red on c9.
+- **M6, band of nearest + 1.5:** red on c3 (general), c5, c6 (9.5/10) and c8.
+- **M7, review branch disabled:** red on c11.
+- **M8, recycle ignores the recent window:** red on c10 ×2.
+
+**One fixture I corrected, so you can judge it.** My first
+`test_criterion_10_all_asked_respects_the_topic` used 3 questions, all asked.
+That put the whole topic inside the 6-wide recent window, so the code fell
+through to `choice(questions)` across topics. `origin/main` has the identical
+block, so this is default-branch behaviour (criterion 10: "behaves as on the
+default branch"). My test had asserted more than the criterion says. I enlarged
+the fixture to 8 capitals so the recent window leaves two. The assertion stays
+exact (`== {"c0", "c1"}`). I note it because it is a test changed after it
+went red.
+
+**Suites, run by me.**
+
+- **Backend:** `make -C backend test`: 673 passed, 9 skipped. `make -C backend
+  lint`: clean. `ruff format --check`: 51 files already formatted.
+- **question-bank:** after `bun install --frozen-lockfile`, `bun test` gives
+  2360 pass and 7 fail. The 7 are exactly the Handoff's list, and the request
+  below covers them. The E-26 and `measure_selection.py` digests in the same
+  describe still pass. `bun run lint`: 0/0. `bun run typecheck`: clean.
+- **frontend:** 392 pass, 2 fail and 2 errors on one run. Another run gave 391
+  pass and 3 fail, the extra one being the lint gate's 5 s timeout. The errors
+  read "Cannot find package 'react-simple-maps'": `bun install` is refused by
+  the proxy (403 on `@types/react-simple-maps@3.0.6`), so `node_modules` is
+  incomplete. Nothing under `frontend/` differs from `origin/main`. Environment,
+  not this task. CI is the authority there.
+
+**Worker's proposed digests, checked.** I recomputed the `treeDigest` algorithm
+on this tree on my own. It gives `openapi.yaml` = `88e056ea…3d5e5d` and
+`backend/app` (except `content.json`) = `e7a4e080…dff808`, matching the
+Handoff. It also reproduces the unchanged pinned `frontend` digest `7d65dc75…`.
+
+## Test change request
+
+Written by `tester`, 2026-10-23. **None of these tests has been changed.** They
+wait for a person's approval in an attended tester session (D-14, D-15). Every
+row is in `question-bank/src/climate-far-phrases-verify.test.ts`. They are the
+7 question-bank reds and the only ones. No count floor pins this file's test
+count: I searched for its name across `src/` and found no floor.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | › "T-090 criterion 14: the re-read is a new E-n entry" › the describe-level `newest`/`entry` lines, and "the entry is E-27, the next unused number after E-26, and appears once". The sibling tests "(a) the ten states' rows…", "(b) the counts…", "(c) a judgement on concept_load[tpl-climate-of]" and "(d) CA unchanged and why…" go red only because they read `entry` | `2023a09`, T-090 tester. It protected that T-090's re-read landed as the next E-n (E-27), once, naming T-090, with table D and sections (a) to (d) | Criterion 13 adds E-28, so `newest` is 28. `entry` becomes E-28's text, which has no table D, and `toBe(27)` fails | modify | `entry` is `sectionOf(decisions, "E-27")`, read by number, not by `Math.max`. The first test keeps its name and asserts: `numbers.filter(n => n === 27)` has length 1; `numbers.indexOf(27) === numbers.indexOf(26) + 1` (E-27 still directly follows E-26); `entry` matches `/T-090/`. `expect(newest).toBe(27)` and the `newest` constant are removed. Tests (a) to (d) are unchanged in text and pin E-27's content exactly as before | |
+| 2 | › "T-090 criterion 20: no other surface changes" › `test.each` "%s (except %p) is byte-identical to 3279555", row `openapi.yaml (except [])` | `adf727d`, T-090 tester (review finding 1). It protected that T-090 changed no API description | Criterion 15 edits the `serveNextQuestion` and `listQuestions` descriptions | modify | Move the row out of the 3279555 table into its own `test.each` named "%s (except %p) is byte-identical to T-089's tree". It asserts `treeDigest(REPO, "openapi.yaml", [])` equals `88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d` (recomputed by the tester; it matches the worker's). Exact digest, same strength. The other four rows stay in the 3279555 table untouched | |
+| 3 | Same `test.each`, row `backend/app (except [ "backend/app/data/content.json" ])` | `adf727d`, T-090 tester. It protected that T-090 changed no backend code beyond content | Criteria 3 to 5 and 12 change `backend/app/selection.py` | modify | Same new `test.each` as row 2, row `backend/app` except `["backend/app/data/content.json"]`. It asserts `treeDigest` equals `e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808` (recomputed by the tester; it matches the worker's) | |
+
+Both digests must be recomputed if anything else under `backend/app` or in
+`openapi.yaml` changes before the edit lands.
 
 ## Notes
 
