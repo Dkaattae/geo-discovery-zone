@@ -7,10 +7,12 @@
  *
  * Baselines at `3279555` are embedded as sha256 digests, computed once from a
  * `git worktree` of `3279555` with the same helper functions as below, because
- * CI checks out shallow and cannot `git show` it. The broad "no other surface"
- * trees of criterion 20 (frontend/, backend/app/, openapi.yaml,
- * geoquizdataplan.md, migrations) change with most later tasks, so they are
- * compared with `git diff 3279555` and skipped where that commit is absent.
+ * CI checks out shallow and cannot read it. Criterion 20's trees (frontend/,
+ * backend/app/ but content.json, openapi.yaml, geoquizdataplan.md, migrations)
+ * are pinned the same way, so no git call is ever handed a revision (the T-081
+ * guard, `git-exit-guard.criteria.test.ts`). Those pins go red when a later
+ * task deliberately changes one of those trees; that task's tester raises a
+ * test change request.
  *
  * Pure: no network, no seam, nothing mocked, nothing written. The only I/O is
  * reading committed files and `git`.
@@ -37,7 +39,6 @@ import type { Entity } from "./types";
 import { loadCommittedEntities, REPO_ROOT } from "./write-questions";
 
 const REPO = REPO_ROOT;
-const BASE = "3279555";
 const CLIMATE_TPL = "tpl-climate-of";
 const CLIMATE = TEMPLATES.find((t) => t.id === CLIMATE_TPL) as Template;
 const CAP_SET = ["us-state-hi", "us-state-ak"];
@@ -96,9 +97,10 @@ function tracked(root: string, path: string): string[] {
   if (paths.length === 0) throw new Error(`nothing tracked under ${path}`);
   return paths;
 }
-function treeDigest(root: string, path: string): string {
+function treeDigest(root: string, path: string, except: string[] = []): string {
   return sha(
     tracked(root, path)
+      .filter((p) => !except.includes(p))
       .map((p) => `${p}\t${sha(readFileSync(join(root, p)))}\n`)
       .join(""),
   );
@@ -779,9 +781,6 @@ describe("T-090 criterion 19: no climate phrase written or edited", () => {
   });
 });
 
-const baseAvailable =
-  Bun.spawnSync(["git", "cat-file", "-e", `${BASE}^{commit}`], { cwd: REPO }).exitCode === 0;
-
 describe("T-090 criterion 20: no other surface changes", () => {
   test("backend/scripts/measure_selection.py is byte-identical to 3279555", () => {
     expect(treeDigest(REPO, "backend/scripts/measure_selection.py")).toBe(
@@ -795,28 +794,17 @@ describe("T-090 criterion 20: no other surface changes", () => {
     );
   });
 
-  // Skipped on a shallow checkout (CI), where 3279555 is not present.
-  test.skipIf(!baseAvailable)(
-    "openapi.yaml, geoquizdataplan.md, frontend/, migrations and backend/app/ but content.json: no diff against 3279555",
-    () => {
-      const proc = Bun.spawnSync(
-        [
-          "git",
-          "diff",
-          "--name-only",
-          BASE,
-          "--",
-          "openapi.yaml",
-          "geoquizdataplan.md",
-          "frontend",
-          "backend/migrations",
-          "backend/app",
-          ":(exclude)backend/app/data/content.json",
-        ],
-        { cwd: REPO },
-      );
-      expect(proc.exitCode).toBe(0);
-      expect(proc.stdout.toString().split("\n").filter(Boolean)).toEqual([]);
-    },
-  );
+  test.each([
+    ["openapi.yaml", [], "61d9bfdd555254eb754dd2863d7089eb071afb63d38c7202025ca8cebda3f0aa"],
+    ["geoquizdataplan.md", [], "ec848e63548e360dbe100e99d3be8e565a93aa227bece35620859242e130b1d6"],
+    ["frontend", [], "7d65dc75903745275176b0e10ee85a3b55e17a88465729053e0be979bd449d96"],
+    ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
+    [
+      "backend/app",
+      ["backend/app/data/content.json"],
+      "5fe8c8c146892c9b2879e06c38e1b157e25e0812d0e7b88886c9a33785c5de9a",
+    ],
+  ] as const)("%s (except %p) is byte-identical to 3279555", (path, except, digest) => {
+    expect(treeDigest(REPO, path, [...except])).toBe(digest);
+  });
 });

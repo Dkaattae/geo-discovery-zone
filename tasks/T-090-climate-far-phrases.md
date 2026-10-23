@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question
 
-**Status:** `changes requested`
-**Next step:** `tester` — needs `tester` to come back and fix finding 1 (its own new test file trips the T-081 git guard; CI is red)
+**Status:** `pass`
+**Next step:** `reviewer` — review finding 1 is fixed in the tester's own file; suite green with the file committed
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). See `runs/T-090-climate-far-phrases.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
@@ -17,6 +17,7 @@
 | worker | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent; the remote session id is shared, the agent context is not) |
 | tester | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id, so the id check proves nothing here) |
 | reviewer | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id). Verdict: changes requested, back to `tester` |
+| tester | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context, round 2 for review finding 1; same shared id, so the id check proves nothing here) |
 
 **Worker model:** Opus. This changes what a child reads in 50 questions.
 
@@ -356,6 +357,29 @@ cd backend && uv run python scripts/measure_selection.py --no-timing   # table D
 - **22 of 50 questions have the answer as the only phrase containing "cold"**, against 1 at `3279555`. My count matches E-27 (b) and lists the same states.
 - **This is the "only odd one out" item in the review checklist**, and the person reading the escalated review owns it.
 - **Durability caveat:** the `3279555` digests (criteria 7, 11, 12, 19) will go red when a later task deliberately regenerates non-climate questions, such as T-088's agriculture. That task's tester then raises a test change request.
+
+### Verdict, round 2 (after review finding 1) — 2026-10-23
+
+**TL;DR**
+- **Pass, and finding 1 is fixed.** The criterion 20 `git diff 3279555` test and `baseAvailable` (`git cat-file`) are gone. The trees are now pinned by `treeDigest` sha256 digests, like the other base pins. No git call in the file is handed a revision.
+- **The suite was run with the file committed-to-index** (`git add` first), so the T-081 guard scanned it: `bun test` **2367 pass, 0 fail**. That corrects round 1's "0 fail", which was measured with the file untracked.
+- **Independence is still the weaker kind:** orchestrated run, shared session id. It rests on my being a fresh agent with no view of the worker's reasoning.
+
+**What changed** (only `question-bank/src/climate-far-phrases-verify.test.ts`, plus this brief)
+- `treeDigest` takes an optional `except` list.
+- Criterion 20 now has 5 digest tests. They cover `openapi.yaml`, `geoquizdataplan.md`, `frontend`, `backend/migrations`, and `backend/app` except `backend/app/data/content.json`. The digests were computed from a `git worktree` of `3279555` and are identical to HEAD's. These run on CI, where the old test was skipped.
+- Removed: the unused `BASE` const, `baseAvailable`, and the `git diff` test. The header comment is updated. `git-exit-guard.criteria.test.ts` was not touched.
+
+**Suites** (proxy variables pointed at `http://127.0.0.1:1`)
+- `question-bank`: `bun test` 2367 pass, 0 fail (2363 − 1 removed + 5 new). `typecheck`, `lint` and `format:check` are clean.
+- `backend`: `make test` 627 passed, 9 skipped.
+
+**Mutation of the new pins** (reverted with `git checkout`; `git status` afterwards shows only the test file)
+- I appended a line to `openapi.yaml`, `backend/app/__init__.py` and `frontend/package.json`.
+- Result: the `openapi.yaml`, `frontend` and `backend/app` pins went red, and so did criterion 17's manifest pin. 48 pass, 4 fail.
+- `content.json` differs from base at HEAD, yet the `backend/app` pin passes. So the exclusion works.
+
+**Durability:** these five pins, like the round 1 pins, will go red when a later task deliberately changes those trees. That task's tester raises a test change request (review N2).
 
 ## Review
 
