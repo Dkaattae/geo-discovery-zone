@@ -76,7 +76,9 @@ five Setup topics (PR #91): T-026 deleted; T-056 rewritten to what is left of
 it; T-050, T-053, T-088, T-039 and §H's superlatives line updated. Swept
 again 2026-10-23, after T-050 measured selection and levels at 365 questions
 as E-26 (PR #92): T-050 deleted; T-089 and T-090 new from its follow-ons;
-T-056, T-085, T-088 and T-076 amended._
+T-056, T-085, T-088 and T-076 amended. Swept again 2026-10-23, after T-090
+capped Hawaii's and Alaska's climate phrases (PR #93): T-090 deleted; T-091
+new from its content trade; T-070 and T-088 amended._
 
 ## How this list is ordered
 
@@ -190,6 +192,14 @@ an older test turns them red too. Whatever Q1 decides should cover this file.
 count (23) at `41811f9`; criterion 10 pins the 150 seeded levels and
 `LEVEL_SEED_WEIGHTS`. The first task that adds or edits any other `E-n` entry,
 this one included, turns it red. Whatever Q1 decides should cover it (P-17).
+**Since T-090 (PR #93): a seventh guard, and the widest yet.**
+`climate-far-phrases-verify.test.ts` criterion 20 pins sha256 tree digests at
+`3279555` for `frontend/`, `backend/app/` (except `data/content.json`),
+`backend/migrations`, `openapi.yaml` and `geoquizdataplan.md`. Its criterion
+17 pins every manifest and lockfile. The next task that touches the frontend
+or the backend app turns these red: T-056, T-051, T-043, T-048, T-076 and the
+section E tasks. Each such task needs a test change request until Q1 settles
+how base pins expire. Whatever Q1 decides should cover this file.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -461,29 +471,33 @@ distractors only through the rules, not by value.
 farthest-first put Hawaii's or Alaska's climate phrase in 47 of 50 climate
 questions and both in 42, a two-way pick once a child spots them (T-090).
 Expect the same of HI and AK crops.
+**Since T-090 (PR #93):** climate now caps HI and AK at one wrong answer each
+question (E-27), and option (b) would need the same cap for crops. Expect a
+**test change request**: `climate-far-phrases-verify.test.ts` pins every
+non-climate question in both committed files at `3279555` (criteria 7, 11,
+12 and 19), so regenerating agriculture turns those pins red.
 **Done when:** the chosen option has landed and E-25 records it.
 
-### T-090 — Climate wrong answers: Hawaii and Alaska in almost every question · S · doing — **content: a person reviews the result**
-**Depends on:** —
-**Expanded 2026-10-23** into `tasks/T-090-climate-far-phrases.md`. The
-survey found that California's three wrong answers come from two groups
-(ME, NH Northern New England; RI Southern New England), not one, so the
-"never three from one group" half changes no committed question today.
-**New 2026-10-23, from T-050's reviewer (PR #92).** E-26 section D: E-25's
-farthest-first draws Hawaii's or Alaska's `climate_kid` phrase into 47 of the
-50 served `tpl-climate-of` questions, and both into 42. A child who spots the
-island phrase and the far-north phrase is left with a two-way pick. It also
-gives California three "cold snowy winters" wrong answers, so the one sunny
-phrase stands out.
-**Proposal (E-26):** in `climates_outside_group`, offer at most one of
-Hawaii's and Alaska's phrases per question and never three from one
-same-climate group. Then re-read E-26 table D and re-judge
-`concept_load["tpl-climate-of"]` (3).
-**Test cost:** changes the committed question file and `content.json`, so both
-drift tests need a regeneration. Distractors are what a child reads, so the
-reviewer escalates the result.
-**Done when:** the rule has landed, E-25 records it, and a re-read of table D's
-ten states is written down.
+### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo — **waiting on a person**
+**Depends on:** a person's choice between the options below
+**New 2026-10-23, from T-090 (PR #93), E-27 (b).** Capping Hawaii's and
+Alaska's phrases took away the only other "cold" phrase in most eastern
+states' questions. The next farthest picks are West Coast phrases, so:
+- in **22 of 50** the answer is the only phrase with "cold" in it (1 before),
+  so it is the odd one out;
+- HI + CA + OR is the wrong-answer set in 18;
+- Washington's and Oregon's near-twin phrases appear together in 8.
+California is unchanged and still `too hard` (three "cold snowy winters"
+phrases from two groups). E-27 (a) also reads NY and RI as `too hard` now.
+**Options:** (a) accept the trade and record it in E-25; (b) at most one
+wrong answer per same-climate group (changes CA); (c) require at least one
+wrong answer that shares the answer's season word ("cold", "hot", "mild");
+(d) never offer two phrases opening with the same words.
+**Test cost:** regenerates both committed files. Expect a test change request
+on `climate-far-phrases-verify.test.ts`, which pins the current climate rule
+and bank.
+**Done when:** the chosen option has landed and E-25 records it. Distractors
+are text a child reads, so the reviewer escalates.
 
 ### T-056 — The map cannot fill in on a child's first day · M · todo
 **Depends on:** a design decision below

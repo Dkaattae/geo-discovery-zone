@@ -359,6 +359,20 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-090 — climate wrong answers: at most one of Hawaii's and Alaska's
+  phrases** (PR #93, 2026-10-23). `climates_outside_group` now skips a second
+  HI/AK phrase and never takes all three wrong answers from one same-climate
+  group. Neither cap is relaxed: a pool they leave short is reported as short.
+  The bank was regenerated: 0 of 50 climate questions offer both phrases
+  (42 before). Nothing else moved, levels included. E-27 re-reads E-26's table
+  D. *Where it differed from the brief:* the survey found California's three
+  wrong answers come from two groups, so the group cap is only a guard and CA
+  is unchanged. Reading all 50 then showed a trade: in 22 the answer is now the
+  only "cold" phrase. That trade is escalated on the PR and queued as T-091.
+  The review sent the tester back once, because its new test broke the T-081
+  git guard. The guard ignores untracked files, so the tester's "0 fail" had
+  been measured before the file was committed. Run orchestrated with one
+  session id across the roles (`P-14`).
 - **T-050 — selection and levels measured at 365 questions** (PR #92,
   2026-10-23). `engineering-decisions.md` E-26 records where a session can draw
   from at every level, how the levels spread over grades, the review pool per
@@ -1503,8 +1517,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   list what a state is known for, not all it grows, so a "wrong" choice is
   sometimes right: Iowa "chickens", Texas "sheep", Minnesota "sugar beets"
   (T-088).
-- **Climate wrong answers repeat.** Hawaii's or Alaska's phrase is a wrong
-  choice in 47 of the 50 climate questions, both in 42 (E-26, T-090).
+- **Climate wrong answers give the answer away.** Since T-090, no climate
+  question offers both Hawaii's and Alaska's phrases. But in 22 of 50 the
+  answer is the only "cold" phrase, and California's is still the only sunny
+  one (E-27, T-091).
 - **Regenerating is by hand.** After the entity bank changes, two commands
   rewrite the question file and `content.json`, and a drift test is red until
   both are run (E-24). Nothing prompts for them yet (T-087).
