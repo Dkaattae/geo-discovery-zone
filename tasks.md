@@ -73,7 +73,10 @@ and `build:sample` (PR #89): T-064 deleted; T-070 lost the sample from its
 guard list and gained two stale phrases to fix; T-076 gained a one-off README
 rewrite to check. Swept again 2026-10-22, after T-026 added six templates and
 five Setup topics (PR #91): T-026 deleted; T-056 rewritten to what is left of
-it; T-050, T-053, T-088, T-039 and §H's superlatives line updated._
+it; T-050, T-053, T-088, T-039 and §H's superlatives line updated. Swept
+again 2026-10-23, after T-050 measured selection and levels at 365 questions
+as E-26 (PR #92): T-050 deleted; T-089 and T-090 new from its follow-ons;
+T-056, T-085, T-088 and T-076 amended._
 
 ## How this list is ordered
 
@@ -404,6 +407,10 @@ paragraph's `3.5 - 2 = 1.5`, and a `**Revisit when**` that names T-085 and the
 other three triggers, or list those rows in the Test change request.
 `levelFor` and `nearDistractorCount` are no longer exported (E-22); edit
 `levelFor` in place.
+**Amended 2026-10-23 by T-050's reviewer (PR #92): two more rows.** E-26
+table D marks `tpl-climate-of` HI (9.5) and AK (8) `too hard` for the same
+cause: rank buckets with no input for a state drawn apart. Judge the chosen
+option against them too, which makes six served rows, not four.
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
 
@@ -448,7 +455,29 @@ the risk and record it in E-25.
 **Test cost:** changes the committed question file and `content.json`, so
 both drift tests need a regeneration. T-026's own tests pin the current
 distractors only through the rules, not by value.
+**Since T-050 (PR #92):** option (b) has a measured cost. E-26 found
+farthest-first put Hawaii's or Alaska's climate phrase in 47 of 50 climate
+questions and both in 42, a two-way pick once a child spots them (T-090).
+Expect the same of HI and AK crops.
 **Done when:** the chosen option has landed and E-25 records it.
+
+### T-090 — Climate wrong answers: Hawaii and Alaska in almost every question · S · todo — **content: a person reviews the result**
+**Depends on:** —
+**New 2026-10-23, from T-050's reviewer (PR #92).** E-26 section D: E-25's
+farthest-first draws Hawaii's or Alaska's `climate_kid` phrase into 47 of the
+50 served `tpl-climate-of` questions, and both into 42. A child who spots the
+island phrase and the far-north phrase is left with a two-way pick. It also
+gives California three "cold snowy winters" wrong answers, so the one sunny
+phrase stands out.
+**Proposal (E-26):** in `climates_outside_group`, offer at most one of
+Hawaii's and Alaska's phrases per question and never three from one
+same-climate group. Then re-read E-26 table D and re-judge
+`concept_load["tpl-climate-of"]` (3).
+**Test cost:** changes the committed question file and `content.json`, so both
+drift tests need a regeneration. Distractors are what a child reads, so the
+reviewer escalates the result.
+**Done when:** the rule has landed, E-25 records it, and a re-read of table D's
+ten states is written down.
 
 ### T-056 — The map cannot fill in on a child's first day · M · todo
 **Depends on:** a design decision below
@@ -464,33 +493,37 @@ state in their first sitting, and needs four sittings to fill any.
 Options: revisit the 0.7 threshold, show partial mastery on the map, or let a
 topic session count the same state's questions from other topics. Each is a
 design decision, not more data.
+**Amended 2026-10-23 by T-050's reviewer (PR #92): review has the same
+single-topic problem.** E-26 table C: in `location`, `capital`, `wildlife` and
+`climate` every state has exactly one question, and the review pool is
+topic-filtered before `review_pool` sees it (`routers/sessions.py:106-113`).
+So a single-topic review turn re-asks the very question missed, or, when it is
+in the last six, falls back to an ordinary pick, though `review_pool`'s
+docstring promises "a different angle". `store.review_questions` draws a
+state's questions from every topic and has no caller. Whether a topic session
+may reach into other topics is one question for mastery and review alike;
+settle both here. Also decide whether a review round should count down on a
+pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-050 — Check selection and levels at 50 states · M · doing
+### T-089 — Above the bank's top level, a pick is drawn from the whole topic · S · todo
 **Depends on:** —
-**Expanded 2026-10-23** into `tasks/T-050-selection-at-365.md`: measure and
-record as `E-26`, change nothing; fixes become follow-ons.
-**Rewritten 2026-10-19 by T-040's reviewer (PR #88).** This entry was "Grow the
-served bank from 15 states to 50". T-040 did that: the app serves the 50
-pipeline states, each with its reviewed fun fact, and 100 generated questions.
-What is left is the pass this entry always said the size needed:
-
-- **Level spread.** Seeded levels now run 3.5 to 10 over the served bank
-  (E-22). Check that a child at each band gets a sensible share of it, and
-  that the HI/AK/Denver/Honolulu rows T-085 owns do not dominate a band.
-- **Review queue** at 100 questions rather than 26.
-- **`store.candidate_questions`** selects in Python. It was documented as fine
-  at 26 questions and the place to move filtering into SQL when it is not.
-  Measure it at T-026's size: 365 served questions (PR #91).
-- **The six T-026 templates.** Their `concept_load` values are first guesses
-  (E-22), and `nearDistractorCount` means little for them. Climate
-  distractors go farthest-first (E-25), so Hawaii's and Alaska's phrases sit
-  in most climate questions: correct, but easy and repetitive. Check whether
-  the climate questions are too easy for their level.
-
-**Done when:** a session at any level draws sensibly from the whole set, or
-this is dropped with the measurement that shows it already does.
+**New 2026-10-23, from T-050's reviewer (PR #92).** E-26 table A: the served
+bank tops out at level 10, so from session level 16.5 every topic, and from
+14.5–16 some (`location`, `agriculture`, `superlative`, `climate`), find no
+question within span 6 and fall to `LEVEL_SPANS`' 99. At span 99 the pool is
+every unasked question in the topic, drawn uniformly, so an 8th grader (start
+16) can get a level-3 farm animal as readily as a level-10 capital. Below the
+bank the widened span lands on the easiest questions, which E-26 accepts.
+**Proposal (E-26):** when no span up to 6 reaches a question, choose from the
+questions nearest the session level instead of the whole topic.
+`backend/app/selection.py` says it is a port of `pickQuestion()` in
+`frontend/src/lib/session.ts`; check whether that copy is still live and keep
+the two in step, or say why not.
+**Done when:** a session above the bank's top draws from its nearest
+questions, a test on an inline fixture shows it, and E-26's finding is
+answered in a new `E-n`.
 
 ### T-051 — Render a third question format in the client · M · todo
 **Depends on:** T-020
@@ -677,6 +710,10 @@ edit). It did not recur in two more worker runs or the tester's, and nobody
 found the cause. While fencing these blocks, run the frontend suite and confirm
 `git status` stays clean for this file. If something does write it, find the
 test and say so here.
+**Seen again 2026-10-23 in T-050's worker run** (PR #92): the same `2 * gradeOf`
+→ `2 \* gradeOf` edit after one frontend `bun test`, not on the next run. Two
+sightings now. First suspect: `frontend/src/format-gate.criteria.test.ts`,
+which spawns `bun run format` (a write) around its probe files.
 
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —
