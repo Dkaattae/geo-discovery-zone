@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). See `runs/T-090-climate-far-phrases.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi |
 | worker | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent; the remote session id is shared, the agent context is not) |
+| tester | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id, so the id check proves nothing here) |
 
 **Worker model:** Opus. This changes what a child reads in 50 questions.
 
@@ -297,6 +298,63 @@ cd backend && uv run python scripts/measure_selection.py --no-timing   # table D
 **Tests made stale:** none. The full question-bank suite (2315 pass) and the backend suite (627 pass, 9 skipped) are green.
 
 ## Verdict
+
+**TL;DR**
+- **Pass.** All 20 criteria hold. 14 are checked by new tests, and 17-20 are checked by tests plus a `git diff` against `3279555`. All 7 source mutations were caught and reverted.
+- **Independence is the weaker kind.** This is an orchestrated run (`runs/T-090-climate-far-phrases.md` exists). My session id is the worker's, so the Sessions check proves nothing. My independence rests only on the orchestrator spawning me as a fresh agent: I did not see the worker's conversation or reasoning. I cannot verify that myself.
+- **Next:** the reviewer. The content trade in E-27 (b) still needs a person (see below). Nothing in this verdict settles it.
+
+**Suites** (run with every proxy variable pointed at `http://127.0.0.1:1`)
+- `question-bank`: `bun test` 2363 pass, 0 fail (2315 existing + 48 new). `typecheck`, `lint` and `format:check` are clean.
+- `backend`: `make test` 627 passed, 9 skipped. `lint` and `format-check` are clean.
+- **Regeneration is byte-stable.** `bun run ./src/write-questions.ts` and `make -C backend content` leave no diff.
+
+**New file:** `question-bank/src/climate-far-phrases-verify.test.ts`, 48 tests, one `describe` per criterion.
+- **Expected values:** taken from the criteria, the committed entity files, and sha256 digests of the committed files at `3279555`.
+- **How the digests were made:** computed once from a `git worktree` of `3279555`, with the same helper functions the test uses.
+- **One independent check:** criterion 5 is re-implemented from its wording (`referenceWrong`) and compared against all 50 committed climate questions in both files.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | TX fixture with HI and AK as the two farthest offers one of them. AK's question offers HI's phrase and HI's offers AK's. All 50 questions from the committed entities have at most one. |
+| 2 | pass | HI farther: HI, CO, NY are offered. AK farther: AK, CO, NY. |
+| 3 | pass | Three Great Plains states farthest: not all three are offered. All 50 committed questions take at most two from one group. |
+| 4 | pass | IA, NE, KS, ND farthest gives IA, NE, CA. OR + WA + MT is a full question. |
+| 5 | pass | The fixture walk skips own-group, same-text-as-answer, same-text-as-pick and second-cap candidates. Both caps in one walk give IA, NE, AK. A tie goes to CA over NY. The same input gives the same output, and the input is not mutated. The reference walk matches all 50 in both files. |
+| 6 | pass | HI, AK and CO only: `shortPools` is `[{found: 2, reason: "too_few_candidates"}]` and no question is built. Three Great Plains states only: the same result. |
+| 7 | pass | Every non-climate strategy on 7 answer fields, over a fixture that trips both caps (it offers HI and AK together under `neighbours_first`), digests equal to `3279555`. So do all non-climate templates over the committed entities. |
+| 8 | pass | `us-states.json` equals `renderQuestionFile(entities)`. `content.json`'s climate choices, `correctIndex` and `level` equal the question file's. Both drift tests pass. |
+| 9 | pass | 0 of 50 offer both, in both files. |
+| 10 | pass | 50 climate questions, one per state. `content.json` has 365 questions, 50 of them `climate`. No climate draft is a short pool. |
+| 11 | pass | `id`, `entityId`, `prompt`, `answer`, `correctIndex` and answer position match the `3279555` digest in both files. `level` equals the pipeline's output. |
+| 12 | pass | Non-climate questions match the `3279555` digests in both files. `data/us-states/` matches its tree digest. |
+| 13 | pass | The `LEVEL_SEED_WEIGHTS` digest matches. `concept_load["tpl-climate-of"]` is 3. |
+| 14 | pass | E-27 is the newest entry and appears once. Its 10 rows match the committed questions on prompt, correct answer, wrong answers and level, and each non-`about right` verdict has a reason. (b) says **47** and **0**, which match my counts. (c) is "keep". (d) says CA is unchanged, its answers come from two groups, and it is still too hard. CA's question equals its `3279555` copy. |
+| 15 | pass | E-25's climate bullet has "Amended 2026-10-23 (T-090)" naming both caps and E-27. |
+| 16 | pass | The `templates.ts` doc comment and the `distractors.ts` comments name both caps. |
+| 17 | pass | The 8 tracked manifests and lockfiles match the `3279555` digest. No other manifest or lockfile exists. |
+| 18 | pass | Both T-090 test files are free of URLs, `fetch(`, transports and non-git spawns. The suite passes with the proxy pointed at loopback. |
+| 19 | pass | Every wrong answer is exactly some committed state's `climate_kid`. The five person-approved lists match the `3279555` digest. |
+| 20 | pass | `measure_selection.py` and E-26's text match their digests. `git diff 3279555 HEAD` over `openapi.yaml`, `geoquizdataplan.md`, `frontend/`, `backend/migrations` and `backend/app/` (minus `content.json`) is empty. That test is `skipIf` the commit is absent, as on CI's shallow checkout. |
+
+**Mutations** (each made in `distractors.ts`, run against the new file, then reverted; `git diff src/distractors.ts` is empty afterwards)
+
+| Mutation | Red tests |
+|---|---|
+| M1: far-phrase cap disabled | 7 (crit 1, 2, 5, 6, 8) |
+| M2: group cap tightened to one per group | 6 (crit 4, 5, 6, 8) |
+| M3: group cap disabled | 4 (crit 3, 4, 5, 6) |
+| M4: caps applied to every strategy | 3 (crit 7 twice, 8) |
+| M5: tie-break reversed | 2 (crit 5, 7) |
+| M6: cap set `["HI"]` only | 7 (crit 1, 2, 5, 6, 8) |
+| M7: caps relaxed to fill a short pool | 2 (crit 6) |
+
+**Stale tests:** none. No existing test went red and none was touched. **Test changes:** none.
+
+**For the person at review (not a criterion, confirmed independently):**
+- **22 of 50 questions have the answer as the only phrase containing "cold"**, against 1 at `3279555`. My count matches E-27 (b) and lists the same states.
+- **This is the "only odd one out" item in the review checklist**, and the person reading the escalated review owns it.
+- **Durability caveat:** the `3279555` digests (criteria 7, 11, 12, 19) will go red when a later task deliberately regenerates non-climate questions, such as T-088's agriculture. That task's tester then raises a test change request.
 
 ## Notes
 
