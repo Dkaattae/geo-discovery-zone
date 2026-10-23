@@ -125,3 +125,34 @@ worker's "Owner" line proposes.
 ## Resumed — human answer — 2026-10-23
 The person replied in the orchestrator session, verbatim: "continue". The trade
 is left for the escalated review; the orchestrator resumes at `tester`.
+
+## Round 3 — tester — 2026-10-23
+`Next step` on entry: `tester` → on exit: `reviewer` · `Status` on entry: `awaiting verification` → on exit: `verified — pass`
+
+**T-090 tester: the verdict is pass.** All 20 criteria are met and every test suite is green. I pushed the tests and the Verdict as commit `2023a09` on `claude/eloquent-ptolemy-gmsovo`; local HEAD and the remote branch match. The brief's header now reads Status `verified — pass` and Next step `reviewer`.
+
+**How independent this is:** this run is orchestrated (`runs/T-090-climate-far-phrases.md` exists). My session id, `cse_01RqMHVzQ4dzC6Q8EjTwWEZi`, is the same one the worker has in the Sessions table, so that check proves nothing here. My only independence is that I was spawned as a fresh agent and never saw the worker's conversation or reasoning. That is weaker than a separate session, and I can't confirm it myself. The Verdict and my Sessions row both say this.
+
+**What I checked**
+- **New tests:** `/home/user/geo-discovery-zone/question-bank/src/climate-far-phrases-verify.test.ts` has 48 tests, one `describe` per criterion.
+  - Criteria 1–6 use inline equator fixtures through `generate` and `buildChoices`.
+  - Criterion 5 is also rewritten from its own wording and compared against all 50 committed climate questions in both committed files.
+  - The comparisons with base `3279555` (criteria 7, 11–13, 17, 19, 20) use sha256 values computed once from a `git worktree` of that commit, because CI checks out too shallowly to see it.
+  - The criterion 20 checks on `frontend/`, `backend/app/`, `openapi.yaml`, the plan and the migrations use `git diff 3279555` instead. That test skips itself when the commit is missing, as in CI.
+- **Breaking the code on purpose:** I made 7 deliberate breaks in `distractors.ts` and every one turned at least 2 tests red. They were: Hawaii/Alaska cap off, group cap tightened to one per group, group cap off, caps applied to every strategy, tie-break reversed, cap list HI only, and caps relaxed to fill a short pool. All are reverted; `git diff` on the file is empty.
+- **Suites:** run with network access blocked (the proxy variables pointed at a dead local port).
+  - `question-bank`: 2363 pass, 0 fail. Typecheck, lint and format check are clean.
+  - `backend`: 627 passed, 9 skipped. Lint and format check are clean.
+  - Rerunning both regeneration commands changes no files.
+- **Stale tests:** none, and no existing test was touched. Test changes stay at `none`.
+
+**For the reviewer and the person at review**
+- **The worker's warning about content is right.** In 22 of the 50 climate questions, the correct answer is now the only phrase with "cold" in it, against 1 at base. My own count matches E-27 (b), state for state. This is the review checklist's "answer is the only odd one out" item. It is a content decision for a person, and passing the criteria doesn't settle it.
+- **Some of these tests will need changing later.** The base-commit checks for criteria 7, 11, 12 and 19 will fail when a later task deliberately regenerates other questions, such as T-088's agriculture ones. That task's tester will then have to raise a test change request.
+
+**Files**
+- `/home/user/geo-discovery-zone/question-bank/src/climate-far-phrases-verify.test.ts`
+- `/home/user/geo-discovery-zone/tasks/T-090-climate-far-phrases.md` (Verdict, Status, Next step, Sessions row)
+
+G3 count: fail 0, blocked 0. The content point is the same one the person
+already deferred to review ("continue"), so the orchestrator proceeds to `reviewer`.
