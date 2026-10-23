@@ -46,24 +46,35 @@ function state(overrides: Record<string, unknown> = {}): Entity {
   } as Entity;
 }
 
+/**
+ * T-026 (approved Test change request, S3): the three templates the T-021
+ * tests below were written for. The six T-026 templates are pinned by
+ * `t026-tester-verify.test.ts`.
+ */
+const ORIGINAL = TEMPLATES.filter((t) =>
+  ["tpl-identify-on-map", "tpl-capital-of", "tpl-click-the-map"].includes(t.id),
+);
+
 describe("over the committed bank", () => {
   const bank = loadBank();
   const { drafts, skipped } = generate(bank);
+  const original = generate(bank, ORIGINAL);
   const find = (templateId: string, entityId: string) =>
     drafts.find((d) => d.templateId === templateId && d.entityId === entityId);
 
   test("150 drafts, nothing skipped, 50 per template and 3 per entity", () => {
     expect(bank).toHaveLength(50);
-    expect(drafts).toHaveLength(150);
-    expect(skipped).toEqual([]);
-    for (const t of TEMPLATES) expect(drafts.filter((d) => d.templateId === t.id)).toHaveLength(50);
+    expect(original.drafts).toHaveLength(150);
+    expect(original.skipped).toEqual([]);
+    for (const t of ORIGINAL)
+      expect(original.drafts.filter((d) => d.templateId === t.id)).toHaveLength(50);
     for (const e of bank) {
       expect(
-        drafts
+        original.drafts
           .filter((d) => d.entityId === e.id)
           .map((d) => d.templateId)
           .toSorted(),
-      ).toEqual(TEMPLATES.map((t) => t.id).toSorted());
+      ).toEqual(ORIGINAL.map((t) => t.id).toSorted());
     }
   });
 
@@ -97,13 +108,13 @@ describe("over the committed bank", () => {
 
   test("no code is a label, no brace survives, ids are unique", () => {
     const codes = new Set(bank.map((e) => e.geometry_id));
-    for (const d of drafts) {
+    for (const d of original.drafts) {
       expect(codes.has(d.prompt)).toBe(false);
       expect(codes.has(d.answer)).toBe(false);
       expect(d.answer).not.toMatch(/^\d+$/);
       expect(d.prompt).not.toMatch(/[{}]/);
     }
-    expect(new Set(drafts.map((d) => d.id)).size).toBe(150);
+    expect(new Set(original.drafts.map((d) => d.id)).size).toBe(150);
   });
 
   test("no id collides with a hand-written question", () => {
@@ -146,7 +157,7 @@ describe("skipping", () => {
     const entity = state();
     if (capital === undefined) delete entity.capital;
     else (entity as unknown as Record<string, unknown>)["capital"] = capital;
-    const { drafts, skipped } = generate([entity]);
+    const { drafts, skipped } = generate([entity], ORIGINAL);
     expect(drafts.map((d) => d.templateId).toSorted()).toEqual([
       "tpl-click-the-map",
       "tpl-identify-on-map",
@@ -200,7 +211,9 @@ describe("skipping", () => {
       answer_field: "top_crops",
       requires: ["name", "top_crops"],
     };
-    const { drafts, skipped } = generate([state({ top_crops: ["corn"] })], [t]);
+    // T-026 criterion 7 makes a string list text (its first entry), so the
+    // non-string case is a number list (approved Test change request A1).
+    const { drafts, skipped } = generate([state({ top_crops: [7] })], [t]);
     expect(drafts).toEqual([]);
     expect(skipped).toEqual([
       { templateId: "tpl-crops", entityId: "us-state-zz", missing: [], notText: ["top_crops"] },

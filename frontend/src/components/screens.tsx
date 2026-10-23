@@ -3,6 +3,7 @@ import type { Profile, ProfileProgress, SessionTopic } from "@/lib/api";
 import { Button } from "@/components/Button";
 import { UsMap } from "@/components/UsMap";
 import { gradeLabel, levelLabel } from "@/lib/level";
+import { SETUP_TOPICS } from "@/lib/topics";
 import { cn } from "@/lib/utils";
 
 // Local to this module on purpose: exporting it alongside the components below
@@ -389,13 +390,7 @@ export function Setup({
       <h1 className="text-4xl">What do you want to find?</h1>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {(
-          [
-            { id: "location", label: "Places on the map" },
-            { id: "capital", label: "Capital cities" },
-            { id: "mixed", label: "A bit of both" },
-          ] as const
-        ).map((option) => (
+        {SETUP_TOPICS.map((option) => (
           <Button
             key={option.id}
             variant="choice"

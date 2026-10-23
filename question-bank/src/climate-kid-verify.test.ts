@@ -729,9 +729,10 @@ describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", ()
     }
   });
 
-  test("the tracked bank is still inside the 200 KB cap the Constraints name", () => {
+  test("the tracked bank is still inside the 400 KB cap the Constraints name", () => {
     const bytes = walk(join(PKG, "data")).reduce((sum, p) => sum + statSync(p).size, 0);
-    expect(bytes).toBeLessThan(200 * 1024);
+    // Raised from 200 KB by T-026 (C6, E-25; approved Test change request rows 1-3).
+    expect(bytes).toBeLessThan(400 * 1024);
   });
 });
 

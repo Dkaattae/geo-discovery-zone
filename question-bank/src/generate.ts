@@ -32,7 +32,8 @@ export interface QuestionDraft {
   /**
    * The child-facing correct answer. The entity's `answer_field` value, except
    * when that field is `geometry_id`: then it is the entity's `name`, because a
-   * FIPS code is never a label a child sees.
+   * FIPS code is never a label a child sees. When the field holds a list of
+   * strings, it is the list's first entry (T-026).
    */
   answer: string;
   /** The region to highlight. Present on `map_identify` drafts only. */
@@ -51,7 +52,8 @@ export interface SkippedPair {
   missing: EntityField[];
   /**
    * Fields that are present but would have to become text (a prompt token, or
-   * the answer) and are not strings: a number, an array, an object.
+   * the answer) and are not strings: a number, an array, an object. An answer
+   * field holding a list of non-blank strings is text: its first entry.
    */
   notText: EntityField[];
 }
@@ -87,6 +89,17 @@ function readField(entity: Entity, field: EntityField): unknown {
   return Object.hasOwn(entity, field)
     ? (entity as unknown as Record<string, unknown>)[field]
     : undefined;
+}
+
+/**
+ * The first entry of a list whose entries are all non-blank strings, or `null`
+ * when it is not such a list. Only an answer field is read this way; a prompt
+ * token must still be a string.
+ */
+function firstOfTextList(value: readonly unknown[]): string | null {
+  if (value.length === 0) return null;
+  if (!value.every((entry) => typeof entry === "string" && entry.trim() !== "")) return null;
+  return value[0] as string;
 }
 
 function checkInputs(entities: readonly Entity[], templates: readonly Template[]): void {
@@ -128,11 +141,10 @@ function draftFor(entity: Entity, template: Template): QuestionDraft | SkippedPa
   const tokens = tokensOf(template.prompt);
   const answerIsCode = template.answer_field === "geometry_id";
 
-  // Fields that must be present. `requires`, plus what the draft itself needs:
-  // `geometry_id` for a highlight, `name` as the label for a code answer.
+  // Fields that must be present. `validateTemplate` already refuses a
+  // `map_identify` template without `geometry_id` in `requires`, and a code
+  // answer without `name` (T-026 criterion 6), so `requires` is the whole list.
   const required = new Set<EntityField>(template.requires);
-  if (template.format === "map_identify") required.add("geometry_id");
-  if (answerIsCode) required.add("name");
 
   // Fields whose value becomes a string on the draft.
   const textual = new Set<EntityField>(tokens);
@@ -143,11 +155,16 @@ function draftFor(entity: Entity, template: Template): QuestionDraft | SkippedPa
   for (const field of required) {
     if (isMissing(readField(entity, field))) missing.push(field);
   }
+  const answerField: EntityField = answerIsCode ? "name" : template.answer_field;
   const notText: EntityField[] = [];
   for (const field of textual) {
     const value = readField(entity, field);
     if (isMissing(value)) {
       if (!missing.includes(field)) missing.push(field);
+    } else if (field === answerField && Array.isArray(value)) {
+      // An array-valued answer (`top_crops`, `top_livestock`) becomes its
+      // first entry (T-026 criterion 7), when every entry is text.
+      if (firstOfTextList(value) === null) notText.push(field);
     } else if (typeof value !== "string") {
       notText.push(field);
     }
@@ -156,7 +173,10 @@ function draftFor(entity: Entity, template: Template): QuestionDraft | SkippedPa
     return { templateId: template.id, entityId: entity.id, missing, notText };
   }
 
-  const text = (field: EntityField): string => readField(entity, field) as string;
+  const text = (field: EntityField): string => {
+    const value = readField(entity, field);
+    return Array.isArray(value) ? (firstOfTextList(value) as string) : (value as string);
+  };
   const prompt = template.prompt.replace(PLACEHOLDER, (_, token: string) =>
     text(token as EntityField),
   );

@@ -149,10 +149,10 @@ def test_c5_a_changed_input_field_would_be_caught() -> None:
 # -- criteria 6-10: entities -----------------------------------------------------
 
 
-async def test_c6_version_counts_50_entities_and_100_questions(client: httpx.AsyncClient) -> None:
+async def test_c6_version_counts_50_entities_and_365_questions(client: httpx.AsyncClient) -> None:
     counts = (await client.get("/content/version")).json()["counts"]
     assert counts["entities"] == 50
-    assert counts["questions"] == 100
+    assert counts["questions"] == 365  # T-026: six new templates
 
 
 async def test_c7_entities_are_exactly_the_index_ids_with_la_not_lo(
@@ -219,13 +219,20 @@ async def test_c11_served_ids_are_the_files_non_map_click_ids(client: httpx.Asyn
     want = {q["id"] for q in generated() if q["format"] != "map_click"}
     served = await all_rows(client, "/questions")
     assert {q["id"] for q in served} == want
-    assert len(served) == 100
+    assert len(served) == 365  # T-026: six new templates
     per_entity: dict[str, list[tuple[str, str]]] = {}
     for q in served:
         per_entity.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
     assert sorted(per_entity) == sorted(index_ids())
-    for pairs in per_entity.values():
-        assert sorted(pairs) == [("map_identify", "location"), ("multiple_choice", "capital")]
+    # T-026: the seven served templates' (format, topic) pairs, read from the file.
+    expected: dict[str, list[tuple[str, str]]] = {}
+    for q in generated():
+        if q["format"] != "map_click":
+            expected.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
+    for entity_id, pairs in per_entity.items():
+        assert sorted(pairs) == sorted(expected[entity_id]), entity_id
+        assert ("map_identify", "location") in pairs
+        assert ("multiple_choice", "capital") in pairs
 
 
 async def test_c12_no_map_click_is_served_filtered_or_not(client: httpx.AsyncClient) -> None:
@@ -410,7 +417,9 @@ async def test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state(
     """Wrong answers bring review questions back, so a 100-answer session does
     not reach every id; it must reach both formats and many states."""
     source = pipeline()
-    played = await play(client, auth_headers, "mixed", 100, correct=False)
+    # T-026: 200, not 100 -- each state now has seven served questions, so 100
+    # answers reach only 32-34 states. The floor of 40 is unchanged.
+    played = await play(client, auth_headers, "mixed", 200, correct=False)
     assert {q["format"] for q, _ in played} == {"map_identify", "multiple_choice"}
     assert len({q["entityId"] for q, _ in played}) >= 40
     for question, reveal in played:
@@ -521,7 +530,9 @@ def test_c32_one_new_decision_entry_names_the_three_choices() -> None:
     """E-1..E-23 existed before this task; exactly one entry is added after them."""
     text = (REPO / "engineering-decisions.md").read_text(encoding="utf-8")
     numbers = [int(n) for n in re.findall(r"^## E-(\d+) ", text, re.M)]
-    assert sorted(numbers) == list(range(1, 25))
+    # T-026 adds E-25; numbering stays contiguous and still includes E-24.
+    assert sorted(numbers) == list(range(1, max(numbers) + 1))
+    assert 24 in numbers
     start = text.index("## E-24 ")
     following = text.find("\n## ", start + 1)
     body = text[start : following if following != -1 else None]

@@ -49,7 +49,7 @@ test("signing out and back in starts where the child left off", async ({ page })
   const { username, profileName } = await signedInWithProfile(page, "resume");
   const startingLevel = await levelOnHome(page);
 
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, ENOUGH_TO_MOVE_THE_LEVEL);
   await finishSession(page);
   await backHome(page);
@@ -77,7 +77,7 @@ test("the level a child reaches is remembered between sittings", async ({ page }
   const { username, profileName } = await signedInWithProfile(page, "level-memory");
   const before = await levelOnHome(page);
 
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, ENOUGH_TO_MOVE_THE_LEVEL);
   await finishSession(page);
   await backHome(page);
@@ -97,7 +97,7 @@ test("progress belongs to the profile, not the browser", async ({ page }) => {
   const { profileName } = await signedInWithProfile(page, "second-profile");
   const fresh = await levelOnHome(page);
 
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, ENOUGH_TO_MOVE_THE_LEVEL);
   await finishSession(page);
   await backHome(page);
@@ -134,8 +134,8 @@ test("a session that is quit early still counts what was answered", async ({ pag
 });
 
 /**
- * The map is the progress bar, so it has to be able to move — and today it
- * cannot move on the first day.
+ * The map is the progress bar, so it has to be able to move — and before T-026 it
+ * could not move on the first day.
  *
  * Mastery is +0.25 per right answer and a state fills in above 0.7, so a state
  * needs **four** right answers about it. The served bank has exactly **two**
@@ -147,7 +147,12 @@ test("a session that is quit early still counts what was answered", async ({ pag
  * four runs each): two sittings of 26 right answers fill in 0 to 3 of 50 — a coin
  * flip — and two of 50 fill in 15 to 18, so a sitting here is 50 questions.
  *
- * That is a content gap, not a bug — it goes away when there are more questions
+ * T-026 closed that gap: the served bank now has seven questions per state, so a
+ * first sitting can already fill a state in, and the first-sitting-is-empty
+ * check was removed (T-026 approved Test change request row 94). What stays
+ * pinned: a new explorer starts empty, and two sittings fill something in.
+ *
+ * That was a content gap, not a bug — it went away with more questions
  * per state (`tasks.md` T-050) — but it is worth a test that says so out loud,
  * because "the map never moved" is what a child would notice first. Two full
  * sittings in a browser is slow, hence the longer budget.
@@ -158,17 +163,13 @@ test("the map fills in once a child has come back a second time", async ({ page 
   expect(await placesFilled(page), "a new explorer should start with an empty map").toBe(0);
 
   const SITTING = 50;
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, SITTING);
   await finishSession(page);
   await backHome(page);
-  expect(
-    await placesFilled(page),
-    "the bank grew: a first session can now master a state, so this test's premise is stale",
-  ).toBe(0);
 
   // Come back. The same questions are offered again and mastery accumulates.
-  await startQuiz(page, "A bit of both");
+  await startQuiz(page, "A bit of everything");
   await playCorrectly(page, answerKey, SITTING);
   await finishSession(page);
   await backHome(page);

@@ -62,7 +62,9 @@ describe("T-020 criterion 1: Template has exactly the nine plan §1.2 fields", (
       prompt: "p",
       answer_field: "name",
       distractor_strategy: "neighbours_first",
-      requires: ["name"],
+      // T-026 criterion 6 refuses a map_identify without geometry_id (approved
+      // Test change request row 46).
+      requires: ["name", "geometry_id"],
       applies_to: ["state"],
       format: "map_identify",
       base_difficulty: 1,
@@ -72,13 +74,17 @@ describe("T-020 criterion 1: Template has exactly the nine plan §1.2 fields", (
   });
 });
 
-describe("T-020 criterion 2: TEMPLATES holds exactly the three ids", () => {
+// T-026 (approved Test change request row 47): six templates follow the three.
+describe("T-020 criterion 2: TEMPLATES starts with the three ids", () => {
   test("three entries with the three named ids", () => {
     expect(Array.isArray(TEMPLATES)).toBe(true);
-    expect(TEMPLATES).toHaveLength(3);
-    expect(sorted(TEMPLATES.map((t) => t.id))).toEqual(
-      sorted(["tpl-identify-on-map", "tpl-capital-of", "tpl-click-the-map"]),
-    );
+    expect(TEMPLATES).toHaveLength(9);
+    expect(TEMPLATES.slice(0, 3).map((t) => t.id)).toEqual([
+      "tpl-identify-on-map",
+      "tpl-capital-of",
+      "tpl-click-the-map",
+    ]);
+    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(9);
   });
 });
 
@@ -298,7 +304,10 @@ describe("T-020 criterion 17: format is a QuestionFormat", () => {
   ];
   for (const f of nine) {
     test(`${f} accepted`, () => {
-      expect(validateTemplate(withField("format", f))).toEqual([]);
+      // T-026 criterion 6: a map_identify needs geometry_id (approved row 48).
+      const record = withField("format", f);
+      if (f === "map_identify") record["requires"] = ["name", "capital", "geometry_id"];
+      expect(validateTemplate(record)).toEqual([]);
     });
   }
   for (const f of ["map-identify", "text-mc"]) {
@@ -356,7 +365,9 @@ describe("T-020 criterion 21: every template applies to every committed state", 
         string,
         unknown
       >;
-      for (const t of TEMPLATES) {
+      // T-026 (approved Test change request, S3): the three original templates.
+      // Blank landmarks (6) and empty top_livestock (26) are deliberate.
+      for (const t of TEMPLATES.slice(0, 3)) {
         for (const field of t.requires) {
           const v = entity[field];
           const empty =

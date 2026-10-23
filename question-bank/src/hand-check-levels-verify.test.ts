@@ -70,6 +70,28 @@ function pipeline() {
   return { entities, questions, leveled: seedLevels(questions, entities) };
 }
 
+/**
+ * T-026 (approved Test change request, S3): the pipeline over the three
+ * templates T-025 hand-checked. The six T-026 templates are pinned by
+ * `t026-tester-verify.test.ts`.
+ */
+function pipelineOriginal() {
+  const original = TEMPLATES.slice(0, 3);
+  const entities = bank();
+  const { questions } = buildChoices(generate(entities, original).drafts, entities, original);
+  return { entities, questions, leveled: seedLevels(questions, entities, original) };
+}
+
+/** T-026: the six concept_load keys added after T-023, one per new template. */
+const T026_IDS = [
+  "tpl-biggest-state",
+  "tpl-state-animal-of",
+  "tpl-landmark-in",
+  "tpl-climate-of",
+  "tpl-crop-of",
+  "tpl-farm-animal-of",
+];
+
 function levelsById(): Map<string, number> {
   return new Map(pipeline().leveled.map((q) => [q.id, q.level]));
 }
@@ -196,8 +218,12 @@ describe("T-025 criteria 1-5: the 30 questions are recorded", () => {
     expect(new Set(ids).size).toBe(30);
     const want = TEN.flatMap((c) => TPL_IDS.map((t) => qid(t, c))).sort();
     expect([...ids].sort()).toEqual(want);
-    // the template list really is TEMPLATES
-    expect(TEMPLATES.map((t) => t.id).sort()).toEqual([...TPL_IDS].sort());
+    // the template list really is TEMPLATES' first three (T-026, approved S3)
+    expect(
+      TEMPLATES.slice(0, 3)
+        .map((t) => t.id)
+        .sort(),
+    ).toEqual([...TPL_IDS].sort());
   });
 
   test("criterion 2: prompt, correct answer and three distractors equal buildChoices' output", () => {
@@ -405,7 +431,7 @@ describe("T-025 criteria 6-9: the weight decision is recorded and matches the co
   });
 
   test("criterion 8: the range sentence states the min and max of the 150 final levels, each end naming a state and template that reach it", () => {
-    const leveled = pipeline().leveled;
+    const leveled = pipelineOriginal().leveled; // T-026, approved S3
     expect(leveled.length).toBe(150);
     const min = Math.min(...leveled.map((q) => q.level));
     const max = Math.max(...leveled.map((q) => q.level));
@@ -497,8 +523,9 @@ function exportSignatures(): string[] {
 describe("T-025 criteria 10-13: what must still hold", () => {
   test("criterion 10: the key set of LEVEL_SEED_WEIGHTS and of concept_load equal the T-023 sets", () => {
     expect(Object.keys(LEVEL_SEED_WEIGHTS).sort()).toEqual(Object.keys(T023).sort());
+    // T-026 (approved Test change request row 74): plus exactly the six new ids.
     expect(Object.keys(LEVEL_SEED_WEIGHTS.concept_load).sort()).toEqual(
-      Object.keys(T023.concept_load).sort(),
+      [...Object.keys(T023.concept_load), ...T026_IDS].sort(),
     );
     expect(LEVEL_SEED_WEIGHTS.rank_bucket_edges.length).toBe(T023.rank_bucket_edges.length);
   });
@@ -513,7 +540,7 @@ describe("T-025 criteria 10-13: what must still hold", () => {
 
   test("criterion 10a: under the T-023 weights set at runtime, the 150 levels by id equal aa88101's", () => {
     const pairs = withWeights(T023, () =>
-      pipeline()
+      pipelineOriginal() // T-026, approved S3
         .leveled.map((q) => [q.id, q.level] as [string, number])
         .sort((a, b) => (a[0] < b[0] ? -1 : 1)),
     );
@@ -528,7 +555,9 @@ describe("T-025 criteria 10-13: what must still hold", () => {
   });
 
   test("criterion 11: TEMPLATES is deep-equal to aa88101's", () => {
-    expect(sha(JSON.stringify(TEMPLATES))).toBe(AA88101_TEMPLATES_SHA);
+    // T-026 (approved Test change request, PFX): aa88101's three stay first.
+    expect(sha(JSON.stringify(TEMPLATES.slice(0, 3)))).toBe(AA88101_TEMPLATES_SHA);
+    expect(TEMPLATES).toHaveLength(9);
   });
 
   test("criterion 12: familiarity_bonus is still 0", () => {
@@ -584,7 +613,7 @@ describe("T-025 criteria 10-13: what must still hold", () => {
   });
 
   test("criterion 13: all 150 final levels are finite and within 0-18", () => {
-    const leveled = pipeline().leveled;
+    const leveled = pipelineOriginal().leveled; // T-026, approved S3
     expect(leveled.length).toBe(150);
     for (const q of leveled)
       expect({ id: q.id, ok: Number.isFinite(q.level) && q.level >= 0 && q.level <= 18 }).toEqual({
@@ -631,6 +660,8 @@ describe("T-025 criteria 10-13: what must still hold", () => {
         "concept_load_default",
         "familiarity_bonus",
         ...TPL_IDS.map((t) => `concept_load["${t}"]`),
+        // T-026 (approved Test change request row 78): one per new template.
+        ...T026_IDS.map((t) => `concept_load["${t}"]`),
       ].sort(),
     );
     // The amended clause says the two exemptions exist because the committed
@@ -831,6 +862,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // generate.test.ts, generate-verify.test.ts and tags-verify.test.ts; B1 modified
     // committed-bank.test.ts and lowered its floor in five files here.
     // Re-pinned by T-064's approved Test change request rows 1–39.
-    expect(digest).toBe("dd1c8a7fb97552837a5989532dd6b919ad780b3c351162b95e5dbeaa18f304b5");
+    // Re-pinned by T-026's approved Test change request (rows 1–92, A1; this is A2).
+    expect(digest).toBe("be563d379e01c26edade26938f39de839c0de4dac2199f0882934792f44ec0d9");
   });
 });

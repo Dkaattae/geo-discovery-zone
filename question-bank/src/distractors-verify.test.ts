@@ -30,6 +30,13 @@ const CLICK = "tpl-click-the-map";
 const PRISTINE_TEMPLATES = structuredClone(TEMPLATES);
 const PRISTINE_STRATEGIES = [...DISTRACTOR_STRATEGIES];
 
+/**
+ * T-026 (approved Test change request, S3): the three templates this file was
+ * written for. Tests scoped to them keep their T-022 numbers; the six T-026
+ * templates are pinned by `t026-tester-verify.test.ts`.
+ */
+const ORIGINAL = TEMPLATES.filter((t) => [IDENTIFY, CAPITAL, CLICK].includes(t.id));
+
 /** Fresh parse per call, so no test can mutate another's data. */
 function bank(): Entity[] {
   return readdirSync(STATES_DIR)
@@ -138,7 +145,7 @@ function byId(questions: GeneratedQuestion[], templateId: string, entityId: stri
 
 describe("T-022 criterion 1: one question per draft over the committed bank", () => {
   test("150 questions, one per generate() draft, and no reports", () => {
-    const { drafts, questions, shortPools } = run(bank());
+    const { drafts, questions, shortPools } = run(bank(), ORIGINAL);
     expect(drafts.length).toBe(150);
     expect(questions.length).toBe(150);
     expect(shortPools).toEqual([]);
@@ -192,7 +199,7 @@ describe("T-022 criterion 4: no two choices share text", () => {
 
 describe("T-022 criterion 5: every draft field carried unchanged", () => {
   test("each question contains its draft deep-equal", () => {
-    const { drafts, questions } = run(bank());
+    const { drafts, questions } = run(bank(), ORIGINAL);
     for (const d of drafts) {
       const q = questions.find((x) => x.id === d.id) as GeneratedQuestion;
       for (const [k, v] of Object.entries(d)) {
@@ -207,11 +214,11 @@ describe("T-022 criterion 5: every draft field carried unchanged", () => {
 describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
   test("every question's distractors are exactly the first three by the brief's rule", () => {
     const states = bank();
-    const { drafts, questions } = run(states);
+    const { drafts, questions } = run(states, ORIGINAL);
     for (const q of questions) {
       const d = drafts.find((x) => x.id === q.id) as QuestionDraft;
       const t = tpl(q.templateId);
-      const want = expectedPicks(d, states, TEMPLATES).map((e) => choiceText(e, t) as string);
+      const want = expectedPicks(d, states, ORIGINAL).map((e) => choiceText(e, t) as string);
       expect([q.id, [...distractorsOf(q)].sort()]).toEqual([q.id, [...want].sort()]);
     }
   });
@@ -512,8 +519,8 @@ describe("T-022 criterion 13: deterministic", () => {
 describe("T-022 criterion 14: correctIndex depends on the draft id only", () => {
   test("same index over the bank, the bank reversed, and per-draft subsets", () => {
     const states = bank();
-    const full = new Map(run(states).questions.map((q) => [q.id, q.correctIndex]));
-    const reversed = run([...states].reverse()).questions;
+    const full = new Map(run(states, ORIGINAL).questions.map((q) => [q.id, q.correctIndex]));
+    const reversed = run([...states].reverse(), ORIGINAL).questions;
     expect(reversed.length).toBe(150);
     for (const q of reversed)
       expect([q.id, q.correctIndex]).toEqual([q.id, full.get(q.id) as number]);
@@ -528,7 +535,7 @@ describe("T-022 criterion 14: correctIndex depends on the draft id only", () => 
         [s, ...others.filter((_, i) => i % 7 === 0)],
       ];
       for (const sub of subsets) {
-        const mine = run(sub).questions.filter((x) => x.entityId === s.id);
+        const mine = run(sub, ORIGINAL).questions.filter((x) => x.entityId === s.id);
         expect([s.id, sub.length, mine.length]).toEqual([s.id, sub.length, 3]);
         for (const q of mine) {
           expect(full.has(q.id)).toBe(true);
@@ -566,7 +573,7 @@ describe("T-022 criterion 16: short pools are reported, not returned", () => {
       ["HI", "AK", "ME", "FL"],
       ["CA", "NV", "AZ", "NM"],
     ]) {
-      const { drafts, questions, shortPools } = run(pick(group));
+      const { drafts, questions, shortPools } = run(pick(group), ORIGINAL);
       expect(drafts.length).toBe(12);
       expect(questions.length).toBe(12);
       expect(shortPools).toEqual([]);
@@ -577,7 +584,7 @@ describe("T-022 criterion 16: short pools are reported, not returned", () => {
       ["OH", "IN", "IL"],
       ["HI", "AK", "ME"],
     ]) {
-      const { drafts, questions, shortPools } = run(pick(group));
+      const { drafts, questions, shortPools } = run(pick(group), ORIGINAL);
       expect(drafts.length).toBe(9);
       expect(questions).toEqual([]);
       expect(shortPools.length).toBe(9);
@@ -615,10 +622,10 @@ describe("T-022 criterion 16: short pools are reported, not returned", () => {
       const input = five.map((e) =>
         e.id === sid("OH") ? ({ ...e, centroid } as unknown as Entity) : e,
       );
-      const { drafts } = generate(input);
+      const { drafts } = generate(input, ORIGINAL);
       let out: ReturnType<typeof buildChoices> | undefined;
       expect(() => {
-        out = buildChoices(drafts, input);
+        out = buildChoices(drafts, input, ORIGINAL);
       }).not.toThrow();
       const result = out as ReturnType<typeof buildChoices>;
       const ohDrafts = drafts
@@ -806,13 +813,22 @@ describe("T-022 criterion 22: TEMPLATES and DISTRACTOR_STRATEGIES unchanged in v
     },
   ];
   test("equal to the pre-T-022 values at load and after buildChoices runs", () => {
+    // T-026 (approved Test change request, PFX): the T-020 values stay pinned as
+    // the first entries, and the totals are pinned so nothing is dropped unseen.
     run(bank());
-    expect(PRISTINE_TEMPLATES).toEqual(T020);
-    expect(TEMPLATES).toEqual(T020);
-    expect(PRISTINE_STRATEGIES).toEqual(["neighbours_first", "sibling_capitals_same_region"]);
-    expect([...DISTRACTOR_STRATEGIES]).toEqual([
+    expect(PRISTINE_TEMPLATES.slice(0, 3)).toEqual(T020);
+    expect(TEMPLATES.slice(0, 3)).toEqual(T020);
+    expect(PRISTINE_TEMPLATES).toHaveLength(9);
+    expect(TEMPLATES).toHaveLength(9);
+    expect(PRISTINE_STRATEGIES.slice(0, 2)).toEqual([
       "neighbours_first",
       "sibling_capitals_same_region",
     ]);
+    expect([...DISTRACTOR_STRATEGIES].slice(0, 2)).toEqual([
+      "neighbours_first",
+      "sibling_capitals_same_region",
+    ]);
+    expect(PRISTINE_STRATEGIES).toHaveLength(8);
+    expect(DISTRACTOR_STRATEGIES).toHaveLength(8);
   });
 });

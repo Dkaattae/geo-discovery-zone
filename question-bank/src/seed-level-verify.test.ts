@@ -109,9 +109,11 @@ const inRange = (l: unknown) => typeof l === "number" && Number.isFinite(l) && l
 
 describe("T-023 criteria 1-4: output shape", () => {
   test("criterion 1: 150 questions over the committed bank, same ids in the same order", () => {
+    // T-026 (approved Test change request, S3): the three original templates.
+    const original = TEMPLATES.slice(0, 3);
     const states = bank();
-    const qs = questionsFor(states);
-    const out = seedLevels(qs, states, TEMPLATES);
+    const qs = questionsFor(states, original);
+    const out = seedLevels(qs, states, original);
     expect(out.length).toBe(150);
     expect(out.map((q) => q.id)).toEqual(qs.map((q) => q.id));
   });
@@ -519,7 +521,8 @@ describe("T-023 criteria 17-18: concept_load and familiarity_bonus", () => {
       return n;
     };
     const groups = new Map<string, Set<number>>();
-    for (const q of levelsFor(states)) {
+    // T-026 (approved Test change request, S3): the three original templates.
+    for (const q of levelsFor(states, TEMPLATES.slice(0, 3))) {
       const key = `${q.templateId}/${nearCount(q)}`;
       const set = groups.get(key) ?? new Set<number>();
       set.add(q.level);
@@ -594,7 +597,9 @@ describe("T-023 criterion 20: every number in LEVEL_SEED_WEIGHTS is live", () =>
     }
     expect(dead).toEqual([]);
     expect(corpus()).toEqual(baseline);
-  });
+    // T-026 (approved Test change request row 68): the bank is 2.8x bigger, so on
+    // CI this outruns bun's 5 s default. The assertions are unchanged.
+  }, 60_000);
 });
 
 function decisions(): string {
@@ -690,7 +695,7 @@ describe("T-023 criteria 22-24: nothing upstream moved, and the pipeline does no
       "prompt",
       "requires",
     ];
-    expect(TEMPLATES.length).toBe(3);
+    expect(TEMPLATES.length).toBe(9); // T-026: six templates added (approved row 69)
     for (const t of TEMPLATES) {
       expect(Object.keys(t).sort()).toEqual(nine);
       expect(validateTemplate(t)).toEqual([]);

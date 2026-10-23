@@ -4,6 +4,7 @@ import type { ServedQuestion, Session as SessionState, SessionSummary } from "@/
 import { Button } from "@/components/Button";
 import { UsMap } from "@/components/UsMap";
 import { levelLabel } from "@/lib/level";
+import { choicePanel } from "@/lib/topics";
 import { cn } from "@/lib/utils";
 
 interface SessionProps {
@@ -177,6 +178,7 @@ export function Session({
   const highlight = revealing
     ? (result.reveal.mapHighlightGeometryId ?? entity?.geometryId)
     : question.highlightGeometryId;
+  const panel = choicePanel(question, entity, revealing, highlight);
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-10 pt-4 sm:px-6">
@@ -209,12 +211,20 @@ export function Session({
         </div>
       )}
 
-      {question.format === "multiple_choice" && entity && (
+      {/* A superlative's entity is its answer, so nothing names or outlines it
+          until the child has picked; then the whole map shows where it is. */}
+      {panel.kind === "answer_map" && (
+        <div className="mt-4 overflow-hidden rounded-2xl border-2 border-border bg-card p-2 atlas-grid">
+          <UsMap correctFips={panel.geometryId} />
+        </div>
+      )}
+
+      {panel.kind === "entity" && (
         <div className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-border bg-card p-4">
           <div className="w-32 shrink-0">
-            <UsMap highlightFips={entity.geometryId} />
+            <UsMap highlightFips={panel.geometryId} />
           </div>
-          <p className="font-display text-2xl">{entity.name}</p>
+          <p className="font-display text-2xl">{panel.name}</p>
         </div>
       )}
 

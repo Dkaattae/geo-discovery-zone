@@ -71,7 +71,9 @@ what is left of them; T-026, T-051, T-064, T-070 and T-085 updated; T-087
 new. Swept again 2026-10-20, after T-064 deleted `question-bank/sample-data/`
 and `build:sample` (PR #89): T-064 deleted; T-070 lost the sample from its
 guard list and gained two stale phrases to fix; T-076 gained a one-off README
-rewrite to check._
+rewrite to check. Swept again 2026-10-22, after T-026 added six templates and
+five Setup topics (PR #91): T-026 deleted; T-056 rewritten to what is left of
+it; T-050, T-053, T-088, T-039 and §H's superlatives line updated._
 
 ## How this list is ordered
 
@@ -99,18 +101,18 @@ is that gap.
 | | Shipped | Contract / plan describes |
 |---|---|---|
 | **States** | **50**, from the pipeline bank (T-040) | 50 |
-| **Questions** | **100**, generated: two per state (T-040) | generated from templates × entities (§1.2) |
+| **Questions** | **365** served, generated: seven per state (T-040, T-026) | generated from templates × entities (§1.2) |
 | **Question formats** | **2** — `map_identify`, `multiple_choice` | 9 — plus `map_click`, `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` |
-| **Topics** | **2** — location, capital | 10 — plus climate, agriculture, wildlife, landmark, size, physical, superlative, elevation |
+| **Topics** | **7** — location, capital, superlative, wildlife, landmark, climate, agriculture (T-026) | 10 — plus size, physical, elevation |
 | **Map** | US states, `us-atlas`, mastered states fill in | + shaded relief (§2.6), physical features (§2.4) |
 | **Backend** | all 29 contract operations, SQLite or Postgres | — |
 
-So: a child sees a highlighted state and picks its name, or picks a capital
-city from four choices, over 50 states. A third generated format, `map_click`,
-is in the committed question file but not served until T-051. **The Setup screen's three buttons —
-"Places on the map", "Capital cities", "A bit of both" — are the whole topic
-menu**, and picking the default means only ever seeing the first format. That is
-not a bug; it is how much bank exists.
+So: a child sees a highlighted state and picks its name, or picks one of four
+answers about a named state (capital, state animal, landmark, climate, crop,
+farm animal), or picks the biggest of four states, over 50 states. Setup offers
+the seven topics plus "A bit of everything" (T-026, PR #91). A third generated
+format, `map_click`, is in the committed question file but not served until
+T-051.
 
 Nothing else is half-built. The other formats and topics have **no data, no
 generator and no renderer** — they exist as an enum in `openapi.yaml` and as
@@ -152,7 +154,8 @@ Nothing in section A is queued: T-075 (PR #66) closed the last gap.
 The pipeline works and has run live against all 50 states; the *data* is not
 finished. Each of these is independent. Since T-040 (PR #88) the bank is what the app
 serves, so a curated field reaches a child once a template asks about it
-(T-026) and both committed files are regenerated (T-087).
+(since T-026, PR #91, every topic field has one) and both committed files are
+regenerated (T-087).
 
 ### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo — **waiting on Q1**
 **Depends on:** a human answer to **Q1** below (blocks nothing, but every field task since T-068 has hit it, and the monthly refresh routine is gated on it)
@@ -402,162 +405,6 @@ other three triggers, or list those rows in the Test change request.
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
 
-### T-026 — Templates for the topics the app has never shown · M · todo
-**Depends on:** T-021, and the curation task for whichever topic
-**Since T-025 (PR #85):** a new template turns `hand-check-levels-verify.test.ts`
-criteria 1, 11 and 13 (c) red, because they assume exactly today's three
-templates, each with its own `concept_load` entry. It also needs its own
-`LEVEL_SEED_WEIGHTS.concept_load` value (E-22). Plan to attend the tester step (T-070).
-**Since T-086 (PR #86):** a new template also turns
-`seed-level-loose-ends-verify.test.ts` criterion 10 red (it pins exactly 150
-seeded levels and `LEVEL_SEED_WEIGHTS`). Since T-040 (PR #88) a new `E-n`
-entry no longer turns criterion 12 red.
-**Since T-040 (PR #88): getting a question to the app is two commands, and the
-bank has a size budget.** `cd question-bank && bun run ./src/write-questions.ts`
-rewrites `data/questions/us-states.json`, then `make -C backend content` rewrites
-`backend/app/data/content.json`; each has a drift test, so a new template that
-skips either is red. The loader serves a question only if its format is in
-`SERVED_FORMATS` (`backend/app/content_build.py`), and a new topic also needs a
-Setup button. `question-bank/data/` is about 148 KB against
-`committed-bank.test.ts`'s 200 KB cap, and each new question adds about 580
-bytes, so one 50-question template fits and two may not. Plan to compact the
-file or raise the cap with an `E-n`.
-**New 2026-08-24.** `openapi.yaml` names ten topics; the app ships two. Each new
-topic is one template plus the curated field behind it, and none needs new
-infrastructure once T-021 lands:
-**Since T-022 (PR #82):** the same-animal, same-climate and same-crop guards
-described below are **this task's**, landing with the template each one guards.
-`buildChoices` (`question-bank/src/distractors.ts`, E-21) guarantees only that
-no two choices share the same text (trimmed, lower-cased).
-**Since T-020 (PR #79):** each new template is an entry in `TEMPLATES` and must
-pass `validateTemplate`. A new distractor rule is a new name in
-`DISTRACTOR_STRATEGIES` plus a case in `tierOf` in `distractors.ts` (T-022).
-**Since T-021 (PR #80):** `generate()` fills `{token}`s verbatim and does not
-guard against a value that itself contains `{` or `}`; no current field has
-one. A new template that puts a free-text field (a landmark name, a climate
-phrase) into its prompt should add a check that such a pair is skipped and
-reported rather than emitted with a brace in it. Array- and number-valued
-answers are reported as `notText` today; this task decides how they become text.
-**Since T-024 (PR #84):** a template's topic is not a field on the record. It
-is an entry in `TEMPLATE_TOPICS` (`question-bank/src/templates.ts`, E-23), keyed
-by template id. A new template with no entry makes `tagQuestions` throw, and a
-test fails on any `TEMPLATES` entry without one, so add both together. `TOPICS`
-is the backend's ten values, cross-checked against `backend/app/models.py`.
-**Carried from T-024's Out of scope:** `generate.ts` still silently adds
-`geometry_id` to a `map_identify` template's required fields, and `name` to one
-whose `answer_field` is `geometry_id`. T-024 put the format cross-check in a
-test, not in `validateTemplate`, so the rule stayed in the generator. When this
-task adds templates, move it into `validateTemplate`, so a template that omits
-those fields is refused rather than quietly patched.
-
-| Topic | Template | Needs |
-|---|---|---|
-| `wildlife` | "Which animal is <state>'s state animal?" | T-012 — **landed, PR #42** |
-| `landmark` | "Where is <landmark>?" | T-013 — **landed, PR #43** |
-| `climate` | "Which state is <climate phrase>?" | T-014 — **landed, PR #44** |
-| `agriculture` | "What grows most in <state>?" | T-015 — **landed, PR #46** |
-| `agriculture` (animals) | "Which farm animal is <state> known for?" | T-068 — **landed, PR #69** |
-| `size` / `superlative` | "Which is bigger?" | rank fields — already on entities |
-
-`size` and `superlative` are the cheapest by a wide margin: the ranks are already
-computed and populated, so they need a template and nothing else (plan §1.8).
-Start there and the app gains a third topic without waiting on any curation.
-
-**`wildlife`'s data exists now (T-012, PR #42) — and it is ambiguous backwards.**
-All 50 states carry `state_animal`, but only 35 distinct values: ten states share
-"White-tailed deer", three "American black bear", three "American bison", two
-"Moose", two "Beaver". So `<state>` → animal is a sound question and animal →
-`<state>` is not, for 20 of the 50.
-
-**Five more pairs collide only to a reader, not to a string compare**, which is
-the part a duplicate check will miss: "Black bear" (LA) vs "American black bear"
-(AL/NM/WV); "Grizzly bear" (MT) vs "California grizzly bear" (CA); "Gray
-squirrel" (KY) vs "Eastern gray squirrel" (NC); "Horse" (NJ) vs "Morgan horse"
-(VT); "Desert bighorn sheep" (NV) vs "Rocky Mountain bighorn sheep" (CO). Two of
-those offered as four options is a question with two right answers to a
-nine-year-old. The `wildlife` template needs a same-animal guard, not a
-same-string one: T-022 (PR #82) shipped only the same-string one.
-
-**`landmark`'s data exists now (T-013, PR #43) — for 44 states, not 50.** DE, IA,
-KS, MS, OK and RI are deliberately blank (no defensible kid-recognisable,
-non-battle-site pick), so this template emits nothing for them and the topic
-covers 44 of 50. All 44 values are distinct and none contains another (T-013
-criterion 5), so unlike `wildlife` the landmark → state direction is sound as a
-*string* compare. **Four pairs still collide to a reader**, which is the same
-class of problem T-012 left above and the one a duplicate check misses:
-
-- **NH "Mount Washington"** names a different state outright; WA's own landmark is
-  "Space Needle", so both can appear as options in one question.
-- **LA "St. Louis Cathedral"** points a child at Missouri, whose landmark
-  ("Gateway Arch") is itself in St. Louis.
-- **AL "U.S. Space & Rocket Center"** and **TX "Space Center Houston"** are two
-  NASA museums a nine-year-old will not tell apart.
-- **NE "Chimney Rock"** shares its name with well-known formations in North
-  Carolina and Colorado, neither of which is in the bank — the collision is with
-  what the child knows, not with another row.
-
-Never offer two of a pair as options in the same question, and prefer `<state>` →
-landmark phrasing where the pair is unavoidable.
-
-**`climate`'s data exists now — 50 of 50 (T-014, PR #44) — and the ambiguity is
-already mapped for you.** Every state carries a `climate_kid` phrase, all 50
-strings distinct and none a substring of another, none naming a state (T-014
-criteria 10–11). That makes the strings safe; it does **not** make the question
-safe. T-014's criterion 17 required the worker to group the states whose phrases
-describe **substantively the same climate**, and it found **ten groups covering
-41 of the 50 states** — Great Plains (IA, NE, KS, SD, ND), Northern Rockies (MT,
-WY, ID), Interior Southwest (AZ, NM, UT, NV), Pacific Northwest (OR, WA),
-Southern New England (CT, MA, RI), Northern New England (NH, VT, ME),
-Mid-Atlantic (NJ, PA, MD, DE), Great Lakes / Upper Midwest (OH, IN, IL, MI, WI,
-MN), Deep South (AL, GA, MS, SC, LA), Upland South (TN, AR, KY, NC, VA, WV). The
-nine left ungrouped are AK, CA, CO, FL, HI, MO, NY, OK, TX. **"Which state is
-`<phrase>`?" has more than one true answer inside every one of those groups**, so
-this topic needs a same-climate guard exactly like `wildlife`'s same-animal one
-— it cannot rely on a string compare. The groups are recorded in PR #44 (the
-brief is swept); read them there before writing the template. The reverse
-direction, "What kind of climate does X have?" (plan line 90), is unambiguous and
-is the cheaper place to start.
-
-**`agriculture`'s data exists now — 50 of 50 (T-015, PR #46) — and it is the
-most ambiguous backwards of the four.** Every state carries one to three plant
-crops (eight states one, 36 two, six three; 98 strings). Unlike `landmark`, the
-strings are **deliberately** shared: crops repeat across states because that is
-what is true. So **"What grows in `<state>`?" is sound and "Which state grows
-`<crop>`?" is not**, for most of the bank — the reverse direction needs a
-same-crop guard before it can be asked at all, not just a distractor rule:
-
-- **`corn` and `soybeans` are the *entire* list for nine states** — IL, IN, IA,
-  MD, MN, NE, OH, SD, and MO with the pair reordered — and appear again in AR,
-  KY, MS, TN and WI. Asking which state grows corn has a dozen right answers,
-  and those nine states are mutually indistinguishable on this topic.
-- **`apples` is six states** (NH, NY, PA, VT, WA, **WV**) and **`wheat` four**
-  (KS, MT, ND, **OK**). WV's and OK's lists are *only* that crop, so those two
-  states cannot be the answer to a reverse question at all.
-- **Safe in both directions**, because the crop is unique to one state: AK
-  `peonies`, DE `lima beans`, HI `pineapple`/`macadamia nuts`, LA `sugarcane`,
-  NM `chile peppers`, OR `hazelnuts`, PA `mushrooms`, WY `sugar beets`. That is
-  the set a reverse-direction template could safely draw from, and it is small.
-- **Single-crop states were checked against each other** and are mutually
-  distinct (T-015's worker; Alaska ships `peonies` rather than `potatoes`
-  precisely to avoid colliding with Idaho). That check does **not** extend to
-  multi-crop states, which is where the collisions above live.
-
-Prefer `<state>` → crop phrasing, and treat "which state grows X" as gated on the
-unique-crop list above.
-
-**Farm animals exist now too, for 24 of 50 states (T-068, PR #69, E-18).**
-`top_livestock` is a separate field from `top_crops`, so a template can ask
-about animals without making "what grows" wrong. There are only five distinct
-values: `cattle` (9 states, WY included), `chickens` (6), `dairy cows` (6),
-`pigs` (IA, NC) and `turkeys` (MN, NC), plus WY's `sheep`. The 26 blank states
-emit nothing. **The reverse direction is unsafe for every value except `sheep`**,
-so use `<state>` → animal phrasing only, and pick distractors from values the
-state does *not* carry.
-**Done when:** at least one new topic reaches the app end to end — generated,
-loaded, selectable at Setup, and answerable.
-**Skipped by the expander, 2026-10-16, for T-040**, which this Done-when needed
-to load a generated question. T-040 landed in PR #88, so that dependency is met.
-
 ---
 
 ## D. The bank the app serves
@@ -567,33 +414,56 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). What is left here is making that bank behave
 well at its new size, and the third format.
 
+### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person**
+**Depends on:** a person's choice between the options below (T-026 landed in PR #91)
+**New 2026-10-20, from T-026's worker.** T-026's crop rule (brief call C3)
+removes crops grown by the state, its neighbours and its region. Its
+farm-animal rule removes only the animals the state lists. Approving C3
+accepted the risk that "a far-away crop the state also grows" is offered
+as wrong. Reading the 74 generated agriculture questions shows that risk is
+common, not rare. Nearest-first ordering picks crops from just outside the
+region, and those are the likeliest to be grown there too. Examples the
+worker is fairly sure of (from general knowledge, not a committed source):
+- **Crops:** Minnesota and North Dakota offered "sugar beets" (both lead the
+  country). Washington offered "wheat", "barley" and "alfalfa hay". Oregon
+  offered "wheat" and "hay". Texas offered "corn" and "peaches". California
+  offered "cherries", "potatoes" and "apples". Alaska offered "potatoes".
+  Oklahoma offered "peanuts" and "hay". New York and New Jersey offered
+  "sweet corn" and "potatoes".
+- **Farm animals:** Texas offered "sheep" and "chickens". Minnesota offered
+  "pigs". Iowa offered "chickens" and "turkeys". North Carolina offered
+  "chickens".
+**Since T-026's review (PR #91):** farm animals are the worse half.
+`top_livestock` lists what a state is known for, not all it raises, so
+"not listed" is read as "not raised". From the committed file: Iowa is also
+offered "dairy cows", Minnesota "dairy cows", California "turkeys". Escalated
+on PR #91; Dkaattae decided 2026-10-22 that it follows the merge, not blocks it.
+**Options:** (a) a person-approved "also grown/raised" list per state, used
+as an exclusion; (b) farthest-first ordering, as T-026 did for climate (E-25),
+which mostly offers Hawaii's and Alaska's crops; (c) take the answer from a
+source that ranks crops, so a distractor can be checked against it; (d) accept
+the risk and record it in E-25.
+**Test cost:** changes the committed question file and `content.json`, so
+both drift tests need a regeneration. T-026's own tests pin the current
+distractors only through the rules, not by value.
+**Done when:** the chosen option has landed and E-25 records it.
+
 ### T-056 — The map cannot fill in on a child's first day · M · todo
-**Depends on:** a third and fourth question per state (T-051 serves a third,
-T-026 adds more), or a design decision below
-**New 2026-08-24, found by the browser suite. Rewritten 2026-10-19 by T-040's
-reviewer (PR #88)** with the 50-state numbers. "The map is the progress bar" is
-one of the four things that shape every decision in this repo. Today the
-progress bar **cannot move on day one**, however well a child does.
-
-The arithmetic:
-
-- Mastery moves **+0.25** per right answer and a state fills in above **0.7** —
-  so a state needs **four** right answers about it.
-- The served bank has **exactly two questions per state** (100 over 50, T-040).
-- A session never repeats a question.
-
-So the most any state can reach in one sitting is **0.5**, and a perfect first
-session colours in nothing. Mastery is stored on the profile, so a second sitting
-can finish a state: T-040's tester measured two sittings of 50 right answers
-filling **15–18 of 50**, and two of 26 filling 0–3.
-
-It dissolves once there are four or more served questions per state. T-051's
-`map_click` makes three, so that alone is not enough. If the bank is going to
-stay at two or three per state for a while, the alternative is to revisit the
-0.7 threshold or show partial mastery on the map, which is a design decision
-rather than more data. `e2e/tests/progress.spec.ts` has a test that documents
-the current behaviour and fails when the premise stops being true.
-**Done when:** a good first session visibly colours something in.
+**Depends on:** a design decision below
+**Rewritten 2026-10-22 by T-026's reviewer (PR #91).** T-026 made it seven
+served questions per state, so a **mixed** first sitting can now colour states
+in. The e2e test's first-sitting-is-empty premise went red and was dropped
+(T-026 Test change request row 94): CI saw two states fill after 50 right
+answers. What is left is **single-topic sessions**, which Setup now leads with.
+Each topic has one question per state (agriculture up to two), and a session
+never repeats a question. Mastery is +0.25 per right answer and fills above
+0.7, so a child who only plays "Capital cities" or "State animals" can fill no
+state in their first sitting, and needs four sittings to fill any.
+Options: revisit the 0.7 threshold, show partial mastery on the map, or let a
+topic session count the same state's questions from other topics. Each is a
+design decision, not more data.
+**Done when:** a good first session in any Setup topic visibly colours
+something in, or the gap is accepted and written down.
 
 ### T-050 — Check selection and levels at 50 states · M · todo
 **Depends on:** —
@@ -608,7 +478,12 @@ What is left is the pass this entry always said the size needed:
 - **Review queue** at 100 questions rather than 26.
 - **`store.candidate_questions`** selects in Python. It was documented as fine
   at 26 questions and the place to move filtering into SQL when it is not.
-  Measure it at 100, and at T-026's size.
+  Measure it at T-026's size: 365 served questions (PR #91).
+- **The six T-026 templates.** Their `concept_load` values are first guesses
+  (E-22), and `nearDistractorCount` means little for them. Climate
+  distractors go farthest-first (E-25), so Hawaii's and Alaska's phrases sit
+  in most climate questions: correct, but easy and repetitive. Check whether
+  the climate questions are too easy for their level.
 
 **Done when:** a session at any level draws sensibly from the whole set, or
 this is dropped with the measurement that shows it already does.
@@ -694,7 +569,7 @@ Three separable decisions:
   this endpoint. Either source real vector layers or say the endpoint is for
   later clients and mark it so in the contract.
 - **Superlatives** are nearly free (plan §1.8) — the rank fields are populated.
-  This may be the fastest of the three, and T-026 overlaps it.
+  T-026 (PR #91) serves area superlatives from `area_rank` without this endpoint.
 - **Elevation** needs a real terrain source (plan §2.6) and is a project of its own.
 **Done when:** each of the three is either serving real data or documented in
 `openapi.yaml` as intentionally unimplemented, with what it would take.
@@ -732,6 +607,9 @@ Flipping the default changes `openapi.yaml` too, which since E-14 (amended by
 P-8) is just a file to update to match the backend, not a contract to defend.
 The decision here is the product one. An integration test asserts the current
 behaviour on purpose, and it is the test to update when this is decided.
+**Since T-026 (PR #91):** a superlative question's served `entity` *is* its
+answer, so `includeAnswerKey=false` does not hide it. Whatever is decided
+here, decide it for the superlative's entity too.
 **Done when:** the default is decided, `openapi.yaml` and the implementation
 agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
 whichever way it went.
@@ -888,8 +766,8 @@ every PR, so it cannot rot back to unverified.
 Not broken down yet — they depend on decisions above. Break each one down when
 it comes into view.
 
-- **Superlatives** — nearly free once entities carry rank fields (plan §1.8),
-  and the fastest new topic. Started in T-026 and T-039
+- **Superlatives** — area "biggest" landed in T-026 (PR #91). Other axes,
+  `ab_compare` and region scopes are left, with T-039
 - **Countries**, then world cities, then rivers / mountains / oceans (plan §1.7).
   Not before the US loop feels good (plan §4) — which means not before §D
 - **Pin formats** and point-in-polygon grading (plan §2.5) — see T-045

@@ -27,9 +27,12 @@ function withField(key: string, value: unknown): Record<string, unknown> {
 
 describe("TEMPLATES", () => {
   test("holds the three templates of plan §4 step 2, with distinct ids", () => {
+    // T-026 (approved Test change request, PFX): the three come first, in order,
+    // and all nine ids are distinct.
     const ids = TEMPLATES.map((t) => t.id);
-    expect(ids.toSorted()).toEqual(["tpl-capital-of", "tpl-click-the-map", "tpl-identify-on-map"]);
-    expect(new Set(ids).size).toBe(3);
+    expect(ids.slice(0, 3)).toEqual(["tpl-identify-on-map", "tpl-capital-of", "tpl-click-the-map"]);
+    expect(ids).toHaveLength(9);
+    expect(new Set(ids).size).toBe(9);
   });
 
   test("every template validates clean and uses a known strategy", () => {
@@ -75,7 +78,9 @@ describe("TEMPLATES", () => {
         string,
         unknown
       >;
-      for (const t of TEMPLATES) {
+      // T-026 (approved Test change request, S3): the three original templates.
+      // Blank landmarks (6) and empty top_livestock (26) are deliberate.
+      for (const t of TEMPLATES.slice(0, 3)) {
         for (const field of t.requires) {
           const v = entity[field];
           const label = `${file} ${t.id} ${field}`;

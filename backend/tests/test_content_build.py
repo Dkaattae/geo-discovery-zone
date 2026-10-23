@@ -41,9 +41,21 @@ def _by_id(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 
 
 async def _all(client: httpx.AsyncClient, path: str, **params: Any) -> list[dict[str, Any]]:
-    response = await client.get(path, params={"limit": 200, **params})
-    assert response.status_code == 200, response.text
-    return response.json()["data"]
+    """Every row, paging through: since T-026 the bank is more than one page."""
+    rows: list[dict[str, Any]] = []
+    cursor: str | None = None
+    for _ in range(100):
+        page_params: dict[str, Any] = {"limit": 200, **params}
+        if cursor:
+            page_params["cursor"] = cursor
+        response = await client.get(path, params=page_params)
+        assert response.status_code == 200, response.text
+        body = response.json()
+        rows += body["data"]
+        cursor = body["page"]["nextCursor"]
+        if not body["page"]["hasMore"]:
+            return rows
+    raise AssertionError(f"{path} never stopped paging")
 
 
 # -- the committed file is what the command writes (criteria 4, 5) -----------
@@ -70,12 +82,12 @@ def test_rendering_is_deterministic() -> None:
 # -- the served bank (criteria 6-15) ------------------------------------------
 
 
-async def test_version_counts_fifty_entities_and_a_hundred_questions(
+async def test_version_counts_fifty_entities_and_365_questions(
     client: httpx.AsyncClient,
 ) -> None:
     body = (await client.get("/content/version")).json()
     assert body["counts"]["entities"] == 50
-    assert body["counts"]["questions"] == 100
+    assert body["counts"]["questions"] == 365  # T-026: six new templates
 
 
 async def test_entities_are_exactly_the_index_ids(client: httpx.AsyncClient) -> None:
@@ -137,13 +149,21 @@ async def test_served_questions_are_the_files_non_map_click_questions(
     served = await _all(client, "/questions")
     expected = {q["id"] for q in _generated() if q["format"] != "map_click"}
     assert {q["id"] for q in served} == expected
-    assert len(served) == 100
+    assert len(served) == 365  # T-026: six new templates
     by_entity: dict[str, list[tuple[str, str]]] = {}
     for q in served:
         by_entity.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
     assert len(by_entity) == 50
-    for pairs in by_entity.values():
-        assert sorted(pairs) == [("map_identify", "location"), ("multiple_choice", "capital")]
+    # T-026 (approved Test change request A3): the seven served templates' pairs,
+    # read from the file.
+    expected_pairs: dict[str, list[tuple[str, str]]] = {}
+    for q in _generated():
+        if q["format"] != "map_click":
+            expected_pairs.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
+    for entity_id, pairs in by_entity.items():
+        assert sorted(pairs) == sorted(expected_pairs[entity_id]), entity_id
+        assert ("map_identify", "location") in pairs
+        assert ("multiple_choice", "capital") in pairs
     assert await _all(client, "/questions", format="map_click") == []
 
 

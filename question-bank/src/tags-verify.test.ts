@@ -59,6 +59,9 @@ function backendValues(name: string): string[] {
   return values;
 }
 
+/** T-026 (approved Test change request, S3): the three templates these tests were written for. */
+const ORIGINAL = (): Template[] => TEMPLATES.slice(0, 3);
+
 const mountainWest = () => bank().filter((e) => e.region === "Mountain West");
 
 // ---- Shape ----
@@ -87,7 +90,7 @@ describe("T-024 criterion 1: one output per input, in input order", () => {
 describe("T-024 criterion 2: 150 questions, all seven keys, none null/undefined", () => {
   test("committed bank", () => {
     const entities = bank();
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     expect(out.length).toBe(150);
     for (const q of out) {
       const rec = q as unknown as Record<string, unknown>;
@@ -224,7 +227,7 @@ describe("T-024 criterion 6: deterministic", () => {
 describe("T-024 criterion 7: scope is the entity's scope", () => {
   test("committed bank: all 150 are us", () => {
     const entities = bank();
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     expect(out.filter((q) => q.scope === "us").length).toBe(150);
   });
 
@@ -241,7 +244,7 @@ describe("T-024 criterion 7: scope is the entity's scope", () => {
 describe("T-024 criterion 8: entityType is the entity's type", () => {
   test("committed bank: all 150 are state", () => {
     const entities = bank();
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     expect(out.filter((q) => q.entityType === "state").length).toBe(150);
   });
 
@@ -261,7 +264,7 @@ describe("T-024 criterion 9: region is the entity's region verbatim", () => {
   test("committed bank: equals the entity's region; CO is Mountain West", () => {
     const entities = bank();
     const byId = new Map(entities.map((e) => [e.id, e]));
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     for (const q of out) expect(q.region).toBe(byId.get(q.entityId)?.region as string);
     const co = out.filter((q) => q.entityId === "us-state-co");
     expect(co.length).toBe(3);
@@ -270,10 +273,10 @@ describe("T-024 criterion 9: region is the entity's region verbatim", () => {
 
   test("odd case and spacing are kept, not trimmed or slugged", () => {
     const real = mountainWest();
-    const input = leveled(real);
+    const input = leveled(real, ORIGINAL());
     const odd = "  mountain  WEST ";
     const changed = real.map((e) => (e.id === "us-state-co" ? { ...e, region: odd } : e));
-    const co = tagQuestions(input, changed).filter((q) => q.entityId === "us-state-co");
+    const co = tagQuestions(input, changed, ORIGINAL()).filter((q) => q.entityId === "us-state-co");
     expect(co.length).toBe(3);
     for (const q of co) expect(q.region).toBe(odd);
   });
@@ -282,7 +285,7 @@ describe("T-024 criterion 9: region is the entity's region verbatim", () => {
 describe("T-024 criterion 10: topic by template", () => {
   test("identify and click are location, capital-of is capital; 100 / 50", () => {
     const entities = bank();
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     const expected: Record<string, string> = {
       [IDENTIFY]: "location",
       [CLICK]: "location",
@@ -299,7 +302,7 @@ describe("T-024 criterion 10: topic by template", () => {
 describe("T-024 criterion 11: ageBand is the template's min_age_band", () => {
   test("committed bank: 1 for all 150", () => {
     const entities = bank();
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     expect(out.filter((q) => q.ageBand === 1).length).toBe(150);
   });
 
@@ -350,7 +353,7 @@ describe("T-024 criterion 14: committed bank matches backend enums", () => {
     const formats = new Set(backendValues("QuestionFormat"));
     expect(topics.size).toBe(10);
     const entities = bank();
-    const out = tagQuestions(leveled(entities), entities);
+    const out = tagQuestions(leveled(entities, ORIGINAL()), entities, ORIGINAL());
     expect(out.length).toBe(150);
     for (const q of out) {
       expect(topics.has(q.topic)).toBe(true);
@@ -387,9 +390,9 @@ describe("T-024 criterion 15: a missing or blank region omits the key", () => {
   for (const [label, hole] of cases) {
     test(`${label} region: no region key, other six present, no throw`, () => {
       const real = mountainWest();
-      const input = leveled(real);
+      const input = leveled(real, ORIGINAL());
       const holed = real.map((e) => (e.id === "us-state-co" ? hole(e) : e));
-      const out = tagQuestions(input, holed);
+      const out = tagQuestions(input, holed, ORIGINAL());
       const co = out.filter((q) => q.entityId === "us-state-co");
       expect(co.length).toBe(3);
       for (const q of co) {

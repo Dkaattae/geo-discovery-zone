@@ -82,7 +82,8 @@ function levelOfA(
 
 describe("seedLevels over the committed bank", () => {
   test("150 questions, same ids and order, level in 0-18, nothing else changed", () => {
-    const { questions, leveled } = run(bank());
+    // T-026 (approved Test change request, S3): the three original templates.
+    const { questions, leveled } = run(bank(), TEMPLATES.slice(0, 3));
     expect(leveled.map((q) => q.id)).toEqual(questions.map((q) => q.id));
     expect(leveled.length).toBe(150);
     leveled.forEach((q, i) => {

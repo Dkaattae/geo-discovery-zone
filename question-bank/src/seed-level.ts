@@ -45,11 +45,22 @@ export const LEVEL_SEED_WEIGHTS = {
   missing_rank_bucket: 2,
   /** Level per near distractor (0–3 of them). */
   near_distractor_weight: 0.5,
-  /** Per template id. A capital is a recalled fact; a map shows the shape. */
+  /**
+   * Per template id. A capital is a recalled fact; a map shows the shape. The
+   * six T-026 entries are first guesses (E-22): each is a recalled fact like a
+   * capital, a climate phrase is the longest to read, and the farm-animal
+   * choices come from only six animals.
+   */
   concept_load: {
     "tpl-identify-on-map": 0,
     "tpl-capital-of": 2,
     "tpl-click-the-map": 0,
+    "tpl-biggest-state": 2,
+    "tpl-state-animal-of": 2,
+    "tpl-landmark-in": 2,
+    "tpl-climate-of": 3,
+    "tpl-crop-of": 2,
+    "tpl-farm-animal-of": 1,
   } as Readonly<Record<string, number>>,
   /** `concept_load` for a template id with no entry above. */
   concept_load_default: 1,

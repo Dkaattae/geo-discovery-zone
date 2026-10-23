@@ -84,6 +84,11 @@ SERVED_FORMATS = frozenset({"map_identify", "multiple_choice"})
 # capital — as the hand-written bank did. A wrong answer always highlights.
 REVEAL_BY_FORMAT = {"map_identify": "map_highlight", "multiple_choice": "none"}
 
+# Topics whose correct answer also highlights the map, whatever the format.
+# Plan §1.8: "make `reveal: map_highlight` the default for every superlative"
+# (T-026 criterion 37).
+REVEAL_BY_TOPIC = {"superlative": "map_highlight"}
+
 
 def reviewed_fun_fact(fun_facts: Any) -> str | None:
     """The text of the first fun fact, in array order, with `reviewed: true`."""
@@ -127,7 +132,9 @@ def served_question(generated: Mapping[str, Any]) -> dict[str, Any]:
         or choices[index] != generated.get("answer")
     ):
         raise ValueError(f"question {generated.get('id')!r}: choices/correctIndex/answer disagree")
-    question["reveal"] = REVEAL_BY_FORMAT[question["format"]]
+    question["reveal"] = REVEAL_BY_TOPIC.get(
+        str(question.get("topic")), REVEAL_BY_FORMAT[question["format"]]
+    )
     return question
 
 

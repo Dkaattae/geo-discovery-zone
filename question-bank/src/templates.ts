@@ -100,19 +100,55 @@ export const TEMPLATE_TOPICS: Readonly<Record<string, Topic>> = {
   "tpl-identify-on-map": "location",
   "tpl-capital-of": "capital",
   "tpl-click-the-map": "location",
+  "tpl-biggest-state": "superlative",
+  "tpl-state-animal-of": "wildlife",
+  "tpl-landmark-in": "landmark",
+  "tpl-climate-of": "climate",
+  "tpl-crop-of": "agriculture",
+  "tpl-farm-animal-of": "agriculture",
 };
 
 /**
  * Names of the ways wrong answers are chosen. `buildChoices` in
  * `distractors.ts` implements them (T-022, engineering-decisions.md E-21).
- * Within each tier, nearest centroid first.
+ * Within each tier, nearest centroid first, except where noted.
  *
  * - `neighbours_first`: entities that border the answer, then the same region,
  *   then any other.
  * - `sibling_capitals_same_region`: the same region, then any other. With
  *   capitals as the answer field, those are sibling capitals.
+ *
+ * T-026 adds six, one per new template. Each is a guard on top of the tiers;
+ * the person-approved lists they read live in `distractors.ts`.
+ *
+ * - `next_ranked_by_area`: exactly the three entities ranked `area_rank` + 1,
+ *   + 2 and + 3, no tiers, no distance (plan §1.8). Short when any is missing.
+ * - `state_animals_neighbours_first`: `neighbours_first`, never offering both
+ *   members of a same-animal pair (`SAME_ANIMAL_PAIRS`).
+ * - `landmarks_neighbours_first`: `neighbours_first`, never offering both
+ *   members of a same-landmark pair, and never a landmark trap for the
+ *   answer's state (`LANDMARK_TRAPS`).
+ * - `climates_outside_group`: one tier, **farthest** first, never a climate
+ *   from the answer state's own same-climate group (`SAME_CLIMATE_GROUPS`).
+ *   Neighbours outside a group still read alike, so distance works the other
+ *   way here (T-026 Handoff).
+ * - `crops_not_grown_nearby`: any crop some other state lists, nearest first,
+ *   except crops the answer state, a bordering state or a same-region state
+ *   lists, and never both members of an agriculture pair.
+ * - `livestock_not_raised`: any farm animal some other state lists, nearest
+ *   first, except those the answer state lists, and never both members of an
+ *   agriculture pair.
  */
-export const DISTRACTOR_STRATEGIES = ["neighbours_first", "sibling_capitals_same_region"] as const;
+export const DISTRACTOR_STRATEGIES = [
+  "neighbours_first",
+  "sibling_capitals_same_region",
+  "next_ranked_by_area",
+  "state_animals_neighbours_first",
+  "landmarks_neighbours_first",
+  "climates_outside_group",
+  "crops_not_grown_nearby",
+  "livestock_not_raised",
+] as const;
 
 export type DistractorStrategy = (typeof DISTRACTOR_STRATEGIES)[number];
 
@@ -182,6 +218,80 @@ export const TEMPLATES: Template[] = [
     applies_to: ["state"],
     format: "map_click",
     base_difficulty: 3,
+    min_age_band: 1,
+  },
+  // T-026. Every curated template asks state → fact (brief C2), and every
+  // choice is copied from an entity field (criterion 51).
+  {
+    // Superlative, plan §1.8: next-ranked on total area (Q1 (a)). No token, so
+    // nothing on screen names the answer before the child picks (criterion 40).
+    // `geometry_id` is required because the reveal is the map (criterion 41).
+    id: "tpl-biggest-state",
+    prompt: "Which of these states is the biggest?",
+    answer_field: "name",
+    distractor_strategy: "next_ranked_by_area",
+    requires: ["name", "area_rank", "geometry_id"],
+    applies_to: ["state"],
+    format: "multiple_choice",
+    base_difficulty: 2,
+    min_age_band: 1,
+  },
+  {
+    id: "tpl-state-animal-of",
+    prompt: "What is the state animal of {name}?",
+    answer_field: "state_animal",
+    distractor_strategy: "state_animals_neighbours_first",
+    requires: ["name", "state_animal"],
+    applies_to: ["state"],
+    format: "multiple_choice",
+    base_difficulty: 2,
+    min_age_band: 1,
+  },
+  {
+    id: "tpl-landmark-in",
+    prompt: "Which of these landmarks is in {name}?",
+    answer_field: "landmark",
+    distractor_strategy: "landmarks_neighbours_first",
+    requires: ["name", "landmark"],
+    applies_to: ["state"],
+    format: "multiple_choice",
+    base_difficulty: 2,
+    min_age_band: 1,
+  },
+  {
+    // Plan §1.2 line 89.
+    id: "tpl-climate-of",
+    prompt: "What kind of climate does {name} have?",
+    answer_field: "climate_kid",
+    distractor_strategy: "climates_outside_group",
+    requires: ["name", "climate_kid"],
+    applies_to: ["state"],
+    format: "multiple_choice",
+    base_difficulty: 2,
+    min_age_band: 1,
+  },
+  {
+    // Plan §1.2 line 90. The answer is the first crop listed (criterion 25).
+    id: "tpl-crop-of",
+    prompt: "Which crop is {name} known for growing?",
+    answer_field: "top_crops",
+    distractor_strategy: "crops_not_grown_nearby",
+    requires: ["name", "top_crops"],
+    applies_to: ["state"],
+    format: "multiple_choice",
+    base_difficulty: 2,
+    min_age_band: 1,
+  },
+  {
+    // `tasks.md` T-026's table. The answer is the first animal listed.
+    id: "tpl-farm-animal-of",
+    prompt: "Which farm animal is {name} known for?",
+    answer_field: "top_livestock",
+    distractor_strategy: "livestock_not_raised",
+    requires: ["name", "top_livestock"],
+    applies_to: ["state"],
+    format: "multiple_choice",
+    base_difficulty: 2,
     min_age_band: 1,
   },
 ];
@@ -306,6 +416,19 @@ function check(value: unknown): string[] {
       if (/[{}]/.test(prompt.replace(PLACEHOLDER, ""))) {
         problems.push(`prompt: has an unmatched brace`);
       }
+    }
+  }
+
+  // The two fields `generate()` used to add silently (T-026 criterion 6): a
+  // highlight needs `geometry_id`, and a code answer needs `name` as its label.
+  if (requires !== null && has(value, "format") && value["format"] === "map_identify") {
+    if (!requires.includes("geometry_id")) {
+      problems.push(`requires: a map_identify template must list "geometry_id"`);
+    }
+  }
+  if (requires !== null && has(value, "answer_field") && value["answer_field"] === "geometry_id") {
+    if (!requires.includes("name")) {
+      problems.push(`requires: a template whose answer_field is "geometry_id" must list "name"`);
     }
   }
 
