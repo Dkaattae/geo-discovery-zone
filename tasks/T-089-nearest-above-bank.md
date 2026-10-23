@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-089
 **Branch:** `claude/peaceful-maxwell-mbf9gd`
-**PR:** #NN, opened draft at expand time, built from the branch above
+**PR:** #94, opened draft at expand time, built from the branch above
 **Fault:**
 
 **Sessions:**
