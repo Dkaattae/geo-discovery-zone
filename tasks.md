@@ -361,6 +361,8 @@ split.
 **Skipped again, 2026-10-16, for T-086.** Same reason.
 **Skipped again, 2026-10-23, for T-050.** Same reason. T-070, T-085, T-088 and
 T-056 were passed over too: each is waiting on a person.
+**Skipped again, 2026-10-23, for T-090.** Same reason. T-070, T-085 and T-088
+were passed over too: each is still waiting on a person.
 
 ---
 
@@ -461,8 +463,12 @@ questions and both in 42, a two-way pick once a child spots them (T-090).
 Expect the same of HI and AK crops.
 **Done when:** the chosen option has landed and E-25 records it.
 
-### T-090 — Climate wrong answers: Hawaii and Alaska in almost every question · S · todo — **content: a person reviews the result**
+### T-090 — Climate wrong answers: Hawaii and Alaska in almost every question · S · doing — **content: a person reviews the result**
 **Depends on:** —
+**Expanded 2026-10-23** into `tasks/T-090-climate-far-phrases.md`. The
+survey found that California's three wrong answers come from two groups
+(ME, NH Northern New England; RI Southern New England), not one, so the
+"never three from one group" half changes no committed question today.
 **New 2026-10-23, from T-050's reviewer (PR #92).** E-26 section D: E-25's
 farthest-first draws Hawaii's or Alaska's `climate_kid` phrase into 47 of the
 50 served `tpl-climate-of` questions, and both into 42. A child who spots the
