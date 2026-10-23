@@ -156,3 +156,44 @@ is left for the escalated review; the orchestrator resumes at `tester`.
 
 G3 count: fail 0, blocked 0. The content point is the same one the person
 already deferred to review ("continue"), so the orchestrator proceeds to `reviewer`.
+
+## Round 4 — reviewer — 2026-10-23
+`Next step` on entry: `reviewer` → on exit: `tester` · `Status` on entry: `verified — pass` → on exit: `changes requested`
+
+**I sent T-090 back to `tester`. PR #93 stays draft.**
+- **Why:** the question-bank suite fails on the committed branch, 2360 pass and 3 fail. CI's `question-bank (typecheck, lint, test)` job also fails on `92a320e`.
+- **Cause:** the tester's new file, `question-bank/src/climate-far-phrases-verify.test.ts`, trips the T-081 git guard. That guard test was already there before this task.
+- **The worker's code is fine and needs no changes.**
+- **Next:** the brief now reads Status `changes requested`, Next step `tester`. I pushed this as `b5bec71` to `claude/eloquent-ptolemy-gmsovo`, and the remote matches my local HEAD.
+
+**Finding 1 (blocks the merge, the tester's to fix)**
+- **The two git calls:** line 783 runs `git cat-file -e ${BASE}^{commit}` and line 803 runs `git diff --name-only ${BASE} -- …`.
+- **What breaks:** three tests in `src/git-exit-guard.criteria.test.ts` (T-081 criteria 3–8):
+  - one allows only certain git subcommands, and `cat-file` is not one of them;
+  - one forbids handing git a revision, and both calls do;
+  - one requires the exit status to be checked, and line 783 doesn't check it.
+- **Why the tester saw 0 failures:** the guard finds files with `git ls-files`. The tester ran the suite before committing, so the guard never saw the new file.
+- **Fix I asked for:**
+  - pin the criterion 20 files with the `treeDigest` helper the file already has, using hashes from a worktree of `3279555`;
+  - drop `baseAvailable` and the `git diff` test;
+  - leave the guard test alone (D-14);
+  - re-run the whole suite after committing, and correct the Verdict's suite line.
+
+**Two non-blocking findings, both written in the brief's `## Review`**
+- **N1, the content trade the worker flagged:** in 22 of 50 climate questions the answer is now the only "cold" phrase, so it stands out. A person decides this at the escalated review. The PR will be escalated anyway, because it changes text a child reads.
+- **N2, base-commit hashes that will go stale:** the tests that compare against `3279555` (criteria 7, 11, 12 and 19) will fail when T-088 regenerates the bank. At sweep, T-088's `tasks.md` entry gets a note about this rather than a new task.
+- **Why `tasks.md` is unchanged:** I didn't edit it, because this is a send-back and the sweep isn't due. The reviewer who approves should apply N2 then.
+
+**Everything else I checked is fine**
+- **Commits:** each role stayed in its lane. Every role in the Sessions table has a commit on this branch.
+- **Code:** the `distractors.ts` change is small, written like the code around it, applies only to climate questions, and keeps the file pure.
+- **Docs:** E-25's amendment and the new E-27 match the code and the regenerated bank.
+- **Backend:** 627 passed, 9 skipped. Lint and format are clean.
+- **question-bank checks:** typecheck, lint and format:check are clean.
+- **Regeneration:** running both commands again changes no files.
+
+**Records**
+- Brief: /home/user/geo-discovery-zone/tasks/T-090-climate-far-phrases.md (`## Review`, Status, Next step, my Sessions row)
+- PR comment with the findings: https://github.com/Dkaattae/geo-discovery-zone/pull/93#issuecomment-6372881193
+
+G3 count: fail 0, blocked 0 (a reviewer send-back is neither).
