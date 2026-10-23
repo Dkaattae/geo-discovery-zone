@@ -1,7 +1,7 @@
 # T-050 — Check selection and levels at 365 served questions
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** the person attending the orchestrator session — 2026-10-23: "approved, go ahead with the worker". See `runs/T-050-selection-at-365.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-050
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator) |
 | worker | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator; `$CLAUDE_CODE_REMOTE_SESSION_ID` reads the same as the expander's, see Notes) |
+| tester | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator as a fresh subagent; same id as worker, see Verdict) |
 
 **Worker model:** Opus. The criteria are measurements, but item D is a hand-check
 of question difficulty, which is a judgement.
@@ -312,6 +313,42 @@ that. What only a person can judge:
 **Tests made stale:** none.
 
 ## Verdict
+
+**TL;DR**
+- **Pass.** Every number in E-26 tables A, B, C, the lowest/highest levels, the HI/AK phrase counts and table D's prompts, choices and levels matches my own computation from `content.json` (sha256 `8481068a…a4b3`), written from the criteria without using the worker's script.
+- **Whole suite green:** backend 627 passed / 9 skipped (Postgres-only), ruff clean; question-bank 2306 pass / 0 fail locally; frontend green on CI at this head (could not install locally, same proxy 403 the worker hit).
+- **Independence is the weaker kind.** Orchestrated run: `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_01454znq34eEJH6tPgL5JBMX`, the same as worker and expander, so the id check proves nothing. My independence rests only on being a freshly spawned subagent with its own context, which depends on the orchestrator having spawned me correctly, not on anything I can verify.
+
+**No new tests committed, on purpose.** Criterion 26 forbids tests that pin counts derived from the bank, and every check here is a count over `content.json`. The independent check is a throwaway script in the tester scratchpad (not committed). For the worker's own script tests, I ran a mutation check instead (below).
+
+| Criteria | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `grep '^## E-'` ends `E-24, E-25, E-26`; exactly one `## E-26` heading, last in file |
+| 2 | pass | `main` (`fb1f615`) file is a byte-exact prefix of the new file; the only byte between it and `## E-26` is one `\n` blank separator line. I read "the line before `## E-26`" as that separator, which any appended Markdown heading needs. E-1..E-25 untouched |
+| 3 | pass | Names commit `fb1f615` and the full sha256 (matches `sha256sum`). `uv run python scripts/measure_selection.py --no-timing` in a fresh `git worktree` of HEAD, `UV_OFFLINE=1`, produced output identical to the main checkout's |
+| 4–8 | pass | 37 rows, 8 topic columns; all 296 cells (`pool within 1.5 / first span`) equal my computation, using `abs(level − row) <= span` inclusive |
+| 9–12 | pass | Grades 0..9 = 0,4,59,166,120,16,0,0,0,0 (sum 365); T-085 column 3 in grade 3, 1 in grade 4 (my 4 rows: identify HI/AK, capital CO/HI). Lowest 3 = farm-animal CA, TX; highest 10 = the 16 template/state pairs listed, all match |
+| 13–14 | pass | Table C min/max/zero per topic over 50 states all match (e.g. superlative 0/1/3, landmark 0/1/6, mixed 5/8/0) |
+| 15 | pass | Checked against `selection.py`: lines 60-63 return a review pick only if `review_pool` is non-empty; otherwise control falls to the `LEVEL_SPANS` loop at 65-72, returning `is_review=False`. The sentence says exactly that. `grading.py:146-147` decrement also checked |
+| 16–17 | pass | 10 rows (CA TX FL NY WA CO KY HI AK RI); each prompt, correct choice, the four-choice set and level match the served `tpl-climate-of` question exactly; verdicts are from the allowed three; the three non-`about right` rows (CA, HI, AK) give reasons |
+| 18 | pass | HI/AK `climate_kid` phrases from `question-bank/data/us-states/`: 47 with at least one as distractor, 42 with both, my count identical |
+| 19–20 | pass | Median of 200 calls, ms, environment named. My run of the script: mixed 5.773 ms, agriculture 2.276 ms, within the recorded spread. Largest topic 74 quoted, threshold not reached |
+| 21 | pass | Every table A row with a first span of 6 or 99 (0–2, 11.5–18) is covered by a Findings bullet; CA, HI and AK non-`about right` verdicts appear; each bullet is marked accepted (with reason) or follow-on (with proposal) |
+| 22 | pass | `**Revisit when**` names T-085, T-088, T-051 |
+| 23 | pass | Handoff lists the four follow-ons, matching the four follow-on bullets in E-26; `tasks.md` diff on the branch is the expander's, not the worker's |
+| 24 | pass | `git diff fb1f615 --stat -- backend/app question-bank frontend/src e2e openapi.yaml` is empty |
+| 25 | pass | Only test-file change since `fb1f615` is the added `backend/tests/test_measure_selection.py` |
+| 26 | pass | New tests use inline fixtures only; none reads `content.json` or pins a bank count, level or digest |
+| 27 | pass | No `pyproject.toml`, `uv.lock`, `package.json` or lockfile change |
+| 28 | pass | Local: `make -C backend test` 627 passed, 9 skipped; `ruff check` and `ruff format --check` clean; question-bank `bun test` 2306 pass, 0 fail. Frontend: `bun install --frozen-lockfile` fails here (proxy 403 on `d3-color@2.0.0`); CI check runs on this head's commit report `frontend (typecheck, lint, test)` success, as are backend, backend (postgres), question-bank and integration. e2e was still in progress when I looked |
+
+**Mutations on the worker's script tests** (each reverted with a copy of the original; `git status` clean afterwards)
+- **`pool_size`: `<= span` changed to `< span`.** 3 tests went red, including the inclusive-boundary test.
+- **`table_b`: `math.floor(level / 2)` changed to `round(level / 2)`.** `test_table_b_buckets_by_floor_of_half_the_level_and_counts_flagged_rows` went red.
+
+**For the reviewer, not blocking**
+- **Criterion 16's verdict direction.** The worker followed E-22's T-025 convention, where `too hard` means the seeded level is higher than the question deserves. I confirmed that is how E-22's table uses it (HI/AK/CO rows). `tasks.md`'s "too easy for their level" wording reads the other way. E-26 states which convention it uses, so the table is unambiguous as written. The person merging should confirm the convention.
+- **Criterion 2** read as described in the table above.
 
 ## Notes
 
