@@ -1,7 +1,7 @@
 # T-050 — Check selection and levels at 365 served questions — run log
 
 **Task:** T-050 · **Branch:** `claude/laughing-cerf-og9u2g` · **PR:** #92
-**Started:** 2026-10-23 · **Outcome:** in progress
+**Started:** 2026-10-23 · **Outcome:** ready for merge — escalated, PR #92 marked ready; a person works the Review checklist before merging
 
 Orchestrated by the main session via `/next-task`.
 
@@ -116,3 +116,63 @@ Tests made stale: none.
 - /home/user/geo-discovery-zone/tasks/T-050-selection-at-365.md (Verdict, Status `pass`, Next step `reviewer`, tester row in Sessions)
 - /home/user/geo-discovery-zone/engineering-decisions.md (E-26, checked)
 - /home/user/geo-discovery-zone/backend/scripts/measure_selection.py and /home/user/geo-discovery-zone/backend/tests/test_measure_selection.py (checked, not changed)
+
+## Round 4 — reviewer — 2026-10-23
+`Next step` on entry: `reviewer` → on exit: `human` (merge decision on PR #92; see Review) — read from `4baa323`; the sweep in `1ac9b82` deleted the brief.
+
+**TL;DR**
+- **T-050 is approved and escalated.** PR #92 is marked ready for review (`draft: false` confirmed), and the top of its body says it must not be merged until a person has worked through the Review checklist.
+- **Why it's escalated:** E-26 *accepts* findings that are product calls: no questions below level 3 for a kindergartner, the empty-review fallback, and the review cap of 20. Its table D verdicts also judge how children meet the climate questions. The brief leaves both to a person. The code and the measurements themselves are fine.
+- **Next step: human** (a merge decision on PR #92). The sweep is inside the PR. The push landed: the remote head is `1ac9b82`, the same as local. CI on the sweep head was still running when I checked. Every check except e2e was green on the tester's head `4f7d2be`, and e2e was still running there too.
+
+**Checks done**
+- **Every role's work is in the PR.** Each Sessions row has a commit on `claude/laughing-cerf-og9u2g`. The PR is open and not merged, and `main` is still `fb1f615`.
+- **Each role stayed in its lane (D-7):**
+  - expander: only `tasks/` and `tasks.md`
+  - worker: `engineering-decisions.md`, the new script, its test file and the brief
+  - tester: only the brief
+  - orchestrator: only `runs/` and the `Approved:` line
+- **Tests rerun by me:**
+  - backend: 627 passed, 9 skipped; `ruff check` and `ruff format --check` clean (before and after the sweep)
+  - question-bank: 2306 pass, 0 fail (after the sweep)
+  - frontend doc-guard tests: 263 pass when run without `screens.criteria.test.tsx` and `format-gate.criteria.test.ts`. A run that included them had 1 fail and 1 error: `react-simple-maps` could not be found, a missing local dependency (the proxy 403 the worker and tester also hit). So the full frontend suite is confirmed only by CI.
+- **Acceptance criteria unchanged.** They are identical from `747062f` through `4baa323`.
+- **Rest of the envelope:**
+  - no new dependency
+  - nothing changed in `openapi.yaml`, a migration or the plan
+  - no pre-existing test touched
+  - no new text a child will read: table D only quotes served prompts verbatim
+
+**Review findings (none block)**
+- **The code fits the repo.** The script reuses `LEVEL_SPANS` and `topic_matches` from `selection.py`, and its functions are pure and tested on inline fixtures.
+- **One overstatement in E-26, left as written.** Its findings say a single-topic review turn "re-asks the very question missed". When that question is still among the last six asked, the turn falls back to an ordinary pick instead. The correction is in T-056's amendment.
+- **The worker's flags are all settled:**
+  - **Verdict direction:** keep E-22's convention (`too hard` means seeded too high). It is still on the person's checklist.
+  - **Criterion 2's separator line:** accepted.
+  - **Timing noise:** accepted.
+  - **`frontend/README.md` rewritten during a frontend test run:** deferred to T-076, which already owned it. I amended T-076 with this second sighting. The first suspect is `format-gate.criteria.test.ts`, which runs `bun run format` (a write).
+
+**Sweep, in commit `1ac9b82`**
+- **Brief:** deleted. My `## Review`, Status and Sessions row are in the commit before it, `4baa323`.
+- **`tasks.md`:**
+  - T-050 deleted.
+  - **New T-089:** above the bank's top level, a pick is drawn from the whole topic.
+  - **New T-090:** Hawaii's or Alaska's climate phrase is a wrong answer in 47 of 50 climate questions. It is marked for a person to review the result, since it changes what children read.
+  - **T-056:** amended with the single-topic review pool.
+  - **T-085:** amended with the HI and AK climate rows.
+  - **T-088:** option (b) now notes the measured cost of farthest-first.
+  - **T-076:** amended as above.
+  - The sweep-log line at the top is updated.
+- **`PROGRESS.md`:** a Completed-tasks entry for T-050, three new known gaps, and "Next" item 3 is now T-089.
+
+**Files**
+- /home/user/geo-discovery-zone/engineering-decisions.md (E-26, unchanged by review)
+- /home/user/geo-discovery-zone/backend/scripts/measure_selection.py
+- /home/user/geo-discovery-zone/backend/tests/test_measure_selection.py
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/92
+
+## Ended — 2026-10-23
+Roles in order: task-expander → (G2 halt; attending person approved) → worker → tester (pass) → reviewer (approve, escalate).
+PR #92 is ready, not merged. The person merging works the Review checklist in `4baa323`'s brief first.
