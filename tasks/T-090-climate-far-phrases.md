@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). See `runs/T-090-climate-far-phrases.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
 **Branch:** `claude/eloquent-ptolemy-gmsovo`

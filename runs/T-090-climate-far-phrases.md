@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question — run log
 
 **Task:** T-090 · **Branch:** `claude/eloquent-ptolemy-gmsovo` · **PR:** #93
-**Started:** 2026-10-23 · **Outcome:** halted — needs human
+**Started:** 2026-10-23 · **Outcome:** in progress
 
 Run by the orchestrator agent via `/next-task` in a Claude Code on the web session.
 Preflight: no live brief on `origin/main` or the branch; branch diff against `origin/main` empty.
@@ -61,3 +61,7 @@ worker is not spawned against a `pending` brief, so the run stops here.
 **What a human has to decide:** approve the T-090 brief (or not). If approved in
 the orchestrator's session, the orchestrator records the person's words here,
 writes the `Approved:` line, and spawns the worker.
+
+## Resumed — human approval — 2026-10-23
+The person replied in the orchestrator session, verbatim: "approved". The
+orchestrator wrote the `Approved:` line from those words and resumes at `worker`.
