@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
 **Branch:** `claude/eloquent-ptolemy-gmsovo`
-**PR:** #NN, opened draft at expand time, built from the branch above
+**PR:** #93, opened draft at expand time, built from the branch above
 **Fault:**
 
 **Sessions:**
