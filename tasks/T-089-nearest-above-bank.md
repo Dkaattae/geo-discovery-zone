@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). Orchestrator stamp was refused as self-approval; see `runs/T-089-nearest-above-bank.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-089
 **Branch:** `claude/peaceful-maxwell-mbf9gd`
