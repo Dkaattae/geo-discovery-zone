@@ -1,7 +1,7 @@
 # T-089 — Above the bank's top level, a pick is drawn from the whole topic — run log
 
 **Task:** T-089 · **Branch:** `claude/peaceful-maxwell-mbf9gd` · **PR:** #94
-**Started:** 2026-10-23 · **Outcome:** in progress
+**Started:** 2026-10-23 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-23
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -81,3 +81,40 @@ Dkaattae, in the orchestrator session, verbatim: "approved". Recorded on the bri
 - **Frontend side effect.** Running frontend `bun test` without `node_modules` rewrites `frontend/README.md`, on the unchanged branch too, apparently from the T-075 format-gate test. I reverted it and it is not in the commit. Decide whether to queue a fix in `tasks.md`.
 
 **Sessions row:** the session id I got is `cse_014mjPR9EwgWt5EDdiUihfx9`, the same as the expander's row, because this is an orchestrated subagent. The row says so.
+
+## Round 3 — tester — 2026-10-23
+`Next step` on entry: `tester` → on exit: `human`
+
+**TL;DR.** T-089 is stopped at **test changes requested**, waiting for a person. All 20 acceptance criteria hold on the branch. The only blocker is 7 T-090 pins in question-bank that this task turns red by design. They need a person's approval, which I've requested as 3 rows. **Next step: human.** A person has to start a `tester` in a session they are attending and approve or refuse the rows there. The orchestrator may not approve or relay the approval (D-15).
+
+- **Pushed:** `eebec2c` on `claude/peaceful-maxwell-mbf9gd`. Local HEAD and `origin/claude/peaceful-maxwell-mbf9gd` are both `eebec2ce8e47a9c23d2a1ed3d49143250f00b64b`.
+- **Brief header:** Status `test changes requested`, Next step `human`, Test changes `requested`. The Fault line is set, and my Sessions row is added.
+
+**Independence.** This is an orchestrated run, so the session-id check proves nothing. My id `cse_014mjPR9EwgWt5EDdiUihfx9` matches the expander and worker rows because orchestrated roles share the parent's id. My only independence is being a freshly spawned agent that read just the Handoff. That is weaker than a separate session, and the Verdict says so.
+
+**What I verified**
+- **New tests:** `/home/user/geo-discovery-zone/backend/tests/test_t089_tester_criteria.py`, 34 cases covering criteria 1–15 and 17–18. Every behaviour test uses an inline fixture and 300 draws with an injected rng. Byte-identity is pinned by sha256 digests of `origin/main` (2b4edb2). The only git call is `ls-files`, with `check=True`.
+  - Criteria 16, 19 and 20 are checked by diff, inspection and the full suite runs rather than tests.
+- **All 34 pass.** On main's `selection.py`, 10 of them go red.
+- **Mutations:** 9 in total: main's `selection.py`, plus 8 deliberate breaks (fallback ignores the topic; fallback ignores asked questions; span `<=` changed to `<`; the tie pool cut to one; `is_review` set True; a nearest+1.5 band; the review branch turned off; recycling ignores the recent window). The tests caught every one, and every one is reverted.
+- **One test I corrected after it went red.** My first criterion-10 topic test used a 3-question bank. That bank sat inside the recent window, where the code falls back to the whole bank. `origin/main` does the same, so the test was asking for more than the criterion says. I enlarged the fixture and kept the assertion exact. The Verdict records this.
+
+**Suites**
+- **Backend:** 673 passed, 9 skipped; lint and format clean.
+- **question-bank:** 2360 pass, 7 fail, exactly the worker's stale list. Lint and typecheck are clean.
+- **Frontend:** 392 pass, 2 fail and 2 errors on one run. The errors say "Cannot find package 'react-simple-maps'". The proxy refuses the install with a 403, so packages are missing. Nothing under `frontend/` differs from main, so this is the environment, not the task. CI is the authority there.
+
+**Test change request (all in `question-bank/src/climate-far-phrases-verify.test.ts`, none applied)**
+1. **Modify** describe "T-090 criterion 14". `entry` is read as E-27 by number, not as the newest entry. The first test asserts E-27 appears once, directly follows E-26, and matches `/T-090/`. Tests (a)–(d) are unchanged and turn green.
+2. **Modify** the `openapi.yaml` digest row. It moves to its own `test.each` named "…byte-identical to T-089's tree", pinned at `88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d`.
+3. **Modify** the `backend/app` digest row (except `content.json`), in the same new `test.each`, pinned at `e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808`.
+
+I recomputed both digests myself and they match the worker's. My recomputation also reproduces the unchanged `frontend` pin. No count floor pins this file's test count.
+
+**Files**
+- `/home/user/geo-discovery-zone/backend/tests/test_t089_tester_criteria.py` (new)
+- `/home/user/geo-discovery-zone/tasks/T-089-nearest-above-bank.md` (Verdict, Test change request, header, Sessions row)
+
+## Halted — test change request — 2026-10-23
+Raised in commit `eebec2c`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not copied here; the orchestrator has not read them.
+To resume: a person starts the `tester` step for T-089 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15).
