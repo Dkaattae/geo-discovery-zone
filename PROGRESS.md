@@ -359,6 +359,19 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-050 — selection and levels measured at 365 questions** (PR #92,
+  2026-10-23). `engineering-decisions.md` E-26 records where a session can draw
+  from at every level, how the levels spread over grades, the review pool per
+  state and topic, a hand-read of ten climate questions, and
+  `candidate_questions` at about 6 ms. A script reproduces it
+  (`backend/scripts/measure_selection.py`). No behaviour changed. *Where it
+  differed from the brief:* the queue entry asked whether climate questions are
+  "too easy for their level", and the table follows E-22's opposite wording
+  (`too hard` = seeded too high), stated in E-26. Four follow-ons: T-089 (picks
+  above the bank's top are uniform over the topic) and T-090 (Hawaii's and
+  Alaska's climate phrases in 47 of 50 questions) are new; the single-topic
+  review pool went to T-056 and the HI/AK climate rows to T-085. Run
+  orchestrated with one session id across the roles (`P-14`).
 - **T-026 — templates for every curated topic** (PR #91, 2026-10-22). Six
   `multiple_choice` templates: the biggest of four states (next-ranked on total
   area), state animal, landmark, climate, top crop and farm animal. That is 265
@@ -1490,6 +1503,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   list what a state is known for, not all it grows, so a "wrong" choice is
   sometimes right: Iowa "chickens", Texas "sheep", Minnesota "sugar beets"
   (T-088).
+- **Climate wrong answers repeat.** Hawaii's or Alaska's phrase is a wrong
+  choice in 47 of the 50 climate questions, both in 42 (E-26, T-090).
 - **Regenerating is by hand.** After the entity bank changes, two commands
   rewrite the question file and `content.json`, and a drift test is red until
   both are run (E-24). Nothing prompts for them yet (T-087).
@@ -1551,6 +1566,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - **A single-topic first session cannot fill the map.** A state needs four
   right answers. Since T-026 a mixed session has seven questions per state and
   can fill states in, but each topic has only one per state (T-056).
+- **A single-topic review turn re-asks the question missed.** Each topic has
+  one question per state, and the review pool is topic-filtered (E-26, T-056).
+- **Above level 10 a pick is uniform over the whole topic.** The bank tops out
+  at 10, so from session level 16.5 the widest span is all of it (E-26, T-089).
 - A **React hydration warning** (#418) on first load of the production build. The
   app recovers; the cause is unfound (T-048).
 - `/geometry`, `/elevation-profiles` and `/superlative-axes` are implemented and
@@ -1579,7 +1598,8 @@ The shortest path to an app that is worth playing for an hour:
    children meet them.
 2. **T-051** — `map_click`, the third v1 format; the question file already
    holds it.
-3. **T-050** — check that selection and levels behave over the larger bank.
+3. **T-089** — above the bank's top level a pick is drawn from the whole
+   topic; small, and E-26 says exactly where.
 
 CI now guards all of it: the backend, the Postgres path and the compose stack
 run on every pull request (T-009, T-052).

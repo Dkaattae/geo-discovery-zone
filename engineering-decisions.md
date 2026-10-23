@@ -1411,3 +1411,261 @@ leaves the folder at about 239 KB.
 regions and borders between countries), a reviewer reads the crop and
 farm-animal questions and finds a "not grown nearby" wrong answer the state
 does grow (C3's accepted risk), or the bank nears 400 KB.
+
+## E-26 — Selection and seeded levels measured at 365 served questions; nothing changed, the fixes are follow-ons
+
+**2026-10-23 (T-050).** A measurement, not a change. The served bank went from
+26 hand-written questions to 365 generated ones (T-040, T-026); this records
+how `pick_question`, the review queue and the seeded levels behave over it, and
+the call on each finding. No level, weight, span, window, cap or question
+moved.
+
+**What was measured.** `backend/app/data/content.json` as committed at `main`
+`fb1f615` and unchanged on this branch: sha256
+`8481068afb6e5e11c7b68afe36986dc12eb32200d556bb8bfd46cb3f6d42a4b3`. 365
+questions about 50 states; per topic `location` 50, `capital` 50,
+`superlative` 47, `wildlife` 50, `landmark` 44, `climate` 50, `agriculture`
+74. The climate phrases for criterion D come from
+`question-bank/data/us-states/us-state-hi.json` and `us-state-ak.json`
+`climate_kid`.
+
+**To reproduce** tables A, B, C, D's prompts and choices, and the timing in E,
+from `backend/` on a clean checkout, with no network:
+
+```
+uv run python scripts/measure_selection.py              # everything
+uv run python scripts/measure_selection.py --no-timing  # A-D only
+```
+
+`backend/scripts/measure_selection.py` is imported by nothing under `app/`. It
+reuses `selection.LEVEL_SPANS` and `selection.topic_matches`, so it filters the
+way `pick_question` does. Its pure functions are checked on inline fixtures in
+`tests/test_measure_selection.py`; no test reads `content.json` for a count.
+
+### A. Where a session can draw from, at each level
+
+Each cell is **pool within 1.5 / first non-empty span**: the number of questions
+in that topic (all of them for `mixed`) with `|level − row| ≤ 1.5`, boundary
+inclusive as in `selection.py`, and the first `LEVEL_SPANS` value (1.5, 3, 6,
+99) whose pool is non-empty for a session with nothing asked yet. A profile
+starts at `grade * 2` (`store.py:408`), and `grade` is 0–8
+(`models.py:303`), so a kindergartner starts at 0 and an 8th grader at 16.
+
+| Level | `mixed` | `location` | `capital` | `superlative` | `wildlife` | `landmark` | `climate` | `agriculture` |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 0 / 3 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 3 |
+| 0.5 | 0 / 3 | 0 / 3 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 3 |
+| 1 | 0 / 3 | 0 / 3 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 3 |
+| 1.5 | 2 / 1.5 | 0 / 3 | 0 / 6 | 0 / 3 | 0 / 6 | 0 / 6 | 0 / 6 | 2 / 1.5 |
+| 2 | 4 / 1.5 | 2 / 1.5 | 0 / 3 | 0 / 3 | 0 / 6 | 0 / 6 | 0 / 3 | 2 / 1.5 |
+| 2.5 | 12 / 1.5 | 3 / 1.5 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 3 | 9 / 1.5 |
+| 3 | 23 / 1.5 | 11 / 1.5 | 0 / 3 | 2 / 1.5 | 0 / 3 | 0 / 3 | 0 / 3 | 10 / 1.5 |
+| 3.5 | 40 / 1.5 | 12 / 1.5 | 1 / 1.5 | 5 / 1.5 | 0 / 3 | 0 / 3 | 2 / 1.5 | 20 / 1.5 |
+| 4 | 63 / 1.5 | 18 / 1.5 | 2 / 1.5 | 11 / 1.5 | 2 / 1.5 | 2 / 1.5 | 3 / 1.5 | 25 / 1.5 |
+| 4.5 | 99 / 1.5 | 28 / 1.5 | 3 / 1.5 | 14 / 1.5 | 3 / 1.5 | 3 / 1.5 | 11 / 1.5 | 37 / 1.5 |
+| 5 | 148 / 1.5 | 37 / 1.5 | 11 / 1.5 | 19 / 1.5 | 11 / 1.5 | 11 / 1.5 | 12 / 1.5 | 47 / 1.5 |
+| 5.5 | 181 / 1.5 | 42 / 1.5 | 12 / 1.5 | 29 / 1.5 | 12 / 1.5 | 12 / 1.5 | 18 / 1.5 | 56 / 1.5 |
+| 6 | 217 / 1.5 | 41 / 1.5 | 18 / 1.5 | 36 / 1.5 | 18 / 1.5 | 19 / 1.5 | 27 / 1.5 | 58 / 1.5 |
+| 6.5 | 254 / 1.5 | 39 / 1.5 | 28 / 1.5 | 39 / 1.5 | 28 / 1.5 | 27 / 1.5 | 36 / 1.5 | 57 / 1.5 |
+| 7 | 278 / 1.5 | 38 / 1.5 | 36 / 1.5 | 39 / 1.5 | 37 / 1.5 | 33 / 1.5 | 41 / 1.5 | 54 / 1.5 |
+| 7.5 | 278 / 1.5 | 32 / 1.5 | 42 / 1.5 | 35 / 1.5 | 42 / 1.5 | 38 / 1.5 | 40 / 1.5 | 49 / 1.5 |
+| 8 | 250 / 1.5 | 22 / 1.5 | 41 / 1.5 | 33 / 1.5 | 41 / 1.5 | 37 / 1.5 | 39 / 1.5 | 37 / 1.5 |
+| 8.5 | 215 / 1.5 | 13 / 1.5 | 39 / 1.5 | 28 / 1.5 | 39 / 1.5 | 33 / 1.5 | 38 / 1.5 | 25 / 1.5 |
+| 9 | 180 / 1.5 | 6 / 1.5 | 38 / 1.5 | 18 / 1.5 | 38 / 1.5 | 32 / 1.5 | 32 / 1.5 | 16 / 1.5 |
+| 9.5 | 136 / 1.5 | 6 / 1.5 | 32 / 1.5 | 11 / 1.5 | 32 / 1.5 | 25 / 1.5 | 23 / 1.5 | 7 / 1.5 |
+| 10 | 88 / 1.5 | 0 / 3 | 22 / 1.5 | 6 / 1.5 | 22 / 1.5 | 17 / 1.5 | 14 / 1.5 | 7 / 1.5 |
+| 10.5 | 47 / 1.5 | 0 / 3 | 13 / 1.5 | 3 / 1.5 | 13 / 1.5 | 11 / 1.5 | 7 / 1.5 | 0 / 3 |
+| 11 | 24 / 1.5 | 0 / 3 | 6 / 1.5 | 1 / 1.5 | 6 / 1.5 | 4 / 1.5 | 7 / 1.5 | 0 / 3 |
+| 11.5 | 16 / 1.5 | 0 / 6 | 6 / 1.5 | 0 / 3 | 6 / 1.5 | 4 / 1.5 | 0 / 3 | 0 / 3 |
+| 12 | 0 / 3 | 0 / 6 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 6 |
+| 12.5 | 0 / 3 | 0 / 6 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 3 | 0 / 6 |
+| 13 | 0 / 3 | 0 / 6 | 0 / 3 | 0 / 6 | 0 / 3 | 0 / 3 | 0 / 6 | 0 / 6 |
+| 13.5 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
+| 14 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
+| 14.5 | 0 / 6 | 0 / 99 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 |
+| 15 | 0 / 6 | 0 / 99 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 99 |
+| 15.5 | 0 / 6 | 0 / 99 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 6 | 0 / 99 |
+| 16 | 0 / 6 | 0 / 99 | 0 / 6 | 0 / 99 | 0 / 6 | 0 / 6 | 0 / 99 | 0 / 99 |
+| 16.5 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 |
+| 17 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 |
+| 17.5 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 |
+| 18 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 | 0 / 99 |
+
+Per-topic level ranges, for reading the table: `location` 3.5–8, `capital`
+5–10, `superlative` 4.5–9.5, `wildlife` 5.5–10, `landmark` 5.5–10, `climate`
+5–9.5, `agriculture` 3–8.5.
+
+### B. How the levels are spread
+
+| Grade `floor(level / 2)` | Questions | Of which T-085 rows |
+|---|---|---|
+| 0 | 0 | 0 |
+| 1 | 4 | 0 |
+| 2 | 59 | 0 |
+| 3 | 166 | 3 |
+| 4 | 120 | 1 |
+| 5 | 16 | 0 |
+| 6 | 0 | 0 |
+| 7 | 0 | 0 |
+| 8 | 0 | 0 |
+| 9 | 0 | 0 |
+| **total** | **365** | **4** |
+
+The T-085 rows are the four served ones: `tpl-identify-on-map` HI (6.5) and AK
+(6), `tpl-capital-of` CO (7.5) and HI (8.5).
+
+- **Lowest level: 3.** `tpl-farm-animal-of` for California and Texas.
+- **Highest level: 10.** `tpl-capital-of` for DE, ME, NH, RI, VT and WV;
+  `tpl-landmark-in` for ME, NH, VT and WV; `tpl-state-animal-of` for DE, ME,
+  NH, RI, VT and WV. Sixteen questions.
+
+### C. The review queue at this size
+
+A review turn draws from `review_pool(store.candidate_questions(db, topic), …)`
+(`routers/sessions.py:106-113`), so in a single-topic session the pool for one
+queued state is that state's questions in that topic. Each row: the fewest and
+the most questions about one state in that topic over all 50 states, before
+`RECENT_WINDOW` is applied, and how many states have none.
+
+| Topic | Min per state | Max per state | States with none |
+|---|---|---|---|
+| `mixed` | 5 | 8 | 0 |
+| `location` | 1 | 1 | 0 |
+| `capital` | 1 | 1 | 0 |
+| `superlative` | 0 | 1 | 3 |
+| `wildlife` | 1 | 1 | 0 |
+| `landmark` | 0 | 1 | 6 |
+| `climate` | 1 | 1 | 0 |
+| `agriculture` | 1 | 2 | 0 |
+
+**When the review pool is empty.** On a review turn in a single-topic session
+where every same-topic question about every queued state is among the last
+`RECENT_WINDOW` asked, `review_pool` returns nothing, so `pick_question` skips
+the review branch and serves an ordinary level-window pick with `is_review`
+false (`selection.py:60-63` falls through to `selection.py:65-72`). During a
+review round, `grading.py:146-147` still counts that answer off
+`review_round_remaining`.
+
+The queue itself is capped at 20 states (`orm.py:32`), 40% of the bank's 50;
+the queue is the profile's, not the session's, so it carries states missed in
+one topic into a session on another.
+
+### D. Climate questions, read by hand
+
+The served `tpl-climate-of` question for each of the ten states T-025 read,
+read as a seven-to-ten-year-old would meet it. Prompt, choices and level are
+the served question's; the correct choice is `choices[correctIndex]`. The
+verdict follows E-22's T-025 table: it judges the seeded **level** against how
+the question reads, so `too hard` means the level is set higher than the
+question deserves (an easy question seeded high), and `too easy` the reverse.
+
+| State | Prompt | Correct | Distractor 1 | Distractor 2 | Distractor 3 | Level | Verdict | Why |
+|---|---|---|---|---|---|---|---|---|
+| CA | What kind of climate does California have? | sunny dry summers near the coast, hot deserts and snowy mountains further inland | cold snowy winters and cool breezy summers, especially up near the coast | cold snowy winters and warm humid summers, with strong storms off the coast | cold snowy winters, especially high in the mountains, and warm summers below | 5 | too hard | All three wrong choices open with "cold snowy winters", so the one sunny phrase stands out to a child who knows only that California is warm; farthest-first drew all three from the cold north. |
+| TX | What kind of climate does Texas have? | scorching hot summers, humid and stormy in the east, drier and milder out west | warm breezy weather all year, with wetter mountains and drier coasts nearby | long cold snowy winters inland, milder and rainy along the southern coast | cold snowy winters and cool breezy summers, especially up near the coast | 5 | about right | |
+| FL | What kind of climate does Florida have? | hot muggy summers nearly all year, with sudden storms and mild winters | warm breezy weather all year, with wetter mountains and drier coasts nearby | long cold snowy winters inland, milder and rainy along the southern coast | wet mild winters and dry summers near the coast, drier and hotter to the east | 6 | about right | |
+| NY | What kind of climate does New York have? | cold snowy winters, heaviest near the lakes and mountains, and warm humid summers | warm breezy weather all year, with wetter mountains and drier coasts nearby | long cold snowy winters inland, milder and rainy along the southern coast | sunny dry summers near the coast, hot deserts and snowy mountains further inland | 6 | about right | |
+| WA | What kind of climate does Washington have? | wet mild winters and dry summers near the coast, drier and hotter to the east | warm breezy weather all year, with wetter mountains and drier coasts nearby | hot muggy summers nearly all year, with sudden storms and mild winters | cold snowy winters and cool breezy summers, especially up near the coast | 6.5 | about right | |
+| CO | What kind of climate does Colorado have? | dry and cold in the mountains, drier plains to the east | warm breezy weather all year, with wetter mountains and drier coasts nearby | long cold snowy winters inland, milder and rainy along the southern coast | cold snowy winters and cool breezy summers, especially up near the coast | 7 | about right | |
+| KY | What kind of climate does Kentucky have? | warm humid summers and cool winters, with occasional snow and ice storms | warm breezy weather all year, with wetter mountains and drier coasts nearby | long cold snowy winters inland, milder and rainy along the southern coast | wet mild winters and dry summers near the coast, drier and hotter to the east | 8.5 | about right | |
+| HI | What kind of climate does Hawaii have? | warm breezy weather all year, with wetter mountains and drier coasts nearby | cold snowy winters and cool breezy summers, especially up near the coast | cold snowy winters and warm humid summers, with strong storms off the coast | cold snowy winters with strong coastal storms, and warm humid summers | 9.5 | too hard | Hawaii is the state a child is surest is warm, and its phrase is the only warm one against three "cold snowy winters"; the question itself is among the easiest in the bank, but its ranks put it at 9.5, 4th grade hard, above Frankfort (9). T-085's cause: rank buckets with no input for a state drawn apart. |
+| AK | What kind of climate does Alaska have? | long cold snowy winters inland, milder and rainy along the southern coast | hot muggy summers nearly all year, with sudden storms and mild winters | hot muggy summers, mild winters, and the chance of a strong coastal storm | hot muggy summers and mild winters, with thunderstorms common in the warm months | 8 | too hard | The only cold phrase against three "hot muggy summers", for the state a child is surest is cold; easy to answer, but seeded at 8 (4th grade easy) by its population rank, T-085's cause again. |
+| RI | What kind of climate does Rhode Island have? | cold snowy winters and warm humid summers, with strong storms off the coast | warm breezy weather all year, with wetter mountains and drier coasts nearby | long cold snowy winters inland, milder and rainy along the southern coast | sunny dry summers near the coast, hot deserts and snowy mountains further inland | 9.5 | about right | |
+
+**Hawaii's and Alaska's phrases as wrong choices.** Of the 50 served
+`tpl-climate-of` questions, **47** offer at least one of the two phrases as a
+distractor, and **42** offer both. The three without either are Alaska's,
+California's and Hawaii's own; in the 42, a child who recognises the
+island phrase and the far-north phrase is left with a two-way pick. TX, FL, NY,
+CO, KY and RI above are all of that kind; they read as about right because the
+two left still take knowing the state, but every one of them looks the same.
+
+### E. `candidate_questions` at this size
+
+`store.candidate_questions` on SQLite, a temporary file loaded by
+`store.ensure_content_loaded`, one warm-up call then 200 timed calls per topic
+with the session's identity map cleared before each (a request starts with an
+empty one):
+
+| Topic | Median of 200 calls |
+|---|---|
+| `mixed` (365 rows) | 5.7 ms |
+| `agriculture` (74 rows) | 2.7 ms |
+
+Run on Linux 6.18.44 x86_64 (a 4-core Intel Xeon @ 2.80GHz cloud container),
+Python 3.13.17. Two repeat runs gave 5.3 and 5.6 ms for `mixed` and 2.0 and
+1.2 ms for `agriculture`; the order of magnitude is the finding, not the digit.
+
+**The docstring's threshold is not reached.** It says filtering should move
+into SQL "at bank sizes past a few thousand questions per topic"; the largest
+topic is `agriculture`, with **74** questions.
+
+### Findings
+
+- **Table A, rows 0, 0.5, 1, 1.5 and 2: accepted.** First span 6 for
+  `location` (0), `capital`, `superlative`, `wildlife`, `landmark` and
+  `climate` (0–1.5 or 0–2), 3 for `mixed`. Nothing in the bank sits below
+  level 3, so a span widened from below reaches the bottom of the bank: at 0,
+  span 6 is every question at level 6 or under, the easiest 99. A kindergartner
+  (start 0) or 1st grader (start 2) gets the easiest the bank holds; the gap is
+  that it holds nothing for them, which is content, not selection, and the app
+  is for seven-to-ten-year-olds.
+- **Table A, rows 11.5 to 16: accepted.** First span 6 in some or all topics
+  (`location` from 11.5, `agriculture` from 12, every topic from 13.5). Mirrored
+  reasoning: from above, span 6 reaches only the top of the bank, its hardest
+  questions (at 16, the 16 at level 10). Rows 14.5–16 also have span-99 cells,
+  covered by the next bullet.
+- **Table A, rows 14.5 to 18 where the first span is 99: follow-on.** `location`
+  from 14.5, `agriculture` from 15, `superlative` and `climate` at 16, every
+  topic from 16.5. At span 99 the pool is every unasked question in the topic,
+  drawn uniformly, so a child at 16.5 or above, or an 8th grader (start 16) in
+  four topics, is as likely to get a level-3 farm animal as a level-10
+  capital. **Proposal:** when no span up to 6 reaches a question, choose from
+  the questions nearest the session level rather than from the whole topic.
+- **Table B, the spread: accepted.** Grades 1–5, with 345 of 365 questions in
+  grades 2–4: the seven-to-ten-year-olds the app is for. Grades 0 and 6–9 are
+  empty, which is what table A's wide-span rows measure.
+- **Table B, T-085's rows: accepted.** 3 of grade 3's 166 and 1 of grade 4's
+  120. They do not dominate a band; T-085 is about their order, not their
+  share.
+- **Lowest 3 and highest 10: accepted.** The range E-22 records for the nine
+  templates together; the 3 is T-026's farm animal, the 10 the small
+  north-eastern states' recall questions.
+- **Table C, a single-topic review pool is one question: follow-on.** For
+  `location`, `capital`, `wildlife` and `climate` every state has exactly one
+  question, so a single-topic review turn re-asks the very question missed,
+  where `review_pool`'s docstring promises "a different angle"; `mixed` has 5
+  to 8. **Proposal:** decide whether a review turn draws the queued state's
+  questions from every topic (`store.review_questions` already does that and
+  has no caller), and whether a review round in a topic should count down on a
+  question that is not a review (`grading.py:146-147`).
+- **Table C, states with no question in a topic: accepted.** 3 states in
+  `superlative` (E-25's DE, CT, RI) and 6 in `landmark` contribute nothing to
+  that topic's review pool. The turn falls back to an ordinary pick (next
+  bullet), and the state stays queued for a session that has a question about
+  it.
+- **The empty review pool falls back to an ordinary pick: accepted.**
+  `selection.py:60-72`. Serving a level-window question beats serving nothing
+  or re-asking one of the last six; it is reported as not a review, so the
+  client does not label it one.
+- **The review cap of 20 at 50 states: accepted.** 40% of the bank's states;
+  a full queue in a `mixed` session is a pool of at least 100 questions, and a
+  child who has missed twenty states has a review queue worth working through.
+- **Table D, Hawaii's and Alaska's phrases in 47 and 42 of 50, and CA `too
+  hard`: follow-on.** E-25's farthest-first draws the same far phrases into
+  most questions, or three from one cold group into California's.
+  **Proposal:** give `climates_outside_group` a rule that offers at most one of
+  Hawaii's and Alaska's phrases per question and no three from one group, then
+  re-read table D and re-judge `concept_load["tpl-climate-of"]` (3).
+- **Table D, HI and AK `too hard`: follow-on.** The climate questions for the
+  two easiest climates sit at 9.5 and 8, for the reason T-085 already owns.
+  **Proposal:** add `tpl-climate-of` HI and AK to T-085's rows, so its new
+  input is judged against them too.
+- **Section E, `candidate_questions` at 365: accepted.** A few milliseconds
+  per call, and the largest topic has 74 questions against a threshold of a
+  few thousand. Moving the filter into SQL stays deferred.
+
+**Revisit when** T-085 changes the levels of the drawn-apart states and the
+largest-city capitals, T-088 regenerates the agriculture questions, or T-051
+serves `map_click` (50 more questions, at the map levels). Any one of them
+moves every table above; rerun the script.
