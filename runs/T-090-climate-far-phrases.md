@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question — run log
 
 **Task:** T-090 · **Branch:** `claude/eloquent-ptolemy-gmsovo` · **PR:** #93
-**Started:** 2026-10-23 · **Outcome:** halted — needs human
+**Started:** 2026-10-23 · **Outcome:** in progress
 
 Run by the orchestrator agent via `/next-task` in a Claude Code on the web session.
 Preflight: no live brief on `origin/main` or the branch; branch diff against `origin/main` empty.
@@ -121,3 +121,7 @@ than answer. The header is left as the worker wrote it (`Next step: tester`).
 **What a human has to decide:** accept or reject the trade quoted above, or say
 to continue to the tester and leave the call to the escalated review, as the
 worker's "Owner" line proposes.
+
+## Resumed — human answer — 2026-10-23
+The person replied in the orchestrator session, verbatim: "continue". The trade
+is left for the escalated review; the orchestrator resumes at `tester`.
