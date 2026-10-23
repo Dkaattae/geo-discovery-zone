@@ -79,3 +79,40 @@ The `Approved:` line records that approval. The orchestrator has not read the cr
 - **The brief's Status line was out of date.** It still said `awaiting approval`, but the `Approved:` line already held the attending person's words, so I went ahead.
 
 Tests made stale: none.
+
+## Round 3 — tester — 2026-10-23
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-050 tester verdict: PASS.** I set Next step to `reviewer`. The verdict is commit `54d1942`, pushed to `claude/laughing-cerf-og9u2g`, and the remote head matches it.
+
+- **Every number in E-26 matches my own count.** I wrote a separate script from the criteria and ran it on `backend/app/data/content.json` (sha256 `8481068a…a4b3`, the same file as on `main`). It does not use the worker's script. These all match exactly:
+  - table A: 37 rows by 8 topics, 296 cells
+  - table B and the lowest and highest levels (3 and 10)
+  - table C
+  - the Hawaii/Alaska climate-phrase counts (47 and 42)
+  - every prompt, choice and level in table D
+- **The whole suite passes.**
+  - Backend: 627 passed, 9 skipped (the Postgres-only tests). The ruff lint and format checks are clean.
+  - Question bank: 2306 pass, 0 fail.
+  - Frontend: its dependencies would not install here (the proxy refuses `d3-color` with a 403). CI on this branch's head shows the frontend check green, along with backend, backend (postgres), question-bank and integration. The e2e check was still running when I looked.
+- **My independence is the weaker kind.** This run is orchestrated, so `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_01454znq34eEJH6tPgL5JBMX`) is the same id the worker and expander recorded, and the id check proves nothing. My independence rests only on being a freshly spawned subagent with its own context, which depends on you having spawned me correctly. The Verdict says this.
+
+**Other checks**
+- **The measurement reproduces on a clean checkout.** I ran `uv run python scripts/measure_selection.py --no-timing` in a fresh git worktree with `UV_OFFLINE=1`. Its output was identical to the run in the main checkout.
+- **Nothing that must not change did.**
+  - No file differs from `fb1f615` under `backend/app`, `question-bank`, `frontend/src` or `e2e`, and `openapi.yaml` is unchanged.
+  - No dependency or lockfile changed.
+  - The only test-file change is the new `backend/tests/test_measure_selection.py`, which uses inline fixtures only.
+- **Earlier decisions are untouched.** `main`'s `engineering-decisions.md` is an exact byte prefix of the new file. The only byte between it and `## E-26` is one blank separator line. I read criterion 2 as allowing that.
+- **The review-turn sentence matches the code.** Checked against `selection.py` lines 60-63 and 65-72, and `grading.py` lines 146-147.
+- **The worker's tests catch breakage.** I broke the script twice and reverted both times; the working tree is clean.
+  - Changing `<=` to `<` in `pool_size` turned 3 tests red.
+  - Changing `floor` to `round` in `table_b` turned the table B test red.
+- **I committed no new tests, on purpose.** Criterion 26 forbids tests that pin counts from the bank, and every check here is such a count. The throwaway checking script is in the scratchpad.
+
+**For the reviewer (not blocking):** the worker used E-22's meaning of "too hard" in table D: the level is set higher than the question deserves. I confirmed E-22's own table uses it that way. `tasks.md`'s wording "too easy for their level" reads the other way round. E-26 says which meaning it uses; the person merging should confirm it.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks/T-050-selection-at-365.md (Verdict, Status `pass`, Next step `reviewer`, tester row in Sessions)
+- /home/user/geo-discovery-zone/engineering-decisions.md (E-26, checked)
+- /home/user/geo-discovery-zone/backend/scripts/measure_selection.py and /home/user/geo-discovery-zone/backend/tests/test_measure_selection.py (checked, not changed)
