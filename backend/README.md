@@ -207,7 +207,7 @@ app/
   auth.py         accounts, password hashing, bearer tokens, the auth dependency
   problems.py     RFC 9457 problem details
   levels.py       level → grade/band/labels (mirrors frontend/src/lib/level.ts)
-  selection.py    pickQuestion, ported from frontend/src/lib/session.ts
+  selection.py    pick_question: review turns, widening level window, nearest fallback (E-28)
   grading.py      grading, mastery, level drift, prompts, reveal
   serializers.py  record → contract payload
   routers/        content.py, auth.py, profiles.py, sessions.py

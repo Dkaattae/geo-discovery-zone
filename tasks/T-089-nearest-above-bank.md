@@ -1,7 +1,7 @@
 # T-089 — Above the bank's top level, a pick is drawn from the whole topic
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). Orchestrator stamp was refused as self-approval; see `runs/T-089-nearest-above-bank.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-089
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 |
+| worker | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent; the env var is the parent run's id, so it matches the expander's row) |
 
 **Worker model:** Opus. It changes which question a child is served, and it
 needs a Test change request drafted correctly.
@@ -242,6 +243,124 @@ time" describes.
 
 ## Handoff
 
+**TL;DR.** Built. Past span 6, `pick_question` now draws from the fresh candidates
+at the smallest distance, ties included. E-28 records it, and the stale
+`lib/session.ts` references are gone. Backend: 639 passed, 9 skipped, ruff clean.
+question-bank: 7 red, all of them the stale T-090 pins the brief predicted
+(listed below). The tester needs Test change request rows for those 7.
+
+**Files changed**
+
+- **`backend/app/selection.py`.** `pick_question` builds `fresh` (topic match and
+  not asked) once. It tries `LEVEL_SPANS[:-1]` (1.5, 3, 6) as before. If those
+  are all empty and `fresh` is not, the pool is the `fresh` questions whose
+  `abs(level - L)` equals the minimum. `LEVEL_SPANS` keeps its `99.0`, with a
+  comment, so `measure_selection.py` is untouched (criterion 14). The module
+  docstring no longer names `frontend/src/lib/session.ts`. Signature, return
+  shape and purity are unchanged.
+- **`backend/tests/test_selection.py`.** 10 new tests (12 cases), appended after
+  the existing ones. The existing tests are byte-identical. The new tests use
+  inline fixtures through a `q()` helper and `fixture_draws()` (200 draws with
+  `random.Random(89)`). `fixture_draws` also asserts that every draw has
+  `is_review is False`. Against the old `selection.py`, 8 of the new cases fail
+  and the existing 19 pass.
+- **`backend/README.md:210`.** The `selection.py` line now reads
+  "pick_question: review turns, widening level window, nearest fallback (E-28)".
+- **`openapi.yaml`.** Description text only. `serveNextQuestion` describes the
+  windows and the nearest fallback, and contains "nearest". `listQuestions` now
+  says `level` + `levelSpan` mirror "the server's widening search in
+  `serveNextQuestion`" instead of naming the client file.
+- **`engineering-decisions.md`.** Appended `## E-28`. E-1 to E-27 are untouched,
+  and the numbering runs 1 to 28 with no gap.
+- **This brief.** Status, Sessions row, Handoff and Notes.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1 | `selection.py`, the `for span in LEVEL_SPANS[:-1]` loop. Same filter and same `<=` as before |
+| 2 | The existing 19 tests are unmodified and pass (`git diff` shows only additions to the file) |
+| 3, 4 | The nearest block in `selection.py`. Tests: `test_above_the_bank_draws_only_the_nearest_questions`, `test_above_the_bank_every_nearest_tie_can_be_drawn` |
+| 5 | `test_below_the_bank_draws_only_the_nearest_question` |
+| 6 | `test_the_span_six_edge_from_both_sides`, 3 cases |
+| 7 | `fresh` excludes `asked`. `test_the_fallback_skips_asked_questions` |
+| 8 | `fresh` applies `topic_matches`. `test_the_fallback_keeps_the_topic_filter`, `test_the_fallback_in_mixed_draws_every_topic_at_the_nearest_distance` |
+| 9 | Returns `False`. `test_the_fallback_is_not_a_review`, and the assert inside `fixture_draws` |
+| 10 | The recycle block is unchanged. Existing tests, plus `test_once_everything_is_asked_the_pick_still_recycles_above_the_bank` |
+| 11 | The review branch runs before the windows, unchanged. `test_review_wins_over_the_fallback_whatever_the_level` |
+| 12 | `git grep -n lib/session.ts` now hits only `engineering-decisions.md` (E-28), `runs/T-089-…`, `tasks.md` and this brief |
+| 13 | E-28 bullets: (a) "The fallback rule", (b) "This answers E-26's …", (c) "There is no client copy", (d) "How a `99` reads now" |
+| 14 | Both files untouched. `test_measure_selection.py` passes |
+| 15 | `openapi.yaml` `serveNextQuestion` description |
+| 16–18 | Untouched. No lockfile, content, `frontend/` or migration changes |
+| 19 | New tests are pure, with inline fixtures and no I/O |
+| 20 | See "How to run" and "Tests made stale" |
+
+**Tests made stale.** All are in
+`question-bank/src/climate-far-phrases-verify.test.ts`. The 7 are listed below,
+and they are the only reds in question-bank. The E-26 and `measure_selection.py`
+digests in the same describe still pass.
+
+- describe "T-090 criterion 14: the re-read is a new E-n entry". All 5 tests go
+  red because the describe takes `newest = Math.max(...)` (now 28) and reads that
+  entry:
+  - "the entry is E-27, the next unused number after E-26, and appears once"
+  - "(a) the ten states' rows match the regenerated bank, with a verdict and a reason"
+  - "(b) the counts: how many offer at least one of HI's and AK's phrases, and 0 offer both"
+  - "(c) a judgement on concept_load[tpl-climate-of]"
+  - "(d) CA unchanged and why, and whether it is still too hard; CA's question is as at 3279555"
+  - **Why stale:** criterion 13 adds E-28.
+  - **Proposal: modify.** Pin the entry to E-27 rather than the newest, i.e.
+    `const entry = sectionOf(decisions, "E-27")`. In the first test, replace
+    `expect(newest).toBe(27)` with `expect(numbers).toContain(27)` and keep the
+    "appears once" and `/T-090/` checks. The other four then pass unchanged.
+- describe "T-090 criterion 20: no other surface changes", the `test.each`
+  "%s (except %p) is byte-identical to 3279555":
+  - **`openapi.yaml (except [])`.** Stale because of criterion 15. **Proposal:
+    modify** the digest to
+    `88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d`.
+  - **`backend/app (except [ "backend/app/data/content.json" ])`.** Stale
+    because `selection.py` changed (criteria 3–5, 12). **Proposal: modify** the
+    digest to
+    `e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808`.
+  - I computed both digests with the test's own `treeDigest` algorithm, re-done
+    in Python on this branch's tree. It reproduces the pinned `frontend` digest
+    `7d65dc75…`, which is unchanged. Recompute them if anything else under
+    `backend/app` or `openapi.yaml` moves before the change lands.
+- **No count floors** pin this file's test count, as far as I found.
+
+**How to run**
+
+- `make -C backend test`: 639 passed, 9 skipped.
+- `make -C backend lint` and `uv run ruff format --check` in `backend/`: clean.
+- `cd question-bank && bun install --frozen-lockfile && bun test`: 2360 pass, 7
+  fail (the stale list above). `bun run lint`: 0 warnings, 0 errors.
+- `cd backend && uv run pytest tests/test_selection.py -q`: 31 passed.
+
+**Environment caveats, not caused by this change**
+
+- **Without `bun install`, question-bank's T-066 lint tests fail** (12 on the
+  clean tree). After `bun install --frozen-lockfile` they pass.
+- **`frontend` would not install.** `bun install --frozen-lockfile` was refused
+  by the proxy (403 on `@types/react-simple-maps@3.0.6`). So frontend `bun test`
+  shows 386 pass, 8 fail (eslint and prettier gate tests). The clean default
+  tree gives the identical 386/8. Nothing under `frontend/` changed.
+- **Side effect:** running frontend `bun test` without `node_modules` rewrote
+  `frontend/README.md` (a `*` escaped to `\*`). It happens on the clean tree
+  too, apparently from the T-075 format-gate test that spawns `bun run format`.
+  I reverted the file, and it is not in the commit. **Owner: reviewer**, to
+  decide whether that test needs a guard and to queue it in `tasks.md` (section
+  F or G).
+
+**Deliberately not done**
+
+- No change to the spans, `RECENT_WINDOW`, `REVIEW_EVERY`, levels or review
+  behaviour (Out of scope).
+- E-26 was not edited, and `measure_selection.py` was not re-run.
+- No existing test was touched.
+
+**Contradictions with the brief:** none found.
+
 ## Verdict
 
 ## Notes
@@ -256,3 +375,17 @@ time" describes.
   `frontend/src/lib/session.ts` is still live. It is not in the repo at all,
   and never was in its git history. Criterion 12 removes the four references
   that say otherwise, and criterion 13 (c) records it.
+- **Worker, on keeping `99.0` in `LEVEL_SPANS`.** Dropping it would have been
+  cleaner in `selection.py`, but `measure_selection.py` iterates it and its
+  test asserts `99.0` (criterion 14). So the last entry stays, as a marker
+  meaning "nearest", and `pick_question` slices it off. **Owner: reviewer**, to
+  confirm, or to queue a follow-on that renames it once `measure_selection.py`
+  may change.
+- **Worker, on exact float equality for ties.** Distances are compared with
+  `==` against the minimum. Levels are multiples of 0.5, so they are exact in
+  binary floating point, and two questions at the same level always tie.
+  **Owner: reviewer**, if a non-half-step level ever lands (T-085).
+- **Worker, on the `listQuestions` wording.** It now points at
+  `serveNextQuestion` rather than at a client file. I did not verify that
+  `GET /questions` actually implements `levelSpan` widening. That is outside
+  criterion 15, which only allows a description edit. **Owner: reviewer**.
