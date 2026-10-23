@@ -47,3 +47,35 @@ orchestrator session then replied, verbatim:
 > approved, go ahead with the worker
 
 The `Approved:` line records that approval. The orchestrator has not read the criteria.
+
+## Round 2 — worker — 2026-10-23
+`Next step` on entry: `worker`, once a person replaces `pending` below → on exit: `tester`
+
+**TL;DR**
+- **T-050 is ready for the tester.** I added a new entry, E-26, at the end of `engineering-decisions.md` with every measurement the brief asked for, and changed no app behaviour.
+- **The push landed:** `origin/claude/laughing-cerf-og9u2g` is at `1658ec3` ("T-050 worker: measure selection and levels at 365 questions as E-26"). The brief now reads Status `awaiting verification`, Next step `tester`.
+- **The backend and question-bank suites pass, but the frontend suite could not run clean here.** Its packages are fetched from a private registry (`europe-west1-npm.pkg.dev/lovable-core-prod`) that the proxy blocks (403). Without them, 7 frontend tests fail: 5 lint-gate tests, and 2 test files can't load React packages. That set was the same before and after my changes, and I touched no frontend file.
+
+**Files**
+- `/home/user/geo-discovery-zone/engineering-decisions.md`: E-26 added after E-25. Everything above it matches `main` byte for byte (checked as an exact prefix).
+- `/home/user/geo-discovery-zone/backend/scripts/measure_selection.py` (new): reproduces all the numbers. Run it from `backend/` with `uv run python scripts/measure_selection.py`; `--no-timing` skips the timing. It makes no network calls, and nothing in `app/` imports it.
+- `/home/user/geo-discovery-zone/backend/tests/test_measure_selection.py` (new): tests the script on small inline examples. Nothing in it reads the real question bank or pins a count from it.
+- `/home/user/geo-discovery-zone/tasks/T-050-selection-at-365.md`: Status, Sessions row, Handoff and Notes filled in.
+
+**What the measurements found**
+- **Top of the level scale (follow-on).** From session level 14.5 up, some topics have nothing within 6 levels, so the widest span takes the whole topic at random. A strong child can get a level-3 question at level 17. An 8th grader starts at 16 and hits this in four topics. The bottom of the scale was accepted: widening there lands on the bank's easiest questions.
+- **Spread and range (accepted).** The bank runs from level 3 to 10. 345 of the 365 questions are in grades 2–4. T-085's four rows don't dominate any grade (3 of 166 in grade 3, 1 of 120 in grade 4).
+- **Review in a single-topic session (follow-on).** Most topics have exactly one question per state, so a review turn re-asks the question the child missed. `store.review_questions` would draw from every topic but nothing calls it. When the review pool is empty, the pick quietly becomes an ordinary one (`selection.py:60-63` falls through to `65-72`).
+- **Climate questions.** Hawaii's or Alaska's climate phrase is a wrong answer in 47 of 50 climate questions, and both are in 42.
+  - The hand-check rates CA, HI and AK `too hard`: easy questions seeded at too high a level. The other seven are `about right`.
+  - **Two follow-ons:** a distractor rule allowing at most one of the HI/AK phrases per question, and adding HI/AK climate to T-085's rows.
+- **Lookup speed (accepted).** About 5.5 ms per call for all topics and 1–3 ms for agriculture. The docstring's threshold of "a few thousand per topic" is far off: the largest topic has 74 questions.
+
+**Decisions for others**
+- **Which way the verdicts point.** I followed the brief and the T-025 table in E-22, where `too hard` means "the level is set higher than the question deserves". `tasks.md` uses the opposite wording ("too easy for their level"). E-26 states which one it uses. Reviewer to confirm or overturn.
+- **Criterion 2's "line before".** E-26 is preceded by one new blank line, like every other entry. Tester to accept that, or send it back to the expander if the criterion meant something stricter.
+- **Session id.** `$CLAUDE_CODE_REMOTE_SESSION_ID` gives the same value for me as for the expander, because the orchestrator runs every role inside one session. It can't show the roles were separate. Orchestrator to own that.
+- **One stray file change.** After one frontend test run, `frontend/README.md` had a one-character formatting change. I reverted it and it didn't come back on later runs; it looks like a frontend test writing to a file it shouldn't. Not this task's, and not fixed here.
+- **The brief's Status line was out of date.** It still said `awaiting approval`, but the `Approved:` line already held the attending person's words, so I went ahead.
+
+Tests made stale: none.
