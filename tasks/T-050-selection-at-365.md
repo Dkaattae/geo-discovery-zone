@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-050
 **Branch:** `claude/laughing-cerf-og9u2g`
-**PR:** opened draft at expand time against the branch above (number recorded in the PR itself and in the run log)
+**PR:** #92, opened draft at expand time against the branch above
 **Fault:**
 
 **Sessions:**
