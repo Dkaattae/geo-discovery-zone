@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question
 
-**Status:** `pass`
-**Next step:** `reviewer` — review finding 1 is fixed in the tester's own file; suite green with the file committed
+**Status:** `escalated`
+**Next step:** `human` — approved and swept; PR #93 marked ready but escalated: changes text a child reads (the climate wrong answers). Dkaattae reads the 50 questions and decides T-091 before merging
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). See `runs/T-090-climate-far-phrases.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-090
@@ -18,6 +18,7 @@
 | tester | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id, so the id check proves nothing here) |
 | reviewer | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context; same shared id). Verdict: changes requested, back to `tester` |
 | tester | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context, round 2 for review finding 1; same shared id, so the id check proves nothing here) |
+| reviewer | 2026-10-23 | cse_01RqMHVzQ4dzC6Q8EjTwWEZi (orchestrator subagent, fresh context, round 2; same shared id). Verdict: approve, escalated (text a child reads) |
 
 **Worker model:** Opus. This changes what a child reads in 50 questions.
 
@@ -416,6 +417,27 @@ cd backend && uv run python scripts/measure_selection.py --no-timing   # table D
 - **Docs:** the E-25 amendment and E-27 match the code and the committed bank. E-26 is untouched.
 - **Other suites:** backend 627 passed, 9 skipped. Lint and format are clean. Typecheck, lint and format:check are clean in question-bank. Regeneration leaves no diff.
 - **Sweep not done**, because this is a send-back. The approving reviewer applies N2 to T-088.
+
+### Review, round 2 — 2026-10-23
+
+**TL;DR**
+- **Approved, escalated.** Finding 1 is fixed: the criterion 20 `git diff` and `git cat-file` calls are gone, and the trees are pinned by `treeDigest` digests. The suite is green on the committed branch, locally and on CI.
+- **Escalated because it changes text a child reads** (the wrong answers in 42 climate questions). It is outside the envelope, so a person reads the result before merging. Nothing else is outside it.
+- **Next:** Dkaattae reads the 50 climate questions and E-27, then decides T-091 (accept the lone-"cold"-answer trade, or queue a stricter rule).
+
+**Re-checked on `6963e7b`**
+- `question-bank`: `bun test` **2367 pass, 0 fail**, with the proxy pointed at loopback. `typecheck`, `lint` and `format:check` are clean.
+- `backend`: `make test` 627 passed, 9 skipped. `lint` and `format-check` are clean.
+- CI on `6963e7b`: `question-bank (typecheck, lint, test)` and `backend (lint, format, test)` succeed. The other jobs were still running when I checked.
+- **Round 2 diff:** only `climate-far-phrases-verify.test.ts` and the brief changed. No git call in the file is handed a revision. `git-exit-guard.criteria.test.ts` is untouched.
+- **No pre-existing test** was deleted or modified. Against `origin/main`, both test files are `A` (added). `Test changes: none` is correct.
+
+**Dispositions**
+- **Finding 1:** closed.
+- **N1, the content trade:** the answer is the only "cold" phrase in 22 of 50 questions, and HI + CA + OR is the set in 18. **Filed as T-091**, waiting on a person. It is also the escalation reason on the PR.
+- **N2, base-commit pins:** **amended T-088** to say its tester should expect the `3279555` pins (criteria 7, 11, 12 and 19) to go red.
+- **N3, new and not blocking. The criterion 20 pins are wide.** They hash all of `frontend/`, `backend/app/` (except `content.json`), `openapi.yaml`, `geoquizdataplan.md` and `backend/migrations` at `3279555`. So the next frontend or backend task turns them red and needs a test change request (D-14). **Amended T-070**, which owns the digest-guard question, rather than opening a new task. The finding is also named in the PR body.
+- **Worker's flags:** closed in round 1. The new trade is now T-091.
 
 ## Notes
 
