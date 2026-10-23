@@ -1,7 +1,7 @@
 # T-050 — Check selection and levels at 365 served questions
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision on PR #92; see Review)
 **Approved:** the person attending the orchestrator session — 2026-10-23: "approved, go ahead with the worker". See `runs/T-050-selection-at-365.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-050
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator) |
 | worker | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator; `$CLAUDE_CODE_REMOTE_SESSION_ID` reads the same as the expander's, see Notes) |
 | tester | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator as a fresh subagent; same id as worker, see Verdict) |
+| reviewer | 2026-10-23 | cse_01454znq34eEJH6tPgL5JBMX (spawned by the orchestrator; same id, P-14) |
 
 **Worker model:** Opus. The criteria are measurements, but item D is a hand-check
 of question difficulty, which is a judgement.
@@ -349,6 +350,35 @@ that. What only a person can judge:
 **For the reviewer, not blocking**
 - **Criterion 16's verdict direction.** The worker followed E-22's T-025 convention, where `too hard` means the seeded level is higher than the question deserves. I confirmed that is how E-22's table uses it (HI/AK/CO rows). `tasks.md`'s "too easy for their level" wording reads the other way. E-26 states which convention it uses, so the table is unambiguous as written. The person merging should confirm the convention.
 - **Criterion 2** read as described in the table above.
+
+## Review
+
+**TL;DR**
+- **Approved, escalated.** E-26 is careful, reproducible and stays inside the brief; nothing under `backend/app/`, the banks, `frontend/src/`, `e2e/` or `openapi.yaml` changed. Marked ready, but **not to be merged until a person has read the brief's Review checklist** (copied into the PR body).
+- **Why escalated:** E-26 *accepts* several findings that are product calls (no questions below level 3 for a kindergartner; the empty-review fallback; the review cap), and table D's verdicts are a judgement about how children meet the questions. The brief itself reserves both to a person.
+- **Swept in this PR:** brief deleted, T-050 out of `tasks.md`, four follow-ons queued, `PROGRESS.md` updated.
+
+**Lanes (D-7):** expander commits touch only `tasks/` and `tasks.md`; worker's touch `engineering-decisions.md`, the new script, its test and the brief; tester's only the brief; orchestrator's only `runs/` and the brief's `Approved:` line. Every Sessions row has a commit on this branch.
+
+**Quality findings, none blocking**
+- **Fits the codebase.** The script reuses `selection.LEVEL_SPANS` and `topic_matches` rather than re-deriving them, so it cannot drift from `pick_question`. Pure functions with inline-fixture tests, as `test-guidelines.md` asks. `backend/scripts/` is a new directory: nothing under `app/` imports it, ruff covers it, and pytest reaches it through `pythonpath = ["."]`.
+- **Not more than needed.** `--calls` and `--no-timing` are the only options; both are used by E-26's own reproduce line.
+- **One overstatement, not blocking.** E-26's Findings say a single-topic review turn "re-asks the very question missed". When the missed question is still in the last `RECENT_WINDOW`, `review_pool` excludes it and the turn falls back to an ordinary pick instead (E-26's own "When the review pool is empty" paragraph). Recorded in T-056's amendment; E-26 is not edited (the record stands).
+- **Docs true.** No doc describes behaviour that changed, since none did.
+
+**Worker's flags, disposed**
+- **Verdict direction (criterion 16): decided, follow E-22.** E-22's T-025 table uses `too hard` for "seeded higher than it deserves" (HI/AK/CO/HI rows), and E-26 states the convention above its table, so the log reads one way throughout. The queue's "too easy for their level" wording is noted in `PROGRESS.md`. Still on the person's checklist, because the verdicts themselves are theirs to judge.
+- **Criterion 2's blank line: decided, accepted.** `main`'s file is a byte-exact prefix; the one `\n` is the separator every entry has. Tester read it the same way.
+- **Timing noise: accepted.** E-26 records the spread and says the order of magnitude is the finding.
+- **`frontend/README.md` rewritten once by a frontend `bun test`: deferred to T-076**, which already owned this; amended with the second sighting and the likely suspect (`format-gate.criteria.test.ts` spawns `bun run format`).
+
+**Follow-ons (criterion 23), where each went**
+- **Top-of-scale uniform picks → new T-089.** Nothing owned selection above the bank.
+- **Single-topic review re-asks → amended T-056.** T-056 already has to decide whether a topic session may reach into other topics, for mastery; review is the same question.
+- **Climate distractor rule → new T-090.** E-25's farthest-first is not owned by any queued task. T-088 option (b) also gained a line: E-26 measured farthest-first's cost.
+- **HI/AK climate rows → amended T-085.** It owns that cause.
+
+**Envelope:** tester pass; backend 627 passed / 9 skipped and ruff clean (rerun here); CI green on the tester head for backend, postgres, question-bank, frontend and integration. No dependency, no `openapi.yaml`, migration or plan change, no pre-existing test touched (`Test changes: none`), no new child-facing text (table D quotes served prompts verbatim). Outside the envelope only on "a product decision settled along the way" (the accepted findings), hence the escalation.
 
 ## Notes
 
