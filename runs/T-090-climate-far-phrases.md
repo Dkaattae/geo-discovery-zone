@@ -197,3 +197,41 @@ already deferred to review ("continue"), so the orchestrator proceeds to `review
 - PR comment with the findings: https://github.com/Dkaattae/geo-discovery-zone/pull/93#issuecomment-6372881193
 
 G3 count: fail 0, blocked 0 (a reviewer send-back is neither).
+
+## Round 5 — tester — 2026-10-23
+`Next step` on entry: `tester` → on exit: `reviewer` · `Status` on entry: `changes requested` → on exit: `pass`
+
+**TL;DR**
+- **The verdict is pass.** I fixed review finding 1 in my own test file. The suite is now green with the file committed: 2367 pass, 0 fail.
+- **The push landed.** Commit `adf727d` is on `claude/eloquent-ptolemy-gmsovo`, and local HEAD matches `origin`.
+- **Next step: `reviewer`.**
+
+**What changed** (only in `/home/user/geo-discovery-zone/question-bank/src/climate-far-phrases-verify.test.ts`, plus the brief)
+- **Removed the calls the guard flagged:** the `baseAvailable` check (it ran `git cat-file -e 3279555^{commit}`), the skipped `git diff --name-only 3279555` test for criterion 20, and the `BASE` const that was then unused.
+- **New criterion 20 checks:** 5 sha256 pins made with `treeDigest`, which now takes an optional `except` list. They cover `openapi.yaml`, `geoquizdataplan.md`, `frontend`, `backend/migrations`, and `backend/app` minus `backend/app/data/content.json`. I computed the digests from a `git worktree` of `3279555`, and HEAD gives the same digests. Unlike the old test, these run on CI.
+- **Not touched:** `git-exit-guard.criteria.test.ts`, which existed before this task (D-14), and all source files.
+
+**Evidence** (all run with the file staged, so the guard scanned it; proxy pointed at loopback)
+- **question-bank:**
+  - `bun test` gives 2367 pass, 0 fail (2363, minus 1 removed test, plus 5 new).
+  - The T-081 guard file alone gives 37 pass, 0 fail.
+  - `typecheck`, `lint` and `format:check` are clean.
+- **backend:** 627 passed, 9 skipped.
+- **Mutation:**
+  - **What I did:** appended a line to `openapi.yaml`, `backend/app/__init__.py` and `frontend/package.json`.
+  - **What went red:** the `openapi.yaml`, `frontend` and `backend/app` pins, plus criterion 17's manifest pin (4 fail, 48 pass).
+  - **Reverted:** with `git checkout`. `git status` was clean apart from my test file.
+  - **The exclusion works:** `content.json` differs from base at HEAD, and the `backend/app` pin still passes.
+
+**Brief** (`/home/user/geo-discovery-zone/tasks/T-090-climate-far-phrases.md`)
+- **Header:** Status is now `pass` and Next step is `reviewer`.
+- **Sessions:** added a round 2 tester row.
+- **Verdict:** new "Verdict, round 2" subsection. It corrects round 1's "0 fail", which was measured while the file was untracked.
+
+**Independence:** this is an orchestrated run, so my session id is the same one the worker's row shows and the check proves nothing. My independence rests only on being a freshly spawned agent that has not seen the worker's reasoning.
+
+**Still open for the person at the escalated review:** the content trade from review N1. In 22 of 50 climate questions, the answer is now the only phrase with "cold" in it.
+
+**Durability:** the new pins will go red when a later task deliberately changes those trees. That task's tester then raises a test change request (review N2).
+
+G3 count: fail 0, blocked 0.
