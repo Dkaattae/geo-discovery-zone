@@ -1,7 +1,7 @@
 # T-090 — Climate wrong answers: Hawaii and Alaska in almost every question — run log
 
 **Task:** T-090 · **Branch:** `claude/eloquent-ptolemy-gmsovo` · **PR:** #93
-**Started:** 2026-10-23 · **Outcome:** in progress
+**Started:** 2026-10-23 · **Outcome:** ready for merge — escalated, needs a person
 
 Run by the orchestrator agent via `/next-task` in a Claude Code on the web session.
 Preflight: no live brief on `origin/main` or the branch; branch diff against `origin/main` empty.
@@ -235,3 +235,49 @@ G3 count: fail 0, blocked 0 (a reviewer send-back is neither).
 **Durability:** the new pins will go red when a later task deliberately changes those trees. That task's tester then raises a test change request (review N2).
 
 G3 count: fail 0, blocked 0.
+
+## Round 6 — reviewer — 2026-10-23
+`Next step` on entry: `reviewer` → on exit: `human` · `Status` on entry: `pass` → on exit: `escalated` (header as committed in `630f8da`; the brief was then deleted in the sweep, `c822a5b`)
+
+**TL;DR**
+- **I approved T-090 and escalated it. PR #93 is marked ready, swept, and the push landed** (`origin/claude/eloquent-ptolemy-gmsovo` is at `c822a5b`).
+- **Why escalated:** it changes text a child reads, the wrong answers in 42 of the 50 climate questions. The PR body opens with "do not merge until a person has read the climate questions". Every other envelope condition holds.
+- **Next step is `human`:** Dkaattae reads the 50 climate questions and E-27, then decides on merging and on T-091. I did not merge.
+
+**Round-1 finding is fixed**
+- The tester's verify test no longer calls `git cat-file` or `git diff 3279555`. Criterion 20 is now checked with `treeDigest` sha256 pins, and the pre-existing T-081 guard (`git-exit-guard.criteria.test.ts`) is untouched.
+- **Suites I ran on `6963e7b`:**
+  - `question-bank`: `bun test` 2367 pass, 0 fail, with the proxy pointed at loopback. Typecheck, lint and format:check are clean.
+  - `backend`: 627 passed, 9 skipped. Lint and format-check are clean.
+- **CI:** the question-bank and backend jobs are green. The frontend, e2e, integration and postgres jobs were still running when I checked, so I have no result for those.
+- **No pre-existing test was changed.** Both T-090 test files are new, and `Test changes: none` is correct.
+
+**The code:** the `distractors.ts` change is small, limited to the `climates_outside_group` strategy, pure, and in the file's own style. Every role has a commit on the branch and stayed in its lane.
+
+**Where the non-blocking findings went**
+- **N1, the content trade → new T-091, waiting on a person.** In 22 of 50 questions the answer is now the only "cold" phrase, and California is still `too hard`. T-091 lists options (a) to (d).
+- **N2 → T-088 amended.** Its tester should expect a test change request: regenerating agriculture will turn the `3279555` pins on non-climate questions red.
+- **N3 (new) → T-070 amended.** Criterion 20's tree pins cover all of `frontend/` and `backend/app/`, so the next frontend or backend task will need a test change request. T-070 already owns the question of when these pins expire (its Q1), so I amended it rather than adding a task.
+
+**Sweep, in `c822a5b`**
+- The brief `tasks/T-090-climate-far-phrases.md` is deleted.
+- The T-090 entry is removed from `tasks.md`, and the sweep log note at the top of `tasks.md` is updated.
+- `PROGRESS.md` has a Completed-tasks line, and its Known-gaps climate line is rewritten.
+- Before deleting the brief, I committed the round-2 review into it as `630f8da`, with Status `escalated` and Next step `human`.
+
+**On the PR**
+- The body starts with the escalation banner, then the review checklist for the person, a criterion-by-criterion evidence table, the review notes, and the acceptance criteria verbatim.
+- A summary comment is posted: https://github.com/Dkaattae/geo-discovery-zone/pull/93#issuecomment-6373045209
+- `gh pr edit` and `gh pr ready` failed with 403, because these sessions block GitHub's GraphQL API. I updated the body and marked the PR ready through the REST API instead, and confirmed it shows `draft: false`.
+
+**Files:**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/question-bank/src/climate-far-phrases-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/distractors.ts
+
+## Ended — escalated to a person — 2026-10-23
+Roles in order: task-expander → (G2 halt; person approved) → worker → (halt on
+decision request; person said "continue") → tester (pass) → reviewer (send-back
+to tester) → tester (pass) → reviewer (approve, escalate, sweep, PR ready).
+G3 at end: fail 0, blocked 0. The PR is Dkaattae's to read and merge; no role merged.
