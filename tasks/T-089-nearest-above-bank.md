@@ -1,13 +1,12 @@
 # T-089 — Above the bank's top level, a pick is drawn from the whole topic
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). Orchestrator stamp was refused as self-approval; see `runs/T-089-nearest-above-bank.md`.
-**Test changes:** `requested`
+**Test changes:** approved — Dkaattae, 2026-10-26
 **From:** [`tasks.md`](../tasks.md) T-089
 **Branch:** `claude/peaceful-maxwell-mbf9gd`
 **PR:** #94, opened draft at expand time, built from the branch above
-**Fault:** test changes are waiting for approval. 3 rows cover the 7 stale T-090 pins in `question-bank/src/climate-far-phrases-verify.test.ts`, which this task's own change turns red by design. Owner: a person, in an attended tester session.
 
 **Sessions:**
 
@@ -16,6 +15,7 @@
 | task-expander | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 |
 | worker | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent; the env var is the parent run's id, so it matches the expander's row) |
 | tester | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent, freshly spawned; same parent-run id as the rows above, so the id check cannot show separation) |
+| tester | 2026-10-26 | cse_01AUyrgLPRWDWHNoC3DNyoaC (attended; applied the approved Test change request) |
 
 **Worker model:** Opus. It changes which question a child is served, and it
 needs a Test change request drafted correctly.
@@ -364,6 +364,42 @@ digests in the same describe still pass.
 
 ## Verdict
 
+**TL;DR (2026-10-26, attended tester).** **Pass.** Dkaattae approved all 3
+Test change request rows in this session; I applied exactly those rows and
+the question-bank suite is green (2367 pass, 0 fail). **Next:** reviewer.
+
+- **Approval.** Asked one question per row; the answers were "Approve",
+  "Approve", "Approve", with the name to record given as "Dkaattae". The
+  header reads `Test changes: approved — Dkaattae, 2026-10-26`.
+- **Tests modified** (all in `question-bank/src/climate-far-phrases-verify.test.ts`,
+  none deleted):
+  - **Row 1:** criterion 14's describe reads `E-27` by number, not
+    `Math.max`. The first test asserts E-27 appears once, directly follows
+    E-26, and names T-090; `expect(newest).toBe(27)` is gone. Tests (a)–(d)
+    unchanged. Reason: T-089 adds E-28.
+  - **Rows 2 and 3:** the `openapi.yaml` and `backend/app` (except
+    `content.json`) rows moved out of the 3279555 `test.each` into a new one,
+    "%s (except %p) is byte-identical to T-089's tree", pinned to
+    `88e056ea…3e5d` and `e7a4e080…f808`. Reason: criteria 15 and 3–5/12 edit
+    those on purpose. The other three 3279555 rows are untouched.
+- **Digests still hold.** Nothing under `backend/app` or in `openapi.yaml`
+  changed since the request; both new rows pass with the requested digests.
+- **Suites, run by me after the edit.**
+  - **question-bank:** `bun test` 2367 pass, 0 fail; `typecheck`, `lint`
+    (0/0) and `format:check` clean.
+  - **backend:** `make -C backend test` 673 passed, 9 skipped.
+  - **frontend: not verified locally.** `bun install --frozen-lockfile` fails
+    here on proxy 403s for tarballs (`d3-transition`, `@types/geojson`), so
+    `react-simple-maps` is missing and the suite shows 7 environment reds.
+    Nothing under `frontend/` changes on this branch, and CI's
+    `frontend (typecheck, lint, test)` job was green on `8d7c8ed`.
+- **Independence.** Separate session from the expander, worker and earlier
+  tester rows (`cse_01AUyrgLPRWDWHNoC3DNyoaC`), attended by a person. I did
+  not re-run the criteria mutations; round 1's results below stand, and
+  this round touched only the three approved test rows.
+
+### Round 1 (2026-10-23, orchestrated)
+
 **TL;DR.** No final verdict yet: **test changes requested**. All 20 criteria
 hold on this branch. The one blocker is that 7 T-090 pins in question-bank go
 red by design, and those need a person's approval (3 rows in the Test change
@@ -462,9 +498,9 @@ count: I searched for its name across `src/` and found no floor.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | › "T-090 criterion 14: the re-read is a new E-n entry" › the describe-level `newest`/`entry` lines, and "the entry is E-27, the next unused number after E-26, and appears once". The sibling tests "(a) the ten states' rows…", "(b) the counts…", "(c) a judgement on concept_load[tpl-climate-of]" and "(d) CA unchanged and why…" go red only because they read `entry` | `2023a09`, T-090 tester. It protected that T-090's re-read landed as the next E-n (E-27), once, naming T-090, with table D and sections (a) to (d) | Criterion 13 adds E-28, so `newest` is 28. `entry` becomes E-28's text, which has no table D, and `toBe(27)` fails | modify | `entry` is `sectionOf(decisions, "E-27")`, read by number, not by `Math.max`. The first test keeps its name and asserts: `numbers.filter(n => n === 27)` has length 1; `numbers.indexOf(27) === numbers.indexOf(26) + 1` (E-27 still directly follows E-26); `entry` matches `/T-090/`. `expect(newest).toBe(27)` and the `newest` constant are removed. Tests (a) to (d) are unchanged in text and pin E-27's content exactly as before | |
-| 2 | › "T-090 criterion 20: no other surface changes" › `test.each` "%s (except %p) is byte-identical to 3279555", row `openapi.yaml (except [])` | `adf727d`, T-090 tester (review finding 1). It protected that T-090 changed no API description | Criterion 15 edits the `serveNextQuestion` and `listQuestions` descriptions | modify | Move the row out of the 3279555 table into its own `test.each` named "%s (except %p) is byte-identical to T-089's tree". It asserts `treeDigest(REPO, "openapi.yaml", [])` equals `88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d` (recomputed by the tester; it matches the worker's). Exact digest, same strength. The other four rows stay in the 3279555 table untouched | |
-| 3 | Same `test.each`, row `backend/app (except [ "backend/app/data/content.json" ])` | `adf727d`, T-090 tester. It protected that T-090 changed no backend code beyond content | Criteria 3 to 5 and 12 change `backend/app/selection.py` | modify | Same new `test.each` as row 2, row `backend/app` except `["backend/app/data/content.json"]`. It asserts `treeDigest` equals `e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808` (recomputed by the tester; it matches the worker's) | |
+| 1 | › "T-090 criterion 14: the re-read is a new E-n entry" › the describe-level `newest`/`entry` lines, and "the entry is E-27, the next unused number after E-26, and appears once". The sibling tests "(a) the ten states' rows…", "(b) the counts…", "(c) a judgement on concept_load[tpl-climate-of]" and "(d) CA unchanged and why…" go red only because they read `entry` | `2023a09`, T-090 tester. It protected that T-090's re-read landed as the next E-n (E-27), once, naming T-090, with table D and sections (a) to (d) | Criterion 13 adds E-28, so `newest` is 28. `entry` becomes E-28's text, which has no table D, and `toBe(27)` fails | modify | `entry` is `sectionOf(decisions, "E-27")`, read by number, not by `Math.max`. The first test keeps its name and asserts: `numbers.filter(n => n === 27)` has length 1; `numbers.indexOf(27) === numbers.indexOf(26) + 1` (E-27 still directly follows E-26); `entry` matches `/T-090/`. `expect(newest).toBe(27)` and the `newest` constant are removed. Tests (a) to (d) are unchanged in text and pin E-27's content exactly as before || approved — Dkaattae, 2026-10-26 |
+| 2 | › "T-090 criterion 20: no other surface changes" › `test.each` "%s (except %p) is byte-identical to 3279555", row `openapi.yaml (except [])` | `adf727d`, T-090 tester (review finding 1). It protected that T-090 changed no API description | Criterion 15 edits the `serveNextQuestion` and `listQuestions` descriptions | modify | Move the row out of the 3279555 table into its own `test.each` named "%s (except %p) is byte-identical to T-089's tree". It asserts `treeDigest(REPO, "openapi.yaml", [])` equals `88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d` (recomputed by the tester; it matches the worker's). Exact digest, same strength. The other four rows stay in the 3279555 table untouched || approved — Dkaattae, 2026-10-26 |
+| 3 | Same `test.each`, row `backend/app (except [ "backend/app/data/content.json" ])` | `adf727d`, T-090 tester. It protected that T-090 changed no backend code beyond content | Criteria 3 to 5 and 12 change `backend/app/selection.py` | modify | Same new `test.each` as row 2, row `backend/app` except `["backend/app/data/content.json"]`. It asserts `treeDigest` equals `e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808` (recomputed by the tester; it matches the worker's) || approved — Dkaattae, 2026-10-26 |
 
 Both digests must be recomputed if anything else under `backend/app` or in
 `openapi.yaml` changes before the edit lands.
