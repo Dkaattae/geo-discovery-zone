@@ -54,3 +54,40 @@ A human has to answer Q1 in the brief and set `Next step` (`worker` for (a) with
 Dkaattae, in the orchestrator session, verbatim: "eh... why a map click question has four candidate states? if it is clicking, just do not provide options."
 
 Recorded in the brief's `Next step` line, which now reads `task-expander`. Not one of the three listed options as worded: no candidate options at all, any state tappable.
+
+## Round 2 — task-expander — 2026-10-26
+`Next step` on entry: `task-expander` (Status `blocked`) → on exit: `worker` (Status `awaiting approval`)
+
+**TL;DR:** I rewrote the T-051 brief to follow Dkaattae's Q1 answer: a `map_click` question has no options, the child can tap any state, and the backend grades the tapped geometry id. The brief is now `Status: awaiting approval` and `Next step: worker`, with `Approved: pending`. A person has to approve it before the worker runs. Pushed as `d593b7f` to `claude/affectionate-bell-r03ap2`, and `origin` shows that commit at its tip.
+
+**What the Q1 answer changed in the brief**
+- **Grading changes.** `AnswerRequest` gets a new `tappedGeometryId` field. `map_click` is graded by exact string match against `answerGeometryId`. Both names are fixed in the brief so the tester can check them.
+- **The four options are no longer served.** A served `map_click` question carries no `choices`, `correctIndex` or `choiceGeometryIds`.
+- **The answer key is `answerGeometryId`.** It is left out when `includeAnswerKey=false`, the same way `correctIndex` is.
+- **Client.** Before the commit, every state is drawn the same way and can be tapped or reached by keyboard. No state name shows except in the prompt. The reveal colours the answer state and marks the tapped state differently.
+- **New error behaviour.** A missing `tappedGeometryId` returns 422 with the path `/tappedGeometryId`. `map_identify` and `multiple_choice` are still graded by `choiceIndex`.
+- **What stays the same.** No migration is needed: `AnswerRecord` stores `correct`, not the option chosen. No new dependency, and the question file is not changed.
+- **Decision record.** A new E-29 entry records the decision. It updates E-24 and E-20, and notes that E-21's options are still generated but no longer served.
+
+**Criteria**
+- **39 in total, covering:** serving, contract, API serving, API grading, client presentation, reveal, what must not change, and the recorded decision.
+- **Still for a person (Review checklist):** whether small states can be tapped (RI, DE, CT), the AK and HI insets, any new child-facing text, and whether hovering gives the answer away.
+
+**Not done**
+- **No product question is open.** Choosing the two field names and making the server's matching exact are engineering calls, and the brief writes them down.
+- **The question-bank generator still writes unused options for `map_click`.** I left that out of scope as a follow-up and did not add it to `tasks.md`.
+- **I ran no build, tests or pipeline.**
+
+**Files**
+- `/home/user/geo-discovery-zone/tasks/T-051-map-click-render.md`: rewritten for Q1. The header is updated and a second Sessions row is added (session `cse_01W3CQk9DjveYML94m9kKPKg`).
+- `/home/user/geo-discovery-zone/tasks.md`: the T-051 status line now reads "brief awaiting approval", plus a note on the Q1 answer.
+- **These are the only two files in the commit**, so it stays within what the expander may write (G1).
+
+**PR**
+- **#96 updated** (https://github.com/Dkaattae/geo-discovery-zone/pull/96): the title and body now carry the rewritten criteria. It is still a draft.
+- **Plan to attend the tester step.** Several existing tests will go red by design: the 365 count pins, the assertions that `map_click` is withheld, the digest guards, and Playwright's `answerAtRandom`. The brief lists them with file and line.
+
+### Gates after return
+- G5: Status and Next step both changed. Pass.
+- G1: diff vs main is `runs/`, `tasks.md`, `tasks/T-051-…`. Pass.
+- G2: `Approved: pending`. Dkaattae is in the session, so approval is asked of them rather than stamped as unattended.
