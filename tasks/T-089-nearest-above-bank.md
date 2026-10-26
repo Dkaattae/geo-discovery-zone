@@ -1,7 +1,7 @@
 # T-089 — Above the bank's top level, a pick is drawn from the whole topic
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision on PR #94; `openapi.yaml` is outside the envelope)
 **Approved:** Dkaattae — 2026-10-23, in the orchestrator session ("approved"). Orchestrator stamp was refused as self-approval; see `runs/T-089-nearest-above-bank.md`.
 **Test changes:** approved — Dkaattae, 2026-10-26
 **From:** [`tasks.md`](../tasks.md) T-089
@@ -16,6 +16,7 @@
 | worker | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent; the env var is the parent run's id, so it matches the expander's row) |
 | tester | 2026-10-23 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent, freshly spawned; same parent-run id as the rows above, so the id check cannot show separation) |
 | tester | 2026-10-26 | cse_01AUyrgLPRWDWHNoC3DNyoaC (attended; applied the approved Test change request) |
+| reviewer | 2026-10-26 | cse_014mjPR9EwgWt5EDdiUihfx9 (orchestrated subagent, freshly spawned; local id 63f733fb-e244-50c2-a10b-85cdfbdbe348) |
 
 **Worker model:** Opus. It changes which question a child is served, and it
 needs a Test change request drafted correctly.
@@ -487,6 +488,66 @@ went red.
 on this tree on my own. It gives `openapi.yaml` = `88e056ea…3d5e5d` and
 `backend/app` (except `content.json`) = `e7a4e080…dff808`, matching the
 Handoff. It also reproduces the unchanged pinned `frontend` digest `7d65dc75…`.
+
+## Review
+
+**TL;DR (2026-10-26, reviewer).** **Approved, and escalated.** The change is
+small, idiomatic and does what the criteria say; nothing blocks. It is escalated
+only because it edits `openapi.yaml` (two descriptions, nothing structural),
+which the envelope reserves for a person. **Next:** Dkaattae reads the
+`openapi.yaml` hunk and merges, or not.
+
+- **Escalation reason:** `openapi.yaml` changed (criterion 15, description text
+  of `serveNextQuestion` and `listQuestions` only). No other envelope condition
+  is broken: tester pass, suites green, no dependency, no migration, no plan
+  edit, no child-facing text, nothing outside Constraints.
+- **Pre-existing tests modified:** 3 rows in
+  `question-bank/src/climate-far-phrases-verify.test.ts`, approved by a person
+  (`Test changes: approved — Dkaattae, 2026-10-26`), applied only in tester
+  commit `2b99832`. The diff matches the rows exactly. No test deleted.
+- **Every role's work is in the PR:** expander `253b6f9`/`9fa6deb` (only
+  `tasks.md` and the brief), worker `d4fb29d`, tester `eebec2c`/`2b99832`/`5c8b871`
+  (tester never touched source). Lanes held (D-7).
+- **Suites, run by me:** `make -C backend test` 673 passed, 9 skipped;
+  `make -C backend lint` clean; question-bank `bun test` 2367 pass, 0 fail.
+  Frontend not run locally (proxy blocks `bun install`); CI's frontend job is
+  green on `28434b3`, and nothing under `frontend/` changed.
+
+**Quality.** `pick_question` now builds `fresh` once and filters it, which is
+simpler than the old per-span comprehension, and the nearest block is six lines
+in the module's own style. No speculative options. The docstring, README line,
+`openapi.yaml` and E-28 all describe the code as it is.
+
+**Worker's flags, disposed**
+
+- **`99.0` kept in `LEVEL_SPANS` as a marker.** Decided: keep. Renaming it
+  would mean editing `measure_selection.py`, its test and E-26's notation for
+  no behaviour gain; the comment above the tuple says what the entry means.
+  No follow-on.
+- **Exact float `==` for ties.** Decided: fine as is. Two questions at the
+  same level always compute the same distance, so a same-level tie can never
+  be lost. The only case `==` could split is two *different* levels equidistant
+  on opposite sides of L at non-half-step values; then the pool is still the
+  nearest question, just without its mirror twin. No follow-on.
+- **`listQuestions` "`level` + `levelSpan` mirror the server's widening
+  search".** Checked: `GET /questions` applies one fixed `±levelSpan` filter
+  (`routers/content.py:169`, `store.py:240`) and widens nothing, and a caller
+  cannot reproduce the nearest fallback with it. The sentence was already loose
+  before this task and is not false enough to block. **Deferred to T-053**,
+  which already owns `GET /questions`' `openapi.yaml` text; amended there.
+- **`frontend/README.md` rewritten by a frontend `bun test`.** Third sighting.
+  **Deferred to T-076**, which already owns the investigation; amended there
+  with this sighting.
+
+**Non-blocking finding, queued.** `backend/tests/test_t089_tester_criteria.py`
+adds the backend's first base-pinned guards of the kind T-070 exists to settle:
+`numbers == list(range(1, 29))` (the next `E-n` turns it red), a canonical
+`openapi.yaml` digest at `2b4edb2` (any operation edit turns it red, though
+E-14 says `openapi.yaml` follows the backend with no ceremony), `content.json`'s
+sha256 (any bank refresh, T-087), and "only the initial migration". Same
+pattern as T-090's pins, which a person approved as precedent; **amended into
+T-070** as an eighth guard rather than a new task, because Q1's answer has to
+cover it anyway.
 
 ## Test change request
 
