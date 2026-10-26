@@ -1,7 +1,7 @@
 # T-051 — Serve and render `map_click`: tap the state on the map — run log
 
 **Task:** T-051 · **Branch:** `claude/affectionate-bell-r03ap2` · **PR:** #96
-**Started:** 2026-10-26 · **Outcome:** halted — needs human
+**Started:** 2026-10-26 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-26
 `Next step` on entry: none (no brief) → on exit: `human` (Status: `blocked`)
@@ -150,3 +150,67 @@ Files changed:
 ### Gates after return
 - G5: Status and Next step both changed. Pass.
 - G1: no process files in the diff. Pass.
+
+## Round 4 — tester — 2026-10-26
+`Next step` on entry: `tester` (Status `awaiting verification`) → on exit: `human` (Status `test changes requested`, Test changes `requested`)
+
+**TL;DR: T-051 is halted for a person's approval of test changes, not failed.** My own tests show all 39 criteria met, and nothing I ran is red except tests the task makes stale on purpose. 33 rows of existing tests need changing and are written up as a Test change request. A person has to approve them in an attended `tester` session; nobody here can approve them for that person. Pushed as `6537059` to `claude/affectionate-bell-r03ap2`; `origin` shows it at the tip.
+
+**Header:** Status `test changes requested`, Next step `human`, Test changes `requested`, Fault filled in, my tester row added.
+
+**Independence is weaker than a separate session.** This run is orchestrated: `runs/T-051-map-click-render.md` exists and every role shares session id `cse_01W3CQk9DjveYML94m9kKPKg`. The id check therefore proves nothing. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. The Verdict says this.
+
+**Handoff:** present, and every file it names is in `git diff origin/main...HEAD`.
+
+**My tests (committed):**
+- `/home/user/geo-discovery-zone/backend/tests/test_t051_tester_criteria.py`: 50 tests, all pass. Covers criteria 1–21, 36, 37 and 39. To answer a chosen question in a session, `pick_question` is replaced by a picker that takes it from the real candidate pool.
+- `/home/user/geo-discovery-zone/frontend/src/components/t051-tester.criteria.test.tsx`: 30 tests, all pass. Covers criteria 22–30 and 32–34.
+  - The map normally renders no state outlines in static markup, so `Geographies` is replaced with one that hands the real us-atlas states to the real `Geography`.
+  - `api` is replaced by a call recorder and `Button` is wrapped so its click handler can be called. `fetch` is not mocked.
+- `/home/user/geo-discovery-zone/e2e/tests/map-click.spec.ts`: one Playwright spec for criteria 25–32 in a browser. It typechecks but **has not been run**: this sandbox has no Chromium, so CI is its first run. The reveal banner text (part of 28 and 29) and criterion 31 are covered only there.
+
+**Mutations:** I made 12 deliberate breaks (8 frontend, 4 backend). Each turned the matching tests red, and every one was reverted. The table is in the Verdict.
+
+**Suites:**
+
+| Suite | Result |
+|---|---|
+| backend | 707 pass, 35 fail, 9 skip; ruff clean |
+| frontend | 442 pass, 0 fail; typecheck, lint, format clean |
+| question-bank | 2362 pass, 5 fail |
+| e2e | typecheck clean |
+
+- **Every failure is a stale-test row.** Some `test_sessions_api` tests fail only on some runs: whenever the server serves a `map_click` question to a helper that answers by `choiceIndex`.
+- **Criterion 38 (no network):** all three suites ran with every proxy variable pointed at a dead port, with the same results.
+- **Criteria 35 and 37** were checked against git (lockfiles, manifests and the question file are byte-identical to `1032b77`). I added no pinned test for them, because such pins go stale on the next task.
+
+**The Test change request (33 rows, in the brief):**
+- **Deletes:**
+  - T-026 `test_c36_map_click_is_still_withheld`.
+  - T-089 criteria 15 and 17, which pinned digests for T-089 only.
+  - T-090 criterion 20's three tree digests.
+- **Modifies:**
+  - The 365 → 415 count pins.
+  - The served-keys and served-ids tests, changed to match criteria 1, 3 and 4.
+  - The `choiceIndex` answer helpers in `test_sessions_api`, `test_content_build` and the T-040 tests.
+  - T-089 criterion 13: `range(1, 30)`.
+  - T-090 criteria 10 and 12.
+  - The e2e helpers in `app.ts`.
+- **No count floors are affected.**
+
+**For the reviewer (not faults):**
+- **Undo does not restore `seenEntityIds`.** This was already true for every format, and criterion 20 says "as for the other formats", so it holds.
+- **New child-facing text "A state you can tap"** needs a person's sign-off.
+- **The worker also removed tab stops from the progress map.**
+
+**What a human does next:** start a `tester` in a session they are attending for T-051 and approve or refuse each row. That tester applies the approved rows, re-runs everything, and writes the final verdict.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-051-map-click-render.md`
+
+### Gates after return
+- G5: Status and Next step both changed. Pass.
+
+## Halted — test change request — 2026-10-26
+Raised in commit `6537059`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not copied here; the orchestrator has not read them.
+
+To resume: Dkaattae starts the `tester` step for T-051 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15). Then the header names the next role and a new run starts from there.
