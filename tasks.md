@@ -387,6 +387,7 @@ T-056 were passed over too: each is waiting on a person.
 were passed over too: each is still waiting on a person.
 **Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
 T-091 and T-056 were passed over too: each is waiting on a person.
+**Skipped again, 2026-10-26, for T-051.** Same reason.
 
 ---
 
@@ -541,8 +542,11 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-051 — Render a third question format in the client · M · todo
-**Depends on:** T-020
+### T-051 — Render a third question format in the client · M · doing — **brief blocked on Q1**
+**Depends on:** T-020 (done, PR #79)
+**Expanded 2026-10-26:** brief in `tasks/T-051-map-click-render.md`, halted on
+its Q1 (what a child may tap: the four candidates only, or any state). Picked
+because T-070, T-084, T-085, T-088, T-091 and T-056 each still wait on a person.
 **New 2026-08-24.** `Session.tsx` has exactly two branches: `map_identify` and
 `multiple_choice`. A question in any other format would render as a prompt with
 nothing to answer it with. `map_click` — tap the state on the map — is the third
