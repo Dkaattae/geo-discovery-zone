@@ -141,6 +141,26 @@ function choiceButtons(page: Page): Locator {
   return page.locator('button[data-variant="choice"]');
 }
 
+/**
+ * The states on a `map_click` map, where the tap is the answer (T-051, E-29;
+ * approved Test change request rows 32 and 33). Tapped with `dispatchEvent`:
+ * a pointer click lands on the middle of a state's box, which on a concave
+ * state such as Michigan can be its neighbour.
+ */
+function tappableStates(page: Page): Locator {
+  return page.locator('[role="button"][data-geometry-id]');
+}
+
+function tappableState(page: Page, geometryId: string): Locator {
+  return page.locator(`[role="button"][data-geometry-id="${geometryId}"]`);
+}
+
+/** True when the question on screen is answered on the map, not by a button. */
+async function isMapClick(page: Page): Promise<boolean> {
+  await expect(choiceButtons(page).or(tappableStates(page)).first()).toBeVisible();
+  return (await tappableStates(page).count()) > 0;
+}
+
 /** The reveal panel: a fun fact when right, the reason why when wrong. */
 export function reveal(page: Page): Locator {
   return page.locator("section[aria-live='polite']");
@@ -156,6 +176,12 @@ export function reveal(page: Page): Locator {
 export async function answerAtRandom(page: Page): Promise<boolean> {
   await expect(questionPrompt(page)).toBeVisible();
   await expect(reveal(page), "asked to answer while the last reveal is up").toBeHidden();
+  if (await isMapClick(page)) {
+    const states = tappableStates(page);
+    const count = await states.count();
+    await states.nth(Math.floor(Math.random() * count)).dispatchEvent("click");
+    return await gradedCorrect(page);
+  }
   const options = choiceButtons(page);
   const count = await options.count();
   expect(count, "a question with nothing to answer it with").toBeGreaterThan(1);
@@ -199,6 +225,9 @@ async function gradedCorrect(page: Page): Promise<boolean> {
  */
 export type AnswerKey = Map<string, string>;
 
+/** The answer key's value for a `map_click` question: the state to tap, tagged. */
+const TAP = "tap:";
+
 /**
  * Keyed on question id, not on what the screen shows. The generated bank has
  * questions a child cannot tell apart by prompt and choices alone: "Which state
@@ -241,12 +270,17 @@ export async function fetchAnswerKey(request: APIRequestContext): Promise<Answer
   });
   expect(response.ok(), "could not read the question bank").toBeTruthy();
   const body = (await response.json()) as {
-    data: { id: string; choices?: string[]; correctIndex?: number }[];
+    data: { id: string; choices?: string[]; correctIndex?: number; answerGeometryId?: string }[];
   };
 
   const key: AnswerKey = new Map();
   for (const question of body.data) {
-    const { id, choices, correctIndex } = question;
+    const { id, choices, correctIndex, answerGeometryId } = question;
+    // A `map_click` question's key is the state to tap (T-051).
+    if (answerGeometryId) {
+      key.set(id, `${TAP}${answerGeometryId}`);
+      continue;
+    }
     if (!choices || correctIndex === undefined) continue;
     const answer = choices[correctIndex];
     if (answer) key.set(id, answer);
@@ -264,6 +298,24 @@ export async function answerDeliberately(
   await expect(questionPrompt(page)).toBeVisible();
   await expect(reveal(page), "asked to answer while the last reveal is up").toBeHidden();
   const prompt = await questionPrompt(page).innerText();
+  if (await isMapClick(page)) {
+    const id = await lastServed.get(page);
+    expect(id, "no served question was seen; was the quiz started with startQuiz?").toBeTruthy();
+    const answer = key.get(id!);
+    expect(answer?.startsWith(TAP), `no map answer key for ${id}: ${prompt}`).toBeTruthy();
+    const target = answer!.slice(TAP.length);
+    if (want === "correct") {
+      await tappableState(page, target).dispatchEvent("click");
+    } else {
+      const others = tappableStates(page).and(
+        page.locator(`:not([data-geometry-id="${target}"])`),
+      );
+      await others.first().dispatchEvent("click");
+    }
+    const tapped = (await gradedCorrect(page)) ? "correct" : "wrong";
+    expect(tapped, `the server graded "${prompt}" differently than the key says`).toBe(want);
+    return;
+  }
   const options = choiceButtons(page);
   const labels = (await options.allInnerTexts()).map((label) => label.trim());
 
@@ -324,7 +376,8 @@ export async function goToNextQuestion(page: Page): Promise<void> {
  */
 async function awaitFreshQuestion(page: Page): Promise<void> {
   await expect(reveal(page)).toBeHidden();
-  await expect(choiceButtons(page).first()).toBeEnabled();
+  // A `map_click` question has no buttons: its states are the answers (T-051).
+  await expect(choiceButtons(page).or(tappableStates(page)).first()).toBeEnabled();
 }
 
 /** Plays `count` questions, handling whatever the app raises in between. */

@@ -8,10 +8,13 @@ it is a bug even when the test author expected it.
 
 from __future__ import annotations
 
+import json
+import re
 from typing import Any
 
 import httpx
 
+from app.content_build import QUESTION_FILE
 from tests.conftest import assert_matches, assert_problem
 
 
@@ -26,7 +29,7 @@ async def test_content_version_counts_what_was_seeded(
     body = (await client.get("/content/version")).json()
     assert_matches(spec, "ContentVersion", body)
     assert body["counts"]["entities"] == 50
-    assert body["counts"]["questions"] == 365  # T-026: six new templates
+    assert body["counts"]["questions"] == 415  # T-051: 50 map_click (Test change request row 1)
 
 
 async def test_the_bank_is_seeded_from_the_shipped_question_bank(
@@ -70,8 +73,20 @@ async def test_every_seeded_question_has_a_usable_answer_key(
     client: httpx.AsyncClient,
 ) -> None:
     questions = (await client.get("/questions", params={"limit": 500})).json()["data"]
+    codes = {
+        q["answerGeometryId"]
+        for q in json.loads(QUESTION_FILE.read_text(encoding="utf-8"))["questions"]
+        if q["format"] == "map_click"
+    }
+    assert len(codes) == 50
     for question in questions:
-        assert 0 <= question["correctIndex"] < len(question["choices"])
+        # T-051 (Test change request row 4): a map_click key is a state code.
+        if question["format"] == "map_click":
+            assert re.fullmatch(r"\d\d", question["answerGeometryId"]), question["id"]
+            assert question["answerGeometryId"] in codes, question["id"]
+            assert "choices" not in question and "correctIndex" not in question
+        else:
+            assert 0 <= question["correctIndex"] < len(question["choices"])
 
 
 async def test_answer_keys_are_withheld_on_request(client: httpx.AsyncClient) -> None:
@@ -137,7 +152,7 @@ async def test_pagination_walks_the_whole_set_once(
 ) -> None:
     seen: list[str] = []
     cursor: str | None = None
-    for _ in range(100):
+    for _ in range(200):  # T-051: 415 questions outgrow 100 pages of 4 (row 3)
         params: dict[str, Any] = {"limit": 4}
         if cursor:
             params["cursor"] = cursor
@@ -147,8 +162,8 @@ async def test_pagination_walks_the_whole_set_once(
         cursor = page["page"]["nextCursor"]
         if not page["page"]["hasMore"]:
             break
-    assert len(seen) == 365  # T-026: six new templates
-    assert len(set(seen)) == 365
+    assert len(seen) == 415  # T-051: 50 map_click (row 3)
+    assert len(set(seen)) == 415
 
 
 async def test_a_forged_cursor_is_refused(client: httpx.AsyncClient) -> None:
@@ -167,7 +182,7 @@ async def test_a_bundle_carries_its_entities_and_questions(
     body = response.json()
     assert_matches(spec, "Bundle", body)
     assert len(body["entities"]) == 50
-    assert len(body["questions"]) == 365  # T-026: six new templates
+    assert len(body["questions"]) == 415  # T-051: 50 map_click (Test change request row 2)
     assert body["entityCount"] == 50
 
 

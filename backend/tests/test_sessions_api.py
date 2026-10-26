@@ -29,16 +29,19 @@ async def answer(
     correct: bool,
 ) -> dict[str, Any]:
     question = served["question"]
-    choice = (
-        question["correctIndex"]
-        if correct
-        else (question["correctIndex"] + 1) % len(question["choices"])
-    )
-    response = await client.post(
-        f"/sessions/{session_id}/answers",
-        headers=auth_headers,
-        json={"questionId": question["id"], "choiceIndex": choice},
-    )
+    if question["format"] == "map_click":
+        # T-051 (Test change request row 25): a map_click is answered by a tap.
+        key = question["answerGeometryId"]
+        tapped = key if correct else ("02" if key != "02" else "01")
+        body: dict[str, Any] = {"questionId": question["id"], "tappedGeometryId": tapped}
+    else:
+        choice = (
+            question["correctIndex"]
+            if correct
+            else (question["correctIndex"] + 1) % len(question["choices"])
+        )
+        body = {"questionId": question["id"], "choiceIndex": choice}
+    response = await client.post(f"/sessions/{session_id}/answers", headers=auth_headers, json=body)
     assert response.status_code == 200, response.text
     return response.json()
 
@@ -176,6 +179,7 @@ async def test_a_question_can_be_served_without_its_answer_key(
     await answer(client, auth_headers, session["id"], served, correct=True)
     withheld = await next_question(client, auth_headers, session["id"], includeAnswerKey=False)
     assert "correctIndex" not in withheld["question"]
+    assert "answerGeometryId" not in withheld["question"]  # T-051, row 25
 
 
 # -- answering --------------------------------------------------------------
@@ -189,7 +193,12 @@ async def test_a_correct_answer_returns_the_reward_and_the_key(
     assert_matches(spec, "AnswerResult", result)
     assert result["correct"] is True
     assert result["reveal"]["tone"] == "reward"
-    assert result["correctIndex"] == served["question"]["correctIndex"]
+    # T-051 (Test change request row 25): a map_click reports no index.
+    if served["question"]["format"] == "map_click":
+        assert "correctIndex" not in result
+        assert result["correctAnswer"] == served["entity"]["name"]
+    else:
+        assert result["correctIndex"] == served["question"]["correctIndex"]
     assert result["session"]["counts"] == {
         "answered": 1,
         "correct": 1,

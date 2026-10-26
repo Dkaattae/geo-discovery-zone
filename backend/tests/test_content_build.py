@@ -82,12 +82,12 @@ def test_rendering_is_deterministic() -> None:
 # -- the served bank (criteria 6-15) ------------------------------------------
 
 
-async def test_version_counts_fifty_entities_and_365_questions(
+async def test_version_counts_fifty_entities_and_415_questions(
     client: httpx.AsyncClient,
 ) -> None:
     body = (await client.get("/content/version")).json()
     assert body["counts"]["entities"] == 50
-    assert body["counts"]["questions"] == 365  # T-026: six new templates
+    assert body["counts"]["questions"] == 415  # T-051: 50 map_click (Test change request row 5)
 
 
 async def test_entities_are_exactly_the_index_ids(client: httpx.AsyncClient) -> None:
@@ -131,8 +131,15 @@ async def test_nothing_served_falls_outside_the_contract(
         assert not any("_" in key for key in entity), entity["id"]
     for question in await _all(client, "/questions"):
         assert_matches(spec, "Question", question)
-        for key in ("answer", "answerGeometryId", "choiceGeometryIds"):
+        # T-051 (Test change request row 7): map_click serves answerGeometryId
+        # and no candidates; every other format still serves neither key.
+        for key in ("answer", "choiceGeometryIds"):
             assert key not in question
+        if question["format"] == "map_click":
+            for key in ("choices", "correctIndex", "highlightGeometryId"):
+                assert key not in question, (question["id"], key)
+        else:
+            assert "answerGeometryId" not in question, question["id"]
     # And in the stored payloads, not only after response-model filtering.
     raw = json.loads(content_build.CONTENT_FILE.read_text(encoding="utf-8"))
     entity_keys = set(spec["components"]["schemas"]["Entity"]["properties"])
@@ -143,13 +150,14 @@ async def test_nothing_served_falls_outside_the_contract(
         assert set(question) <= question_keys, question["id"]
 
 
-async def test_served_questions_are_the_files_non_map_click_questions(
+async def test_served_questions_are_every_file_question(
     client: httpx.AsyncClient,
 ) -> None:
     served = await _all(client, "/questions")
-    expected = {q["id"] for q in _generated() if q["format"] != "map_click"}
+    # T-051 (Test change request row 6): map_click is served too.
+    expected = {q["id"] for q in _generated()}
     assert {q["id"] for q in served} == expected
-    assert len(served) == 365  # T-026: six new templates
+    assert len(served) == 415
     by_entity: dict[str, list[tuple[str, str]]] = {}
     for q in served:
         by_entity.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
@@ -158,13 +166,17 @@ async def test_served_questions_are_the_files_non_map_click_questions(
     # read from the file.
     expected_pairs: dict[str, list[tuple[str, str]]] = {}
     for q in _generated():
-        if q["format"] != "map_click":
-            expected_pairs.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
+        expected_pairs.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
     for entity_id, pairs in by_entity.items():
         assert sorted(pairs) == sorted(expected_pairs[entity_id]), entity_id
         assert ("map_identify", "location") in pairs
         assert ("multiple_choice", "capital") in pairs
-    assert await _all(client, "/questions", format="map_click") == []
+        assert ("map_click", "location") in pairs
+    clicks = await _all(client, "/questions", format="map_click")
+    assert sorted(q["id"] for q in clicks) == sorted(
+        q["id"] for q in _generated() if q["format"] == "map_click"
+    )
+    assert len(clicks) == 50
 
 
 async def test_served_question_fields_equal_the_question_file(
@@ -173,6 +185,16 @@ async def test_served_question_fields_equal_the_question_file(
     generated = _by_id(_generated())
     for question in await _all(client, "/questions"):
         source = generated[question["id"]]
+        # T-051 (Test change request row 8): a map_click serves the file's
+        # fields minus its candidates, answerGeometryId included.
+        if question["format"] == "map_click":
+            for field, value in question.items():
+                if field != "reveal":
+                    assert value == source[field], (question["id"], field)
+            assert question["answerGeometryId"] == source["answerGeometryId"]
+            assert "choices" not in question and "correctIndex" not in question
+            Question.model_validate(question)
+            continue
         for field in (
             "prompt",
             "choices",
@@ -205,6 +227,12 @@ async def test_question_ids_with_colons_resolve_and_withhold_the_answer_key(
         )
         assert response.status_code == 200, response.text
         body = response.json()
+        # T-051 (Test change request row 9): a map_click's key is answerGeometryId.
+        if question["format"] == "map_click":
+            source = _by_id(_generated())[question["id"]]
+            assert question["answerGeometryId"] == source["answerGeometryId"]
+            assert "answerGeometryId" not in body
+            continue
         assert "correctIndex" not in body
         answer = question["choices"][question["correctIndex"]]
         assert [k for k, v in body.items() if k != "choices" and v == answer] == []
@@ -286,12 +314,15 @@ async def _answer(
     *,
     correct: bool,
 ) -> dict[str, Any]:
-    choice = question["correctIndex"] if correct else (question["correctIndex"] + 1) % 4
-    response = await client.post(
-        f"/sessions/{session_id}/answers",
-        headers=auth_headers,
-        json={"questionId": question["id"], "choiceIndex": choice},
-    )
+    if question["format"] == "map_click":
+        # T-051 (Test change request row 10): a map_click is answered by a tap.
+        key = question["answerGeometryId"]
+        tapped = key if correct else ("02" if key != "02" else "01")
+        body: dict[str, Any] = {"questionId": question["id"], "tappedGeometryId": tapped}
+    else:
+        choice = question["correctIndex"] if correct else (question["correctIndex"] + 1) % 4
+        body = {"questionId": question["id"], "choiceIndex": choice}
+    response = await client.post(f"/sessions/{session_id}/answers", headers=auth_headers, json=body)
     assert response.status_code == 200, response.text
     return response.json()
 
@@ -330,7 +361,11 @@ async def test_reveals(
     question = await _next(client, auth_headers, session_id)
     entity = entities[question["entityId"]]
     wrong = (await _answer(client, auth_headers, session_id, question, correct=False))["reveal"]
-    label = question["choices"][question["correctIndex"]]
+    label = (
+        entity["name"]
+        if question["format"] == "map_click"
+        else question["choices"][question["correctIndex"]]
+    )
     assert wrong["headline"] == f"The answer is {label}."
     assert wrong["answerLabel"] == label
     assert wrong["mapHighlightGeometryId"] == entity["geometryId"]
@@ -381,9 +416,10 @@ def test_loading_a_changed_file_replaces_the_bank(db_session: Session, tmp_path:
 @pytest.mark.parametrize(
     ("topic", "count", "formats"),
     [
-        ("location", 50, {"map_identify"}),
+        # T-051 (Test change request rows 11, 12): map_click is served.
+        ("location", 100, {"map_identify", "map_click"}),
         ("capital", 50, {"multiple_choice"}),
-        ("mixed", 100, {"map_identify", "multiple_choice"}),
+        ("mixed", 100, {"map_identify", "map_click", "multiple_choice"}),
     ],
 )
 async def test_a_perfect_session_reaches_every_question_once(
@@ -402,7 +438,11 @@ async def test_a_perfect_session_reaches_every_question_once(
     assert len({q["id"] for q in seen}) == count
     assert {q["format"] for q in seen} == formats
     if topic != "mixed":
-        assert len({q["entityId"] for q in seen}) == 50
+        per_entity: dict[str, int] = {}
+        for q in seen:
+            per_entity[q["entityId"]] = per_entity.get(q["entityId"], 0) + 1
+        assert len(per_entity) == 50
+        assert set(per_entity.values()) == {count // 50}
 
 
 # -- the archived hand-written bank (criteria 26, 27) -----------------------------

@@ -149,10 +149,10 @@ def test_c5_a_changed_input_field_would_be_caught() -> None:
 # -- criteria 6-10: entities -----------------------------------------------------
 
 
-async def test_c6_version_counts_50_entities_and_365_questions(client: httpx.AsyncClient) -> None:
+async def test_c6_version_counts_50_entities_and_415_questions(client: httpx.AsyncClient) -> None:
     counts = (await client.get("/content/version")).json()["counts"]
     assert counts["entities"] == 50
-    assert counts["questions"] == 365  # T-026: six new templates
+    assert counts["questions"] == 415  # T-051: 50 map_click (Test change request row 13)
 
 
 async def test_c7_entities_are_exactly_the_index_ids_with_la_not_lo(
@@ -208,18 +208,25 @@ async def test_c10_no_served_key_outside_the_contract(client: httpx.AsyncClient)
     for row in await all_rows(client, "/questions"):
         extra = set(row) - question_keys
         assert extra == set(), (row["id"], extra)
-        for banned in ("answer", "answerGeometryId", "choiceGeometryIds"):
+        # T-051 (Test change request row 16): answerGeometryId on map_click only.
+        for banned in ("answer", "choiceGeometryIds"):
             assert banned not in row
+        if row["format"] == "map_click":
+            for banned in ("choices", "correctIndex", "highlightGeometryId"):
+                assert banned not in row, (row["id"], banned)
+        else:
+            assert "answerGeometryId" not in row, row["id"]
 
 
 # -- criteria 11-15: questions ---------------------------------------------------
 
 
-async def test_c11_served_ids_are_the_files_non_map_click_ids(client: httpx.AsyncClient) -> None:
-    want = {q["id"] for q in generated() if q["format"] != "map_click"}
+async def test_c11_served_ids_are_every_file_id(client: httpx.AsyncClient) -> None:
+    # T-051 (Test change request row 14): map_click is served too.
+    want = {q["id"] for q in generated()}
     served = await all_rows(client, "/questions")
     assert {q["id"] for q in served} == want
-    assert len(served) == 365  # T-026: six new templates
+    assert len(served) == 415
     per_entity: dict[str, list[tuple[str, str]]] = {}
     for q in served:
         per_entity.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
@@ -227,20 +234,23 @@ async def test_c11_served_ids_are_the_files_non_map_click_ids(client: httpx.Asyn
     # T-026: the seven served templates' (format, topic) pairs, read from the file.
     expected: dict[str, list[tuple[str, str]]] = {}
     for q in generated():
-        if q["format"] != "map_click":
-            expected.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
+        expected.setdefault(q["entityId"], []).append((q["format"], q["topic"]))
     for entity_id, pairs in per_entity.items():
         assert sorted(pairs) == sorted(expected[entity_id]), entity_id
         assert ("map_identify", "location") in pairs
         assert ("multiple_choice", "capital") in pairs
+        assert ("map_click", "location") in pairs
 
 
-async def test_c12_no_map_click_is_served_filtered_or_not(client: httpx.AsyncClient) -> None:
+async def test_c12_every_map_click_is_served_filtered_or_not(client: httpx.AsyncClient) -> None:
+    # T-051 (Test change request row 15) reverses E-24's withholding.
+    clicks = {q["id"] for q in generated() if q["format"] == "map_click"}
+    assert len(clicks) == 50
     filtered = (await client.get("/questions", params={"format": "map_click", "limit": 500})).json()
-    assert filtered["data"] == []
+    assert {q["id"] for q in filtered["data"]} == clicks
+    assert len(filtered["data"]) == 50
     unfiltered = (await client.get("/questions", params={"limit": 500})).json()["data"]
-    assert len(unfiltered) >= 100
-    assert all(q["format"] != "map_click" for q in unfiltered)
+    assert clicks <= {q["id"] for q in unfiltered}
 
 
 async def test_c13_served_question_fields_equal_the_question_file(
@@ -250,6 +260,18 @@ async def test_c13_served_question_fields_equal_the_question_file(
     mismatches = []
     for row in await all_rows(client, "/questions"):
         want = source[row["id"]]
+        # T-051 (Test change request row 17): a map_click serves the file's fields
+        # minus its candidates, answerGeometryId included.
+        if row["format"] == "map_click":
+            for key, value in row.items():
+                if key != "reveal" and value != want.get(key):
+                    mismatches.append((row["id"], key, value, want.get(key)))
+            if row.get("answerGeometryId") != want["answerGeometryId"]:
+                mismatches.append((row["id"], "answerGeometryId", "missing or wrong"))
+            for key in ("choices", "correctIndex"):
+                if key in row:
+                    mismatches.append((row["id"], key, "served on a map_click"))
+            continue
         for key in QUESTION_KEYS:
             if key not in want:
                 if key in row:
@@ -263,8 +285,14 @@ async def test_c14_every_question_validates_and_its_key_is_the_files_answer(
     client: httpx.AsyncClient,
 ) -> None:
     answers = {q["id"]: q["answer"] for q in generated()}
+    keys = {q["id"]: q.get("answerGeometryId") for q in generated()}
     for row in await all_rows(client, "/questions"):
         Question.model_validate(row)
+        # T-051 (Test change request row 18): a map_click's key is the file's code.
+        if row["format"] == "map_click":
+            assert row["answerGeometryId"] == keys[row["id"]], row["id"]
+            assert "choices" not in row and "correctIndex" not in row, row["id"]
+            continue
         assert len(row["choices"]) == 4
         assert row["correctIndex"] in range(4)
         assert row["choices"][row["correctIndex"]] == answers[row["id"]], row["id"]
@@ -364,35 +392,45 @@ async def play(
         served = await client.post(f"/sessions/{session_id}/next-question", headers=headers)
         assert served.status_code == 200, served.text
         question = served.json()["question"]
-        choice = question["correctIndex"] if correct else (question["correctIndex"] + 1) % 4
-        answered = await client.post(
-            f"/sessions/{session_id}/answers",
-            headers=headers,
-            json={"questionId": question["id"], "choiceIndex": choice},
-        )
+        if question["format"] == "map_click":
+            # T-051 (Test change request row 19): a map_click is answered by a tap.
+            key = question["answerGeometryId"]
+            tapped = key if correct else ("02" if key != "02" else "01")
+            body: dict[str, Any] = {"questionId": question["id"], "tappedGeometryId": tapped}
+        else:
+            choice = question["correctIndex"] if correct else (question["correctIndex"] + 1) % 4
+            body = {"questionId": question["id"], "choiceIndex": choice}
+        answered = await client.post(f"/sessions/{session_id}/answers", headers=headers, json=body)
         assert answered.status_code == 200, answered.text
         played.append((question, answered.json()["reveal"]))
     return played
 
 
+# T-051 (Test change request row 19): location now holds 100 questions in two
+# formats, so a perfect location session plays 100 and meets each state twice.
 @pytest.mark.parametrize(
-    ("topic", "fmt", "highlight"),
-    [("location", "map_identify", True), ("capital", "multiple_choice", False)],
+    ("topic", "formats", "highlight", "count"),
+    [
+        ("location", {"map_identify", "map_click"}, True, 100),
+        ("capital", {"multiple_choice"}, False, 50),
+    ],
 )
 async def test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal(
     client: httpx.AsyncClient,
     auth_headers: dict[str, str],
     topic: str,
-    fmt: str,
+    formats: set[str],
     highlight: bool,
+    count: int,
 ) -> None:
     source = pipeline()
-    played = await play(client, auth_headers, topic, 50, correct=True)
+    played = await play(client, auth_headers, topic, count, correct=True)
     ids = [q["id"] for q, _ in played]
-    assert len(set(ids)) == 50
-    assert sorted(q["entityId"] for q, _ in played) == sorted(index_ids())
+    assert len(set(ids)) == count
+    per_state = count // 50
+    assert sorted(q["entityId"] for q, _ in played) == sorted(index_ids() * per_state)
     for question, reveal in played:
-        assert question["format"] == fmt
+        assert question["format"] in formats
         entity = source[question["entityId"]]
         fact = next(f["text"] for f in entity["fun_facts"] if f.get("reviewed") is True)
         assert reveal["headline"] == fact, question["id"]
@@ -408,7 +446,8 @@ async def test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions
     played = await play(client, auth_headers, "mixed", 100, correct=True)
     ids = [q["id"] for q, _ in played]
     assert len(set(ids)) == 100
-    assert {q["format"] for q, _ in played} == {"map_identify", "multiple_choice"}
+    # T-051 (Test change request row 19): mixed serves map_click too.
+    assert {q["format"] for q, _ in played} == {"map_identify", "map_click", "multiple_choice"}
 
 
 async def test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state(
@@ -420,10 +459,15 @@ async def test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state(
     # T-026: 200, not 100 -- each state now has seven served questions, so 100
     # answers reach only 32-34 states. The floor of 40 is unchanged.
     played = await play(client, auth_headers, "mixed", 200, correct=False)
-    assert {q["format"] for q, _ in played} == {"map_identify", "multiple_choice"}
+    # T-051 (Test change request row 19): mixed serves map_click too, and a
+    # map_click's answer is named by its state.
+    assert {q["format"] for q, _ in played} == {"map_identify", "map_click", "multiple_choice"}
     assert len({q["entityId"] for q, _ in played}) >= 40
     for question, reveal in played:
-        label = question["choices"][question["correctIndex"]]
+        if question["format"] == "map_click":
+            label = source[question["entityId"]]["name"]
+        else:
+            label = question["choices"][question["correctIndex"]]
         assert reveal["headline"] == f"The answer is {label}.", question["id"]
         assert reveal["answerLabel"] == label, question["id"]
         geometry = source[question["entityId"]]["geometry_id"]

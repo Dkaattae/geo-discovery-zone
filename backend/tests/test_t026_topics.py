@@ -39,7 +39,6 @@ def test_all_265_new_questions_are_served_with_their_topic_and_format() -> None:
     for q in new:
         assert q["format"] == "multiple_choice", q["id"]
         assert q["topic"] == NEW_TEMPLATES[q["templateId"]], q["id"]
-    assert not any(q["format"] == "map_click" for q in _served())
 
 
 def test_superlative_reveals_the_map_and_every_other_reveal_is_by_format() -> None:
@@ -53,8 +52,13 @@ def test_superlative_reveals_the_map_and_every_other_reveal_is_by_format() -> No
 
 def test_served_question_keys_are_unchanged_by_the_new_templates() -> None:
     allowed = set(content_build.QUESTION_FIELDS) | {"reveal"}
+    # T-051 (Test change request row 24): map_click serves its own field set.
+    allowed_map_click = set(content_build.MAP_CLICK_FIELDS) | {"reveal"}
     for q in _served():
-        assert set(q) <= allowed, q["id"]
+        if q["format"] == "map_click":
+            assert set(q) <= allowed_map_click, q["id"]
+        else:
+            assert set(q) <= allowed, q["id"]
 
 
 @pytest.mark.parametrize(

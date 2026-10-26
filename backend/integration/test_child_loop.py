@@ -30,13 +30,16 @@ def answer(
     correct: bool,
 ) -> dict[str, Any]:
     question = served["question"]
-    index = question["correctIndex"]
-    choice = index if correct else (index + 1) % len(question["choices"])
-    response = api.post(
-        f"/sessions/{session_id}/answers",
-        headers=headers,
-        json={"questionId": question["id"], "choiceIndex": choice},
-    )
+    if question["format"] == "map_click":
+        # T-051 (approved Test change request row 34): a map_click is answered by a tap.
+        key = question["answerGeometryId"]
+        tapped = key if correct else ("02" if key != "02" else "01")
+        body: dict[str, Any] = {"questionId": question["id"], "tappedGeometryId": tapped}
+    else:
+        index = question["correctIndex"]
+        choice = index if correct else (index + 1) % len(question["choices"])
+        body = {"questionId": question["id"], "choiceIndex": choice}
+    response = api.post(f"/sessions/{session_id}/answers", headers=headers, json=body)
     assert response.status_code == 200, response.text
     return dict(response.json())
 
