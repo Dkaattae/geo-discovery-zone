@@ -542,8 +542,10 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-051 — Render a third question format in the client · M · doing — **brief blocked on Q1**
+### T-051 — Render a third question format in the client · M · doing — **brief awaiting approval**
 **Depends on:** T-020 (done, PR #79)
+**Q1 answered 2026-10-26 by Dkaattae:** no candidate options; any state can be
+tapped, graded by the tapped geometry id. Brief rewritten to match.
 **Expanded 2026-10-26:** brief in `tasks/T-051-map-click-render.md`, halted on
 its Q1 (what a child may tap: the four candidates only, or any state). Picked
 because T-070, T-084, T-085, T-088, T-091 and T-056 each still wait on a person.
