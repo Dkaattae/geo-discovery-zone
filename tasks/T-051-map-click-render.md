@@ -1,10 +1,10 @@
 # T-051 — Serve and render `map_click`: tap the state on the map
 
 **Status:** `blocked`
-**Next step:** `human`. Answer **Q1** below. If you pick **(a)** and accept the
-criteria as written, record approval on the `Approved:` line and set Next step to
-`worker`. If you pick (b) or (c), set Next step to `task-expander`, which rewrites
-the Q1-dependent criteria (marked **[Q1]**) for a fresh approval.
+**Next step:** `task-expander`. Q1 answered by Dkaattae in the orchestrator session,
+2026-10-26, verbatim: "why a map click question has four candidate states? if it
+is clicking, just do not provide options." — no candidate options on a `map_click`
+question; the child taps any state. Rewrite the Q1-dependent criteria to match.
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-051

@@ -49,3 +49,8 @@
 The expander asks, quoted: "**Q1: on a `map_click` question, which states can a child tap?**" — (a) shade the four candidates, only they tappable (recommended; criteria written for it); (b) any state tappable, nothing shaded (contract and `grading.py` change); (c) nothing shaded, only the four respond.
 
 A human has to answer Q1 in the brief and set `Next step` (`worker` for (a) with `Approved:` filled in; `task-expander` for (b)/(c)).
+
+## Resumed — Q1 answered — 2026-10-26
+Dkaattae, in the orchestrator session, verbatim: "eh... why a map click question has four candidate states? if it is clicking, just do not provide options."
+
+Recorded in the brief's `Next step` line, which now reads `task-expander`. Not one of the three listed options as worded: no candidate options at all, any state tappable.
