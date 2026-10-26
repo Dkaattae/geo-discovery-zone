@@ -195,6 +195,7 @@ class Question(Schema):
     region: str | None = None
     age_band: AgeBand | None = None
     highlight_geometry_id: str | None = None
+    answer_geometry_id: str | None = None
     image_url: str | None = None
     pin_target: PinTarget | None = None
     elevation_profile_key: str | None = None
@@ -415,6 +416,7 @@ class ReviewRoundResponse(Schema):
 class AnswerRequest(Schema):
     question_id: str
     choice_index: int | None = None
+    tapped_geometry_id: str | None = None
     pin: list[float] | None = None
     order: list[str] | None = None
     elapsed_ms: int | None = None

@@ -1813,3 +1813,53 @@ the same thing (E-14).
 **Revisit when** the bank gains questions above level 10 (the fallback then
 fires less), a person wants a band rather than the single nearest level, or
 selection moves into SQL (E-26 section E).
+
+## E-29 — A `map_click` question offers no candidates; any state can be tapped, and it is graded by the tapped geometry id
+
+**2026-10-26 (T-051).** The app serves the 50 `map_click` questions ("Find
+Alaska on the map.") and the client renders them as a US map where every state
+is a button.
+
+- **No candidates.** A served `map_click` question carries no `choices`,
+  `correctIndex` or `choiceGeometryIds`. Nothing on the map is marked before the
+  tap: every state is drawn alike, every state is in the tab order, and every
+  state responds. The tap itself is the answer.
+- **Graded by geometry id.** `AnswerRequest.tappedGeometryId` carries the
+  two-digit geometry id of the tapped state. `grade`
+  (`backend/app/grading.py`, `GEOMETRY_FORMATS`) compares it with the question's
+  `answerGeometryId` by exact string equality, so `"1"` is not Alabama and `"11"`
+  (DC, which the map draws) is wrong for every question. A `map_click` answer
+  without `tappedGeometryId` is a 422 naming `/tappedGeometryId`; a
+  `choiceIndex` sent with it is ignored, and a `tappedGeometryId` sent with a
+  choice format is ignored.
+- **The answer key is `Question.answerGeometryId`**, withheld exactly as
+  `correctIndex` is when `includeAnswerKey=false`.
+
+**Why: Dkaattae's answer to T-051 Q1**, in the orchestrator session,
+2026-10-26, verbatim: "eh... why a map click question has four candidate
+states? if it is clicking, just do not provide options." Serving four candidates
+would hand a client the 25% guess floor that answer rejects.
+
+**Options not taken.**
+- *Mark four candidates on the map and allow only them.* It turns a location
+  question into a four-way multiple choice drawn on a map.
+- *Mark nothing, but let only the four candidates respond.* The child cannot see
+  the difference, yet three of every four wrong taps do nothing, and the hidden
+  candidates leak through which states react.
+
+**What this changes in earlier entries.**
+- **E-24**'s "`map_click` is withheld until T-051" no longer holds: `map_click`
+  is in `content_build.py`'s `SERVED_FORMATS`, with `reveal: "map_highlight"`.
+  E-24's allowlist still holds: `answer` and `choiceGeometryIds` are not served,
+  and `answerGeometryId` is served on `map_click` questions only.
+- **E-20's revisit trigger** ("T-051 finds that a click must be graded … by code
+  rather than by index") is answered: it is graded by code, on the server. E-20's
+  plan for grading by `choiceIndex` through `choiceGeometryIds` is not used.
+- **E-21's `choiceGeometryIds`** is still generated into the question file with
+  the other three candidate fields, and is not served. Whether the generator
+  should stop writing them is a follow-up, not this task.
+
+**Revisit when** the generator stops writing candidates for `map_click`, a
+format needs partial credit for a near miss, the world map adds shapes too small
+to tap without a magnifier (plan §2.5), or the server must stop sending the
+entity whose `geometryId` is the answer (T-053).

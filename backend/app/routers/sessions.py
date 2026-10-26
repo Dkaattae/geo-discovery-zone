@@ -19,7 +19,9 @@ from app import store
 from app.auth import Account, current_account
 from app.db import get_db
 from app.grading import (
+    GEOMETRY_FORMATS,
     UngradableAnswer,
+    answer_label,
     apply_answer,
     build_reveal,
     grade,
@@ -234,14 +236,19 @@ def submit_answer(
         )
 
     try:
-        correct, distance_km = grade(question, choice_index=body.choice_index, pin=body.pin)
+        correct, distance_km = grade(
+            question,
+            choice_index=body.choice_index,
+            pin=body.pin,
+            tapped_geometry_id=body.tapped_geometry_id,
+        )
     except UngradableAnswer as exc:
         raise problem_exception(
             422,
             "Answer could not be graded",
             exc.reason,
             instance=request.url.path,
-            errors=[{"path": "/choiceIndex", "message": exc.reason}],
+            errors=[{"path": exc.path, "message": exc.reason}],
         ) from exc
 
     now = utc_now()
@@ -284,6 +291,11 @@ def submit_answer(
         choices = question.get("choices") or []
         if 0 <= question["correctIndex"] < len(choices):
             result["correctAnswer"] = choices[question["correctIndex"]]
+    elif question["format"] in GEOMETRY_FORMATS:
+        # A tap has no index to report; the reveal's map shows where it is.
+        label = answer_label(question, entity)
+        if label:
+            result["correctAnswer"] = label
     if distance_km is not None:
         result["distanceKm"] = round(distance_km, 1)
     return result

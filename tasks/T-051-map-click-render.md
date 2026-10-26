@@ -1,7 +1,7 @@
 # T-051 — Serve and render `map_click`: tap the state on the map
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-10-26, in the orchestrator session, verbatim: "approved". See `runs/T-051-map-click-render.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-051
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg |
 | task-expander | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (round 2: criteria rewritten for Q1's answer) |
+| worker | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (orchestrated worker subagent; `CLAUDE_CODE_REMOTE_SESSION_ID` is the orchestrator's, so the tester must run in a different one) |
 
 ## Q1 — answered: no options, any state can be tapped
 
@@ -377,6 +378,233 @@ The shape criteria above are tests. These are for a person, on the PR:
 
 ## Handoff
 
+**TL;DR.** Built. The backend serves the 50 `map_click` questions without
+candidates and grades them by `tappedGeometryId`. On the client every state is a
+button. 32 existing backend tests and 5 question-bank tests are red by design,
+and the e2e helpers will go red in CI. All of them are listed under **Tests made
+stale**. The tester needs a person at the gate for the Test change request
+(D-14).
+
+- **Suites, run here:** backend 660 pass / 32 stale-red / 9 skip, ruff and format
+  clean. Frontend 412 pass / 0 fail, typecheck, eslint and prettier clean,
+  `build:static` builds. Question-bank 2362 pass / 5 stale-red. e2e typecheck
+  clean.
+- **Not run here: Playwright.** The sandbox cannot download Chromium. CI is the
+  only place criteria 25 to 27 and 30 to 32 can be seen in a real browser.
+- **Frontend install workaround (local only).** `bun install --frozen-lockfile`
+  gets a 403 from the proxy, because `bun.lock` pins the tarballs to
+  `europe-west1-npm.pkg.dev` (known; `runs/T-058…`). I installed from a scratch
+  copy of the lockfile, with the host rewritten to `registry.npmjs.org` (same
+  integrity hashes), and copied `node_modules` in. No committed file changed.
+  A tester in this sandbox can repeat that. `bun.lock` and `package.json` are
+  untouched (criterion 35).
+
+### Changed, file by file
+
+- `backend/app/content_build.py`: adds `MAP_CLICK_FIELDS` (the choice fields minus
+  `choices`/`correctIndex`/`highlightGeometryId`, plus `answerGeometryId`),
+  `map_click` in `SERVED_FORMATS`, `REVEAL_BY_FORMAT["map_click"] = "map_highlight"`
+  and `_served_map_click`, which refuses an `answerGeometryId` that is not two
+  digits. The docstring and `_source.note` no longer say "withheld".
+- `backend/app/data/content.json`: regenerated with `make -C backend content`.
+  It now holds 415 questions; a second run gives the same bytes.
+- `backend/app/grading.py`: `map_click` moves out of `CHOICE_FORMATS` into the new
+  `GEOMETRY_FORMATS`. `grade(..., tapped_geometry_id=)` compares strings exactly.
+  `UngradableAnswer` gains `path` (default `/choiceIndex`, so other formats are
+  unchanged). `build_reveal`'s highlight falls back to `answerGeometryId` before
+  `entity.geometryId`. `_answer_label` is renamed to `answer_label` (public),
+  because the router now uses it too.
+- `backend/app/models.py`: `AnswerRequest.tapped_geometry_id`,
+  `Question.answer_geometry_id`.
+- `backend/app/serializers.py`: `question_payload` also pops `answerGeometryId`
+  when the key is withheld.
+- `backend/app/routers/sessions.py`: passes `tapped_geometry_id` to `grade`. The 422
+  `errors[].path` comes from `exc.path`. A `map_click` result's `correctAnswer`
+  is `answer_label(question, entity)` (the entity's name).
+- `backend/README.md`: the "not served until T-051" line is replaced.
+- `openapi.yaml`: `AnswerRequest.tappedGeometryId` and `Question.answerGeometryId`
+  (strings, not required, described as criteria 8 and 9 ask). The `info`
+  "Answer keys" paragraph and the `IncludeAnswerKey` parameter now name both
+  keys (E-14).
+- `frontend/src/lib/map-click.ts` (**new; not in the brief's file list**):
+  `pad`, `stateProps`, `TAPPABLE_STATE_LABEL`, `createAnswerGate`,
+  `mapClickView`, `AnswerInput`. They live outside the components because
+  eslint's `react-refresh/only-export-components` fails `--max-warnings 0` on
+  non-component exports from a `.tsx` component file.
+- `frontend/src/components/UsMap.tsx`: new props `tappedFips` and `onTap`. Each path
+  gets `stateProps(...)`. With `onTap`, every state has `role="button"`,
+  `tabIndex=0`, the same `aria-label`, `data-geometry-id="<its id>"`, click and
+  Enter/Space handlers, and the same hover/focus style. Without it, every state
+  gets `tabIndex=-1` and no role. Geographies with no projected path (the five
+  territories us-atlas carries) are no longer drawn.
+- `frontend/src/components/Session.tsx`: a `map_click` branch renders `UsMap` with
+  `onTap` while presenting. `commit` takes `{choiceIndex}` or
+  `{tappedGeometryId}`. A ref-held `answerGate` lets one answer through per
+  question, and is released on undo, on the next question, or when the send
+  fails. `tappedGeometryId` state feeds the wrong-answer drawing.
+- `frontend/src/lib/api/client.ts`, `types.ts`: `submitAnswer` accepts either
+  shape; `Question.answerGeometryId`.
+- `engineering-decisions.md`: adds **E-29**. No other entry is touched.
+- New tests: `backend/tests/test_t051_map_click.py` (19),
+  `frontend/src/components/t051-map-click.test.tsx` (14).
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1–5 | `content_build.py` `SERVED_FORMATS`, `MAP_CLICK_FIELDS`, `_served_map_click`, `REVEAL_BY_FORMAT`; non-`map_click` questions are byte-for-byte what they were (the 365 entries are unchanged in the `content.json` diff, which only adds) |
+| 6 | `make -C backend content`; existing `test_committed_content_json_is_what_the_loader_writes_from_committed_inputs` passes |
+| 7 | `content_build.py` docstring, comment, `_source.note`; `backend/README.md:54` |
+| 8, 9 | `openapi.yaml` `AnswerRequest.tappedGeometryId`, `Question.answerGeometryId` |
+| 10 | `tests/test_contract.py` passes unchanged |
+| 11, 12 | `serializers.question_payload` (all `/questions`, `/questions/{id}`, bundles and served questions go through it) |
+| 13 | unchanged `store.candidate_questions` (filters by topic only; `map_click` is `topic: location`) |
+| 14–18 | `grading.grade` (`GEOMETRY_FORMATS`), `build_reveal`, `routers/sessions.py` `submit_answer`. The 422 is raised before any state changes, so the question stays pending |
+| 19, 20 | unchanged `apply_answer` and undo (format-blind; snapshots in `AnswerRecord`) |
+| 21 | `grade`: choice formats never read `tapped_geometry_id` |
+| 22, 23 | `Session.tsx` `map_click` branch (no choices rendered: a served `map_click` has none); `TAPPABLE_STATE_LABEL` names no state |
+| 24–26 | `map-click.ts` `stateProps` with `onTap`; `UsMap.tsx` spreads it on every path; `pad()` before `onTap` |
+| 27 | `Session.tsx` `commit`: `if (result \|\| busy)` plus `answerGate.tryHold()`; while revealing `onTap` is `undefined`, so no state is a control |
+| 28, 29 | `mapClickView` → `correctFips` = `reveal.mapHighlightGeometryId` → `var(--map-correct)`; banner is the existing `Reveal` (`correctAnswer` from server) |
+| 30 | `stateProps`: tapped = `var(--map-highlight)` fill, `var(--foreground)` stroke, width 1.6, dashed `3 2` |
+| 31 | unchanged `commit` timer and `Reveal` undo button (shared with the other formats) |
+| 32 | `undo()` clears `result` and `tappedGeometryId` and releases the gate → `mapClickView(null)` → tappable |
+| 33, 34 | `stateProps` without `onTap` → `tabIndex=-1`, no role; choice buttons send `{choiceIndex}` only |
+| 35–38 | no lockfile, manifest, migration or question-file change; new tests use no network |
+| 39 | `engineering-decisions.md` E-29 |
+
+### Deliberately not done
+
+- **No generous hit area for Rhode Island, Delaware or Connecticut.** Any extra
+  hit target would make those states differ from the rest (criterion 24) or
+  overlap their neighbours. The Review checklist owns this. If a tablet shows
+  they are too small, it is a follow-up (magnifier or zoom, out of scope).
+- **No new e2e spec.** I cannot run Playwright here, and unrun browser code is
+  not evidence. The tester's independent check, and CI, is where 25 to 27 and
+  30 to 32 get a real browser.
+- **`tasks.md` not edited** (Out of scope). Proposed follow-ups for the
+  reviewer's sweep are in Notes.
+- **`pin` 422s still name `/choiceIndex`.** That predates this task and is out of
+  scope.
+
+### Found against the brief
+
+- The brief lists `test_content_build.py` and others as stale. The run also shows
+  a **flaky** family: any test that answers by `choiceIndex` in a `mixed` or
+  `location` session fails whenever selection serves a `map_click` question.
+  Which tests fail changes from run to run (below).
+- `UsMap` used to put **every path on every map** (quiz and progress) in the tab
+  order, because react-simple-maps' `Geography` hard-codes `tabIndex="0"`.
+  Criterion 33 needs that gone on quiz maps. I removed it on the progress map
+  too, since it is the same component and 56 unlabelled tab stops help nobody.
+  **Reviewer to confirm**, or to restrict it to quiz maps.
+- New child-facing text: one string, the accessible name every tappable state
+  shares: **"A state you can tap"**. **Reviewer escalates** (process step 6).
+
+### How to run
+
+```bash
+make -C backend content                    # regenerates content.json; rerun → same bytes
+cd backend && uv run pytest -q && uv run ruff check . && uv run ruff format --check .
+cd frontend && bun test && bun run typecheck && bun run lint && bunx prettier --check .
+cd question-bank && bun test
+cd e2e && bun run typecheck                # Playwright itself needs CI or a machine with Chromium
+```
+
+### Tests made stale
+
+None of these are edited. Each is red by design, from criterion 1 (serve
+`map_click`), 3/4 (keys) or 39 (E-29), or from the content.json and openapi
+digests that move with them.
+
+**A. Fixed counts of 365 (criterion 1 → 415):**
+1. `backend/tests/test_content_api.py::test_content_version_counts_what_was_seeded`: modify `365` → `415`.
+2. `test_content_api.py::test_a_bundle_carries_its_entities_and_questions`: `365` → `415`.
+3. `test_content_api.py::test_pagination_walks_the_whole_set_once`: `range(100)` × `limit 4` caps at 400. Raise the loop bound (for example `range(200)`), and change both `365` → `415`.
+4. `test_content_build.py::test_version_counts_fifty_entities_and_365_questions`: `365` → `415`, and rename.
+5. `test_t040_tester_criteria.py::test_c6_version_counts_50_entities_and_365_questions`: `365` → `415`, and rename.
+
+**B. "`map_click` is withheld" (criterion 1, 3, 4 reverse them):**
+6. `test_content_build.py::test_served_questions_are_the_files_non_map_click_questions`: modify so it expects *every* file question, 415. The per-entity pairs then include `("map_click","location")`. Its last line (`format=map_click` → `[]`) should expect the 50.
+7. `test_t040_tester_criteria.py::test_c11_served_ids_are_the_files_non_map_click_ids`: the same modification as 6.
+8. `test_t040_tester_criteria.py::test_c12_no_map_click_is_served_filtered_or_not`: delete. It is superseded by T-051 criterion 11. Alternatively, invert it to "filtered returns the 50".
+9. `test_t026_tester_criteria.py::test_c36_map_click_is_still_withheld`: delete. T-051 criterion 1 reverses it.
+10. `test_t026_topics.py::test_all_265_new_questions_are_served_with_their_topic_and_format`: delete its last line (`not any(map_click)`). The rest holds.
+11. `test_content_build.py::test_nothing_served_falls_outside_the_contract`: the banned-keys loop should ban `answerGeometryId` only on non-`map_click` questions (criterion 4). `answer` and `choiceGeometryIds` stay banned on all.
+12. `test_t040_tester_criteria.py::test_c10_no_served_key_outside_the_contract`: the same modification as 11.
+13. `test_t026_topics.py::test_served_question_keys_are_unchanged_by_the_new_templates`: `allowed` should be `QUESTION_FIELDS | MAP_CLICK_FIELDS | {"reveal"}`, or the check limited to non-`map_click` questions.
+14. `test_t026_tester_criteria.py::test_c37_no_served_question_gains_a_prose_field`: add `answerGeometryId` to `old_keys`. It is a key, not prose.
+15. `test_t026_tester_criteria.py::test_c37_old_served_questions_are_byte_for_byte_main_s`: `OLD` includes `tpl-click-the-map`, so it now counts 150. Limit the digest to `tpl-identify-on-map` and `tpl-capital-of`. Those 100 are unchanged: I computed the digest over them and it matches the recorded `55ce822c…`.
+
+**C. Answer-key checks that assume `choices` on every question (criterion 3):**
+16. `test_content_api.py::test_every_seeded_question_has_a_usable_answer_key`: skip `map_click`, or assert `answerGeometryId` is two digits for it.
+17. `test_content_build.py::test_served_question_fields_equal_the_question_file`: for `map_click`, compare `answerGeometryId` and assert no `choices`/`correctIndex`. Keep the rest for the other formats.
+18. `test_content_build.py::test_question_ids_with_colons_resolve_and_withhold_the_answer_key`: for `map_click`, assert `answerGeometryId` is absent with `includeAnswerKey=false` instead of reading `choices`.
+19. `test_t040_tester_criteria.py::test_c13_served_question_fields_equal_the_question_file`: the same modification as 17.
+20. `test_t040_tester_criteria.py::test_c14_every_question_validates_and_its_key_is_the_files_answer`: the same modification as 16 and 17.
+
+**D. Sessions that answer by `choiceIndex` and now meet `map_click` (flaky: depends on what selection serves).** The fix is in the helper, not in each test. Answer a `map_click` question with `tappedGeometryId` = `question["answerGeometryId"]` when right, and any other two-digit code when wrong.
+21. `test_sessions_api.py` helper `answer()` (`:22`, used by `play()`). Seen failing over six runs: `test_a_correct_answer_returns_the_reward_and_the_key`, `test_a_milestone_offers_a_stopping_point`, `test_answering_the_same_question_twice_is_refused`, `test_ending_twice_returns_the_same_summary`, `test_ending_writes_the_end_level_and_reports_places_learned`, `test_four_correct_in_a_row_raises_the_level_quietly`, `test_only_the_most_recent_answer_can_be_undone`, `test_serving_advances_the_index_and_records_what_was_asked`, `test_the_question_returns_to_presenting_after_an_undo`, `test_the_same_answer_cannot_be_undone_twice`, `test_the_summary_counts_places_learned_this_session`, `test_three_wrong_in_a_row_drops_the_level_without_a_message`, `test_undo_backs_out_the_answer_and_its_profile_effects`, `test_a_level_change_is_absent_when_nothing_moved`, `test_a_wrong_answer_returns_the_reason_and_queues_the_entity`. Any test in the file that answers in a `mixed` session can join the list. `test_a_correct_answer_returns_the_reward_and_the_key` asserts `result["correctIndex"]` (`:192`), so it also needs a non-`map_click` branch, or a topic that serves only choice formats.
+22. `test_content_build.py` helper `_answer()` (`:283`). This makes `test_reveals[location-True]` flaky. Also, its wrong-answer `label` reads `choices`: for `map_click` it should be the entity's name.
+23. `test_content_build.py::test_a_perfect_session_reaches_every_question_once[location-50-formats0]`: location now has 100 questions in two formats. Make it `("location", 100, {"map_identify","map_click"})`, with each entity seen twice. Needs helper 22.
+24. `test_content_build.py::test_a_perfect_session_reaches_every_question_once[mixed-100-formats2]`: `formats` → `{"map_identify","map_click","multiple_choice"}` (with 100 of 415, all three appear in practice; use `<=` if a strict set is too tight). Needs helper 22.
+25. `test_t040_tester_criteria.py` helper `play()` (`:343`): the same fix as 21. Then:
+    - `test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal[location-map_identify-True]`: location is now 100 questions and both map formats. Play 100 and check each entity twice, or filter to `map_identify`.
+    - `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`: formats set gains `map_click`.
+    - `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state`: needs the helper only.
+
+**E. Digest pins (move with any change to these files):**
+26. `test_t089_tester_criteria.py::test_criterion_13_exactly_one_new_entry_numbered_gap_free`: `range(1, 29)` → `range(1, 30)` (E-29 added, criterion 39).
+27. `test_t089_tester_criteria.py::test_criterion_15_nothing_but_those_two_descriptions_changes`: re-pin `OPENAPI_STRUCTURE_ON_MAIN`, or delete it as T-089-only.
+28. `test_t089_tester_criteria.py::test_criterion_17_content_json_byte_identical`: re-pin or delete. Its job was T-089-only.
+29. `question-bank/src/climate-far-phrases-verify.test.ts` › "T-090 criterion 10: same counts" › "content.json serves 365 questions, climate 50": `365` → `415`.
+30. same file › "T-090 criterion 12: nothing else in the bank moved" › "content.json: every non-climate question deep-equal to 3279555": limit it to non-`map_click`, or re-pin.
+31. same file › "T-090 criterion 20: no other surface changes" › "frontend (except []) is byte-identical to 3279555": re-pin or delete (T-090-only).
+32. same file › same describe › "openapi.yaml (except []) is byte-identical to T-089's tree": re-pin or delete.
+33. same file › same describe › "backend/app (except [ "backend/app/data/content.json" ]) is byte-identical to T-089's tree": re-pin or delete.
+
+**F. e2e (not run here; will go red in CI whenever a `mixed` or `location` quiz serves `map_click`):**
+34. `e2e/tests/app.ts`: `answerAtRandom`, `answerDeliberately`, `awaitFreshQuestion` and `fetchAnswerKey` assume choice buttons. Proposed modification:
+    - when `[role="button"][data-geometry-id]` is present, answer on the map;
+    - pick at random, or by `answerGeometryId` from `fetchAnswerKey` (which should also key `map_click` ids to `answerGeometryId`);
+    - `awaitFreshQuestion` should wait for either a choice button or a tappable state.
+    - Tap with `locator.focus()` + `keyboard.press("Enter")`, or `dispatchEvent("click")`. A plain `click()` hits the bounding-box centre, which on a concave state such as Michigan or Maryland can land on a neighbour.
+35. Affected tests:
+    - `e2e/tests/quiz.spec.ts`: "every quiz type can be played through", "a right answer earns a fact and a wrong one earns the reason", "the summary counts places, never a percentage or a score", "a session can be picked up by switching profiles and back";
+    - `e2e/tests/progress.spec.ts`: all five tests (all play `mixed` or `location`).
+
+    They need the helper change only.
+
+Not stale despite the brief's guess: `test_measure_selection.py`,
+`hand-check-levels-verify.test.ts` criterion 14 and
+`test_t040…::test_c15_a_withheld_key_leaks_the_answer_nowhere_but_choices` all
+pass.
+
 ## Verdict
 
 ## Notes
+
+- **Worker, 2026-10-26.** Model: Opus, as the brief asks.
+- **Two layers guard against a double tap.** `result || busy` reads React state,
+  which is stale until the next render. Two taps in one frame, or a tap landing
+  between `setResult` and the re-render, would both get through, and the second
+  would come back 409. The ref-held `createAnswerGate` closes that gap. It also
+  guards the choice buttons, with no visible change for them. **Tester to
+  confirm** criterion 27 in a browser if it can.
+- **The answer key is guarded in two places.** `served_question` dispatches on
+  format, so `answerGeometryId` is copied only for `map_click`. Criterion 4 does
+  not depend on the question file leaving it off other formats. Putting
+  `answerGeometryId` into `QUESTION_FIELDS` instead would have kept stale test 13
+  green. I chose the explicit allowlist. **Reviewer to confirm.**
+- **The tapped-state style is a choice with no criterion behind it.** It is the
+  highlight fill plus a dashed, darker outline. The outline is the cue that does
+  not rely on colour (Review checklist). It reuses existing CSS vars, so
+  `styles.css` is untouched. **Reviewer to judge** whether orange reads as "where
+  you tapped" rather than as a mistake.
+- **Proposed follow-ups for the reviewer's sweep into `tasks.md`:**
+  - the generator should stop writing `choices`, `correctIndex` and
+    `choiceGeometryIds` for `tpl-click-the-map` (E-29, owner: question-bank);
+  - small-state hit areas, if the tablet check fails (owner: a map-level task
+    beside T-043);
+  - pin-format 422s should name `/pin`, not `/choiceIndex` (owner: whichever task
+    builds pin formats).

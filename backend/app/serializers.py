@@ -21,10 +21,12 @@ MASTERY_MASTERED = 0.7
 def question_payload(
     question: dict[str, Any], *, include_answer_key: bool = True
 ) -> dict[str, Any]:
-    """`correctIndex` is omitted — not nulled — when the key is withheld."""
+    """The answer key is omitted — not nulled — when it is withheld: `correctIndex`
+    for a choice format, `answerGeometryId` for `map_click`."""
     payload = dict(question)
     if not include_answer_key:
         payload.pop("correctIndex", None)
+        payload.pop("answerGeometryId", None)
     return payload
 
 

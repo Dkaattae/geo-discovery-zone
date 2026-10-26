@@ -36,7 +36,10 @@ MILESTONES = (5, 10, 20)
 
 REVEAL_DELAY_WRONG_MS = 1100
 
-CHOICE_FORMATS = {"map_identify", "map_click", "multiple_choice", "image", "ab_compare"}
+CHOICE_FORMATS = {"map_identify", "multiple_choice", "image", "ab_compare"}
+# Graded by the geometry id of the shape the child tapped, not by an index: a
+# `map_click` question offers no candidates, so any state can be tapped (E-29).
+GEOMETRY_FORMATS = {"map_click"}
 PIN_FORMATS = {"pin_pick", "pin_drop"}
 DEFAULT_PIN_RADIUS_KM = 300.0
 EARTH_RADIUS_KM = 6371.0088
@@ -45,10 +48,12 @@ EARTH_RADIUS_KM = 6371.0088
 class UngradableAnswer(Exception):
     """The question carries no answer key this server knows how to grade."""
 
-    def __init__(self, question_format: str, reason: str):
+    def __init__(self, question_format: str, reason: str, path: str = "/choiceIndex"):
         super().__init__(reason)
         self.question_format = question_format
         self.reason = reason
+        # The request field the problem's `errors` name.
+        self.path = path
 
 
 def haversine_km(a: list[float], b: list[float]) -> float:
@@ -65,9 +70,30 @@ def grade(
     *,
     choice_index: int | None = None,
     pin: list[float] | None = None,
+    tapped_geometry_id: str | None = None,
 ) -> tuple[bool, float | None]:
-    """Returns `(correct, distance_km)`. `distance_km` is set for pin formats."""
+    """Returns `(correct, distance_km)`. `distance_km` is set for pin formats.
+
+    Each format reads only its own answer field: a `choice_index` sent with a
+    `map_click` answer, or a `tapped_geometry_id` sent with a choice format,
+    changes nothing.
+    """
     question_format = question["format"]
+
+    if question_format in GEOMETRY_FORMATS:
+        answer = question.get("answerGeometryId")
+        if not answer:
+            raise UngradableAnswer(
+                question_format, "This question has no stored answer key.", "/tappedGeometryId"
+            )
+        if tapped_geometry_id is None:
+            raise UngradableAnswer(
+                question_format,
+                "tappedGeometryId is required for this format.",
+                "/tappedGeometryId",
+            )
+        # Exact string equality: codes are two-digit strings, so "1" is not "01".
+        return tapped_geometry_id == answer, None
 
     if question_format in CHOICE_FORMATS:
         if "correctIndex" not in question:
@@ -203,8 +229,12 @@ def build_reveal(
 ) -> dict[str, Any]:
     """Reward on a correct answer, reason on a wrong one — deliberately asymmetric."""
     entity = entity or {}
-    answer_label = _answer_label(question, entity)
-    highlight = question.get("highlightGeometryId") or entity.get("geometryId")
+    label = answer_label(question, entity)
+    highlight = (
+        question.get("highlightGeometryId")
+        or question.get("answerGeometryId")
+        or entity.get("geometryId")
+    )
 
     if correct:
         headline = entity.get("funFact") or question.get("shortExplanation") or "Correct!"
@@ -216,7 +246,7 @@ def build_reveal(
         }
     else:
         headline = question.get("shortExplanation") or (
-            f"The answer is {answer_label}." if answer_label else "Not this time."
+            f"The answer is {label}." if label else "Not this time."
         )
         detail = question.get("detailExplanation")
         reveal = {
@@ -228,14 +258,17 @@ def build_reveal(
 
     if detail:
         reveal["detail"] = detail
-    if answer_label:
-        reveal["answerLabel"] = answer_label
+    if label:
+        reveal["answerLabel"] = label
     if highlight and (not correct or question.get("reveal") == "map_highlight"):
         reveal["mapHighlightGeometryId"] = highlight
     return reveal
 
 
-def _answer_label(question: dict[str, Any], entity: dict[str, Any]) -> str | None:
+def answer_label(question: dict[str, Any], entity: dict[str, Any] | None) -> str | None:
+    """The answer's name: the correct choice, or the entity's name when a question
+    has no choices (`map_click`)."""
+    entity = entity or {}
     choices = question.get("choices")
     index = question.get("correctIndex")
     if choices and index is not None and 0 <= index < len(choices):

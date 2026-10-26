@@ -44,8 +44,9 @@ info:
     `level`; when volume arrives, backfill `rating = 800 + level * 45` and flip the
     selector. `ageBand` is appropriateness, not challenge, and is filtered separately.
 
-    **Answer keys.** Content responses include `correctIndex` by default because the
-    v1 client grades locally. Set `includeAnswerKey=false` once grading moves to
+    **Answer keys.** Content responses include the answer key (`correctIndex`, or
+    `answerGeometryId` on a `map_click` question) by default because the v1 client
+    grades locally. Set `includeAnswerKey=false` once grading moves to
     `POST /sessions/{sessionId}/answers`.
 
     **Authentication.** Content is public — it is build-time generated and carries no
@@ -1165,8 +1166,9 @@ components:
       name: includeAnswerKey
       in: query
       description: |
-        When `true` (the v1 default) responses carry `correctIndex` and the client
-        grades locally. Set `false` once grading runs through
+        When `true` (the v1 default) responses carry the answer key — `correctIndex`,
+        or `answerGeometryId` on a `map_click` question — and the client grades
+        locally. Set `false` once grading runs through
         `POST /sessions/{sessionId}/answers`.
       schema:
         type: boolean
@@ -1601,6 +1603,14 @@ components:
           description: |
             Join key of the shape to highlight while presenting — `highlightFips` in
             the v1 client.
+          example: "08"
+        answerGeometryId:
+          type: string
+          description: |
+            The answer key of a `map_click` question: the two-digit geometry id of
+            the state to tap. Present on `map_click` questions only, which offer no
+            `choices` — any state can be tapped. Withheld when
+            `includeAnswerKey=false`, as `correctIndex` is.
           example: "08"
         imageUrl:
           type: string
@@ -2111,6 +2121,15 @@ components:
         choiceIndex:
           type: [integer, "null"]
           description: For choice formats.
+        tappedGeometryId:
+          type: string
+          description: |
+            The answer to a `map_click` question: the two-digit geometry id of the
+            state the child tapped (`"08"` for Colorado). Graded by exact string
+            equality with the question's `answerGeometryId`, so `"8"` is wrong.
+            Required for `map_click`, where `choiceIndex` is ignored; ignored for
+            every other format.
+          example: "08"
         pin:
           allOf:
             - $ref: "#/components/schemas/LonLat"

@@ -77,6 +77,11 @@ export interface Question {
   choices?: string[] | undefined;
   /** Absent when the server withheld the answer key. */
   correctIndex?: number | undefined;
+  /**
+   * `map_click` only: the two-digit geometry id of the state to tap. Absent when
+   * the server withheld the answer key.
+   */
+  answerGeometryId?: string | undefined;
   topic?: Topic | undefined;
   scope?: Scope | undefined;
   region?: string | undefined;

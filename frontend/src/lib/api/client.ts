@@ -151,8 +151,13 @@ export function createApiClient(options: ApiClientOptions = {}) {
         forceReview: input?.forceReview ?? false,
         includeAnswerKey: input?.includeAnswerKey ?? false,
       }),
-    submitAnswer: (sessionId: string, input: { questionId: string; choiceIndex: number }) =>
-      request<AnswerResult>("POST", `/sessions/${enc(sessionId)}/answers`, input),
+    /** `choiceIndex` for a choice format; `tappedGeometryId` for `map_click`. */
+    submitAnswer: (
+      sessionId: string,
+      input:
+        | { questionId: string; choiceIndex: number }
+        | { questionId: string; tappedGeometryId: string },
+    ) => request<AnswerResult>("POST", `/sessions/${enc(sessionId)}/answers`, input),
     /** Backs out a mis-tap. The question returns to PRESENTING. */
     undoAnswer: (sessionId: string, answerId: string) =>
       request<void>("DELETE", `/sessions/${enc(sessionId)}/answers/${enc(answerId)}`),

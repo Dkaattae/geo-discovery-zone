@@ -4,6 +4,7 @@ import type { ServedQuestion, Session as SessionState, SessionSummary } from "@/
 import { Button } from "@/components/Button";
 import { UsMap } from "@/components/UsMap";
 import { levelLabel } from "@/lib/level";
+import { createAnswerGate, mapClickView, type AnswerInput } from "@/lib/map-click";
 import { choicePanel } from "@/lib/topics";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function Session({
   const [served, setServed] = useState<ServedQuestion>(firstQuestion);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [pickedIndex, setPickedIndex] = useState<number | null>(null);
+  const [tappedGeometryId, setTappedGeometryId] = useState<string | null>(null);
   const [counts, setCounts] = useState(session.counts);
   const [current, setCurrent] = useState<Profile>(profile);
   const [reviewRemaining, setReviewRemaining] = useState(session.reviewRoundRemaining ?? 0);
@@ -53,6 +55,7 @@ export function Session({
   /** The profile as it was before the answer in play, for a local undo. */
   const profileBeforeAnswer = useRef<Profile>(profile);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const answerGate = useRef(createAnswerGate());
 
   useEffect(() => {
     return () => {
@@ -81,8 +84,10 @@ export function Session({
     setServed(next);
     setResult(null);
     setPickedIndex(null);
+    setTappedGeometryId(null);
     setDetailOpen(false);
     setNextReady(true);
+    answerGate.current.release();
   }, []);
 
   async function serveNext(forceReview = false) {
@@ -90,16 +95,21 @@ export function Session({
     if (next) present(next);
   }
 
-  async function commit(choiceIndex: number) {
+  async function commit(input: AnswerInput) {
     if (result || busy) return;
+    if (!answerGate.current.tryHold()) return;
     profileBeforeAnswer.current = current;
 
     const answered = await run(() =>
-      api.submitAnswer(session.id, { questionId: served.question.id, choiceIndex }),
+      api.submitAnswer(session.id, { questionId: served.question.id, ...input }),
     );
-    if (!answered) return;
+    if (!answered) {
+      answerGate.current.release();
+      return;
+    }
 
-    setPickedIndex(choiceIndex);
+    setPickedIndex("choiceIndex" in input ? input.choiceIndex : null);
+    setTappedGeometryId("tappedGeometryId" in input ? input.tappedGeometryId : null);
     setResult(answered);
     setCounts(answered.session.counts);
     if (answered.profile) setCurrent(answered.profile);
@@ -125,8 +135,10 @@ export function Session({
     setCurrent(profileBeforeAnswer.current);
     setResult(null);
     setPickedIndex(null);
+    setTappedGeometryId(null);
     setDetailOpen(false);
     setNextReady(true);
+    answerGate.current.release();
   }
 
   function next() {
@@ -179,6 +191,8 @@ export function Session({
     ? (result.reveal.mapHighlightGeometryId ?? entity?.geometryId)
     : question.highlightGeometryId;
   const panel = choicePanel(question, entity, revealing, highlight);
+  const clickMap =
+    question.format === "map_click" ? mapClickView(result, tappedGeometryId, entity) : null;
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-10 pt-4 sm:px-6">
@@ -207,6 +221,21 @@ export function Session({
           <UsMap
             highlightFips={revealing ? undefined : highlight}
             correctFips={revealing ? highlight : undefined}
+          />
+        </div>
+      )}
+
+      {/* The tap is the answer: no state is named or marked until it lands. */}
+      {clickMap && (
+        <div className="mt-4 overflow-hidden rounded-2xl border-2 border-border bg-card p-2 atlas-grid">
+          <UsMap
+            correctFips={clickMap.correctFips}
+            tappedFips={clickMap.tappedFips}
+            onTap={
+              clickMap.tappable
+                ? (geometryId) => void commit({ tappedGeometryId: geometryId })
+                : undefined
+            }
           />
         </div>
       )}
@@ -240,7 +269,7 @@ export function Session({
               variant="choice"
               size="lg"
               disabled={revealing || busy}
-              onClick={() => void commit(index)}
+              onClick={() => void commit({ choiceIndex: index })}
               className={cn(
                 "text-lg",
                 isAnswer && "border-correct bg-correct-soft text-foreground",
