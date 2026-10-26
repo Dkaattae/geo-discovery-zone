@@ -9,8 +9,7 @@ the Q1-dependent criteria (marked **[Q1]**) for a fresh approval.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-051
 **Branch:** `claude/affectionate-bell-r03ap2`
-**PR:** opened draft at expand time against the branch above (number in the PR list;
-the expander's report names it)
+**PR:** #96, opened draft at expand time, built from the branch above
 **Fault:** the queue entry does not say what a child may tap on a `map_click`
 question. Two of the three answers change the contract and the grading, so it is a
 product call for a person, not the expander (Q1).
