@@ -91,3 +91,6 @@ Recorded in the brief's `Next step` line, which now reads `task-expander`. Not o
 - G5: Status and Next step both changed. Pass.
 - G1: diff vs main is `runs/`, `tasks.md`, `tasks/T-051-…`. Pass.
 - G2: `Approved: pending`. Dkaattae is in the session, so approval is asked of them rather than stamped as unattended.
+
+## Approval — 2026-10-26
+Dkaattae, in the orchestrator session, verbatim: "approved". Written to the brief's `Approved:` line.

@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-10-26, in the orchestrator session, verbatim: "approved". See `runs/T-051-map-click-render.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-051
 **Branch:** `claude/affectionate-bell-r03ap2`
