@@ -1774,3 +1774,42 @@ of scope in the brief), which a person decides.
 **Revisit when** a person decides on a stricter group or "only odd one out"
 rule, T-085 changes HI's or AK's level, or a world-scope bank gives the caps
 a far-phrase list that is not just two US states.
+
+## E-28 — Past span 6, selection draws from the nearest fresh questions, not the whole topic
+
+**2026-10-23 (T-089).** `pick_question` (`backend/app/selection.py`) still
+tries the level windows 1.5, 3 and 6 in that order, unchanged. What changed is
+the step after them.
+
+- **The fallback rule.** When no candidate (a fresh, topic-matching question)
+  is within 6 of the session level, the pool is the candidates at the smallest
+  distance `|level − session level|`, ties included, drawn uniformly. Before
+  this, the step was span 99: every fresh question in the topic. The rule is
+  symmetric, so it holds below the bank as well as above it, though this bank
+  never reaches it from below (E-26 rows 0–2).
+- **This answers E-26's "Table A, rows 14.5 to 18 where the first span is 99"
+  finding.** An 8th grader (start 16) in `location`, `agriculture`,
+  `superlative` or `climate`, or any session from 16.5 up, now gets the
+  hardest questions the topic holds, the level-10 ones first in `mixed`, then
+  the next level down once those are asked. Not a level-3 farm animal as
+  readily as a level-10 capital.
+- **There is no client copy.** `selection.py` said it was a port of the
+  client's `pickQuestion()` in `frontend/src/lib/session.ts`. That file is not
+  in this repository and never was in its git history, so there is no second
+  copy to keep in step. `selection.py`, `backend/README.md` and `openapi.yaml`
+  no longer name it.
+- **How a `99` reads now.** `LEVEL_SPANS` keeps its last entry, `99.0`, so
+  `scripts/measure_selection.py` and its test are untouched. A `99` cell in
+  E-26 table A, and in that script's "first non-empty span" output, now means
+  "nearest candidates", not "whole topic". E-26's text is a measurement record
+  and stays as it was.
+- **Not chosen: a band around the nearest**, such as "smallest distance plus
+  1.5". It would be a second span ladder, and E-26 did not propose one.
+
+Review turns, `RECENT_WINDOW`, `REVIEW_EVERY` and the recycling once everything
+is asked are unchanged. `openapi.yaml`'s `serveNextQuestion` description says
+the same thing (E-14).
+
+**Revisit when** the bank gains questions above level 10 (the fallback then
+fires less), a person wants a band rather than the single nearest level, or
+selection moves into SQL (E-26 section E).

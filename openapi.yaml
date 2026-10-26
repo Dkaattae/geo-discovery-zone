@@ -186,9 +186,9 @@ paths:
         `scope=us&entityType=state`; "World Capitals" is `topic=capital&scope=world`;
         "Farms & Weather" is `topic=climate,agriculture&minAgeBand=2`.
 
-        `level` + `levelSpan` mirror the client's widening search in
-        `frontend/src/lib/session.ts` — the selector tries a tight span first and
-        widens until the pool is non-empty.
+        `level` + `levelSpan` mirror the server's widening search in
+        `serveNextQuestion` — the selector tries a tight span first and widens
+        until the pool is non-empty.
       parameters:
         - $ref: "#/components/parameters/Scope"
         - name: entityType
@@ -903,10 +903,12 @@ paths:
         - bearerAuth: []
       summary: Serve the next question
       description: |
-        Mirrors `pickQuestion()` in `frontend/src/lib/session.ts`: every seventh
-        question is pulled from the review queue when one is waiting; otherwise the
-        selector widens its difficulty window until it finds a fresh question, then
-        falls back to repeats while avoiding the last few asked.
+        Every seventh question is pulled from the review queue when one is
+        waiting; otherwise the selector widens its difficulty window (1.5, 3, 6
+        levels) until it finds a fresh question. When no fresh question is within
+        the widest difficulty window, the selector draws from the fresh questions
+        nearest the session level, ties included. Only once every question has
+        been asked does it fall back to repeats while avoiding the last few asked.
 
         `POST` rather than `GET` because serving mutates the session's asked list.
       requestBody:

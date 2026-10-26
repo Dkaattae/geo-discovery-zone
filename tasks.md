@@ -78,7 +78,9 @@ again 2026-10-23, after T-050 measured selection and levels at 365 questions
 as E-26 (PR #92): T-050 deleted; T-089 and T-090 new from its follow-ons;
 T-056, T-085, T-088 and T-076 amended. Swept again 2026-10-23, after T-090
 capped Hawaii's and Alaska's climate phrases (PR #93): T-090 deleted; T-091
-new from its content trade; T-070 and T-088 amended._
+new from its content trade; T-070 and T-088 amended. Swept again 2026-10-26,
+after T-089 made a pick past span 6 draw from the nearest questions (PR #94):
+T-089 deleted; T-070, T-053 and T-076 amended._
 
 ## How this list is ordered
 
@@ -200,6 +202,16 @@ this one included, turns it red. Whatever Q1 decides should cover it (P-17).
 or the backend app turns these red: T-056, T-051, T-043, T-048, T-076 and the
 section E tasks. Each such task needs a test change request until Q1 settles
 how base pins expire. Whatever Q1 decides should cover this file.
+**Since T-089 (PR #94): an eighth guard, the first in the backend suite.**
+`backend/tests/test_t089_tester_criteria.py` pins, at `2b4edb2`: the `## E-n`
+numbering as exactly 1..28 (criterion 13), so the next `E-n` turns it red; a
+canonical digest of `openapi.yaml` with two descriptions removed (criterion
+15), so any operation or schema edit turns it red even though E-14 says that
+file follows the backend; `content.json`'s sha256 (criterion 17), so any bank
+refresh (T-087) turns it red; and "only `0001_initial_schema.py`" under
+`migrations/versions` (criterion 18). It also holds prefix digests of
+`test_selection.py` and `engineering-decisions.md`, and full digests of
+`measure_selection.py` and its test. Whatever Q1 decides should cover it.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -373,6 +385,8 @@ split.
 T-056 were passed over too: each is waiting on a person.
 **Skipped again, 2026-10-23, for T-090.** Same reason. T-070, T-085 and T-088
 were passed over too: each is still waiting on a person.
+**Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
+T-091 and T-056 were passed over too: each is waiting on a person.
 
 ---
 
@@ -527,24 +541,6 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-089 — Above the bank's top level, a pick is drawn from the whole topic · S · todo
-**Depends on:** —
-**New 2026-10-23, from T-050's reviewer (PR #92).** E-26 table A: the served
-bank tops out at level 10, so from session level 16.5 every topic, and from
-14.5–16 some (`location`, `agriculture`, `superlative`, `climate`), find no
-question within span 6 and fall to `LEVEL_SPANS`' 99. At span 99 the pool is
-every unasked question in the topic, drawn uniformly, so an 8th grader (start
-16) can get a level-3 farm animal as readily as a level-10 capital. Below the
-bank the widened span lands on the easiest questions, which E-26 accepts.
-**Proposal (E-26):** when no span up to 6 reaches a question, choose from the
-questions nearest the session level instead of the whole topic.
-`backend/app/selection.py` says it is a port of `pickQuestion()` in
-`frontend/src/lib/session.ts`; check whether that copy is still live and keep
-the two in step, or say why not.
-**Done when:** a session above the bank's top draws from its nearest
-questions, a test on an inline fixture shows it, and E-26's finding is
-answered in a new `E-n`.
-
 ### T-051 — Render a third question format in the client · M · todo
 **Depends on:** T-020
 **New 2026-08-24.** `Session.tsx` has exactly two branches: `map_identify` and
@@ -667,6 +663,12 @@ behaviour on purpose, and it is the test to update when this is decided.
 **Since T-026 (PR #91):** a superlative question's served `entity` *is* its
 answer, so `includeAnswerKey=false` does not hide it. Whatever is decided
 here, decide it for the superlative's entity too.
+**Since T-089 (PR #94):** `listQuestions`' description says "`level` +
+`levelSpan` mirror the server's widening search in `serveNextQuestion`". The
+endpoint applies one fixed `±levelSpan` window (`routers/content.py:169`,
+`store.py:240`) and widens nothing, and the selector's nearest fallback (E-28)
+has no `levelSpan` equivalent. While editing this operation's text, say that it
+filters to one window.
 **Done when:** the default is decided, `openapi.yaml` and the implementation
 agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
 whichever way it went.
@@ -734,6 +736,10 @@ test and say so here.
 → `2 \* gradeOf` edit after one frontend `bun test`, not on the next run. Two
 sightings now. First suspect: `frontend/src/format-gate.criteria.test.ts`,
 which spawns `bun run format` (a write) around its probe files.
+**Seen a third time 2026-10-23 in T-089's worker run** (PR #94), the same
+edit, and the worker noted it also happens on a clean tree without
+`node_modules`. That points harder at the format-gate test's `bun run format`
+when prettier cannot be resolved.
 
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —

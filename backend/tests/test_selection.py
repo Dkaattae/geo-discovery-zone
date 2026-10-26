@@ -114,3 +114,94 @@ def test_recycling_avoids_the_last_few_asked() -> None:
 
 def test_an_empty_bank_returns_none() -> None:
     assert pick_question([], level=6.0) == (None, False)
+
+
+# T-089: past span 6, the pool is the nearest fresh questions (E-28).
+
+
+def q(qid: str, level: float, topic: str = "location", entity: str | None = None) -> dict[str, Any]:
+    return {"id": qid, "entityId": entity or f"e-{qid}", "level": level, "topic": topic}
+
+
+def fixture_draws(
+    bank: list[dict[str, Any]], count: int = 200, **kwargs: Any
+) -> list[dict[str, Any]]:
+    rng = random.Random(89)
+    picks = [pick_question(bank, rng=rng, **kwargs) for _ in range(count)]
+    assert all(is_review is False for _, is_review in picks)
+    return [question for question, _ in picks]
+
+
+def ids(picks: list[dict[str, Any] | None]) -> set[str]:
+    return {question["id"] for question in picks if question is not None}
+
+
+ABOVE = [q("l3", 3), q("l8", 8), q("l10a", 10), q("l10b", 10)]
+
+
+def test_above_the_bank_draws_only_the_nearest_questions() -> None:
+    assert ids(fixture_draws(ABOVE, level=16.5)) <= {"l10a", "l10b"}
+
+
+def test_above_the_bank_every_nearest_tie_can_be_drawn() -> None:
+    assert ids(fixture_draws(ABOVE, level=16.5)) == {"l10a", "l10b"}
+
+
+def test_below_the_bank_draws_only_the_nearest_question() -> None:
+    bank = [q("l7", 7), q("l7.5", 7.5), q("l12", 12)]
+    assert ids(fixture_draws(bank, level=0.0)) == {"l7"}
+
+
+@pytest.mark.parametrize(
+    ("bank", "level"),
+    [
+        ([q("l4", 4), q("l10", 10)], 16.0),  # distance 6.0: inside span 6
+        ([q("l4", 4), q("l10", 10)], 16.5),  # distances 12.5 and 6.5: fallback
+        ([q("l9.5", 9.5), q("l10", 10)], 16.5),  # distances 7.0 and 6.5: fallback
+    ],
+)
+def test_the_span_six_edge_from_both_sides(bank: list[dict[str, Any]], level: float) -> None:
+    assert ids(fixture_draws(bank, level=level)) == {"l10"}
+
+
+def test_the_fallback_skips_asked_questions() -> None:
+    bank = [q("l10", 10), q("l9.5", 9.5), q("l3", 3)]
+    assert ids(fixture_draws(bank, level=16.5, asked_ids=["l10"])) == {"l9.5"}
+
+
+def test_the_fallback_keeps_the_topic_filter() -> None:
+    bank = [q("loc10", 10, "location"), q("cap9", 9, "capital"), q("cap3", 3, "capital")]
+    assert ids(fixture_draws(bank, level=16.5, topic="capital")) == {"cap9"}
+
+
+def test_the_fallback_in_mixed_draws_every_topic_at_the_nearest_distance() -> None:
+    bank = [q("loc10", 10, "location"), q("cap10", 10, "capital"), q("cap3", 3, "capital")]
+    picks = fixture_draws(bank, level=16.5, topic="mixed")
+    assert ids(picks) == {"loc10", "cap10"}
+    assert {question["topic"] for question in picks if question is not None} == {
+        "location",
+        "capital",
+    }
+
+
+def test_the_fallback_is_not_a_review() -> None:
+    _, is_review = pick_question(ABOVE, level=16.5, rng=random.Random(0))
+    assert is_review is False
+
+
+def test_once_everything_is_asked_the_pick_still_recycles_above_the_bank() -> None:
+    bank = [q(f"r{n}", 3 + n) for n in range(8)]
+    asked = [question["id"] for question in bank]
+    picks = fixture_draws(bank, level=16.5, asked_ids=asked, index=len(asked))
+    assert ids(picks) == {"r0", "r1"}
+
+
+def test_review_wins_over_the_fallback_whatever_the_level() -> None:
+    bank = [q("rev3", 3, entity="e-queued"), q("l10", 10)]
+    rng = random.Random(7)
+    for _ in range(100):
+        question, is_review = pick_question(
+            bank, level=16.5, index=6, review_entity_ids=["e-queued"], rng=rng
+        )
+        assert is_review is True
+        assert question is not None and question["entityId"] == "e-queued"
