@@ -1,13 +1,13 @@
 # T-051 — Serve and render `map_click`: tap the state on the map
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-10-26, in the orchestrator session, verbatim: "approved". See `runs/T-051-map-click-render.md`.
-**Test changes:** `requested`
+**Test changes:** approved — Dkaattae, 2026-10-26 (all 34 rows, in attended tester session cse_011Rir8T57SYNmfYe3rNiYWo)
 **From:** [`tasks.md`](../tasks.md) T-051
 **Branch:** `claude/affectionate-bell-r03ap2`
 **PR:** #96, opened draft at expand time, built from the branch above
-**Fault:** Test changes are waiting for a person's approval. The Test change request lists 34 rows of existing tests (backend, integration, question-bank, e2e helpers) that this task's own criteria 1, 3, 4, 14 and 39 make stale. No criterion is unmet.
+**Fault:**
 
 **Sessions:**
 
@@ -584,6 +584,88 @@ pass.
 
 ## Verdict
 
+**TL;DR. Pass.** All 39 criteria are met, all 34 approved test changes are
+applied, and every suite is green: backend, integration, frontend,
+question-bank and Playwright. Playwright ran in a real browser for the first
+time in this session. Next: the reviewer.
+
+**Attended tester, 2026-10-26, session `cse_011Rir8T57SYNmfYe3rNiYWo`.** This is a
+different session from the expander, worker and orchestrated tester
+(`cse_01W3CQk9DjveYML94m9kKPKg`). That is the stronger kind of independence.
+I did not see the worker's or the first tester's reasoning.
+
+- **Approval, in this session.** I asked: "Do you approve the T-051 Test change
+  request (34 rows …), and how should the 5 digest pins in rows 27, 28, 31 be
+  handled?" The answer, verbatim: **"All 34, delete pins (Recommended)"**.
+  Header: `Test changes: approved — Dkaattae, 2026-10-26`.
+- **Applied exactly the 34 rows, nothing else.** The only knock-on edits are
+  ones a deletion forces: `test_t089_tester_criteria.py` lost its now-unused
+  `import json` and the `OPENAPI_STRUCTURE_ON_MAIN` constant, both used only by
+  deleted row 27. No count floor exists in these files.
+  - **Deleted:** row 20 `test_c36_map_click_is_still_withheld` (criterion 1
+    reverses it); row 27 `test_criterion_15_nothing_but_those_two_descriptions_changes`
+    and row 28 `test_criterion_17_content_json_byte_identical`, both of which
+    guarded T-089's own diff; row 31, the `frontend`, `openapi.yaml` and
+    `backend/app` tree pins in T-090 criterion 20, which guarded T-090's diff.
+  - **Modified:** rows 1–19, 21–26, 29, 30, 32–34, as each row's "Becomes"
+    says. Row 30 keeps its old digest `0d32ac57…`, now taken over the
+    non-`map_click` questions, and it still matches. So the 365 questions served
+    before T-051 did not move.
+- **I found row 34 myself.** CI's `integration (docker compose)` job was red
+  with `KeyError: 'correctIndex'`, and neither the Handoff nor the first
+  request listed it.
+- **I fixed the first tester's e2e spec, written for this task.** Its undo
+  check compared each path's own outline `d`, so the 51 states could never
+  look alike. I made the spec exclude `d`.
+
+### Suites, run here after applying
+
+| Suite | Result |
+|---|---|
+| backend `uv run pytest`, 3 runs (the flaky-red families included) | 739 pass, 9 skip, 0 fail, all three times |
+| backend `ruff check`, `ruff format --check` | clean |
+| integration, against a local stack (SQLite) | `test_child_loop`, `test_persistence`, `test_write_durability`: 16 pass, 5 skip (restart tests need compose), in 5 of 5 runs. Separately: `…several_people_register_at_once` fails locally on SQLite concurrency. It does not touch this task, and CI runs it on Postgres |
+| frontend `bun test` (60 s timeout), typecheck, lint, prettier | 442 pass, 0 fail, all clean. With the default 5 s timeout, 5 eslint-spawning tests time out in this sandbox; CI's frontend job is green |
+| question-bank `bun test`, typecheck, lint | 2364 pass, 0 fail, clean |
+| e2e typecheck | clean |
+| **Playwright, Chromium**: backend serving `build:static`, one worker | **14 of 14 pass.** That covers `quiz.spec.ts`, `progress.spec.ts`, and `map-click.spec.ts`, which also passed 3 of 3 alone. Two workers on SQLite give `Internal Server Error` on sign-up, a local-stack artifact |
+
+### Browser evidence for the client criteria
+
+The first tester could not run a browser. I did. Before the request was
+applied, I also wrote and ran a separate 13-test Playwright spec for criteria
+22–34. I did not commit it, because the committed spec already covers these.
+- **22–25:** no choice buttons on a `map_click` question, and no state name
+  outside the prompt.
+- **24:** every state identical in attributes and computed paint.
+- **25:** Tab reaches a state, and Enter and Space answer.
+- **26:** AK, HI, RI, DE and TX each send one answer with their own id, with an
+  undo between taps.
+- **27:** nothing extra is sent while an answer is in flight or a reveal is up.
+- **28–31:** correct colour, banners, the tapped state drawn apart, Next held.
+- **32:** undo restores the map.
+- **33, 34:** `map_identify` and `multiple_choice` are unchanged and send
+  `choiceIndex` only.
+
+Mutations, each reverted:
+- a highlight before the tap → 24 and 26 red;
+- no double-tap guard → 27 (in flight) red;
+- states stay buttons during the reveal → 27 (reveal) red;
+- state names as `aria-label` → 23 red;
+- backend: lenient code match, key not withheld, wrong 422 path, `map_click`
+  graded by `choiceIndex` → criteria 15, 12, 18 and 14 red, in that order.
+
+### Still for the reviewer, as before
+
+- **Undo leaves `seenEntityIds` in place for every format.** This predates
+  T-051.
+- **The child-facing string "A state you can tap"** needs a person's review.
+- **The progress map also lost its tab stops.**
+
+---
+
+*The orchestrated tester's verdict, before the approval, kept for the record:*
+
 **TL;DR. Not yet a verdict: test changes requested.** All 39 criteria hold
 under my own tests: 50 backend, 30 frontend and 1 Playwright spec, with no
 failures in anything I could run. The pre-existing suite is still red, but
@@ -718,40 +800,40 @@ behaviour as hard as the old test pinned the old.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `backend/tests/test_content_api.py` › `test_content_version_counts_what_was_seeded` | `73b49f9` (PR #35 merge), later bumped by T-026: served-question count | Crit. 1 adds 50 served `map_click` questions, so the count is 415 | modify | same name. Asserts `questionCount == 415` (was 365), and everything else as now | |
-| 2 | `backend/tests/test_content_api.py` › `test_a_bundle_carries_its_entities_and_questions` | `73b49f9`: the bundle carries the whole bank | Crit. 1: 415 | modify | same name. Asserts the bundle holds 415 questions, and the rest as now | |
-| 3 | `backend/tests/test_content_api.py` › `test_pagination_walks_the_whole_set_once` | `73b49f9`: cursor pagination visits every question once | Crit. 1: 415 questions, and `range(100)` × `limit 4` stops at 400 | modify | same name. Loop bound `range(200)`. Asserts `len(seen) == 415` and `len(set(seen)) == 415` | |
-| 4 | `backend/tests/test_content_api.py` › `test_every_seeded_question_has_a_usable_answer_key` | `73b49f9`: every question can be graded | Crit. 3: `map_click` has no `choices` or `correctIndex` | modify | same name. Choice formats: as now. `map_click`: `answerGeometryId` is a two-digit string, one of the 50 state codes, and there is no `choices` or `correctIndex` | |
-| 5 | `backend/tests/test_content_build.py` › `test_version_counts_fifty_entities_and_365_questions` | `f1b9de5`, T-026: bank size | Crit. 1 | modify | renamed `…_415_questions`. Asserts 50 entities and 415 questions | |
-| 6 | `backend/tests/test_content_build.py` › `test_served_questions_are_the_files_non_map_click_questions` | `25c7847`, T-040: served = file minus `map_click` | Crit. 1 reverses the exclusion | modify | renamed `test_served_questions_are_every_file_question`. Served ids == all 415 file ids. Each entity's (format, topic) pairs equal the file's, now including `("map_click","location")`. `format=map_click` lists exactly the 50 file `map_click` ids (was `[]`) | |
-| 7 | `backend/tests/test_content_build.py` › `test_nothing_served_falls_outside_the_contract` | `25c7847`, T-040: no non-contract key served | Crit. 3/4: `answerGeometryId` is served on `map_click` | modify | same name. `answer` and `choiceGeometryIds` banned on every question. `answerGeometryId` banned on non-`map_click`. `choices`, `correctIndex` and `highlightGeometryId` banned on `map_click` | |
-| 8 | `backend/tests/test_content_build.py` › `test_served_question_fields_equal_the_question_file` | `25c7847`, T-040 | Crit. 2/3 | modify | same name. Non-`map_click`: as now. `map_click`: every served field except `reveal` equals the file's, `answerGeometryId` included, and `choices` and `correctIndex` are absent | |
-| 9 | `backend/tests/test_content_build.py` › `test_question_ids_with_colons_resolve_and_withhold_the_answer_key` | `25c7847`, T-040 | Crit. 12: the `map_click` key is `answerGeometryId` | modify | same name. Choice formats: as now. `map_click`: with the key, `answerGeometryId` equals the file's; with `includeAnswerKey=false` it is absent | |
-| 10 | `backend/tests/test_content_build.py` › helper `_answer()` (fixes `test_reveals[location-True]`, flaky) | `25c7847`, T-040 | Crit. 14/18: `map_click` is answered by `tappedGeometryId` | modify | `map_click`: right sends `tappedGeometryId = answerGeometryId`; wrong sends a different state code. Choice formats unchanged. In `test_reveals`, a wrong `map_click`'s expected label is the entity's name | |
-| 11 | `backend/tests/test_content_build.py` › `test_a_perfect_session_reaches_every_question_once[location-50-formats0]` | `25c7847`, T-040 | Crit. 1/13: the location pool is now 100 questions in two formats | modify | parameter becomes `("location", 100, {"map_identify","map_click"})`. 100 distinct ids, formats == that set, and each of the 50 entities seen exactly twice | |
-| 12 | `backend/tests/test_content_build.py` › `test_a_perfect_session_reaches_every_question_once[mixed-100-formats2]` | `25c7847`, T-040 | Crit. 1 | modify | formats == `{"map_identify","map_click","multiple_choice"}` (strict, as now). Still 100 distinct ids | |
-| 13 | `backend/tests/test_t040_tester_criteria.py` › `test_c6_version_counts_50_entities_and_365_questions` | `f1b9de5`, T-026 | Crit. 1 | modify | renamed `…_415_questions`. Asserts 50 and 415 | |
-| 14 | `backend/tests/test_t040_tester_criteria.py` › `test_c11_served_ids_are_the_files_non_map_click_ids` | `acaa4a1`, T-040 tester | Crit. 1 | modify | renamed `test_c11_served_ids_are_every_file_id`. The same change as row 6 | |
-| 15 | `backend/tests/test_t040_tester_criteria.py` › `test_c12_no_map_click_is_served_filtered_or_not` | `acaa4a1`, T-040 tester | Crit. 1/11 reverse it | modify | renamed `test_c12_every_map_click_is_served_filtered_or_not`. `format=map_click&limit=500` returns exactly the 50 file `map_click` ids. The unfiltered listing contains all 50 | |
-| 16 | `backend/tests/test_t040_tester_criteria.py` › `test_c10_no_served_key_outside_the_contract` | `acaa4a1` | Crit. 3/4 | modify | the same change as row 7 | |
-| 17 | `backend/tests/test_t040_tester_criteria.py` › `test_c13_served_question_fields_equal_the_question_file` | `acaa4a1` | Crit. 2/3 | modify | the same change as row 8 (`QUESTION_KEYS` plus `answerGeometryId` for `map_click`) | |
-| 18 | `backend/tests/test_t040_tester_criteria.py` › `test_c14_every_question_validates_and_its_key_is_the_files_answer` | `acaa4a1` | Crit. 3 | modify | same name. Every row validates as `Question`. Choice formats: as now. `map_click`: `answerGeometryId` equals the file's, and there is no `choices` or `correctIndex` | |
-| 19 | `backend/tests/test_t040_tester_criteria.py` › helper `play()`, and through it `test_c20_c21_c25_…[location-map_identify-True]`, `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`, `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state` | `acaa4a1` | Crit. 1/14 | modify | `play()` as in row 10. c20 `location`: plays 100, each entity twice, and the format is `map_identify` or `map_click`; fact and highlight checks unchanged. c25: formats == all three. c22: formats == all three; for `map_click` the expected label is the entity's name; other checks unchanged | |
-| 20 | `backend/tests/test_t026_tester_criteria.py` › `test_c36_map_click_is_still_withheld` | `d201e70`, T-026 tester | Crit. 1 reverses it exactly. T-051 `test_c1_*` covers the new behaviour | delete | | |
-| 21 | `backend/tests/test_t026_tester_criteria.py` › `test_c37_no_served_question_gains_a_prose_field` | `d201e70` | Crit. 2: `answerGeometryId` is a key, not prose | modify | same name. `old_keys` gains `answerGeometryId` only | |
-| 22 | `backend/tests/test_t026_tester_criteria.py` › `test_c37_old_served_questions_are_byte_for_byte_main_s` | `d201e70` | `OLD` includes `tpl-click-the-map`, which now adds 50 | modify | filter on `tpl-identify-on-map` and `tpl-capital-of` only. Asserts 100, with the same digest `55ce822c…` (I recomputed it on this branch and it matches) | |
-| 23 | `backend/tests/test_t026_topics.py` › `test_all_265_new_questions_are_served_with_their_topic_and_format` | `a6e3478`, T-026 worker | Its last line asserts no `map_click` is served; crit. 1 | modify | same name. Delete only the last line; the 265 checks stay | |
-| 24 | `backend/tests/test_t026_topics.py` › `test_served_question_keys_are_unchanged_by_the_new_templates` | `a6e3478` | Crit. 2: `map_click` carries `answerGeometryId` | modify | same name. Non-`map_click` keys ⊆ `QUESTION_FIELDS ∪ {reveal}` (as now). `map_click` keys ⊆ `MAP_CLICK_FIELDS ∪ {reveal}` | |
-| 25 | `backend/tests/test_sessions_api.py` › helper `answer()`, and `test_a_correct_answer_returns_the_reward_and_the_key`. Flaky, seen red: `test_serving_advances…`, `test_a_question_can_be_served_without_its_answer_key`, `test_a_milestone…`, `test_only_the_most_recent…`, `test_the_summary_counts…`, `test_ending_twice…`, `test_undo_backs_out…`, `test_a_level_change_is_absent…`, and the worker's list | `73b49f9` | Crit. 1/14: mixed sessions now serve `map_click` | modify | `answer()` as in row 10. In `test_a_correct_answer…`, a `map_click` asserts no `correctIndex` and `correctAnswer` == the entity's name; otherwise `correctIndex` as now. In `test_a_question_can_be_served_without…`, also assert `answerGeometryId` absent | |
-| 26 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_exactly_one_new_entry_numbered_gap_free` | `eebec2c`, T-089 tester | Crit. 39 adds E-29 | modify | same name. `range(1, 30)` | |
-| 27 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_15_nothing_but_those_two_descriptions_changes` | `eebec2c` | It pins `openapi.yaml`'s structure as of T-089, and crit. 8/9 change it. The job was T-089's own diff | delete | (Alternative: re-pin to this branch's digest. I recommend against it, because the pin goes stale on every contract task) | |
-| 28 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_17_content_json_byte_identical` | `eebec2c` | It pins `content.json`'s sha; crit. 1 changes it. The job was T-089's own diff | delete | (Same alternative as row 27) | |
-| 29 | `question-bank/src/climate-far-phrases-verify.test.ts` › "T-090 criterion 10: same counts" › "content.json serves 365 questions, climate 50" | `2023a09`, T-090 tester | Crit. 1 | modify | renamed "…serves 415 questions, climate 50". Asserts 415 and 50 | |
-| 30 | same file › "T-090 criterion 12: nothing else in the bank moved" › "content.json: every non-climate question deep-equal to 3279555" | `2023a09` | Crit. 1 adds 50 that were not in 3279555 | modify | renamed "…every non-climate, non-`map_click` question deep-equal to 3279555". The same deep-equality over that set | |
-| 31 | same file › "T-090 criterion 20: no other surface changes" › "frontend (except []) is byte-identical to 3279555", "openapi.yaml (except []) is byte-identical to T-089's tree", "backend/app (except [ "backend/app/data/content.json" ]) is byte-identical to T-089's tree" | `2023a09` | T-051 must change all three surfaces (Constraints). The job was T-090's own diff | delete (three tests) | (Alternative: re-pin. I recommend against it, as in row 27) | |
-| 32 | `e2e/tests/app.ts` › `fetchAnswerKey` | `73b49f9` | Crit. 3: `map_click` ids have no `choices`, so the key skips them | modify | also maps each `map_click` id to its `answerGeometryId` (for example, a key value tagged as a geometry id). Choice entries unchanged | |
-| 33 | `e2e/tests/app.ts` › `answerAtRandom`, `answerDeliberately`, `awaitFreshQuestion`; through them `quiz.spec.ts` "every quiz type can be played through", "a right answer earns a fact and a wrong one earns the reason", "the summary counts places, never a percentage or a score", "a session can be picked up by switching profiles and back", and all five `progress.spec.ts` tests | `73b49f9` | Crit. 22: a `map_click` has no `data-variant="choice"` buttons, so "a question with nothing to answer it with" fails and `awaitFreshQuestion` waits forever | modify | when `[role="button"][data-geometry-id]` is present: `answerAtRandom` taps a random one; `answerDeliberately` taps `answerGeometryId` (right) or another state (wrong), with the same graded-as-wanted assertion; `awaitFreshQuestion` waits for a choice button **or** a tappable state. Taps go through `focus()` + Enter or `dispatchEvent("click")`. Choice paths unchanged | |
-| 34 | `backend/integration/test_child_loop.py` › helper `answer()`; `backend/integration/test_persistence.py` and `backend/integration/test_write_durability.py`, which read `question["correctIndex"]` inline. Red in CI run 40390315525 (`integration (docker compose)`): `KeyError: 'correctIndex'` on `gen:tpl-click-the-map:us-state-il`. Added by the attended tester; the Handoff and rows 1–33 missed it | `73b49f9` (PR #35 merge): one child's sitting over HTTP against the real stack | Crit. 1/14: a default (`mixed`) session now serves `map_click`, which has no `correctIndex` | modify | `answer()` as in row 10: `map_click` right sends `tappedGeometryId = answerGeometryId`, wrong sends a different state code; choice formats unchanged. The two inline reads do the same for `map_click` and are unchanged otherwise. Every assertion after the answer stays as it is | |
+| 1 | `backend/tests/test_content_api.py` › `test_content_version_counts_what_was_seeded` | `73b49f9` (PR #35 merge), later bumped by T-026: served-question count | Crit. 1 adds 50 served `map_click` questions, so the count is 415 | modify | same name. Asserts `questionCount == 415` (was 365), and everything else as now || approved — Dkaattae, 2026-10-26 |
+| 2 | `backend/tests/test_content_api.py` › `test_a_bundle_carries_its_entities_and_questions` | `73b49f9`: the bundle carries the whole bank | Crit. 1: 415 | modify | same name. Asserts the bundle holds 415 questions, and the rest as now || approved — Dkaattae, 2026-10-26 |
+| 3 | `backend/tests/test_content_api.py` › `test_pagination_walks_the_whole_set_once` | `73b49f9`: cursor pagination visits every question once | Crit. 1: 415 questions, and `range(100)` × `limit 4` stops at 400 | modify | same name. Loop bound `range(200)`. Asserts `len(seen) == 415` and `len(set(seen)) == 415` || approved — Dkaattae, 2026-10-26 |
+| 4 | `backend/tests/test_content_api.py` › `test_every_seeded_question_has_a_usable_answer_key` | `73b49f9`: every question can be graded | Crit. 3: `map_click` has no `choices` or `correctIndex` | modify | same name. Choice formats: as now. `map_click`: `answerGeometryId` is a two-digit string, one of the 50 state codes, and there is no `choices` or `correctIndex` || approved — Dkaattae, 2026-10-26 |
+| 5 | `backend/tests/test_content_build.py` › `test_version_counts_fifty_entities_and_365_questions` | `f1b9de5`, T-026: bank size | Crit. 1 | modify | renamed `…_415_questions`. Asserts 50 entities and 415 questions || approved — Dkaattae, 2026-10-26 |
+| 6 | `backend/tests/test_content_build.py` › `test_served_questions_are_the_files_non_map_click_questions` | `25c7847`, T-040: served = file minus `map_click` | Crit. 1 reverses the exclusion | modify | renamed `test_served_questions_are_every_file_question`. Served ids == all 415 file ids. Each entity's (format, topic) pairs equal the file's, now including `("map_click","location")`. `format=map_click` lists exactly the 50 file `map_click` ids (was `[]`) || approved — Dkaattae, 2026-10-26 |
+| 7 | `backend/tests/test_content_build.py` › `test_nothing_served_falls_outside_the_contract` | `25c7847`, T-040: no non-contract key served | Crit. 3/4: `answerGeometryId` is served on `map_click` | modify | same name. `answer` and `choiceGeometryIds` banned on every question. `answerGeometryId` banned on non-`map_click`. `choices`, `correctIndex` and `highlightGeometryId` banned on `map_click` || approved — Dkaattae, 2026-10-26 |
+| 8 | `backend/tests/test_content_build.py` › `test_served_question_fields_equal_the_question_file` | `25c7847`, T-040 | Crit. 2/3 | modify | same name. Non-`map_click`: as now. `map_click`: every served field except `reveal` equals the file's, `answerGeometryId` included, and `choices` and `correctIndex` are absent || approved — Dkaattae, 2026-10-26 |
+| 9 | `backend/tests/test_content_build.py` › `test_question_ids_with_colons_resolve_and_withhold_the_answer_key` | `25c7847`, T-040 | Crit. 12: the `map_click` key is `answerGeometryId` | modify | same name. Choice formats: as now. `map_click`: with the key, `answerGeometryId` equals the file's; with `includeAnswerKey=false` it is absent || approved — Dkaattae, 2026-10-26 |
+| 10 | `backend/tests/test_content_build.py` › helper `_answer()` (fixes `test_reveals[location-True]`, flaky) | `25c7847`, T-040 | Crit. 14/18: `map_click` is answered by `tappedGeometryId` | modify | `map_click`: right sends `tappedGeometryId = answerGeometryId`; wrong sends a different state code. Choice formats unchanged. In `test_reveals`, a wrong `map_click`'s expected label is the entity's name || approved — Dkaattae, 2026-10-26 |
+| 11 | `backend/tests/test_content_build.py` › `test_a_perfect_session_reaches_every_question_once[location-50-formats0]` | `25c7847`, T-040 | Crit. 1/13: the location pool is now 100 questions in two formats | modify | parameter becomes `("location", 100, {"map_identify","map_click"})`. 100 distinct ids, formats == that set, and each of the 50 entities seen exactly twice || approved — Dkaattae, 2026-10-26 |
+| 12 | `backend/tests/test_content_build.py` › `test_a_perfect_session_reaches_every_question_once[mixed-100-formats2]` | `25c7847`, T-040 | Crit. 1 | modify | formats == `{"map_identify","map_click","multiple_choice"}` (strict, as now). Still 100 distinct ids || approved — Dkaattae, 2026-10-26 |
+| 13 | `backend/tests/test_t040_tester_criteria.py` › `test_c6_version_counts_50_entities_and_365_questions` | `f1b9de5`, T-026 | Crit. 1 | modify | renamed `…_415_questions`. Asserts 50 and 415 || approved — Dkaattae, 2026-10-26 |
+| 14 | `backend/tests/test_t040_tester_criteria.py` › `test_c11_served_ids_are_the_files_non_map_click_ids` | `acaa4a1`, T-040 tester | Crit. 1 | modify | renamed `test_c11_served_ids_are_every_file_id`. The same change as row 6 || approved — Dkaattae, 2026-10-26 |
+| 15 | `backend/tests/test_t040_tester_criteria.py` › `test_c12_no_map_click_is_served_filtered_or_not` | `acaa4a1`, T-040 tester | Crit. 1/11 reverse it | modify | renamed `test_c12_every_map_click_is_served_filtered_or_not`. `format=map_click&limit=500` returns exactly the 50 file `map_click` ids. The unfiltered listing contains all 50 || approved — Dkaattae, 2026-10-26 |
+| 16 | `backend/tests/test_t040_tester_criteria.py` › `test_c10_no_served_key_outside_the_contract` | `acaa4a1` | Crit. 3/4 | modify | the same change as row 7 || approved — Dkaattae, 2026-10-26 |
+| 17 | `backend/tests/test_t040_tester_criteria.py` › `test_c13_served_question_fields_equal_the_question_file` | `acaa4a1` | Crit. 2/3 | modify | the same change as row 8 (`QUESTION_KEYS` plus `answerGeometryId` for `map_click`) || approved — Dkaattae, 2026-10-26 |
+| 18 | `backend/tests/test_t040_tester_criteria.py` › `test_c14_every_question_validates_and_its_key_is_the_files_answer` | `acaa4a1` | Crit. 3 | modify | same name. Every row validates as `Question`. Choice formats: as now. `map_click`: `answerGeometryId` equals the file's, and there is no `choices` or `correctIndex` || approved — Dkaattae, 2026-10-26 |
+| 19 | `backend/tests/test_t040_tester_criteria.py` › helper `play()`, and through it `test_c20_c21_c25_…[location-map_identify-True]`, `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`, `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state` | `acaa4a1` | Crit. 1/14 | modify | `play()` as in row 10. c20 `location`: plays 100, each entity twice, and the format is `map_identify` or `map_click`; fact and highlight checks unchanged. c25: formats == all three. c22: formats == all three; for `map_click` the expected label is the entity's name; other checks unchanged || approved — Dkaattae, 2026-10-26 |
+| 20 | `backend/tests/test_t026_tester_criteria.py` › `test_c36_map_click_is_still_withheld` | `d201e70`, T-026 tester | Crit. 1 reverses it exactly. T-051 `test_c1_*` covers the new behaviour | delete | || approved — Dkaattae, 2026-10-26 |
+| 21 | `backend/tests/test_t026_tester_criteria.py` › `test_c37_no_served_question_gains_a_prose_field` | `d201e70` | Crit. 2: `answerGeometryId` is a key, not prose | modify | same name. `old_keys` gains `answerGeometryId` only || approved — Dkaattae, 2026-10-26 |
+| 22 | `backend/tests/test_t026_tester_criteria.py` › `test_c37_old_served_questions_are_byte_for_byte_main_s` | `d201e70` | `OLD` includes `tpl-click-the-map`, which now adds 50 | modify | filter on `tpl-identify-on-map` and `tpl-capital-of` only. Asserts 100, with the same digest `55ce822c…` (I recomputed it on this branch and it matches) || approved — Dkaattae, 2026-10-26 |
+| 23 | `backend/tests/test_t026_topics.py` › `test_all_265_new_questions_are_served_with_their_topic_and_format` | `a6e3478`, T-026 worker | Its last line asserts no `map_click` is served; crit. 1 | modify | same name. Delete only the last line; the 265 checks stay || approved — Dkaattae, 2026-10-26 |
+| 24 | `backend/tests/test_t026_topics.py` › `test_served_question_keys_are_unchanged_by_the_new_templates` | `a6e3478` | Crit. 2: `map_click` carries `answerGeometryId` | modify | same name. Non-`map_click` keys ⊆ `QUESTION_FIELDS ∪ {reveal}` (as now). `map_click` keys ⊆ `MAP_CLICK_FIELDS ∪ {reveal}` || approved — Dkaattae, 2026-10-26 |
+| 25 | `backend/tests/test_sessions_api.py` › helper `answer()`, and `test_a_correct_answer_returns_the_reward_and_the_key`. Flaky, seen red: `test_serving_advances…`, `test_a_question_can_be_served_without_its_answer_key`, `test_a_milestone…`, `test_only_the_most_recent…`, `test_the_summary_counts…`, `test_ending_twice…`, `test_undo_backs_out…`, `test_a_level_change_is_absent…`, and the worker's list | `73b49f9` | Crit. 1/14: mixed sessions now serve `map_click` | modify | `answer()` as in row 10. In `test_a_correct_answer…`, a `map_click` asserts no `correctIndex` and `correctAnswer` == the entity's name; otherwise `correctIndex` as now. In `test_a_question_can_be_served_without…`, also assert `answerGeometryId` absent || approved — Dkaattae, 2026-10-26 |
+| 26 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_exactly_one_new_entry_numbered_gap_free` | `eebec2c`, T-089 tester | Crit. 39 adds E-29 | modify | same name. `range(1, 30)` || approved — Dkaattae, 2026-10-26 |
+| 27 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_15_nothing_but_those_two_descriptions_changes` | `eebec2c` | It pins `openapi.yaml`'s structure as of T-089, and crit. 8/9 change it. The job was T-089's own diff | delete | (Alternative: re-pin to this branch's digest. I recommend against it, because the pin goes stale on every contract task) || approved — Dkaattae, 2026-10-26 |
+| 28 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_17_content_json_byte_identical` | `eebec2c` | It pins `content.json`'s sha; crit. 1 changes it. The job was T-089's own diff | delete | (Same alternative as row 27) || approved — Dkaattae, 2026-10-26 |
+| 29 | `question-bank/src/climate-far-phrases-verify.test.ts` › "T-090 criterion 10: same counts" › "content.json serves 365 questions, climate 50" | `2023a09`, T-090 tester | Crit. 1 | modify | renamed "…serves 415 questions, climate 50". Asserts 415 and 50 || approved — Dkaattae, 2026-10-26 |
+| 30 | same file › "T-090 criterion 12: nothing else in the bank moved" › "content.json: every non-climate question deep-equal to 3279555" | `2023a09` | Crit. 1 adds 50 that were not in 3279555 | modify | renamed "…every non-climate, non-`map_click` question deep-equal to 3279555". The same deep-equality over that set || approved — Dkaattae, 2026-10-26 |
+| 31 | same file › "T-090 criterion 20: no other surface changes" › "frontend (except []) is byte-identical to 3279555", "openapi.yaml (except []) is byte-identical to T-089's tree", "backend/app (except [ "backend/app/data/content.json" ]) is byte-identical to T-089's tree" | `2023a09` | T-051 must change all three surfaces (Constraints). The job was T-090's own diff | delete (three tests) | (Alternative: re-pin. I recommend against it, as in row 27) || approved — Dkaattae, 2026-10-26 |
+| 32 | `e2e/tests/app.ts` › `fetchAnswerKey` | `73b49f9` | Crit. 3: `map_click` ids have no `choices`, so the key skips them | modify | also maps each `map_click` id to its `answerGeometryId` (for example, a key value tagged as a geometry id). Choice entries unchanged || approved — Dkaattae, 2026-10-26 |
+| 33 | `e2e/tests/app.ts` › `answerAtRandom`, `answerDeliberately`, `awaitFreshQuestion`; through them `quiz.spec.ts` "every quiz type can be played through", "a right answer earns a fact and a wrong one earns the reason", "the summary counts places, never a percentage or a score", "a session can be picked up by switching profiles and back", and all five `progress.spec.ts` tests | `73b49f9` | Crit. 22: a `map_click` has no `data-variant="choice"` buttons, so "a question with nothing to answer it with" fails and `awaitFreshQuestion` waits forever | modify | when `[role="button"][data-geometry-id]` is present: `answerAtRandom` taps a random one; `answerDeliberately` taps `answerGeometryId` (right) or another state (wrong), with the same graded-as-wanted assertion; `awaitFreshQuestion` waits for a choice button **or** a tappable state. Taps go through `focus()` + Enter or `dispatchEvent("click")`. Choice paths unchanged || approved — Dkaattae, 2026-10-26 |
+| 34 | `backend/integration/test_child_loop.py` › helper `answer()`; `backend/integration/test_persistence.py` and `backend/integration/test_write_durability.py`, which read `question["correctIndex"]` inline. Red in CI run 40390315525 (`integration (docker compose)`): `KeyError: 'correctIndex'` on `gen:tpl-click-the-map:us-state-il`. Added by the attended tester; the Handoff and rows 1–33 missed it | `73b49f9` (PR #35 merge): one child's sitting over HTTP against the real stack | Crit. 1/14: a default (`mixed`) session now serves `map_click`, which has no `correctIndex` | modify | `answer()` as in row 10: `map_click` right sends `tappedGeometryId = answerGeometryId`, wrong sends a different state code; choice formats unchanged. The two inline reads do the same for `map_click` and are unchanged otherwise. Every assertion after the answer stays as it is || approved — Dkaattae, 2026-10-26 |
 
 **To approve:** start the `tester` step for T-051 in a session you are
 attending and answer each row there. Writing a Decision here first is fine, but
