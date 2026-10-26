@@ -359,6 +359,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-089 — past span 6, a pick draws from the nearest questions** (PR #94,
+  2026-10-26). When no fresh question is within 6 of the session level,
+  `pick_question` now draws from the fresh questions at the smallest distance,
+  ties included, instead of the whole topic. An 8th grader gets the level-10
+  questions first, not a level-3 farm animal. E-28 records it and answers
+  E-26's span-99 finding. *Where it differed from the brief:* the client copy
+  `frontend/src/lib/session.ts` the queue entry asked about never existed in
+  this repo, so four stale references to it were removed instead of anything
+  kept in step. `LEVEL_SPANS` keeps `99.0` as a marker so `measure_selection.py`
+  is untouched. Three T-090 pins were re-pinned under a person's approval.
+  The reviewer escalated it for `openapi.yaml` (descriptions only). Run
+  orchestrated, with the tester step attended.
 - **T-090 — climate wrong answers: at most one of Hawaii's and Alaska's
   phrases** (PR #93, 2026-10-23). `climates_outside_group` now skips a second
   HI/AK phrase and never takes all three wrong answers from one same-climate
@@ -1584,8 +1596,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   can fill states in, but each topic has only one per state (T-056).
 - **A single-topic review turn re-asks the question missed.** Each topic has
   one question per state, and the review pool is topic-filtered (E-26, T-056).
-- **Above level 10 a pick is uniform over the whole topic.** The bank tops out
-  at 10, so from session level 16.5 the widest span is all of it (E-26, T-089).
 - A **React hydration warning** (#418) on first load of the production build. The
   app recovers; the cause is unfound (T-048).
 - `/geometry`, `/elevation-profiles` and `/superlative-axes` are implemented and
@@ -1614,8 +1624,6 @@ The shortest path to an app that is worth playing for an hour:
    children meet them.
 2. **T-051** — `map_click`, the third v1 format; the question file already
    holds it.
-3. **T-089** — above the bank's top level a pick is drawn from the whole
-   topic; small, and E-26 says exactly where.
 
 CI now guards all of it: the backend, the Postgres path and the compose stack
 run on every pull request (T-009, T-052).
