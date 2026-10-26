@@ -1,7 +1,7 @@
 # T-089 — Above the bank's top level, a pick is drawn from the whole topic — run log
 
 **Task:** T-089 · **Branch:** `claude/peaceful-maxwell-mbf9gd` · **PR:** #94
-**Started:** 2026-10-23 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-23 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-23
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -118,3 +118,7 @@ I recomputed both digests myself and they match the worker's. My recomputation a
 ## Halted — test change request — 2026-10-23
 Raised in commit `eebec2c`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not copied here; the orchestrator has not read them.
 To resume: a person starts the `tester` step for T-089 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15).
+
+## Resumed — attended tester — 2026-10-26
+A person ran the `tester` step in an attended session: `2b99832` (apply approved test change request) and `5c8b871` (verdict pass, test changes approved by Dkaattae). Header now `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-26`.
+Dkaattae, in the orchestrator session, verbatim: "ci is fixed". Resuming at the reviewer.
