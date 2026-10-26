@@ -7,7 +7,7 @@
 **From:** [`tasks.md`](../tasks.md) T-051
 **Branch:** `claude/affectionate-bell-r03ap2`
 **PR:** #96, opened draft at expand time, built from the branch above
-**Fault:** Test changes are waiting for a person's approval. The Test change request lists 33 rows of existing tests (backend, question-bank, e2e helpers) that this task's own criteria 1, 3, 4, 14 and 39 make stale. No criterion is unmet.
+**Fault:** Test changes are waiting for a person's approval. The Test change request lists 34 rows of existing tests (backend, integration, question-bank, e2e helpers) that this task's own criteria 1, 3, 4, 14 and 39 make stale. No criterion is unmet.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (round 2: criteria rewritten for Q1's answer) |
 | worker | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (orchestrated worker subagent; `CLAUDE_CODE_REMOTE_SESSION_ID` is the orchestrator's, so the tester must run in a different one) |
 | tester | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (orchestrated tester subagent. Every role in this run shares this id, so the id check cannot show separation; see Verdict) |
+| tester | 2026-10-26 | cse_011Rir8T57SYNmfYe3rNiYWo (attended, a separate session: picks up the Test change request, ran Playwright) |
 
 ## Q1 — answered: no options, any state can be tapped
 
@@ -750,6 +751,7 @@ behaviour as hard as the old test pinned the old.
 | 31 | same file › "T-090 criterion 20: no other surface changes" › "frontend (except []) is byte-identical to 3279555", "openapi.yaml (except []) is byte-identical to T-089's tree", "backend/app (except [ "backend/app/data/content.json" ]) is byte-identical to T-089's tree" | `2023a09` | T-051 must change all three surfaces (Constraints). The job was T-090's own diff | delete (three tests) | (Alternative: re-pin. I recommend against it, as in row 27) | |
 | 32 | `e2e/tests/app.ts` › `fetchAnswerKey` | `73b49f9` | Crit. 3: `map_click` ids have no `choices`, so the key skips them | modify | also maps each `map_click` id to its `answerGeometryId` (for example, a key value tagged as a geometry id). Choice entries unchanged | |
 | 33 | `e2e/tests/app.ts` › `answerAtRandom`, `answerDeliberately`, `awaitFreshQuestion`; through them `quiz.spec.ts` "every quiz type can be played through", "a right answer earns a fact and a wrong one earns the reason", "the summary counts places, never a percentage or a score", "a session can be picked up by switching profiles and back", and all five `progress.spec.ts` tests | `73b49f9` | Crit. 22: a `map_click` has no `data-variant="choice"` buttons, so "a question with nothing to answer it with" fails and `awaitFreshQuestion` waits forever | modify | when `[role="button"][data-geometry-id]` is present: `answerAtRandom` taps a random one; `answerDeliberately` taps `answerGeometryId` (right) or another state (wrong), with the same graded-as-wanted assertion; `awaitFreshQuestion` waits for a choice button **or** a tappable state. Taps go through `focus()` + Enter or `dispatchEvent("click")`. Choice paths unchanged | |
+| 34 | `backend/integration/test_child_loop.py` › helper `answer()`; `backend/integration/test_persistence.py` and `backend/integration/test_write_durability.py`, which read `question["correctIndex"]` inline. Red in CI run 40390315525 (`integration (docker compose)`): `KeyError: 'correctIndex'` on `gen:tpl-click-the-map:us-state-il`. Added by the attended tester; the Handoff and rows 1–33 missed it | `73b49f9` (PR #35 merge): one child's sitting over HTTP against the real stack | Crit. 1/14: a default (`mixed`) session now serves `map_click`, which has no `correctIndex` | modify | `answer()` as in row 10: `map_click` right sends `tappedGeometryId = answerGeometryId`, wrong sends a different state code; choice formats unchanged. The two inline reads do the same for `map_click` and are unchanged otherwise. Every assertion after the answer stays as it is | |
 
 **To approve:** start the `tester` step for T-051 in a session you are
 attending and answer each row there. Writing a Decision here first is fine, but

@@ -206,8 +206,9 @@ test("a map_click question: one tap answers, the reveal draws both states, undo 
     paths.map((p) =>
       Array.from(p.attributes)
         // `style` carries react-simple-maps' focus/hover look, which follows
-        // the keyboard focus left by the first answer, not the answer.
-        .filter((a) => a.name !== "data-geometry-id" && a.name !== "style")
+        // the keyboard focus left by the first answer, not the answer. `d` is
+        // each state's own outline.
+        .filter((a) => !["data-geometry-id", "style", "d"].includes(a.name))
         .map((a) => `${a.name}=${a.value}`)
         .sort()
         .join(" "),
