@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker` — once a human replaces `pending` below with their name and the date
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-092-map-click-no-candidates.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-092
 **Branch:** `claude/tender-feynman-fv9k0l`
