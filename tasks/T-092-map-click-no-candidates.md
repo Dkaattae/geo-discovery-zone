@@ -1,9 +1,10 @@
 # T-092 — Stop generating candidates for `map_click`
 
-**Status:** `awaiting verification`
-**Next step:** `tester` — a fresh session
+**Status:** `test changes requested`
+**Next step:** `human` — approve or refuse the Test change request below, in a `tester` session you attend
 **Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-092-map-click-no-candidates.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
+**Fault:** 24 pre-existing tests (and the typecheck of 7 test files) pin candidates on `map_click` that this task removes by design; test changes are waiting for a person's approval.
 **From:** [`tasks.md`](../tasks.md) T-092
 **Branch:** `claude/tender-feynman-fv9k0l`
 **PR:** #100, opened draft at expand time against the branch above
@@ -15,6 +16,7 @@
 | task-expander | 2026-10-27 | cse_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator; shared session id) |
 | task-expander | 2026-10-27 | session_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator; froze the criteria for Q1 = (a)) |
 | worker | 2026-10-27 | cse_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator; `CLAUDE_CODE_REMOTE_SESSION_ID`, shared with the roles above — the tester should note it runs in a fresh context, not a different id) |
+| tester | 2026-10-27 | cse_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator in a fresh context; the id is shared, so separation from the worker rests on the spawn, not on the id) |
 
 ## Q1 — resolved: (a), keep every level as it is
 
@@ -358,6 +360,127 @@ No count floor I found pins these files' test counts.
   reachable by calling it with different entities than `buildChoices` saw.
   **Reviewer to confirm.**
 
+## Test change request
+
+Raised by the tester, 2026-10-27, in an orchestrated run (nobody attending). **No
+test below has been changed.** Every row was checked by the tester on this
+branch: each runtime row is red now, and red only because `map_click` questions
+no longer carry `choices` / `correctIndex` / `choiceGeometryIds` (criteria 1, 6).
+The worker's **Tests made stale** list was complete; no count floor
+(`climate-kid-verify.test.ts` `FLOORS`) covers any file below.
+
+**Re-pins (rows 19, 20, 23) were derived independently**, not taken from the
+branch: the tester ran each test's own hashing code over the default branch
+(`5d72ca5`, a `git worktree`). Unmodified, it reproduces the digest the test
+pins today. With exactly the three keys stripped from `map_click` questions, it
+gives the new digest below, which is also what the worker suggested. So each
+new pin says "the default branch's output, minus the three keys", and holds as
+hard as the old one.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/distractors-verify.test.ts` › T-022 criterion 2: exactly four non-blank choices › every question has 4 choices, all non-blank strings | `7fd16bb`, T-022 tester: every generated question has four non-blank choices | criteria 1, 6: a `map_click` question has no `choices` | modify | same name; every non-`map_click` question has 4 non-blank string choices; every `map_click` question has none of the three keys (`Object.hasOwn` false) | |
+| 2 | same file › T-022 criterion 3: correctIndex points at the answer › integer 0..3 and choices[correctIndex] equals the draft's answer | `7fd16bb`, T-022: answer key correct | criteria 1, 6 | modify | same assertion over non-`map_click` questions; `map_click` asserted to have no `correctIndex` | |
+| 3 | same file › T-022 criterion 4: no two choices share text › over the bank, choices are distinct after trim + lower-case | `7fd16bb`, T-022: no duplicate choices | criteria 1, 6 | modify | same assertion over non-`map_click` questions; `map_click` asserted to have no `choices` | |
+| 4 | same file › T-022 criteria 6 and 7: tiers, nearest-first, same-text skip › every question's distractors are exactly the first three by the brief's rule | `7fd16bb`, T-022: tier/nearest-first distractor rule | criteria 1, 6: `map_click` distractors are no longer on the question | modify | non-`map_click` unchanged; for `map_click`, `clickDistractorsFor(draft, own, template, entities)` returns exactly the `geometry_id`s of the first three entities the test's own rule picks, in order | |
+| 5 | same file › same describe › criterion 7 on Ohio: the three nearest bordering states | `7fd16bb`, T-022 | same | modify | as today for `map_identify`; for Ohio's `map_click`, `clickDistractorsFor` returns the `geometry_id`s of the same three bordering states, in the same order | |
+| 6 | same file › same describe › criterion 7 tier 2 tops up from the same region when borders run short | `7fd16bb`, T-022 | same | modify | same expected entities; for `map_click` compared as `geometry_id`s from `clickDistractorsFor` | |
+| 7 | same file › same describe › candidates exclude other scopes, other types, non-finite centroids and blank text | `7fd16bb`, T-022 | same | modify | for the `CLICK` template, the excluded entities' `geometry_id`s are absent from `clickDistractorsFor`'s result; other templates unchanged | |
+| 8 | same file › same describe › map_click candidates need a geometry_id; map_identify candidates do not | `7fd16bb`, T-022: click candidates must be tappable | same; the rule still holds internally | modify | `map_identify` part unchanged; `clickDistractorsFor` for the click draft does not include the no-`geometry_id` state (by entity) and has three codes, all non-blank | |
+| 9 | same file › T-022 criterion 10: no borders still gives a full question › AK and HI map questions have 4 choices, picked with tier 1 empty | `7fd16bb`, T-022 | same | modify | `map_identify` AK/HI: 4 choices as today; `map_click` AK/HI: a question exists, no candidate keys, and `clickDistractorsFor` gives three codes picked with tier 1 empty | |
+| 10 | same file › T-022 criterion 12: map_click carries a parallel geometry_id list › choiceGeometryIds is parallel to choices and its correct entry is answerGeometryId | `7fd16bb`, T-022: the parallel list E-21 introduced | criterion 1/6 removes the list | modify | renamed "T-092: map_click carries no candidate list"; every `map_click` question has none of `choices`, `correctIndex`, `choiceGeometryIds`, and has a non-blank `answerGeometryId` equal to its entity's `geometry_id` | |
+| 11 | same file › T-022 criterion 15: position not predictable from the format › each index 0..3 holds at least 20 of 150, and appears for every template | `7fd16bb`, T-022: answer position spread | `map_click` has no position any more | modify | over the 100 non-`map_click` questions of the two remaining original templates, each index 0..3 holds at least 20 (default branch: 21, 22, 27, 30) and appears for each of the two templates | |
+| 12 | same file › T-022 criterion 18: engineering-decisions.md E-21 › names the parallel list exactly as the code spells it | `7fd16bb`, T-022: E-21 names the code's list | the list no longer exists in the code (criterion 14); E-21 is pinned byte-identical (criterion 13) | delete | — | |
+| 13 | `question-bank/src/distractors.test.ts` › over the committed bank › criteria 2-5: shape, correctIndex, distinct text, draft fields kept | `fc71d87`, T-022 worker | criteria 1, 6 | modify | same assertions over non-`map_click`; `map_click` asserted to keep every draft field and have none of the three keys | |
+| 14 | same file › over the committed bank › criterion 7: neighbours_first tiers and order, both map templates | `fc71d87`, T-022 worker | same | modify | `map_identify` unchanged; `map_click` checked through `clickDistractorsFor` codes against the same tier/order rule | |
+| 15 | same file › over the committed bank › criterion 10: AK and HI map questions are full, with no border tier | `fc71d87`, T-022 worker | same | modify | as row 9 | |
+| 16 | same file › over the committed bank › criterion 12: map_click carries choiceGeometryIds parallel to choices | `fc71d87`, T-022 worker | criteria 1, 6 remove the list | modify | as row 10 | |
+| 17 | same file › over the committed bank › criterion 14: correctIndex depends on the draft id only | `fc71d87`, T-022 worker | `map_click` has no `correctIndex` | modify | same assertion over non-`map_click` questions | |
+| 18 | same file › over the committed bank › criterion 15: every position used at least 20 times and once per template | `fc71d87`, T-022 worker | same | modify | as row 11 | |
+| 19 | `question-bank/src/climate-far-phrases-verify.test.ts` › T-090 criterion 7: every other strategy gives what it gave at 3279555 › committed entities, every non-climate template | `2023a09`, T-090 tester: non-climate distractors unchanged | the pinned output includes `map_click` candidates | modify | same computation; pin becomes `e7213f8a9137f8faca571a16af99eee27735b54c4e8945873174b39a1cbefb5c` (default branch's output with the three keys stripped from `map_click`), comment citing T-092 row 19 | |
+| 20 | same file › T-090 criterion 12: nothing else in the bank moved › question file: every non-climate question deep-equal to 3279555 | `2023a09`, T-090 tester | same | modify | pin becomes `a7407efb948aeebe863f5e74b6af341666cb57fea0d74122891591f700481c3f` (default branch's file, three keys stripped from `map_click`), comment citing T-092 row 20 | |
+| 21 | `question-bank/src/hand-check-levels-verify.test.ts` › T-025 criteria 1-5: the 30 questions are recorded › criterion 2: prompt, correct answer and three distractors equal buildChoices' output | `236b0e0`, T-025 tester: hand-check record matches the generator | `map_click` distractors are no longer on the question | modify | non-`map_click` rows unchanged; for `map_click` rows the recorded three distractors equal the names of the peers whose `geometry_id`s `clickDistractorsFor` returns, in order | |
+| 22 | `question-bank/src/seed-level-verify.test.ts` › T-023 criteria 17-18: concept_load and familiarity_bonus › criterion 18: with every rank equal, a question's level depends only on template and near count (no per-entity bonus) | `8fd5b17`, T-023 tester | `nearCount` reads `choices` / `choiceGeometryIds` | modify | `nearCount` for `map_click` takes its three distractors as the peers with the codes `clickDistractorsFor` returns; everything else, and the assertion, unchanged | |
+| 23 | `question-bank/src/t026-tester-verify.test.ts` › T-026 criterion 4: the old 150 unchanged, count 415 › the old-template questions hash to main's 150 (45b00d7), field for field, in order | `d201e70`, T-026 tester | the 50 click questions in the hashed 150 lost three keys | modify | pin becomes `b5405bf7092ff90ccc2fe99e4458239273bdfef41e422f539aa9317faf3704b4` (default branch's 150, three keys stripped from `map_click`, key order kept), comment citing T-092 row 23 | |
+| 24 | `backend/tests/test_t051_tester_criteria.py` › `test_c37_question_file_still_holds_fifty_map_click_with_their_candidates` | `6537059`, T-051 tester: T-051 did not regenerate the file | T-092 regenerates it without candidates (criterion 1) | modify | renamed `test_c37_question_file_holds_fifty_map_click_without_candidates`: 50 `map_click` questions, each with none of `choices`, `correctIndex`, `choiceGeometryIds` and a non-blank `answerGeometryId` | |
+| 25 | `question-bank/src/distractors-verify.test.ts` (typecheck) | `7fd16bb`, T-022 | `choices` / `correctIndex` now optional, `choiceGeometryIds` gone from the type | modify | narrow each read (`q.choices as string[]`, `q.correctIndex as number`), no runtime change beyond rows 1-12 | |
+| 26 | `question-bank/src/distractors.test.ts` (typecheck) | `fc71d87`, T-022 | same | modify | as row 25 | |
+| 27 | `question-bank/src/seed-level-verify.test.ts` (typecheck) | `8fd5b17`, T-023 | same | modify | as row 25 | |
+| 28 | `question-bank/src/hand-check-levels-verify.test.ts` (typecheck) | `236b0e0`, T-025 | same | modify | as row 25 | |
+| 29 | `question-bank/src/t026-templates.test.ts` (typecheck only; runtime green) | `a6e3478`, T-026 worker | same | modify | as row 25; no assertion changes | |
+| 30 | `question-bank/src/t026-tester-verify.test.ts` (typecheck; runtime red only in row 23) | `d201e70`, T-026 tester | same | modify | as row 25 | |
+| 31 | `question-bank/src/climate-far-phrases.test.ts` (typecheck only; runtime green) | `72927f7`, T-090 worker | same | modify | as row 25; no assertion changes | |
+
+To approve: start the `tester` step for this task in a session you are
+attending, and answer row by row there.
+
 ## Verdict
 
-_Not yet._
+**TL;DR.** Not final. All 18 criteria look met; the verdict waits on a Test change request. 24 existing tests (plus the typecheck of 7 test files) go red because this task removes `map_click` candidates, as intended. They are listed in **Test change request** above and none has been changed. **Next: a person approves or refuses those 31 rows in a `tester` session they attend.** That tester applies the approved rows, re-runs everything, and writes the final verdict.
+
+**Independence.** This was an orchestrated run. `CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJe6KxQ3qitLn4NjWjF`, the same id the worker and expander rows list. My independence comes from being a freshly spawned agent with its own context: I did not see the worker's conversation or reasoning. That is weaker evidence than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+**Branch.** I committed to `claude/tender-feynman-fv9k0l`, which is the brief's header and also `git branch --show-current`. Every file the Handoff names is on it.
+
+### Criteria
+
+My test file is `question-bank/src/map-click-no-candidates-verify.test.ts`: 76 tests, all green. Expected values come from the default branch `5d72ca5` (a `git worktree`), never from this branch's code. They are embedded either as digests or, for the synthetic banks, as literal levels and `shortPools`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `criterion 1` test: none of the 50 has any of the three keys (`Object.hasOwn`) |
+| 2 | met | ids and formats in file order hash to `5d72ca5`'s; one per committed state |
+| 3 | met | the twelve fields hash to `5d72ca5`'s; key set is exactly the twelve plus `level` |
+| 4 | met | the 365 others hash to `5d72ca5`'s; `count` and the total are both 415 |
+| 5 | met | `renderQuestionFile(loadCommittedEntities())` gives the file byte for byte |
+| 6 | met | 9 synthetic banks: no candidate keys from `buildChoices`, `seedLevels`, `buildQuestionBank` or `renderQuestionFile`; committed bank too |
+| 7 | met | same banks: 4 choices, `choices[correctIndex] === answer`, no `choiceGeometryIds`; non-click output equals `5d72ca5`'s |
+| 8 | met | `(id, level)` of the 50 hashes to `5d72ca5`'s |
+| 9 | met | per bank, click levels equal `5d72ca5`'s literal values. Covers a non-zero near term (`near` aa 7.5) and a zero one (`none` aa 6), with and without ranks |
+| 10 | met | per bank, click `shortPools` equal `5d72ca5`'s. Covers the three named cases: two eligible peers gives found 2 / `too_few_candidates`; three gives a question; no centroid (with 0, 2 or 4 peers) gives `no_centroid` |
+| 11 | met | `make -C backend content` leaves `content.json` unmodified (`git status` clean); the drift guard in `test_content_build.py` passes |
+| 12 | met | `content.json` sha256 equals `5d72ca5`'s |
+| 13 | met | E-1..E-28 hash to `5d72ca5`'s; 29 headings; E-29 has a dated T-092 paragraph with the required content |
+| 14 | met | no non-test `question-bank/src` file names `choiceGeometryIds`; the named old comments are gone |
+| 15 | met | manifests and lockfiles hash to `5d72ca5`'s; none added |
+| 16 | met | `frontend`, `e2e`, `backend/migrations`, `openapi.yaml` and `backend/app` (except `content_build.py`) hash to `5d72ca5`'s |
+| 17 | met | no URL, fetch, transport or non-git spawn in either T-092 test file; the 830 prompt / choices / funFact values in `content.json` hash to `5d72ca5`'s |
+| 18 | **not yet** | red only on the stale tests below, and frontend is environmental |
+
+### Mutations
+
+I made each of these on purpose, saw the tests go red, and reverted it (`git status` is clean apart from my new file):
+
+- **Click questions get `choices` / `correctIndex` back:** c5 and c6 red (8 tests).
+- **Click near count forced to 0:** c5 and c9 red (7).
+- **Near count over a different pair of peers:** c5 and c9 red (7).
+- **`geometry_id` eligibility dropped:** c9 and c10 red (4).
+- **Click `no_centroid` reported as `too_few_candidates`:** c10 red (8).
+- **A click draft with 2 peers becomes a question:** c6, c7, c9 and c10 red (9).
+- **`choiceGeometryIds: []` added to choice formats:** c5 and c7 red.
+- **File edits:**
+  - `choices: null` on one click question: c1, c3 and c5 red.
+  - One click level changed: c5 and c8 red.
+  - Two questions swapped: c2, c3, c5 and c8 red.
+  - One non-click level changed: c4 and c5 red.
+  - An extra key added: c3 and c5 red.
+- **Doc and surface edits:**
+  - E-28 edited: c13 red.
+  - "internally" removed from E-29: c13 red.
+  - A `choiceGeometryIds` comment added to `seed-level.ts`: c14 red.
+  - `content_build.py` comment reverted to "still holds four": c14 red.
+  - `grading.py` touched: c16 red.
+- **One mutation had no effect.** Skipping `distractorsFor`'s `no_centroid` check for click drafts left every test green, because `nearestDistractors` repeats that check, so the behaviour did not change. The `no_centroid` behaviour itself is caught by the reason-swap mutation above.
+
+### Suites (this branch, with my file)
+
+- **question-bank `bun test`:** 2425 pass, 23 fail. All 23 are rows 1–23 of the request; none is a T-092 test.
+- **question-bank typecheck:** fails only in the 7 test files of rows 25–31. Source and my file compile.
+- **question-bank lint and format:** clean.
+- **backend `make test`:** 738 pass, 1 fail (row 24), 9 skipped. Lint and format-check clean.
+- **frontend `bun test`:** 392 pass, 4 fail, **not run to completion**. `react-simple-maps` cannot be installed here: `bun install --frozen-lockfile` gets a proxy 403 on the d3 tarballs, so four test files cannot load. Nothing under `frontend/` changed (the c16 pin confirms it).
+
+### Noted for the reviewer (not failures)
+
+- **`seedLevels` now throws** if it is called with inputs that no longer give a click question three peers.
+- **E-29's `Revisit when` line was edited:** the trigger that has now fired was dropped. Criterion 13 pins only E-1..E-28, so this is allowed.
