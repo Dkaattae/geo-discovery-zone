@@ -1,7 +1,7 @@
 # T-094 — Answer-position spread is checked again for every template that has a position — run log
 
 **Task:** T-094 · **Branch:** `claude/modest-bell-3vg6ok` · **PR:** #101
-**Started:** 2026-10-27 · **Outcome:** in progress
+**Started:** 2026-10-27 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-27
 `Next step` on entry: `none (no brief)` → on exit: `worker` (Status: `awaiting approval`)
@@ -81,3 +81,39 @@
 Files:
 - /home/user/geo-discovery-zone/tasks/T-094-answer-position-spread.md (Verdict, Status `verified — pass`, Next step `reviewer`, tester row in Sessions)
 - /home/user/geo-discovery-zone/question-bank/src/answer-position-spread.test.ts (the file under verification, unchanged by me)
+
+## Round 4 — reviewer — 2026-10-27
+`Next step` on entry: `reviewer` (Status `verified — pass`) → on exit: `human` (Status `approved — swept, PR ready`, read from `c437bda`; the sweep in `16066b0` deleted the brief)
+
+**T-094 is approved and inside the envelope. I swept it and marked PR #101 ready for review; it is not merged.** Dkaattae can merge it as a routine change, with nothing to decide. GitHub CI on the final commit was still running when I stopped, so I can't say it is green.
+
+- **PR:** https://github.com/Dkaattae/geo-discovery-zone/pull/101. It is open and no longer draft. The body now has all 15 acceptance criteria word for word, what verified each, the review, and what was left out on purpose.
+- **Push landed.** `origin/claude/modest-bell-3vg6ok` is at `16066b0`, the same as my local HEAD. That commit sits on top of `c437bda`, which records the review in the brief before the sweep deleted it.
+- **Brief status:** in `c437bda` it was set to `approved — swept, PR ready`, with Next step `human` (merge). I added my Sessions row and a `## Review` section there. The brief was then deleted in the sweep, so those live in git history and in the PR body.
+
+**Review**
+- **Every role's work is in the PR.** There are commits from the expander, worker, tester and orchestrator. Each role stayed in its lane (D-7).
+- **The test is good.** `question-bank/src/answer-position-spread.test.ts` is 65 lines, written like the tests around it, and does nothing beyond the brief. The only file outside the brief's Constraints is the orchestrator's own `runs/` log.
+- **No blocking findings, and no new tasks.**
+- **I reran the checks myself:**
+  - `question-bank`: 2449 pass, 0 fail; typecheck, lint and `format:check` clean.
+  - The frontend tests that read `PROGRESS.md` and `tasks.md` (stale-suite-counts guard and three others): 199 pass, 0 fail.
+- **Criterion 8's example was wrong.** The brief's example (a field no entity has) makes `generate` throw instead of producing zero questions. I accepted the tester's ruling, which verified the criterion with a copy that applies only to countries. I didn't edit the criteria; the gap is noted in `PROGRESS.md`.
+- **Every role shared one session id.** `process.md` already names this as a known cost of orchestrated runs, and the tester said what kind of independence it actually had. No action.
+
+**Sweep, in the PR branch**
+- **Brief:** deleted `tasks/T-094-answer-position-spread.md`.
+- **`tasks.md`:** removed the T-094 entry and added a note to the sweep log at the top. No other task changed: answer positions are a hash of the draft id (E-21), so T-088's options can't affect them.
+- **`PROGRESS.md`:** added a T-094 line under "Completed tasks", including where it differed from the brief. Added one sentence to the question-bank templates paragraph saying every positioned template is now checked.
+
+Files:
+- /home/user/geo-discovery-zone/question-bank/src/answer-position-spread.test.ts
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/runs/T-094-answer-position-spread.md
+
+### Orchestrator checkpoint note
+After the reviewer returned, the working tree held uncommitted edits to `PROGRESS.md` (+12/−1) and `tasks.md` (+2/−15) on top of the pushed sweep `16066b0`. Committed unread as `188f193` per "Checkpoint after every step". A person should confirm they belong in the PR before merging.
+
+## Ended — ready for merge — 2026-10-27
+Roles: task-expander → worker → tester (pass) → reviewer (approve, swept, PR marked ready). No gate halted. PR #101 is Dkaattae's to merge.
