@@ -1,9 +1,7 @@
 # T-092 — Stop generating candidates for `map_click`
 
-**Status:** `blocked`
-**Next step:** `human` — answer **Q1** below (how a `map_click` question's
-`level` is seeded once it has no distractors), then `task-expander` to freeze
-the matching criteria and set `awaiting approval`
+**Status:** `Q1 answered`
+**Next step:** `task-expander` — freeze the criteria for the Q1 answer and set `awaiting approval`
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-092
@@ -21,6 +19,8 @@ expander may not make.
 | task-expander | 2026-10-27 | cse_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator; shared session id) |
 
 ## Q1 — for a human: what seeds a `map_click` level once it has no candidates?
+
+**Answer — the person, 2026-10-27, in the orchestrator's session, verbatim: "a".** Option (a).
 
 **The conflict.** The queue entry asks for two things: no `map_click` question in
 `question-bank/data/questions/us-states.json` carries `choices`, `correctIndex`

@@ -42,3 +42,7 @@ Orchestrator note: the header read with `head -20` included the `Fault:` line, w
 
 ## Halted
 `Status: blocked`, `Next step: human`. A person must answer **Q1** in the brief: how a `map_click` question's `level` is seeded once it has no distractors — (a) keep candidates internal so every level is unchanged, (b) drop the distractor term (49 levels fall), or (c) drop it and raise `concept_load["tpl-click-the-map"]` to 1.5 (2 levels change). Then restart the `task-expander` to freeze criteria 8, 9, 11 and set `awaiting approval`.
+
+## Resumed — 2026-10-27
+The person answered Q1 in the orchestrator's session with the single word: "a".
+Recorded verbatim under the Q1 heading in the brief; header set to `Status: Q1 answered`, `Next step: task-expander` (process.md "When a run stops for you", steps 1–3). The orchestrator did not read Q1's body or the criteria.
