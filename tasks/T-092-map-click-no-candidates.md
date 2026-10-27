@@ -1,10 +1,9 @@
 # T-092 — Stop generating candidates for `map_click`
 
-**Status:** `test changes requested`
-**Next step:** `human` — approve or refuse row 32 of the Test change request below, in this attended `tester` session (rows 1–31 approved and applied)
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-092-map-click-no-candidates.md`.
-**Test changes:** rows 1–31 `approved — the person attending tester session session_011oDiJccZpjfDXXUmUwUL9N (gave no name), 2026-10-27`; row 32 `requested`
-**Fault:** applying rows 1–31 turned one more guard red (row 32: T-025 criterion 17's digest over 48 test files' bytes); it is waiting for a person's approval.
+**Test changes:** `approved — the person attending tester session session_011oDiJccZpjfDXXUmUwUL9N (gave no name), 2026-10-27` (rows 1–32)
 **From:** [`tasks.md`](../tasks.md) T-092
 **Branch:** `claude/tender-feynman-fv9k0l`
 **PR:** #100, opened draft at expand time against the branch above
@@ -411,78 +410,55 @@ hard as the old one.
 | 29 | `question-bank/src/t026-templates.test.ts` (typecheck only; runtime green) | `a6e3478`, T-026 worker | same | modify | as row 25; no assertion changes || approved |
 | 30 | `question-bank/src/t026-tester-verify.test.ts` (typecheck; runtime red only in row 23) | `d201e70`, T-026 tester | same | modify | as row 25 || approved |
 | 31 | `question-bank/src/climate-far-phrases.test.ts` (typecheck only; runtime green) | `72927f7`, T-090 worker | same | modify | as row 25; no assertion changes || approved |
-| 32 | `question-bank/src/hand-check-levels-verify.test.ts` › T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified › criterion 17: every question-bank test file at aa88101 is present and unmodified | `710ec2c`-era T-025 tester guard, last re-pinned by `f1b9de5` (T-026 A2): no old test file changes unseen | applying approved rows 1–18, 22 and 27 changed the bytes of three files it hashes (`distractors-verify.test.ts`, `distractors.test.ts`, `seed-level-verify.test.ts`); raised by the attended tester after applying them, missed by the earlier request | modify | same 48 files, same computation; pin becomes `8b1652c9613dd2fc8e3b68ee957ad7a47cb475b04c7519fac59d1cac47a0e089` (the files as rows 1–31 leave them, nothing else changed), plus a comment line "Re-pinned by T-092's approved Test change request rows 1–31 (this is row 32)." The file list and the `48` stay as they are. | |
+| 32 | `question-bank/src/hand-check-levels-verify.test.ts` › T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified › criterion 17: every question-bank test file at aa88101 is present and unmodified | `710ec2c`-era T-025 tester guard, last re-pinned by `f1b9de5` (T-026 A2): no old test file changes unseen | applying approved rows 1–18, 22 and 27 changed the bytes of three files it hashes (`distractors-verify.test.ts`, `distractors.test.ts`, `seed-level-verify.test.ts`); raised by the attended tester after applying them, missed by the earlier request | modify | same 48 files, same computation; pin becomes `8b1652c9613dd2fc8e3b68ee957ad7a47cb475b04c7519fac59d1cac47a0e089` (the files as rows 1–31 leave them, nothing else changed), plus a comment line "Re-pinned by T-092's approved Test change request rows 1–31 (this is row 32)." The file list and the `48` stay as they are. || approved |
 
 To approve: start the `tester` step for this task in a session you are
 attending, and answer row by row there.
 
 ## Verdict
 
-**TL;DR.** Not final. All 18 criteria look met; the verdict waits on a Test change request. 24 existing tests (plus the typecheck of 7 test files) go red because this task removes `map_click` candidates, as intended. They are listed in **Test change request** above and none has been changed. **Next: a person approves or refuses those 31 rows in a `tester` session they attend.** That tester applies the approved rows, re-runs everything, and writes the final verdict.
+**TL;DR.** **Pass.** All 18 criteria are met. All 32 rows of the Test change request were approved and applied, and nothing else was changed. Every suite is green except the frontend, which can't run here for an environmental reason (below). **Next: the reviewer.**
 
-**Independence.** This was an orchestrated run. `CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJe6KxQ3qitLn4NjWjF`, the same id the worker and expander rows list. My independence comes from being a freshly spawned agent with its own context: I did not see the worker's conversation or reasoning. That is weaker evidence than a separate session, because it depends on the orchestrator having spawned me correctly.
+**Approval, as given in this session:**
+- **Rows 1–31.** The person's words: **"approve all 31"**.
+- **Row 32.** I raised it after applying rows 1–31 turned that guard red. The person's words: **"approve"**.
+- **Header line:** `Test changes: approved — the person attending tester session session_011oDiJccZpjfDXXUmUwUL9N (gave no name), 2026-10-27 (rows 1–32)`.
 
-**Branch.** I committed to `claude/tender-feynman-fv9k0l`, which is the brief's header and also `git branch --show-current`. Every file the Handoff names is on it.
+**Independence.** This tester session (`cse_011oDiJccZpjfDXXUmUwUL9N`) was started and attended by a person. Its id differs from every worker and expander row in the Sessions table, so it is a separate session, not only a fresh context. I did not re-derive criteria 1–17: the earlier orchestrated tester's evidence for them is in its verdict, and its test file `map-click-no-candidates-verify.test.ts` (76 tests) is still green. I re-checked criteria 11, 12 and 18 myself (below).
 
-### Criteria
+**Branch.** I committed to `claude/tender-feynman-fv9k0l`, which is the brief's header and also `git branch --show-current`.
 
-My test file is `question-bank/src/map-click-no-candidates-verify.test.ts`: 76 tests, all green. Expected values come from the default branch `5d72ca5` (a `git worktree`), never from this branch's code. They are embedded either as digests or, for the synthetic banks, as literal levels and `shortPools`.
+### Tests changed (all pre-existing, all approved)
 
-| # | Verdict | Evidence |
+| Rows | File | What changed |
 |---|---|---|
-| 1 | met | `criterion 1` test: none of the 50 has any of the three keys (`Object.hasOwn`) |
-| 2 | met | ids and formats in file order hash to `5d72ca5`'s; one per committed state |
-| 3 | met | the twelve fields hash to `5d72ca5`'s; key set is exactly the twelve plus `level` |
-| 4 | met | the 365 others hash to `5d72ca5`'s; `count` and the total are both 415 |
-| 5 | met | `renderQuestionFile(loadCommittedEntities())` gives the file byte for byte |
-| 6 | met | 9 synthetic banks: no candidate keys from `buildChoices`, `seedLevels`, `buildQuestionBank` or `renderQuestionFile`; committed bank too |
-| 7 | met | same banks: 4 choices, `choices[correctIndex] === answer`, no `choiceGeometryIds`; non-click output equals `5d72ca5`'s |
-| 8 | met | `(id, level)` of the 50 hashes to `5d72ca5`'s |
-| 9 | met | per bank, click levels equal `5d72ca5`'s literal values. Covers a non-zero near term (`near` aa 7.5) and a zero one (`none` aa 6), with and without ranks |
-| 10 | met | per bank, click `shortPools` equal `5d72ca5`'s. Covers the three named cases: two eligible peers gives found 2 / `too_few_candidates`; three gives a question; no centroid (with 0, 2 or 4 peers) gives `no_centroid` |
-| 11 | met | `make -C backend content` leaves `content.json` unmodified (`git status` clean); the drift guard in `test_content_build.py` passes |
-| 12 | met | `content.json` sha256 equals `5d72ca5`'s |
-| 13 | met | E-1..E-28 hash to `5d72ca5`'s; 29 headings; E-29 has a dated T-092 paragraph with the required content |
-| 14 | met | no non-test `question-bank/src` file names `choiceGeometryIds`; the named old comments are gone |
-| 15 | met | manifests and lockfiles hash to `5d72ca5`'s; none added |
-| 16 | met | `frontend`, `e2e`, `backend/migrations`, `openapi.yaml` and `backend/app` (except `content_build.py`) hash to `5d72ca5`'s |
-| 17 | met | no URL, fetch, transport or non-git spawn in either T-092 test file; the 830 prompt / choices / funFact values in `content.json` hash to `5d72ca5`'s |
-| 18 | **not yet** | red only on the stale tests below, and frontend is environmental |
+| 1–12, 25 | `distractors-verify.test.ts` | Choice-format checks unchanged. `map_click`: the three keys must be absent (`Object.hasOwn`), and the would-be distractors are checked as geometry ids from `clickDistractorsFor` against the file's own tier/nearest rule, in pick order. Row 7's decoys got distinct `geometry_id`s (`x1`–`x5`) so the click exclusion check can tell them apart. Their eligibility is unchanged, since they already carried Ohio's id. Row 12 (the E-21 `choiceGeometryIds` name check) is **deleted**. |
+| 13–18, 26 | `distractors.test.ts` | Same treatment. A click question must deep-equal its draft. |
+| 19, 20 | `climate-far-phrases-verify.test.ts` | Re-pinned to `e7213f8a…` and `a7407efb…`. |
+| 21, 28 | `hand-check-levels-verify.test.ts` | The `map_click` hand-check rows compare against the names of the peers `clickDistractorsFor` picks. |
+| 22, 27 | `seed-level-verify.test.ts` | `nearCount` takes `map_click` peers from `clickDistractorsFor`; the assertion is unchanged. |
+| 23, 30 | `t026-tester-verify.test.ts` | Re-pinned to `b5405bf7…`; casts only otherwise. |
+| 24 | `backend/tests/test_t051_tester_criteria.py` | Renamed `test_c37_question_file_holds_fifty_map_click_without_candidates`. It asserts 50 questions, none of the three keys, and a non-blank `answerGeometryId`. |
+| 29, 31 | `t026-templates.test.ts`, `climate-far-phrases.test.ts` | Casts only (`q.choices as string[]`). |
+| 32 | `hand-check-levels-verify.test.ts` T-025 c17 | Re-pinned to `8b1652c9…`: the 48 files as rows 1–31 leave them. |
 
-### Mutations
+**How the re-pins were derived.** I worked out each new pin myself, on a `git worktree` of `main` (`5d72ca5`):
+- **Rows 19, 20, 23:** running each test's own hashing code on unmodified `main` reproduced every old pin. Stripping only `choices`, `correctIndex` and `choiceGeometryIds` from `map_click` questions gave exactly the new pins.
+- **Row 32:** it hashes the file bytes, so the new pin equals the old one plus exactly the approved edits.
 
-I made each of these on purpose, saw the tests go red, and reverted it (`git status` is clean apart from my new file):
+**Mutations.** Each was made in `distractors.ts`, run against the six changed question-bank files, then reverted:
+- **Click questions carry `choices: []`:** rows 1–3, 9/15, 10/16 and 13 go red, as do the c7 digest and the regeneration guards.
+- **`clickDistractorsFor` order reversed:** rows 4, 5, 9, 14 and 15 go red.
+- **Third click distractor replaced:** rows 4–6, 9, 14, 15, 21 and 22 go red.
 
-- **Click questions get `choices` / `correctIndex` back:** c5 and c6 red (8 tests).
-- **Click near count forced to 0:** c5 and c9 red (7).
-- **Near count over a different pair of peers:** c5 and c9 red (7).
-- **`geometry_id` eligibility dropped:** c9 and c10 red (4).
-- **Click `no_centroid` reported as `too_few_candidates`:** c10 red (8).
-- **A click draft with 2 peers becomes a question:** c6, c7, c9 and c10 red (9).
-- **`choiceGeometryIds: []` added to choice formats:** c5 and c7 red.
-- **File edits:**
-  - `choices: null` on one click question: c1, c3 and c5 red.
-  - One click level changed: c5 and c8 red.
-  - Two questions swapped: c2, c3, c5 and c8 red.
-  - One non-click level changed: c4 and c5 red.
-  - An extra key added: c3 and c5 red.
-- **Doc and surface edits:**
-  - E-28 edited: c13 red.
-  - "internally" removed from E-29: c13 red.
-  - A `choiceGeometryIds` comment added to `seed-level.ts`: c14 red.
-  - `content_build.py` comment reverted to "still holds four": c14 red.
-  - `grading.py` touched: c16 red.
-- **One mutation had no effect.** Skipping `distractorsFor`'s `no_centroid` check for click drafts left every test green, because `nearestDistractors` repeats that check, so the behaviour did not change. The `no_centroid` behaviour itself is caught by the reason-swap mutation above.
+The modified tests still fail when the behaviour they pin breaks.
 
-### Suites (this branch, with my file)
+**Noted for the reviewer: rows 11 and 18 narrowed coverage.** Their answer-position floor now covers only `tpl-identify-on-map` and `tpl-capital-of` (the new floor holds: ≥20 of the 100). Before, the per-template "every index appears" loop also ran over the six T-026 templates. That narrowing is what row 11 said and the person approved, but it drops per-index coverage for those six templates in these two files.
 
-- **question-bank `bun test`:** 2425 pass, 23 fail. All 23 are rows 1–23 of the request; none is a T-092 test.
-- **question-bank typecheck:** fails only in the 7 test files of rows 25–31. Source and my file compile.
-- **question-bank lint and format:** clean.
-- **backend `make test`:** 738 pass, 1 fail (row 24), 9 skipped. Lint and format-check clean.
-- **frontend `bun test`:** 392 pass, 4 fail, **not run to completion**. `react-simple-maps` cannot be installed here: `bun install --frozen-lockfile` gets a proxy 403 on the d3 tarballs, so four test files cannot load. Nothing under `frontend/` changed (the c16 pin confirms it).
+### Suites (branch head, after the last commit)
 
-### Noted for the reviewer (not failures)
-
-- **`seedLevels` now throws** if it is called with inputs that no longer give a click question three peers.
-- **E-29's `Revisit when` line was edited:** the trigger that has now fired was dropped. Criterion 13 pins only E-1..E-28, so this is allowed.
+- **question-bank `bun test`:** 2447 pass, 0 fail. Typecheck, lint and `format:check` are clean.
+- **backend `make test`:** 739 pass, 9 skipped (postgres). `ruff check` and `ruff format --check` are clean.
+- **Criterion 5:** `bun run ./src/write-questions.ts` leaves `us-states.json` with no diff.
+- **Criteria 11 and 12:** `make -C backend content` leaves `content.json` with no diff.
+- **frontend `bun test`: not run to completion here.** 392 pass and 4 fail locally because `react-simple-maps` cannot be installed in this container, so 3 test files cannot load. The same 392/4 appears with this session's changes stashed, and the PR's last CI run had the frontend job green. No file under `frontend/` changed.

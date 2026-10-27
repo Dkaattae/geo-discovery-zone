@@ -881,6 +881,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // committed-bank.test.ts and lowered its floor in five files here.
     // Re-pinned by T-064's approved Test change request rows 1–39.
     // Re-pinned by T-026's approved Test change request (rows 1–92, A1; this is A2).
-    expect(digest).toBe("be563d379e01c26edade26938f39de839c0de4dac2199f0882934792f44ec0d9");
+    // Re-pinned by T-092's approved Test change request rows 1–31 (this is row 32).
+    expect(digest).toBe("8b1652c9613dd2fc8e3b68ee957ad7a47cb475b04c7519fac59d1cac47a0e089");
   });
 });
