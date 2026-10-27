@@ -143,3 +143,7 @@ Gates: G5 passed (`awaiting verification` → `test changes requested`; `tester`
 ## Halted — test change request — 2026-10-27
 Raised in commit `cf63f66`. The orchestrator has not read the rows and does not approve, stamp or relay an approval (D-15).
 To resume: a person starts the `tester` step for T-092 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. After that, a new run carries on from the header's `Next step`.
+
+## Resumed after attended tester — 2026-10-27
+The person said in this session: "ci is fixed. please proceed".
+The test change request was handled outside this run, in an attended tester session (`3ca88bf`, `8202f3e`, `baf3ac9`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved … (rows 1–32)`. Not read further.
