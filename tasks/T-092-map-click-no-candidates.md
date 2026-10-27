@@ -1,7 +1,7 @@
 # T-092 — Stop generating candidates for `map_click`
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #100; routine, inside the envelope)
 **Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-092-map-click-no-candidates.md`.
 **Test changes:** `approved — the person attending tester session session_011oDiJccZpjfDXXUmUwUL9N (gave no name), 2026-10-27` (rows 1–32)
 **From:** [`tasks.md`](../tasks.md) T-092
@@ -17,6 +17,7 @@
 | worker | 2026-10-27 | cse_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator; `CLAUDE_CODE_REMOTE_SESSION_ID`, shared with the roles above — the tester should note it runs in a fresh context, not a different id) |
 | tester | 2026-10-27 | cse_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator in a fresh context; the id is shared, so separation from the worker rests on the spawn, not on the id) |
 | tester | 2026-10-27 | cse_011oDiJccZpjfDXXUmUwUL9N (attended, started by a person; a different id from every row above) |
+| reviewer | 2026-10-27 | session_011oDiJe6KxQ3qitLn4NjWjF (spawned by the orchestrator in a fresh context; wrote none of the work) |
 
 ## Q1 — resolved: (a), keep every level as it is
 
@@ -462,3 +463,33 @@ The modified tests still fail when the behaviour they pin breaks.
 - **Criterion 5:** `bun run ./src/write-questions.ts` leaves `us-states.json` with no diff.
 - **Criteria 11 and 12:** `make -C backend content` leaves `content.json` with no diff.
 - **frontend `bun test`: not run to completion here.** 392 pass and 4 fail locally because `react-simple-maps` cannot be installed in this container, so 3 test files cannot load. The same 392/4 appears with this session's changes stashed, and the PR's last CI run had the frontend job green. No file under `frontend/` changed.
+
+## Review
+
+**TL;DR.** **Approved, inside the envelope.** Small, honest source change that fits `distractors.ts` / `seed-level.ts`; every role stayed in its lane; suites green locally and in CI. Nothing blocks. Two non-blocking findings went to the queue; every worker flag is decided below. Swept in this PR; PR #100 marked ready for a person to merge.
+
+**Every role's work is in the PR.** Sessions rows: expander, worker, tester (x2). Commits: expander `57a7fdc`, `5444bdd`, `7fdbdb0` (only `tasks/`, `tasks.md`); worker `bb2cf42`; tester `cf63f66`, `8202f3e`, `3ca88bf`, `baf3ac9`; orchestrator `runs/` logs and the `Approved:` stamp.
+
+**Lanes (D-7, D-14).** Expander commits touch only `tasks/` and `tasks.md`. The tester commits touch no source. The only pre-existing tests changed are in `8202f3e` and `baf3ac9`, both tester commits, and the changed files are exactly rows 1–32's files. The worker changed no pre-existing test. `Test changes:` names a person (attended session), not `orchestrator`.
+
+**Envelope:** tester pass; question-bank 2447/0, typecheck/lint clean, regeneration no diff, `make -C backend content` no diff, backend 739 pass / 9 skipped (all re-run by me); CI green on every job (e2e still running when this was written, see PR). No dependency, no `openapi.yaml`/migration/plan change, `content.json` byte-identical so no child-facing text moved, nothing outside Constraints except test files the Constraints anticipated and `runs/`.
+
+### Worker's flags, disposed
+
+| Flag | Decision |
+|---|---|
+| `choices` / `correctIndex` optional, not a discriminated union | **Accepted.** `LeveledQuestion`/`TaggedQuestion` extend the interface; a union would ripple into `tags.ts` for no runtime gain. `seedLevels` throws on a choice-format question missing them, so the looseness cannot pass silently. |
+| Recompute click distractors in `seedLevels` instead of a side structure | **Accepted.** Keeps stage signatures and keeps anything hidden off the question (Constraints). Walking twice over 50 states costs nothing. |
+| E-29 `Revisit when` line edited (fired trigger removed, Q1 (b)/(c) added) | **Accepted.** The new dated paragraph says the trigger fired and was dropped, so the history is still readable. E-1..E-28 untouched. |
+| `seedLevels` now throws when a click question's inputs give fewer than three peers | **Accepted.** Better than silently scoring a question against inputs it was not built from; the message names the question. |
+
+### Findings (none block)
+
+1. **Answer-position coverage narrowed beyond what T-092 needed** — `question-bank/src/distractors.test.ts` criterion 15 and `distractors-verify.test.ts` T-022 criterion 15 (rows 11, 18). The per-template "every index 0..3 appears" loop used to run over all nine `TEMPLATES`; it now runs over only `tpl-identify-on-map` and `tpl-capital-of`, so the six T-026 templates lost that check, and no other test covers it (`t026-*.test.ts` never inspect `correctIndex` positions). Only `tpl-click-the-map` needed excluding. A person approved the rows as written, so this is not a send-back. **Went to the queue as new T-094 (S)**: nothing queued owns these tests.
+2. **T-092 re-pinned three digest guards and one file-hash guard** (`climate-far-phrases-verify.test.ts` c7/c12, `t026-tester-verify.test.ts` c4, `hand-check-levels-verify.test.ts` c17). **Amended T-070**, which owns the digest-guard policy, so its survey counts these pins as the current ones.
+3. **`PROGRESS.md`'s question-bank section** still said `buildChoices` writes `choiceGeometryIds` on `map_click`. Fixed in the sweep (bookkeeping, not code). The T-022 Completed-tasks line saying the same is history and stays.
+4. **E-21, E-22, E-24 and E-29's own earlier bullet still mention `choiceGeometryIds`** as present. Left: criterion 13 pins E-1..E-28, and E-29's new dated paragraph records that it is gone. Not a defect in an append-only log.
+
+### Also noted
+
+- **The brief's `Approved:` is an orchestrator stamp (unattended, D-1).** The person did answer Q1 and attended the tester, so the decisions that mattered were theirs; the criteria themselves were not read by a person before work began. They are copied into the PR body.
