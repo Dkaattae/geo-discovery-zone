@@ -427,16 +427,18 @@ Since T-040 (PR #88) every served question is generated, as the plan's central
 claim asks (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo — **waiting on a person** (list approval)
-**Depends on:** a person approving the list below
+### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo
+**Depends on:** nothing. The list below was approved by Dkaattae on 2026-10-27.
 **Option chosen 2026-10-27 (Dkaattae): the person-approved `familiarity_bonus`
 list.** **The largest-city risk is accepted** (Dkaattae, same day): a
 largest-city entry lowers Providence (RI) from 10, which T-025 read as
-`about right`, and that is wanted. Record the acceptance in E-22.
-**Proposed list, awaiting approval** (2026-10-27, drafted in a chat session
+`about right`, and that is wanted. **This line is the record of the accepted
+risk** until T-085 writes it into E-22. It could not go into E-22 directly:
+T-089's and T-092's verify tests pin E-1..E-28 byte for byte, so that edit
+needs this task's attended Test change request.
+**List approved 2026-10-27 (Dkaattae)** (drafted in a chat session
 from E-22's T-025 table and E-26/E-27 table D, not from a committed source).
-Membership is what needs approving. The amounts are a first guess the task may
-tune. `familiarity_bonus` becomes a per-entry lookup, not one scalar:
+The membership is approved. The amounts are a first guess the task may tune. `familiarity_bonus` becomes a per-entry lookup, not one scalar:
 - **Drawn apart from the mainland, −2** on `tpl-identify-on-map`,
   `tpl-click-the-map` and `tpl-climate-of`: **HI** (6.5→4.5, 7.5→5.5,
   9.5→7.5), **AK** (6→4, 7→5, 8→6).
