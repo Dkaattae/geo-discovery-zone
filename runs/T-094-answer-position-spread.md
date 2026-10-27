@@ -31,3 +31,25 @@
   - There is no "at least 20 per index" minimum. The queue entry asks for at least one per index, and a minimum for the 24-question template would be a separate decision.
   - It has to be a new file, because adding a test to an existing file would count as changing an existing test.
 - `PROGRESS.md` is unchanged.
+
+## Round 2 — worker — 2026-10-27
+`Next step` on entry: `worker` (Status `awaiting approval`) → on exit: `tester` (Status `awaiting verification`)
+
+**TL;DR:** I added one new test file for T-094, and it passes on the current source and committed bank. All eight positioned templates already put their answer at each of the four positions (indices 0 to 3), so criterion 4 found no gap and nothing needs blocking. The whole `question-bank` suite passes (2449 pass, 0 fail), and so do typecheck, lint and `format:check`. Next step is the tester.
+
+- **New file:** `/home/user/geo-discovery-zone/question-bank/src/answer-position-spread.test.ts`
+  - It picks the templates to check by format: everything in `TEMPLATES` except `map_click`. It does not list ids.
+  - It asserts that set is not empty and contains all eight template ids named in the brief.
+  - It asserts every template in the set has at least one question at each index 0 to 3. On failure the output names the template and the index, e.g. `"tpl-farm-animal-of: no question with correctIndex 0"`.
+- **Brief:** `/home/user/geo-discovery-zone/tasks/T-094-answer-position-spread.md` now has the Handoff with a criterion table and Notes. Status is `awaiting verification`, Next step is `tester`, and my Sessions row is added.
+- **Nothing else changed.** No source, data, existing test, `package.json` or `bun.lock` changes. Tests made stale: none.
+- **Push landed:** commit `490b7e7` is the tip of `origin/claude/modest-bell-3vg6ok`, which is the brief's `Branch:` header and the branch I was on.
+
+**Mutation checks I ran myself (all reverted):**
+- **Criteria 5–7:** each of the eight templates went red when it lost index 3, one at a time. `tpl-farm-animal-of` also went red when it lost index 0.
+- **Criterion 8:** a copy of `tpl-capital-of` limited to countries, so it produces zero questions on the state bank, went red and listed all four indices for that template.
+
+**Flags:**
+- **Same session id as the expander.** My `CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdmgY3R4p3uHw5DgmH`, identical to the expander's row. The orchestrator or the `runs/` record should note this, and the tester needs to confirm its own id differs.
+- **Criterion 8's example doesn't behave as the brief describes.** A template that requires a field that isn't on `Entity` at all makes `generate` throw. The file still goes red, but as an unhandled error instead of this test's named failure. A real `Entity` field that no state happens to have fails with the template named, as intended. The tester should decide whether the throwing case counts as passing criterion 8. I think it does.
+- **Environment:** `node_modules` was missing. Before `bun install --frozen-lockfile`, typecheck, lint and format failed and the suite showed 12 failures; after the install everything was clean and the lockfile was unchanged.
