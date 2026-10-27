@@ -397,6 +397,8 @@ were passed over too: each is still waiting on a person.
 **Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
 T-091 and T-056 were passed over too: each is waiting on a person.
 **Skipped again, 2026-10-26, for T-051.** Same reason.
+**Skipped again, 2026-10-27, for T-092.** Same reason. T-085, T-088, T-091
+and T-056 were passed over too: each is still waiting on a person.
 
 ---
 
@@ -551,8 +553,12 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-092 — Stop generating candidates for `map_click` · S · todo
-**Depends on:** —
+### T-092 — Stop generating candidates for `map_click` · S · doing — **waiting on a person**
+**Depends on:** a person's answer to Q1 in `tasks/T-092-map-click-no-candidates.md` (PR #97)
+**Expanded and blocked 2026-10-27.** Every served `map_click` `level` is computed
+from the candidates (E-22's near-distractor term, nearly always +1.5), so the
+Done-when's "`content.json` is unchanged" and removing the picker cannot both
+hold. The brief lays out four options.
 **New 2026-10-27, from T-051's reviewer (PR #96).** A `map_click` question offers
 no candidates (E-29), and `content_build.py` drops them when it serves one. The
 question file still carries `choices`, `correctIndex` and `choiceGeometryIds` on
