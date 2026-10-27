@@ -554,7 +554,7 @@ pick that was not a review (`grading.py:146-147`).
 something in, or the gap is accepted and written down.
 
 ### T-092 — Stop generating candidates for `map_click` · S · doing — **waiting on a person**
-**Depends on:** a person's answer to Q1 in `tasks/T-092-map-click-no-candidates.md` (PR #97)
+**Depends on:** a person's answer to Q1 in `tasks/T-092-map-click-no-candidates.md` (PR #98)
 **Expanded and blocked 2026-10-27.** Every served `map_click` `level` is computed
 from the candidates (E-22's near-distractor term, nearly always +1.5), so the
 Done-when's "`content.json` is unchanged" and removing the picker cannot both

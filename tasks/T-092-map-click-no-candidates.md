@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-092
 **Branch:** `claude/funny-mendel-s8b39y`
-**PR:** #97, opened draft at expand time, built from the branch above. It **stays
+**PR:** #98, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:** the queue entry's Done-when ("`content.json` is unchanged") and its
 motivation ("E-21's distractor code still picks them") cannot both hold, because
@@ -71,7 +71,7 @@ queue entry's Done-when as written. (C) is the only one that leaves no rule abou
 candidates that do not exist. (B) changes difficulty with nothing behind it.
 
 **To unblock:** write the chosen letter (and, for C, the exact input) into this
-section or on PR #97. Then start `task-expander` again. It turns the
+section or on PR #98. Then start `task-expander` again. It turns the
 option-dependent criteria below into final ones and sets
 `Status: awaiting approval`.
 
