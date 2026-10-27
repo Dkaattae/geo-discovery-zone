@@ -481,8 +481,10 @@ describe("T-090 criterion 7: every other strategy gives what it gave at 3279555"
     const tpls = TEMPLATES.filter((t) => t.distractor_strategy !== "climates_outside_group");
     expect(tpls.length).toBe(TEMPLATES.length - 1);
     const out = buildChoices(generate(entities, tpls).drafts, entities, tpls);
+    // T-092 (approved Test change request, row 19): 3279555's output with
+    // `choices`, `correctIndex` and `choiceGeometryIds` stripped from map_click.
     expect(sha(canon(out))).toBe(
-      "b2cbe1cd4777106ee7acf74b8a28763b3bae9796729f5ef3af891fd05e012bc9",
+      "e7213f8a9137f8faca571a16af99eee27735b54c4e8945873174b39a1cbefb5c",
     );
   });
 });
@@ -566,8 +568,10 @@ describe("T-090 criterion 11: only the three wrong answers moved", () => {
 
 describe("T-090 criterion 12: nothing else in the bank moved", () => {
   test("question file: every non-climate question deep-equal to 3279555", () => {
+    // T-092 (approved Test change request, row 20): 3279555's file with
+    // `choices`, `correctIndex` and `choiceGeometryIds` stripped from map_click.
     expect(nonClimateDigest(committedQb.questions)).toBe(
-      "6db801b7ae8a5c416f5c0f7720116c7924867dcdf02a88fbfaa54f391150db8c",
+      "a7407efb948aeebe863f5e74b6af341666cb57fea0d74122891591f700481c3f",
     );
   });
 

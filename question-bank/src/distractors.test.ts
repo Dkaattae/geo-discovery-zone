@@ -7,7 +7,8 @@
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildChoices, correctIndexFor, greatCircleKm } from "./distractors";
+import { buildChoices, clickDistractorsFor, correctIndexFor, greatCircleKm } from "./distractors";
+import type { GeneratedQuestion } from "./distractors";
 import { generate } from "./generate";
 import { DISTRACTOR_STRATEGIES, TEMPLATES, type Template } from "./templates";
 import type { Entity } from "./types";
@@ -36,8 +37,26 @@ function run(entities: Entity[], templates: Template[] = TEMPLATES) {
   return buildChoices(generate(entities, templates).drafts, entities, templates);
 }
 
-function distractorsOf(q: { choices: string[]; correctIndex: number }): string[] {
-  return q.choices.filter((_, i) => i !== q.correctIndex);
+// T-092 (approved Test change request, rows 13-18 and 26): a `map_click`
+// question carries no candidates; its would-be distractors are read through
+// `clickDistractorsFor` as geometry ids, and the choice fields are narrowed.
+const CANDIDATE_KEYS = ["choices", "correctIndex", "choiceGeometryIds"] as const;
+const isClick = (q: GeneratedQuestion) => q.format === "map_click";
+const choicesOf = (q: GeneratedQuestion) => q.choices as string[];
+
+function expectNoCandidates(q: GeneratedQuestion): void {
+  for (const k of CANDIDATE_KEYS) expect([q.id, k, Object.hasOwn(q, k)]).toEqual([q.id, k, false]);
+}
+
+/** The geometry ids of a click question's would-be distractors, in pick order. */
+function clickCodes(q: GeneratedQuestion): string[] {
+  const out = clickDistractorsFor(q, byId.get(q.entityId)!, tpl(q.templateId), bank);
+  if (!Array.isArray(out)) throw new Error(`${q.id}: short pool, found ${out.found}`);
+  return out;
+}
+
+function distractorsOf(q: GeneratedQuestion): string[] {
+  return choicesOf(q).filter((_, i) => i !== q.correctIndex);
 }
 
 /**
@@ -88,14 +107,20 @@ describe("over the committed bank", () => {
 
   test("criteria 2-5: shape, correctIndex, distinct text, draft fields kept", () => {
     for (const [i, q] of original.questions.entries()) {
-      expect(q.choices).toHaveLength(4);
-      for (const c of q.choices) expect(c.trim()).not.toBe("");
+      if (isClick(q)) {
+        expectNoCandidates(q);
+        expect(q).toEqual(originalDrafts[i]!);
+        continue;
+      }
+      const choices = choicesOf(q);
+      expect(choices).toHaveLength(4);
+      for (const c of choices) expect(c.trim()).not.toBe("");
       expect(Number.isInteger(q.correctIndex)).toBe(true);
       expect(q.correctIndex).toBeGreaterThanOrEqual(0);
       expect(q.correctIndex).toBeLessThanOrEqual(3);
-      expect(q.choices[q.correctIndex]).toBe(q.answer);
-      expect(new Set(q.choices.map((c) => c.trim().toLowerCase())).size).toBe(4);
-      const { choices: _c, correctIndex: _i, choiceGeometryIds: _g, ...rest } = q;
+      expect(choices[q.correctIndex as number]).toBe(q.answer);
+      expect(new Set(choices.map((c) => c.trim().toLowerCase())).size).toBe(4);
+      const { choices: _c, correctIndex: _i, ...rest } = q;
       expect(rest).toEqual(originalDrafts[i]!);
     }
   });
@@ -118,7 +143,8 @@ describe("over the committed bank", () => {
         [(e) => borders.includes(e.id), (e) => e.region === own.region, () => true],
         (e) => e.name,
       );
-      expect(distractorsOf(q)).toEqual(want);
+      if (isClick(q)) expect(clickCodes(q)).toEqual(want.map((n) => byName.get(n)!.geometry_id!));
+      else expect(distractorsOf(q)).toEqual(want);
     }
   });
 
@@ -167,10 +193,16 @@ describe("over the committed bank", () => {
   test("criterion 10: AK and HI map questions are full, with no border tier", () => {
     for (const p of ["AK", "HI"]) {
       expect(byId.get(stateId(p))!.borders).toEqual([]);
-      for (const t of ["tpl-identify-on-map", "tpl-click-the-map"]) {
-        const q = questions.find((x) => x.id === `gen:${t}:${stateId(p)}`)!;
-        expect(q.choices).toHaveLength(4);
-      }
+      const own = byId.get(stateId(p))!;
+      const q = questions.find((x) => x.id === `gen:tpl-identify-on-map:${stateId(p)}`)!;
+      expect(q.choices).toHaveLength(4);
+      // T-092: the click question exists with no candidates; its would-be three
+      // are picked with tier 1 empty.
+      const click = questions.find((x) => x.id === `gen:tpl-click-the-map:${stateId(p)}`)!;
+      expectNoCandidates(click);
+      const want = expected(own, [(e) => e.region === own.region, () => true], (e) => e.name);
+      expect(clickCodes(click)).toEqual(want.map((n) => byName.get(n)!.geometry_id!));
+      expect(clickCodes(click)).toHaveLength(3);
     }
   });
 
@@ -182,15 +214,15 @@ describe("over the committed bank", () => {
     for (const c of distractorsOf(oh)) expect(ohio.borders).toContain(byCapital.get(c)!.id);
   });
 
-  test("criterion 12: map_click carries choiceGeometryIds parallel to choices", () => {
+  // T-092 (approved Test change request, row 16): was "map_click carries
+  // choiceGeometryIds parallel to choices"; the list is gone (E-29).
+  test("criterion 12, as changed by T-092: map_click carries no candidate list", () => {
     const clicks = questions.filter((q) => q.format === "map_click");
     expect(clicks).toHaveLength(50);
     for (const q of clicks) {
-      expect(q.choiceGeometryIds).toHaveLength(4);
-      q.choices.forEach((c, i) =>
-        expect(q.choiceGeometryIds![i]).toBe(byName.get(c)!.geometry_id!),
-      );
-      expect(q.choiceGeometryIds![q.correctIndex]).toBe(q.answerGeometryId!);
+      expectNoCandidates(q);
+      expect(q.answerGeometryId!.trim()).not.toBe("");
+      expect(q.answerGeometryId).toBe(byId.get(q.entityId)!.geometry_id!);
     }
   });
 
@@ -205,7 +237,8 @@ describe("over the committed bank", () => {
       ORIGINAL,
     ).questions;
     const full = new Map(original.questions.map((q) => [q.id, q.correctIndex]));
-    for (const q of [...reversed, ...subset]) {
+    // T-092: a map_click question has no correctIndex.
+    for (const q of [...reversed, ...subset].filter((x) => !isClick(x))) {
       expect(q.correctIndex).toBe(full.get(q.id)!);
       expect(q.correctIndex).toBe(correctIndexFor(q.id));
     }
@@ -213,10 +246,15 @@ describe("over the committed bank", () => {
   });
 
   test("criterion 15: every position used at least 20 times and once per template", () => {
+    // T-092 (approved Test change request, row 18): a map_click question has no
+    // position, so the floor is over the 100 questions of the other two originals.
+    const kept = ["tpl-identify-on-map", "tpl-capital-of"];
+    const scoped = questions.filter((q) => kept.includes(q.templateId));
+    expect(scoped).toHaveLength(100);
     for (const k of [0, 1, 2, 3]) {
-      expect(questions.filter((q) => q.correctIndex === k).length).toBeGreaterThanOrEqual(20);
-      for (const t of TEMPLATES) {
-        expect(questions.some((q) => q.templateId === t.id && q.correctIndex === k)).toBe(true);
+      expect(scoped.filter((q) => q.correctIndex === k).length).toBeGreaterThanOrEqual(20);
+      for (const t of kept) {
+        expect(scoped.some((q) => q.templateId === t && q.correctIndex === k)).toBe(true);
       }
     }
   });
@@ -257,7 +295,7 @@ describe("short pools and bad input", () => {
     const twin = { ...four[1]!, id: "us-state-zz", capital: " columbus " } as Entity;
     const out = run([...four, twin], [tpl("tpl-capital-of")]);
     for (const q of out.questions) {
-      expect(new Set(q.choices.map((c) => c.trim().toLowerCase())).size).toBe(4);
+      expect(new Set(choicesOf(q).map((c) => c.trim().toLowerCase())).size).toBe(4);
     }
   });
 

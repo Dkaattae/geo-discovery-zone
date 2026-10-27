@@ -561,14 +561,19 @@ def test_c36_migrations_hold_only_the_initial_schema() -> None:
     assert sorted(p.name for p in versions.glob("*.py")) == ["0001_initial_schema.py"]
 
 
-def test_c37_question_file_still_holds_fifty_map_click_with_their_candidates() -> None:
-    """The file is not regenerated: each map_click still carries four candidates."""
+def test_c37_question_file_holds_fifty_map_click_without_candidates() -> None:
+    """T-092 regenerated the file: no map_click carries candidates (E-29).
+
+    Was `..._with_their_candidates`; changed by T-092's approved Test change
+    request, row 24.
+    """
     questions = _file_map_click()
     assert len(questions) == 50
     for question in questions.values():
-        assert len(question["choices"]) == 4
-        assert len(question["choiceGeometryIds"]) == 4
-        assert question["choices"][question["correctIndex"]] == question["answer"]
+        for key in ("choices", "correctIndex", "choiceGeometryIds"):
+            assert key not in question, (question["id"], key)
+        assert isinstance(question["answerGeometryId"], str)
+        assert question["answerGeometryId"].strip() != ""
 
 
 # -- Recorded decision (39) ---------------------------------------------------

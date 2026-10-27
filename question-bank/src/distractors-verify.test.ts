@@ -10,7 +10,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildChoices } from "./distractors";
+import { buildChoices, clickDistractorsFor } from "./distractors";
 import type { GeneratedQuestion } from "./distractors";
 import { generate } from "./generate";
 import type { QuestionDraft } from "./generate";
@@ -131,8 +131,35 @@ function expectedPicks(draft: QuestionDraft, entities: Entity[], templates: Temp
   return taken;
 }
 
+// T-092 (approved Test change request, rows 1-12 and 25): a `map_click`
+// question carries no candidates, so its would-be distractors are read through
+// `clickDistractorsFor` as geometry ids, and the choice fields are narrowed.
+const CANDIDATE_KEYS = ["choices", "correctIndex", "choiceGeometryIds"] as const;
+const isClick = (q: GeneratedQuestion) => q.format === "map_click";
+const choicesOf = (q: GeneratedQuestion) => q.choices as string[];
+const indexOf = (q: GeneratedQuestion) => q.correctIndex as number;
+
+function expectNoCandidates(q: GeneratedQuestion): void {
+  for (const k of CANDIDATE_KEYS) expect([q.id, k, Object.hasOwn(q, k)]).toEqual([q.id, k, false]);
+}
+
+/** The geometry ids of a click draft's would-be distractors, in pick order. */
+function clickCodes(
+  draft: QuestionDraft,
+  entities: Entity[],
+  templates: Template[] = TEMPLATES,
+): string[] {
+  const own = entities.find((e) => e.id === draft.entityId) as Entity;
+  const t = templates.find((x) => x.id === draft.templateId) as Template;
+  const out = clickDistractorsFor(draft, own, t, entities);
+  if (!Array.isArray(out)) throw new Error(`${draft.id}: short pool, found ${out.found}`);
+  return out;
+}
+
+const geo = (es: Entity[]) => es.map((e) => e.geometry_id as string);
+
 function distractorsOf(q: GeneratedQuestion): string[] {
-  return q.choices.filter((_, i) => i !== q.correctIndex);
+  return choicesOf(q).filter((_, i) => i !== q.correctIndex);
 }
 
 function byId(questions: GeneratedQuestion[], templateId: string, entityId: string) {
@@ -156,8 +183,12 @@ describe("T-022 criterion 1: one question per draft over the committed bank", ()
 describe("T-022 criterion 2: exactly four non-blank choices", () => {
   test("every question has 4 choices, all non-blank strings", () => {
     for (const q of run(bank()).questions) {
-      expect(q.choices.length).toBe(4);
-      for (const c of q.choices) expect(nonBlank(c)).toBe(true);
+      if (isClick(q)) {
+        expectNoCandidates(q);
+        continue;
+      }
+      expect(choicesOf(q).length).toBe(4);
+      for (const c of choicesOf(q)) expect(nonBlank(c)).toBe(true);
     }
   });
 });
@@ -166,11 +197,15 @@ describe("T-022 criterion 3: correctIndex points at the answer", () => {
   test("integer 0..3 and choices[correctIndex] equals the draft's answer", () => {
     const { drafts, questions } = run(bank());
     for (const q of questions) {
+      if (isClick(q)) {
+        expectNoCandidates(q);
+        continue;
+      }
       const d = drafts.find((x) => x.id === q.id) as QuestionDraft;
       expect(Number.isInteger(q.correctIndex)).toBe(true);
       expect(q.correctIndex).toBeGreaterThanOrEqual(0);
       expect(q.correctIndex).toBeLessThanOrEqual(3);
-      expect(q.choices[q.correctIndex]).toBe(d.answer);
+      expect(choicesOf(q)[indexOf(q)]).toBe(d.answer);
     }
   });
 });
@@ -178,7 +213,11 @@ describe("T-022 criterion 3: correctIndex points at the answer", () => {
 describe("T-022 criterion 4: no two choices share text", () => {
   test("over the bank, choices are distinct after trim + lower-case", () => {
     for (const q of run(bank()).questions) {
-      const norm = q.choices.map((c) => c.trim().toLowerCase());
+      if (isClick(q)) {
+        expectNoCandidates(q);
+        continue;
+      }
+      const norm = choicesOf(q).map((c) => c.trim().toLowerCase());
       expect(new Set(norm).size).toBe(4);
     }
   });
@@ -191,7 +230,7 @@ describe("T-022 criterion 4: no two choices share text", () => {
     );
     const { questions } = run(twisted);
     const q = byId(questions, CAPITAL, sid("OH"));
-    const norm = q.choices.map((c) => c.trim().toLowerCase());
+    const norm = choicesOf(q).map((c) => c.trim().toLowerCase());
     expect(new Set(norm).size).toBe(4);
     expect(distractorsOf(q).some((c) => same(c, oh.capital as string))).toBe(false);
   });
@@ -218,7 +257,12 @@ describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
     for (const q of questions) {
       const d = drafts.find((x) => x.id === q.id) as QuestionDraft;
       const t = tpl(q.templateId);
-      const want = expectedPicks(d, states, ORIGINAL).map((e) => choiceText(e, t) as string);
+      const picks = expectedPicks(d, states, ORIGINAL);
+      if (isClick(q)) {
+        expect([q.id, clickCodes(d, states, ORIGINAL)]).toEqual([q.id, geo(picks)]);
+        continue;
+      }
+      const want = picks.map((e) => choiceText(e, t) as string);
       expect([q.id, [...distractorsOf(q)].sort()]).toEqual([q.id, [...want].sort()]);
     }
   });
@@ -251,25 +295,31 @@ describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
           dist(here, finiteCentroid(a) as [number, number]) -
           dist(here, finiteCentroid(b) as [number, number]),
       )
-      .slice(0, 3)
-      .map((e) => e.name);
-    const { questions } = run(states);
-    expect(distractorsOf(byId(questions, IDENTIFY, oh.id)).sort()).toEqual([...want].sort());
-    expect(distractorsOf(byId(questions, CLICK, oh.id)).sort()).toEqual([...want].sort());
+      .slice(0, 3);
+    const { drafts, questions } = run(states);
+    const names = want.map((e) => e.name);
+    expect(distractorsOf(byId(questions, IDENTIFY, oh.id)).sort()).toEqual([...names].sort());
+    const click = drafts.find(
+      (d) => d.templateId === CLICK && d.entityId === oh.id,
+    ) as QuestionDraft;
+    expect(clickCodes(click, states)).toEqual(geo(want));
   });
   test("criterion 7 tier 2 tops up from the same region when borders run short", () => {
     // Every map question whose state has fewer than 3 borders: the border states all appear.
     const states = bank();
-    const { questions } = run(states);
+    const { drafts, questions } = run(states);
     let checked = 0;
     for (const s of states) {
       const borders = (s.borders ?? []) as string[];
       if (borders.length >= 3) continue;
-      const names = states.filter((e) => borders.includes(e.id)).map((e) => e.name);
-      for (const t of [IDENTIFY, CLICK]) {
-        const ds = distractorsOf(byId(questions, t, s.id));
-        for (const n of names) expect(ds).toContain(n);
-      }
+      const neighbours = states.filter((e) => borders.includes(e.id));
+      const ds = distractorsOf(byId(questions, IDENTIFY, s.id));
+      for (const n of neighbours) expect(ds).toContain(n.name);
+      const click = drafts.find(
+        (d) => d.templateId === CLICK && d.entityId === s.id,
+      ) as QuestionDraft;
+      const codes = clickCodes(click, states);
+      for (const g of geo(neighbours)) expect(codes).toContain(g);
       checked++;
     }
     expect(checked).toBeGreaterThan(0);
@@ -278,15 +328,31 @@ describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
     const states = bank();
     const oh = states.find((e) => e.id === sid("OH")) as Entity;
     // Decoys sit on Ohio's own centroid (distance 0) and in its region; each fails one rule.
+    // T-092: each decoy gets its own geometry_id, so the click check can tell them apart.
     const decoys: Entity[] = [
-      { ...oh, id: "us-state-x1", name: "Decoy World", capital: "Worldtown", scope: "world" },
-      { ...oh, id: "us-state-x2", name: "Decoy Country", capital: "Countryville", type: "country" },
+      {
+        ...oh,
+        id: "us-state-x1",
+        name: "Decoy World",
+        capital: "Worldtown",
+        scope: "world",
+        geometry_id: "x1",
+      },
+      {
+        ...oh,
+        id: "us-state-x2",
+        name: "Decoy Country",
+        capital: "Countryville",
+        type: "country",
+        geometry_id: "x2",
+      },
       {
         ...oh,
         id: "us-state-x3",
         name: "Decoy NaN",
         capital: "Nantown",
         centroid: [Number.NaN, 40],
+        geometry_id: "x3",
       },
       {
         ...oh,
@@ -294,15 +360,17 @@ describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
         name: "Decoy Short",
         capital: "Shortville",
         centroid: [1] as unknown as [number, number],
+        geometry_id: "x4",
       },
-      { ...oh, id: "us-state-x5", name: "Decoy Blank", capital: "   " },
+      { ...oh, id: "us-state-x5", name: "Decoy Blank", capital: "   ", geometry_id: "x5" },
     ];
     const withDecoys = [...states, ...decoys].map((e) =>
       e.id === oh.id
         ? { ...e, borders: [...(oh.borders as string[]), ...decoys.map((d) => d.id)] }
         : e,
     );
-    const { questions } = buildChoices(generate(withDecoys).drafts, withDecoys);
+    const { drafts } = generate(withDecoys);
+    const { questions } = buildChoices(drafts, withDecoys);
     const banned = [
       "Decoy World",
       "Decoy Country",
@@ -313,12 +381,17 @@ describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
       "Nantown",
       "Shortville",
     ];
-    for (const t of [IDENTIFY, CAPITAL, CLICK]) {
+    for (const t of [IDENTIFY, CAPITAL]) {
       const q = byId(questions, t, oh.id);
       for (const b of banned) expect(q.choices).not.toContain(b);
     }
+    const click = drafts.find(
+      (d) => d.templateId === CLICK && d.entityId === oh.id,
+    ) as QuestionDraft;
+    const codes = clickCodes(click, withDecoys);
+    for (const g of ["x1", "x2", "x3", "x4"]) expect(codes).not.toContain(g);
     // Blank capital is not a capital candidate, but its name is a valid map candidate.
-    expect(byId(questions, CAPITAL, oh.id).choices.some((c) => c.trim() === "")).toBe(false);
+    expect(choicesOf(byId(questions, CAPITAL, oh.id)).some((c) => c.trim() === "")).toBe(false);
     expect(byId(questions, IDENTIFY, oh.id).choices).toContain("Decoy Blank");
   });
   test("map_click candidates need a geometry_id; map_identify candidates do not", () => {
@@ -329,9 +402,20 @@ describe("T-022 criteria 6 and 7: tiers, nearest-first, same-text skip", () => {
     const input = [...states, noGeo].map((e) =>
       e.id === oh.id ? { ...e, borders: [...(oh.borders as string[]), noGeo.id] } : e,
     );
-    const { questions } = buildChoices(generate(input).drafts, input);
+    const { drafts } = generate(input);
+    const { questions } = buildChoices(drafts, input);
     expect(byId(questions, IDENTIFY, oh.id).choices).toContain("Zedland");
-    expect(byId(questions, CLICK, oh.id).choices).not.toContain("Zedland");
+    const click = drafts.find(
+      (d) => d.templateId === CLICK && d.entityId === oh.id,
+    ) as QuestionDraft;
+    const codes = clickCodes(click, input);
+    expect(codes.length).toBe(3);
+    for (const g of codes) {
+      expect(nonBlank(g)).toBe(true);
+      const picked = input.filter((e) => e.geometry_id === g);
+      expect(picked.length).toBeGreaterThan(0);
+      expect(picked.some((e) => e.id === noGeo.id)).toBe(false);
+    }
   });
   test("equal distance breaks ties by ascending entity id", () => {
     const states = bank();
@@ -448,13 +532,19 @@ describe("T-022 criterion 10: no borders still gives a full question", () => {
     for (const c of ["AK", "HI"]) {
       const own = states.find((e) => e.id === sid(c)) as Entity;
       expect(own.borders).toEqual([]);
-      for (const t of [IDENTIFY, CLICK]) {
-        const q = byId(questions, t, own.id);
-        expect(q.choices.length).toBe(4);
-        const d = drafts.find((x) => x.id === q.id) as QuestionDraft;
-        const want = expectedPicks(d, states, TEMPLATES).map((e) => e.name);
-        expect(distractorsOf(q).sort()).toEqual(want.sort());
-      }
+      const q = byId(questions, IDENTIFY, own.id);
+      expect(choicesOf(q).length).toBe(4);
+      const d = drafts.find((x) => x.id === q.id) as QuestionDraft;
+      const want = expectedPicks(d, states, TEMPLATES).map((e) => e.name);
+      expect(distractorsOf(q).sort()).toEqual(want.sort());
+      // T-092: the click question exists with no candidates; its would-be three
+      // are still picked with tier 1 empty.
+      const cq = byId(questions, CLICK, own.id);
+      expectNoCandidates(cq);
+      const cd = drafts.find((x) => x.id === cq.id) as QuestionDraft;
+      const codes = clickCodes(cd, states);
+      expect(codes.length).toBe(3);
+      expect(codes).toEqual(geo(expectedPicks(cd, states, TEMPLATES)));
     }
   });
 });
@@ -488,19 +578,18 @@ describe("T-022 criterion 11: the strategy is read from the template", () => {
 
 // ---- map_click ----
 
-describe("T-022 criterion 12: map_click carries a parallel geometry_id list", () => {
-  test("choiceGeometryIds is parallel to choices and its correct entry is answerGeometryId", () => {
+// T-092 (approved Test change request, row 10): was "map_click carries a
+// parallel geometry_id list"; the list is gone (E-29).
+describe("T-022 criterion 12, as changed by T-092", () => {
+  test("T-092: map_click carries no candidate list", () => {
     const states = bank();
     const clicks = run(states).questions.filter((q) => q.format === "map_click");
     expect(clicks.length).toBe(50);
     for (const q of clicks) {
-      const ids = q.choiceGeometryIds as string[];
-      expect(ids.length).toBe(q.choices.length);
-      q.choices.forEach((name, i) => {
-        const e = states.find((x) => x.name === name) as Entity;
-        expect(ids[i]).toBe(e.geometry_id as string);
-      });
-      expect(ids[q.correctIndex]).toBe(q.answerGeometryId as string);
+      expectNoCandidates(q);
+      const own = states.find((e) => e.id === q.entityId) as Entity;
+      expect(nonBlank(q.answerGeometryId)).toBe(true);
+      expect(q.answerGeometryId).toBe(own.geometry_id as string);
     }
   });
 });
@@ -548,10 +637,15 @@ describe("T-022 criterion 14: correctIndex depends on the draft id only", () => 
 
 describe("T-022 criterion 15: position not predictable from the format", () => {
   test("each index 0..3 holds at least 20 of 150, and appears for every template", () => {
-    const { questions } = run(bank());
+    // T-092 (approved Test change request, row 11): a map_click question has no
+    // position, so the floor is over the 100 questions of the other two originals.
+    const questions = run(bank()).questions.filter((q) =>
+      [IDENTIFY, CAPITAL].includes(q.templateId),
+    );
+    expect(questions.length).toBe(100);
     for (const i of [0, 1, 2, 3]) {
       expect([i, questions.filter((q) => q.correctIndex === i).length >= 20]).toEqual([i, true]);
-      for (const t of [IDENTIFY, CAPITAL, CLICK]) {
+      for (const t of [IDENTIFY, CAPITAL]) {
         expect([i, t, questions.some((q) => q.templateId === t && q.correctIndex === i)]).toEqual([
           i,
           t,
@@ -688,14 +782,6 @@ describe("T-022 criterion 18: engineering-decisions.md E-21", () => {
     expect(nums.filter((n) => n === 21).length).toBe(1);
     expect(nums).toContain(20);
     expect(new Set(nums).size).toBe(nums.length);
-  });
-  test("names the parallel list exactly as the code spells it", () => {
-    const click = run(bank()).questions.find((q) => q.format === "map_click") as GeneratedQuestion;
-    const extra = Object.keys(click).filter(
-      (k) => Array.isArray((click as unknown as Record<string, unknown>)[k]) && k !== "choices",
-    );
-    expect(extra).toEqual(["choiceGeometryIds"]);
-    expect(entry()).toContain("`choiceGeometryIds`");
   });
   test("records tiers and nearest-first with a reason, the 11 fallback states, and the id-derived position", () => {
     const e = entry();
