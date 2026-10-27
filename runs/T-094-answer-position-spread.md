@@ -53,3 +53,31 @@
 - **Same session id as the expander.** My `CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdmgY3R4p3uHw5DgmH`, identical to the expander's row. The orchestrator or the `runs/` record should note this, and the tester needs to confirm its own id differs.
 - **Criterion 8's example doesn't behave as the brief describes.** A template that requires a field that isn't on `Entity` at all makes `generate` throw. The file still goes red, but as an unhandled error instead of this test's named failure. A real `Entity` field that no state happens to have fails with the template named, as intended. The tester should decide whether the throwing case counts as passing criterion 8. I think it does.
 - **Environment:** `node_modules` was missing. Before `bun install --frozen-lockfile`, typecheck, lint and format failed and the suite showed 12 failures; after the install everything was clean and the lockfile was unchanged.
+
+## Round 3 — tester — 2026-10-27
+`Next step` on entry: `tester` (Status `awaiting verification`) → on exit: `reviewer` (Status `verified — pass`)
+
+**T-094 passes. Next step: `reviewer`.** The new test passes, and it went red under every mutation that criteria 5–8 name. Each failure named the template and the missing index. The whole `question-bank` suite (2449 pass, 0 fail), typecheck, lint and `format:check` are clean. The verdict is pushed to `claude/modest-bell-3vg6ok` at `c8b617d`, and I confirmed the remote is at that commit.
+
+**How independent this check is:** this is an orchestrated run. My session id, `cse_011oDiJdmgY3R4p3uHw5DgmH`, is the same one the Sessions table records for the expander and the worker, so the id check proves nothing. My independence rests only on being a freshly spawned agent that never saw the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+**What I did:**
+- **Gates:** ran the full suite, typecheck, lint and `format:check`. I ran `bun install --frozen-lockfile` first; the lockfile is unchanged.
+- **Mutations in `distractors.ts` `questionFor`:** I moved the hashed index away from one value for one template at a time. With index 3 missing, all six T-026 templates went red, and so did identify and capital. With index 0 missing from farm-animal, it went red too. Each failure printed lines like `"tpl-crop-of: no question with correctIndex 3"`.
+- **Boundary for criterion 1:** with farm-animal cut down to exactly one question at index 3, the test stays green.
+- **Criterion 8:** I added a temporary `tpl-capital-copy` with `applies_to: ["country"]`, so it gives zero questions over the state bank. The test went red, naming that template and each of indices 0–3.
+- **Filter mutations for criteria 2 and 3:** I changed the filter in a temporary copy of the test to match only `multiple_choice`, to match nothing, and to silently drop `tpl-crop-of`. All three went red.
+- **Criterion 10:** a probe showed all 50 click questions have no `correctIndex`, and the test passes with them present.
+- **Criteria 11–14:** the branch diff adds only the new test file, the brief and the `runs/` log, and modifies `tasks.md`. Nothing else changed: no other test, source or data file, nothing under `backend/`, and not `package.json` or `bun.lock`.
+- **Cleanup:** every mutation is reverted and the temporary files are deleted. `git diff` is clean. I added no test files; the deliverable is itself a test, so I verified it by mutation.
+
+**Ruling on the worker's criterion 8 question:**
+- **The brief's own example can't produce zero questions.** It suggests a field no entity has, but every `Entity` field is present on at least 24 of the 50 states. The only way to follow it is a field that isn't an `Entity` field at all, and then `generate` throws and refuses the whole template set.
+- **That case is still red.** The file fails with an unhandled error, and the error names the template.
+- **I'm accepting it, not blocking.** The criterion's real condition, a template with zero questions, fails inside the new test with its own message. The example's wording is worth fixing at sweep.
+
+**Tests made stale:** none.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-094-answer-position-spread.md (Verdict, Status `verified — pass`, Next step `reviewer`, tester row in Sessions)
+- /home/user/geo-discovery-zone/question-bank/src/answer-position-spread.test.ts (the file under verification, unchanged by me)
