@@ -1,7 +1,7 @@
 # T-094 — Answer-position spread is checked again for every template that has a position
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-094-answer-position-spread.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-094
@@ -15,6 +15,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH |
+| worker | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH |
 
 ## Goal
 
@@ -175,8 +176,67 @@ Required reading for the worker and the tester.
 
 _Written by `worker`._
 
+**TL;DR:** I added one new test file, `question-bank/src/answer-position-spread.test.ts`. It passes against the current source and committed bank, so criterion 4 found no gap. All eight positioned templates already put their answer at every index 0..3. The whole suite passes (2449 pass, 0 fail), and so do typecheck, lint and `format:check`. No source, data or existing test changed. Tests made stale: none.
+
+**Same session id as the expander.** The orchestrated run gave the worker the same `CLAUDE_CODE_REMOTE_SESSION_ID` as the expander (`cse_011oDiJdmgY3R4p3uHw5DgmH`). The tester should check that its own id differs from both, and the orchestrator / `runs/` should record that expander and worker shared one id.
+
+### What changed
+
+- **`question-bank/src/answer-position-spread.test.ts`** (new). It has two tests under `describe("answer-position spread over the committed bank")`:
+  - **"the positioned set is derived by format and holds every known positioned template"** checks that the set is not empty and that none of the eight survey ids is missing from it (criterion 3).
+  - **"every positioned template has its answer at every index 0..3 at least once"** builds a list of `"<template id>: no question with correctIndex <i>"` strings and asserts that the list is `[]` (criteria 1, 8, 9).
+- **This brief**: Status, Sessions, Handoff, Notes.
+- Nothing else.
+
+### Where each criterion lives
+
+| # | Where / how |
+|---|---|
+| 1 | The second test: a loop over `positioned` × `POSITIONS`. It checks presence only, so one question at an index is enough. |
+| 2 | `positioned = TEMPLATES.filter((t) => t.format !== "map_click")`. No ids are hard-coded in the filter. |
+| 3 | The first test. `KNOWN_POSITIONED` holds the eight ids and is used only to check the derived set, never to drive the loop. |
+| 4 | Passes today: 2 pass, 0 fail. |
+| 5-7 | See "Mutations I ran" below. Every one went red. |
+| 8 | A template with zero questions has an empty `seen` set, so all four indices get reported. Verified by mutation, but see the caveat below. |
+| 9 | Failure output lists strings such as `"tpl-farm-animal-of: no question with correctIndex 0"`. |
+| 10 | Only questions with `typeof q.correctIndex === "number"` are counted. Click questions are never in `positioned` anyway. |
+| 11-12 | Against `origin/main` the branch changes only the new test file, the brief, and `tasks.md`. The `tasks.md` edit is the expander's queue edit, which criterion 11 allows. |
+| 13 | The file reads `data/us-states/*.json` and calls `generate` and `buildChoices`. It uses no transport, sink, spawn or fetch. |
+| 14 | `package.json` and `bun.lock` are unchanged. |
+| 15 | `bun test`: 2449 pass, 0 fail. `typecheck`, `lint` (0 warnings) and `format:check` are clean. |
+
+### Mutations I ran (all reverted, `git status` clean apart from the new file)
+
+- **Criteria 5-7.** I temporarily replaced `distractors.ts:507` so that a draft whose id contains `MUT_T`, and whose hashed index equals `MUT_I`, moves to `(i+1)%4`.
+  - With `MUT_I=3`, each of the six T-026 templates went red one at a time, and so did identify and capital. Each failure named the template and index 3.
+  - `tpl-farm-animal-of` with `MUT_I=0` went red and named index 0.
+- **Criterion 8.** I temporarily added `tpl-capital-copy` to `TEMPLATES`, using the `tpl-capital-of` body with `applies_to: ["country"]`. That gives zero questions over the state bank. The test went red and listed indices 0-3 for `tpl-capital-copy`.
+- **Criterion 8, caveat on the brief's own example.** "A field no entity has" fails earlier and harder than the brief expects. A `requires` entry that is not an `Entity` field makes `generate` throw (`generate: invalid template(s), nothing generated`). The file still goes red, but as an unhandled error, not as this test's named failure. If the field is a real `Entity` field that just happens to be absent from every state, the test fails by name as intended. **Tester to decide** whether the throwing case counts as "fails for that template"; I think it does, since it is red and names the template.
+
+### Deliberately not done
+
+- No per-index floor, no distribution checks, and no change to the two criterion-15 tests (out of scope).
+- No `toHaveLength(8)` on the derived set. A pin like that would break criterion 2, because adding a template would then need a test edit. The check is "contains all eight", as criterion 3 says.
+
+### Contradictions with the brief
+
+- **None of substance.** Only the criterion 8 example caveat above.
+
+### How to run
+
+`cd question-bank && bun install --frozen-lockfile && bun test src/answer-position-spread.test.ts`. Then run `bun test`, `bun run typecheck`, `bun run lint` and `bun run format:check`.
+
+`node_modules` was missing in this environment. Before the install, typecheck, lint and format failed and the suite showed 12 failures. After the install everything is clean. The lockfile is unchanged.
+
+### Tests made stale
+
+None.
+
 ## Verdict
 
 _Written by `tester`._
 
 ## Notes
+
+- **worker, 2026-10-27:** I counted positions with `typeof correctIndex === "number"`, not `!== undefined`, so a stray `null` could not count as a position either.
+- **worker:** I reported failures as one list compared to `[]`, not as a separate `expect` for each pair. That way every missing (template, index) shows up in a single run, and not only the first one.
