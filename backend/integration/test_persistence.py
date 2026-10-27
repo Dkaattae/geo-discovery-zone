@@ -52,7 +52,12 @@ def test_a_childs_progress_survives_a_restart(
     api.post(
         f"/sessions/{session_id}/answers",
         headers=account,
-        json={"questionId": question["id"], "choiceIndex": question["correctIndex"]},
+        json=(
+            # T-051 (approved Test change request row 34): a map_click is answered by a tap.
+            {"questionId": question["id"], "tappedGeometryId": question["answerGeometryId"]}
+            if question["format"] == "map_click"
+            else {"questionId": question["id"], "choiceIndex": question["correctIndex"]}
+        ),
     )
     before = api.get(f"/profiles/{profile['id']}", headers=account).json()
 

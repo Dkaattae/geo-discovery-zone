@@ -12,10 +12,12 @@ from `backend/`). Reads two committed inputs and writes one committed output:
 The mapping is an allowlist in both directions. An entity keeps only the fields
 in `ENTITY_FIELDS`, renamed to the contract's names, and drops any that is
 absent or null; its `funFact` is the first fun fact marked `reviewed: true`, and
-no other prose is written. A question keeps only `QUESTION_FIELDS`, so the
-pipeline's `answer`, `answerGeometryId` and `choiceGeometryIds` never reach the
-app, and `map_click` questions are withheld until T-051 renders them
-(engineering-decisions.md E-24).
+no other prose is written. A question keeps only the fields its format allows:
+`QUESTION_FIELDS` for a choice format, `MAP_CLICK_FIELDS` for `map_click`. So the
+pipeline's `answer` and `choiceGeometryIds` never reach the app, and a `map_click`
+question is served with its `answerGeometryId` and without its four candidates:
+the child taps any state, and the tap is graded by geometry id
+(engineering-decisions.md E-24, E-29).
 
 No clock, no network: running it twice on an unchanged tree writes the same
 bytes. `tests/test_content_build.py` fails when the committed `content.json` is
@@ -77,12 +79,35 @@ QUESTION_FIELDS: tuple[str, ...] = (
     "highlightGeometryId",
 )
 
-# Formats the client renders today (`Session.tsx`). `map_click` joins in T-051.
-SERVED_FORMATS = frozenset({"map_identify", "multiple_choice"})
+# A `map_click` question offers no candidates (E-29): any state can be tapped,
+# and the answer key is the answer's geometry id. The question file still holds
+# four candidates (`choices`, `correctIndex`, `choiceGeometryIds`, E-21); they are
+# not copied, because serving them would hand a client a 25% guess.
+MAP_CLICK_FIELDS: tuple[str, ...] = (
+    "id",
+    "entityId",
+    "templateId",
+    "format",
+    "prompt",
+    "answerGeometryId",
+    "level",
+    "topic",
+    "scope",
+    "entityType",
+    "region",
+    "ageBand",
+)
+
+# Formats the client renders (`Session.tsx`).
+SERVED_FORMATS = frozenset({"map_identify", "map_click", "multiple_choice"})
 
 # What a correct answer reveals: the map for a map question, nothing extra for a
 # capital — as the hand-written bank did. A wrong answer always highlights.
-REVEAL_BY_FORMAT = {"map_identify": "map_highlight", "multiple_choice": "none"}
+REVEAL_BY_FORMAT = {
+    "map_identify": "map_highlight",
+    "map_click": "map_highlight",
+    "multiple_choice": "none",
+}
 
 # Topics whose correct answer also highlights the map, whatever the format.
 # Plan §1.8: "make `reveal: map_highlight` the default for every superlative"
@@ -121,6 +146,8 @@ def served_entity(pipeline: Mapping[str, Any]) -> dict[str, Any]:
 
 def served_question(generated: Mapping[str, Any]) -> dict[str, Any]:
     """One generated question as the app serves it. Raises on a broken answer key."""
+    if generated.get("format") == "map_click":
+        return _served_map_click(generated)
     question = {field: generated[field] for field in QUESTION_FIELDS if field in generated}
     choices = question.get("choices")
     index = question.get("correctIndex")
@@ -135,6 +162,18 @@ def served_question(generated: Mapping[str, Any]) -> dict[str, Any]:
     question["reveal"] = REVEAL_BY_TOPIC.get(
         str(question.get("topic")), REVEAL_BY_FORMAT[question["format"]]
     )
+    return question
+
+
+def _served_map_click(generated: Mapping[str, Any]) -> dict[str, Any]:
+    """A `map_click` question: its answer key is a two-digit geometry id."""
+    question = {field: generated[field] for field in MAP_CLICK_FIELDS if field in generated}
+    answer = question.get("answerGeometryId")
+    if not isinstance(answer, str) or len(answer) != 2 or not answer.isdigit():
+        raise ValueError(
+            f"question {generated.get('id')!r}: answerGeometryId is not a two-digit id"
+        )
+    question["reveal"] = REVEAL_BY_FORMAT["map_click"]
     return question
 
 
@@ -175,7 +214,8 @@ def build_content(
             "note": (
                 "Generated from the pipeline, not edited by hand. Each entity's funFact "
                 "is its first fun fact marked reviewed: true; no other prose is added. "
-                "map_click questions are withheld until T-051."
+                "A map_click question is served without candidates: any state can be "
+                "tapped, and it is graded by answerGeometryId."
             ),
         },
         "entities": served_entities,

@@ -101,7 +101,12 @@ def test_an_answer_is_counted_the_instant_it_is_submitted(
     api.post(
         f"/sessions/{session_id}/answers",
         headers=account,
-        json={"questionId": question["id"], "choiceIndex": question["correctIndex"]},
+        json=(
+            # T-051 (approved Test change request row 34): a map_click is answered by a tap.
+            {"questionId": question["id"], "tappedGeometryId": question["answerGeometryId"]}
+            if question["format"] == "map_click"
+            else {"questionId": question["id"], "choiceIndex": question["correctIndex"]}
+        ),
     )
     state = api.get(f"/sessions/{session_id}", headers=account)
     assert state.json()["counts"]["answered"] == 1

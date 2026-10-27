@@ -47,14 +47,6 @@ def test_c36_all_265_new_questions_served_as_multiple_choice_with_their_topic() 
         assert q["topic"] == NEW[q["templateId"]], q["id"]
 
 
-def test_c36_map_click_is_still_withheld() -> None:
-    served_ids = {q["id"] for q in _content()["questions"]}
-    clicks = [q["id"] for q in _file() if q["format"] == "map_click"]
-    assert len(clicks) == 50
-    assert served_ids.isdisjoint(clicks)
-    assert len(served_ids) == 365
-
-
 def test_c37_superlative_reveals_the_map_other_new_templates_reveal_none() -> None:
     for q in _content()["questions"]:
         if q["templateId"] == "tpl-biggest-state":
@@ -64,7 +56,13 @@ def test_c37_superlative_reveals_the_map_other_new_templates_reveal_none() -> No
 
 
 def test_c37_old_served_questions_are_byte_for_byte_main_s() -> None:
-    old = [q for q in _content()["questions"] if q["templateId"] in OLD]
+    # T-051 (Test change request row 22): tpl-click-the-map is served now, so the
+    # 100 pre-T-026 served questions are the other two templates.
+    old = [
+        q
+        for q in _content()["questions"]
+        if q["templateId"] in ("tpl-identify-on-map", "tpl-capital-of")
+    ]
     assert len(old) == 100
     # sha256 of json.dumps(main's served questions, sort_keys=True), recorded at 45b00d7.
     digest = hashlib.sha256(json.dumps(old, sort_keys=True).encode()).hexdigest()
@@ -76,6 +74,7 @@ def test_c37_no_served_question_gains_a_prose_field() -> None:
         "id", "entityId", "templateId", "format", "prompt", "choices", "correctIndex",
         "level", "topic", "scope", "entityType", "region", "ageBand",
         "highlightGeometryId", "reveal",
+        "answerGeometryId",  # T-051 (Test change request row 21): a key, not prose
     }  # fmt: skip
     for q in _content()["questions"]:
         assert set(q) <= old_keys, (q["id"], set(q) - old_keys)

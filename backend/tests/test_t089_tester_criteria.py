@@ -12,7 +12,6 @@ Byte-identity criteria are pinned by sha256 digests of the default branch
 from __future__ import annotations
 
 import hashlib
-import json
 import random
 import subprocess
 from pathlib import Path
@@ -280,7 +279,7 @@ def test_criterion_13_exactly_one_new_entry_numbered_gap_free() -> None:
     import re
 
     numbers = [int(n) for n in re.findall(r"^## E-(\d+) ", decisions(), flags=re.M)]
-    assert numbers == list(range(1, 29))
+    assert numbers == list(range(1, 30))  # T-051 adds E-29 (Test change request row 26)
     assert numbers.count(28) == 1
 
 
@@ -321,9 +320,9 @@ def test_criterion_14_measure_selection_files_byte_identical(path: str, digest: 
 
 # --- Criterion 15: openapi.yaml ------------------------------------------------
 
-#: sha256 of canonical JSON of the default branch's parsed `openapi.yaml` with
-#: the `description` of `serveNextQuestion` and `listQuestions` removed.
-OPENAPI_STRUCTURE_ON_MAIN = "5a0bc19e8b12a363dff3aec66e6c4572f78d50f7dfc9aa816f786106fb1b28c8"
+# T-051 deleted the structure pin on `openapi.yaml` and the content.json sha pin
+# (criterion 17): both guarded T-089's own diff (approved Test change request
+# rows 27 and 28).
 
 
 def spec() -> dict[str, Any]:
@@ -343,25 +342,6 @@ def test_criterion_15_serve_next_description_says_nearest_fresh() -> None:
     assert "nearest" in text
     assert "nearest the session level" in text
     assert "fresh" in text and "widest difficulty window" in text
-
-
-def test_criterion_15_nothing_but_those_two_descriptions_changes() -> None:
-    doc = spec()
-    for op_id in ("serveNextQuestion", "listQuestions"):
-        operation(doc, op_id).pop("description", None)
-    digest = hashlib.sha256(json.dumps(doc, sort_keys=True).encode()).hexdigest()
-    assert digest == OPENAPI_STRUCTURE_ON_MAIN
-
-
-# --- Criterion 17: content unchanged -----------------------------------------
-
-
-def test_criterion_17_content_json_byte_identical() -> None:
-    data = (REPO / "backend/app/data/content.json").read_bytes()
-    assert (
-        hashlib.sha256(data).hexdigest()
-        == "ac911c444b684ab28e3fe4dd565db2c4c16a8fccc01d71f378d21095ff77571e"
-    )
 
 
 # --- Criterion 18: no migration added ----------------------------------------

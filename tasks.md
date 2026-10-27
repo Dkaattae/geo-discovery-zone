@@ -80,7 +80,9 @@ T-056, T-085, T-088 and T-076 amended. Swept again 2026-10-23, after T-090
 capped Hawaii's and Alaska's climate phrases (PR #93): T-090 deleted; T-091
 new from its content trade; T-070 and T-088 amended. Swept again 2026-10-26,
 after T-089 made a pick past span 6 draw from the nearest questions (PR #94):
-T-089 deleted; T-070, T-053 and T-076 amended._
+T-089 deleted; T-070, T-053 and T-076 amended. Swept again 2026-10-27,
+after T-051 served and rendered `map_click` (PR #96): T-051 deleted; T-092
+and T-093 new; T-070, T-053 and T-045 amended._
 
 ## How this list is ordered
 
@@ -108,18 +110,18 @@ is that gap.
 | | Shipped | Contract / plan describes |
 |---|---|---|
 | **States** | **50**, from the pipeline bank (T-040) | 50 |
-| **Questions** | **365** served, generated: seven per state (T-040, T-026) | generated from templates × entities (§1.2) |
-| **Question formats** | **2** — `map_identify`, `multiple_choice` | 9 — plus `map_click`, `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` |
+| **Questions** | **415** served, generated: about eight per state (T-040, T-026, T-051) | generated from templates × entities (§1.2) |
+| **Question formats** | **3** — `map_identify`, `map_click`, `multiple_choice` | 9 — plus `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` |
 | **Topics** | **7** — location, capital, superlative, wildlife, landmark, climate, agriculture (T-026) | 10 — plus size, physical, elevation |
 | **Map** | US states, `us-atlas`, mastered states fill in | + shaded relief (§2.6), physical features (§2.4) |
 | **Backend** | all 29 contract operations, SQLite or Postgres | — |
 
 So: a child sees a highlighted state and picks its name, or picks one of four
 answers about a named state (capital, state animal, landmark, climate, crop,
-farm animal), or picks the biggest of four states, over 50 states. Setup offers
-the seven topics plus "A bit of everything" (T-026, PR #91). A third generated
-format, `map_click`, is in the committed question file but not served until
-T-051.
+farm animal), or picks the biggest of four states, or taps a named state on
+the map with nothing marked and any state allowed (`map_click`, T-051, PR #96,
+E-29), over 50 states. Setup offers the seven topics plus "A bit of everything"
+(T-026, PR #91).
 
 Nothing else is half-built. The other formats and topics have **no data, no
 generator and no renderer** — they exist as an enum in `openapi.yaml` and as
@@ -212,6 +214,13 @@ refresh (T-087) turns it red; and "only `0001_initial_schema.py`" under
 `migrations/versions` (criterion 18). It also holds prefix digests of
 `test_selection.py` and `engineering-decisions.md`, and full digests of
 `measure_selection.py` and its test. Whatever Q1 decides should cover it.
+**Amended 2026-10-27 by T-051's reviewer (PR #96): two guards are smaller.**
+Under a person's approval (T-051 Test change request rows 27, 28, 31), T-089's
+criteria 15 (`openapi.yaml` digest) and 17 (`content.json` sha) were deleted,
+and so were T-090 criterion 20's three tree pins (`frontend/`, `openapi.yaml`,
+`backend/app`). T-089 criterion 13 now pins `E-n` as exactly 1..29, so the next
+`E-n` still turns it red. T-090 criterion 12 now compares only the
+non-`map_click` questions with `3279555`. The rest of both guards stands.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -387,6 +396,7 @@ T-056 were passed over too: each is waiting on a person.
 were passed over too: each is still waiting on a person.
 **Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
 T-091 and T-056 were passed over too: each is waiting on a person.
+**Skipped again, 2026-10-26, for T-051.** Same reason.
 
 ---
 
@@ -446,8 +456,8 @@ why the coarseness is accepted.
 
 T-040 (PR #88) bridged the pipeline to the app: `backend/app/data/content.json`
 is generated from `question-bank/data/` and the 50 states are served
-(`engineering-decisions.md` E-24). What is left here is making that bank behave
-well at its new size, and the third format.
+(`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
+`map_click`. What is left here is making that bank behave well at its size.
 
 ### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person**
 **Depends on:** a person's choice between the options below (T-026 landed in PR #91)
@@ -541,47 +551,18 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-051 — Render a third question format in the client · M · todo
-**Depends on:** T-020
-**New 2026-08-24.** `Session.tsx` has exactly two branches: `map_identify` and
-`multiple_choice`. A question in any other format would render as a prompt with
-nothing to answer it with. `map_click` — tap the state on the map — is the third
-of the three formats plan §4 step 2 calls v1, it needs no new data beyond what
-`us-atlas` already provides, and it is the one that makes the map interactive
-rather than decorative.
-
-The backend already grades it: `openapi.yaml` carries `map_click` in
-`QuestionFormat` and the answer payload has a place for the tapped geometry id.
-**Corrected 2026-10-13 by T-020's expander.** The sentence above is only half
-true:
-- `backend/app/grading.py:39` puts `map_click` in `CHOICE_FORMATS`, so it is
-  graded by `choiceIndex` against `choices`.
-- `openapi.yaml`'s `AnswerRequest` has **no** geometry-id field.
-
-So a tap has to become a `choiceIndex` on the client, or the payload gains a
-field. T-020's `tpl-click-the-map` sets `answer_field: "geometry_id"`.
-**Since T-021 (PR #80), `engineering-decisions.md` E-20:** a generated
-`map_click` question's `answer` is the state's `name`, with the code carried
-separately as `answerGeometryId`. E-20 expects T-022 to give `choices` a
-parallel list of `geometry_id`s, so the client maps a tap on region `X` to the
-choice whose code is `X` and sends its `choiceIndex`. The backend grading stays
-as it is.
-**Since T-022 (PR #82):** the parallel list is `choiceGeometryIds`
-(`engineering-decisions.md` E-21), set on `map_click` questions only, with
-`choiceGeometryIds[correctIndex] === answerGeometryId`. It is not in
-`openapi.yaml`. Whichever of T-040 and this task first serves a generated
-`map_click` question adds it to the contract and the backend model.
-**Reordered 2026-10-16 by the repo owner (T-040 Q3): this task comes before
-`map_click` is served.** T-040 writes the 50 generated `map_click` questions to
-its committed question file but withholds them from the served bank and leaves
-`choiceGeometryIds` out of the contract. Putting them in the served bank, and
-adding `choiceGeometryIds` to `openapi.yaml` and `backend/app/models.py`, is
-now this task's job. T-040 landed in PR #88: add `map_click` to
-`SERVED_FORMATS` in `backend/app/content_build.py`, map its `choiceGeometryIds`
-there (the loader's field list is an allowlist), and rerun `make -C backend
-content`. The question file already holds the 50 `map_click` questions.
-**Done when:** a `map_click` question can be shown, answered by tapping the map,
-and graded, with the same asymmetric reveal as the other two.
+### T-092 — Stop generating candidates for `map_click` · S · todo
+**Depends on:** —
+**New 2026-10-27, from T-051's reviewer (PR #96).** A `map_click` question offers
+no candidates (E-29), and `content_build.py` drops them when it serves one. The
+question file still carries `choices`, `correctIndex` and `choiceGeometryIds` on
+all 50 `tpl-click-the-map` questions, and E-21's distractor code still picks
+them. Dead data invites a later reader to wire it back in. Stop
+`tpl-click-the-map` writing them, regenerate the question file, and check
+`make -C backend content` writes the same bytes. The stale-test cost is E-21's
+`choiceGeometryIds` tests and any digest guard over the question file (T-070).
+**Done when:** no `map_click` question in `us-states.json` carries a candidate
+field, and `content.json` is unchanged.
 
 ### T-087 — A bank refresh regenerates the question file and the served bank · S · todo
 **Depends on:** —
@@ -636,6 +617,10 @@ distance cap; the contract's polygon-then-centroid strategy (§2.5) needs the
 geometry layers from T-039. Decide whether these formats are near-term (in which
 case they need keys and T-039's geometry) or whether the contract should mark
 them as not yet gradeable.
+**Amended 2026-10-27 by T-051's reviewer (PR #96).** T-051 gave
+`UngradableAnswer` a `path`, so a `map_click` 422 names `/tappedGeometryId`.
+A pin question's 422 still names `/choiceIndex` (`grading.py`, `PIN_FORMATS`
+branch). When these formats get keys, pass the right path (`/pin`, `/order`).
 **Done when:** the gap is closed or written into `openapi.yaml` as deliberate.
 
 ### T-053 — The public bank hands out the answer key by default · S · todo
@@ -669,9 +654,26 @@ endpoint applies one fixed `±levelSpan` window (`routers/content.py:169`,
 `store.py:240`) and widens nothing, and the selector's nearest fallback (E-28)
 has no `levelSpan` equivalent. While editing this operation's text, say that it
 filters to one window.
+**Since T-051 (PR #96):** a `map_click` question carries a second answer key,
+`answerGeometryId`, served by default and withheld with `includeAnswerKey=false`
+(E-29). Its served `entity.geometryId` is the same code, as a superlative's
+entity is, so `includeAnswerKey=false` does not hide that either. Decide both
+with the superlative's entity.
 **Done when:** the default is decided, `openapi.yaml` and the implementation
 agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
 whichever way it went.
+
+### T-093 — An undone answer still counts as a place seen · S · todo
+**Depends on:** —
+**New 2026-10-27, from T-051's tester and reviewer (PR #96).** `apply_answer`
+appends the entity to `session.seen_entity_ids` (`grading.py:159`), and undo
+restores the session from a snapshot that does not hold that list. So an answer
+backed out with "Oops, tapped by mistake" still counts toward the summary's
+`placesSeen` (`routers/sessions.py:407`), for every format. `map_click` makes a
+mis-tap likelier, since every state is a target. Either snapshot the list, or
+decide that a place looked at is a place seen and say so in the undo docstring.
+**Done when:** an undone first answer on a state leaves `placesSeen` where it
+was, or the choice is written down.
 
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —

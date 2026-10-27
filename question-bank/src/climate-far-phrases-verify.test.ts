@@ -532,8 +532,9 @@ describe("T-090 criterion 10: same counts", () => {
     expect(new Set(climateQb.map((q) => q.entityId))).toEqual(new Set(entities.map((e) => e.id)));
   });
 
-  test("content.json serves 365 questions, climate 50", () => {
-    expect(content.questions).toHaveLength(365);
+  // T-051 serves the 50 map_click questions (approved Test change request row 29).
+  test("content.json serves 415 questions, climate 50", () => {
+    expect(content.questions).toHaveLength(415);
     expect(content.questions.filter((q) => q.topic === "climate")).toHaveLength(50);
   });
 
@@ -570,10 +571,12 @@ describe("T-090 criterion 12: nothing else in the bank moved", () => {
     );
   });
 
-  test("content.json: every non-climate question deep-equal to 3279555", () => {
-    expect(nonClimateDigest(content.questions)).toBe(
-      "0d32ac5784b0d5241b565963036f1500f558f88dc820838c9991a8630c602501",
-    );
+  // T-051 adds 50 map_click questions that 3279555 did not serve (approved Test
+  // change request row 30); every question that was served there is unchanged.
+  test("content.json: every non-climate, non-map_click question deep-equal to 3279555", () => {
+    expect(
+      nonClimateDigest(content.questions.filter((q) => q.templateId !== "tpl-click-the-map")),
+    ).toBe("0d32ac5784b0d5241b565963036f1500f558f88dc820838c9991a8630c602501");
   });
 
   test("every file under question-bank/data/us-states/ is byte-identical to 3279555", () => {
@@ -796,22 +799,11 @@ describe("T-090 criterion 20: no other surface changes", () => {
 
   test.each([
     ["geoquizdataplan.md", [], "ec848e63548e360dbe100e99d3be8e565a93aa227bece35620859242e130b1d6"],
-    ["frontend", [], "7d65dc75903745275176b0e10ee85a3b55e17a88465729053e0be979bd449d96"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
   ] as const)("%s (except %p) is byte-identical to 3279555", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);
   });
 
-  // T-089 edits these on purpose (approved Test change request rows 2 and 3), so they
-  // are pinned to T-089's tree instead of 3279555.
-  test.each([
-    ["openapi.yaml", [], "88e056ea172797f078c5649a68245b4f0c18627e599a0bda1110f8183c3d5e5d"],
-    [
-      "backend/app",
-      ["backend/app/data/content.json"],
-      "e7a4e080df1149514332efe2d3b8bad75ee6f270d69d186f7b205ea285dff808",
-    ],
-  ] as const)("%s (except %p) is byte-identical to T-089's tree", (path, except, digest) => {
-    expect(treeDigest(REPO, path, [...except])).toBe(digest);
-  });
+  // T-051 deleted the `frontend`, `openapi.yaml` and `backend/app` tree pins: T-051
+  // edits all three on purpose (approved Test change request row 31).
 });

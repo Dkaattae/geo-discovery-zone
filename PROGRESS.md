@@ -3,7 +3,7 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-10-22_
+_Last updated: 2026-10-27_
 
 ## In one paragraph
 
@@ -11,10 +11,11 @@ The **whole stack is built and runs**: a React app, a FastAPI backend serving al
 29 operations in `openapi.yaml`, a database that survives restarts (SQLite or
 Postgres), accounts with hashed passwords, and one Docker image that serves both
 halves on one origin. Since T-040 (PR #88) and T-026 (PR #91) the app serves
-the pipeline's **50 states** and **365 generated questions**, seven per state,
-in two formats and seven topics: location, capital, superlative, wildlife,
-landmark, climate and agriculture. What is thin now is the **format**: a third
-one, `map_click`, waits on T-051.
+the pipeline's **50 states** and, since T-051 (PR #96), **415 generated
+questions** in the three v1 formats (plan §4) and seven topics: location,
+capital, superlative, wildlife, landmark, climate and agriculture. The third
+format, `map_click`, has the child tap the named state on a map where nothing is
+marked and any state can be tapped (E-29).
 
 ## Layout
 
@@ -80,6 +81,11 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Question loop with the asymmetric reveal (§3.5): a correct answer gets a fun
   fact, a wrong one gets a reason plus the answer on the map. Two tiers, second
   behind a button.
+- **Three formats** (§4): name the highlighted state, pick one of four answers,
+  or tap the state on the map (`map_click`, T-051). On a tap question every
+  state is a keyboard-reachable button and none is marked; the server grades the
+  tapped geometry id (E-29), and a wrong tap is drawn with a dashed outline
+  beside the answer.
 - US map on `us-atlas` + `react-simple-maps`, joined on FIPS, `geoAlbersUsa`
   (§2.2, §2.3). **The map fills in as states are mastered** (§3.6) — from the
   server's join keys, not the client's opinion.
@@ -359,6 +365,23 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-051 — `map_click` served and rendered: tap any state on the map** (PR #96,
+  2026-10-27). The 50 `map_click` questions are served without candidates,
+  `AnswerRequest.tappedGeometryId` carries the tapped state's two-digit code,
+  and the server grades it by exact match with `Question.answerGeometryId`,
+  withheld like `correctIndex`. On the client every state is a button with one
+  shared accessible name, "A state you can tap". E-29 records it. 415 questions
+  now. *Where it differed from the brief:* the brief offered four candidates
+  until Dkaattae's Q1 answer ("if it is clicking, just do not provide options")
+  rewrote it. The worker added `frontend/src/lib/map-click.ts` outside the
+  file list, for an eslint rule. The progress map lost its 56 unlabelled tab
+  stops as a side effect, and the five territories us-atlas carries are no
+  longer drawn. 34 pre-existing test changes were approved by a person,
+  including deleting T-089's and T-090's diff pins; the integration helpers
+  (row 34) were found only when CI went red. No generous hit area for small
+  states: left to the person's tablet check. The reviewer escalated it for
+  `openapi.yaml` and the new child-facing string. Run orchestrated, with the
+  tester step attended.
 - **T-089 — past span 6, a pick draws from the nearest questions** (PR #94,
   2026-10-26). When no fresh question is within 6 of the session level,
   `pick_question` now draws from the fresh questions at the smallest distance,
@@ -1522,9 +1545,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Content — the big one.**
 
-- The app serves **50 states and 365 generated questions**, in **2 of 9
-  formats** and **7 of 10 topics** (T-040, T-026). `size`, `physical` and
+- The app serves **50 states and 415 generated questions**, in **3 of 9
+  formats** and **7 of 10 topics** (T-040, T-026, T-051). `size`, `physical` and
   `elevation` have no template.
+- **Small states may be hard to tap.** `map_click` gives Rhode Island, Delaware
+  and Connecticut no larger hit area than their outline (T-051). Whether a
+  finger can hit them on a tablet is a person's check on PR #96, not yet done.
+- **An undone answer still counts as a place seen** in the summary (T-093).
 - **Some agriculture wrong answers are true.** The crop and farm-animal fields
   list what a state is known for, not all it grows, so a "wrong" choice is
   sometimes right: Iowa "chickens", Texas "sheep", Minnesota "sugar beets"
@@ -1622,8 +1649,7 @@ The shortest path to an app that is worth playing for an hour:
 
 1. **T-088** — the agriculture wrong answers that are true, before more
    children meet them.
-2. **T-051** — `map_click`, the third v1 format; the question file already
-   holds it.
+2. **T-056** — the map cannot fill in during a single-topic first sitting.
 
 CI now guards all of it: the backend, the Postgres path and the compose stack
 run on every pull request (T-009, T-052).
