@@ -84,7 +84,8 @@ T-089 deleted; T-070, T-053 and T-076 amended. Swept again 2026-10-27,
 after T-051 served and rendered `map_click` (PR #96): T-051 deleted; T-092
 and T-093 new; T-070, T-053 and T-045 amended. Swept again 2026-10-27,
 after T-092 stopped writing candidates on `map_click` (PR #100): T-092
-deleted; T-094 new; T-070 amended._
+deleted; T-094 new; T-070 amended. Swept again 2026-10-27, after T-094
+restored per-template answer-position checks (PR #101): T-094 deleted._
 
 ## How this list is ordered
 
@@ -409,6 +410,8 @@ T-091 and T-056 were passed over too: each is waiting on a person.
 **Skipped again, 2026-10-26, for T-051.** Same reason.
 **Skipped again, 2026-10-27, for T-092.** Same reason. T-070, T-085, T-088,
 T-091 and T-056 were passed over too: each is waiting on a person.
+**Skipped again, 2026-10-27, for T-094.** Same reason. T-070, T-085, T-088,
+T-091 and T-056 were passed over too: each is waiting on a person.
 
 ---
 
@@ -562,20 +565,6 @@ settle both here. Also decide whether a review round should count down on a
 pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
-
-### T-094 — Answer-position spread is no longer checked per template for six templates · S · todo
-**Depends on:** —
-**New 2026-10-27, from T-092's reviewer (PR #100).** T-092's approved rows 11
-and 18 narrowed the "every index 0..3 appears for every template" loop in
-`distractors.test.ts` (criterion 15) and `distractors-verify.test.ts` (T-022
-criterion 15) from all nine `TEMPLATES` to `tpl-identify-on-map` and
-`tpl-capital-of`. Only `tpl-click-the-map` had to be excluded (it has no
-`correctIndex` now); the six T-026 templates lost the check as a side effect,
-and no other test inspects their `correctIndex` positions. Restore it as a new
-test over every template except `tpl-click-the-map`, leaving the two
-person-approved tests as they are. No source change.
-**Done when:** a test fails if any non-`map_click` template never puts its
-answer at some index 0..3 over the committed bank.
 
 ### T-087 — A bank refresh regenerates the question file and the served bank · S · todo
 **Depends on:** —
