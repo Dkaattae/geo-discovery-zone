@@ -17,7 +17,7 @@
  * Pure: no network, no file, no clock, no randomness, and inputs are never
  * mutated. Nothing in the build imports this module.
  */
-import type { GeneratedQuestion } from "./distractors";
+import { clickDistractorsFor, type GeneratedQuestion } from "./distractors";
 import { TEMPLATES, type Template } from "./templates";
 import type { Entity } from "./types";
 
@@ -125,30 +125,61 @@ function isNear(own: Entity, other: Entity): boolean {
   return nonBlankString(region) && readField(other, "region") === region;
 }
 
+function peersOf(own: Entity, entities: readonly Entity[]): Entity[] {
+  return entities.filter((e) => e.id !== own.id && e.type === own.type && e.scope === own.scope);
+}
+
 /**
- * The entities a distractor could be. On a `map_click` question it is the one
- * with that `geometry_id`; otherwise every same-type, same-scope entity whose
+ * The entities a distractor could be: every same-type, same-scope entity whose
  * choice text matches. Several can match only when two entities share choice
  * text, which no state capital does.
  */
 function entitiesForChoice(
-  question: GeneratedQuestion,
-  index: number,
+  text: string,
   own: Entity,
   template: Template,
   entities: readonly Entity[],
 ): Entity[] {
-  const peers = entities.filter(
-    (e) => e.id !== own.id && e.type === own.type && e.scope === own.scope,
-  );
-  const code = question.choiceGeometryIds?.[index];
-  if (nonBlankString(code)) return peers.filter((e) => readField(e, "geometry_id") === code);
-  const text = question.choices[index] as string;
   const field = template.answer_field === "geometry_id" ? "name" : template.answer_field;
-  return peers.filter((e) => {
+  return peersOf(own, entities).filter((e) => {
     const value = readField(e, field);
     return nonBlankString(value) && sameText(value, text);
   });
+}
+
+/**
+ * The entities each distractor could be, one list per distractor.
+ *
+ * A `map_click` question carries no candidates (E-29, T-092), so its
+ * distractors are the three peers it would have offered, found again by
+ * `clickDistractorsFor` and never written to the question; each is the peer
+ * with that `geometry_id`. Any other format's are read from its `choices`.
+ */
+function distractorEntities(
+  question: GeneratedQuestion,
+  own: Entity,
+  template: Template,
+  entities: readonly Entity[],
+): Entity[][] {
+  if (question.format === "map_click") {
+    const codes = clickDistractorsFor(question, own, template, entities);
+    if (!Array.isArray(codes)) {
+      throw new Error(
+        `seedLevels: map_click question ${question.id} has no three distractors in the input (${codes.reason}), so it cannot be a question`,
+      );
+    }
+    const peers = peersOf(own, entities);
+    return codes.map((code) => peers.filter((e) => readField(e, "geometry_id") === code));
+  }
+  const { choices, correctIndex } = question;
+  if (choices === undefined || correctIndex === undefined) {
+    throw new Error(
+      `seedLevels: ${question.format} question ${question.id} has no choices or no correctIndex`,
+    );
+  }
+  return choices
+    .filter((_, index) => index !== correctIndex)
+    .map((text) => entitiesForChoice(text, own, template, entities));
 }
 
 /**
@@ -162,13 +193,9 @@ function nearDistractorCount(
   template: Template,
   entities: readonly Entity[],
 ): number {
-  let near = 0;
-  question.choices.forEach((_, index) => {
-    if (index === question.correctIndex) return;
-    if (entitiesForChoice(question, index, own, template, entities).some((e) => isNear(own, e)))
-      near++;
-  });
-  return near;
+  return distractorEntities(question, own, template, entities).filter((could) =>
+    could.some((e) => isNear(own, e)),
+  ).length;
 }
 
 /**
@@ -197,7 +224,9 @@ function levelFor(
 
 /**
  * Each question with `level` added, in input order. Nothing else on a question
- * changes.
+ * changes. A `map_click` question's near distractors are recomputed from
+ * `entities` and `templates`, so they must be the inputs `buildChoices` saw;
+ * throws, naming the question, when they no longer give it three.
  *
  * `entities` and `templates` are the inputs that produced `questions`. Throws,
  * and returns nothing, when a question's `entityId` or `templateId` is not

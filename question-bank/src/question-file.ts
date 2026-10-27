@@ -9,9 +9,10 @@
  * test can render from edited entities without touching the disk.
  *
  * The rendered file carries every question the stages produce, `map_click`
- * included, with every field they produce — `answer`, `answerGeometryId` and
- * `choiceGeometryIds` too. Deciding what the app serves is the backend loader's
- * job (`backend/app/content_build.py`), not this file's.
+ * included, with every field they produce — `answer` and `answerGeometryId`
+ * too. A `map_click` question has no candidates: no `choices`, no
+ * `correctIndex` (E-29, T-092). Deciding what the app serves is the backend
+ * loader's job (`backend/app/content_build.py`), not this file's.
  *
  * Pure: no network, no file, no clock, no randomness. Recorded in
  * engineering-decisions.md E-24.
