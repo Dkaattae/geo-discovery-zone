@@ -55,7 +55,8 @@ const NEW_IDS = NEW.map((t) => t.id);
 const of = (t: Template): TaggedQuestion[] =>
   committed.questions.filter((q) => q.templateId === t.id);
 const entityOf = (q: TaggedQuestion): Entity => byId.get(q.entityId) as Entity;
-const wrongOf = (q: TaggedQuestion): string[] => q.choices.filter((_, i) => i !== q.correctIndex);
+const wrongOf = (q: TaggedQuestion): string[] =>
+  (q.choices as string[]).filter((_, i) => i !== q.correctIndex);
 const questionFor = (t: Template, c: string): TaggedQuestion => {
   const q = of(t).find((x) => x.entityId === `us-state-${c.toLowerCase()}`);
   if (q === undefined) throw new Error(`no ${t.id} question for ${c}`);
@@ -117,8 +118,8 @@ describe("T-026 criterion 3: four distinct choices, the answer at correctIndex",
     expect(qs.length).toBe(265);
     for (const q of qs) {
       expect(q.choices).toHaveLength(4);
-      expect(new Set(q.choices.map(norm)).size).toBe(4);
-      expect(q.choices[q.correctIndex]).toBe(q.answer);
+      expect(new Set((q.choices as string[]).map(norm)).size).toBe(4);
+      expect((q.choices as string[])[q.correctIndex as number]).toBe(q.answer);
     }
   });
 });
@@ -128,8 +129,11 @@ describe("T-026 criterion 4: the old 150 unchanged, count 415", () => {
     const old = committed.questions.filter((q) => OLD_IDS.includes(q.templateId));
     expect(old).toHaveLength(150);
     // sha256 of JSON.stringify(main's `questions` array), recorded from 45b00d7.
+    // T-092 (approved Test change request, row 23): re-pinned to the same 150
+    // with `choices`, `correctIndex` and `choiceGeometryIds` stripped from the
+    // 50 map_click questions, key order kept.
     const digest = createHash("sha256").update(JSON.stringify(old)).digest("hex");
-    expect(digest).toBe("79aa4fe1aa741c177d85cb286b2d7e3fe8ad6fad5e135d1bf6498c0923fb22c6");
+    expect(digest).toBe("b5405bf7092ff90ccc2fe99e4458239273bdfef41e422f539aa9317faf3704b4");
   });
   test("count is 415 and matches the array", () => {
     expect(committed.count).toBe(415);
@@ -248,7 +252,7 @@ describe("T-026 criteria 11-13: wildlife", () => {
       ["Desert bighorn sheep", "Rocky Mountain bighorn sheep"],
     ] as const;
     for (const q of of(WILDLIFE))
-      for (const [a, b] of pairs) expect(both(q.choices, a, b)).toBe(false);
+      for (const [a, b] of pairs) expect(both(q.choices as string[], a, b)).toBe(false);
   });
   test("criterion 13: names the state, asks for its state animal, not 'Which state'", () => {
     for (const q of of(WILDLIFE)) {
@@ -284,7 +288,9 @@ describe("T-026 criteria 14-19: landmark", () => {
   });
   test("criterion 16: the two space centres never share a question", () => {
     for (const q of of(LANDMARK)) {
-      expect(both(q.choices, "U.S. Space & Rocket Center", "Space Center Houston")).toBe(false);
+      expect(
+        both(q.choices as string[], "U.S. Space & Rocket Center", "Space Center Houston"),
+      ).toBe(false);
     }
   });
   test("criterion 17: names the state, asks which landmark is in it, not 'Where is'", () => {
@@ -420,9 +426,9 @@ describe("T-026 criteria 24-31: crops", () => {
   });
   test("criterion 31: the three same-thing crop pairs never share a question", () => {
     for (const q of of(CROPS)) {
-      expect(both(q.choices, "corn", "sweet corn")).toBe(false);
-      expect(both(q.choices, "hay", "alfalfa hay")).toBe(false);
-      expect(both(q.choices, "potatoes", "sweet potatoes")).toBe(false);
+      expect(both(q.choices as string[], "corn", "sweet corn")).toBe(false);
+      expect(both(q.choices as string[], "hay", "alfalfa hay")).toBe(false);
+      expect(both(q.choices as string[], "potatoes", "sweet potatoes")).toBe(false);
     }
   });
 });
@@ -451,7 +457,8 @@ describe("T-026 criteria 32-34: farm animals", () => {
     }
   });
   test("criterion 34: never both cattle and dairy cows", () => {
-    for (const q of of(FARM)) expect(both(q.choices, "cattle", "dairy cows")).toBe(false);
+    for (const q of of(FARM))
+      expect(both(q.choices as string[], "cattle", "dairy cows")).toBe(false);
   });
 });
 
@@ -508,7 +515,7 @@ describe("T-026 criteria 50-51: no entity data changed, choices copied from enti
       );
     for (const t of NEW) {
       const ok = values(t);
-      for (const q of of(t)) for (const c of q.choices) expect(ok.has(c)).toBe(true);
+      for (const q of of(t)) for (const c of q.choices as string[]) expect(ok.has(c)).toBe(true);
     }
   });
   test("criterion 51: the new prompts are the only new strings in the file (six distinct shapes)", () => {

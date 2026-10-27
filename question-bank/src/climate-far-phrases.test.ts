@@ -44,7 +44,7 @@ function wrongCodes(entities: Entity[], ownCode: string): string[] {
   const { questions, shortPools } = buildChoices([draftFor(own)], entities, [CLIMATE]);
   expect(shortPools).toEqual([]);
   const q = questions[0]!;
-  return q.choices
+  return (q.choices as string[])
     .filter((_, i) => i !== q.correctIndex)
     .map((text) => text.replace("climate of ", ""));
 }
@@ -138,7 +138,7 @@ describe("over the committed entity files", () => {
 
   test("each offers at most one of HI and AK, and never three from one group", () => {
     for (const q of questions) {
-      const codes = q.choices
+      const codes = (q.choices as string[])
         .filter((_, i) => i !== q.correctIndex)
         .map((text) => byClimate.get(text) as string);
       expect(codes.every((c) => c !== undefined)).toBe(true);

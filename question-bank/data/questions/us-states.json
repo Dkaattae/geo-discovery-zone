@@ -2170,19 +2170,6 @@
       "prompt": "Find Alaska on the map.",
       "answer": "Alaska",
       "answerGeometryId": "02",
-      "choices": [
-        "Alaska",
-        "Washington",
-        "Oregon",
-        "Montana"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "02",
-        "53",
-        "41",
-        "30"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -2198,19 +2185,6 @@
       "prompt": "Find Alabama on the map.",
       "answer": "Alabama",
       "answerGeometryId": "01",
-      "choices": [
-        "Georgia",
-        "Mississippi",
-        "Alabama",
-        "Tennessee"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "13",
-        "28",
-        "01",
-        "47"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2226,19 +2200,6 @@
       "prompt": "Find Arkansas on the map.",
       "answer": "Arkansas",
       "answerGeometryId": "05",
-      "choices": [
-        "Mississippi",
-        "Missouri",
-        "Arkansas",
-        "Louisiana"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "28",
-        "29",
-        "05",
-        "22"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2254,19 +2215,6 @@
       "prompt": "Find Arizona on the map.",
       "answer": "Arizona",
       "answerGeometryId": "04",
-      "choices": [
-        "Arizona",
-        "New Mexico",
-        "Utah",
-        "Nevada"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "04",
-        "35",
-        "49",
-        "32"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -2282,19 +2230,6 @@
       "prompt": "Find California on the map.",
       "answer": "California",
       "answerGeometryId": "06",
-      "choices": [
-        "Nevada",
-        "California",
-        "Oregon",
-        "Arizona"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "32",
-        "06",
-        "41",
-        "04"
-      ],
       "level": 4.5,
       "scope": "us",
       "entityType": "state",
@@ -2310,19 +2245,6 @@
       "prompt": "Find Colorado on the map.",
       "answer": "Colorado",
       "answerGeometryId": "08",
-      "choices": [
-        "Wyoming",
-        "Utah",
-        "Nebraska",
-        "Colorado"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "56",
-        "49",
-        "31",
-        "08"
-      ],
       "level": 6.5,
       "scope": "us",
       "entityType": "state",
@@ -2338,19 +2260,6 @@
       "prompt": "Find Connecticut on the map.",
       "answer": "Connecticut",
       "answerGeometryId": "09",
-      "choices": [
-        "Rhode Island",
-        "Connecticut",
-        "Massachusetts",
-        "New York"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "44",
-        "09",
-        "25",
-        "36"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -2366,19 +2275,6 @@
       "prompt": "Find Delaware on the map.",
       "answer": "Delaware",
       "answerGeometryId": "10",
-      "choices": [
-        "Maryland",
-        "Delaware",
-        "New Jersey",
-        "Pennsylvania"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "24",
-        "10",
-        "34",
-        "42"
-      ],
       "level": 9,
       "scope": "us",
       "entityType": "state",
@@ -2394,19 +2290,6 @@
       "prompt": "Find Florida on the map.",
       "answer": "Florida",
       "answerGeometryId": "12",
-      "choices": [
-        "Georgia",
-        "Alabama",
-        "Florida",
-        "South Carolina"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "13",
-        "01",
-        "12",
-        "45"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -2422,19 +2305,6 @@
       "prompt": "Find Georgia on the map.",
       "answer": "Georgia",
       "answerGeometryId": "13",
-      "choices": [
-        "Georgia",
-        "South Carolina",
-        "Alabama",
-        "Tennessee"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "13",
-        "45",
-        "01",
-        "47"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -2450,19 +2320,6 @@
       "prompt": "Find Hawaii on the map.",
       "answer": "Hawaii",
       "answerGeometryId": "15",
-      "choices": [
-        "California",
-        "Oregon",
-        "Nevada",
-        "Hawaii"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "06",
-        "41",
-        "32",
-        "15"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2478,19 +2335,6 @@
       "prompt": "Find Iowa on the map.",
       "answer": "Iowa",
       "answerGeometryId": "19",
-      "choices": [
-        "Illinois",
-        "Missouri",
-        "Wisconsin",
-        "Iowa"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "17",
-        "29",
-        "55",
-        "19"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2506,19 +2350,6 @@
       "prompt": "Find Idaho on the map.",
       "answer": "Idaho",
       "answerGeometryId": "16",
-      "choices": [
-        "Montana",
-        "Idaho",
-        "Oregon",
-        "Wyoming"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "30",
-        "16",
-        "41",
-        "56"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -2534,19 +2365,6 @@
       "prompt": "Find Illinois on the map.",
       "answer": "Illinois",
       "answerGeometryId": "17",
-      "choices": [
-        "Indiana",
-        "Missouri",
-        "Illinois",
-        "Iowa"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "18",
-        "29",
-        "17",
-        "19"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -2562,19 +2380,6 @@
       "prompt": "Find Indiana on the map.",
       "answer": "Indiana",
       "answerGeometryId": "18",
-      "choices": [
-        "Illinois",
-        "Kentucky",
-        "Indiana",
-        "Ohio"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "17",
-        "21",
-        "18",
-        "39"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -2590,19 +2395,6 @@
       "prompt": "Find Kansas on the map.",
       "answer": "Kansas",
       "answerGeometryId": "20",
-      "choices": [
-        "Oklahoma",
-        "Nebraska",
-        "Missouri",
-        "Kansas"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "40",
-        "31",
-        "29",
-        "20"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -2618,19 +2410,6 @@
       "prompt": "Find Kentucky on the map.",
       "answer": "Kentucky",
       "answerGeometryId": "21",
-      "choices": [
-        "Kentucky",
-        "Tennessee",
-        "Indiana",
-        "Ohio"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "21",
-        "47",
-        "18",
-        "39"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -2646,19 +2425,6 @@
       "prompt": "Find Louisiana on the map.",
       "answer": "Louisiana",
       "answerGeometryId": "22",
-      "choices": [
-        "Mississippi",
-        "Louisiana",
-        "Arkansas",
-        "Texas"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "28",
-        "22",
-        "05",
-        "48"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2674,19 +2440,6 @@
       "prompt": "Find Massachusetts on the map.",
       "answer": "Massachusetts",
       "answerGeometryId": "25",
-      "choices": [
-        "Rhode Island",
-        "Massachusetts",
-        "Connecticut",
-        "New Hampshire"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "44",
-        "25",
-        "09",
-        "33"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -2702,19 +2455,6 @@
       "prompt": "Find Maryland on the map.",
       "answer": "Maryland",
       "answerGeometryId": "24",
-      "choices": [
-        "Delaware",
-        "Maryland",
-        "Pennsylvania",
-        "Virginia"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "10",
-        "24",
-        "42",
-        "51"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -2730,19 +2470,6 @@
       "prompt": "Find Maine on the map.",
       "answer": "Maine",
       "answerGeometryId": "23",
-      "choices": [
-        "New Hampshire",
-        "Vermont",
-        "Massachusetts",
-        "Maine"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "33",
-        "50",
-        "25",
-        "23"
-      ],
       "level": 9,
       "scope": "us",
       "entityType": "state",
@@ -2758,19 +2485,6 @@
       "prompt": "Find Michigan on the map.",
       "answer": "Michigan",
       "answerGeometryId": "26",
-      "choices": [
-        "Wisconsin",
-        "Michigan",
-        "Indiana",
-        "Ohio"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "55",
-        "26",
-        "18",
-        "39"
-      ],
       "level": 5,
       "scope": "us",
       "entityType": "state",
@@ -2786,19 +2500,6 @@
       "prompt": "Find Minnesota on the map.",
       "answer": "Minnesota",
       "answerGeometryId": "27",
-      "choices": [
-        "Minnesota",
-        "Wisconsin",
-        "Iowa",
-        "South Dakota"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "27",
-        "55",
-        "19",
-        "46"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -2814,19 +2515,6 @@
       "prompt": "Find Missouri on the map.",
       "answer": "Missouri",
       "answerGeometryId": "29",
-      "choices": [
-        "Illinois",
-        "Iowa",
-        "Arkansas",
-        "Missouri"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "17",
-        "19",
-        "05",
-        "29"
-      ],
       "level": 6.5,
       "scope": "us",
       "entityType": "state",
@@ -2842,19 +2530,6 @@
       "prompt": "Find Mississippi on the map.",
       "answer": "Mississippi",
       "answerGeometryId": "28",
-      "choices": [
-        "Arkansas",
-        "Louisiana",
-        "Alabama",
-        "Mississippi"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "05",
-        "22",
-        "01",
-        "28"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2870,19 +2545,6 @@
       "prompt": "Find Montana on the map.",
       "answer": "Montana",
       "answerGeometryId": "30",
-      "choices": [
-        "Idaho",
-        "Wyoming",
-        "Montana",
-        "North Dakota"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "16",
-        "56",
-        "30",
-        "38"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -2898,19 +2560,6 @@
       "prompt": "Find North Carolina on the map.",
       "answer": "North Carolina",
       "answerGeometryId": "37",
-      "choices": [
-        "South Carolina",
-        "Virginia",
-        "Georgia",
-        "North Carolina"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "45",
-        "51",
-        "13",
-        "37"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -2926,19 +2575,6 @@
       "prompt": "Find North Dakota on the map.",
       "answer": "North Dakota",
       "answerGeometryId": "38",
-      "choices": [
-        "South Dakota",
-        "North Dakota",
-        "Minnesota",
-        "Montana"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "46",
-        "38",
-        "27",
-        "30"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -2954,19 +2590,6 @@
       "prompt": "Find Nebraska on the map.",
       "answer": "Nebraska",
       "answerGeometryId": "31",
-      "choices": [
-        "Nebraska",
-        "South Dakota",
-        "Kansas",
-        "Colorado"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "31",
-        "46",
-        "20",
-        "08"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -2982,19 +2605,6 @@
       "prompt": "Find New Hampshire on the map.",
       "answer": "New Hampshire",
       "answerGeometryId": "33",
-      "choices": [
-        "Vermont",
-        "Massachusetts",
-        "New Hampshire",
-        "Maine"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "50",
-        "25",
-        "33",
-        "23"
-      ],
       "level": 9,
       "scope": "us",
       "entityType": "state",
@@ -3010,19 +2620,6 @@
       "prompt": "Find New Jersey on the map.",
       "answer": "New Jersey",
       "answerGeometryId": "34",
-      "choices": [
-        "Delaware",
-        "New Jersey",
-        "Pennsylvania",
-        "New York"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "10",
-        "34",
-        "42",
-        "36"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -3038,19 +2635,6 @@
       "prompt": "Find New Mexico on the map.",
       "answer": "New Mexico",
       "answerGeometryId": "35",
-      "choices": [
-        "Arizona",
-        "New Mexico",
-        "Colorado",
-        "Texas"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "04",
-        "35",
-        "08",
-        "48"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",
@@ -3066,19 +2650,6 @@
       "prompt": "Find Nevada on the map.",
       "answer": "Nevada",
       "answerGeometryId": "32",
-      "choices": [
-        "Nevada",
-        "California",
-        "Utah",
-        "Oregon"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "32",
-        "06",
-        "49",
-        "41"
-      ],
       "level": 6.5,
       "scope": "us",
       "entityType": "state",
@@ -3094,19 +2665,6 @@
       "prompt": "Find New York on the map.",
       "answer": "New York",
       "answerGeometryId": "36",
-      "choices": [
-        "Vermont",
-        "Connecticut",
-        "Massachusetts",
-        "New York"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "50",
-        "09",
-        "25",
-        "36"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -3122,19 +2680,6 @@
       "prompt": "Find Ohio on the map.",
       "answer": "Ohio",
       "answerGeometryId": "39",
-      "choices": [
-        "West Virginia",
-        "Indiana",
-        "Ohio",
-        "Kentucky"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "54",
-        "18",
-        "39",
-        "21"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -3150,19 +2695,6 @@
       "prompt": "Find Oklahoma on the map.",
       "answer": "Oklahoma",
       "answerGeometryId": "40",
-      "choices": [
-        "Oklahoma",
-        "Kansas",
-        "Arkansas",
-        "Texas"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "40",
-        "20",
-        "05",
-        "48"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -3178,19 +2710,6 @@
       "prompt": "Find Oregon on the map.",
       "answer": "Oregon",
       "answerGeometryId": "41",
-      "choices": [
-        "Washington",
-        "Idaho",
-        "Oregon",
-        "Nevada"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "53",
-        "16",
-        "41",
-        "32"
-      ],
       "level": 6.5,
       "scope": "us",
       "entityType": "state",
@@ -3206,19 +2725,6 @@
       "prompt": "Find Pennsylvania on the map.",
       "answer": "Pennsylvania",
       "answerGeometryId": "42",
-      "choices": [
-        "Maryland",
-        "New Jersey",
-        "Pennsylvania",
-        "Delaware"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "24",
-        "34",
-        "42",
-        "10"
-      ],
       "level": 5.5,
       "scope": "us",
       "entityType": "state",
@@ -3234,19 +2740,6 @@
       "prompt": "Find Rhode Island on the map.",
       "answer": "Rhode Island",
       "answerGeometryId": "44",
-      "choices": [
-        "Massachusetts",
-        "Connecticut",
-        "Rhode Island",
-        "New Hampshire"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "25",
-        "09",
-        "44",
-        "33"
-      ],
       "level": 9,
       "scope": "us",
       "entityType": "state",
@@ -3262,19 +2755,6 @@
       "prompt": "Find South Carolina on the map.",
       "answer": "South Carolina",
       "answerGeometryId": "45",
-      "choices": [
-        "South Carolina",
-        "North Carolina",
-        "Georgia",
-        "Virginia"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "45",
-        "37",
-        "13",
-        "51"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -3290,19 +2770,6 @@
       "prompt": "Find South Dakota on the map.",
       "answer": "South Dakota",
       "answerGeometryId": "46",
-      "choices": [
-        "Nebraska",
-        "North Dakota",
-        "Minnesota",
-        "South Dakota"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "31",
-        "38",
-        "27",
-        "46"
-      ],
       "level": 8,
       "scope": "us",
       "entityType": "state",
@@ -3318,19 +2785,6 @@
       "prompt": "Find Tennessee on the map.",
       "answer": "Tennessee",
       "answerGeometryId": "47",
-      "choices": [
-        "Kentucky",
-        "Alabama",
-        "Georgia",
-        "Tennessee"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "21",
-        "01",
-        "13",
-        "47"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -3346,19 +2800,6 @@
       "prompt": "Find Texas on the map.",
       "answer": "Texas",
       "answerGeometryId": "48",
-      "choices": [
-        "Oklahoma",
-        "Texas",
-        "New Mexico",
-        "Louisiana"
-      ],
-      "correctIndex": 1,
-      "choiceGeometryIds": [
-        "40",
-        "48",
-        "35",
-        "22"
-      ],
       "level": 4.5,
       "scope": "us",
       "entityType": "state",
@@ -3374,19 +2815,6 @@
       "prompt": "Find Utah on the map.",
       "answer": "Utah",
       "answerGeometryId": "49",
-      "choices": [
-        "Nevada",
-        "Wyoming",
-        "Colorado",
-        "Utah"
-      ],
-      "correctIndex": 3,
-      "choiceGeometryIds": [
-        "32",
-        "56",
-        "08",
-        "49"
-      ],
       "level": 7,
       "scope": "us",
       "entityType": "state",
@@ -3402,19 +2830,6 @@
       "prompt": "Find Virginia on the map.",
       "answer": "Virginia",
       "answerGeometryId": "51",
-      "choices": [
-        "Virginia",
-        "West Virginia",
-        "North Carolina",
-        "Maryland"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "51",
-        "54",
-        "37",
-        "24"
-      ],
       "level": 6.5,
       "scope": "us",
       "entityType": "state",
@@ -3430,19 +2845,6 @@
       "prompt": "Find Vermont on the map.",
       "answer": "Vermont",
       "answerGeometryId": "50",
-      "choices": [
-        "Vermont",
-        "New Hampshire",
-        "Massachusetts",
-        "New York"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "50",
-        "33",
-        "25",
-        "36"
-      ],
       "level": 9,
       "scope": "us",
       "entityType": "state",
@@ -3458,19 +2860,6 @@
       "prompt": "Find Washington on the map.",
       "answer": "Washington",
       "answerGeometryId": "53",
-      "choices": [
-        "Oregon",
-        "Idaho",
-        "Washington",
-        "Alaska"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "41",
-        "16",
-        "53",
-        "02"
-      ],
       "level": 6,
       "scope": "us",
       "entityType": "state",
@@ -3486,19 +2875,6 @@
       "prompt": "Find Wisconsin on the map.",
       "answer": "Wisconsin",
       "answerGeometryId": "55",
-      "choices": [
-        "Wisconsin",
-        "Michigan",
-        "Minnesota",
-        "Iowa"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "55",
-        "26",
-        "27",
-        "19"
-      ],
       "level": 6.5,
       "scope": "us",
       "entityType": "state",
@@ -3514,19 +2890,6 @@
       "prompt": "Find West Virginia on the map.",
       "answer": "West Virginia",
       "answerGeometryId": "54",
-      "choices": [
-        "West Virginia",
-        "Virginia",
-        "Ohio",
-        "Maryland"
-      ],
-      "correctIndex": 0,
-      "choiceGeometryIds": [
-        "54",
-        "51",
-        "39",
-        "24"
-      ],
       "level": 9,
       "scope": "us",
       "entityType": "state",
@@ -3542,19 +2905,6 @@
       "prompt": "Find Wyoming on the map.",
       "answer": "Wyoming",
       "answerGeometryId": "56",
-      "choices": [
-        "Colorado",
-        "Montana",
-        "Wyoming",
-        "Utah"
-      ],
-      "correctIndex": 2,
-      "choiceGeometryIds": [
-        "08",
-        "30",
-        "56",
-        "49"
-      ],
       "level": 7.5,
       "scope": "us",
       "entityType": "state",

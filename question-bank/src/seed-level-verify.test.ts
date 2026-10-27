@@ -15,7 +15,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildChoices } from "./distractors";
+import { buildChoices, clickDistractorsFor } from "./distractors";
 import type { GeneratedQuestion } from "./distractors";
 import { generate } from "./generate";
 import { LEVEL_SEED_WEIGHTS, seedLevels } from "./seed-level";
@@ -504,20 +504,29 @@ describe("T-023 criteria 17-18: concept_load and familiarity_bonus", () => {
     const nearCount = (q: GeneratedQuestion): number => {
       const own = byId.get(q.entityId) as Entity;
       const t = TEMPLATES.find((x) => x.id === q.templateId) as Template;
+      // T-092 (approved Test change request, rows 22 and 27): a map_click
+      // question carries no choices; its three distractors are the peers whose
+      // geometry ids `clickDistractorsFor` returns.
+      let others: (Entity | undefined)[];
+      if (q.format === "map_click") {
+        const codes = clickDistractorsFor(q, own, t, states);
+        expect(Array.isArray(codes)).toBe(true);
+        others = (codes as string[]).map((g) => states.find((e) => e.geometry_id === g));
+      } else {
+        others = (q.choices as string[])
+          .filter((_, i) => i !== q.correctIndex)
+          .map((text) =>
+            states.find((e) => (e as unknown as Record<string, unknown>)[t.answer_field] === text),
+          );
+      }
       let n = 0;
-      q.choices.forEach((text, i) => {
-        if (i === q.correctIndex) return;
-        const other = states.find((e) =>
-          q.choiceGeometryIds
-            ? e.geometry_id === q.choiceGeometryIds[i]
-            : (e as unknown as Record<string, unknown>)[t.answer_field] === text,
-        ) as Entity;
+      for (const other of others) {
         expect(other).toBeDefined();
         const near =
-          (own.borders ?? []).includes(other.id) ||
-          (nonBlank(own.region) && own.region === other.region);
+          (own.borders ?? []).includes((other as Entity).id) ||
+          (nonBlank(own.region) && own.region === (other as Entity).region);
         if (near) n++;
-      });
+      }
       return n;
     };
     const groups = new Map<string, Set<number>>();

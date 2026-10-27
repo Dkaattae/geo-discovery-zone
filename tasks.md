@@ -82,7 +82,9 @@ new from its content trade; T-070 and T-088 amended. Swept again 2026-10-26,
 after T-089 made a pick past span 6 draw from the nearest questions (PR #94):
 T-089 deleted; T-070, T-053 and T-076 amended. Swept again 2026-10-27,
 after T-051 served and rendered `map_click` (PR #96): T-051 deleted; T-092
-and T-093 new; T-070, T-053 and T-045 amended._
+and T-093 new; T-070, T-053 and T-045 amended. Swept again 2026-10-27,
+after T-092 stopped writing candidates on `map_click` (PR #100): T-092
+deleted; T-094 new; T-070 amended._
 
 ## How this list is ordered
 
@@ -221,6 +223,14 @@ and so were T-090 criterion 20's three tree pins (`frontend/`, `openapi.yaml`,
 `backend/app`). T-089 criterion 13 now pins `E-n` as exactly 1..29, so the next
 `E-n` still turns it red. T-090 criterion 12 now compares only the
 non-`map_click` questions with `3279555`. The rest of both guards stands.
+**Amended 2026-10-27 by T-092's reviewer (PR #100): four pins re-pinned, not
+retired.** Under a person's approval (T-092 Test change request rows 19, 20,
+23, 32), `climate-far-phrases-verify.test.ts` criteria 7 and 12 now pin
+`e7213f8a…` and `a7407efb…`, and `t026-tester-verify.test.ts` criterion 4 pins
+`b5405bf7…`: each is the old base's output with `choices`, `correctIndex` and
+`choiceGeometryIds` stripped from `map_click`, recomputed on `5d72ca5`.
+`hand-check-levels-verify.test.ts` criterion 17 now pins `8b1652c9…` over the
+same 48 files. These are the current values Q1's answer has to cover.
 **New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
 `question-bank/`'s test suite, both consequences of the same design, and both
 cheaper to settle once than to work around a fifth time.
@@ -397,6 +407,8 @@ were passed over too: each is still waiting on a person.
 **Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
 T-091 and T-056 were passed over too: each is waiting on a person.
 **Skipped again, 2026-10-26, for T-051.** Same reason.
+**Skipped again, 2026-10-27, for T-092.** Same reason. T-070, T-085, T-088,
+T-091 and T-056 were passed over too: each is waiting on a person.
 
 ---
 
@@ -551,18 +563,19 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-092 — Stop generating candidates for `map_click` · S · todo
+### T-094 — Answer-position spread is no longer checked per template for six templates · S · todo
 **Depends on:** —
-**New 2026-10-27, from T-051's reviewer (PR #96).** A `map_click` question offers
-no candidates (E-29), and `content_build.py` drops them when it serves one. The
-question file still carries `choices`, `correctIndex` and `choiceGeometryIds` on
-all 50 `tpl-click-the-map` questions, and E-21's distractor code still picks
-them. Dead data invites a later reader to wire it back in. Stop
-`tpl-click-the-map` writing them, regenerate the question file, and check
-`make -C backend content` writes the same bytes. The stale-test cost is E-21's
-`choiceGeometryIds` tests and any digest guard over the question file (T-070).
-**Done when:** no `map_click` question in `us-states.json` carries a candidate
-field, and `content.json` is unchanged.
+**New 2026-10-27, from T-092's reviewer (PR #100).** T-092's approved rows 11
+and 18 narrowed the "every index 0..3 appears for every template" loop in
+`distractors.test.ts` (criterion 15) and `distractors-verify.test.ts` (T-022
+criterion 15) from all nine `TEMPLATES` to `tpl-identify-on-map` and
+`tpl-capital-of`. Only `tpl-click-the-map` had to be excluded (it has no
+`correctIndex` now); the six T-026 templates lost the check as a side effect,
+and no other test inspects their `correctIndex` positions. Restore it as a new
+test over every template except `tpl-click-the-map`, leaving the two
+person-approved tests as they are. No source change.
+**Done when:** a test fails if any non-`map_click` template never puts its
+answer at some index 0..3 over the committed bank.
 
 ### T-087 — A bank refresh regenerates the question file and the served bank · S · todo
 **Depends on:** —

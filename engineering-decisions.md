@@ -1859,7 +1859,23 @@ would hand a client the 25% guess floor that answer rejects.
   the other three candidate fields, and is not served. Whether the generator
   should stop writing them is a follow-up, not this task.
 
-**Revisit when** the generator stops writing candidates for `map_click`, a
-format needs partial credit for a near miss, the world map adds shapes too small
-to tap without a magnifier (plan §2.5), or the server must stop sending the
-entity whose `geometryId` is the answer (T-053).
+**2026-10-27 (T-092).** The generator no longer writes candidates for
+`map_click`: a `map_click` question in `question-bank/data/questions/us-states.json`
+has no `choices`, `correctIndex` or `choiceGeometryIds` key, so the question file
+now says what is served, and E-21's `choiceGeometryIds` is gone from the code.
+This answers the revisit trigger "the generator stops writing candidates for
+`map_click`", which is dropped from the line below. A `map_click` level still counts the
+near distractors of the three nearest peers it would have offered (E-22's
+`distractor_tightness`): `clickDistractorsFor` in `distractors.ts` computes them
+internally, `buildChoices` uses them to decide whether the draft is a question or
+a `shortPools` entry, and `seedLevels` uses them to count the near ones; they are
+never written to a question. So every served level, and `content.json`, did not
+move. **Why: Dkaattae's answer to T-092 Q1**, in the orchestrator session,
+2026-10-27, verbatim: "a" — keep every level as it is, rather than dropping the
+distractor term from `map_click` levels or moving its weight into `concept_load`.
+
+**Revisit when** a format needs partial credit for a near miss, the world map
+adds shapes too small to tap without a magnifier (plan §2.5), the server must
+stop sending the entity whose `geometryId` is the answer (T-053), or a
+`map_click` level should stop counting distractors it never offers (T-092 Q1
+options (b) and (c)).

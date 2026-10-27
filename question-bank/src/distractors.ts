@@ -1,6 +1,7 @@
 /**
  * Distractors: turns `generate()`'s drafts into four-option questions, per
- * §1.2 of geoquizdataplan.md ("Distractors matter more than the question").
+ * §1.2 of geoquizdataplan.md ("Distractors matter more than the question"),
+ * except `map_click` drafts, which become questions with no options.
  *
  * A separate stage after `generate()`, not part of it: a draft is built from
  * one entity, a distractor needs the others. The rules are recorded in
@@ -11,7 +12,11 @@
  *   nearest-first by great-circle distance within each tier.
  * - The correct answer's position is a hash of the draft id, so it is fixed
  *   for a draft whatever else is in the input.
- * - A `map_click` question carries `choiceGeometryIds`, parallel to `choices`.
+ * - A `map_click` question carries no candidates (E-29, T-092): no `choices`,
+ *   no `correctIndex`. It is graded by `answerGeometryId` alone. The three
+ *   nearest peers it would have offered are still found, by
+ *   `clickDistractorsFor`, because its level counts how many are near (E-22)
+ *   and whether it has three decides whether it is a question at all.
  *
  * Pure: no network, no file, no clock, no randomness, and inputs are never
  * mutated. Nothing in the build imports this module.
@@ -24,15 +29,16 @@ import type { Entity } from "./types";
 export const CHOICE_COUNT = 4;
 const DISTRACTOR_COUNT = CHOICE_COUNT - 1;
 
+/**
+ * A draft with its candidates. `choices` and `correctIndex` are present on
+ * every format except `map_click`, and absent (never `null`, never `[]`) on
+ * `map_click`, which offers no candidates (E-29).
+ */
 export interface GeneratedQuestion extends QuestionDraft {
-  choices: string[];
-  /** `choices[correctIndex] === answer`. */
-  correctIndex: number;
-  /**
-   * `map_click` only. Entry `i` is the `geometry_id` of the entity whose name is
-   * `choices[i]`, so a click on region X maps to the choice whose code is X.
-   */
-  choiceGeometryIds?: string[] | undefined;
+  /** Four entries. Absent on `map_click`. */
+  choices?: string[];
+  /** `choices[correctIndex] === answer`. Absent on `map_click`. */
+  correctIndex?: number;
 }
 
 export interface ShortPool {
@@ -454,40 +460,62 @@ function nearestDistractors(
   return picked;
 }
 
+/** The three distractors for a draft, or why there are not three. */
+function distractorsFor(
+  draft: QuestionDraft,
+  own: Entity,
+  template: Template,
+  entities: readonly Entity[],
+): Candidate[] | ShortPool {
+  // Every strategy reports an own entity with no usable centroid, as E-21
+  // says, even `next_ranked_by_area`, which orders by rank alone.
+  if (centroidOf(own) === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
+  return template.distractor_strategy === "next_ranked_by_area"
+    ? nextRankedByArea(draft, own, template, entities)
+    : nearestDistractors(draft, own, template, entities);
+}
+
+/**
+ * `map_click` only (T-092): the `geometry_id`s of the three peers a
+ * `map_click` draft would offer if it offered candidates, nearest first, or
+ * the `ShortPool` that keeps it from being a question. Never written to a
+ * question: `buildChoices` uses it to decide whether the draft is a question,
+ * `seedLevels` to count its near distractors (E-22, E-29).
+ */
+export function clickDistractorsFor(
+  draft: QuestionDraft,
+  own: Entity,
+  template: Template,
+  entities: readonly Entity[],
+): string[] | ShortPool {
+  const found = distractorsFor(draft, own, template, entities);
+  if (!Array.isArray(found)) return found;
+  return found.map((p) => p.entity.geometry_id as string);
+}
+
 function questionFor(
   draft: QuestionDraft,
   own: Entity,
   template: Template,
   entities: readonly Entity[],
 ): GeneratedQuestion | ShortPool {
-  // Every strategy reports an own entity with no usable centroid, as E-21
-  // says, even `next_ranked_by_area`, which orders by rank alone.
-  if (centroidOf(own) === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
-  const isClick = draft.format === "map_click";
-  const found =
-    template.distractor_strategy === "next_ranked_by_area"
-      ? nextRankedByArea(draft, own, template, entities)
-      : nearestDistractors(draft, own, template, entities);
+  const found = distractorsFor(draft, own, template, entities);
   if (!Array.isArray(found)) return found;
-  const picked = found;
+  // No candidates on a map_click question (E-29): the draft is the question.
+  if (draft.format === "map_click") return { ...draft };
 
   const correctIndex = correctIndexFor(draft.id);
-  const choices = picked.map((p) => p.text);
+  const choices = found.map((p) => p.text);
   choices.splice(correctIndex, 0, draft.answer);
-  const question: GeneratedQuestion = { ...draft, choices, correctIndex };
-  if (isClick) {
-    const codes = picked.map((p) => p.entity.geometry_id as string);
-    codes.splice(correctIndex, 0, draft.answerGeometryId as string);
-    question.choiceGeometryIds = codes;
-  }
-  return question;
+  return { ...draft, choices, correctIndex };
 }
 
 /**
  * One question per draft, in draft order, each with four `choices` and a
- * `correctIndex`. A draft whose pool cannot supply three distractors with
- * distinct text, or whose own entity has no usable `centroid`, is reported in
- * `shortPools` instead.
+ * `correctIndex`, except a `map_click` question, which has neither (E-29). A
+ * draft whose pool cannot supply three distractors with distinct text, or
+ * whose own entity has no usable `centroid`, is reported in `shortPools`
+ * instead — `map_click` included, though its distractors are never written.
  *
  * `entities` and `templates` are the inputs that produced `drafts`. Throws,
  * and returns nothing, when a draft's `entityId` or `templateId` is not among
@@ -527,8 +555,8 @@ export function buildChoices(
   const shortPools: ShortPool[] = [];
   for (const { draft, own, template } of resolved) {
     const out = questionFor(draft, own, template, entities);
-    if ("choices" in out) questions.push(out);
-    else shortPools.push(out);
+    if ("reason" in out) shortPools.push(out);
+    else questions.push(out);
   }
   return { questions, shortPools };
 }

@@ -14,9 +14,9 @@ in `ENTITY_FIELDS`, renamed to the contract's names, and drops any that is
 absent or null; its `funFact` is the first fun fact marked `reviewed: true`, and
 no other prose is written. A question keeps only the fields its format allows:
 `QUESTION_FIELDS` for a choice format, `MAP_CLICK_FIELDS` for `map_click`. So the
-pipeline's `answer` and `choiceGeometryIds` never reach the app, and a `map_click`
-question is served with its `answerGeometryId` and without its four candidates:
-the child taps any state, and the tap is graded by geometry id
+pipeline's `answer` never reaches the app, and a `map_click` question is served
+with its `answerGeometryId` and no candidates (the question file holds none since
+T-092): the child taps any state, and the tap is graded by geometry id
 (engineering-decisions.md E-24, E-29).
 
 No clock, no network: running it twice on an unchanged tree writes the same
@@ -80,9 +80,9 @@ QUESTION_FIELDS: tuple[str, ...] = (
 )
 
 # A `map_click` question offers no candidates (E-29): any state can be tapped,
-# and the answer key is the answer's geometry id. The question file still holds
-# four candidates (`choices`, `correctIndex`, `choiceGeometryIds`, E-21); they are
-# not copied, because serving them would hand a client a 25% guess.
+# and the answer key is the answer's geometry id. The question file holds no
+# candidates for it (T-092), and this allowlist would not copy any if it did,
+# because serving them would hand a client a 25% guess.
 MAP_CLICK_FIELDS: tuple[str, ...] = (
     "id",
     "entityId",

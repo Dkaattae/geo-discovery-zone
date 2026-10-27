@@ -45,7 +45,7 @@ function questionsOf(templateId: string): TaggedQuestion[] {
 }
 
 function wrong(q: TaggedQuestion): string[] {
-  return q.choices.filter((_, i) => i !== q.correctIndex);
+  return (q.choices as string[]).filter((_, i) => i !== q.correctIndex);
 }
 
 function entityOf(q: TaggedQuestion): Entity {
@@ -107,8 +107,8 @@ describe("the six templates", () => {
   test("four distinct choices, and choices[correctIndex] is the answer", () => {
     for (const q of bank.questions) {
       if (!(q.templateId in NEW_TEMPLATES)) continue;
-      expect(new Set(q.choices.map((c) => c.trim().toLowerCase())).size).toBe(4);
-      expect(q.choices[q.correctIndex]).toBe(q.answer);
+      expect(new Set((q.choices as string[]).map((c) => c.trim().toLowerCase())).size).toBe(4);
+      expect((q.choices as string[])[q.correctIndex as number]).toBe(q.answer);
       expect(q.level).toBeGreaterThanOrEqual(0);
       expect(q.level).toBeLessThanOrEqual(18);
     }
@@ -158,7 +158,8 @@ describe("wildlife", () => {
   test("answer is the state animal, and no same-animal pair shares a question", () => {
     for (const q of questionsOf("tpl-state-animal-of")) {
       expect(q.answer).toBe(entityOf(q).state_animal as string);
-      for (const pair of SAME_ANIMAL_PAIRS) expect(hasPair(q.choices, pair)).toBe(false);
+      for (const pair of SAME_ANIMAL_PAIRS)
+        expect(hasPair(q.choices as string[], pair)).toBe(false);
     }
   });
 
@@ -181,7 +182,8 @@ describe("landmark", () => {
     for (const q of questionsOf("tpl-landmark-in")) {
       expect(q.answer).toBe(entityOf(q).landmark as string);
       for (const w of wrong(q)) expect(landmarks.has(w)).toBe(true);
-      for (const pair of SAME_LANDMARK_PAIRS) expect(hasPair(q.choices, pair)).toBe(false);
+      for (const pair of SAME_LANDMARK_PAIRS)
+        expect(hasPair(q.choices as string[], pair)).toBe(false);
     }
   });
 
@@ -237,7 +239,8 @@ describe("crops", () => {
         expect({ q: q.id, w, grown: grown.has(w) }).toEqual({ q: q.id, w, grown: false });
         expect(anyCrop.has(w)).toBe(true);
       }
-      for (const pair of AGRICULTURE_SAME_THING_PAIRS) expect(hasPair(q.choices, pair)).toBe(false);
+      for (const pair of AGRICULTURE_SAME_THING_PAIRS)
+        expect(hasPair(q.choices as string[], pair)).toBe(false);
     }
   });
 });
@@ -259,7 +262,7 @@ describe("farm animals", () => {
         expect(list(own, "top_livestock")).not.toContain(w);
         expect(anyAnimal.has(w)).toBe(true);
       }
-      expect(hasPair(q.choices, ["cattle", "dairy cows"])).toBe(false);
+      expect(hasPair(q.choices as string[], ["cattle", "dairy cows"])).toBe(false);
     }
   });
 });

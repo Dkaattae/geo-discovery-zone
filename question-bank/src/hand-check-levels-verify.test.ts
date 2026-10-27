@@ -21,7 +21,7 @@ import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { buildChoices } from "./distractors";
+import { buildChoices, clickDistractorsFor } from "./distractors";
 import { generate } from "./generate";
 import { LEVEL_MAX, LEVEL_MIN, LEVEL_SEED_WEIGHTS, seedLevels } from "./seed-level";
 import { TEMPLATES } from "./templates";
@@ -227,14 +227,32 @@ describe("T-025 criteria 1-5: the 30 questions are recorded", () => {
   });
 
   test("criterion 2: prompt, correct answer and three distractors equal buildChoices' output", () => {
-    const byId = new Map(pipeline().questions.map((q) => [q.id, q]));
+    const { entities, questions } = pipeline();
+    const byId = new Map(questions.map((q) => [q.id, q]));
     for (const r of table()) {
       const id = rowId(r);
       const q = byId.get(id);
       expect({ id, exists: q !== undefined }).toEqual({ id, exists: true });
       if (q === undefined) continue;
-      const correct = q.choices[q.correctIndex] as string;
-      const distractors = q.choices.filter((_, i) => i !== q.correctIndex).sort();
+      // T-092 (approved Test change request, rows 21 and 28): a map_click
+      // question carries no choices, so its answer is the draft's and its three
+      // distractors are the peers whose geometry ids `clickDistractorsFor` returns.
+      let correct: string;
+      let distractors: string[];
+      if (q.format === "map_click") {
+        const own = entities.find((e) => e.id === q.entityId) as Entity;
+        const t = TEMPLATES.find((x) => x.id === q.templateId)!;
+        const codes = clickDistractorsFor(q, own, t, entities);
+        expect({ id, short: !Array.isArray(codes) }).toEqual({ id, short: false });
+        correct = q.answer;
+        distractors = (codes as string[])
+          .flatMap((g) => entities.filter((e) => e.geometry_id === g).map((e) => e.name))
+          .sort();
+      } else {
+        const choices = q.choices as string[];
+        correct = choices[q.correctIndex as number] as string;
+        distractors = choices.filter((_, i) => i !== q.correctIndex).sort();
+      }
       const shown = r.distractors
         .split(",")
         .map((d) => d.trim())
@@ -863,6 +881,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // committed-bank.test.ts and lowered its floor in five files here.
     // Re-pinned by T-064's approved Test change request rows 1–39.
     // Re-pinned by T-026's approved Test change request (rows 1–92, A1; this is A2).
-    expect(digest).toBe("be563d379e01c26edade26938f39de839c0de4dac2199f0882934792f44ec0d9");
+    // Re-pinned by T-092's approved Test change request rows 1–31 (this is row 32).
+    expect(digest).toBe("8b1652c9613dd2fc8e3b68ee957ad7a47cb475b04c7519fac59d1cac47a0e089");
   });
 });

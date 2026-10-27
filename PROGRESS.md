@@ -206,8 +206,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   validator. `src/generate.ts` turns entities × templates into question drafts
   (415 over the committed bank) and reports pairs with missing data.
   `src/distractors.ts` `buildChoices` (T-022) turns those drafts into
-  four-option questions with `choices`, `correctIndex` and, on `map_click`,
-  `choiceGeometryIds` (E-21). T-026 added one strategy per new template, with
+  four-option questions with `choices` and `correctIndex` (E-21); a
+  `map_click` question carries neither, only `answerGeometryId` (E-29, T-092). T-026 added one strategy per new template, with
   the person-approved same-thing lists beside them (E-25). `src/seed-level.ts`
   `seedLevels` (T-023) adds a `level` in 0–18 from plan §1.4's formula, every
   weight in `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions
@@ -365,6 +365,21 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-092 — `map_click` questions no longer carry candidates** (PR #100,
+  2026-10-27). The question file's 50 `map_click` questions lost `choices`,
+  `correctIndex` and `choiceGeometryIds`; `clickDistractorsFor` in
+  `distractors.ts` still finds the three would-be peers, so `buildChoices`'
+  short pools and `seedLevels`' near-distractor count are unchanged, and so is
+  every level and `content.json` (Q1 answer (a)). E-29 gained a dated
+  paragraph. *Where it differed from the brief:* the worker also edited E-29's
+  `Revisit when` line, and `seedLevels` now throws when a click question's
+  inputs no longer give three peers. The typecheck broke in three test files
+  the brief had not listed. 32 pre-existing test changes were approved by a
+  person in an attended tester session, including one deletion (E-21's
+  `choiceGeometryIds` name check) and four re-pins; row 32 was found only
+  after rows 1–31 were applied. Rows 11 and 18 dropped per-template position
+  coverage for six templates (T-094). Brief approval was an orchestrator
+  stamp; run orchestrated, tester step attended.
 - **T-051 — `map_click` served and rendered: tap any state on the map** (PR #96,
   2026-10-27). The 50 `map_click` questions are served without candidates,
   `AnswerRequest.tappedGeometryId` carries the tapped state's two-digit code,
