@@ -553,8 +553,8 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-092 — Stop generating candidates for `map_click` · S · doing — **brief blocked on Q1**
-**Depends on:** — (brief `tasks/T-092-map-click-no-candidates.md` waits on a person's answer to its Q1: 49 of 50 served `map_click` levels count the candidates this task removes, so "`content.json` is unchanged" and "no candidates" cannot both hold without a decision)
+### T-092 — Stop generating candidates for `map_click` · S · doing — **brief awaiting approval**
+**Depends on:** — (brief `tasks/T-092-map-click-no-candidates.md`; Q1 answered (a) 2026-10-27: levels keep counting the would-be candidates internally, so `content.json` stays unchanged)
 **New 2026-10-27, from T-051's reviewer (PR #96).** A `map_click` question offers
 no candidates (E-29), and `content_build.py` drops them when it serves one. The
 question file still carries `choices`, `correctIndex` and `choiceGeometryIds` on
