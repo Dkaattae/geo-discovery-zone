@@ -8,8 +8,7 @@ the matching criteria and set `awaiting approval`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-092
 **Branch:** `claude/tender-feynman-fv9k0l`
-**PR:** opened draft at expand time against the branch above (number in the PR
-list; the expander's handback names it)
+**PR:** #100, opened draft at expand time against the branch above
 **Fault:** the queue entry's Done-when ("`content.json` is unchanged") contradicts
 its own fix: 49 of the 50 served `map_click` levels are computed from the very
 candidates the task removes, so which one gives way is a design call the
