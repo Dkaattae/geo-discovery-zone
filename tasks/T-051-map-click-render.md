@@ -1,7 +1,7 @@
 # T-051 — Serve and render `map_click`: tap the state on the map
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision on PR #96: `openapi.yaml` and a new child-facing string)
 **Approved:** Dkaattae — 2026-10-26, in the orchestrator session, verbatim: "approved". See `runs/T-051-map-click-render.md`.
 **Test changes:** approved — Dkaattae, 2026-10-26 (all 34 rows, in attended tester session cse_011Rir8T57SYNmfYe3rNiYWo)
 **From:** [`tasks.md`](../tasks.md) T-051
@@ -18,6 +18,7 @@
 | worker | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (orchestrated worker subagent; `CLAUDE_CODE_REMOTE_SESSION_ID` is the orchestrator's, so the tester must run in a different one) |
 | tester | 2026-10-26 | cse_01W3CQk9DjveYML94m9kKPKg (orchestrated tester subagent. Every role in this run shares this id, so the id check cannot show separation; see Verdict) |
 | tester | 2026-10-26 | cse_011Rir8T57SYNmfYe3rNiYWo (attended, a separate session: picks up the Test change request, ran Playwright) |
+| reviewer | 2026-10-27 | cse_01W3CQk9DjveYML94m9kKPKg (orchestrated reviewer subagent) |
 
 ## Q1 — answered: no options, any state can be tapped
 
@@ -866,3 +867,72 @@ count floors in these files, so no floor row is needed.
     beside T-043);
   - pin-format 422s should name `/pin`, not `/choiceIndex` (owner: whichever task
     builds pin formats).
+
+## Review
+
+**TL;DR. Approved, escalated.** The work is good: it fits the code around it,
+stays inside the brief, and every suite is green in CI on `4bf7b70`. It goes to a
+person because it changes `openapi.yaml` and adds one child-facing string, "A
+state you can tap". The sweep rides in this PR.
+
+- **Every role's work is in the PR.** Each Sessions row has a commit on
+  `claude/affectionate-bell-r03ap2`.
+- **Lanes held.** The expander's commits touch only `tasks/` and `tasks.md`. The
+  tester's touch only tests, e2e helpers and the brief. Pre-existing tests were
+  changed only in `7792f87` (tester), and they match the 34 approved rows.
+- **CI on `4bf7b70`:** backend, backend (postgres), integration, frontend,
+  question-bank and e2e (playwright), all success.
+- **Outside the file list:** `frontend/src/lib/map-click.ts`, with a reason
+  (eslint `react-refresh/only-export-components`). Accepted.
+
+### Escalation: do not merge without a person on these
+
+1. **`openapi.yaml`** gains `AnswerRequest.tappedGeometryId` and
+   `Question.answerGeometryId`, and two descriptions name the new key.
+2. **Child-facing text:** "A state you can tap" (`frontend/src/lib/map-click.ts`,
+   `TAPPABLE_STATE_LABEL`). It is what a screen reader says on every state. It
+   names no state, as criterion 23 requires.
+3. **The brief's Review checklist** is a person's: tablet taps on RI, DE and CT;
+   the AK and HI insets; the reveal reading as a reason, not a red X; hover.
+
+### Findings
+
+None blocks.
+
+- **Fits the codebase.** Backend: `GEOMETRY_FORMATS` follows `CHOICE_FORMATS` and
+  `PIN_FORMATS`. `UngradableAnswer.path` defaults to the old value, so other
+  formats are unchanged. The explicit `MAP_CLICK_FIELDS` allowlist keeps E-24's
+  allowlist shape. Frontend: the logic is in pure functions, so it can be tested
+  without a DOM library.
+- **No more than asked.** Two extras, both small and both reasoned. Filtering out
+  geographies with no path drops the five territories, which `geoAlbersUsa`
+  never drew. The answer gate also guards choice buttons, with no visible change.
+- **Docs true.** `backend/README.md`, `content_build.py`'s docstring and
+  `_source.note` describe the new behaviour. `tasks.md` and `PROGRESS.md` are
+  updated in the sweep.
+
+### Worker's and tester's flags, disposed
+
+- **Progress map lost its tab stops:** **decided, keep it.** 56 unlabelled tab
+  stops on a map that does nothing were an accessibility defect, not a feature.
+- **Explicit `answerGeometryId` allowlist, not in `QUESTION_FIELDS`:** **decided,
+  keep it.** It makes criterion 4 independent of the question file.
+- **Tapped-state style** (highlight fill plus a dashed dark outline): **deferred
+  to the person** on this PR, under Review checklist item 3. The outline is the
+  cue that does not depend on colour, so the brief's hard requirement holds.
+- **"A state you can tap":** **escalated** (above).
+- **Undo leaves `seenEntityIds`:** predates T-051. **New task T-093.**
+- **Generator still writes four candidates:** **new task T-092.**
+- **Pin 422s name `/choiceIndex`:** **amended into T-045**, which owns pin keys.
+- **Small-state hit areas:** no task yet. The person's tablet check decides; if
+  it fails, that becomes a task beside T-043 (recorded in `PROGRESS.md`'s Known
+  gaps).
+
+### Sweep (in the next commit)
+
+- This brief deleted.
+- `tasks.md`: T-051 deleted; T-092 and T-093 added; T-070 (two of its guards are
+  smaller), T-053 (`answerGeometryId` and the `map_click` entity) and T-045
+  amended; "Where the app is today" brought to 415 questions and 3 formats.
+- `PROGRESS.md`: Completed-tasks line; headline paragraph, Frontend, Known gaps
+  and Next updated.
