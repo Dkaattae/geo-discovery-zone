@@ -78,3 +78,36 @@ Recorded verbatim under the Q1 heading in the brief; header set to `Status: Q1 a
 
 Gates: G5 passed (`Q1 answered` → `awaiting approval`; `task-expander` → `worker`). Push confirmed at `7fdbdb0`.
 Orchestrator stamped `Approved: orchestrator — 2026-10-27, unattended run` without reading the criteria.
+
+## Round 3 — worker — 2026-10-27
+`Next step` on entry: `worker` → on exit: `tester`
+
+> **TL;DR.** T-092 is built and pushed. `map_click` questions no longer carry `choices`, `correctIndex` or `choiceGeometryIds`. Every level, every `shortPools` entry and `content.json` came out byte-identical, per Q1 = (a). The brief is at Status `awaiting verification`, Next step `tester`. 24 existing tests now fail on purpose: 23 in question-bank, 1 in backend. The question-bank typecheck also fails, in 7 test files. The Handoff lists every one, and the tester will need a human-approved Test change request (D-14) to fix them.
+>
+> **Push.** Commit `bb2cf42` ("T-092 worker: stop writing candidates for map_click") is on `origin/claude/tender-feynman-fv9k0l`, the branch the brief names.
+>
+> **What changed**
+> - `question-bank/src/distractors.ts`: new exported `clickDistractorsFor` returns the `geometry_id`s of the three peers a click question would have offered, or the `ShortPool`; never writes to a question. A `map_click` draft becomes `{ ...draft }` with no candidate keys. `choices`/`correctIndex` optional on the type; `choiceGeometryIds` gone.
+> - `question-bank/src/seed-level.ts`: recomputes a click question's three peers with `clickDistractorsFor` and counts the near ones; throws, naming the question, if the inputs no longer give three peers.
+> - `question-bank/data/questions/us-states.json`: regenerated with `write-questions.ts`; idempotent.
+> - Comments only in `question-bank/src/question-file.ts` and `backend/app/content_build.py`.
+> - `engineering-decisions.md`: E-29 gains a dated T-092 paragraph before the `**Revisit when**` line; the fired trigger removed from that line. E-1..E-28 untouched, no new heading.
+> - New worker tests: `question-bank/src/map-click-no-candidates.test.ts`, 8 tests, passing.
+>
+> **Evidence**
+> - Committed file compared with default branch: 415 questions in the same order, 50 click questions lack the three keys and keep every other value (level included), other 365 deep-equal.
+> - Synthetic banks (scratch script, not committed): default-branch stages vs new over the committed bank and 300 random sub-banks; `shortPools` and levels matched across 871 synthetic click questions.
+> - `make -C backend content` left `content.json` unchanged.
+>
+> **Suite results**
+> - question-bank: 2349 pass, 23 fail (stale by design). Lint/format clean. Typecheck fails only in test files.
+> - backend: 738 pass, 1 fail (stale: `test_t051_tester_criteria.py::test_c37_question_file_still_holds_fifty_map_click_with_their_candidates`), 9 skipped. Lint/format clean.
+> - frontend: 392 pass, 4 fail, not caused by this change — proxy 403 on `europe-west1-npm.pkg.dev` prevents installing `react-simple-maps` and d3 packages; same with changes stashed; nothing under `frontend/` changed.
+>
+> **Stale tests:** runtime reds in `distractors-verify.test.ts` (12), `distractors.test.ts` (6), `climate-far-phrases-verify.test.ts` (2), `hand-check-levels-verify.test.ts` (1), `seed-level-verify.test.ts` (1), `t026-tester-verify.test.ts` (1), backend `test_c37`. Typecheck reds in the same files plus `t026-templates.test.ts`, `t026-tester-verify.test.ts`, `climate-far-phrases.test.ts` (not anticipated by the brief's Constraints).
+>
+> **Decisions for the reviewer:** optional fields instead of a union type; recompute in `seedLevels` (click distractor walk runs twice) to keep T-023's three-parameter pin; the E-29 Revisit line edit; `seedLevels` now throws if entities no longer yield three click peers.
+>
+> Sessions row: same session id `cse_011oDiJe6KxQ3qitLn4NjWjF` as the expander; noted in the row.
+
+Gates: G5 passed (`awaiting approval` → `awaiting verification`; `worker` → `tester`). Push confirmed at `bb2cf42`. G1 clean.
