@@ -1,7 +1,7 @@
 # T-094 — Answer-position spread is checked again for every template that has a position
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-094-answer-position-spread.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-094
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH |
 | worker | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH |
+| tester | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH (orchestrated; see Verdict on independence) |
 
 ## Goal
 
@@ -235,6 +236,45 @@ None.
 ## Verdict
 
 _Written by `tester`._
+
+**TL;DR: pass.** The new test passes, and it went red under every mutation that criteria 5-8 name. Each failure named the template and the missing index. The whole `question-bank` suite (2449 pass, 0 fail), typecheck, lint and `format:check` are clean. No existing test, source or data file changed. Next step: `reviewer`.
+
+**How independent this check is.** This is an orchestrated run (`runs/T-094-answer-position-spread.md` exists). The session id here, `cse_011oDiJdmgY3R4p3uHw5DgmH`, is the same one the Sessions table records for the expander and the worker. So the session-id check proves nothing either way. My independence rests only on being a freshly spawned agent with its own context: I did not see the worker's conversation or reasoning. That is weaker than running in a separate session, because it depends on the orchestrator having spawned me correctly, and I cannot check that myself. Weigh this pass with that in mind.
+
+### Criterion → verdict → evidence
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | The control run passes: 2 pass, 0 fail. **Boundary:** I mutated the code so that `tpl-farm-animal-of` kept exactly one question at index 3 and moved the other eight to index 0. The test stayed green, so one question at an index is enough. Zero at an index is checked under criteria 5-7. |
+| 2 | met | The filter is `TEMPLATES.filter((t) => t.format !== "map_click")`. A template I added temporarily (`tpl-capital-copy`) was checked without any edit to the test (criterion 8 row). |
+| 3 | met | I ran three filter mutations on a temporary copy of the test. `=== "multiple_choice"` went red and named `tpl-identify-on-map`. `=== "nothing"`, which matches no template, went red. A filter that silently drops `tpl-crop-of` went red and named `tpl-crop-of`. |
+| 4 | met | It passes today. Generated spread per index 0..3: identify 12/6/15/17, capital 9/16/12/13, biggest 5/16/12/14, state-animal 16/13/10/11, landmark 18/6/12/8, climate 15/11/10/14, crop 13/12/13/12, farm-animal 5/4/6/9. These counts come from the generated output over the committed bank, not from a fixture. |
+| 5 | met | Mutation in `questionFor` (`distractors.ts`): when the draft's `templateId` matches the target and its hashed index is 3, the index is moved to 0. I ran it for each of the six T-026 templates, one at a time. Each run gave 1 pass, 1 fail. |
+| 6 | met | The same mutation for `tpl-identify-on-map` alone and for `tpl-capital-of` alone. Both went red. |
+| 7 | met | The same mutation for `tpl-farm-animal-of` with index 0, which moved its questions to index 1. It went red and the output names `"tpl-farm-animal-of: no question with correctIndex 0"`. |
+| 8 | met | I temporarily added `tpl-capital-copy` to `TEMPLATES`: the `tpl-capital-of` body with `applies_to: ["country"]`, so it gives zero questions over the state bank. The test went red and listed `tpl-capital-copy` with each of indices 0, 1, 2 and 3. See the note below on the brief's own example. |
+| 9 | met | A failure prints strings such as `"tpl-crop-of: no question with correctIndex 3"`, so both the template id and the index appear as text. |
+| 10 | met | The generated bank holds 50 `tpl-click-the-map` questions, none with a `correctIndex`. The test passes with all of them present. Only numeric `correctIndex` values are counted, and click is not in the positioned set. |
+| 11 | met | `git diff --name-status origin/main...HEAD` shows the new test file, the brief and `runs/T-094-…md` added, and `tasks.md` modified. No existing test file is touched. The `runs/` log is the orchestrator's own file, and it is an addition. |
+| 12 | met | Nothing under `question-bank/src/` other than the new file changed, and nothing under `question-bank/data/` or `backend/`. |
+| 13 | met | The file reads only `data/us-states/us-state-*.json` and calls `generate` and `buildChoices` directly. It has no transport, sink, `Bun.spawn` or `fetch`. `spawn-guard.test.ts` is green. |
+| 14 | met | `package.json` and `bun.lock` are unchanged. |
+| 15 | met | `bun test`: 2449 pass, 0 fail across 59 files. `typecheck` is clean, `lint` has 0 warnings and 0 errors, and `format:check` is clean. I ran `bun install --frozen-lockfile` first; the lockfile is unchanged. |
+
+### Criterion 8: the brief's example does not produce zero questions
+
+The worker asked me to rule on this, and I am not blocking on it.
+- **No real field fits the example.** Every `Entity` field is present on at least 24 of the 50 states, so "a field no entity has" can only be a field that is not an `Entity` field at all.
+- **Such a field fails earlier.** `generate` rejects the whole template set: `generate: invalid template(s), nothing generated. tpl-capital-copy: requires: "no_such_field" is not an Entity field`. The file goes red (0 pass, 1 fail, 1 error), and the error names the template.
+- **Why I accept it.** That case never "produces zero questions". It produces no generation at all. The criterion's actual condition, a positioned template with zero questions, is the `applies_to: ["country"]` case, and that fails by name inside the new test.
+- **Worth fixing at sweep:** the example in the brief's wording.
+
+### Mutations (all reverted)
+
+- **How each one was reverted.** I restored each mutation from a scratchpad copy of the original file. The probe and filter-mutation files I created were deleted. At the end, `git diff --quiet` is clean on `src/distractors.ts` and `src/templates.ts`.
+- **My tests.** I added no new test file. The deliverable is itself a test, so I verified it by coverage and mutation, as `process.md` step 4 says.
+
+**Tests made stale:** none. I checked: no existing test changed or went red.
 
 ## Notes
 
