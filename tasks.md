@@ -500,8 +500,8 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
 
-### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person** (list)
-**Depends on:** a person approving the five added farm animals (below); the per-state lists are approved
+### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo
+**Depends on:** nothing. The lists and the five added farm animals were approved by Dkaattae on 2026-10-27.
 **Option chosen 2026-10-27 (Dkaattae): (a)**, a person-approved "also
 grown/raised" list per state, used as an exclusion. **Lists approved
 2026-10-27 (Dkaattae)**, drafted in a chat session from general knowledge,
@@ -513,7 +513,7 @@ the risk this task exists to fix.
 **Decided with the lists (Dkaattae):** `cattle` and `dairy cows` stay
 separate animals. Six farm-animal questions (CA, IA, MN, PA, SD, TX) keep
 fewer than three wrong answers out of six animals, so **option (ii): add more
-farm animals** to the pool. **Proposed, awaiting approval:** goats, horses,
+farm animals** to the pool. **Approved 2026-10-27 (Dkaattae):** goats, horses,
 ducks, rabbits and bison, with the exclusions below. With them every state
 keeps at least three wrong answers (PA and CA exactly three).
 Farm animals, excluded (besides the state's own `top_livestock`):
