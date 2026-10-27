@@ -1,7 +1,7 @@
 # T-094 — Answer-position spread is checked again for every template that has a position
 
-**Status:** `verified — pass`
-**Next step:** `reviewer`
+**Status:** `approved — swept, PR ready`
+**Next step:** `human` (merge PR #101; routine, inside the envelope)
 **Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-094-answer-position-spread.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-094
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH |
 | worker | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH |
 | tester | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH (orchestrated; see Verdict on independence) |
+| reviewer | 2026-10-27 | cse_011oDiJdmgY3R4p3uHw5DgmH (orchestrated) |
 
 ## Goal
 
@@ -275,6 +276,27 @@ The worker asked me to rule on this, and I am not blocking on it.
 - **My tests.** I added no new test file. The deliverable is itself a test, so I verified it by coverage and mutation, as `process.md` step 4 says.
 
 **Tests made stale:** none. I checked: no existing test changed or went red.
+
+## Review
+
+_Written by `reviewer`._
+
+**TL;DR: approve, inside the envelope.** One 65-line test file, written in the idioms of the tests around it, and nothing beyond what the brief asked for. No blocking findings. The PR is swept and marked ready for a routine merge.
+
+- **Every role's work is in the PR.** Expander `0a3b6f3`/`4998c8d`, worker `490b7e7`, tester `c8b617d`, orchestrator run log `407e7e3`/`400c62a`/`2fef27a`.
+- **Each role stayed in its lane (D-7).** The expander touched only `tasks/` and `tasks.md`. The tester touched only the brief. The worker touched the new test and the brief.
+- **Fits the codebase.** `import.meta.dirname` + `readdirSync` bank loading matches `committed-bank.test.ts` and the others. Collecting every missing (template, index) into one list compared with `[]` is a good call: one run shows them all.
+- **Not more than needed.** No floor, no distribution statistics, no `toHaveLength(8)` pin (which would have broken criterion 2).
+- **Outside Constraints:** only `runs/T-094-…md`, the orchestrator's own log, which every orchestrated PR carries.
+- **Reran the gates myself:** `bun test` 2449 pass / 0 fail, typecheck clean, lint 0/0, `format:check` clean.
+
+**Flags disposed of:**
+- **Criterion 8's example (worker, tester).** Decided: accepted as the tester ruled. The example ("a field no entity has") makes `generate` throw instead of producing zero questions; the criterion's real condition is covered by the `applies_to: ["country"]` mutation. The criteria are not edited (the record stands); the discrepancy is noted in `PROGRESS.md`.
+- **Shared session id (worker, tester).** Decided: no action. `process.md` "Spawning, and the isolation it must not cost" already names this as a known cost of relayed runs. The tester said which independence it actually had, as required.
+
+**Queue:** no task made smaller, larger or unnecessary. Positions are a hash of the draft id (E-21), so T-088's distractor changes cannot move them. No new tasks.
+
+**Envelope:** tester pass; gates green; nothing outside Constraints except the run log and the sweep; no dependency; no `openapi.yaml`, migration or plan change; no child-facing text; no pre-existing test changed (`Test changes: none`); no product decision. Ready with no escalation note.
 
 ## Notes
 
