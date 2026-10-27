@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-27, unattended run. See `runs/T-094-answer-position-spread.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-094
 **Branch:** `claude/modest-bell-3vg6ok`
