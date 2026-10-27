@@ -1,7 +1,7 @@
 # T-092 — Stop generating candidates for `map_click`
 
-**Status:** `blocked`
-**Next step:** `human` — answer **Q1** below, then `task-expander` finalises the criteria
+**Status:** `expanding`
+**Next step:** `task-expander` — Q1 answered (A); finalise criteria 10–12
 **Approved:** `pending`
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-092
@@ -74,6 +74,11 @@ candidates that do not exist. (B) changes difficulty with nothing behind it.
 section or on PR #98. Then start `task-expander` again. It turns the
 option-dependent criteria below into final ones and sets
 `Status: awaiting approval`.
+
+**Answer (Dkaattae, 2026-10-27, in the orchestrator session):** **(A) — levels unchanged.**
+Their words, after seeing the current `map_click` levels per state: *"I kind of agree with
+the current level. just keep as is"*. Recorded by the orchestrator; criterion 8 is read as
+"keep the current `no_centroid` behaviour", which is what "keep as is" asks for.
 
 ## Goal
 

@@ -45,3 +45,8 @@ Files:
 
 ## Halted
 The expander asks a person to answer **Q1**: "the queue entry's Done-when ('`content.json` is unchanged') and its motivation ('E-21's distractor code still picks them') cannot both hold, because every served `map_click` `level` is computed from those candidates; which one gives way is a person's call." Choose (A) levels unchanged, (B) drop the term, (C) replace with a candidate-free input, or (D) don't do T-092 — and confirm criterion 8 (state with no centroid). Then start `task-expander` again.
+
+## Answered — Q1 — 2026-10-27
+Dkaattae answered in the orchestrator session: *"I kind of agree with the current level. just keep as is"* → **(A) levels unchanged**; criterion 8 read as keep the current `no_centroid` behaviour. Recorded under the brief's Q1 section; header set to `Status: expanding`, `Next step: task-expander`.
+
+Before answering, the person asked how levels work, and the orchestrator read `seed-level`/E-22, `content.json` and `backend/app/levels.py` to explain. **This orchestrator session has therefore seen the work** and must not relay further roles for T-092; resume from a fresh session.
