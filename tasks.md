@@ -409,6 +409,8 @@ T-091 and T-056 were passed over too: each is waiting on a person.
 **Skipped again, 2026-10-26, for T-051.** Same reason.
 **Skipped again, 2026-10-27, for T-092.** Same reason. T-070, T-085, T-088,
 T-091 and T-056 were passed over too: each is waiting on a person.
+**Skipped again, 2026-10-27, for T-094.** Same reason. T-070, T-085, T-088,
+T-091 and T-056 were passed over too: each is waiting on a person.
 
 ---
 
@@ -563,8 +565,8 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-094 — Answer-position spread is no longer checked per template for six templates · S · todo
-**Depends on:** —
+### T-094 — Answer-position spread is no longer checked per template for six templates · S · doing
+**Depends on:** — (brief `tasks/T-094-answer-position-spread.md`)
 **New 2026-10-27, from T-092's reviewer (PR #100).** T-092's approved rows 11
 and 18 narrowed the "every index 0..3 appears for every template" loop in
 `distractors.test.ts` (criterion 15) and `distractors-verify.test.ts` (T-022
