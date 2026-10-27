@@ -207,7 +207,7 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (415 over the committed bank) and reports pairs with missing data.
   `src/distractors.ts` `buildChoices` (T-022) turns those drafts into
   four-option questions with `choices` and `correctIndex` (E-21); a
-  `map_click` question carries neither, only `answerGeometryId` (E-29, T-092). T-026 added one strategy per new template, with
+  `map_click` question carries neither, only `answerGeometryId` (E-29, T-092). Every positioned template is checked to use all four answer positions (T-094). T-026 added one strategy per new template, with
   the person-approved same-thing lists beside them (E-25). `src/seed-level.ts`
   `seedLevels` (T-023) adds a `level` in 0–18 from plan §1.4's formula, every
   weight in `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions
@@ -365,6 +365,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-094 — Answer-position spread checked again for every positioned template**
+  (PR #101, 2026-10-27). New `question-bank/src/answer-position-spread.test.ts`
+  asserts that every `TEMPLATES` entry whose format is not `map_click` puts its
+  answer at each index 0..3 at least once over the committed bank, with the set
+  derived by format and checked to hold the eight known ids. All eight already
+  did (smallest count: farm-animal index 1, 4 of 24). Test-only; no source,
+  data or existing test changed. *Where it differed from the brief:* criterion
+  8's example (a field no entity has) makes `generate` throw rather than yield
+  zero questions; the tester verified the criterion with an
+  `applies_to: ["country"]` copy instead. Brief approval was an orchestrator
+  stamp; run fully orchestrated, so all roles shared one session id.
 - **T-092 — `map_click` questions no longer carry candidates** (PR #100,
   2026-10-27). The question file's 50 `map_click` questions lost `choices`,
   `correctIndex` and `choiceGeometryIds`; `clickDistractorsFor` in
