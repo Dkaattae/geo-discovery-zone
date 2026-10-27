@@ -1,7 +1,7 @@
 # T-092 — Stop generating candidates for `map_click` — run log
 
 **Task:** T-092 · **Branch:** `claude/tender-feynman-fv9k0l` · **PR:** #100
-**Started:** 2026-10-27 · **Outcome:** halted — needs human
+**Started:** 2026-10-27 · **Outcome:** halted — test change request, needs an attended tester
 
 ## Round 1 — task-expander — 2026-10-27
 `Next step` on entry: (no brief) → on exit: `human`
@@ -111,3 +111,35 @@ Orchestrator stamped `Approved: orchestrator — 2026-10-27, unattended run` wit
 > Sessions row: same session id `cse_011oDiJe6KxQ3qitLn4NjWjF` as the expander; noted in the row.
 
 Gates: G5 passed (`awaiting approval` → `awaiting verification`; `worker` → `tester`). Push confirmed at `bb2cf42`. G1 clean.
+
+## Round 4 — tester — 2026-10-27
+`Next step` on entry: `tester` → on exit: `human`
+
+> **T-092 is halted at `test changes requested`. All 18 criteria are met as far as I can test them, but 24 existing tests and the typecheck of 7 test files go red because the task removes `map_click` candidates, which is what it set out to do.** I wrote a 31-row Test change request and changed none of those tests. **Next: a person has to approve or refuse the rows in a `tester` session they are attending.**
+>
+> - Brief header: Status `test changes requested`, Next step `human`, Test changes `requested`, plus a `Fault:` line. Sessions row added.
+> - Pushed: commit `cf63f66`; local HEAD equals `origin/claude/tender-feynman-fv9k0l`.
+> - Independence: same session id `cse_011oDiJe6KxQ3qitLn4NjWjF` as the worker; freshly spawned context only. The Verdict says so.
+>
+> **What I tested:** new `question-bank/src/map-click-no-candidates-verify.test.ts`, 76 tests passing (typecheck, lint, prettier clean). Expected values from default branch `5d72ca5` via a temporary worktree (removed), embedded as sha256 digests; 9 synthetic entity banks with literal levels and `shortPools`. Criteria 9 and 10 cover non-zero and zero near-distractor terms and the three `shortPools` cases.
+>
+> **Mutations:** 18 deliberate breaks, all reverted; 17 turned a test red. One stayed green: skipping the `no_centroid` check in `distractorsFor` (redundant with `nearestDistractors`).
+>
+> | Suite | Pass | Fail | Notes |
+> |---|---|---|---|
+> | question-bank `bun test` | 2425 | 23 | all 23 are request rows 1–23 |
+> | question-bank typecheck | — | 7 test files | request rows 25–31; source compiles |
+> | question-bank lint, format | clean | — | |
+> | backend `make test` | 738 | 1 | row 24; 9 skipped; lint and format clean |
+> | `make -C backend content` | — | — | leaves `content.json` unchanged |
+> | frontend `bun test` | 392 | 4 | proxy 403 on `react-simple-maps` / d3 tarballs; nothing under `frontend/` changed |
+>
+> **Test change request (31 rows):** every row confirmed independently; worker's stale list complete; no count floor covers these files. Re-pins (rows 19, 20, 23) recomputed from `5d72ca5` and match the worker's. Rows 11 and 18: position floor becomes "at least 20 of 100" (default branch counts 21, 22, 27, 30). One deletion (row 12, the E-21 "parallel list" test); the rest are modifications.
+>
+> **For the reviewer:** `seedLevels` now throws if inputs no longer give a click question three peers; the worker edited E-29's `Revisit when` line.
+
+Gates: G5 passed (`awaiting verification` → `test changes requested`; `tester` → `human`). Push confirmed at `cf63f66`. G3: 0 fail, 0 blocked.
+
+## Halted — test change request — 2026-10-27
+Raised in commit `cf63f66`. The orchestrator has not read the rows and does not approve, stamp or relay an approval (D-15).
+To resume: a person starts the `tester` step for T-092 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. After that, a new run carries on from the header's `Next step`.
