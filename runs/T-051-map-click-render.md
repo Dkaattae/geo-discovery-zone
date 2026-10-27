@@ -1,7 +1,7 @@
 # T-051 — Serve and render `map_click`: tap the state on the map — run log
 
 **Task:** T-051 · **Branch:** `claude/affectionate-bell-r03ap2` · **PR:** #96
-**Started:** 2026-10-26 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-26 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-26
 `Next step` on entry: none (no brief) → on exit: `human` (Status: `blocked`)
@@ -214,3 +214,8 @@ Brief: `/home/user/geo-discovery-zone/tasks/T-051-map-click-render.md`
 Raised in commit `6537059`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not copied here; the orchestrator has not read them.
 
 To resume: Dkaattae starts the `tester` step for T-051 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15). Then the header names the next role and a new run starts from there.
+
+## Resumed — 2026-10-27
+Attended tester session (cse_011Rir8T57SYNmfYe3rNiYWo) applied the approved test change request and returned: header `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-26 (all 34 rows …)`. Branch head on resume: `5bd0367`.
+
+Dkaattae, in the orchestrator session, verbatim: "ci is fixed. you can proceed".
