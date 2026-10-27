@@ -169,8 +169,14 @@ serves, so a curated field reaches a child once a template asks about it
 (since T-026, PR #91, every topic field has one) and both committed files are
 regenerated (T-087).
 
-### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo — **waiting on Q1**
-**Depends on:** a human answer to **Q1** below (blocks nothing, but every field task since T-068 has hit it, and the monthly refresh routine is gated on it)
+### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo
+**Depends on:** nothing. Q1 is answered (below). Still needs an attended tester step.
+**Q1 answered 2026-10-27 (Dkaattae): re-pin, and survive the refresh.** Re-pin
+every digest guard against the default branch and delete the neutralisations.
+The re-pinned guards must stay green across a `bun run refresh` in which only
+`sources.built_at` and the SPARQL fixtures moved. Record it as the next unused
+`E-n`. The history below is the case for it. The "Q1, still open" paragraph is
+kept as the record of the question.
 **Split 2026-10-06 (Dkaattae, answering the T-070 expander's Q2, PR #73).** This
 entry used to hold three pieces. **(b)** became **T-080** and the git leftover
 **T-081**; both have landed (PRs #73, #74). What stays here is **(a)** alone, re-sized to M because
@@ -421,8 +427,26 @@ Since T-040 (PR #88) every served question is generated, as the plan's central
 claim asks (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo — **waiting on a person**
-**Depends on:** a person's choice between the options below
+### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo — **waiting on a person** (list approval)
+**Depends on:** a person approving the list below
+**Option chosen 2026-10-27 (Dkaattae): the person-approved `familiarity_bonus`
+list.** **The largest-city risk is accepted** (Dkaattae, same day): a
+largest-city entry lowers Providence (RI) from 10, which T-025 read as
+`about right`, and that is wanted. Record the acceptance in E-22.
+**Proposed list, awaiting approval** (2026-10-27, drafted in a chat session
+from E-22's T-025 table and E-26/E-27 table D, not from a committed source).
+Membership is what needs approving. The amounts are a first guess the task may
+tune. `familiarity_bonus` becomes a per-entry lookup, not one scalar:
+- **Drawn apart from the mainland, −2** on `tpl-identify-on-map`,
+  `tpl-click-the-map` and `tpl-climate-of`: **HI** (6.5→4.5, 7.5→5.5,
+  9.5→7.5), **AK** (6→4, 7→5, 8→6).
+- **Capital is the state's largest city, −1** on `tpl-capital-of`, 17 states:
+  AZ Phoenix, AR Little Rock, CO Denver, GA Atlanta, HI Honolulu, ID Boise,
+  IN Indianapolis, IA Des Moines, MA Boston, MS Jackson, OH Columbus,
+  OK Oklahoma City, RI Providence, TN Nashville, UT Salt Lake City,
+  WV Charleston, WY Cheyenne. **Flag:** TN (Memphis), WV (Huntington) and WY
+  (Casper) are close calls. Check all 17 against current Census city
+  populations before they ship, and leave out any the source does not confirm.
 **New 2026-10-16, from T-025's reviewer (PR #85).** T-025's hand-check
 (`engineering-decisions.md` E-22, "T-025 hand-check of 30 questions") left six
 of 30 rows `too hard`, and no weight can fix them, because the formula sees
@@ -474,8 +498,11 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
 
-### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person**
-**Depends on:** a person's choice between the options below (T-026 landed in PR #91)
+### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person** (list)
+**Depends on:** a person approving the per-state list for option (a), drafted after T-085's list is approved
+**Option chosen 2026-10-27 (Dkaattae): (a)**, a person-approved "also
+grown/raised" list per state, used as an exclusion. The list is to be drafted
+and approved once T-085's list is approved.
 **New 2026-10-20, from T-026's worker.** T-026's crop rule (brief call C3)
 removes crops grown by the state, its neighbours and its region. Its
 farm-animal rule removes only the animals the state lists. Approving C3
@@ -517,8 +544,11 @@ non-climate question in both committed files at `3279555` (criteria 7, 11,
 12 and 19), so regenerating agriculture turns those pins red.
 **Done when:** the chosen option has landed and E-25 records it.
 
-### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo — **waiting on a person**
-**Depends on:** a person's choice between the options below
+### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo
+**Depends on:** nothing
+**Option chosen 2026-10-27 (Dkaattae): (a), accept the trade.** No rule
+changes and no regeneration. The task is to record the acceptance in E-25 and
+in E-27 (b)'s "Owner" line.
 **New 2026-10-23, from T-090 (PR #93), E-27 (b).** Capping Hawaii's and
 Alaska's phrases took away the only other "cold" phrase in most eastern
 states' questions. The next farthest picks are West Coast phrases, so:
