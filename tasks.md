@@ -501,10 +501,65 @@ is generated from `question-bank/data/` and the 50 states are served
 `map_click`. What is left here is making that bank behave well at its size.
 
 ### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo — **waiting on a person** (list)
-**Depends on:** a person approving the per-state list for option (a), drafted after T-085's list is approved
+**Depends on:** a person approving the five added farm animals (below); the per-state lists are approved
 **Option chosen 2026-10-27 (Dkaattae): (a)**, a person-approved "also
-grown/raised" list per state, used as an exclusion. The list is to be drafted
-and approved once T-085's list is approved.
+grown/raised" list per state, used as an exclusion. **Lists approved
+2026-10-27 (Dkaattae)**, drafted in a chat session from general knowledge,
+not a committed source. The rule: a state "also grows/raises" an item when it
+is roughly a top-10 national producer or the item is widely known for it.
+**Check every row against USDA NASS state rankings before it ships.** An
+extra exclusion only removes a wrong answer, so it is safe; a missing one is
+the risk this task exists to fix.
+**Decided with the lists (Dkaattae):** `cattle` and `dairy cows` stay
+separate animals. Six farm-animal questions (CA, IA, MN, PA, SD, TX) keep
+fewer than three wrong answers out of six animals, so **option (ii): add more
+farm animals** to the pool. **Proposed, awaiting approval:** goats, horses,
+ducks, rabbits and bison, with the exclusions below. With them every state
+keeps at least three wrong answers (PA and CA exactly three).
+Farm animals, excluded (besides the state's own `top_livestock`):
+- AL goats · AR turkeys · AZ dairy cows · CA cattle, chickens, turkeys,
+  sheep, goats, horses, ducks · CO dairy cows, sheep, bison · DE none ·
+  GA goats · IA cattle, chickens, turkeys, sheep, goats · ID cattle, sheep ·
+  KS pigs, bison · MD none · MN pigs, dairy cows, chickens, cattle, goats ·
+  MS none · MT sheep, bison · NC chickens, goats · NE pigs, bison · NY goats ·
+  OK pigs, chickens, goats, horses, bison · PA chickens, pigs, turkeys, goats,
+  horses, ducks · SD pigs, turkeys, sheep, bison · TX chickens, sheep, dairy
+  cows, goats, horses · VT none · WI goats · WY sheep, bison
+Crops, excluded (besides the state's own `top_crops`):
+- AK potatoes, barley, hay · AL soybeans, corn, pecans, peaches · AR cotton,
+  corn, wheat, peanuts, sorghum · AZ alfalfa hay, hay, wheat, pecans ·
+  CA cherries, potatoes, apples, tomatoes, lettuce, rice, oranges, peaches,
+  pears, cotton, alfalfa hay, hay, wheat, corn, sweet corn, sweet potatoes,
+  blueberries, mushrooms, sugar beets, chile peppers, lima beans, sunflowers ·
+  CO sunflowers, corn, wheat, hay, alfalfa hay, sugar beets, barley, sorghum ·
+  CT apples, maple syrup, sweet corn · DE corn, soybeans, sweet corn ·
+  FL sugarcane, tomatoes, sweet corn, peanuts, blueberries, potatoes, cotton ·
+  GA cotton, blueberries, corn, soybeans, tobacco, sweet corn · HI none ·
+  IA hay, alfalfa hay · ID wheat, barley, sugar beets, alfalfa hay, hay ·
+  IL wheat, sweet corn, hay · IN wheat, tomatoes, hay · KS corn, soybeans,
+  sunflowers, hay, alfalfa hay · KY soybeans, wheat, hay, alfalfa hay ·
+  LA soybeans, cotton, sweet potatoes, corn, pecans · MA apples, sweet corn ·
+  MD wheat, sweet corn, barley, hay · ME apples, maple syrup, hay · MI corn,
+  soybeans, sugar beets, potatoes, grapes, wheat, hay · MN sugar beets, wheat,
+  hay, alfalfa hay, sweet corn, potatoes · MO cotton, rice, wheat, sorghum,
+  hay · MS corn, rice, sweet potatoes, peanuts · MT hay, alfalfa hay, sugar
+  beets, cherries · NC corn, soybeans, cotton, peanuts, blueberries,
+  strawberries, apples, wheat · ND sugar beets, soybeans, corn, barley,
+  potatoes, hay · NE wheat, sorghum, hay, alfalfa hay, sugar beets · NH sweet
+  corn, hay · NJ peaches, sweet corn, apples · NM hay, alfalfa hay, cotton,
+  sorghum, peanuts, corn · NV hay, potatoes · NY sweet corn, potatoes, corn,
+  soybeans, hay · OH wheat, tomatoes, hay, sweet corn · OK cotton, sorghum,
+  hay, alfalfa hay, peanuts, pecans, corn, soybeans · OR wheat, barley, hay,
+  alfalfa hay, potatoes, cherries, blueberries, grapes, apples · PA corn,
+  soybeans, hay, tobacco, sweet corn, peaches, grapes, potatoes · RI apples ·
+  SC soybeans, corn, peanuts, tobacco, sweet potatoes, wheat, pecans ·
+  SD sorghum, wheat, sunflowers, hay, alfalfa hay · TN corn, wheat, hay,
+  tobacco, tomatoes · TX corn, peaches, wheat, hay, rice, peanuts, pecans,
+  oranges · UT hay, wheat · VA soybeans, corn, wheat, hay, apples, sweet
+  potatoes, tomatoes, cotton · VT hay, sweet corn, corn · WA wheat, barley,
+  alfalfa hay, hay, potatoes, pears, grapes, blueberries, sweet corn ·
+  WI soybeans, potatoes, sweet corn, hay, alfalfa hay, cherries · WV hay,
+  corn · WY alfalfa hay, barley, wheat, corn
 **New 2026-10-20, from T-026's worker.** T-026's crop rule (brief call C3)
 removes crops grown by the state, its neighbours and its region. Its
 farm-animal rule removes only the animals the state lists. Approving C3
