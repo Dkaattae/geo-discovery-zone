@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-094
 **Branch:** `claude/modest-bell-3vg6ok`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #101, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:**
 
