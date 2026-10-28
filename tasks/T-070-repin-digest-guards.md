@@ -1,7 +1,7 @@
 # T-070 — Re-pin the digest guards, and let them survive a refresh
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-28, unattended run. See `runs/T-070-repin-digest-guards.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-070
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-28 | cse_011oDiJcaEvyueGBAthPSQu3 |
+| worker | 2026-10-28 | cse_011oDiJcaEvyueGBAthPSQu3 (same remote session id as the expander: the orchestrator spawned both as subagents of one session; the tester must still be a fresh one) |
 
 > **Read before approving: this task is mostly edits to tests that already
 > exist.** A worker may not make those edits (D-14). The worker writes `E-30`,
@@ -269,6 +270,281 @@ Required reading:
 
 ## Handoff
 
+**TL;DR.** I wrote `E-30`, added one shared helper (`bank-pins.ts`) that holds
+all 51 bank pins at R = `b0ee336`, and added a new standing guard
+(`bank-pins.test.ts`). I edited no existing test. Almost all of the task is
+still to do: 57 rows of Test change request (W1–W57 below), which only
+the tester may raise and only a person may approve (D-14, D-15). **Expect
+`test changes requested` / `human`.** At the branch head, exactly two tests
+are red, both listed below as stale: W45 and W53.
+
+**R is `b0ee336`.** The branch has not been rebased. Up to my commits, it
+differs from R only in `tasks/`, `runs/` and `tasks.md`.
+
+### What I changed
+
+- **`engineering-decisions.md`**: appended `## E-30`, the only new entry. No
+  other entry's text changed. It covers c17–c22: re-pinned rather than kept,
+  Dkaattae 2026-10-27, R named, `built_at` and the fixtures unpinned and why,
+  the `top_crops` blind spot closed, the rule for later tasks, and what
+  re-pinning gave up.
+- **`question-bank/src/bank-pins.ts`** (new, non-test, imported only by tests):
+  - `BANK_PINS_AT = "b0ee336"`.
+  - `bankFileDigest(name, text)`: for `index.json`, the sha256 of its bytes.
+    For a state file: parse it, delete `sources.built_at`, `JSON.stringify` it
+    in its own key order, then sha256. **It throws if `built_at` is missing**,
+    so the one allowed removal can never quietly do nothing.
+  - `BANK_DIGESTS`: all 51 files, computed from
+    `git show b0ee336:question-bank/data/us-states/<name>`. All 51 values are
+    distinct.
+- **`question-bank/src/bank-pins.test.ts`** (new, 64 tests):
+  - the pin commit is R
+  - the bank holds exactly the 51 pinned names
+  - each of the 51 files digests to its pin
+  - moving `built_at` alone leaves all 50 entity digests unchanged
+  - a missing `built_at` throws
+  - each c5 mutation, made in memory, moves the digest: IL `top_crops[0]`,
+    CT `highest_point_m`, CO `landmark`, CO `climate_kid`, IL `region`,
+    AK `highest_point`, the first state with non-empty `top_livestock` (`al`),
+    CO `population`, and one `index.json` id
+- **This brief**: Sessions row, Status, Next step, Handoff, Notes.
+
+### Where each criterion lives now
+
+| C | State at branch head | Where, or what is left |
+|---|---|---|
+| 1, 2 | **not yet** | W3, W6, W11, W17, W21, W29, W33 remove the T-069/T-079 restores and the strips and resets |
+| 3 | **not yet** | W46 (the `omit` in `digestsOf`). Note: climate-far c7/c12 and t026 c4 strip nothing at runtime. Their pins were *computed* with the fields stripped, which at R is a no-op, so they already comply and their values equal R |
+| 4 | **not yet** | W38, W40–W42, W44, W46–W47, plus everything under c1–c3. See flag F2 on what counts as an "exclusion" |
+| 5, 6 | **done** for the new guard | `bank-pins.test.ts` hashes all 51 files whole except `built_at`. Every c5 mutation turns it red (checked in memory by its own tests; the tester does the tree mutations). c6 also needs every *remaining* whole-file guard to see `top_crops`, which W3/W6/W11 deliver |
+| 7, 8 | **partly** | `BANK_DIGESTS` equals R and is labelled `b0ee336`. The re-pins in the W rows are not done |
+| 9, 10 | **not yet** | On S(t₁) and S(t₂) at R, **120 bun tests fail**, the same 120 for both instants (list below). W1–W52 clear them. `bank-pins.test.ts` is green on both |
+| 11 | **not yet** | On S(t₁), `make -C backend test` has **4 failures, none of them a pinned guard**. See W54–W57 and flag F1 |
+| 12 | **not yet** | W36 (T-079 c19, both fixtures byte-pinned) and W37 (T-078 c13). W38 also hashes `src/fixtures` |
+| 13 | **not yet** | W1, W5, W16, W20, W49–W51 |
+| 14 | — | The deletions I propose are all class (i), (ii) or (iii), and each row names its class |
+| 15, 16 | **not yet** | W24 (c15). W21 and W28 (c16) |
+| 17–22 | **done** | `E-30` |
+| 23 | holds | Only `engineering-decisions.md`, two new files under `question-bank/src/` and this brief changed |
+| 24 | holds | No dependency |
+| 25 | **red by design** | See "How to run" |
+
+### Tests made stale
+
+"Modify → helper" means: compare `bankFileDigest(name, raw)` with
+`BANK_DIGESTS[name]` from `./bank-pins`, with no other strip, reset or
+restore, and rename the test so it no longer claims a baseline it does not
+check. **Each such test then pins R, so its label must say `b0ee336` (c8).**
+The tester can instead re-pin in the guard's own hashing method; c7 allows
+that as long as the value is R's, computed the same way. Using the helper
+merges the pins into one table.
+
+"Red now" means red at the branch head. "Red on S" means red on S(t₁) and
+S(t₂) at R. "Green" rows are stale under c1–c4 or c16 and still pass.
+
+**`question-bank/src/landmarks-verify.test.ts`** (pins at `e587ec1`)
+
+| # | describe > test | Why | Proposal |
+|---|---|---|---|
+| W1 | T-013 tester, criterion 7 — … > sources.built_at is still the pinned capture instant in all 50 files | c13. Red on S | **Modify**: every file's `built_at` equals `new Date(<main fixture>._fixture.captured_at).toISOString()`. This keeps the test count, so no floor moves. Deleting it is class (iii), but then the floor rows in W10 need lowering |
+| W2 | T-013 tester, criterion 9 — … > index.json is byte-identical to the default branch's | Green, and its value already equals R | Optional: point it at the helper, if `DEFAULT_BRANCH_DIGESTS` is removed |
+| W3 | same describe > each of the 50 files, with landmark, climate_kid, top_crops and top_livestock removed, is identical to the default branch's | c1, c2, c4, c6. Red on S | **Modify → helper.** Remove `T069_…`, `T079_…` and `DEFAULT_BRANCH_DIGESTS`. The c7 rebuild test reads `Object.keys(DEFAULT_BRANCH_DIGESTS)`, so it needs `Object.keys(BANK_DIGESTS)`. **Keep `stateFiles()` on `readdirSync`**: `climate-kid-verify` c16 and `climate-kid.test.ts:747` assert that route |
+| W4 | same > the region removal actually drops the key — otherwise the digest check proves nothing (T-017) | It only proves a neutralisation | **Delete**, class (ii) |
+
+**`question-bank/src/climate-kid-verify.test.ts`** (pins at `13a735f`)
+
+| # | describe > test | Why | Proposal |
+|---|---|---|---|
+| W5 | T-014 tester, criterion 12 — … > sources.built_at is still the pinned capture instant in all 50 files | c13. Red on S | Modify, as W1 |
+| W6 | T-014 tester, criterion 15 — … > each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value | c1, c2, c4, c6. Red on S | **Modify → helper.** c12's `PATHS = Object.keys(BASELINE_DIGESTS)` needs the helper's keys |
+| W7 | same > the region removal actually drops the key — … (T-017) | Neutralisation proof | **Delete**, class (ii) |
+| W8 | same > 15d — index.json is byte-identical to the default branch's and mentions no climate_kid | Green, value equals R | Optional, as W2 |
+| W9 | same > the digest check has teeth: a changed non-climate_kid field breaks it | It applies `delete parsed["climate_kid"]` (c4) | **Modify**: change `state_animal` alone and assert the helper digest differs from the pin |
+| W10 | T-014 tester, criterion 19 — … > `landmarks-verify.test.ts still declares at least 35 tests and 69 expectations` (and the same row in `climate-kid.test.ts` T-014 criterion 19 `PINNED`) | A count floor. W1–W4 lower it: by my count about 34 tests and 66 expects if W1 is a modify and W4 a delete | **Modify**: set it to the recount after the edits. If W49–W51 are deletes rather than modifies, the floors for `landmarks.test.ts` (50/88) and `state-animals.test.ts` (40/73, and 40/70 in `landmarks-verify`) also drop by 1 test and 1 expect each, in `climate-kid-verify`, `climate-kid.test.ts`, `landmarks.test.ts` and `landmarks-verify.test.ts` |
+
+**`question-bank/src/top-crops-verify.test.ts`** (pins at `eda7fde`)
+
+| # | describe > test | Why | Proposal |
+|---|---|---|---|
+| W11 | T-015 tester, criterion 13 — nothing else in the bank moves > each of the 50 files, with top_crops put back to [], Alaska's highest_point line stripped, region removed and top_livestock removed, digests to the default branch's bytes | c1, c2, c6. Red on S | **Modify → helper.** Remove `withEmptyTopCrops`, `withoutAlaskaHighestPoint`, `withoutRegion`, `withoutTopLivestock`, `withDefaultBranchHighestPointM`, the T-069 table and `DEFAULT_BRANCH_DIGESTS` |
+| W12 | same > the region removal actually drops the line — … (T-017) | Neutralisation proof | **Delete** (ii) |
+| W13 | same > the restoration actually removes the crops — otherwise the digest check proves nothing | Neutralisation proof | **Delete** (ii) |
+| W14 | same > the Alaska neutralisation actually removes the highest_point line — … (T-016 criterion 11) | Neutralisation proof | **Delete** (ii) |
+| W15 | same > index.json is byte-identical to the default branch | Green, value equals R | Optional, as W2 |
+| W16 | same > built_at has not moved in any of the 50 files | c13. Red on S | Modify, as W1, or delete (iii). This file has no count floor |
+
+**`question-bank/src/highest-point-verify.test.ts`** (pins at `284b8bc`)
+
+| # | describe > test | Why | Proposal |
+|---|---|---|---|
+| W17 | T-016 tester, criterion 5 — … > removing the highest_point line, reverting landmark, dropping region and dropping top_livestock reproduces the default branch's bytes exactly | c1, c2 (Alaska treated differently), c4. Red on S | **Modify → helper** for `us-state-ak.json`, and rename |
+| W18 | same > that removal is real — the neutralised bytes differ and no longer carry the value | Neutralisation proof | **Delete** (ii) |
+| W19 | same > the file on disk is not byte-identical to the default branch — the line really was added | Its only job is to show the neutralised comparison above is not trivially equal | **Delete** (ii). Tester to confirm the class. If not, a person decides under (iv) |
+| W20 | same > highest_point_m is still 6190 and sources.built_at is still the fixture's pinned instant | c13. Red on S | **Modify**: keep the 6190 check (R's value). Drop the literal instant, or compare with the fixture's `captured_at`. Rename |
+| W21 | describe "T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched" and its test "each of the 49 non-Alaska state files matches … restored" | c16 ("the sample"). c1, c4 (the T-079 restore, `withoutRegion`, `withoutTopLivestock`). Red on S | **Modify**: rename the describe without "the sample", and point the test at the helper |
+| W22 | same describe > the region removal actually drops the line — … (T-017) | Neutralisation proof | **Delete** (ii) |
+| W23 | same describe > index.json is byte-identical to the default branch | Green, value equals R. Affected only by W21's rename | Optional, as W2 |
+| W24 | describe "T-016 tester, criterion 9 — the full fixture build warns about nothing at all" | c15. Its own second test expects 3 warnings | **Modify**: rename only, e.g. "… warns about nothing but T-079's three overrides" |
+| W25 | T-016 tester, criterion 10 — … > no guard strips highest_point unconditionally — every removal is gated on us-state-ak.json | After W3/W6/W11 it finds 0 removals, and `expect(gated).toBeGreaterThanOrEqual(3)` fails | **Modify**: assert that no guard strips `highest_point` at all (the removal list is `[]`). Deleting it as (ii) is the alternative |
+| W26 | T-016 tester, criterion 11 — both neutralisation routes are proven real > its three tests (textual route, parsed route, "neutralising a non-Alaska file would change it too") | The brief names it as class (ii). The textual-route test is red on S | **Delete** (ii), all three |
+| W27 | T-016 tester — the pins above are not vacuous > DEFAULT_BRANCH_DIGESTS covers exactly the 51 tracked paths / every pinned digest is a distinct 64-hex SHA-256 | They break if W17/W21 remove `DEFAULT_BRANCH_DIGESTS` | **Modify**: check `BANK_DIGESTS` instead. All 51 values are distinct 64-hex |
+| W28 | file header comment (lines 18–27: "the other 51 paths", `284b8bc`) and the `DEFAULT_BRANCH_DIGESTS` comment (line 81: "`index.json` and the sample untouched") | c16. c8 too, once the pins move | **Modify** the comments |
+
+**`question-bank/src/highest-point-metres-verify.test.ts`** (pins at `e10f94d`)
+
+| # | describe > test | Why | Proposal |
+|---|---|---|---|
+| W29 | T-069 tester, criterion 11 — … > every state whose recorded unit is metre (and only metre) keeps main's highest_point_m bytes, except CT, OK, VA (T-079 overrides) | `T079_OVERRIDES` excludes files (c4) | **Modify**: re-pin `MAIN_AT_E10F94D`'s `line` values at R, which makes CT 727.2, OK 1516.4 and VA 1740.6. Drop the exclusion, and rename and relabel to R |
+| W30 | same > the changed set is the non-metre states AZ, IA, KS, NE, OR plus the T-079 overrides CT, OK, VA | With R's lines the changed set is `[]` | **Modify**: assert changed = `[]` and keep the five-state `notMetre` assertion. Tester may judge it degenerate and propose (iv) instead |
+| W31 | T-069 tester, criterion 12 — … > 51 tests `${name}: everything but the highest_point_m line digests to main's bytes` | Removes a line (c4) and hashes `built_at`. Red on S (all 50 state files) | **Modify → helper**, renamed. "the bank holds exactly main's 51 files" can use `BANK_DIGESTS`' keys |
+| W32 | T-069 tester, criterion 15 — … > no non-test source under src/ holds a shipped highest_point_m value as code … | Not a pin. But it uses `MAIN_AT_E10F94D`'s `line` values as search terms, so W29 would silently drop the five old feet values | **Modify** only if W29 changes the table: keep the five e10f94d feet values (12622, 11237, 5429, 4039, 1670) as their own literal search list |
+
+**`question-bank/src/highest-point-in-state-verify.test.ts`** (pins at `323254c`)
+
+| # | describe > test | Why | Proposal |
+|---|---|---|---|
+| W33 | T-079 tester, criterion 4 — … > 3 tests `${file}: putting main's value back on that one line restores main's exact bytes` | Restores (c1, c4). Red on S | **Modify → helper** for CT, OK and VA. Keep the "the new line is present once" assertion. Rename |
+| W34 | describe "T-079 tester, criterion 5 — the other 47 state files are byte-identical to 323254c" > 47 tests `${name} digests to main's value`, plus "there are exactly 47 of them" | Raw bytes including `built_at`. Red on S | **Modify → helper**, and relabel the describe to R |
+| W35 | T-079 tester, criterion 6 — … > the other 47 keep main's bytes, label included (criterion 5's digests) | Same as W34. Red on S | **Modify → helper** |
+| W36 | describe "T-079 tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c …" > tests `us-states.sparql.json`, `us-states-elevation.sparql.json` | c12. Red on S | **Delete**, class (i) |
+
+**Other `question-bank/src/` files**
+
+| # | file > describe > test | Why | Proposal |
+|---|---|---|---|
+| W37 | `refresh-routes-verify.test.ts` > T-078 tester — the fixture's regeneration note > criterion 13: apart from regenerate_with, the parsed fixture deep-equals the default branch's (d71dd8a) | c12. Red on S | **Delete**, class (i) |
+| W38 | `hand-check-levels-verify.test.ts` > T-025 criteria 14-17 … > criterion 14: question-bank/data (outside T-040's data/questions/) and src/fixtures are byte-identical to aa88101 | It hashes the fixtures (c12), excludes `data/questions/` (c4, the brief's own example), and hashes `built_at`. Red on S | **Modify**: drop the fixtures half. Hash every file under `question-bank/data/` with no exclusion, using `bankFileDigest` for `data/us-states/*` and raw bytes for the rest. Re-pin at R, rename and relabel |
+| W39 | same describe > criterion 17: every question-bank test file at aa88101 is present and unmodified | Any tester edit to one of those 48 files turns it red | **Modify last**: re-pin the aggregate at the branch head, after every other row (c7 exception) |
+| W40 | `seed-level-loose-ends-verify.test.ts` > T-086 criteria 10-12 … > criterion 10: the 150 seeded levels by id equal 41811f9's | `TEMPLATES.slice(0, 3)` excludes questions on T-026's behalf (c4). Green | **Modify**: all of `TEMPLATES`, re-pinned at R (count and digest), renamed |
+| W41 | same > criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to 41811f9's | It deletes T-026's six `concept_load` keys before comparing (c4). Green | **Modify**: deep-equal the whole `LEVEL_SEED_WEIGHTS` as at R |
+| W42 | same > criterion 12: engineering-decisions.md outside E-22's body, up to the first heading after E-23, is byte-identical to 41811f9's | The truncation at E-24 was added for T-040 (c4). Green | **Modify**: drop the truncation and pin at the branch head (E-30 included; c7 exception). Whether carving out E-22's own body is an "exclusion" too: see F2 |
+| W43 | `climate-far-phrases-verify.test.ts` > T-090 criterion 12 … > every file under question-bank/data/us-states/ is byte-identical to 3279555 | Hashes `built_at`. Red on S | **Modify → helper** (or the same tree digest with `bankFileDigest`, re-pinned at R) |
+| W44 | same describe > content.json: every non-climate, non-map_click question deep-equal to 3279555 | The non-`map_click` filter is T-051's exclusion (c4). Green | **Modify**: drop the `tpl-click-the-map` filter and re-pin at R |
+| W45 | `map-click-no-candidates-verify.test.ts` > T-092 criterion 13 … > E-1..E-28 are byte-identical to 5d72ca5's, and there are still 29 E-n headings | **Red now**, because E-30 makes 30 headings | **Modify**: 30 headings, labelled as the branch head. The E-1..E-28 digest is unchanged |
+| W46 | same file, helper `digestsOf` (`clickFields`), used by T-092 criterion 3 > the twelve fields, in order, hash to 5d72ca5's | `omit(q, [...CANDIDATE_KEYS, "level"])` strips `choices`/`correctIndex`/`choiceGeometryIds` from `us-states.json`'s `map_click` questions (c3). Green | **Modify**: omit only `"level"`. **The pin value does not change**: c1 asserts the keys are absent, so the strip was a no-op at R |
+| W47 | same file, helper `baselineOf` (`clickRest`), used by T-092 criterion 9 test.each "bank %s …" | Same strip on the synthetic banks (c4). Green | **Modify**: drop the `omit`. Values are unchanged for the same reason (criterion 6 asserts it) |
+| W48 | `t026-tester-verify.test.ts` > T-026 criteria 50-51 … > criterion 50: the committed entity files are byte-equal to main's (45b00d7) | Raw bytes including `built_at`. Red on S | **Modify → helper**, renamed |
+| W49 | `landmarks.test.ts` > T-013 criterion 7 — the bank is built, not hand-edited > `sources.built_at is ${PINNED_BUILT_AT} in every tracked file` | c13. Red on S | Modify, as W1 (keeps the floors), or delete (iii) and do W10's floor rows |
+| W50 | `climate-kid.test.ts` > T-014 criterion 12 — … > the same test | Same | Same |
+| W51 | `state-animals.test.ts` > T-012 criterion 6 — … > the same test | Same | Same |
+| W52 | `region-vocabulary.test.ts` > T-017 criterion 6 — each pinned-digest guard gained a region neutralisation > 8 tests: `${guard} neutralises region before hashing` and `${guard} proves its own region neutralisation is not a no-op`, for the four guards | They assert that the neutralisation exists. Red once W3/W6/W11/W21 land | **Delete**, class (ii) |
+
+**`backend/tests/`**
+
+| # | test | Why | Proposal |
+|---|---|---|---|
+| W53 | `test_t089_tester_criteria.py::test_criterion_13_exactly_one_new_entry_numbered_gap_free` | **Red now**: `range(1, 30)`, and E-30 exists | **Modify**: `range(1, 31)`, labelled as the branch head |
+| W54 | `test_content_build.py::test_committed_content_json_is_what_the_loader_writes_from_committed_inputs` | Red on S(t₁) only. `content.json`'s `_source.extractedAt` is the newest bank `built_at` date (`backend/app/content_build.py:199-211`), and t₁ changes the date | See **F1**. Proposed **modify**: compare with `_source.extractedAt` removed from both sides |
+| W55 | `test_t040_tester_criteria.py::test_c4_c5_the_committed_file_is_byte_for_byte_what_the_command_writes` | Same | Same |
+| W56 | `test_t040_tester_criteria.py::test_c5_a_changed_input_field_would_be_caught` | Same (its first assert) | Same |
+| W57 | `test_t051_tester_criteria.py::test_c6_committed_content_json_is_what_the_build_writes_and_repeats` | Same | Same |
+
+(W2, W8, W15 and W23 are optional. W58 is reserved, in case the tester's
+mutation run finds a guard I missed.)
+
+**Pins I checked and left alone**, because they are green on S, compliant, and
+their values equal R: T-079 c18 and c20; T-025 c11, c15 and c16; T-086 c11 and
+c12 heading count; T-090 c7, c11, c12 (question-file digests), c13, c17, c19
+and c20; T-092 c2–c4, c8–c12, c15 and c16; T-026 c4; backend t026 (old
+templates), t040 (archive sha), t051 `MAIN_SERVED_DIGEST`, and t089 c13
+prefix and c14. Under c8, an unchanged pin keeps its old label.
+
+### The 120 failures on S(t₁) and S(t₂) at R
+
+S(t) was applied to a clean worktree of R with a script that rewrites only
+`_fixture.captured_at` in both fixtures and `sources.built_at` in the 50 files.
+`git diff --stat` showed 52 files, each with 1 line changed. Both instants gave
+the same 120:
+
+- `highest-point-in-state-verify`: 53 (W33–W36)
+- `highest-point-metres-verify`: 50 (W31)
+- `highest-point-verify`: 4 (W17, W20, W21, W26's textual-route test)
+- `landmarks-verify`: 2 (W1, W3)
+- `climate-kid-verify`: 2 (W5, W6)
+- `top-crops-verify`: 2 (W11, W16)
+- 1 each in `climate-far-phrases-verify` (W43), `hand-check-levels-verify`
+  (W38), `refresh-routes-verify` (W37), `t026-tester-verify` (W48),
+  `landmarks.test.ts` (W49), `climate-kid.test.ts` (W50) and
+  `state-animals.test.ts` (W51)
+
+Backend on S(t₁): the 4 tests in W54–W57. S(t₂) keeps the same date, so the
+backend is not at risk there.
+
+### Flags, each with an owner
+
+- **F1. c11 needs four backend tests changed that are not pinned guards.**
+  - **The problem**: W54–W57 compare the committed `content.json` with a fresh
+    render. A refresh that moves `built_at` to a new date moves
+    `_source.extractedAt` in the render, but S(t) does not regenerate
+    `content.json`, so they go red. c23 forbids touching `backend/app/`.
+    Changing these tests is the only route to c11 green, and c4 does not
+    govern them because they are not pinned guards. The inventory does not
+    name them.
+  - **The cost**: ignoring `extractedAt` lets a stale date in `content.json`
+    through. That is the date a refresh moves, and T-087 owns regenerating
+    `content.json` on refresh.
+  - **Owner**: the tester raises the rows. Dkaattae approves or refuses. If
+    refused, c11 cannot hold within c23, and the brief goes back to
+    `task-expander`.
+- **F2. What counts as an "exclusion" under c4.**
+  - **My working line**: a filter or strip added so that a *later* task's
+    change would not trip an older pin is a neutralisation. These are
+    W38, W40–W42, W44 and W46–W47.
+  - **What I left alone**: a guard that pins one named slice from its own
+    criterion, such as "E-1..E-18 before E-19", "the old 150 questions",
+    "E-26's text" or "outside E-22's body".
+  - **The strict reading**: c4 read literally ("every other … exclusion")
+    would also turn those slices into whole-content pins. Examples: T-086 c12
+    (E-22's body), T-090 c11/c12 (non-climate), T-092 c16 (`backend/app`
+    except `content_build.py`), T-026 c4 and backend t026/t051 (old formats
+    only).
+  - **Owner**: the tester decides at verification and names the reading it
+    applied in the Verdict. A person settles it row by row in the Test change
+    request. If they want the strict reading everywhere, add rows for those
+    pins.
+- **F3. Modify, not delete, for the literal-`built_at` tests (W1, W5, W16, W20,
+  W49–W51).**
+  - **What I propose**: compare `built_at` with the fixture's `captured_at`
+    instead of deleting the test. c13 explicitly leaves that comparison
+    unaffected, and it saves re-pinning the count floors in four files (W10).
+  - **The alternative**: deletion is class (iii) and also allowed.
+  - **Owner**: the tester proposes; a person approves.
+- **F4. W30 degenerates.** Against R, "the changed set" is always empty.
+  **Owner**: the tester, choosing between modify and (iv) delete.
+
+### What I did not do
+
+- **No existing test edited** (D-14). Every edit criteria 1–16 need is a W row.
+- **I did not prototype the re-pinned values** (the R values for W38, W40–W42
+  and W44) for the tester. Computing them independently is part of the
+  verification. The only R values I supply are `BANK_DIGESTS`, which my own
+  tests check against the tree.
+- **No bank, fixture, source or `content.json` change**, and nothing in
+  `frontend/`.
+
+### How to run
+
+```bash
+cd question-bank && bun test src/bank-pins.test.ts     # 64 pass
+cd question-bank && bun test                            # 2512 pass, 1 fail (W45)
+make -C backend test                                    # 738 pass, 1 fail (W53)
+cd question-bank && bun run typecheck && bun run lint && bun run format:check   # all clean
+```
+
+- **Full run**: all of the above was run with the six proxy variables set to
+  `http://127.0.0.1:1`.
+- **Frontend could not be checked here.** `frontend/bun test` fails 5 and
+  errors 4. The cause is that `frontend/node_modules` is absent:
+  `bun install --frozen-lockfile` gets a 403 from the sandbox proxy on
+  `europe-west1-npm.pkg.dev`. The failures are `Cannot find module
+  'react/jsx-runtime'` and the lint/format gate tests. This task changes
+  nothing under `frontend/`.
+- **Side effect, reverted**: one of those frontend tests rewrote
+  `frontend/README.md` (`*` escaped as `\*`) when run without `node_modules`.
+  I reverted it, and it is not committed.
+- **Re-running S(t)**: apply it to a fresh worktree of the branch head, then
+  run the suites there. All W rows must have landed for it to go green.
+
 ## Verdict
 
 ## Notes
@@ -286,3 +562,16 @@ Required reading:
 - T-070 is the first task in `tasks.md` whose dependencies are done. Its
   `Depends on:` reads "nothing. Q1 is answered". Section A is empty.
 - The expander did not run the build, the suite or the pipeline (D-7).
+- **Worker (2026-10-28):**
+  - **My own guard was red on S(t₁) at first.** Its "moving `built_at`
+    leaves the digest unchanged" test used `2027-01-01` as the moved
+    instant, which is t₁ itself. It now picks between two instants. This is
+    the class of bug S(t) exists to catch.
+  - **Count floors.** Exact floors in four files cross-check
+    `landmarks.test.ts`, `state-animals.test.ts` and
+    `landmarks-verify.test.ts`. This is why F3 prefers modify over delete
+    for the `built_at` tests.
+  - **A strip that did nothing at R still counts.** T-092's `omit` of the
+    candidate keys removed nothing at R. It still has to go (c3), but its pin
+    value does not move.
+
