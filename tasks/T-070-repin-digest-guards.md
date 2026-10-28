@@ -6,7 +6,7 @@
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-070
 **Branch:** `claude/charming-pascal-jqpxd3`
-**PR:** draft, opened at expand time from the branch above (number in the expander's handback and on the PR itself)
+**PR:** #103, opened draft at expand time from the branch above
 **Fault:**
 
 **Sessions:**
