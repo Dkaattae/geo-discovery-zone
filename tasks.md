@@ -672,6 +672,31 @@ Two things:
 the doc next to it, to regenerate both files, and the question-file command is
 either a named script or the reason it is not is written down.
 
+### T-095 — A real refresh still turns the re-pinned bank guards red · S · todo
+**Depends on:** T-070. **Needs a person's call before it is expanded** (Q below).
+**New 2026-10-28, from T-070's expander (PR #103), added at Dkaattae's request.**
+T-070 makes the bank guards survive a refresh in which only `sources.built_at`
+and the SPARQL fixtures moved, which is what Q1 asked for. But `bun run refresh`
+writes nothing in that case: it exits 2, `bank unchanged`
+(`question-bank/src/refresh.ts`, header comment). Every refresh that writes has
+moved at least one other bank field, so every real refresh PR will still go red
+on the re-pinned guards, starting with T-070's `bank-pins.ts` / `BANK_DIGESTS`.
+That is safe, but it means the monthly routine can never open a green PR on its
+own. T-087 is related (it regenerates the question file and served bank) and may
+land in the same PR as whatever this decides.
+**Q (for a person):** which of these?
+- **(a) The refresh PR re-pins.** The refresh, or a documented step after it,
+  regenerates the bank pins, so the PR's diff shows the pin change next to the
+  data change and a reviewer sees both. The guards keep pinning exact values.
+- **(b) The bank guards stop pinning values a refresh may move.** They keep
+  checking shape, the curated fields and anything Wikidata does not supply, and
+  leave refreshable values to `committed-bank.test.ts` (offline rebuild matches
+  the committed bank, E-6).
+- **(c) Accept the red PR,** and write down that a refresh PR is re-pinned by
+  hand in an attended tester step (D-14).
+**Done when:** a refresh that moves a real bank field opens a PR whose suite is
+green, or (c) is chosen and recorded as the next unused `E-n`.
+
 ---
 
 ## E. Backend follow-ons
