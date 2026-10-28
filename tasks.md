@@ -169,7 +169,7 @@ serves, so a curated field reaches a child once a template asks about it
 (since T-026, PR #91, every topic field has one) and both committed files are
 regenerated (T-087).
 
-### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo
+### T-070 — Re-pin the bank's digest guards, or write down why not · M · doing — brief: `tasks/T-070-repin-digest-guards.md`
 **Depends on:** nothing. Q1 is answered (below). Still needs an attended tester step.
 **Q1 answered 2026-10-27 (Dkaattae): re-pin, and survive the refresh.** Re-pin
 every digest guard against the default branch and delete the neutralisations.
