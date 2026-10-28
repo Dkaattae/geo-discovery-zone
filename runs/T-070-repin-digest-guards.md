@@ -1,7 +1,7 @@
 # T-070 — Re-pin the digest guards, and let them survive a refresh — run log
 
 **Task:** T-070 · **Branch:** `claude/charming-pascal-jqpxd3` · **PR:** #103
-**Started:** 2026-10-28 · **Outcome:** in progress
+**Started:** 2026-10-28 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-28
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -67,3 +67,40 @@ Only `tasks/` and `tasks.md` changed. `PROGRESS.md` is untouched. I ran no build
 - **F4.** W30 (`highest-point-metres-verify`) becomes trivial once its baseline is R. The tester decides between modify and delete.
 
 **Note on sessions.** The worker and the expander share one remote session id (`cse_011oDiJcaEvyueGBAthPSQu3`), because the orchestrator spawned both inside one session. The tester still needs a fresh session.
+
+## Round 3 — tester — 2026-10-28
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-070 is halted at `test changes requested` / `human`, as its brief predicted.** The worker's part holds up under independent checks. Everything else in the task means editing existing tests, and a person has to approve each of those edits in a tester session they attend (D-15). I raised 58 rows for that and edited no existing test and no source file. Pushed `21de0e4` to `claude/charming-pascal-jqpxd3`; the remote head matches local.
+
+**Independence:** this is an orchestrated run, so my session id (`cse_011oDiJcaEvyueGBAthPSQu3`) is the same as the worker's and the expander's. That match proves nothing either way. My independence rests only on being a freshly spawned subagent with its own context. I could not check that myself, and the Verdict says so.
+
+**Brief changes:** `/home/user/geo-discovery-zone/tasks/T-070-repin-digest-guards.md`
+- **Header:** Status `test changes requested`, Next step `human`, Test changes `requested`, Fault filled in, tester Sessions row added.
+- **New sections:** `## Verdict` and `## Test change request` (rows W1–W57, with W10 split into W10a and W10b).
+
+**What I checked myself:**
+
+| Criteria | Result |
+|---|---|
+| 17–22 (E-30) | Met. It is the only new entry, and the diff removes no lines from any other entry. |
+| 7 (pin values) | `BANK_DIGESTS` matches R for all 51 files. I recomputed them in Python from `git show b0ee336:…`, removing only `sources.built_at`. |
+| 5 | Met by the new guard. I made each of the 9 edits in the real tree, one line each and reverted after each; every one turned `bank-pins.test.ts` red. |
+| 6 | Not met yet. Changing IL `top_crops` alone leaves the T-013 c9, T-014 c15 and T-015 c13 whole-file guards green. W3, W6 and W11 close that gap. |
+| 9, 10 | Not met yet. With my own S(t₁) and S(t₂) script on fresh worktrees, both give the same 121 failures: the Handoff's 120 plus W45. |
+| 11 | Not met yet. The backend on S(t₁) fails 5: W53 plus W54–W57. |
+| 23, 24 | Hold. |
+| 25 | Red, as expected. `question-bank` fails only W45 and is clean on typecheck, lint and format; the backend fails only W53. The frontend has 4 failures and 4 errors, all `Cannot find package 'react-simple-maps'` from a sandbox missing that package. Nothing under `frontend/` changed, but that part of the criterion is **unverified** here. |
+
+**Decisions waiting on a person:**
+- **The 58 rows:** approve or refuse each one in an attended `tester` session. Apply W39 last, after the two floor rows: it pins a digest over the test files the other rows edit.
+- **W54–W57 (F1):** these loosen four backend drift checks by ignoring `_source.extractedAt`, so a stale date in `content.json` would pass. Without them criterion 11 cannot pass, because criterion 23 forbids touching `backend/app/`. If they are refused, the brief goes back to `task-expander`.
+- **F2 (what counts as an "exclusion" in criterion 4):** I used the narrow reading. An exclusion is a filter or strip added later on another task's behalf. A slice that the guard's own criterion names, such as "E-1..E-28", is not one. The literal wording also allows a strict reading, which would add rows for those slice pins. The person decides.
+- **Also in the Verdict:** literal-`built_at` tests modified rather than deleted (F3), W30 kept as a modify (F4), W19 classed as (ii). The landmarks-verify floor goes from 35/69 to 34/65 in two files (W10a, W10b).
+
+I did not compute the new values for W29, W38–W42, W44 or W53; the tester that applies the rows does that. Every mutation was reverted and both worktrees removed, and `git status` is clean.
+
+## Halted — test change request — 2026-10-28
+Raised by commit `21de0e4` (header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`). Rows not copied here; the orchestrator has not read them.
+
+What a person has to do: start the `tester` step for T-070 in a session they are attending. It will ask about each row, apply what is approved, and finish verifying. The orchestrator cannot take the approval.
