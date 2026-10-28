@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-28, unattended run. See `runs/T-070-repin-digest-guards.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-070
 **Branch:** `claude/charming-pascal-jqpxd3`
