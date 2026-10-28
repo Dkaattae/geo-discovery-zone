@@ -31,3 +31,39 @@ The brief also has a 17-row list of guards found by the survey, with the commit 
 - `ad0b117` records PR #103 in the brief.
 
 Only `tasks/` and `tasks.md` changed. `PROGRESS.md` is untouched. I ran no build, test or pipeline. The local and remote heads match at `ad0b1178`.
+
+## Round 2 — worker — 2026-10-28
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR.** I've done the worker step for T-070 and pushed it to `claude/charming-pascal-jqpxd3` (`origin/claude/charming-pascal-jqpxd3` shows `4ee772f`). Brief: Status `awaiting verification`, Next step `tester`. Most of the task is still to do. It is 57 changes to existing tests (W1–W57 in the Handoff), which only the tester may make, so **expect the tester to halt at `test changes requested` / `human`**. Two tests are red at the branch head, both by design and both listed (W45, W53).
+
+**Brief and branch.** Approved by the orchestrator (unattended run), which is a valid stamp, so I started. The branch was on the remote and was the one I was standing on. R is `b0ee336`, and the branch has not been rebased.
+
+**What I changed** (no existing test edited, per D-14):
+- **`/home/user/geo-discovery-zone/engineering-decisions.md`**: added E-30 and nothing else. It covers criteria 17–22.
+- **`/home/user/geo-discovery-zone/question-bank/src/bank-pins.ts`** (new, imported only by tests):
+  - `bankFileDigest` removes `sources.built_at` and nothing else, and throws if it is missing.
+  - `BANK_DIGESTS` holds all 51 bank files as they stood at `b0ee336`, computed with `git show`.
+- **`/home/user/geo-discovery-zone/question-bank/src/bank-pins.test.ts`** (new, 64 tests): a whole-file guard on all 51 bank files.
+  - It stays green when only `built_at` moves.
+  - It goes red on every mutation listed in criterion 5 (checked in memory).
+  - It is green on both simulated refreshes, S(t₁) and S(t₂).
+- **`/home/user/geo-discovery-zone/tasks/T-070-repin-digest-guards.md`**: Sessions row, Handoff, Notes, Status, Next step.
+
+**What I measured:**
+- **At the branch head:**
+  - `question-bank` `bun test`: 2512 pass, 1 fail (W45: the T-092 test expecting 29 `E-n` headings; E-30 makes 30).
+  - Backend: 738 pass, 1 fail (W53: the T-089 test asserting `range(1, 30)`).
+  - Typecheck, lint and format checks are clean.
+- **Simulated refresh at R:**
+  - Both instants give the same **120 question-bank failures**, mapped to W rows in the Handoff.
+  - On S(t₁) the backend has 4 failures. None of them is a pinned guard.
+- **Frontend could not be verified here.** `node_modules` is missing because the sandbox proxy refuses `europe-west1-npm.pkg.dev` (403). The suite gives 5 failures and 4 errors, all missing modules or tooling. This task touches nothing under `frontend/`. One of those tests rewrote `frontend/README.md` during the run; I reverted it and did not commit it.
+
+**Flags for a person (each has an owner in the Handoff):**
+- **F1, criterion 11.** Four backend tests compare `content.json` with a fresh build, and those go red on S(t₁) because `_source.extractedAt` follows the bank's `built_at` date. They are W54–W57: `test_content_build.py`, two in `test_t040_*` and one in `test_t051_*`. The inventory missed them. The proposal is to stop comparing `extractedAt` in those four tests. The tester raises the rows and Dkaattae approves them; if he refuses, criterion 11 can't be met without touching `backend/app/`, and the brief goes back to the expander.
+- **F2, what criterion 4 counts as an "exclusion".** My working line: a filter added on a later task's behalf is a neutralisation. A guard pinning a named slice from its own criterion is not. Read literally, criterion 4 would also catch about six of those slices. The tester picks a reading and a person settles it row by row.
+- **F3.** For the tests that pin a literal `built_at`, I propose modifying them rather than deleting them. Deleting them would also force re-pinning the test-count floors in four files.
+- **F4.** W30 (`highest-point-metres-verify`) becomes trivial once its baseline is R. The tester decides between modify and delete.
+
+**Note on sessions.** The worker and the expander share one remote session id (`cse_011oDiJcaEvyueGBAthPSQu3`), because the orchestrator spawned both inside one session. The tester still needs a fresh session.
