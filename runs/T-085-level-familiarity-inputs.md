@@ -1,7 +1,7 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city — run log
 
 **Task:** T-085 · **Branch:** `claude/loving-knuth-umj4pp` · **PR:** #107
-**Started:** 2026-10-29 · **Outcome:** in progress
+**Started:** 2026-10-29 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -172,3 +172,33 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/data/questions/us-states.json
 - /home/user/geo-discovery-zone/backend/app/data/content.json
 - /home/user/geo-discovery-zone/engineering-decisions.md
+
+## Round 5 — tester (T-085a) — 2026-10-29
+`Next step` on entry: `tester` → on exit: `human` (Status `awaiting verification` → `test changes requested`; `Test changes: requested`)
+
+**T-085a tester: all 25 criteria pass, but 28 existing tests and the question-bank typecheck go red because of this task's own change, so I stopped and raised a Test change request. Status: `test changes requested`. Next step: `human`.** The push landed: `b061fd8` on `claude/loving-knuth-umj4pp`, and the local HEAD matches the remote.
+
+**How independent this is.** The run is orchestrated: `runs/T-085-level-familiarity-inputs.md` exists. My `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJdDaFDaDrfHH2XNp8P`) is the same as the worker's, so the id check proves nothing. My only independence is being a freshly spawned agent with my own context. That rests on the orchestrator having spawned me correctly, and I cannot check it myself. The Verdict and my Sessions row say this.
+
+**What I checked and ran**
+- **The work is on the branch.** Every file the Handoff names is changed in `f97c283`.
+- **Expected values come from the brief.** They come from the criteria and the brief's before table, which I checked against `git show 5ae564a`. CI checks out shallow, so the before state is held as sha256 pins recorded at `5ae564a`.
+- **Tests added: 43 in question-bank and 3 in the backend.** The backend tests cover criterion 15 (`content.json` equals what `render_committed_inputs()` writes). All pass.
+- **13 mutations, each reverted.** Each turned at least one of my tests red. They covered the state condition, the template condition, a hard-coded amount, subtracting after the clamp, an extra state, dropping the climate template, amount 1.5, exporting `levelFor`, and five edits to the data and E-22. A `diff` against the backup was clean afterwards.
+- **question-bank:** 2533 pass, 25 fail. Typecheck has one error, at `seed-level-loose-ends-verify.test.ts:353`. Lint and format are clean.
+- **backend:** 739 pass, 3 fail, 9 skipped. Lint is clean.
+- **frontend:** only `bun test src/lib` was run (96 pass). The rest of the frontend was not run; this task does not touch it.
+- **The reds are exactly the worker's Tests made stale list.** I re-ran each of the 28 and read its failure. Each is caused by the brief's own change, and none was missed. No count floors are involved.
+
+**What a person has to do**
+- **Approve or refuse each row.** The 28 rows are in the brief's `## Test change request`: 1 is in `seed-level.test.ts`, 27 are re-pins or modifies, and none deletes a test.
+- **Do it in an attended `tester` session for T-085a**, not in an orchestrated or driven run. That tester applies exactly the approved rows, re-runs the suite and typecheck, and writes the final verdict.
+- **One judgement call is flagged for the reviewer: row 1.** The proposed change keeps numeric arrays matched as before and matches string arrays in their quoted form.
+
+**Files**
+- /home/user/geo-discovery-zone/question-bank/src/familiarity-drawn-apart-verify.test.ts
+- /home/user/geo-discovery-zone/backend/tests/test_t085a_tester_criteria.py
+- /home/user/geo-discovery-zone/tasks/T-085-level-familiarity-inputs.md (the Verdict, the Test change request, the header and my Sessions row)
+
+## Halted — test change request — 2026-10-29
+Raised by the tester in commit `b061fd8` (branch head at halt). Rows not copied here; the orchestrator has not read them. Resumes only through an attended `tester` session for T-085a, where the person approves each row (D-15). The orchestrator does not take the approval.
