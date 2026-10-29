@@ -85,3 +85,37 @@ At their instruction the orchestrator updated only the brief header, as the halt
 - **"Done when" trim:** the trim to `tasks.md` T-084 is left for the sweep or the reviewer.
 - **Denali on the next refresh:** Alaska's highest point will change in the bank on the first real refresh. That belongs to whoever owns that refresh (T-087).
 - **Same session id:** the worker and expander rows share one id, because subagents of one orchestrated session share `CLAUDE_CODE_REMOTE_SESSION_ID`. The tester should note this when it checks isolation.
+
+## Round 3 — tester — 2026-10-29
+`Next step` on entry: `tester` → on exit: `reviewer`
+`Status` on exit: `verified — pass` · branch head `f8c1766`
+
+**T-084 tester: PASS. Next step: reviewer.** All 10 criteria hold. My 12 new tests pass, and 11 deliberate breaks of the query (plus `main`'s query itself) each turned at least one of them red. The question-bank and backend suites, typecheck, lint and format are all green. The verdict is pushed to `claude/stoic-babbage-lsgku4` at `f8c1766`, and the remote ref matches.
+
+**Independence is the weaker kind.** This is an orchestrated run (`runs/T-084-mul-labels.md` exists), so my session id `cse_011oDiJdG9Xu3xD21LLaAv1o` matches the worker's row and that check proves nothing. What I can say is that I am a freshly spawned subagent and never saw the worker's reasoning. That rests on the orchestrator having spawned me correctly. The Verdict says so.
+
+**Results by criterion**
+
+| # | Verdict | How it was checked |
+|---|---|---|
+| 1 | pass | The query the refresh actually sends (captured at a `SparqlTransport` spy) has exactly one language list, `"en,mul"` |
+| 2, 3 | pass | For the highest point and for borders, the `en` and `mul` labels are each read in their own optional block and merged so `en` wins. Only one name per item reaches the aggregate |
+| 4 | pass | The query keeps the 12 variables in order, matching the list in the criterion and the fixture's `head.vars`, and GROUP BY is unchanged |
+| 5, 6 | pass | `git diff` against `origin/main` is empty for the elevation query, `question-bank/data`, the fixtures and `backend/app/data` |
+| 7 | pass | The fixture replay accepts the new query and returns 50 states, Alaska → Juneau. It still refuses a query it has no recording for. `committed-bank.test.ts` is green |
+| 8 | pass | A capital of `Q29445` is still left blank, with a warning naming the QID |
+| 9 | pass | question-bank 2510 pass / 0 fail. Backend `make check` 739 passed, 9 skipped. No existing test was changed |
+| 10 | pass | All suites ran with every proxy variable pointed at a dead loopback port. No `package.json` or lockfile changed |
+
+**Things to know**
+
+- **Frontend is red locally for an environment reason, not this change.** It shows 4 fails, 4 errors and 3 TS2307 errors, all `Cannot find package 'react-simple-maps'` or `'us-atlas'`. Those packages are missing from this sandbox's `node_modules`, and the task touches no frontend file. CI on HEAD `12e089b`, which is the worker's code before my commits, is green on all six jobs, frontend included.
+- **One test of mine was fixed mid-run.** The "refuses an unknown query" test was also going red on the language-list mutations, for the wrong reason. I rewrote it to append a comment to the query instead. I re-ran the affected mutations afterwards, and a follow-up commit corrected the count I had recorded for `main`'s query (now 4 fails, was 5).
+- **Every mutation was reverted.** `git status` was clean afterwards.
+- **The worker's `FILTER(BOUND(?borderLabelRaw))` choice is consistent with criterion 3.** It drops a border that has neither label, as `main` did. No criterion requires it, so I did not pin it; the worker's own test does.
+- **Only the live check shows the query parses on Wikidata.** That evidence is in the Handoff, and the reviewer should confirm it is there.
+- **No tests made stale**, and no test change request was raised.
+
+**Files**
+- /home/user/geo-discovery-zone/question-bank/src/mul-labels-verify.test.ts (new, 12 tests)
+- /home/user/geo-discovery-zone/tasks/T-084-mul-labels.md (Verdict, Status `verified — pass`, Next step `reviewer`, my Sessions row)
