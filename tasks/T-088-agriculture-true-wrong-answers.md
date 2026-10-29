@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-088-agriculture-true-wrong-answers.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-088
