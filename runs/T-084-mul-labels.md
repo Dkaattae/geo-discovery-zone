@@ -51,3 +51,37 @@ What a human has to decide, quoted from the header: "answer **Q1** below. If you
 ## Resumed — person approval — 2026-10-29
 The person attending this orchestrator session answered the halt, in their words: "approve (a), split it, go ahead".
 At their instruction the orchestrator updated only the brief header, as the halt's `Next step` told the person to do: `Approved:` now records their words and the date, `Status: awaiting approval → working`, `Next step: worker`. Outcome is back to in progress.
+
+## Round 2 — worker — 2026-10-29
+`Next step` on entry: `worker` → on exit: `tester`
+`Status` on exit: `awaiting verification` · branch head `6917d3e`
+
+**TL;DR:** T-084 is built and pushed. A live refresh now brings back Alaska's capital as "Juneau" instead of its ID `Q29445`, and no committed data or fixture changed. The brief is at Status `awaiting verification`, Next step `tester`. The commit `6917d3e` is the tip of `origin/claude/stoic-babbage-lsgku4`; I confirmed with `git log origin/claude/stoic-babbage-lsgku4 -1`.
+
+**What changed**
+- **`/home/user/geo-discovery-zone/question-bank/src/queries/us-states.ts`:**
+  - The label service now asks for `"en,mul"`.
+  - The highest point and the border names each read the `en` label and the `mul` label in two OPTIONALs, then take `COALESCE(en, mul)`. So `en` wins and only one name is ever bound.
+  - Comments are updated and name T-084.
+- **`/home/user/geo-discovery-zone/question-bank/src/mul-labels.test.ts` (new, 7 tests):** they check the query text and capture what `fetchUsStates` sends through the fixture transport. Five of them fail against `main`'s query.
+- **`/home/user/geo-discovery-zone/tasks/T-084-mul-labels.md`:** Handoff, Notes, Sessions row and Status filled in.
+
+**Live check (Review checklist):** I ran `main`'s query and the new one at the same time against query.wikidata.org.
+- Both return 50 rows.
+- Alaska's capital goes from `Q29445` to `Juneau`.
+- Alaska's highest point goes from blank to `Denali`. Denali has also lost its `en` label, and a blank on `main` is the allowed exception.
+- No other state changed its highest point, border IDs or border names, and no state has a duplicate border name.
+- The output is recorded in the Handoff and the three boxes are ticked. Nothing from the run is committed.
+
+**Checks run**
+- **question-bank:** 2498 pass, 0 fail. Typecheck, lint and format check are clean.
+- **backend:** `make check` gives 739 passed, 9 skipped.
+- **frontend:** 390 pass, 6 fail, plus one typecheck error. All of them are "cannot find package" for `react-simple-maps` and `us-atlas`. `bun install` can't download them because the proxy refuses `europe-west1-npm.pkg.dev`. This change doesn't touch the frontend, and the Handoff names these reds as a sandbox problem.
+- **Unchanged files:** checked against `origin/main`, nothing moved in `question-bank/data`, the two fixtures, `backend/app/data`, or the elevation query. The local `main` ref was out of date, so I compared against `origin/main`.
+- **Tests made stale:** none.
+
+**Decisions for others to confirm (also in the Handoff)**
+- **Border filter:** I added `FILTER(BOUND(?borderLabelRaw))`, so a border with neither label is still dropped completely, ID included, as on `main`. Without it, `borderQids` and `borderNames` could get out of step. The tester should confirm it against criterion 3, and the reviewer can overturn it.
+- **"Done when" trim:** the trim to `tasks.md` T-084 is left for the sweep or the reviewer.
+- **Denali on the next refresh:** Alaska's highest point will change in the bank on the first real refresh. That belongs to whoever owns that refresh (T-087).
+- **Same session id:** the worker and expander rows share one id, because subagents of one orchestrated session share `CLAUDE_CODE_REMOTE_SESSION_ID`. The tester should note this when it checks isolation.
