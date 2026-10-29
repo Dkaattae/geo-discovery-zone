@@ -10,8 +10,8 @@ with no ceremony (`engineering-decisions.md` E-14).
 ## Docs
 
 - `process.md` — the development loop. Read first. `.claude/agents/` defines the
-  five roles it runs on: task-expander, worker, tester, reviewer, and
-  `orchestrator`, which relays one task between the other four without reading
+  six roles it runs on: task-expander, worker, tester, ci-fix, reviewer, and
+  `orchestrator`, which relays one task between the other five without reading
   their work. `.claude/agents/README.md` charts how they are isolated and what the
   orchestrator does and does not close.
 - `.claude/loop/` — `run-loop.sh` drives the same loop from a local shell, with no

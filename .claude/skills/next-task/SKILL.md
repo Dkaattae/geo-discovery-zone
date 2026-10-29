@@ -79,6 +79,11 @@ These are reminders, not new rules. Each points back at the rule it comes from.
 - **A refused sweep** (`Status: sweep refused`) → halt, ask the person, and
   schedule a check-in about 60 minutes out with `send_later` (D-16). If they
   answer first, cancel the check-in.
+- **A CI fix request** (`CI fix: requested`, `Status: ci fix requested`) →
+  halt, ask the person, and schedule a check-in about 60 minutes out with
+  `send_later`. If nobody answers, stamp it from the header and spawn a fresh
+  `ci-fix`, as `orchestrator.md` "CI fix requests" says (D-17). Never open the
+  plan.
 - **Stop-hook nags about untracked files while a role is running** are the
   role's work in progress. Leave them alone — the role commits its own work.
   Commit leftovers only after the role returns (orchestrator "Checkpoint").

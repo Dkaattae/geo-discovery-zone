@@ -923,3 +923,83 @@ stops cleanly when it is, and the halt stands for a person.
 reaches the fallback. If the orchestrator is refused, drop the timeout and make a
 refused sweep a plain `Next step: human`, which is what the harness enforces
 anyway. If it goes through, record that here and keep it.
+
+## D-17 — A `fail` goes to a `ci-fix` role, which asks before it fixes
+
+**2026-10-29.** Done by hand, as a process change. Until now a tester's `fail`
+went straight back to the `worker`. The tester cannot repair what it found: it may
+not edit source, and it may not rewrite its test to match the code. The person's
+ruling (katechen150621@gmail.com, 2026-10-29): *"when the tester failed, it cannot
+change the tests. so it will need a ci fixer to come in, in a fresh session. and
+ask for approval. the approval part is the same as task expander. orchestrator
+handles it. and the process also need to adapt, like when tests failed, it will
+say next role is ci fix. and then after fix, the role is tester. and it also has
+the same as orchestrator, after a while no human approval, it will auto approve
+and have stamp on it."*
+
+**Decided:**
+
+- **A sixth role, `ci-fix`** (`.claude/agents/ci-fix.md`, opus). The tester's
+  `fail` sets `Next step: ci-fix`. A person may also set it by hand when CI on the
+  task's PR is red for a reason that is not a stale test. It must not run in a
+  session already listed as `worker` or `tester`.
+- **Two passes, with an approval between them.** Pass 1 reproduces the failure
+  and writes `## CI fix plan` into the brief: one row per change, with file, kind,
+  change and why, and the criterion quoted for any test row. It sets a new header
+  line, `CI fix: requested`, with `Status: ci fix requested` and `Next step:
+  human`, and pushes without changing code. Pass 2 applies exactly the approved
+  rows, runs the whole suite, writes `## CI fix` as its handoff, and sets `Next
+  step: tester`. **A fresh tester always re-verifies.** The `ci-fix` never routes
+  to the reviewer.
+- **Approval is the expander's.** Attended, it asks in its own session and
+  carries on. Unattended, it halts.
+- **The orchestrator waits about an hour, then stamps it.** This is the D-16
+  timeout, and the D-16 test for "a person answered": a reply in its session, the
+  branch head moved, a PR comment or review, or a changed header. With no answer
+  it writes three header lines, `Status: ci fix approved`, `Next step: ci-fix`
+  and `CI fix: approved — orchestrator, <date>, auto-approved after a <N>-minute
+  timeout`, and spawns a fresh `ci-fix` with the ordinary template. It recognises
+  the request from three header values and **never reads the plan**, so D-3's
+  blindness holds. That is the same trade as its `Approved:` stamp.
+- **The driver does not stamp.** `run-loop.sh` cannot wake itself, as D-16 found
+  for the sweep. It routes `ci-fix` like any role, and a new gate, G2b, stops it
+  from sending a `ci-fix` in while the plan still reads `requested`.
+- **The reviewer escalates a fix applied on the stamp**, copying the plan into the
+  PR body before the sweep deletes it. It also checks that the `ci-fix` commits
+  match the approved rows. So nothing nobody looked at merges without a person
+  seeing it.
+- **What it may not do:** edit criteria (a fix that needs one is `blocked` →
+  `task-expander`); weaken a test; change anything unapproved; settle a
+  dependency, product call or children's text (`blocked` → `human`, where the
+  timeout never applies).
+
+**What this supersedes.** "Fail → `worker`" in `process.md`, `worker.md`,
+`tester.md` and the driver's fault table. The worker now comes back only when the
+reviewer sends a PR back naming it. **What it does not touch.** The tester's Test
+change request for tests the task made stale (D-14, D-15) is unchanged. The
+orchestrator still never stamps one of those.
+
+**Why a new role, not the worker again.** The worker's reading of the brief is
+what failed. Handing the fail back to it, even in a new session, invites a fix to
+the symptom the test pointed at. A role with no implementation to defend and no
+verdict to protect is the same reason the tester is separate from the worker.
+**Why an approval at all.** The fix lands after the only independent check has
+already spoken once. The plan is the one point where a person can see what is
+about to change, and why, before it is in the code.
+
+**The known risk.** The stamp is file-based authority: a spawned `ci-fix` acts
+on a header line, not an instruction in its session. D-15 and D-16 found the
+harness's permission classifier refusing exactly that pattern on T-071 and T-075.
+Expect it to refuse some pass-2 edits, especially a `pre-existing test` row. The
+procedure stops cleanly when it is refused (`blocked` / `human`), and the person
+applies the rows by hand. A plan with a `pre-existing test` row is also the one
+place this overlaps D-15. The orchestrator may stamp a CI fix, but never a Test
+change request. The reviewer's escalation is what keeps that from being a way
+around D-15.
+
+**What would make this worth revisiting.** The first real CI fix that reaches the
+timeout. If the stamp or the pass-2 edits are refused, drop the stamp. A CI fix
+request then becomes a plain `Next step: human`, the way D-15 went. If `ci-fix`
+rounds keep ending in a second `fail`, the brief is the likelier problem than the
+code. Then look at sending a second fail to the `task-expander` instead of
+spending the G3 bound.

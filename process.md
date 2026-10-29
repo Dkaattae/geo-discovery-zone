@@ -17,8 +17,8 @@ The documents this loop runs on:
 
 ## Who does what
 
-Five agents, defined in [`.claude/agents/`](.claude/agents/). Four own one step
-each and are deliberately unable to do the others' jobs; the fifth drives them.
+Six agents, defined in [`.claude/agents/`](.claude/agents/). Five own one step
+each and are deliberately unable to do the others' jobs; the sixth drives them.
 
 - **`task-expander`** (opus) — turns a queue entry into a brief, opens the branch
   and the draft PR. Writes only `tasks/T-0xx-slug.md`, `tasks.md` and
@@ -30,6 +30,11 @@ each and are deliberately unable to do the others' jobs; the fifth drives them.
   edit source to make a test pass, and cannot edit the criteria either. The only
   role that may delete or modify an existing test the task has made stale, and
   only once a human has approved each one (D-14).
+- **`ci-fix`** (opus) — comes in on a `fail`, in a fresh session. Writes a CI fix
+  plan, gets it approved — by a person, or after an hour with nobody answering,
+  by the orchestrator's stamp — then applies exactly the approved rows, source
+  and tests, and hands back to the tester. Cannot edit the criteria, cannot
+  weaken a test, and never skips the re-verify (D-17).
 - **`reviewer`** (opus) — judges quality rather than correctness. On approve it
   sweeps, then marks the PR ready for a person to merge, flagging it when the
   change falls outside a narrow envelope;
@@ -44,7 +49,8 @@ each and are deliberately unable to do the others' jobs; the fifth drives them.
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
 criteria are to satisfy, the worker cannot move the goalposts, the tester cannot
-move the code, and the reviewer cannot fix what it finds — findings become tasks.
+move the code, the ci-fix cannot change anything nobody approved, and the reviewer
+cannot fix what it finds — findings become tasks.
 
 ### What each role needs to do its job
 
@@ -59,11 +65,12 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `task-expander` | Read, Grep, Glob, Write, Edit, Bash, PR-open | `tasks/`, `tasks.md`, `PROGRESS.md` | source, tests, config |
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, new tests, the brief's Handoff | acceptance criteria, **any test that existed before the task** |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict and Test change request; existing tests **only as a human approved** | source, acceptance criteria |
+| `ci-fix` | Read, Grep, Glob, Write, Edit, Bash | the brief's CI fix plan and CI fix sections; then source and tests **only as its approved plan rows name** | acceptance criteria, anything before approval, any weakened test |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
-| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line, a refused sweep's `### Sweep to apply` (D-16) | source, tests, criteria, any role's signed section |
+| `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line, a CI fix timeout stamp (D-17), a refused sweep's `### Sweep to apply` (D-16) | source, tests, criteria, any role's signed section |
 
 **Only the orchestrator has the `Agent` tool**, and only so it can spawn the other
-four — see "Spawning, and the isolation it must not cost" below. The four step
+five — see "Spawning, and the isolation it must not cost" below. The five step
 roles still cannot spawn anything, so a worker can never call a tester.
 
 **The orchestrator's list is short on purpose.** No `Grep`, no `Glob`, no PR
@@ -108,7 +115,7 @@ ran, where the sweep cannot ride inside the merge and needs its own small PR.
 side, along with what a subagent does and does not isolate.
 
 **Manually** — each step is its own top-level session, started by a human,
-running one agent. None of the four step roles has the `Agent` tool, so a worker
+running one agent. None of the five step roles has the `Agent` tool, so a worker
 cannot call a tester. This is the default, and the only way that keeps a person
 at the step-2 gate.
 
@@ -117,7 +124,7 @@ at the step-2 gate.
 in the driver**, so there is nothing in it to drift, and it mints a fresh
 `--session-id` per step.
 
-**Relayed** — one `orchestrator` session spawns the four in order with the Task
+**Relayed** — one `orchestrator` session spawns the five in order with the Task
 tool. It is the only role that has it, and the only option where no shell is
 available to leave running — Claude Code on the web.
 
@@ -167,9 +174,10 @@ appends its own section and none of them rewrites another's:
 |---|---|---|
 | `task-expander` | Goal, Acceptance criteria, Out of scope, Constraints, Context | the whole brief **is** the handoff to the worker |
 | `worker` | `## Handoff` | the tester's only account of what was built |
-| `tester` | `## Verdict` | what the reviewer judges, and why |
+| `tester` | `## Verdict` | what the reviewer judges, and why — or, on fail, what the `ci-fix` has to fix |
+| `ci-fix` | `## CI fix plan`, then `## CI fix` | the plan is what a person approves; `## CI fix` is the next tester's account of what changed |
 
-All three roles also update the header's `Status` and `Next step` and add a row
+Every role also updates the header's `Status` and `Next step` and add a row
 to the Sessions table. Opening the brief should tell you where the task stands
 and which agent to start next, without reconstructing anything.
 
@@ -224,7 +232,9 @@ worker and still left the work invisible to everyone downstream.
 |---|---|---|
 | `task-expander` | branch created, brief committed, **draft PR opened**, `Status: awaiting approval` | approve on the PR, then `worker` |
 | `worker` | implementation committed to the same branch, Handoff written, `Status: awaiting verification` | `tester` — a **fresh** session |
-| `tester` | tests committed to the same branch, Verdict written, `Status: pass` / `fail` / `blocked` | `reviewer` on pass · `worker` on fail · `task-expander` on blocked |
+| `tester` | tests committed to the same branch, Verdict written, `Status: pass` / `fail` / `blocked` | `reviewer` on pass · `ci-fix` on fail · `task-expander` on blocked |
+| `ci-fix` — pass 1 | CI fix plan committed, `Status: ci fix requested`, `CI fix: requested`, `Next step: human` | approve it (or, unattended, the orchestrator waits an hour and stamps it), then `ci-fix` again |
+| `ci-fix` — pass 2 | approved rows applied, CI fix written, `Status: awaiting verification` | `tester` — a **fresh** session |
 | `reviewer` — approve | PR marked ready, sweep committed, flagged if outside the envelope | a person merges |
 | `reviewer` — changes needed | PR left draft, findings commented, `Status: changes requested` and `Next step:` naming the agent | that agent, on the same branch |
 | `orchestrator` | run log committed, whichever of the above it last relayed | nothing — it stops. The next task is a new run |
@@ -311,7 +321,11 @@ tasks.md
    │                      writes tests from the acceptance criteria
    │                      runs them
    │        │
-   │        ├── fail (code wrong) ─────────▶ back to 3
+   │        ├── fail (code wrong) ─────────▶ 4a
+   │        │
+   │        │  4a. fix     FRESH SESSION: ci-fix writes a plan
+   │        │              ── approved: human, or orchestrator after 1h ──
+   │        │              applies exactly the approved rows ──▶ back to 4
    │        ├── criteria wrong or untestable ▶ back to 2
    │        └── pass ─▶
    │
@@ -485,14 +499,14 @@ Three outcomes:
 | Outcome | Meaning | Next |
 |---|---|---|
 | **Pass** | Every criterion has a test and every test passes, including the pre-existing suite | Step 5 |
-| **Fail** | A criterion is not met by the code | Back to **step 3**. The failing test stays |
+| **Fail** | A criterion is not met by the code | To **step 4a**, the `ci-fix`. The failing test stays |
 | **Blocked** | A criterion is ambiguous, untestable as written, or wrong | Back to **step 2**. Fix the brief, not the test |
 
 That third row matters. When a test and a criterion disagree, the default is that
 the **criterion** gets clarified — silently rewriting the test to match the code
 turns the whole loop into theatre.
 
-**Bound the cycle.** After two full fail→fix→verify rounds without a pass, stop
+**Bound the cycle.** After two full fail→ci-fix→verify rounds without a pass, stop
 and escalate to a human. Three rounds means the brief is wrong, not the code, and
 the loop cannot tell the difference on its own.
 
@@ -529,6 +543,46 @@ A modified test must pin the new behaviour as hard as the old one pinned the old
 A count floor drops by exactly the number of approved deletions from its file,
 as its own row. Red CI caused by a stale test sends the task to the tester, not
 the worker. The rest is in `.claude/agents/tester.md`, D-14 and D-15.
+
+### 4a. Fix — in a fresh session, after approval
+
+A `fail` used to go back to the worker. Now it goes to the **`ci-fix`**: the
+tester may not change source or rewrite its test to fit the code, and the worker
+is the session whose reading of the brief produced the failure. So a fresh
+session comes in, finds the root cause, and asks before it changes anything.
+The `ci-fix` is also the role to start by hand when CI on the task's PR is red for
+a reason that is not a stale test — set `Next step: ci-fix`.
+
+It runs in two passes, and **the approval works the way the expander's does**:
+
+1. **Plan.** It reproduces the failure, then writes `## CI fix plan` into the
+   brief: one row per change — file, kind (`source`, `task test`, `pre-existing
+   test`), what changes, and why, with the criterion quoted for any test row. It
+   sets `CI fix: requested`, `Status: ci fix requested`, `Next step: human`, and
+   pushes without changing any code. The push notifies you through
+   `blocked-run-notice.yml`.
+2. **Approve.** In a session you are attending, it asks you there, row by row,
+   records `CI fix: approved — <name>, <date>`, and carries straight on.
+   Unattended, it halts. **Under the orchestrator, it waits about an hour for
+   you** — in its session, on the PR, or in the brief. If nobody answers, it
+   writes `CI fix: approved — orchestrator, <date>, auto-approved after a
+   <N>-minute timeout` and spawns a fresh `ci-fix`. It never reads the plan to
+   do it, as it never reads the criteria to stamp `Approved:`. Under
+   `run-loop.sh`, which cannot wake itself, the halt waits for you.
+3. **Apply.** Exactly the approved rows, nothing more. It runs the whole suite,
+   writes `## CI fix` as its handoff, sets `CI fix: applied — …`, `Status:
+   awaiting verification` and `Next step: tester`. **The tester always comes
+   next**, fresh, and re-verifies every criterion.
+
+The criteria stay frozen through all of this. A fix that needs one changed is
+`blocked` and goes to the `task-expander`; one that needs a dependency, a
+product call or children's text is `blocked` and goes to you, and the one-hour
+timeout never applies to `blocked`. A test may change only where the plan quotes
+the criterion it is measured against, and never to assert less. Stale tests the
+task made obsolete still go through the tester's Test change request (D-14,
+D-15). The reviewer escalates any PR where a CI fix ran on the orchestrator's
+stamp, and copies the plan into the PR body. The rest is in
+`.claude/agents/ci-fix.md` and D-17.
 
 ### 5. Ship
 
@@ -638,7 +692,7 @@ See `.claude/agents/reviewer.md` §4, `orchestrator.md` "A refused sweep", and D
 
 ## Where the loop stops for a human
 
-Six moments, and only six. Everything else runs to completion.
+Seven moments, and only seven. Everything else runs to completion.
 
 **Under the `orchestrator`, moment 1 does not move — it disappears.** Nobody
 approves the brief; the orchestrator records `Approved: orchestrator — <date>,
@@ -646,7 +700,7 @@ unattended run` without having read the criteria, because reading them is exactl
 what keeps it safe (D-3). That is the entire cost of a relayed run, and it is
 written into the brief rather than disguised.
 
-**Moments 2 to 6 are unchanged**, but they arrive differently: a spawned role
+**Moments 2 to 7 are unchanged**, but they arrive differently: a spawned role
 cannot ask you anything, so instead of a question it writes the question into the
 brief, sets `Status: blocked`, and stops. The orchestrator halts and quotes it.
 You answer, and restart the run. Moment 5 is the exception: you answer it to a
@@ -672,6 +726,12 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
    tell the orchestrator to, and mark the PR ready. If you do not answer in about
    an hour, the orchestrator applies it for you. It still does not mark the PR
    ready or merge, and if the harness refuses it too, the halt stands (D-16).
+7. **A CI fix plan.** The tester failed the work and the `ci-fix` has written
+   what it wants to change (step 4a). If you are in its session it asks you
+   there and carries on. Unattended, approve it in the brief, on the PR, or in
+   the orchestrator's session. If you do not answer in about an hour, the
+   orchestrator approves it for you with a stamp that says so, and the reviewer
+   escalates the PR so the plan is in front of you before the merge (D-17).
 
 A run that reaches only the first is the normal case: approve at step 2, and the
 next thing you hear is that a PR is ready for you.

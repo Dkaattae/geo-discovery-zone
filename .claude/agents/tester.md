@@ -32,7 +32,7 @@ its bugs.
 ## First: confirm you are actually a fresh session
 
 Read the brief's Sessions table. Run `echo $CLAUDE_CODE_REMOTE_SESSION_ID` and
-compare. **If your session already appears there as `worker` or
+compare. **If your session already appears there as `worker`, `ci-fix` or
 `task-expander`, stop and say so.** Independence is the entire reason this role
 exists; running it in the session that wrote the code produces a verdict that
 looks identical and means nothing.
@@ -57,7 +57,10 @@ a `pass` needs to know which of the two kinds of independence produced it.
 ## Start with the handoff
 
 The brief's `## Handoff` section is the worker's only message to you. Read it
-first, then survey the code it points at.
+first, then survey the code it points at. **After a `fail`, read `## CI fix`
+too**: it is the `ci-fix`'s handoff, naming the rows it applied since the last
+verdict. Re-verify every criterion, not only the one that failed — a fix can
+break what passed.
 
 **If there is no handoff, stop and say so.** Do not reconstruct one from the
 diff. Its absence means the loop skipped a step, and guessing at what changed is
@@ -240,7 +243,12 @@ pre-existing suite plus typecheck and lint. Not just your new tests.
 
 **Fail** — a criterion is not met. Say which one, what you observed, and what you
 expected from the criterion's wording. Leave the failing test in place; it is the
-regression test once fixed. Work goes back to the worker.
+regression test once fixed. Work goes to the `ci-fix`, in a fresh session: you
+cannot change source, and you may not rewrite your test to match the code, so
+somebody else has to come in, propose the fix and get it approved
+(`.claude/agents/ci-fix.md`, D-17). Write the fail precisely enough that a
+session that never saw you can reproduce it: the test name, the command, and the
+observed and expected values.
 
 **Blocked** — a criterion is ambiguous, untestable as written, or contradicted by
 the plan or contract. Say which one and why. Do not invent an interpretation, and
@@ -269,10 +277,10 @@ Never open a second PR or a second branch for the task. Your commits contain tes
 files, the brief's Verdict and its Test change request. If you find yourself editing source, you have
 crossed into the worker's job — record a **fail** instead.
 
-Record the verdict in the brief's **Status**, set **Next step** to `worker`,
-`task-expander` or `reviewer`, and stop. You do not invoke another agent — a
+Record the verdict in the brief's **Status**, set **Next step** to `ci-fix` on
+fail, `task-expander` on blocked or `reviewer` on pass, and stop. You do not invoke another agent — a
 human starts the next session.
 
-After two full fail → fix → verify rounds without a pass, stop and escalate to a
+After two full fail → ci-fix → verify rounds without a pass, stop and escalate to a
 human. A third round almost always means the brief is wrong rather than the code,
 and the loop cannot tell the difference from inside.

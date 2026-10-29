@@ -136,6 +136,22 @@ check "    unknown Next step stops the run" "$UNGATED" "unrecognised Next step"
 write_brief 'blocked' 'human' "Kate, 2026-08-25" "$START_BRANCH"
 check "    Next step: human stops the run" "$UNGATED" "asks for you"
 
+# ci-fix (D-17) — routed like any role, but never on a plan still `requested`.
+write_brief 'fail' 'ci-fix' "Kate, 2026-08-25" "$START_BRANCH"
+check "    a fail routes to ci-fix" "$UNGATED" "would be 'ci-fix'"
+
+write_brief 'ci fix requested' 'human' "Kate, 2026-08-25" "$START_BRANCH"
+echo '**CI fix:** `requested`' >> "$BRIEF"
+check "    a CI fix request halts for you" "$UNGATED" "asks for you"
+
+write_brief 'ci fix requested' 'ci-fix' "Kate, 2026-08-25" "$START_BRANCH"
+echo '**CI fix:** `requested`' >> "$BRIEF"
+check "G2b ci-fix on an unapproved plan stops the run" "$UNGATED" "CI fix plan is awaiting your approval"
+
+write_brief 'ci fix approved' 'ci-fix' "Kate, 2026-08-25" "$START_BRANCH"
+echo '**CI fix:** `approved — orchestrator, 2026-10-29, auto-approved after a 60-minute timeout`' >> "$BRIEF"
+check "G2b an approved plan passes" "$UNGATED" "would be 'ci-fix'"
+
 echo
 echo "$pass passed, $fail failed"
 [[ $fail -eq 0 ]]

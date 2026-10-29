@@ -11,6 +11,7 @@
 #
 # WHAT IT CATCHES — structural faults, all mechanical:
 #   * a brief that was never approved, or that auto-approval does not cover
+#   * a CI fix plan that nobody has approved yet (the driver never stamps one)
 #   * a task that touches the process files — never runs unattended, ever
 #   * a role that changed nothing, or changed files without updating Status
 #   * a role that pushed to the wrong branch
@@ -126,7 +127,7 @@ next_now()    { local v; v=$(header_token 'Next step'); [[ -n $v ]] || v=$(heade
 next_role_count() {
   local roles
   roles=$(header_field 'Next step' \
-    | grep -oiE '\b(task-expander|expander|worker|tester|reviewer|human)\b' \
+    | grep -oiE '\b(task-expander|expander|worker|tester|ci-fix|reviewer|human)\b' \
     | sort -u) || true
   [[ -n $roles ]] || { echo 0; return; }
   wc -l <<<"$roles" | tr -d ' '
@@ -181,6 +182,25 @@ date:  $BRIEF
 
 Auto-approval did not cover this one, which usually means its Constraints name
 a gated path. That is the gate working, not a bug."
+  fi
+}
+
+# G2b. A CI fix plan is applied only once it is approved (D-17). The orchestrator
+# may stamp one after an hour with nobody answering; the driver cannot wake
+# itself, so it never does. A ci-fix sent in with the plan still `requested` is
+# an unattended pass 1 again: it would halt where it started, so stop here
+# instead and say what is missing.
+gate_ci_fix_approval() {
+  local ci; ci=$(header_field 'CI fix')
+  local bare=${ci//\`/}
+  if [[ ${bare,,} == requested* ]]; then
+    stop "the CI fix plan is awaiting your approval" \
+"Read its ## CI fix plan, fill in Decision, then set the header to
+  **CI fix:** \`approved — <your name>, <date>\`
+and Next step to ci-fix:  $BRIEF
+
+The driver never auto-approves a CI fix. Only the orchestrator does, after an
+hour with nobody answering (process-decisions.md D-17)."
   fi
 }
 
@@ -305,7 +325,7 @@ render_log() {
       echo "| Round | Verdict | Sent back to | Why |"
       echo "|---|---|---|---|"
       awk -F'\t' '{
-        owner = ($12=="blocked") ? "task-expander" : "worker"
+        owner = ($12=="blocked") ? "task-expander" : "ci-fix"
         why = ($14 == "" ? "—" : $14)
         printf "| %s | `%s` | `%s` | %s |\n", $5, $12, owner, why
       }' <<<"$faults"
@@ -507,6 +527,11 @@ while (( steps_run < LOOP_MAX_STEPS )); do
       gate_approval
       gate_rounds
       run_role tester ;;
+    ci-fix)
+      gate_approval
+      gate_ci_fix_approval
+      gate_rounds
+      run_role ci-fix ;;
     reviewer)
       gate_approval
       run_role reviewer ;;
@@ -515,7 +540,7 @@ while (( steps_run < LOOP_MAX_STEPS )); do
     *)
       stop "unrecognised Next step: '$next'" \
 "The driver routes on that field and does not guess. Set it to one of:
-task-expander, worker, tester, reviewer, human." ;;
+task-expander, worker, tester, ci-fix, reviewer, human." ;;
   esac
 
   steps_run=$(( steps_run + 1 ))
