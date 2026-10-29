@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-088
 **Branch:** `claude/epic-hopper-pav2ip`
-**PR:** opened draft at expand time against the branch above (number in the PR list; see Sessions note)
+**PR:** #109, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
