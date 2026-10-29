@@ -183,6 +183,163 @@ export const AGRICULTURE_SAME_THING_PAIRS: readonly (readonly [string, string])[
   ["potatoes", "sweet potatoes"],
 ];
 
+// ---------------------------------------------------------------------------
+// T-088's person-approved lists, approved by Dkaattae on 2026-10-27 and copied
+// verbatim from tasks/T-088-agriculture-true-wrong-answers.md (Tables A and B).
+// Keyed by postal code; a state with no row, or a row that says `none`,
+// excludes nothing. Add or remove nothing here without a brief's approval.
+// They are distractor rules, not entity fields (criterion 20).
+
+/**
+ * Criteria 5 and 16: farm animals no state lists, offered only as wrong
+ * answers so every farm-animal question still has three. Never an answer.
+ * Offered after every state-listed animal, in this order (criterion 28).
+ */
+export const ADDED_FARM_ANIMALS: readonly string[] = [
+  "goats",
+  "horses",
+  "ducks",
+  "rabbits",
+  "bison",
+];
+
+/**
+ * Criterion 7, Table A: farm animals the state also raises, never a wrong
+ * answer in its farm-animal question (on top of its own `top_livestock`).
+ */
+export const ALSO_RAISED: Readonly<Record<string, readonly string[]>> = {
+  AL: ["goats"],
+  AR: ["turkeys"],
+  AZ: ["dairy cows"],
+  CA: ["cattle", "chickens", "turkeys", "sheep", "goats", "horses", "ducks"],
+  CO: ["dairy cows", "sheep", "bison"],
+  DE: [],
+  GA: ["goats"],
+  IA: ["cattle", "chickens", "turkeys", "sheep", "goats"],
+  ID: ["cattle", "sheep"],
+  KS: ["pigs", "bison"],
+  MD: [],
+  MN: ["pigs", "dairy cows", "chickens", "cattle", "goats"],
+  MS: [],
+  MT: ["sheep", "bison"],
+  NC: ["chickens", "goats"],
+  NE: ["pigs", "bison"],
+  NY: ["goats"],
+  OK: ["pigs", "chickens", "goats", "horses", "bison"],
+  PA: ["chickens", "pigs", "turkeys", "goats", "horses", "ducks"],
+  SD: ["pigs", "turkeys", "sheep", "bison"],
+  TX: ["chickens", "sheep", "dairy cows", "goats", "horses"],
+  VT: [],
+  WI: ["goats"],
+  WY: ["sheep", "bison"],
+};
+
+/**
+ * Criterion 11, Table B: crops the state also grows, never a wrong answer in
+ * its crop question (on top of T-026's own / bordering / same-region rule).
+ */
+export const ALSO_GROWN: Readonly<Record<string, readonly string[]>> = {
+  AK: ["potatoes", "barley", "hay"],
+  AL: ["soybeans", "corn", "pecans", "peaches"],
+  AR: ["cotton", "corn", "wheat", "peanuts", "sorghum"],
+  AZ: ["alfalfa hay", "hay", "wheat", "pecans"],
+  CA: [
+    "cherries",
+    "potatoes",
+    "apples",
+    "tomatoes",
+    "lettuce",
+    "rice",
+    "oranges",
+    "peaches",
+    "pears",
+    "cotton",
+    "alfalfa hay",
+    "hay",
+    "wheat",
+    "corn",
+    "sweet corn",
+    "sweet potatoes",
+    "blueberries",
+    "mushrooms",
+    "sugar beets",
+    "chile peppers",
+    "lima beans",
+    "sunflowers",
+  ],
+  CO: ["sunflowers", "corn", "wheat", "hay", "alfalfa hay", "sugar beets", "barley", "sorghum"],
+  CT: ["apples", "maple syrup", "sweet corn"],
+  DE: ["corn", "soybeans", "sweet corn"],
+  FL: ["sugarcane", "tomatoes", "sweet corn", "peanuts", "blueberries", "potatoes", "cotton"],
+  GA: ["cotton", "blueberries", "corn", "soybeans", "tobacco", "sweet corn"],
+  HI: [],
+  IA: ["hay", "alfalfa hay"],
+  ID: ["wheat", "barley", "sugar beets", "alfalfa hay", "hay"],
+  IL: ["wheat", "sweet corn", "hay"],
+  IN: ["wheat", "tomatoes", "hay"],
+  KS: ["corn", "soybeans", "sunflowers", "hay", "alfalfa hay"],
+  KY: ["soybeans", "wheat", "hay", "alfalfa hay"],
+  LA: ["soybeans", "cotton", "sweet potatoes", "corn", "pecans"],
+  MA: ["apples", "sweet corn"],
+  MD: ["wheat", "sweet corn", "barley", "hay"],
+  ME: ["apples", "maple syrup", "hay"],
+  MI: ["corn", "soybeans", "sugar beets", "potatoes", "grapes", "wheat", "hay"],
+  MN: ["sugar beets", "wheat", "hay", "alfalfa hay", "sweet corn", "potatoes"],
+  MO: ["cotton", "rice", "wheat", "sorghum", "hay"],
+  MS: ["corn", "rice", "sweet potatoes", "peanuts"],
+  MT: ["hay", "alfalfa hay", "sugar beets", "cherries"],
+  NC: ["corn", "soybeans", "cotton", "peanuts", "blueberries", "strawberries", "apples", "wheat"],
+  ND: ["sugar beets", "soybeans", "corn", "barley", "potatoes", "hay"],
+  NE: ["wheat", "sorghum", "hay", "alfalfa hay", "sugar beets"],
+  NH: ["sweet corn", "hay"],
+  NJ: ["peaches", "sweet corn", "apples"],
+  NM: ["hay", "alfalfa hay", "cotton", "sorghum", "peanuts", "corn"],
+  NV: ["hay", "potatoes"],
+  NY: ["sweet corn", "potatoes", "corn", "soybeans", "hay"],
+  OH: ["wheat", "tomatoes", "hay", "sweet corn"],
+  OK: ["cotton", "sorghum", "hay", "alfalfa hay", "peanuts", "pecans", "corn", "soybeans"],
+  OR: [
+    "wheat",
+    "barley",
+    "hay",
+    "alfalfa hay",
+    "potatoes",
+    "cherries",
+    "blueberries",
+    "grapes",
+    "apples",
+  ],
+  PA: ["corn", "soybeans", "hay", "tobacco", "sweet corn", "peaches", "grapes", "potatoes"],
+  RI: ["apples"],
+  SC: ["soybeans", "corn", "peanuts", "tobacco", "sweet potatoes", "wheat", "pecans"],
+  SD: ["sorghum", "wheat", "sunflowers", "hay", "alfalfa hay"],
+  TN: ["corn", "wheat", "hay", "tobacco", "tomatoes"],
+  TX: ["corn", "peaches", "wheat", "hay", "rice", "peanuts", "pecans", "oranges"],
+  UT: ["hay", "wheat"],
+  VA: ["soybeans", "corn", "wheat", "hay", "apples", "sweet potatoes", "tomatoes", "cotton"],
+  VT: ["hay", "sweet corn", "corn"],
+  WA: [
+    "wheat",
+    "barley",
+    "alfalfa hay",
+    "hay",
+    "potatoes",
+    "pears",
+    "grapes",
+    "blueberries",
+    "sweet corn",
+  ],
+  WI: ["soybeans", "potatoes", "sweet corn", "hay", "alfalfa hay", "cherries"],
+  WV: ["hay", "corn"],
+  WY: ["alfalfa hay", "barley", "wheat", "corn"],
+};
+
+/** The named state's row of a postal-code-keyed list, or `[]`. */
+function rowFor(list: Readonly<Record<string, readonly string[]>>, own: Entity): readonly string[] {
+  const code = postalCodeOf(own);
+  return code !== null && Object.hasOwn(list, code) ? (list[code] ?? []) : [];
+}
+
 /** `us-state-wa` → `WA`. Anything else has no postal code and matches no list. */
 function postalCodeOf(entity: Entity): string | null {
   const match = /^us-state-([a-z]{2})$/.exec(entity.id);
@@ -233,7 +390,7 @@ function exclusionFor(
   strategy: DistractorStrategy,
   own: Entity,
   entities: readonly Entity[],
-): (other: Entity, text: string) => boolean {
+): (other: Entity | null, text: string) => boolean {
   switch (strategy) {
     case "landmarks_neighbours_first": {
       const code = postalCodeOf(own);
@@ -243,7 +400,7 @@ function exclusionFor(
     }
     case "climates_outside_group": {
       const group = climateGroupOf(own);
-      return (other) => group !== null && climateGroupOf(other) === group;
+      return (other) => group !== null && other !== null && climateGroupOf(other) === group;
     }
     case "crops_not_grown_nearby": {
       // Grown by the state itself, a state it borders, or a state in its
@@ -256,11 +413,16 @@ function exclusionFor(
           (Array.isArray(borders) && borders.includes(e.id)) ||
           (nonBlankString(region) && e.region === region),
       );
-      const grown = nearby.flatMap((e) => textsOfField(e, "top_crops"));
+      // Plus the state's T-088 row (criterion 11).
+      const grown = [
+        ...nearby.flatMap((e) => textsOfField(e, "top_crops")),
+        ...rowFor(ALSO_GROWN, own),
+      ];
       return (_, text) => grown.some((crop) => sameText(crop, text));
     }
     case "livestock_not_raised": {
-      const raised = textsOfField(own, "top_livestock");
+      // The state's own animals, plus its T-088 row (criteria 6–7).
+      const raised = [...textsOfField(own, "top_livestock"), ...rowFor(ALSO_RAISED, own)];
       return (_, text) => raised.some((animal) => sameText(animal, text));
     }
     default:
@@ -297,6 +459,26 @@ interface Candidate {
   entity: Entity;
   text: string;
   distance: number;
+}
+
+/**
+ * A candidate from a fixed pool rather than from an entity's field (T-088's
+ * `ADDED_FARM_ANIMALS`). It has no entity and no distance, and comes after
+ * every entity candidate.
+ */
+interface PoolCandidate {
+  entity: null;
+  text: string;
+}
+
+/** The fixed-pool candidates a strategy offers after its entity candidates. */
+/** A wrong answer as picked: from an entity, or from a fixed pool. */
+type Pick = Candidate | PoolCandidate;
+
+function poolFor(strategy: DistractorStrategy): PoolCandidate[] {
+  return strategy === "livestock_not_raised"
+    ? ADDED_FARM_ANIMALS.map((text) => ({ entity: null, text }))
+    : [];
 }
 
 /** Tier number, from 0, of a candidate under a strategy. */
@@ -375,7 +557,8 @@ function farthestFirst(strategy: DistractorStrategy): boolean {
   return strategy === "climates_outside_group";
 }
 
-function isFarPhraseState(entity: Entity): boolean {
+function isFarPhraseState(entity: Entity | null): boolean {
+  if (entity === null) return false;
   const code = postalCodeOf(entity);
   return code !== null && CLIMATE_FAR_PHRASE_STATES.includes(code);
 }
@@ -386,13 +569,16 @@ function isFarPhraseState(entity: Entity): boolean {
  * `CLIMATE_FAR_PHRASE_STATES`, or all three wrong answers from one
  * `SAME_CLIMATE_GROUPS` group. Two from one group is still allowed.
  */
-function breaksClimateCap(picked: readonly Candidate[], candidate: Candidate): boolean {
+function breaksClimateCap(picked: readonly Pick[], candidate: Pick): boolean {
   if (isFarPhraseState(candidate.entity) && picked.some((p) => isFarPhraseState(p.entity))) {
     return true;
   }
+  if (candidate.entity === null) return false;
   const group = climateGroupOf(candidate.entity);
   if (group === null) return false;
-  const sameGroup = picked.filter((p) => climateGroupOf(p.entity) === group).length;
+  const sameGroup = picked.filter(
+    (p) => p.entity !== null && climateGroupOf(p.entity) === group,
+  ).length;
   return sameGroup + 1 >= DISTRACTOR_COUNT;
 }
 
@@ -414,14 +600,15 @@ function byTierThenNearest(
  * Up to three distractors, tiered and nearest-first, skipping any candidate
  * whose text matches the answer or an earlier pick, that the strategy
  * excludes, or that forms a same-thing pair with the answer or a pick.
- * Climate also skips a candidate that would break a T-090 cap.
+ * Climate also skips a candidate that would break a T-090 cap. Farm animals
+ * walk `ADDED_FARM_ANIMALS` after every entity candidate (T-088).
  */
 function nearestDistractors(
   draft: QuestionDraft,
   own: Entity,
   template: Template,
   entities: readonly Entity[],
-): Candidate[] | ShortPool {
+): Pick[] | ShortPool {
   const origin = centroidOf(own);
   if (origin === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
 
@@ -443,8 +630,8 @@ function nearestDistractors(
 
   const excluded = exclusionFor(strategy, own, entities);
   const pairs = pairsFor(strategy);
-  const picked: Candidate[] = [];
-  for (const candidate of candidates) {
+  const picked: Pick[] = [];
+  for (const candidate of [...candidates, ...poolFor(strategy)]) {
     if (picked.length === DISTRACTOR_COUNT) break;
     if (sameText(candidate.text, draft.answer)) continue;
     if (picked.some((p) => sameText(p.text, candidate.text))) continue;
@@ -466,7 +653,7 @@ function distractorsFor(
   own: Entity,
   template: Template,
   entities: readonly Entity[],
-): Candidate[] | ShortPool {
+): Pick[] | ShortPool {
   // Every strategy reports an own entity with no usable centroid, as E-21
   // says, even `next_ranked_by_area`, which orders by rank alone.
   if (centroidOf(own) === null) return { draftId: draft.id, found: 0, reason: "no_centroid" };
@@ -490,7 +677,9 @@ export function clickDistractorsFor(
 ): string[] | ShortPool {
   const found = distractorsFor(draft, own, template, entities);
   if (!Array.isArray(found)) return found;
-  return found.map((p) => p.entity.geometry_id as string);
+  // A fixed-pool pick has no entity, but only `livestock_not_raised` has a
+  // pool, and no farm-animal template is `map_click`.
+  return found.map((p) => p.entity?.geometry_id as string);
 }
 
 function questionFor(

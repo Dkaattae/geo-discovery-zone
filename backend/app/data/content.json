@@ -8538,9 +8538,9 @@
       "prompt": "Which crop is Alaska known for growing?",
       "choices": [
         "wheat",
-        "barley",
+        "sunflowers",
         "peonies",
-        "potatoes"
+        "alfalfa hay"
       ],
       "correctIndex": 2,
       "level": 7,
@@ -8579,10 +8579,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Arkansas known for growing?",
       "choices": [
-        "peanuts",
         "tobacco",
+        "peaches",
         "rice",
-        "peaches"
+        "pecans"
       ],
       "correctIndex": 2,
       "level": 7,
@@ -8600,10 +8600,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Arizona known for growing?",
       "choices": [
-        "hay",
         "sugar beets",
+        "sorghum",
         "cotton",
-        "sorghum"
+        "corn"
       ],
       "correctIndex": 2,
       "level": 5,
@@ -8621,9 +8621,9 @@
       "format": "multiple_choice",
       "prompt": "Which crop is California known for growing?",
       "choices": [
-        "cherries",
-        "potatoes",
-        "apples",
+        "pecans",
+        "barley",
+        "soybeans",
         "grapes"
       ],
       "correctIndex": 3,
@@ -8642,10 +8642,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Colorado known for growing?",
       "choices": [
-        "sunflowers",
         "rice",
+        "grapes",
         "potatoes",
-        "grapes"
+        "almonds"
       ],
       "correctIndex": 2,
       "level": 6,
@@ -8686,7 +8686,7 @@
       "choices": [
         "peanuts",
         "tobacco",
-        "sweet corn",
+        "potatoes",
         "lima beans"
       ],
       "correctIndex": 3,
@@ -8705,10 +8705,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Florida known for growing?",
       "choices": [
-        "sugarcane",
-        "oranges",
         "rice",
-        "lima beans"
+        "oranges",
+        "lima beans",
+        "cranberries"
       ],
       "correctIndex": 1,
       "level": 5,
@@ -8813,7 +8813,7 @@
         "cotton",
         "rice",
         "corn",
-        "wheat"
+        "sorghum"
       ],
       "correctIndex": 2,
       "level": 5,
@@ -8897,7 +8897,7 @@
         "peanuts",
         "sugarcane",
         "peaches",
-        "pecans"
+        "tobacco"
       ],
       "correctIndex": 1,
       "level": 7,
@@ -8980,7 +8980,7 @@
       "choices": [
         "mushrooms",
         "tobacco",
-        "grapes",
+        "maple syrup",
         "cherries"
       ],
       "correctIndex": 3,
@@ -9000,8 +9000,8 @@
       "prompt": "Which crop is Minnesota known for growing?",
       "choices": [
         "sorghum",
-        "hay",
-        "sugar beets",
+        "tobacco",
+        "peaches",
         "corn"
       ],
       "correctIndex": 3,
@@ -9086,7 +9086,7 @@
         "lima beans",
         "mushrooms",
         "sweet potatoes",
-        "blueberries"
+        "tomatoes"
       ],
       "correctIndex": 2,
       "level": 5,
@@ -9104,10 +9104,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is North Dakota known for growing?",
       "choices": [
-        "hay",
+        "cranberries",
         "wheat",
-        "sugar beets",
-        "cranberries"
+        "sorghum",
+        "peaches"
       ],
       "correctIndex": 1,
       "level": 7.5,
@@ -9169,8 +9169,8 @@
       "choices": [
         "tobacco",
         "blueberries",
-        "sweet corn",
-        "potatoes"
+        "potatoes",
+        "peanuts"
       ],
       "correctIndex": 1,
       "level": 6.5,
@@ -9189,9 +9189,9 @@
       "prompt": "Which crop is New Mexico known for growing?",
       "choices": [
         "chile peppers",
-        "corn",
         "soybeans",
-        "hay"
+        "sugar beets",
+        "rice"
       ],
       "correctIndex": 0,
       "level": 7,
@@ -9230,9 +9230,9 @@
       "format": "multiple_choice",
       "prompt": "Which crop is New York known for growing?",
       "choices": [
-        "sweet corn",
-        "potatoes",
         "peanuts",
+        "cherries",
+        "sweet potatoes",
         "apples"
       ],
       "correctIndex": 3,
@@ -9272,10 +9272,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Oklahoma known for growing?",
       "choices": [
-        "peanuts",
-        "hay",
+        "sugar beets",
+        "tobacco",
         "wheat",
-        "sugar beets"
+        "cranberries"
       ],
       "correctIndex": 2,
       "level": 6.5,
@@ -9293,10 +9293,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Oregon known for growing?",
       "choices": [
-        "wheat",
+        "sugar beets",
         "hazelnuts",
-        "barley",
-        "hay"
+        "cotton",
+        "lettuce"
       ],
       "correctIndex": 1,
       "level": 6,
@@ -9314,10 +9314,10 @@
       "format": "multiple_choice",
       "prompt": "Which crop is Pennsylvania known for growing?",
       "choices": [
-        "tobacco",
-        "mushrooms",
         "peanuts",
-        "sweet corn"
+        "mushrooms",
+        "sweet potatoes",
+        "cherries"
       ],
       "correctIndex": 1,
       "level": 5,
@@ -9378,9 +9378,9 @@
       "prompt": "Which crop is South Dakota known for growing?",
       "choices": [
         "corn",
-        "sorghum",
         "potatoes",
-        "peaches"
+        "peaches",
+        "cranberries"
       ],
       "correctIndex": 0,
       "level": 7.5,
@@ -9420,9 +9420,9 @@
       "prompt": "Which crop is Texas known for growing?",
       "choices": [
         "potatoes",
-        "peaches",
+        "lettuce",
         "cotton",
-        "corn"
+        "cherries"
       ],
       "correctIndex": 2,
       "level": 4,
@@ -9504,9 +9504,9 @@
       "prompt": "Which crop is Washington known for growing?",
       "choices": [
         "apples",
-        "wheat",
-        "barley",
-        "alfalfa hay"
+        "sugar beets",
+        "almonds",
+        "strawberries"
       ],
       "correctIndex": 0,
       "level": 5.5,
@@ -9610,7 +9610,7 @@
       "choices": [
         "cattle",
         "pigs",
-        "turkeys",
+        "sheep",
         "chickens"
       ],
       "correctIndex": 3,
@@ -9650,10 +9650,10 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is California known for?",
       "choices": [
-        "sheep",
-        "turkeys",
+        "pigs",
+        "rabbits",
         "dairy cows",
-        "pigs"
+        "bison"
       ],
       "correctIndex": 2,
       "level": 3,
@@ -9671,9 +9671,9 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Colorado known for?",
       "choices": [
-        "sheep",
         "pigs",
         "turkeys",
+        "chickens",
         "cattle"
       ],
       "correctIndex": 3,
@@ -9735,8 +9735,8 @@
       "prompt": "Which farm animal is Iowa known for?",
       "choices": [
         "dairy cows",
-        "turkeys",
-        "chickens",
+        "horses",
+        "ducks",
         "pigs"
       ],
       "correctIndex": 3,
@@ -9755,9 +9755,9 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Idaho known for?",
       "choices": [
-        "sheep",
         "turkeys",
         "pigs",
+        "chickens",
         "dairy cows"
       ],
       "correctIndex": 3,
@@ -9776,9 +9776,9 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Kansas known for?",
       "choices": [
-        "pigs",
         "chickens",
         "turkeys",
+        "sheep",
         "cattle"
       ],
       "correctIndex": 3,
@@ -9818,10 +9818,10 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Minnesota known for?",
       "choices": [
-        "dairy cows",
-        "pigs",
+        "sheep",
+        "horses",
         "turkeys",
-        "sheep"
+        "ducks"
       ],
       "correctIndex": 2,
       "level": 5.5,
@@ -9861,9 +9861,9 @@
       "prompt": "Which farm animal is Montana known for?",
       "choices": [
         "cattle",
-        "sheep",
         "turkeys",
-        "pigs"
+        "pigs",
+        "chickens"
       ],
       "correctIndex": 0,
       "level": 6,
@@ -9882,9 +9882,9 @@
       "prompt": "Which farm animal is North Carolina known for?",
       "choices": [
         "pigs",
-        "chickens",
         "dairy cows",
-        "sheep"
+        "sheep",
+        "horses"
       ],
       "correctIndex": 0,
       "level": 4,
@@ -9903,9 +9903,9 @@
       "prompt": "Which farm animal is Nebraska known for?",
       "choices": [
         "cattle",
-        "pigs",
         "sheep",
-        "turkeys"
+        "turkeys",
+        "chickens"
       ],
       "correctIndex": 0,
       "level": 6.5,
@@ -9944,10 +9944,10 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Oklahoma known for?",
       "choices": [
-        "chickens",
+        "sheep",
         "cattle",
-        "pigs",
-        "sheep"
+        "turkeys",
+        "ducks"
       ],
       "correctIndex": 1,
       "level": 5.5,
@@ -9965,10 +9965,10 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Pennsylvania known for?",
       "choices": [
-        "chickens",
-        "pigs",
+        "sheep",
+        "rabbits",
         "dairy cows",
-        "turkeys"
+        "bison"
       ],
       "correctIndex": 2,
       "level": 4,
@@ -9986,10 +9986,10 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is South Dakota known for?",
       "choices": [
-        "turkeys",
+        "chickens",
         "cattle",
-        "sheep",
-        "pigs"
+        "goats",
+        "horses"
       ],
       "correctIndex": 1,
       "level": 6.5,
@@ -10007,9 +10007,9 @@
       "format": "multiple_choice",
       "prompt": "Which farm animal is Texas known for?",
       "choices": [
-        "chickens",
         "pigs",
-        "sheep",
+        "turkeys",
+        "ducks",
         "cattle"
       ],
       "correctIndex": 3,

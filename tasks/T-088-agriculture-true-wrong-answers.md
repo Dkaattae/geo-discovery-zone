@@ -1,7 +1,7 @@
 # T-088 — Wrong answers that are true: crops and farm animals a state does grow
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-088-agriculture-true-wrong-answers.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa |
+| worker | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (same id as the expander's: the orchestrator's subagents report the parent session's id; see Notes) |
 
 **Worker model:** Opus. The task is data correctness in text a child reads.
 
@@ -357,6 +358,151 @@ Tests can check the rule. Only a person can check whether the lists are true.
 
 ## Handoff
 
+**TL;DR.** Built. Tables A and B and the five added animals are in
+`distractors.ts`, and both bank files are regenerated. 36 of the 74
+agriculture questions changed `choices`. Nothing else moved. 16 question-bank
+tests and 1 backend test are red by design: all are pins on the old bank or on
+`engineering-decisions.md`. They are listed below for the tester's Test change
+request. PA and CA come out at exactly `{sheep, rabbits, bison}` and
+`{pigs, rabbits, bison}`.
+
+### What changed, file by file
+
+- **`question-bank/src/distractors.ts`**
+  - New `ADDED_FARM_ANIMALS`, `ALSO_RAISED` (Table A) and `ALSO_GROWN`
+    (Table B), copied verbatim and keyed by postal code. They sit after
+    `AGRICULTURE_SAME_THING_PAIRS`. `rowFor` reads a row through the existing
+    `postalCodeOf`.
+  - `exclusionFor`: `crops_not_grown_nearby` adds the state's `ALSO_GROWN`
+    row, and `livestock_not_raised` adds its `ALSO_RAISED` row.
+  - `nearestDistractors` walks the sorted entity candidates, then
+    `poolFor(strategy)`. That is the five added animals for
+    `livestock_not_raised` and nothing for any other strategy. Every skip rule
+    applies to pool candidates too: answer, duplicate, exclusion, pair.
+  - A pool candidate has `entity: null` (`PoolCandidate`, `Pick`). The climate
+    helpers and `clickDistractorsFor` handle `null`. In practice they never see
+    one, because only farm animals have a pool. The header's "pure" claim
+    still holds.
+- **`question-bank/src/templates.ts`**: only the `crops_not_grown_nearby` and
+  `livestock_not_raised` docstrings.
+- **`question-bank/data/questions/us-states.json`**: regenerated with
+  `bun run ./src/write-questions.ts`.
+- **`backend/app/data/content.json`**: regenerated with
+  `make -C backend content`.
+- **`engineering-decisions.md`**: E-25 only. There is a dated T-088 amendment,
+  and the "Revisit when" clause is rewritten.
+- **New `question-bank/src/agriculture-true-wrong-answers.test.ts`** (worker
+  tests, 15). It covers the committed file and synthetic inputs for criteria
+  4–17.
+
+### Where each criterion lives
+
+| Criterion | Where | Checked how |
+|---|---|---|
+| 1–3 | regenerated question file | scratch script against `git show a42b71b:…`: 415 ids, same set; 0 non-agri diffs; 0 non-`choices` diffs in agri |
+| 4 | `nearestDistractors` + `questionFor` (unchanged) | worker test, scratch script |
+| 5, 16 | `ADDED_FARM_ANIMALS`, `poolFor` | worker test (eleven-set; never an answer; in no entity value) |
+| 6, 7 | `exclusionFor` › `livestock_not_raised` | worker test, committed file |
+| 8 | `AGRICULTURE_SAME_THING_PAIRS` (unchanged), now also checked against pool picks | worker test |
+| 9, 10 | outcome | worker test |
+| 11, 12, 13 | `exclusionFor` › `crops_not_grown_nearby`; no crop pool | worker test |
+| 14, 15 | `rowFor` / `postalCodeOf` | worker synthetic tests (`us-state-ia`/`us-state-hi`, `not-a-state-ia`, `tx`) |
+| 17 | no new state, sort unchanged, pool in fixed order | worker test |
+| 18, 19 | both commands re-run, md5 unchanged; 74 served agri questions have the file's `choices` | scratch script |
+| 20–23 | `git diff --name-only a42b71b` over those paths is empty; `seed-level.ts` untouched | |
+| 24 | new test reads committed files and builds synthetic input; no spawn, no network | |
+| 25–31 | E-25 amendment | read it: lists + approver + rule (26), "not yet checked against USDA NASS" (27), five animals, never correct, ordering sentence (28), cattle/dairy cows (29), counts (30), Revisit when (31) |
+
+**Criterion 30's numbers.** 8 of 24 farm-animal questions offer an added
+animal. By animal: goats 1, horses 4, ducks 4, rabbits 2, bison 2. The states
+are CA, IA, MN, NC, OK, PA, SD and TX.
+
+### Deliberately not done
+
+- No row of either table was changed. One looked worth a look and is below.
+  No NASS check was made, and nothing was fetched.
+- E-22's "six farm animals" line and the `seed-level.ts` `concept_load`
+  comment are left stale, as the brief's Out of scope says. **Reviewer to
+  queue the wording fix.**
+- No existing test was touched.
+
+### Things a person should look at (not contradictions of the brief)
+
+- **Iowa still offers `dairy cows`.** Its wrong answers are `dairy cows`,
+  `horses` and `ducks`. That is exactly what Table A's IA row allows (Review
+  checklist item 2). **Human reviewer to confirm.**
+- **Ordering of the added animals.** I put them after every state-listed
+  animal, in the order goats, horses, ducks, rabbits, bison. That way the
+  state-listed animals are used up first, and an added animal shows up only
+  when the pool runs dry. This keeps the "never correct" signal as rare as it
+  can be. **Reviewer to confirm or overturn.** Any change of order moves the
+  criterion 30 counts and E-25's sentence.
+
+### How to run
+
+```bash
+cd question-bank && bun install --frozen-lockfile   # node_modules was absent in this env
+bun test && bun run typecheck && bun run lint && bun run format:check
+bun run ./src/write-questions.ts && git diff --exit-code data/questions   # criterion 18
+make -C ../backend content && git diff --exit-code ../backend/app/data     # criterion 19
+cd ../backend && uv run pytest -q && make lint format-check
+```
+
+### Suite results at handoff
+
+- **question-bank**: 2557 pass, 16 fail. All 16 are listed below. Typecheck,
+  lint and format:check are clean. Before the change it was 2558 pass, 0 fail.
+- **backend**: 741 pass, 1 fail (listed below), 9 skipped. Ruff lint and
+  format-check are clean.
+- **frontend**: untouched, but its suite **could not run cleanly in this
+  environment**. `bun install --frozen-lockfile` was refused by the proxy
+  (`ProxyConnectFailed (403) downloading tarball topojson-client@3.1.0`), so
+  `react-simple-maps` and `us-atlas` are missing. That causes the module
+  errors in `t051-*.test.tsx` and `UsMap.tsx`, 2 `tsc` errors in
+  `t051-tester.criteria.test.tsx`, and one 5 s timeout in a lint-boundary
+  test. None of this touches content. The two frontend tests that read the
+  bank (`src/lib/t026-tester.criteria.test.ts`, `src/lib/topics.test.ts`)
+  pass: 16/16. **Tester to re-run the frontend suite where packages
+  install.**
+
+### Tests made stale
+
+Every one of these is red because of a pin on main's bank or on main's
+`engineering-decisions.md`. E-30 applies to each: re-pin to this task's
+commit and name it. None should be fixed by adding an exclusion.
+
+**The five added animals are no state's `top_livestock`** (criteria 5 and 16):
+
+1. `question-bank/src/t026-templates.test.ts` › `farm animals` › `answer is the first animal; no distractor is one the state lists, none invented`. **Modify:** accept `anyAnimal ∪ ADDED_FARM_ANIMALS`, and also assert that the state's `ALSO_RAISED` row is excluded.
+2. `question-bank/src/t026-tester-verify.test.ts` › `T-026 criteria 32-34: farm animals` › `criterion 33: answer is the first entry; distractors not the state's, but another's`. **Modify:** same as 1.
+3. `question-bank/src/t026-tester-verify.test.ts` › `T-026 criteria 50-51: no entity data changed, choices copied from entity fields` › `criterion 51: every new choice is a value of its template's answer field on some entity`. **Modify:** for `tpl-farm-animal-of`, also accept `ADDED_FARM_ANIMALS`.
+
+**Pins on the bank** (criteria 18–19 regenerate it):
+
+4. `question-bank/src/climate-far-phrases-verify.test.ts` › `T-090 criterion 7: every other strategy gives what it gave at 3279555` › `committed entities, every non-climate template`. **Modify:** re-pin, or leave out the two agriculture templates.
+5. `question-bank/src/climate-far-phrases-verify.test.ts` › `T-090 criterion 12: nothing else in the bank moved` › `question file: every non-climate question deep-equal to 6a515e2`. **Modify:** re-pin.
+6. Same `describe` › `content.json: every non-climate question deep-equal to 6a515e2's`. **Modify:** re-pin.
+7. `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 4: the 365 other questions deep-equal 5d72ca5's, count 415` › `every non-map_click question, level included, hashes to 6a515e2's (re-pinned T-085a, row 20)`. **Modify:** re-pin.
+8. `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criteria 11 and 12: content.json does not move` › `backend/app/data/content.json is byte-identical to 6a515e2's`. **Modify:** re-pin.
+9. `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 5d72ca5`. **Modify:** re-pin, or also except `backend/app/data/content.json`.
+10. `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 17: no network, no child-facing text changed` › `every prompt, choices entry and funFact in content.json is as at 5d72ca5`. **Modify:** re-pin.
+11. `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › `criterion 14: question-bank/data is unchanged since 6a515e2, built_at aside`. **Modify:** re-pin.
+12. `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 12-16: everything else holds still; the committed files` › `criterion 13: no field but level changed in the question file`. **Modify:** re-pin.
+13. Same `describe` › `criterion 13: no field but level changed in content.json`. **Modify:** re-pin.
+14. `backend/tests/test_t051_tester_criteria.py::test_c1_the_questions_served_before_t051_are_still_served_unchanged` (`MAIN_SERVED_DIGEST`). **Modify:** re-pin the digest. `MAIN_SERVED_COUNT` is unchanged.
+
+**Pins on `engineering-decisions.md`** (criteria 26–31 amend E-25):
+
+15. `question-bank/src/seed-level-loose-ends-verify.test.ts` › `T-086 criteria 10-12: what must not move` › `criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's`. **Modify:** re-pin.
+16. `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › `E-1..E-28 are byte-identical to 6a515e2's, and there are 30 E-n headings at the branch head`. **Modify:** re-pin. The heading count (30) is unchanged.
+17. `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 17-22: E-22` › `criterion 22: every E-n entry other than E-22 is byte-identical to 5ae564a's`. **Modify:** re-pin.
+
+**No count floors went red.** Item 11 is the `2edc3a19…` pin that the
+brief predicted. The brief also predicted three backend reds that did not
+happen: `test_t085a_tester_criteria.py`, `test_t040_tester_criteria.py` and
+`test_t026_tester_criteria.py` all stay green. `BANK_DIGESTS` stays green, as
+predicted.
+
 ## Verdict
 
 ## Notes
@@ -368,3 +514,17 @@ Tests can check the rule. Only a person can check whether the lists are true.
 - PA and CA were worked out by hand from Table A, the six state-listed animals,
   the five additions and the cattle/dairy-cows pair. Both come to exactly three
   wrong answers, which matches the queue entry's "PA and CA exactly three".
+- **Worker, 2026-10-29.**
+  - **Session id.** `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the same id as the
+    expander's row. This worker ran as an orchestrator-launched subagent, in
+    its own context. **The tester should run where the id differs, or the
+    orchestrator should say how isolation is shown.**
+  - **Environment.** `question-bank/node_modules` was absent, so the first
+    baseline showed 12 lint-gate reds. `bun install --frozen-lockfile` fixed
+    that and left the lockfile unchanged. Baseline on main after install:
+    2558 pass, 0 fail.
+  - **The brief's stale list was close.** Three more reds came from editing
+    E-25, which pins on `engineering-decisions.md` catch. The three backend
+    files it named stayed green, and one other backend file (`test_t051`)
+    went red.
+

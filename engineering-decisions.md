@@ -1455,10 +1455,44 @@ change. Compacting the file (no indentation) was not enough on its own. It
 takes the question file from about 250 KB to about 178 KB, and that still
 leaves the folder at about 239 KB.
 
+**Amended 2026-10-29 (T-088): wrong answers that are true.** Each state has
+a person-approved "also grown / raised" exclusion list, one for crops
+(`ALSO_GROWN`) and one for farm animals (`ALSO_RAISED`), approved by Dkaattae
+on 2026-10-27 and copied verbatim from the T-088 brief into `distractors.ts`,
+keyed by postal code. A state's crop question never offers a crop in its
+row, on top of the own / bordering / same-region rule above, and its
+farm-animal question never offers an animal in its row, on top of its own
+`top_livestock`. The rule the lists follow: an item is listed when the state is
+roughly a top-10 national producer of it, or is widely known for it. An entity
+whose id is not `us-state-<xx>` has no row and gets no exclusion.
+
+- **Where the lists came from.** They were drafted from general knowledge, not
+  from a committed source. They are not yet checked against USDA NASS state
+  rankings. A person does that check, and this sentence changes when it is
+  done.
+- **Five added farm animals.** `goats`, `horses`, `ducks`, `rabbits` and
+  `bison`, approved by Dkaattae on 2026-10-27 (`ADDED_FARM_ANIMALS`). They are
+  never a correct answer to any question and no entity field gains them; they
+  exist so that every farm-animal question still has three wrong answers once
+  the rows exclude more. They are offered after every animal some state lists,
+  in that listed order, so one appears only when the state-listed animals have
+  run out. The same exclusions apply to them.
+- **`cattle` and `dairy cows` stay separate animals.** The
+  `AGRICULTURE_SAME_THING_PAIRS` rule still applies to them: never both in one
+  question, answer included.
+- **What the regenerated bank shows.** 8 of the 24 farm-animal questions offer
+  at least one added animal. Each animal is offered in this many questions:
+  `goats` 1, `horses` 4, `ducks` 4, `rabbits` 2, `bison` 2. Pennsylvania and
+  California are the boundary: after their rows, exactly three animals remain
+  (`sheep`, `rabbits`, `bison`; `pigs`, `rabbits`, `bison`). No crop is added
+  to the pool, and no question's `level` moved (E-22: an agriculture choice
+  always counts as far).
+
 **Revisit when** a world-scope bank arrives (rank counts other than 50,
-regions and borders between countries), a reviewer reads the crop and
-farm-animal questions and finds a "not grown nearby" wrong answer the state
-does grow (C3's accepted risk), or the bank nears 400 KB.
+regions and borders between countries), or the bank nears 400 KB. C3's "not
+grown nearby" risk is now narrowed by the T-088 lists. It reopens when a row
+is found wrong against USDA NASS, or when a new crop or animal is added to the
+pool.
 
 ## E-26 — Selection and seeded levels measured at 365 served questions; nothing changed, the fixes are follow-ons
 
