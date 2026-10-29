@@ -181,7 +181,7 @@ Since T-040 (PR #88) every served question is generated, as the plan's central
 claim asks (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · todo
+### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · doing
 **Depends on:** nothing. The list below was approved by Dkaattae on 2026-10-27.
 **Option chosen 2026-10-27 (Dkaattae): the person-approved `familiarity_bonus`
 list.** **The largest-city risk is accepted** (Dkaattae, same day): a
