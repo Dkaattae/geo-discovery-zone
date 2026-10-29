@@ -1,12 +1,14 @@
 # T-0xx — <title>
 
 **Status:** `expanding` → `awaiting approval` → `working` → `awaiting verification`
-→ `pass` / `fail` / `blocked` / `test changes requested` → `awaiting review` →
+→ `pass` / `fail` / `blocked` / `test changes requested` → on fail: `ci fix requested`
+→ `ci fix approved` → `awaiting verification` again → `awaiting review` →
 `changes requested` → `merged` / `escalated`
 **Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
-`reviewer` — or `human`
+`ci-fix`, `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
 **Test changes:** `none` — the tester sets `requested` when it raises a Test change request; the tester replaces it with `approved — <name>, <date>` once that person has approved it in the tester's own session. The orchestrator never writes it (D-14, D-15)
+**CI fix:** `none` — the `ci-fix` sets `requested` when it writes a CI fix plan; a person replaces it with `approved — <name>, <date>`, or after an hour with no answer the orchestrator stamps `approved — orchestrator, <date>, auto-approved after a <N>-minute timeout`; the `ci-fix` sets `applied — <that approval>` once it has applied the rows (D-17)
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `task/T-0xx-slug` — **replace this with the branch actually used.**
 Created by `task-expander`, shared by every role, and this line is what they read
@@ -155,6 +157,35 @@ changes:` to `approved — <name>, <date>`, and applies the approved rows. Writi
 Decision here first is fine, but the tester still asks you to confirm it in its
 session. Or make the approved edits yourself, by hand, and set `Next step:
 tester`.
+
+## CI fix plan
+
+Delete this section until the tester returns `fail`. Written by `ci-fix` **only**,
+in its first pass, before it changes anything (`.claude/agents/ci-fix.md`, D-17).
+Raising it sets `Status: ci fix requested`, `Next step: human` and the header's
+`CI fix: requested`. **Nothing here is applied until it is approved** — by a person
+(in the `ci-fix`'s session if they are there, or here, in Decision), or, after an
+hour with nobody answering, by the orchestrator's timeout stamp. A later round
+replaces the table rather than appending to it; git keeps the old one.
+
+| # | File (and function or test) | Kind | Change | Why — failing test or CI line, root cause, criterion quoted for a test row | Decision |
+|---|---|---|---|---|---|
+| 1 | `src/x.ts` › `fn` | source / task test / pre-existing test | exactly what changes | `x.test.ts` › "…" fails because … | approved / refused |
+
+**Root cause:** one paragraph.
+
+**Not doing:** what was considered and rejected, and why.
+
+To approve by hand: fill in Decision, set the header's `CI fix:` to `approved —
+<name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
+
+## CI fix
+
+Written by `ci-fix` in its second pass, after applying the approved rows — its
+handoff to the tester, read alongside the worker's `## Handoff`. Which rows were
+applied and which refused, the approval line quoted, the suite / typecheck / lint
+results as run, which kind of independence it had, and anything it noticed and
+did not change.
 
 ## Review
 

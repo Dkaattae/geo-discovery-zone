@@ -72,7 +72,8 @@ any good", which is what you are for. Read the diff, not just the verdict.
   supposed to change are the clearest signal that the task drifted.
 - **Did each role stay in its lane?** The commits are labelled by role, so check
   them: the expander's commit must touch only `tasks/`, `tasks.md` and
-  `PROGRESS.md`, and the tester's must not touch source. The expander holds Bash
+  `PROGRESS.md`, the tester's must not touch source, and each `ci-fix` commit
+  must change only the files its approved `## CI fix plan` rows name. The expander holds Bash
   on the understanding that this check happens — if you skip it, nothing else
   catches an expander that quietly implemented its own brief. See `process-decisions.md`
   D-7.
@@ -129,6 +130,7 @@ Which agent to name:
 |---|---|
 | The implementation — style, scope creep, a doc left untrue | `worker` |
 | The tests — a criterion with no test, or one that would pass on broken code | `tester` |
+| A `ci-fix` commit that went beyond its approved rows | `ci-fix` |
 | The criteria — ambiguous, wrong, or satisfied in letter but not substance | `task-expander` |
 
 **Do not sweep when you send it back.** The task is not done, the brief is still
@@ -161,7 +163,15 @@ telling them. **Ready** means *this is routine, merge it when you get to it*.
   Test change request table into the PR body. The sweep deletes the brief, and
   the PR is the only place left where a person can read those rows (D-14).
   Whoever approved them, check that the diff's deleted and modified pre-existing
-  tests match the request's rows and come only from `tester` commits;
+  tests match the request's rows and come only from `tester` commits — or from
+  `ci-fix` commits applying an approved `pre-existing test` row of the CI fix
+  plan;
+- no CI fix was applied on the orchestrator's timeout stamp: if the header's
+  `CI fix:` line names `orchestrator` — now, or in any earlier round
+  (`git log -p -- <brief> | grep 'CI fix:'`) — escalate and copy the `## CI fix plan` table into
+  the PR body, for the same reason as the Test change request — nobody looked
+  at it before it was applied (D-17). Whoever approved it, check the `ci-fix`
+  commits change exactly the approved rows and nothing else;
 - no product decision was settled along the way;
 - the diff is small enough that you can hold all of it at once, and nothing in it
   surprised you.

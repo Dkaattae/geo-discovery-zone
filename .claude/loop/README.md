@@ -66,6 +66,7 @@ orchestrator agent D-1 originally rejected.
 | **G0** | `gate_next_unambiguous` | `Next step` names **two** roles. Taking the first silently is the D-8 failure shape |
 | **G1** | `gate_process_files` | the diff touches `process.md`, `process-decisions.md`, `CLAUDE.md` or `.claude/` |
 | **G2** | `gate_approval` | `Approved:` is missing or still `pending` |
+| **G2b** | `gate_ci_fix_approval` | `Next step` is `ci-fix` but `CI fix:` still reads `requested`. The driver never stamps a CI fix — only the orchestrator does, after an hour (D-17) |
 | **G3** | `gate_rounds` | `fail` or `blocked` rounds hit their bound — **counted separately** |
 | **G4** | `gate_branch` | the header is missing — otherwise it **checks the header's branch out** |
 | **G5** | in `run_role` | a role returned having changed neither `Status` nor `Next step` |
@@ -91,8 +92,9 @@ nothing produces no error and no red test; the task simply stops existing. See
 `LOOP_MAX_FAIL` and `LOOP_MAX_BLOCKED` default to 2 each and are counted
 **separately**, because they mean opposite things:
 
-- **`fail`** — the tester ran the criteria and the code did not meet them. Back
-  to the `worker`. The brief is fine.
+- **`fail`** — the tester ran the criteria and the code did not meet them. On
+  to the `ci-fix`, which plans a fix and halts for approval (D-17). The brief is
+  fine.
 - **`blocked`** — the tester could not run the criteria at all. Back to the
   `task-expander`. **The brief is wrong.**
 

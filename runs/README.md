@@ -72,8 +72,8 @@ ever disagree, the brief was edited after the fact.
 
 `Rounds` counts trips through the tester, so three rounds means the task was
 verified three times, not that it failed three times. The line that matters more
-is **sent back**: how many of those trips ended `fail` (the code was wrong, back
-to the worker) versus `blocked` (the criteria were wrong, back to the expander).
+is **sent back**: how many of those trips ended `fail` (the code was wrong, on
+to the `ci-fix`) versus `blocked` (the criteria were wrong, back to the expander).
 Those two have completely different causes and completely different fixes, which
 is why the round bound counts them separately — see `.claude/loop/README.md`,
 "The round bound".

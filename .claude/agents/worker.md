@@ -194,6 +194,8 @@ origin/<brief-branch> -1` should show your commit. Say so when you stop.
 Label your commits `T-0xx worker: …` so the reviewer can tell the roles apart.
 Never open a second PR for the same task, and never open a second branch.
 
-When the tester returns **fail**, you fix on the same branch and hand back. When
-it returns **blocked**, it goes to `task-expander`, not to you. On **pass**, the
-reviewer takes it.
+When the tester returns **fail**, it goes to the `ci-fix`, not to you: a fresh
+session proposes the fix, gets it approved, applies it and hands back to the
+tester (D-17). When it returns **blocked**, it goes to `task-expander`. On
+**pass**, the reviewer takes it. You come back only when the reviewer sends the
+PR back naming `worker`.

@@ -1,6 +1,6 @@
-# `.claude/agents/` — the five roles, and how they are isolated
+# `.claude/agents/` — the six roles, and how they are isolated
 
-Five agent definitions. Four do the work of a task; the fifth moves the task
+Six agent definitions. Five do the work of a task; the sixth moves the task
 between them. This file is about **how they are kept apart**, which is the whole
 design — [`process.md`](../../process.md) is about what each one does.
 
@@ -13,11 +13,24 @@ person who used to sit between the steps.
 | `task-expander` | 2 | the brief, the branch, the draft PR | whether the current code passes |
 | `worker` | 3 | source, data, docs, new tests | the verification tests |
 | `tester` | 4 | tests, the Verdict | — (starts cold, by design) |
+| `ci-fix` | 4a | a CI fix plan; then source and tests, only as approved | the worker's or tester's session — starts cold after a `fail` |
 | `reviewer` | 6 | review, sweep, marks PR ready | — (never reviews its own work) |
-| `orchestrator` | — | `runs/`, the `Approved:` line | **all of the above's work** |
+| `orchestrator` | — | `runs/`, the `Approved:` line, a CI fix timeout stamp | **all of the above's work** |
 
-**Only the tester touches a test that existed before the task**, and only after a
-person approves it in the tester's own session. When a task's change makes an
+**A `fail` goes to the `ci-fix`, not back to the worker.** The tester cannot
+change source or bend its test to the code, and the worker is the session whose
+assumptions failed. The `ci-fix` starts cold, writes a plan, and asks for
+approval the way the expander does: in its own session if you are there,
+otherwise it halts. Under the orchestrator, you get about an hour to answer; then
+the orchestrator stamps `CI fix: approved — orchestrator, …` from the header
+alone, without reading the plan, and spawns a fresh `ci-fix` to apply it. A fresh
+tester then re-verifies. The reviewer escalates any PR fixed on that stamp. See
+`process-decisions.md` D-17.
+
+**Only the tester touches a test that existed before the task because the task
+made it stale**, and only after a person approves it in the tester's own session.
+(A `ci-fix` may name one in its plan when a `fail` runs through it, below; the
+reviewer escalates that when the orchestrator's stamp approved it.) When a task's change makes an
 existing test stale, the worker leaves it red and lists it in its Handoff. The
 tester raises a `## Test change request` in the brief and pushes, which notifies
 you. If you are in its session, it asks you there, applies what you approve, and
