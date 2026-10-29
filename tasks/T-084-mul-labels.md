@@ -1,7 +1,7 @@
 # T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass`
+**Next step:** `reviewer`
 **Approved:** person attending the orchestrator session — 2026-10-29, in their words: "approve (a), split it, go ahead". Q1 answered (a), split. See `runs/T-084-mul-labels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-084
@@ -15,6 +15,7 @@
 |---|---|---|
 | task-expander | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended) |
 | worker | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended; same remote session id as the expander, the subagents share it) |
+| tester | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended; fresh subagent context, same shared remote session id) |
 
 ## Q1 — for a person: split T-084, or keep it whole?
 
@@ -295,3 +296,76 @@ bun test src/mul-labels.test.ts
   The tester should note this when it checks isolation.
 
 ## Verdict
+
+**TL;DR: pass.** Every criterion 1–10 holds. My 12 new tests are green, and 11
+mutations of the query each turned at least one of them red. question-bank
+(2510 pass), backend (`make check`: 739 passed, 9 skipped), typecheck, lint and
+format are all green. Next: reviewer.
+
+**Independence: weaker kind.** This is an orchestrated run (`runs/T-084-mul-labels.md`
+exists), so `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJdG9Xu3xD21LLaAv1o`)
+matches the worker row and the session-id check proves nothing. I am a freshly
+spawned subagent with my own context. I did not see the worker's conversation
+or reasoning, only the committed brief, Handoff and code. That rests on the
+orchestrator having spawned me correctly, which I cannot verify myself.
+
+**Work is on the branch.** `git diff origin/main...HEAD` touches
+`question-bank/src/queries/us-states.ts` and `question-bank/src/mul-labels.test.ts`,
+as the Handoff says, plus the brief, run log and `tasks.md`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `mul-labels-verify.test.ts` "criterion 1" tests: the query `refreshBank` sends first (captured at a spy `SparqlTransport`) has exactly one `wikibase:language`, and its value is `"en,mul"`. Mutations `"mul,en"`, `"en,mul,fr"` and `"en"` each go red |
+| 2 | pass | "criterion 2": the P610 item gets an en `rdfs:label` and a mul `rdfs:label`, each in its own innermost OPTIONAL. They are combined as `COALESCE(en, mul)` into the variable `SAMPLE(…) AS ?highestPoint` reads, and that variable is bound nowhere else. Mutations: mul first, en+mul merged into one OPTIONAL, a second `rdfs:label` into the aggregated variable. All red |
+| 3 | pass | "criterion 3": same rule for the P47 item and `GROUP_CONCAT(…) AS ?borderNames`, plus the `"|"` separator, plus "no language other than en/mul". Mutations: mul first, mul only, mul filter → `fr`. All red |
+| 4 | pass | "criterion 4": the SELECT projections parse to the criterion's literal twelve names in order, the fixture's `head.vars` equals the same list, and GROUP BY is exactly `?state ?stateLabel ?capitalLabel`. Mutations: an extra projection, a shortened GROUP BY. Both red |
+| 5 | pass | `git diff origin/main -- question-bank/src/queries/us-states-elevation.ts` is empty |
+| 6 | pass | `git diff --stat origin/main -- question-bank/data question-bank/src/fixtures backend/app/data` is empty |
+| 7 | pass | "criterion 7": `fixtureTransport` accepts the sent query and returns 50 bindings (Alaska → Juneau), and still rejects a query it has no recording for. `committed-bank.test.ts` (the offline rebuild byte-compare) is green |
+| 8 | pass | "criterion 8": Alaska's `capitalLabel` set to `Q29445` in memory ends up blank, with one capital warning that names the QID and says "bare QID". `normalize.ts` is untouched, and the T-077 `bare-qid-label*.test.ts` files are green |
+| 9 | pass | question-bank 2510 pass / 0 fail. backend `make check` 739 passed / 9 skipped. No existing test deleted or modified (the only test files in the diff are new). Frontend: see below |
+| 10 | pass | Every suite ran with all six proxy variables pointed at `127.0.0.1:1`. No `package.json` or lockfile is in the diff |
+
+**Frontend, local vs CI.** Locally the frontend shows 392 pass, 4 fail, 4 errors,
+plus 3 TS2307 errors. Every one of them is `Cannot find package 'react-simple-maps'`
+or `'us-atlas/states-10m.json'`. Those packages are not in this sandbox's
+`node_modules`, and this task changes no frontend file. CI on this branch's HEAD
+`12e089b`, read via `gh api …/check-runs`, is green on all six jobs, including
+`frontend (typecheck, lint, test)`. Lint passes locally.
+
+**Mutations** (11, plus `main`'s whole query, all made to `us-states.ts` and
+reverted with `cp` from a saved copy; `git diff` on the file is empty afterwards).
+Each row gives the result of `mul-labels-verify.test.ts`:
+
+- `main`'s query: 5 fail
+- `"mul,en"` / `"en,mul,fr"` / `"en"`: 1 fail each (criterion 1)
+- highest point `COALESCE(mul, en)`: 1 fail
+- border `COALESCE(mul, en)`: 1 fail
+- border mul filter `"fr"`: 2 fail
+- highest point en and mul merged into one OPTIONAL: 1 fail
+- border bound from mul only: 1 fail
+- an extra SELECT variable: 1 fail
+- GROUP BY without `?capitalLabel`: 1 fail
+- an extra `rdfs:label ?highestPointLabel`: 1 fail
+
+The first mutation run showed the criterion-7 "refuses an unknown query" test
+also going red on the criterion-1 mutations, for the wrong reason. I rewrote it
+to append a comment to the query rather than swapping the language list, before
+the final run. The counts above for the criterion-1 mutations are from the
+corrected test.
+
+**The worker's judgement call (`FILTER(BOUND(?borderLabelRaw))`).** It is
+consistent with criterion 3 and the checklist's "none loses one". A border with
+neither label is dropped whole, which is what `main`'s required border triple
+did, so `borderQids` and `borderNames` stay paired. I did not pin it in my
+tests because no criterion requires it. The worker's `mul-labels.test.ts`
+pins it.
+
+**Not verifiable offline:** whether the query parses and how Blazegraph
+evaluates it. The live check in the Handoff is the only evidence of that. The
+reviewer checks it is present.
+
+**Files:** `question-bank/src/mul-labels-verify.test.ts` (new, 12 tests).
+
+**Tests made stale:** none. No existing test went red, and none pins the query text.
+
