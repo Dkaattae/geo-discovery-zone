@@ -365,6 +365,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-084 — The 50-state query reads Wikidata's `mul` labels after `en`**
+  (PR #105, 2026-10-29). `US_STATES_QUERY` asks the label service for
+  `"en,mul"`, and the highest-point and border labels take `COALESCE(en, mul)`,
+  so `en` wins and one name is bound per item. Live, Alaska's capital comes back
+  `Juneau` instead of `Q29445`. No data, fixture or elevation-query byte moved.
+  *Where it differed from the brief:* a person split the task (Q1 (a)), so the
+  fixture re-record and the live-refresh check moved to T-095. The live check
+  also found Denali `mul`-only, so the first refresh will fill Alaska's
+  `highestPoint`. The worker added `FILTER(BOUND(...))` so a border with neither
+  label is still dropped whole, as before. Run orchestrated: every role shares
+  one session id.
+
 - **T-070 — Digest guards re-pinned at `b0ee336`, neutralisations gone** (PR
   #103, 2026-10-29). New `question-bank/src/bank-pins.ts` holds one pin per bank
   file (`index.json` and the 50 states), hashed whole except
@@ -1673,12 +1685,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   serve nothing, deliberately — the data is not in this repo (T-039).
 - `drag_order`, `pin_*` and `click_profile` have no answer key; submitting one is
   a 422 rather than a guess (T-045).
-- **The monthly bank refresh is built but not switched on** (T-063). Two things
-  have to land first: T-095, or every refresh that writes is red on the bank
-  pins T-070 re-pinned at `b0ee336` (E-30), and T-084, or Alaska's capital is
-  blanked. Its English
-  label now lives in Wikidata's `mul` label, which the query does not read; T-077
-  (PR #77) stops the bare QID `Q29445` shipping, but leaves the field empty.
+- **The monthly bank refresh is built but not switched on** (T-063). T-095 has
+  to land first, or every refresh that writes is red on the bank pins T-070
+  re-pinned at `b0ee336` (E-30). That first real refresh also re-records the
+  fixtures and checks live that Alaska's capital is `Juneau`. The query reads
+  `mul` labels since T-084 (PR #105), so it no longer comes back as `Q29445`.
 - Bun's `fetch` cannot traverse some egress proxies, so the pipeline falls back
   to `curl`. A runtime without curl needs another path.
 - Lovable builds from the repo root and will need repointing (T-044).

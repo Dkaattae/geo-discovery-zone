@@ -87,7 +87,9 @@ after T-092 stopped writing candidates on `map_click` (PR #100): T-092
 deleted; T-094 new; T-070 amended. Swept again 2026-10-27, after T-094
 restored per-template answer-position checks (PR #101): T-094 deleted. Swept again 2026-10-29,
 after T-070 re-pinned the digest guards at `b0ee336` (PR #103): T-070 deleted;
-T-084 unblocked and its skip log folded; T-087 and T-095 amended._
+T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 2026-10-29, after T-084 made the 50-state query read `mul`
+labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
+live Juneau check._
 
 ## How this list is ordered
 
@@ -170,38 +172,6 @@ finished. Each of these is independent. Since T-040 (PR #88) the bank is what th
 serves, so a curated field reaches a child once a template asks about it
 (since T-026, PR #91, every topic field has one) and both committed files are
 regenerated (T-087).
-
-### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · doing — brief blocked on Q1
-**Expanded 2026-10-29** into `tasks/T-084-mul-labels.md`, drafted for the split (query half only). It is blocked on Q1 there: a person picks split or whole.
-**Depends on:** — (T-077's guard landed in PR #77, so this is a fix, not a
-safety net). **Gates switching on the monthly refresh routine**: since T-077, a
-live refresh blanks Alaska's capital, with a warning, instead of shipping
-`Q29445`.
-**Since T-070 (PR #103, E-30):** the SPARQL fixtures are no longer pinned, so
-re-recording one turns no fixture pin red. But Alaska's capital moving is a
-real bank change, so `BANK_DIGESTS` in `question-bank/src/bank-pins.ts` and the
-other bank pins listed under T-095 go red and need re-pinning through a Test
-change request (attended tester step), unless T-095 has landed first. If a
-choice label moves, `hand-check-levels-verify.test.ts` criterion 2 goes red too.
-**New 2026-10-13, from T-077's worker.** The query reads the right item: Alaska's
-P36 points at `Q29445`, which is Juneau. It has no `en` label any more, only a
-`mul` ("default for all languages") label `Juneau`, with labels in about 20 other
-languages beside it. Wikidata added `mul` and editors dropped the matching `en`
-labels. Checked live against `query.wikidata.org` on 2026-10-13:
-`SERVICE wikibase:label { … wikibase:language "en" }` returns `Q29445`, and
-`"en,mul"` returns `Juneau`. The explicit `rdfs:label … FILTER(LANG(...) = "en")`
-reads for `highestPoint` and `borderNames` in `src/queries/us-states.ts` have the
-same blind spot. There a `mul`-only item gives an absent binding, not a QID.
-**Done when:** the label service asks for `"en,mul"`, the explicit label reads
-accept `mul` as a fallback after `en`, the fixture is re-recorded, and Alaska's
-capital is `Juneau` from a live refresh.
-**Skipped by expanders 2026-10-13 to 2026-10-27 (thirteen times)** because the
-re-record could not land before T-070 settled the digest guards. T-070 has now
-landed, so that blocker is gone. The proposed split still stands for a person
-to decide: the query half (`"en,mul"`, plus a `mul` fallback for `highestPoint`
-and `borderNames`) is offline-checkable and moves no committed byte (the
-fixture already records `Juneau`, `src/fixtures/us-states.sparql.json:100`);
-the re-record and the live check go with the first refresh.
 
 ---
 
@@ -493,6 +463,14 @@ than one place.** Option (a) has to re-pin all of these, not just
 levels digest. Eleven guards hash whole bank files, all through `BANK_DIGESTS`.
 Folding the rest into `bank-pins.ts`, together with the `fixtureBuiltAt` helper
 now copied into seven test files, would make (a) one edit.
+**Amended 2026-10-29 by T-084's reviewer (PR #105).** T-084 was split by a
+person (its Q1, answer (a)): it changed only the query text, so the rest of its
+old "Done when" is the first real refresh's, and this task owns that PR. When
+it lands: both SPARQL fixtures are re-recorded by a live `bun run refresh`, and
+Alaska's capital is `Juneau` from that live run (it is `Juneau` in the
+committed fixture already). T-084's worker also found Denali has lost its `en`
+label: on `main`'s query Alaska's `highestPoint` came back empty live, and the
+new query binds `Denali`. Expect that field to move on the first refresh.
 **Done when:** a refresh that moves a real bank field opens a PR whose suite is
 green, or (c) is chosen and recorded as the next unused `E-n`.
 
