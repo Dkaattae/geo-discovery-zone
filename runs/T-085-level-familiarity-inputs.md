@@ -1,7 +1,7 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city — run log
 
 **Task:** T-085 · **Branch:** `claude/loving-knuth-umj4pp` · **PR:** #107
-**Started:** 2026-10-29 · **Outcome:** halted — needs human
+**Started:** 2026-10-29 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -63,3 +63,7 @@ Orchestrator wrote the unattended-run `Approved:` stamp (not a certification of 
 
 ## Halted — 2026-10-29
 `Status: blocked`, `Next step: human`, at branch head `e02fa6f`. The worker asks Dkaattae to choose one of: (1) allow `*.census.gov` and re-run the worker; (2) supply the 17 capital/largest-city rows from one named Census release in the brief's Notes; (3) accept Wikidata figures citing a named Census release, which sends the brief back to the task-expander. Optional: split into T-085a (Hawaii/Alaska) / T-085b (largest city). Shared session id across roles is known (skill §4, P-14).
+
+## Human answer — 2026-10-29
+Dkaattae, in the orchestrator's session, answering the halt above: "split it — do T-085a now".
+Orchestrator recorded it in the brief header as a `Decision:` line, set `Status: human decision recorded` and `Next step: task-expander`, and re-spawned the task-expander (the split rewrites criteria, which only the expander may do).

@@ -1,7 +1,8 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `human decision recorded`
+**Next step:** `task-expander`
+**Decision:** Dkaattae, 2026-10-29, given in the orchestrator's session, answering the worker's block: "split it — do T-085a now"
 **Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-085-level-familiarity-inputs.md`.
 **Test changes:** `none`
 **CI fix:** `none`
