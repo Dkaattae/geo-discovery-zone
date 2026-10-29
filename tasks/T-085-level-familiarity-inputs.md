@@ -3,7 +3,7 @@
 **Status:** `awaiting approval`
 **Next step:** `worker`
 **Decision:** Dkaattae, 2026-10-29, given in the orchestrator's session, answering the worker's block: "split it — do T-085a now"
-**Approved:** `pending` — the split rewrote the criteria, so the 2026-10-29 unattended stamp for the unsplit brief no longer covers them
+**Approved:** orchestrator — 2026-10-29, unattended run (T-085a, after the split). See `runs/T-085-level-familiarity-inputs.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-085 (now T-085a; the largest-city half is T-085b)

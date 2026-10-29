@@ -67,3 +67,56 @@ Orchestrator wrote the unattended-run `Approved:` stamp (not a certification of 
 ## Human answer — 2026-10-29
 Dkaattae, in the orchestrator's session, answering the halt above: "split it — do T-085a now".
 Orchestrator recorded it in the brief header as a `Decision:` line, set `Status: human decision recorded` and `Next step: task-expander`, and re-spawned the task-expander (the split rewrites criteria, which only the expander may do).
+
+## Round 3 — task-expander (split) — 2026-10-29
+`Next step` on entry: `task-expander` → on exit: `worker` (Status `human decision recorded` → `awaiting approval`)
+
+**TL;DR: The brief is rewritten as T-085a, which covers only the Hawaii and Alaska "drawn apart" change. The largest-city half is now a new queue entry, T-085b. The push to `claude/loving-knuth-umj4pp` landed at `5b42feb` (local and remote heads match), and PR #107 has the new title and criteria as its body. Next: approval, then `worker`.**
+
+**Header now reads:**
+- **Status:** `awaiting approval`
+- **Next step:** `worker`
+- **Approved:** back to `pending`. The criteria were rewritten (27 became 25), so the earlier unattended stamp no longer covers them. Under an unattended run the orchestrator has to re-stamp before the worker starts.
+- **Decision line:** Dkaattae's split decision is kept as it was.
+
+**What T-085a pins (25 criteria):**
+- **Six levels drop by exactly 2.** Hawaii: map identify 6.5→4.5, map click 7.5→5.5, climate 9.5→7.5. Alaska: 6→4, 7→5, 8→6.
+- **The other 409 questions keep their levels**, including all 50 capital questions.
+- **No largest-city data ships**, not even a placeholder at 0 (criterion 6).
+- **Clamp at 0 tested on synthetic inputs:** a level of 1.5, 2 or 2.5 before the reduction gives 0, 0 and 0.5.
+- **Every value comes from `LEVEL_SEED_WEIGHTS`:** setting the amount to 0 gives back the old levels, and setting it to 3 moves only the six questions.
+- **Exports stay the same.**
+- **Both committed files are regenerated.**
+- **E-22 gets:** a dated paragraph, a table of the six changes, and a note that the largest-city input is not landed and is T-085b's to decide.
+- **Negative checks:** no new dependency, no network, `openapi.yaml` unchanged.
+
+**What the brief notes is already true:**
+- The `familiarity_bonus` term, a single 0, is at `seed-level.ts:68` and subtracted at line 221. The clamp already exists.
+- Baseline levels for every Hawaii and Alaska question are in a table, read from the question file at `5ae564a` (`origin/main`, which is also the merge base). The bank has 415 questions with levels 3 to 10.
+- E-22's range sentences will very likely stay true, since 4.5 and 4 are above the lowest map level of 3.5. Criterion 18 checks this anyway.
+
+**A risk I flagged for the worker:** the existing test at `seed-level.test.ts:182` checks the constant against E-22's text, but only reads numbers, arrays and one level of nesting. A deeper shape for `familiarity_bonus` would turn it red. The worker either keeps a shape the test can read or lists the test under Tests made stale.
+
+**Changes in `tasks.md`:**
+- The T-085 entry now opens with a "Split 2026-10-29" note and is marked `doing (as T-085a)`.
+- New T-085b entry, `todo`. It carries:
+  - the 17-capital list approved on 2026-10-27, with the close calls flagged
+  - the Census access problem and the three options a person can pick from
+  - a pointer to the accepted Rhode Island risk
+  - the open question of how two reductions combine on one question
+  - its dependency on T-085a being merged first
+
+**Left alone:**
+- The worker's round-1 Handoff and Notes. I added an expander note under Notes saying that Handoff was written for the unsplit brief.
+- `PROGRESS.md` is unchanged.
+
+**Files in my commit:** only `tasks.md` and `tasks/T-085-level-familiarity-inputs.md`.
+- /home/user/geo-discovery-zone/tasks/T-085-level-familiarity-inputs.md
+- /home/user/geo-discovery-zone/tasks.md
+
+**PR:** https://github.com/Dkaattae/geo-discovery-zone/pull/107
+
+**Sessions row:** added. `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the same id as the earlier expander and worker rows again (cse_011oDiJdDaFDaDrfHH2XNp8P). The tester must check that its own session id is different.
+
+## Approval — 2026-10-29 (T-085a)
+Orchestrator re-wrote the unattended-run `Approved:` stamp for the split brief (not a certification of the criteria). Dkaattae's "do T-085a now" authorised the split, not the 25 criteria, which no person has seen.
