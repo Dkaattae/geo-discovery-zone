@@ -1,7 +1,7 @@
 # T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" — run log
 
 **Task:** T-084 · **Branch:** `claude/stoic-babbage-lsgku4` · **PR:** Dkaattae/geo-discovery-zone#105
-**Started:** 2026-10-29 · **Outcome:** halted — needs human
+**Started:** 2026-10-29 · **Outcome:** in progress
 
 ## Preflight — 2026-10-29
 - `origin/main` at `12cb7e6`; `tasks/` held only `README.md` and `TEMPLATE.md`.
@@ -47,3 +47,7 @@ If they approve (a), they put their name and the date on the `Approved:` line, s
 Header: `Status: blocked`, `Next step: human`, `Approved: pending`. The orchestrator did not stamp `Approved:`, because the brief is blocked on a person's decision.
 
 What a human has to decide, quoted from the header: "answer **Q1** below. If you approve the split as drafted, replace `pending` on the Approved line with your name and the date, set Status to `awaiting approval` → `working` and Next step to `worker`."
+
+## Resumed — person approval — 2026-10-29
+The person attending this orchestrator session answered the halt, in their words: "approve (a), split it, go ahead".
+At their instruction the orchestrator updated only the brief header, as the halt's `Next step` told the person to do: `Approved:` now records their words and the date, `Status: awaiting approval → working`, `Next step: worker`. Outcome is back to in progress.

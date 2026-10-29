@@ -1,10 +1,8 @@
 # T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau"
 
-**Status:** `blocked`
-**Next step:** `human` — answer **Q1** below. If you approve the split as
-drafted, replace `pending` on the Approved line with your name and the date,
-set Status to `awaiting approval` → `working` and Next step to `worker`.
-**Approved:** `pending`
+**Status:** `awaiting approval` → `working`
+**Next step:** `worker`
+**Approved:** person attending the orchestrator session — 2026-10-29, in their words: "approve (a), split it, go ahead". Q1 answered (a), split. See `runs/T-084-mul-labels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-084
 **Branch:** `claude/stoic-babbage-lsgku4`
