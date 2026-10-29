@@ -1,7 +1,7 @@
 # T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau"
 
-**Status:** `verified — pass`
-**Next step:** `reviewer`
+**Status:** `approved — ready for a person to merge`
+**Next step:** `human` (merge PR #105)
 **Approved:** person attending the orchestrator session — 2026-10-29, in their words: "approve (a), split it, go ahead". Q1 answered (a), split. See `runs/T-084-mul-labels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-084
@@ -16,6 +16,7 @@
 | task-expander | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended) |
 | worker | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended; same remote session id as the expander, the subagents share it) |
 | tester | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended; fresh subagent context, same shared remote session id) |
+| reviewer | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended; fresh subagent context, same shared remote session id) |
 
 ## Q1 — for a person: split T-084, or keep it whole?
 
@@ -368,4 +369,22 @@ reviewer checks it is present.
 **Files:** `question-bank/src/mul-labels-verify.test.ts` (new, 12 tests).
 
 **Tests made stale:** none. No existing test went red, and none pins the query text.
+
+## Review
+
+**TL;DR: approve, inside the envelope, no escalation.** A three-hunk query change
+with honest comments, two test files and nothing else. Swept in the next commit
+on this branch. PR #105 marked ready for Dkaattae to merge.
+
+- **PR state:** open, draft, not merged when checked.
+- **Every role's work is in the PR:** expander `25474be`/`0452e74` (only `tasks/`, `tasks.md`), worker `6917d3e` (query, its test, brief), tester `f8c52b9`/`f8c1766` (one new test file, brief; no source), orchestrator run-log commits (only `runs/`). Lanes clean (D-7).
+- **Fits the codebase:** same explicit `rdfs:label` + `FILTER(LANG…)` idiom as before, comments name T-084 and the existing "why explicitly labelled" comment is still true.
+- **Not more than needed:** no option, no third language, no normalisation change.
+- **Constraints:** source changes only in `question-bank/src/queries/us-states.ts` plus new tests. `data/`, fixtures, `backend/`, elevation query, `package.json`/lockfiles, `openapi.yaml`: empty diff against `origin/main`.
+- **Suite (rerun by reviewer):** question-bank 2510 pass / 0 fail, typecheck, lint, format:check clean. CI on `41a40f9`: question-bank, frontend, backend, integration green; postgres and e2e still running when checked.
+- **Live checklist:** present in the Handoff with output, all three boxes ticked.
+- **Worker's flag, `FILTER(BOUND(?borderLabelRaw))`: decided, kept.** It keeps `borderQids` and `borderNames` paired, the same as `main`'s required triple did.
+- **Worker's flag, Denali goes from blank to `Denali` on the next refresh: deferred to T-095**, the task that owns the first real refresh PR. Amended there.
+- **`tasks.md` "Done when" trim (owner: sweep):** the T-084 entry is deleted. Its remainder (re-record both fixtures, live Juneau check) is folded into T-095 rather than a new task, because T-095 already owns what a real refresh PR does.
+- **Non-blocking, not queued:** `mul-labels.test.ts` and `mul-labels-verify.test.ts` overlap. That is the usual worker/tester pair, and not worth a task.
 
