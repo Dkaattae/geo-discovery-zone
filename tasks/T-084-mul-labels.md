@@ -8,8 +8,7 @@ set Status to `awaiting approval` → `working` and Next step to `worker`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-084
 **Branch:** `claude/stoic-babbage-lsgku4`
-**PR:** opened draft at expand time against the branch above (number in the PR
-list; see the Sessions note)
+**PR:** #105, opened draft at expand time against the branch above
 **Fault:** The `tasks.md` entry leaves the split for a person to decide, and the unattended run cannot decide it.
 
 **Sessions:**
