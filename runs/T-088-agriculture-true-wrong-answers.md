@@ -1,7 +1,7 @@
 # T-088 — Wrong answers that are true: crops and farm animals a state does grow — run log
 
 **Task:** T-088 · **Branch:** `claude/epic-hopper-pav2ip` · **PR:** #109
-**Started:** 2026-10-29 · **Outcome:** in progress
+**Started:** 2026-10-29 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -89,3 +89,48 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/src/distractors.ts
 - /home/user/geo-discovery-zone/question-bank/src/agriculture-true-wrong-answers.test.ts
 - /home/user/geo-discovery-zone/engineering-decisions.md
+
+## Round 3 — tester — 2026-10-29
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-088 meets all 31 acceptance criteria, but the task now halts until a person approves 18 test changes.** These are older tests that pin main's bank or main's `engineering-decisions.md`, and this task changes both on purpose (16 in question-bank, 2 in backend). The status is `test changes requested`, Next step is `human`, and the push landed: `e9d666e` is on `origin/claude/epic-hopper-pav2ip`.
+
+**Next:** a person starts an attended tester session for T-088 and approves or refuses each of the 18 rows. That tester applies the approved rows and re-runs every suite. I changed none of the 18 tests.
+
+**Independence: orchestrated run.** `runs/T-088-agriculture-true-wrong-answers.md` exists, and `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfrwMg1JqLUkLqFoYa`, the same id the expander and worker recorded. So the session-id check proves nothing. My only independence is being a freshly spawned agent with its own context. That is weaker than a separate session, because it rests on the orchestrator having spawned me correctly. The Verdict says this, and my Sessions row is added.
+
+**What I checked**
+- **The work is on the branch.** Every file the Handoff names is changed in `6587ed0`, on the branch the `Branch:` header names.
+- **New tests, all passing:**
+  - `/home/user/geo-discovery-zone/question-bank/src/agriculture-true-wrong-answers-verify.test.ts`: 42 tests. Tables A and B are copied from the brief, not imported from source. Main (`a42b71b`) is pinned as sha256 digests, because a test may not hand `git` a revision.
+  - `/home/user/geo-discovery-zone/backend/tests/test_t088_tester_criteria.py`: 2 tests for criterion 19.
+- **The two regeneration commands** (criteria 18 and 19) were re-run by hand, and `git diff` is empty after each.
+- **Mutations: 13, every one went red, all reverted.** Removing either exclusion list, loosening the postal-code regex, emptying the added-animal pool, and nine edits to the committed question file or `content.json` each turned the matching criterion's test red.
+
+**Suites** (all proxies pointed at `127.0.0.1:1`, so no network)
+
+| Suite | Pass | Fail | Notes |
+|---|---|---|---|
+| question-bank | 2599 | 16 | All 16 are request rows 1–13 and 15–17. Typecheck, lint and format check are clean. |
+| backend | 742 | 2 | Rows 14 and 18. 9 skipped. Lint and format check are clean. |
+| frontend | 392 | 4 | The 4 are module-load errors: `bun install` got a proxy 403 on `d3-*` packages, so `react-simple-maps` is missing. No tracked frontend file changed (criterion 21 test). PR CI on `6a67051` shows the frontend job passing. |
+
+**The 18 rows:**
+- **Rows 1–3** let farm-animal wrong answers also be the five added animals (`goats`, `horses`, `ducks`, `rabbits`, `bison`), written into each test as literals.
+- **Rows 4–17 and 18** re-pin their digests at `6587ed0` (the worker's commit), as E-30 requires. Each row keeps its old pin's scope: none narrows, none adds an exclusion.
+- **Row 18 is one the worker's list missed:** `test_t089_tester_criteria.py::test_criterion_13_e1_to_e27_are_byte_identical`. It pins the part of `engineering-decisions.md` that contains E-25, which this task amends.
+- **No count floor went red.**
+
+**For the reviewer, not failures:**
+- Iowa still offers `dairy cows` as a wrong answer, which Table A allows.
+- The order in which the added animals are offered was the worker's choice, recorded in E-25.
+- E-22's "six farm animals" line is stale and left alone, as Out of scope says.
+- The check of Tables A and B against USDA NASS is still open.
+
+The brief, `/home/user/geo-discovery-zone/tasks/T-088-agriculture-true-wrong-answers.md`, holds the full Verdict (criterion table, mutation table) and the Test change request.
+
+## Halted — test change request — 2026-10-29
+Raised by the tester in commit `e9d666e`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
+The request's rows are not copied here; the orchestrator has not read them.
+
+To resume: a person starts the `tester` step for T-088 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take the approval (D-15). Once that tester has finished, its header names the next role, and a new run starts from there.
