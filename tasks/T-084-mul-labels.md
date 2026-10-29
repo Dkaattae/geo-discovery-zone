@@ -1,7 +1,7 @@
 # T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau"
 
-**Status:** `awaiting approval` → `working`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** person attending the orchestrator session — 2026-10-29, in their words: "approve (a), split it, go ahead". Q1 answered (a), split. See `runs/T-084-mul-labels.md`.
 **Test changes:** `none`
 **From:** [`tasks.md`](../tasks.md) T-084
@@ -14,6 +14,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended) |
+| worker | 2026-10-29 | cse_011oDiJdG9Xu3xD21LLaAv1o (spawned by the orchestrator; unattended; same remote session id as the expander, the subagents share it) |
 
 ## Q1 — for a person: split T-084, or keep it whole?
 
@@ -181,5 +182,116 @@ The reviewer checks that it is there. Nothing from it is committed.
       boxes stay unticked for a person to run.
 
 ## Handoff
+
+**TL;DR:** `US_STATES_QUERY` now asks the label service for `"en,mul"` and reads
+`mul` for the highest point and borders through `COALESCE(en, mul)`. A live
+run gives 50 rows and Alaska's capital comes back as `Juneau` (it was `Q29445`
+on `main`). No data, fixture or elevation-query byte moved. Next: tester.
+
+**Files changed**
+
+- `question-bank/src/queries/us-states.ts`: three edits inside the query text,
+  each with a comment that names T-084.
+  - Label service: `wikibase:language "en"` becomes `"en,mul"`.
+  - Highest point: two OPTIONALs (`?highestPointEn` with `LANG = "en"`,
+    `?highestPointMul` with `LANG = "mul"`), then
+    `BIND(COALESCE(?highestPointEn, ?highestPointMul) AS ?highestPointLabel)`.
+    The old comment (why it is labelled explicitly) is still there and still true.
+  - Borders: the same pattern into `?borderLabelRaw`, plus
+    `FILTER(BOUND(?borderLabelRaw))`. Without that filter, a border with neither
+    label would now add its QID to `borderQids` with no name. On `main` the
+    border triple pattern dropped the whole border, and the filter keeps that.
+- `question-bank/src/mul-labels.test.ts` (new, 7 tests): inspects the query
+  text, and captures what `fetchUsStates` sends through a spy wrapped around
+  `fixtureTransport`. Five of the seven fail against `main`'s query. I checked
+  this by swapping the file in temporarily.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1 | `us-states.ts`, the `SERVICE wikibase:label` line. Test: "the label service asks for exactly en,mul" |
+| 2 | `us-states.ts`, the P610 block. COALESCE takes the first bound argument, so `en` wins and only one value is bound per item. Test: "the highest point label reads en and mul…" |
+| 3 | `us-states.ts`, the P47 block, same pattern. One `?borderLabelRaw` per border means one name per border in `GROUP_CONCAT`. Test: "the border label reads en and mul…" |
+| 4 | SELECT and GROUP BY are untouched. Test: "SELECT keeps the fixture's twelve variables…" checks them against the fixture's `head.vars` |
+| 5 | `git diff origin/main -- question-bank/src/queries/us-states-elevation.ts` is empty |
+| 6 | `git diff --stat origin/main -- question-bank/data question-bank/src/fixtures backend/app/data` is empty |
+| 7 | `fixture-transport.ts` compares against the imported constant, so it follows the new text. `committed-bank.test.ts` is green. Test: "the refresh sends US_STATES_QUERY then the elevation query" (50 rows, Alaska → Juneau) |
+| 8 | `normalize.ts` is not touched. The `bare-qid-label*.test.ts` files are green |
+| 9 | question-bank 2498 pass / 0 fail. backend `make check` 739 passed, 9 skipped. frontend: see the environment note below |
+| 10 | Nothing new uses the network. `package.json` and lockfiles are not touched |
+
+**Live check (Review checklist).** I ran it once on 2026-10-29, `main`'s query
+and the new one at the same time, POSTed to `query.wikidata.org/sparql` from a
+throwaway scratchpad script. Nothing from it is committed. Full output:
+
+```
+rows old 50 new 50
+Alaska capitalLabel "Q29445" -> "Juneau"
+Alaska highestPoint "" -> "Denali"
+Alaska capital new: Juneau | old: Q29445
+```
+
+The script diffed `stateLabel`, `capitalLabel`, `highestPoint`, `borderQids`
+and `borderNames` for every state. It also flagged any state where the
+name/QID counts differ, or where a border name appears twice (case-insensitive).
+Only the two Alaska lines above came out.
+
+- [x] 50 rows, and Alaska's `capitalLabel` is `Juneau`.
+- [x] `highestPoint` changed only for Alaska, where `main` returned nothing
+      (Denali has lost its `en` label too). That is the allowed exception.
+- [x] `borderNames` and `borderQids`: no state gained or lost a name, and no
+      state has a duplicate.
+
+**Environment note: frontend.** The frontend shows 390 pass and 6 fail, plus a
+typecheck error. All of them are `Cannot find package 'react-simple-maps'` /
+`'us-atlas/states-10m.json'`. `bun install --frozen-lockfile` cannot fetch
+those tarballs, because the proxy answers 403 to `europe-west1-npm.pkg.dev`.
+This task does not touch the frontend. Those reds come from the sandbox, not
+from the change. Frontend lint and format:check are clean.
+
+**Deliberately not done**
+
+- No fixture re-record and no live refresh committed (Q1 (a) and Out of scope).
+- `tasks.md` T-084's "Done when" is not trimmed yet. Q1 (a) says that happens
+  "when this lands", so it belongs to the sweep. **Owner: reviewer / sweep.**
+- No test asserts that the query is valid SPARQL. There is no parser
+  available offline, and adding one would be a dependency. The live run is the
+  evidence that it parses.
+
+**Judgment calls**
+
+- **`FILTER(BOUND(?borderLabelRaw))` in the border block.** I added it so a
+  border with neither label is still dropped whole, as on `main`. The brief
+  does not ask for it, but without it `borderQids` and `borderNames` could
+  drift out of step. **Owner: tester to confirm against criterion 3 and the
+  checklist, reviewer to overturn if they want unlabelled borders kept.**
+- **Denali also changes on the next refresh.** Alaska's highest point will go
+  from blank to "Denali", and that will move bank bytes then. This is expected
+  and is the first-refresh work in T-095/T-087. **Owner: whoever runs the first
+  refresh (T-087).**
+
+**Contradicts the brief:** nothing. The tasks.md evidence covered only Juneau.
+Denali also lacking an `en` label is new information, and it strengthens the
+case for this change.
+
+**How to run**
+
+```
+cd question-bank && bun install && bun test && bun run typecheck && bun run lint && bun run format:check
+bun test src/mul-labels.test.ts
+```
+
+**Tests made stale:** none.
+
+### Notes
+
+- Backticks inside the query's template literal broke parsing on the first
+  try, so the comments use plain words for `en` and `mul`.
+- The local `main` ref was stale (it showed a 650-line diff in
+  `data/questions/`). I ran every byte-identity check against `origin/main`.
+- The worker and expander rows carry the same session id, because subagents
+  of one orchestrated remote session share `CLAUDE_CODE_REMOTE_SESSION_ID`.
+  The tester should note this when it checks isolation.
 
 ## Verdict

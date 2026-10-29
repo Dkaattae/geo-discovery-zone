@@ -44,16 +44,39 @@ WHERE {
     # Labelled explicitly rather than via the label service: an auto ?xLabel is
     # only reliable for variables that appear in GROUP BY, and this one is
     # consumed inside an aggregate.
+    #
+    # mul is read as well as en (T-084): Wikidata now moves names that are
+    # the same in every language onto a single mul label, and an item can be
+    # left with no en label at all (Juneau, Q29445, by 2026-10). A mul
+    # label is a name an editor wrote, not a translation. COALESCE makes en
+    # win and binds exactly one of the two, so SAMPLE never chooses between
+    # them.
     OPTIONAL {
-      ?highestPointItem rdfs:label ?highestPointLabel .
-      FILTER(LANG(?highestPointLabel) = "en")
+      ?highestPointItem rdfs:label ?highestPointEn .
+      FILTER(LANG(?highestPointEn) = "en")
     }
+    OPTIONAL {
+      ?highestPointItem rdfs:label ?highestPointMul .
+      FILTER(LANG(?highestPointMul) = "mul")
+    }
+    BIND(COALESCE(?highestPointEn, ?highestPointMul) AS ?highestPointLabel)
     OPTIONAL { ?highestPointItem wdt:P2044 ?elevationValue . }
   }
   OPTIONAL {
     ?state wdt:P47 ?border .                      # shares border with
-    ?border rdfs:label ?borderLabelRaw .
-    FILTER(LANG(?borderLabelRaw) = "en")
+    # Same rule as the highest point (T-084): en, else mul, never both, so
+    # a border contributes one name to ?borderNames. A border with neither is
+    # still dropped whole, QID included, as it was when only en was read.
+    OPTIONAL {
+      ?border rdfs:label ?borderEn .
+      FILTER(LANG(?borderEn) = "en")
+    }
+    OPTIONAL {
+      ?border rdfs:label ?borderMul .
+      FILTER(LANG(?borderMul) = "mul")
+    }
+    BIND(COALESCE(?borderEn, ?borderMul) AS ?borderLabelRaw)
+    FILTER(BOUND(?borderLabelRaw))
     BIND(STRAFTER(STR(?border), "/entity/") AS ?borderQid)
   }
   OPTIONAL {
@@ -61,7 +84,9 @@ WHERE {
                 schema:isPartOf <https://en.wikipedia.org/> .
   }
 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+  # mul after en (T-084): Juneau has only a mul label, and "en" alone
+  # hands back its bare QID, which normalize.ts then blanks (T-077).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul". }
 }
 GROUP BY ?state ?stateLabel ?capitalLabel
 ORDER BY ?stateLabel
