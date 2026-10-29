@@ -1,7 +1,7 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city — run log
 
 **Task:** T-085 · **Branch:** `claude/loving-knuth-umj4pp` · **PR:** #107
-**Started:** 2026-10-29 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-29 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -202,3 +202,6 @@ Files:
 
 ## Halted — test change request — 2026-10-29
 Raised by the tester in commit `b061fd8` (branch head at halt). Rows not copied here; the orchestrator has not read them. Resumes only through an attended `tester` session for T-085a, where the person approves each row (D-15). The orchestrator does not take the approval.
+
+## Human answer — 2026-10-29
+Dkaattae, in the orchestrator's session: "ci fixed please proceed". The branch head had moved since the halt (`6a515e2` → `971a3bb`): an attended tester session applied the approved test change request (`be2557c`) and recorded a pass (`971a3bb`). Header on re-read: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-29`. The orchestrator carried on from `Next step`.
