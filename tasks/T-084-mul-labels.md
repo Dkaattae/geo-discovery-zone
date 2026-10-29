@@ -337,7 +337,7 @@ or `'us-atlas/states-10m.json'`. Those packages are not in this sandbox's
 reverted with `cp` from a saved copy; `git diff` on the file is empty afterwards).
 Each row gives the result of `mul-labels-verify.test.ts`:
 
-- `main`'s query: 5 fail
+- `main`'s query: 4 fail (re-run after the test fix below; it was 5 before)
 - `"mul,en"` / `"en,mul,fr"` / `"en"`: 1 fail each (criterion 1)
 - highest point `COALESCE(mul, en)`: 1 fail
 - border `COALESCE(mul, en)`: 1 fail
@@ -351,7 +351,7 @@ Each row gives the result of `mul-labels-verify.test.ts`:
 The first mutation run showed the criterion-7 "refuses an unknown query" test
 also going red on the criterion-1 mutations, for the wrong reason. I rewrote it
 to append a comment to the query rather than swapping the language list, before
-the final run. The counts above for the criterion-1 mutations are from the
+the final run. The counts above for `main` and the criterion-1 mutations are from the
 corrected test.
 
 **The worker's judgement call (`FILTER(BOUND(?borderLabelRaw))`).** It is
