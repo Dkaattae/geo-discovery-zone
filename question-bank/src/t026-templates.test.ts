@@ -246,8 +246,16 @@ describe("crops", () => {
 });
 
 describe("farm animals", () => {
-  test("answer is the first animal; no distractor is one the state lists, none invented", () => {
-    const anyAnimal = new Set(entities.flatMap((e) => list(e, "top_livestock")));
+  // T-088 TCR row 1 (approved): T-088's five added animals may also be wrong answers.
+  test("answer is the first animal; no distractor is one the state lists; none invented beyond T-088's five added animals", () => {
+    const anyAnimal = new Set([
+      ...entities.flatMap((e) => list(e, "top_livestock")),
+      "goats",
+      "horses",
+      "ducks",
+      "rabbits",
+      "bison",
+    ]);
     const qs = questionsOf("tpl-farm-animal-of");
     expect(qs.map((q) => q.entityId).sort()).toEqual(
       entities

@@ -64,8 +64,9 @@ const R_WEIGHTS = {
   familiarity_bonus_templates: ["tpl-identify-on-map", "tpl-click-the-map", "tpl-climate-of"],
 };
 // Criterion 12, re-pinned at 6a515e2: re-pinned T-085a (Test change request
-// rows 5 and 6, E-30), after T-085a renamed E-22's heading.
-const HEAD_OUTSIDE_E22_SHA = "4942e90431cd81d5c020b3de224ec78f409eef8345265c4087d4fbe6a3d0eeb7";
+// rows 5 and 6, E-30), after T-085a renamed E-22's heading. Re-pinned at 6587ed0:
+// re-pinned T-088 (Test change request row 15, E-30), after T-088 amended E-25.
+const HEAD_OUTSIDE_E22_SHA = "e7c73b04169f05abe26ae651b8092481dcac0b7801f75db07d0221859aa46ed5";
 const BASE_E22_HEADING =
   "## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` lowers only the states drawn apart from the mainland";
 const BASE_E_HEADING_COUNT = 23;
