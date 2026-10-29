@@ -1,7 +1,7 @@
 # T-070 — Re-pin the digest guards, and let them survive a refresh
 
-**Status:** `testing`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-28, unattended run. See `runs/T-070-repin-digest-guards.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-29`
 **From:** [`tasks.md`](../tasks.md) T-070
@@ -548,6 +548,75 @@ cd question-bank && bun run typecheck && bun run lint && bun run format:check   
 
 ## Verdict
 
+**TL;DR. Pass.** Dkaattae approved all 58 rows in this attended session; I
+applied exactly those rows (`83aadd6`) and every criterion now holds. The suite
+is green at the branch head and on both simulated refreshes, and CI is green on
+`83aadd6`. **Next: `reviewer`.**
+
+- **Independence: a separate session.** This tester is
+  `cse_011oDiJdsZFzW3GaxRfDpUmx`, not the expander's and worker's
+  `cse_011oDiJcaEvyueGBAthPSQu3`. I did not see the worker's reasoning.
+- **Approval, quoted from this session.** Asked which rows to apply, Dkaattae
+  chose **"All 58 as written"**. On F2, Dkaattae chose **"Narrow (as raised)"**.
+  The header reads `Test changes: approved — Dkaattae, 2026-10-29`, and every row
+  has `approved` in its Decision column. Dkaattae started the session with
+  "you are the tester for T070, fix ci".
+- **R stays `b0ee336`.** The branch was not rebased.
+
+### Criteria
+
+| C | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `grep` for `T069_…`/`T079_DEFAULT_BRANCH_HIGHEST_POINT_M` under `question-bank/src` and `backend/tests`: no hits. No guard writes `highest_point_m` back |
+| 2 | pass | No `delete parsed["landmark"/"climate_kid"/"region"/"top_livestock"/"highest_point"]`, no `["top_crops"] = []`, no `withoutRegion`/`withoutTopLivestock`/`withEmptyTopCrops`/`withoutAlaskaHighestPoint`/`withDefaultBranchHighestPointM` in any test. CO and AK go through `bankFileDigest` like the other 48 |
+| 3 | pass | `digestsOf` omits only `level` (W46); `baselineOf` omits nothing (W47). Pins unchanged, as predicted |
+| 4 | pass, narrow F2 reading | Every bank guard strips only `built_at`, through `bankFileDigest`. T-025 c14's `data/questions/` exclusion is gone (W38), along with T-086's `slice(0, 3)`, `concept_load` deletes and E-24 truncation (W40–W42), and T-051's `map_click` filter (W44). Slices a guard's own criterion named stay, as Dkaattae chose |
+| 5 | pass | 9 single edits in a worktree of the head, each `git diff --numstat` = 1 line, reverted after each. Every one turned guards red: IL `top_crops[0]`, CT `highest_point_m`, CO `landmark`, CO `climate_kid`, IL `region`, AK `highest_point`, AL `top_livestock[0]`, CO `population`, `index.json` id. Each turned 7–14 guard tests red |
+| 6 | pass | IL `top_crops[0]` alone turned red **every** whole-bank guard: T-013 c9, T-014 c15, T-015 c13, T-016 c6, T-069 c12, T-079 c5 and c6, T-090 c12, T-025 c14, T-026 c50 and `bank-pins.test.ts` |
+| 7 | pass | R values computed by me from `b0ee336`, not from the head. W38 used `git show b0ee336:` for all 52 data files (`7760ab89…`). W40/W41 came from a `git worktree` of `b0ee336`: 415 levels, `a3a28b64…`, and the full `LEVEL_SEED_WEIGHTS`. W44 used `git show b0ee336:backend/app/data/content.json` (365 non-climate questions, `5533329a…`). W29 has the 51 `highest_point_m` lines at `b0ee336`. Pins at the head (c7 exception): W42 `e487a481…`, checked a second time in Python; W39 `e82de501…`, computed in Python; W45 is 30 headings; W53 is `range(1, 31)` |
+| 8 | pass | Every changed pin's name or comment says `b0ee336` or "branch head". No changed pin still cites `e587ec1`, `13a735f`, `eda7fde`, `284b8bc`, `e10f94d`, `323254c`, `d71dd8a`, `aa88101`, `41811f9`, `3279555`, `45b00d7` or `2b4edb2` as its value's source. Unchanged pins (W45's E-1..E-28 digest, for example) keep their label |
+| 9 | pass | S(t₁) in a worktree of the head, with 52 files at +52 −52: `bun test` 2491 pass, 0 fail |
+| 10 | pass | S(t₂), same: 2491 pass, 0 fail |
+| 11 | pass | S(t₁): `make -C backend test` 739 passed, 9 skipped |
+| 12 | pass | W36 and W37 deleted; W38's fixtures half removed. No test hashes or deep-equals either SPARQL fixture |
+| 13 | pass | No assertion of a literal `built_at`/`captured_at`. `fun-facts.test.ts:338/356` pass the instant as a build *input*, not as an assertion |
+| 14 | pass | 22 tests deleted, all approved, each in its class. (i): W36 (2), W37 (1). (ii): W4, W7, W12, W13, W14, W18, W19, W22 (1 each), W26 (3), W52 (8). No class (iii) or (iv) deletions. 2513 − 22 = 2491 |
+| 15 | pass | The describe now reads "… warns about nothing but T-079's three overrides" |
+| 16 | pass | No "other 51" or "the sample" left in `highest-point-verify.test.ts` |
+| 17–22 | pass | E-30 is unchanged since the earlier pass, which checked it (below) |
+| 23 | pass | `git diff --name-only b0ee336..HEAD` lists only test files, `bank-pins.ts`, `engineering-decisions.md`, `tasks/`, `runs/` and `tasks.md` |
+| 24 | pass | No manifest or lockfile in the diff |
+| 25 | pass | All six proxies set to `127.0.0.1:1`. `question-bank`: `bun test` 2491/0; `typecheck`, `lint` and `format:check` clean. Backend: 739 passed, 9 skipped. **Frontend: not runnable here.** `bun install` gets a 403 from the sandbox proxy on `react-simple-maps`. The CI job "frontend (typecheck, lint, test)" passed on `83aadd6`, and so did the other five jobs |
+
+### What I changed, and what I did not
+
+- **One commit of test edits, `83aadd6`.** It applies exactly rows W1–W57,
+  W10a and W10b. Edits that follow from an approved row:
+  - **Dead helpers removed**: `canonical` (W37), `manifestSha` (W38), and the
+    `createHash` imports the rows left unused. Lint requires it.
+  - **Comments**: one comment in `region-vocabulary.test.ts` notes that
+    criterion 6's tests went with W52.
+  - **Formatting**: `bun run format` touched only the files I edited.
+- **Floors (W10a/W10b) dropped by exactly the approved removals.**
+  `landmarks-verify.test.ts` went from 35/70 to 34/66 by count: W4 removed
+  1 test and 2 `expect(`, and W3 removed 2 `expect(`. The floor moves
+  35/69 → 34/65. The other floors did not move, because W1 and W49–W51 kept one
+  `expect` each.
+- **No source, data, fixture or `content.json` touched.** Every mutation and
+  both S(t) runs happened in throwaway worktrees, which are removed. The main
+  tree's `git status` is clean.
+
+### Notes for the reviewer
+
+- **W54–W57 weaken four backend drift checks**, as F1 says and as approved.
+  `_source.extractedAt` is no longer compared, though each test still requires
+  it to be a `YYYY-MM-DD` date. A stale date would pass. T-087 owns
+  regenerating `content.json` on refresh.
+- **Unchanged since the expander's Notes**: a real `bun run refresh` moves more
+  than `built_at`, so these guards will be red on it. T-095 is the follow-on.
+
+### Earlier pass, 2026-10-28 (orchestrated, halted at `test changes requested`)
+
 **TL;DR. Not yet verdictable: halted at `test changes requested` / `human`, as
 the brief predicted.** The worker's part (E-30, `bank-pins.ts`, `bank-pins.test.ts`)
 checks out independently. Criteria 1–4, 6–16 and 25 can only hold once the 58
@@ -568,7 +637,7 @@ tester session (D-15). Nothing under test was edited.
   vs. weakening the backend drift checks), and which reading of criterion 4
   applies (F2, below).
 
-### What I verified, independently of the Handoff
+#### What I verified, independently of the Handoff
 
 | C | State at branch head `cc42a03` | Evidence |
 |---|---|---|
@@ -594,7 +663,7 @@ literal values that match R as I computed them myself. A mutation of
 `bankFileDigest` that strips any more than `built_at` would fail 50 pin tests,
 because my recomputation strips only `built_at`.
 
-### Readings I applied, for you to confirm or overrule
+#### Readings I applied, for you to confirm or overrule
 
 - **F2: what counts as an "exclusion" under criterion 4.** I applied the
   worker's narrower reading. An exclusion is a filter, strip or truncation
@@ -618,7 +687,7 @@ because my recomputation strips only `built_at`.
 - **W19 is class (ii).** Its only job is to show the neutralised AK comparison
   was not trivially equal. With no neutralisation, it has nothing left to prove.
 
-### What I did not do
+#### What I did not do
 
 - **No existing test edited or deleted**, and no source touched. All changes
   wait for approval.
