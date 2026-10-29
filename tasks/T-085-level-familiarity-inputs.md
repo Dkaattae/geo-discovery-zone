@@ -1,15 +1,15 @@
 # T-085a — Level input the weights cannot reach: Hawaii and Alaska are drawn apart from the mainland
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Decision:** Dkaattae, 2026-10-29, given in the orchestrator's session, answering the worker's block: "split it — do T-085a now"
 **Approved:** orchestrator — 2026-10-29, unattended run (T-085a, after the split). See `runs/T-085-level-familiarity-inputs.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-085 (now T-085a; the largest-city half is T-085b)
 **Branch:** `claude/loving-knuth-umj4pp`
 **PR:** #107, opened draft at expand time, built from the branch above
-**Fault:**
+**Fault:** test changes are waiting for approval: 28 pre-existing tests (25 question-bank, 3 backend) and the question-bank typecheck go red by design from T-085a's own change, and need a person's approval to change (D-14, D-15).
 
 **Sessions:**
 
@@ -19,6 +19,7 @@
 | worker | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same id as the expander's row: the environment variable gave this value; the tester should check its own differs) |
 | task-expander (split into T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value again, from `$CLAUDE_CODE_REMOTE_SESSION_ID`; see the worker's Note on the shared id) |
 | worker (T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value as every row above, from `$CLAUDE_CODE_REMOTE_SESSION_ID`; the tester must confirm its own id differs) |
+| tester (T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value again. This run is orchestrated (`runs/T-085-level-familiarity-inputs.md` exists), and every orchestrated role shares one id, so the id check proves nothing either way. Independence rests on being a freshly spawned subagent with its own context, not on a separate session) |
 
 ## Goal
 
@@ -416,6 +417,171 @@ replaced, as the expander's Note says.)
   `hand-check-levels-verify` criterion 7 (the constant block).
 
 ## Verdict
+
+**TL;DR: every one of the 25 criteria holds, but the suite is red by design.
+28 pre-existing tests (25 question-bank, 3 backend) and the question-bank
+typecheck fail because of T-085a's own change. Verdict: `test changes
+requested`. A person has to approve the Test change request below, in an
+attended `tester` session, before this can pass.**
+
+- **Independence: weaker than a separate session.** This run is orchestrated.
+  My `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJdDaFDaDrfHH2XNp8P`) is the
+  same as the worker's, because every role the orchestrator spawns shares it.
+  So the id check proves nothing. I am a freshly spawned agent with my own
+  context: I did not see the work being done or the worker's reasoning. That
+  rests on the orchestrator having spawned me correctly, which I cannot check
+  myself.
+- **The work is on the branch.** All four files the Handoff names
+  (`seed-level.ts`, the question file, `content.json`, E-22) are changed in
+  `f97c283` on `claude/loving-knuth-umj4pp`, along with the worker's
+  `seed-level-familiarity.test.ts`.
+- **Expected values come from the brief.** They come from the criteria and the
+  brief's before table, and I checked them against `git show 5ae564a`. CI
+  checks out shallow, so the before state is pinned as sha256 digests recorded
+  at `5ae564a`, and each pin names that commit (E-30).
+
+**Tests added**
+
+- `question-bank/src/familiarity-drawn-apart-verify.test.ts`: 43 tests.
+- `backend/tests/test_t085a_tester_criteria.py`: 3 tests, for criterion 15's
+  "equals what `make -C backend content` writes". It uses
+  `render_committed_inputs()`, the function `main()` writes.
+
+| Criteria | Verdict | Evidence (test names in `describe › test`) |
+|---|---|---|
+| 1 | pass | "criterion 1: the six HI/AK map and climate questions are exactly 2 below before" |
+| 2 | pass | "criterion 2: every HI/AK question on the other five templates keeps its before level" (10 ids, plus capital HI 8.5 and AK 8); "HI and AK have no question on any template outside the eight" |
+| 3 | pass | "criterion 3: no question about the other 48 states differs…" (the amount-0 bank is first checked against the `5ae564a` digest) |
+| 4 | pass | four synthetic tests: HI 4 vs other id 6 on `tpl-identify-on-map`; AK the same; capital, landmark and crop get no reduction; Hawaii's name or geometry under another id gets none |
+| 5 | pass | "criterion 5: all 50 tpl-capital-of questions equal their level under amount 0" |
+| 6 | pass | walks every key and value of `LEVEL_SEED_WEIGHTS`: the only state ids are HI and AK, no other entity id, no entity's capital, no key or value about a city, capital or largest |
+| 7 | pass | synthetic `us-state-hi` on identify-on-map: pre 2 → 0; pre 1.5 → 0, and not `-0`; pre 2.5 → 0.5. Climate pre 3 → 1 |
+| 8 | pass | all 415 levels are within 0 to 18 |
+| 9 | pass | two calls deep-equal; the JSON of questions, entities and templates is unchanged after |
+| 10 | pass | amount 0 gives the `5ae564a` level digest for all 415; amount 3 puts the six exactly 3 below before and moves nothing else; an emptied states list gives the before bank; a templates list of `["tpl-climate-of"]` moves only those two |
+| 11 | pass | the runtime `Object.keys` are the four values; the source `export` declarations are exactly the six names; `levelFor` and `nearDistractorCount` are plain `function`s |
+| 12 | pass | 409 questions unchanged over the bank, and the committed file restored at the six equals the before digest |
+| 13 | pass | question file without `level`, `_source` and `count`, and content.json without `level` plus its `entities` and `_source`, all equal the `5ae564a` digests |
+| 14 | pass | committed file `===` `renderQuestionFile(loadCommittedEntities())`, and it carries criteria 1 and 12's levels |
+| 15 | pass | backend: `content.json` text `==` `render_committed_inputs()`; served levels equal the question file's; the six are served lowered. The bun test checks the same level match |
+| 16 | pass | the 51 files under `data/us-states/`, `built_at` aside (E-30), equal the `5ae564a` digest, so no entity gained a field |
+| 17 | pass | the `**2026-10-29 (T-085a)**` paragraph has `` `familiarity_bonus` is 2 ``, Hawaii, Alaska, the three template ids, and "approved by Dkaattae on 2026-10-27" |
+| 18 | pass | both range sentences are present verbatim. Over the regenerated bank: the old 150 run 3.5 (CA and TX identify) to 10 (DE, ME, NH, RI, VT, WV capital); the new 265 run 3 (CA and TX farm animal) to 10 (state-animal or landmark only, WV among them) |
+| 19 | pass | E-22's `` `gen:…` `` before/after rows are exactly the six, and each before and after value equals the brief's before and the bank's after |
+| 20 | pass | "largest-city input is not landed" paragraph names T-085b; no "familiarity_bonus is/stays/: 0", no "0 for every question", no "Why … is 0", no "stays 0", no "whether it is set is T-085's question", and the heading has no "is 0" |
+| 21 | pass | the constant block's keys are exactly `LEVEL_SEED_WEIGHTS`'s; numbers match as text, and arrays and objects match after `JSON.parse` |
+| 22 | pass | the T-025 table (header and 30 rows) and the file outside E-22 both equal the `5ae564a` digests |
+| 23 | pass | the three `package.json`, three `bun.lock`, `pyproject.toml` and `uv.lock` equal the `5ae564a` digests |
+| 24 | pass | neither T-085a test file uses `fetch(`, `node:http`, `node:net`, `Bun.connect`, `WebSocket` or a SPARQL transport. Both read only the committed tree |
+| 25 | pass | `openapi.yaml` equals the `5ae564a` digest |
+
+**Mutations** (each reverted, and `diff` against the backup was empty
+afterwards; every one turned at least one of my tests red)
+
+| Mutation | Red tests |
+|---|---|
+| M1: drop the state condition in `levelFor` (all states lowered on the three templates) | 14, including criteria 3, 4, 7, 10, 12, 14 and 18 |
+| M2: drop the template condition (HI/AK lowered on all templates) | 7: criteria 2, 4 (other templates), 5, 10, 12 and 14 |
+| M3: hard-code `? 2` instead of `weights.familiarity_bonus` | 6: criteria 3, 5, 10 (amount 0, amount 3, template list) and 12 |
+| M4: subtract after the clamp | 1: criterion 7, 1.5 → 0 |
+| M5: add `us-state-co` to the states list | 8: criteria 3, 6, 10, 12, 14, 18 and 21 |
+| M6: drop `tpl-climate-of` from the templates list | 6: criteria 1, 7 (climate), 10, 14, 19 and 21 |
+| M7: amount 2 → 1.5 | 10: criteria 1, 4, 7, 10, 14, 19 and 21 |
+| M8: `export function levelFor` | 2: both criterion 11 tests |
+| D1: E-22 table AK climate after 6 → 6.5 | criterion 19 |
+| D2: one `content.json` level 6 → 6.5 | bun criterion 15, plus 2 of the 3 backend tests |
+| D3: add a `famous` field to `us-state-ri.json` | criterion 16 |
+| D4: approval date 2026-10-27 → 2026-10-28 in E-22 | criterion 17 |
+| D5: `familiarity_bonus: 0` in the constant block | criteria 20 and 21 |
+
+**Whole suite on the branch head plus these two test files**
+
+- **question-bank `bun test`:** 2533 pass, 25 fail. The 25 are exactly the
+  question-bank rows of the Test change request below.
+- **question-bank typecheck:** one error,
+  `seed-level-loose-ends-verify.test.ts(353,40)` TS2769. The `R_WEIGHTS`
+  literal lacks the two new keys; that is row 4.
+- **question-bank lint and `format:check`:** clean.
+- **backend `uv run pytest -q`:** 739 pass, 3 fail, 9 skipped. The 3 are rows
+  26 to 28. `make lint` is clean.
+- **frontend `bun test src/lib`** (reads `content.json`): 96 pass, 0 fail. The
+  rest of the frontend was not run. This task does not touch it, and the worker
+  reports that `bun install` is refused by the proxy.
+
+**My check of the worker's Tests made stale list**
+
+- **Same 28 tests, each confirmed red.** I re-ran each one and read its
+  failure.
+- **Each is red because of the brief's own change.** They pin the old amount
+  or key set, the old six levels, the old E-22 heading (criterion 20 forces the
+  rename: it ended "`familiarity_bonus` is 0"), the old bullet (criterion 20
+  forbids it), or `content.json` and E-22 bytes (criteria 15 and 17–21).
+- **None is red because the code is wrong.** None asserts something a T-085a
+  criterion also requires.
+- **None was missed.** Every red test in both suites is on the list.
+- **No count floors** are involved.
+
+**One judgement for the reviewer: row 1** (`seed-level.test.ts`'s
+constant-in-E-22 rule).
+
+- It is stale because the rule writes array elements without quotes. A string
+  array can only meet it if E-22 also carries a second, unquoted copy of each
+  list.
+- That copy would serve only to satisfy the test, and it would break
+  `hand-check-levels-verify` criterion 7's JSON parse if it were in the block.
+- The proposed modify keeps the numeric case byte-identical
+  (`rank_bucket_edges: [10, 20, 35]`) and pins string arrays exactly as hard.
+
+## Test change request
+
+All rows are raised by the tester on 2026-10-29. Every one is red on
+`claude/loving-knuth-umj4pp` at `f97c283` plus the tester's commit, because of
+T-085a's own change. **"Re-pin"** means: the same assertion over the same
+content, with the pinned digest or literal re-recorded at the commit that
+applies this request. The test name and the comment carry that commit's short
+sha instead of the old one, plus "re-pinned T-085a (Test change request row
+N)" (E-30). It asserts nothing less than before.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/seed-level.test.ts` › E-22 records the constant › "one E-22 heading, and every key and numeric value of LEVEL_SEED_WEIGHTS in it" | `47a6e28`, T-023: E-22 lists every key and value of the constant | Criterion 21 puts the two string arrays in the block as JSON (quoted), which `hand-check-levels-verify` criterion 7 also requires. This rule's `${key}: [${value.join(", ")}]` wants them unquoted | modify | Same name. The same assertions, except an array value must appear as `` `${key}: ${JSON.stringify(value).replaceAll(",", ", ")}` ``. Numeric arrays give the same text as before (`[10, 20, 35]`), and string arrays are matched quoted | |
+| 2 | `question-bank/src/seed-level-loose-ends-verify.test.ts` › T-086 criteria 5-6 › "criterion 6: the 'Why familiarity_bonus is 0' bullet still explains it and keeps the term" | `4009ee5`, T-086: the bullet explaining why the term is 0 survived T-086 | Criterion 20 forbids saying the term is 0 or that no list exists. The bullet is now "What `familiarity_bonus` covers" | modify | "criterion 6: the 'What familiarity_bonus covers' bullet explains its sources and keeps the term (T-085a)". Exactly one E-22 bullet matches ``/What `familiarity_bonus` covers/``, and its flattened text contains "home state", "famous", "serving time" and "approved" | |
+| 3 | same file › T-086 criteria 10-12: what must not move › "criterion 10: the seeded levels by id, over all TEMPLATES, equal b0ee336's" | `83aadd6`, T-070 re-pin: no level moved | Criterion 1 moves six levels | modify (re-pin) | `R_LEVELS_SHA` re-recorded at the applying commit, renamed to that sha | |
+| 4 | same › "criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to b0ee336's" | `83aadd6`, T-070 re-pin: no weight moved | Amount 0 → 2 and two keys added (criteria 1, 10). Its `R_WEIGHTS` literal is also the **typecheck error** at line 353 | modify (re-pin) | `R_WEIGHTS` becomes the current constant, with `familiarity_bonus: 2` and both new arrays, deep-equal, renamed to the applying commit | |
+| 5 | same › "criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's" | `4009ee5`, T-086: T-086 edited E-22's body only | The hashed "outside" includes E-22's heading line, which criterion 20 forces to change | modify (re-pin) | `HEAD_OUTSIDE_E22_SHA` re-recorded at the applying commit | |
+| 6 | same › "criterion 12: E-22's heading line is unchanged and no ## E-n heading up to E-23 is added or removed" | `4009ee5`, T-086 | Heading renamed (criterion 20) | modify (re-pin) | `BASE_E22_HEADING` = the current heading, "…; `familiarity_bonus` lowers only the states drawn apart from the mainland". The heading-set half is unchanged | |
+| 7 | `question-bank/src/hand-check-levels-verify.test.ts` › T-025 criteria 1-5 › "criterion 4: the Final column equals seedLevels under the committed weights (within 0.05)" | `236b0e0`, T-025: the 30-row table matches the code | Criterion 22 keeps the table, so the HI/AK map rows still read 6.5/6/7.5/7 | modify | "criterion 4: the Final column equals seedLevels under T-025's weights (the committed constant with familiarity_bonus overridden to 0 in place, T-085a), within 0.05". All 30 rows, as before; the override is restored after | |
+| 8 | same › T-025 criteria 6-9 › "criterion 6: the 'which weights changed' list names exactly the changed keys, each with old -> new and a reason" | `236b0e0`, T-025: the recorded weight change matches the code's diff from T-023 | `familiarity_bonus` and the two new keys now differ from T-023, through T-085a and not T-025 | modify | The same assertions, with the comparison made against the current constant minus `familiarity_bonus`, `familiarity_bonus_states` and `familiarity_bonus_templates` (named in a comment as T-085a's). So the changed set is still exactly `concept_load["tpl-capital-of"]` | |
+| 9 | same › "criterion 6: the changed keys are exactly what the code changed (concept_load capital 1 -> 2 at hand-off)" | `236b0e0`, T-025 | Same as row 8 | modify | Same as row 8 | |
+| 10 | same › T-025 criteria 10-13 › "criterion 10: the key set of LEVEL_SEED_WEIGHTS and of concept_load equal the T-023 sets" | `236b0e0`, T-025: no key added | Two keys added (criterion 10) | modify | "…equal the T-023 sets plus T-085a's familiarity_bonus_states and familiarity_bonus_templates". Exact set equality, as before | |
+| 11 | same › "criterion 12: familiarity_bonus is still 0" | `236b0e0`, T-025: T-025 did not set the term | T-085a sets it to 2 (criterion 1) | modify | "criterion 12: familiarity_bonus is 2, set by T-085a" — `toBe(2)` | |
+| 12 | same › "criterion 12: no famous / familiar / well-known list under src/ beyond what aa88101 had" | `236b0e0`, T-025: no familiarity list crept in | The changed `seed-level.ts` lines contain "familiarity", so they no longer match `BASELINE`'s three `seed-level.ts` lines | modify (re-pin) | `BASELINE`'s `seed-level.ts` lines become every match in the current `seed-level.ts`. The `curated/` lines are unchanged, as is the rule that any other new match is red | |
+| 13 | same › "criterion 12: seed-level.ts names no state" | `236b0e0`, T-025 | Criterion 6 requires `us-state-hi` and `us-state-ak` in the constant | modify | "criterion 12: seed-level.ts names no state but us-state-hi and us-state-ak (T-085a)". The set of `/us-state-[a-z]{2}/` matches is exactly those two, and no state name appears quoted, as before | |
+| 14 | same › T-025 criteria 14-17 › "criterion 14: question-bank/data is unchanged since b0ee336, built_at aside" | `83aadd6`, T-070 re-pin | The question file is regenerated (criteria 1, 14) | modify (re-pin) | The digest re-recorded at the applying commit | |
+| 15 | `question-bank/src/seed-level-verify.test.ts` › T-023 criteria 17-18 › "criterion 18: familiarity_bonus is 0, and the stage takes no player input" | `8fd5b17`, T-023 | Now 2 (criterion 1) | modify | "criterion 18: familiarity_bonus is 2 (T-085a), and the stage takes no player input". `toBe(2)`, and the no-player-input half unchanged | |
+| 16 | `question-bank/src/climate-far-phrases-verify.test.ts` › T-090 criterion 12 › "question file: every non-climate question deep-equal to 3279555" | `2023a09`, T-090 | Four HI/AK map levels moved | modify (re-pin) | Re-recorded at the applying commit | |
+| 17 | same › "content.json: every non-climate question deep-equal to b0ee336's" | `83aadd6`, T-070 re-pin | Same, served | modify (re-pin) | Re-recorded at the applying commit | |
+| 18 | same › T-090 criterion 13 › "LEVEL_SEED_WEIGHTS deep-equal to 3279555, concept_load for climate still 3" | `2023a09`, T-090 | Amount and keys changed | modify (re-pin) | The pinned constant becomes the current one; "concept_load for climate still 3" is kept | |
+| 19 | same › T-090 criterion 14 › "(a) the ten states' rows match the regenerated bank, with a verdict and a reason" | `2023a09`, T-090: E-27 table D matches the bank | E-27 quotes HI 9.5 and AK 8 as measured, and rewriting it is out of scope | modify | "…match the bank under T-090's weights (familiarity_bonus overridden to 0 in place, T-085a)…". All ten rows, levels exact as before; the override is restored after | |
+| 20 | `question-bank/src/map-click-no-candidates-verify.test.ts` › T-092 criterion 4 › "every non-map_click question, level included, hashes to 5d72ca5's" | `cf63f66`, T-092 | Four non-click levels moved | modify (re-pin) | Re-recorded at the applying commit | |
+| 21 | same › T-092 criterion 8 › "(id, level) of the 50, in order, hash to 5d72ca5's" | `cf63f66`, T-092 | The HI and AK click levels moved | modify (re-pin) | Re-recorded at the applying commit | |
+| 22 | same › T-092 criteria 11 and 12 › "backend/app/data/content.json is byte-identical to 5d72ca5's" | `cf63f66`, T-092 | Regenerated (criterion 15) | modify (re-pin) | Re-recorded at the applying commit | |
+| 23 | same › T-092 criterion 13 › "E-1..E-28 are byte-identical to 5d72ca5's, and there are 30 E-n headings at the branch head" | `cf63f66`, T-092 | E-22 amended (criteria 17–21) | modify (re-pin) | The E-1..E-28 digest re-recorded at the applying commit; the 30-heading half unchanged | |
+| 24 | same › T-092 criterion 16 › "backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 5d72ca5" | `cf63f66`, T-092 | `content.json` regenerated | modify (re-pin) | The digest re-recorded at the applying commit, with the same exception list (no new exclusion, E-30) | |
+| 25 | `question-bank/src/t026-tester-verify.test.ts` › T-026 criterion 4 › "the old-template questions hash to main's 150 (45b00d7), field for field, in order" | `d201e70`, T-026 | Four of the 150 moved | modify (re-pin) | Re-recorded at the applying commit | |
+| 26 | `backend/tests/test_t026_tester_criteria.py` › `test_c37_old_served_questions_are_byte_for_byte_main_s` | `d201e70`, T-026 | The served HI/AK map levels moved | modify (re-pin) | Re-recorded at the applying commit | |
+| 27 | `backend/tests/test_t051_tester_criteria.py` › `test_c1_the_questions_served_before_t051_are_still_served_unchanged` | `6537059`, T-051 | Same | modify (re-pin) | Re-recorded at the applying commit | |
+| 28 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | `eebec2c`, T-089 | E-22 amended | modify (re-pin) | `DECISIONS_ON_MAIN` digest(s) re-recorded at the applying commit | |
+
+**To approve:**
+
+- **Start the `tester` step for T-085a in a session you are attending.** Answer
+  it there, row by row.
+- **What that tester does.** It fills in Decision and sets
+  `Test changes: approved — <name>, <date>`.
+- **Then it applies exactly the approved rows** in a commit of their own, re-runs
+  the whole suite and typecheck, and writes the final verdict.
+- **No count floor is involved.**
 
 ## Notes
 
