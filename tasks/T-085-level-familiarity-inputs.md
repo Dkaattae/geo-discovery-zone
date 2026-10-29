@@ -1,7 +1,7 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `blocked`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-085-level-familiarity-inputs.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P |
+| worker | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same id as the expander's row: the environment variable gave this value; the tester should check its own differs) |
 
 ## Goal
 
@@ -262,6 +263,85 @@ that a Census figure is right. A person checks:
 
 ## Handoff
 
+**TL;DR: blocked before building. No U.S. Census Bureau host is reachable from
+this session (the proxy refuses every one with a 403), and the brief's
+Constraints say to stop rather than fill the 17-capital table from memory. A
+human must either open Census access or choose another source, then re-run
+`worker`.**
+
+**What I could not reach** (2026-10-29, through the session's agent proxy;
+`curl -sS "$HTTPS_PROXY/__agentproxy/status"` logs each one as
+`connect_rejected`, "gateway answered 403 to CONNECT"):
+
+- `https://api.census.gov/` (PEP API)
+- `https://www.census.gov/`
+- `https://data.census.gov/`
+- `https://www2.census.gov/` (the popest city totals datasets)
+
+**What is reachable:** `en.wikipedia.org` and `query.wikidata.org`. Neither is
+a Census Bureau release, so I did not use either as the source. I made one
+probe query to see what Wikidata would give (P1082 with references, Memphis
+and Nashville). Its references are uneven: Memphis 633,104 at 2020-04-01
+cites "2020 United States Census", but Nashville 689,447 dated 2020-01-01 has
+no `stated in` and links only to a census.gov search page. That would be a
+secondary transcription with patchy provenance, which criterion 7 does not
+obviously allow.
+
+**What the human needs to decide (proposed owner: Dkaattae):**
+
+1. **Allow `*.census.gov` for the worker session** (preferred). Then a fresh
+   `worker` fetches one release, for example Vintage 2023 or 2024 Population
+   Estimates for incorporated places (SUB-IP-EST), and builds the task as
+   briefed. Or:
+2. **Supply the 17 rows by hand from one named release.** For each state:
+   capital, its population, the largest other city and its population. Commit
+   them to the brief's Notes and the worker transcribes them. Or:
+3. **Accept Wikidata P1082 statements whose reference is a named Census
+   release** as the source. This changes how criterion 7 is read, so it goes
+   back to `task-expander` for re-approval, not to the worker.
+
+**What changed:** nothing in code or data. The only file touched is this brief
+(Status, Next step, Sessions row, Handoff, Notes).
+
+**What I deliberately did not do:**
+
+- **Did not land the drawn-apart half alone.** It needs no external source, but
+  the brief is one unit: criteria 10, 15, 16, 20 and 22 describe one
+  regenerated bank with both inputs. Landing half would mean regenerating the
+  committed files twice and churning the stale-test list twice. If the human
+  would rather split it, the split is: T-085a, drawn-apart (criteria 1–3 and
+  the HI/AK rows of 10–24); T-085b, largest-city (criteria 4–9). Expander to
+  decide.
+- **Did not fill any of the 17 rows from general knowledge, and did not mark
+  all 17 left out**, as the Constraints require.
+
+**Survey, for the next worker (all still true at `d698b23`):**
+
+- `question-bank/src/seed-level.ts:68` has `familiarity_bonus: 0`, a scalar.
+  `levelFor` (line 206) subtracts it at line 221 and receives the question,
+  so it can see `templateId` and `entityId`. The planned shape: make
+  `familiarity_bonus` an object in `LEVEL_SEED_WEIGHTS`:
+  `{ drawn_apart: { amount: 2, states: [...], templates: [...] }, capital_is_largest_city: { amount: 1, states: [...confirmed], templates: ['tpl-capital-of'] } }`.
+  `levelFor` then sums the matching amounts before the clamp. Criterion 23's
+  existing rule needs every numeric leaf named in E-22's constant block.
+- **Exports**: still the six of criterion 14.
+- **Tests made stale**: not applicable, since nothing was built. The brief's
+  Constraints list is the starting point for whoever builds it.
+
+**How to run:** nothing to run. The suite is untouched by this session.
+
 ## Verdict
 
 ## Notes
+
+- **Worker, 2026-10-29.** The Census check is the only part that needs the
+  outside world, and the environment blocks exactly that. The brief anticipated
+  this case and named the response, so I am stopping as it says. Worth adding
+  to the queue's environment notes: the web harness's egress policy does not
+  include `census.gov`. Any future task that cites a Census figure will hit the
+  same wall. Proposed owner: Dkaattae, as a `process-tasks.md` entry or an
+  allowlist change.
+- The Sessions table shows the same session id for expander and worker. That is
+  what `$CLAUDE_CODE_REMOTE_SESSION_ID` returned. The orchestrator relay may be
+  sharing the id across spawned roles. Orchestrator to check, because the tester
+  relies on that table to confirm it is a different session.
