@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { BANK_DIGESTS, bankFileDigest } from "./bank-pins";
 import { SAME_CLIMATE_GROUPS } from "./distractors";
 import { generate } from "./generate";
 import { buildQuestionBank, renderQuestionFile } from "./question-file";
@@ -497,13 +498,16 @@ describe("T-026 criterion 39: the bank is under the cap, 400 KB at most", () => 
 });
 
 describe("T-026 criteria 50-51: no entity data changed, choices copied from entity fields", () => {
-  test("criterion 50: the committed entity files are byte-equal to main's (45b00d7)", () => {
+  // T-070 row W48 (E-30): pinned whole at b0ee336 through `bank-pins.ts`.
+  test("criterion 50: the committed entity files match their b0ee336 pins, built_at aside", () => {
     const dir = join(REPO_ROOT, "question-bank/data/us-states");
-    const h = createHash("sha256");
-    for (const f of readdirSync(dir).sort()) h.update(readFileSync(join(dir, f)));
-    expect(h.digest("hex")).toBe(
-      "4366999210cd4d9b61eb696efd2c0f7a44dacddae9455416aaaf5fef5fbe524a",
-    );
+    const files = readdirSync(dir).sort();
+    expect(files).toEqual(Object.keys(BANK_DIGESTS).sort());
+    for (const f of files)
+      expect({ f, digest: bankFileDigest(f, readFileSync(join(dir, f), "utf8")) }).toEqual({
+        f,
+        digest: BANK_DIGESTS[f] as string,
+      });
   });
   test("criterion 51: every new choice is a value of its template's answer field on some entity", () => {
     const values = (t: Template): Set<string> =>

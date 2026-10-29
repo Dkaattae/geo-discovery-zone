@@ -31,6 +31,7 @@ import {
   SAME_CLIMATE_GROUPS,
   SAME_LANDMARK_PAIRS,
 } from "./distractors";
+import { BANK_DIGESTS, bankFileDigest } from "./bank-pins";
 import { generate } from "./generate";
 import { buildQuestionBank, renderQuestionFile } from "./question-file";
 import { LEVEL_SEED_WEIGHTS } from "./seed-level";
@@ -575,18 +576,25 @@ describe("T-090 criterion 12: nothing else in the bank moved", () => {
     );
   });
 
-  // T-051 adds 50 map_click questions that 3279555 did not serve (approved Test
-  // change request row 30); every question that was served there is unchanged.
-  test("content.json: every non-climate, non-map_click question deep-equal to 3279555", () => {
-    expect(
-      nonClimateDigest(content.questions.filter((q) => q.templateId !== "tpl-click-the-map")),
-    ).toBe("0d32ac5784b0d5241b565963036f1500f558f88dc820838c9991a8630c602501");
+  // T-070 row W44 (E-30): no map_click filter; re-pinned at b0ee336.
+  test("content.json: every non-climate question deep-equal to b0ee336's", () => {
+    expect(nonClimateDigest(content.questions)).toBe(
+      "5533329af273847232d7760aca18a95f1b03920a083e89189d9f4db0d7a3fd87",
+    );
   });
 
-  test("every file under question-bank/data/us-states/ is byte-identical to 3279555", () => {
-    expect(treeDigest(REPO, "question-bank/data/us-states")).toBe(
-      "a67db5024454f4604068fa61b3020489b14f603caa4e4ec81b70af8c973fb8d6",
-    );
+  // T-070 row W43 (E-30): pinned whole at b0ee336 through `bank-pins.ts`.
+  test("every file under question-bank/data/us-states/ matches its b0ee336 pin, built_at aside", () => {
+    const paths = tracked(REPO, "question-bank/data/us-states");
+    const names = paths.map((p) => p.split("/").pop() as string);
+    expect([...names].sort()).toEqual(Object.keys(BANK_DIGESTS).sort());
+    for (const [i, path] of paths.entries()) {
+      const name = names[i] as string;
+      expect({
+        name,
+        digest: bankFileDigest(name, readFileSync(join(REPO, path), "utf8")),
+      }).toEqual({ name, digest: BANK_DIGESTS[name] as string });
+    }
   });
 });
 

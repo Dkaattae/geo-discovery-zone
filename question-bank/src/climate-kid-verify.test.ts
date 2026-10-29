@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { BANK_DIGESTS, bankFileDigest } from "./bank-pins";
 import { CURATED_US_STATES } from "./curated/us-states";
 import { rebuildOffline } from "./offline-rebuild";
 
@@ -20,16 +20,11 @@ import { rebuildOffline } from "./offline-rebuild";
  *    branch is the presence or value of a `climate_kid` key") was tested only
  *    in its tree-shaped pieces (15a–15d), with the diff property recorded in
  *    prose. It *can* be tested without git history, the same way T-013's
- *    criterion 9 was: `BASELINE_DIGESTS` below pins, per tracked path, the
- *    SHA-256 of that file **as it stands on the default branch with any
- *    `climate_kid` key removed** — computed once, here, from
- *    `git show 13a735f:<path>` (13a735f is this branch's point off `main`) and
- *    checked, at the time of writing, to be byte-equal to the current tree with
- *    the same key removed. Any *other* field moving in any of the 50 files, or
- *    any byte of `index.json` moving, turns this red with no history required.
- *    Note the six states with no `landmark` (DE, IA, KS, MS, OK, RI) hash to
- *    exactly the values `landmarks-verify.test.ts` independently pinned for
- *    them, which is a cross-check that the two digest routes agree.
+ *    criterion 9 was. Since T-070 (row W6, `engineering-decisions.md` E-30)
+ *    the pins are `BANK_DIGESTS` in `bank-pins.ts`, recorded at `b0ee336`:
+ *    each file whole, `sources.built_at` aside, with nothing else stripped.
+ *    Any field moving in any of the 50 files, or any byte of `index.json`
+ *    moving, turns this red with no history required.
  *  - **Criterion 16's** "exactly one file carries the dead-loopback proxy
  *    literal" scan excludes `climate-kid.test.ts` from its own sweep. The scan
  *    below excludes nothing: it sweeps every `*.ts` under `question-bank/src/`,
@@ -63,8 +58,17 @@ const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
-/** Criterion 12 and the brief's Constraints both name this instant literally. */
-const PINNED_BUILT_AT = "2026-08-04T16:05:35.000Z";
+/**
+ * The main SPARQL fixture. Criterion 12's `built_at` is compared with its
+ * `captured_at` rather than a literal instant, so a refresh that moves both
+ * stays green (T-070 row W5).
+ */
+const MAIN_FIXTURE = join(PKG, "src/fixtures/us-states.sparql.json");
+const fixtureBuiltAt = () =>
+  new Date(
+    (JSON.parse(readFileSync(MAIN_FIXTURE, "utf8")) as { _fixture: { captured_at: string } })
+      ._fixture.captured_at,
+  ).toISOString();
 
 /** Criterion 14's pinned string — also `geoquizdataplan.md` §1.4 and `openapi.yaml:1478`. */
 const COLORADO_PHRASE = "dry and cold in the mountains, drier plains to the east";
@@ -162,81 +166,6 @@ const HANDOFF_UNGROUPED = ["MO", "NY", "CA", "AK", "HI", "FL", "TX", "OK", "CO"]
 
 /** Criterion 15a: the six states the tree carries no `landmark` for. */
 const LANDMARK_BLANKS = ["DE", "IA", "KS", "MS", "OK", "RI"] as const;
-
-/**
- * Criterion 15. SHA-256 (first 16 hex) of each of the 51 tracked paths as they
- * stand on the default branch (`main` at this task's branch point, 13a735f),
- * with any `climate_kid` key removed before hashing, over `JSON.stringify` of
- * the parsed object — except `index.json`, hashed over its raw bytes, because
- * 15d says "byte-identical". Regenerating these is a two-line script; pinning
- * them is what lets the check run on a shallow CI clone.
- *
- * **`us-state-ak.json` re-pinned 2026-09-18.** Alaska's `landmark` (and the
- * `highest_point` this task already strips) changed from "Denali" to "Mount
- * McKinley" — Dkaattae's decision on PR #47, the same call T-013's reviewer
- * left open. This digest is recomputed with the new value; nothing else about
- * the neutralisation changed.
- *
- * **All 50 re-pinned again 2026-09-18 (T-017).** `region` moved on every
- * tracked state file, the largest change any of these guards has absorbed. It
- * had a real value both before and after this task, so — unlike `climate_kid`
- * itself, which the criterion-15 test below restores by deleting the key it
- * knows was absent — the key is simply dropped before hashing, for all 50
- * files.
- */
-const BASELINE_DIGESTS: Record<string, string> = {
-  "index.json": "cd6822166faad673",
-  "us-state-ak.json": "587666550161ddf1",
-  "us-state-al.json": "82ab9588076b3db0",
-  "us-state-ar.json": "561806edd56aabf4",
-  "us-state-az.json": "9fa14329e4b144bb",
-  "us-state-ca.json": "b6353f508ddc8359",
-  "us-state-co.json": "5ca27841d528e1a2",
-  "us-state-ct.json": "1252f4c86d7f7a02",
-  "us-state-de.json": "15983e11ad03ae2f",
-  "us-state-fl.json": "dbe71284ff699e23",
-  "us-state-ga.json": "2d9fa327b4a80534",
-  "us-state-hi.json": "c137c91a1bc47f3e",
-  "us-state-ia.json": "b7a3b84690acab5d",
-  "us-state-id.json": "118a374b6e523db0",
-  "us-state-il.json": "ea3a9128cb0e1173",
-  "us-state-in.json": "ec47dbaf1d17b121",
-  "us-state-ks.json": "4a79f2a995cbe70e",
-  "us-state-ky.json": "27ba3ecfece60554",
-  "us-state-la.json": "252296416894caa6",
-  "us-state-ma.json": "09cb58b494ed91a8",
-  "us-state-md.json": "0da1586f68272870",
-  "us-state-me.json": "a926140e1eff24b6",
-  "us-state-mi.json": "808281523dd2fae7",
-  "us-state-mn.json": "f66534b7c479ad1e",
-  "us-state-mo.json": "3700da9e872dbc52",
-  "us-state-ms.json": "492b6fdef9145442",
-  "us-state-mt.json": "c9696b91c412509a",
-  "us-state-nc.json": "c190c6f1999bfffb",
-  "us-state-nd.json": "cdb290b86e4c6200",
-  "us-state-ne.json": "aeaa240904b8aaba",
-  "us-state-nh.json": "e546fff7a815a610",
-  "us-state-nj.json": "febda88eeca88c97",
-  "us-state-nm.json": "880ee3588c8fbc92",
-  "us-state-nv.json": "44a3702a6842b5cc",
-  "us-state-ny.json": "0077127c6f911388",
-  "us-state-oh.json": "f98b2b1c7806048e",
-  "us-state-ok.json": "634eca378ebc98a8",
-  "us-state-or.json": "2b75882efa918b15",
-  "us-state-pa.json": "fc29a41dfc7dc863",
-  "us-state-ri.json": "c8f6a8d682284ebf",
-  "us-state-sc.json": "83749783302b65a2",
-  "us-state-sd.json": "4be1ea1b3cd222ae",
-  "us-state-tn.json": "6d3bc1a0ce140799",
-  "us-state-tx.json": "6efdc195678a7949",
-  "us-state-ut.json": "03285a43eb758e57",
-  "us-state-va.json": "8c98489f276d6e37",
-  "us-state-vt.json": "873d23eba39d9d06",
-  "us-state-wa.json": "8c2a90397321ead7",
-  "us-state-wi.json": "23d1d95c21591b5a",
-  "us-state-wv.json": "3ed25d05ad08bb0e",
-  "us-state-wy.json": "f1bb478c900eb36f",
-};
 
 /** Criterion 7's 31 Köppen class codes, matched as whole words, case-sensitively. */
 const KOPPEN_CODES = [
@@ -336,8 +265,6 @@ interface Entity {
   fun_facts?: { text: string; reviewed?: boolean }[];
   sources?: { built_at?: string };
 }
-
-const digest = (text: string) => createHash("sha256").update(text).digest("hex").slice(0, 16);
 
 /**
  * Reads the 50 entity files straight off disk with `readdirSync` — deliberately
@@ -695,7 +622,7 @@ describe("T-014 tester, criterion 11 — all distinct, and none contains another
 });
 
 describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", () => {
-  const PATHS = Object.keys(BASELINE_DIGESTS);
+  const PATHS = Object.keys(BANK_DIGESTS);
 
   // The shared harness from `offline-rebuild.ts` (criterion 16(a)): the real
   // CLI, `--offline`, into a temp dir, every proxy spelling dead. No mocks.
@@ -720,12 +647,10 @@ describe("T-014 tester, criterion 12 — the bank is built, not hand-edited", ()
     expect([...second.entries()].sort()).toEqual([...first.entries()].sort());
   });
 
-  test("sources.built_at is still the pinned capture instant in all 50 files", () => {
+  test("sources.built_at equals the main fixture's captured_at in all 50 files", () => {
+    const builtAt = fixtureBuiltAt();
     for (const { file, entity } of stateFiles()) {
-      expect({ file, builtAt: entity.sources?.built_at }).toEqual({
-        file,
-        builtAt: PINNED_BUILT_AT,
-      });
+      expect({ file, builtAt: entity.sources?.built_at }).toEqual({ file, builtAt });
     }
   });
 
@@ -750,84 +675,16 @@ describe("T-014 tester, criterion 14 — Colorado's phrase is unchanged", () => 
   });
 });
 
-/**
- * T-069 (2026-10-03, a later approved task; approved test change request,
- * rows 1–2) converts `highest_point_m` to metres in five files that shipped
- * feet. Those five get their default-branch value back before hashing; the
- * other 45 are hashed exactly as before.
- */
-const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
-  "us-state-az.json": 12622,
-  "us-state-or.json": 11237,
-  "us-state-ne.json": 5429,
-  "us-state-ks.json": 4039,
-  "us-state-ia.json": 1670,
-};
-
-/**
- * T-079 (2026-10-06, a later approved task; approved test change request,
- * row 8) ships a curated `highest_point_m` for CT, OK and VA. Those three get
- * the default branch's Wikidata value back before hashing; the other 47 are
- * hashed exactly as before.
- */
-const T079_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
-  "us-state-ct.json": 748,
-  "us-state-ok.json": 1737,
-  "us-state-va.json": 1825,
-};
-
 describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the bank", () => {
-  test("each of the 50 files, with climate_kid, top_crops and top_livestock removed, digests to the default branch's value", () => {
-    // T-015 (2026-09-17, a later approved task) fills `top_crops` for all 50
-    // states. `BASELINE_DIGESTS` was computed at a branch point that predates
-    // T-015 too, where every file still carried the literal `top_crops: []`
-    // (present, not absent — unlike `climate_kid`, which that baseline never
-    // had at all for 49 of the 50 states). Restoring that literal here, rather
-    // than deleting the key, reproduces exactly what the pinned digest hashed,
-    // so this keeps checking "nothing other than the fields named, approved
-    // tasks are known to touch has moved" instead of turning permanently red
-    // the moment T-015's own field lands.
+  test("each of the 50 state files digests to its b0ee336 pin, built_at aside", () => {
+    // T-070 (row W6, E-30): pinned whole at b0ee336 through `bank-pins.ts`.
+    // Nothing is stripped, reset or restored before hashing.
     for (const { file, raw } of stateFiles()) {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      delete parsed["climate_kid"];
-      // T-016 (2026-09-18, a later approved task) adds `highest_point` to
-      // Alaska only — the other 49 states already carried it at this task's
-      // own baseline, so their pinned digests were computed with it present.
-      // Alaska's was not, so it alone is stripped here.
-      if (file === "us-state-ak.json") delete parsed["highest_point"];
-      // T-017 (2026-09-18, a later approved task) resettles `region` for all
-      // 50 states — see the BASELINE_DIGESTS comment above.
-      delete parsed["region"];
-      // T-068 (2026-10-03, a later approved task) adds `top_livestock` to all
-      // 50 states; the baseline never had it, so it is deleted.
-      delete parsed["top_livestock"];
-      parsed["top_crops"] = [];
-      // T-069 (approved test change request): the five converted files get
-      // their default-branch highest_point_m back; the other 45 are untouched.
-      if (file in T069_DEFAULT_BRANCH_HIGHEST_POINT_M) {
-        parsed["highest_point_m"] = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
-      }
-      // T-079 (approved test change request, row 8): CT, OK and VA get their
-      // default-branch highest_point_m back. Connecticut's restore is checked
-      // to change something, so it is not a no-op.
-      if (file in T079_DEFAULT_BRANCH_HIGHEST_POINT_M) {
-        if (file === "us-state-ct.json") expect(parsed["highest_point_m"]).not.toBe(748);
-        parsed["highest_point_m"] = T079_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
-        if (file === "us-state-ct.json") expect(parsed["highest_point_m"]).toBe(748);
-      }
-      expect({ file, digest: digest(JSON.stringify(parsed)) }).toEqual({
+      expect({ file, digest: bankFileDigest(file, raw) }).toEqual({
         file,
-        digest: BASELINE_DIGESTS[file] as string,
+        digest: BANK_DIGESTS[file] as string,
       });
     }
-  });
-
-  test("the region removal actually drops the key — otherwise the digest check proves nothing (T-017)", () => {
-    const il = readFileSync(join(DATA_DIR, "us-state-il.json"), "utf8");
-    const parsed = JSON.parse(il) as Record<string, unknown>;
-    expect(parsed["region"]).toBe("Great Lakes");
-    delete parsed["region"];
-    expect(Object.keys(parsed)).not.toContain("region");
   });
 
   test("15a — exactly 44 states carry landmark, and the six blanks are the ones named", () => {
@@ -891,18 +748,19 @@ describe("T-014 tester, criterion 15 — nothing but climate_kid moves in the ba
     }
   });
 
-  test("15d — index.json is byte-identical to the default branch's and mentions no climate_kid", () => {
+  test("15d — index.json is byte-identical to b0ee336's and mentions no climate_kid", () => {
     const raw = readFileSync(join(DATA_DIR, "index.json"), "utf8");
-    expect(digest(raw)).toBe(BASELINE_DIGESTS["index.json"] as string);
+    expect(bankFileDigest("index.json", raw)).toBe(BANK_DIGESTS["index.json"] as string);
     expect(raw).not.toContain("climate_kid");
   });
 
-  test("the digest check has teeth: a changed non-climate_kid field breaks it", () => {
+  test("the digest check has teeth: a changed state_animal breaks it", () => {
     const raw = readFileSync(join(DATA_DIR, "us-state-co.json"), "utf8");
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    delete parsed["climate_kid"];
     parsed["state_animal"] = "not the real one";
-    expect(digest(JSON.stringify(parsed))).not.toBe(BASELINE_DIGESTS["us-state-co.json"]);
+    expect(bankFileDigest("us-state-co.json", JSON.stringify(parsed, null, 2))).not.toBe(
+      BANK_DIGESTS["us-state-co.json"],
+    );
   });
 });
 
@@ -1139,7 +997,9 @@ describe("T-014 tester, criterion 19 — nothing already verified is weakened", 
     // T-064 row 38: tests 52 → 50, rows 9–10 deleted the sample comparisons.
     "landmarks.test.ts": { tests: 50, expects: 88 },
     // T-064 row 39: tests 36 → 35, row 12 deleted the sample comparison.
-    "landmarks-verify.test.ts": { tests: 35, expects: 69 },
+    // T-070 row W10a: 35/69 → 34/65; rows W3 (two CT restore expects) and W4
+    // (one test, two expects) removed exactly that.
+    "landmarks-verify.test.ts": { tests: 34, expects: 65 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },
   };

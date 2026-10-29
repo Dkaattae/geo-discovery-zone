@@ -279,7 +279,7 @@ def test_criterion_13_exactly_one_new_entry_numbered_gap_free() -> None:
     import re
 
     numbers = [int(n) for n in re.findall(r"^## E-(\d+) ", decisions(), flags=re.M)]
-    assert numbers == list(range(1, 30))  # T-051 adds E-29 (Test change request row 26)
+    assert numbers == list(range(1, 31))  # T-070 adds E-30 (branch head; row W53)
     assert numbers.count(28) == 1
 
 

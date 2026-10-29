@@ -284,34 +284,9 @@ describe("T-017 criterion 4 — a region outside the 13 fails a test, wherever i
 });
 
 // -- criterion 6 -------------------------------------------------------------
-
-describe("T-017 criterion 6 — each pinned-digest guard gained a region neutralisation", () => {
-  // The guards passing is what criterion 6 actually asks, and that is proved by
-  // running them (they are four separate suites). What is asserted here is the
-  // structural half the criterion also names: each carries a region
-  // neutralisation *and* a test that the neutralisation really strips the
-  // field, in the shape the brief's Constraints point at.
-  const GUARDS = [
-    "landmarks-verify.test.ts",
-    "climate-kid-verify.test.ts",
-    "top-crops-verify.test.ts",
-    "highest-point-verify.test.ts",
-  ];
-
-  for (const guard of GUARDS) {
-    test(`${guard} neutralises region before hashing`, () => {
-      const source = readFileSync(join(PKG, "src", guard), "utf8");
-      expect(source).toContain("region");
-      const neutralises = /withoutRegion|delete parsed\["region"\]|delete .*\.region/.test(source);
-      expect(neutralises).toBe(true);
-    });
-
-    test(`${guard} proves its own region neutralisation is not a no-op`, () => {
-      const source = readFileSync(join(PKG, "src", guard), "utf8");
-      expect(source).toMatch(/region removal actually drops/);
-    });
-  }
-});
+//
+// Its eight tests asserted that each digest guard neutralised `region`. T-070
+// removed every neutralisation (E-30) and, with them, those tests (row W52).
 
 // -- criterion 7 -------------------------------------------------------------
 
