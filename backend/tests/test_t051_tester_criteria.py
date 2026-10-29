@@ -36,9 +36,11 @@ SPEC_FILE = REPO / "openapi.yaml"
 # questions, 315 multiple_choice and 50 map_identify. Digest of
 # json.dumps(sorted by id, sort_keys=True, ensure_ascii=False,
 # separators=(",", ":")), computed by the tester from
-# `git show 1032b77:backend/app/data/content.json`.
+# `git show 1032b77:backend/app/data/content.json`. Re-pinned at 6a515e2
+# (re-pinned T-085a, Test change request row 27), after T-085a moved four
+# HI/AK levels in these 365.
 MAIN_SERVED_COUNT = 365
-MAIN_SERVED_DIGEST = "e5be815d160d2875f6fa2d860ec5590b24032ca9be06ff2d16ae46c189ad864e"
+MAIN_SERVED_DIGEST = "ddd2d5abb7a0129fa6c7941761dbb896a5d96df08c883fe3fd865b4d12232f0a"
 
 FIFTY_STATE_CODES = sorted(
     {

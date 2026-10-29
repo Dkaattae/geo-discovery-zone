@@ -416,12 +416,14 @@ function baselineOf(entities: Entity[]): Baseline {
   };
 }
 
-// 5d72ca5's question file, as digests (helpers above, `digestsOf`).
+// 5d72ca5's question file, as digests (helpers above, `digestsOf`). `clickLevels`
+// and `other` are re-pinned at 6a515e2 (re-pinned T-085a, Test change request
+// rows 21 and 20), after T-085a moved the six HI/AK map and climate levels.
 const MAIN_FILE = {
   order: "5a5e2d5b8b1a15d0ce4bbb35f3414d57194e7ba09490aa06fc8853ff33c6f01e",
   clickFields: "8ddf07bc1dde01463daa3dc68fff106883fb88ea8653f86c6db8474ae625bfd9",
-  clickLevels: "ad61c62fcf2487456c1212c5b420fc0d3b4c96244e71347c3331b3c135f04f9b",
-  other: "9894aa9c39e644f23e3811abae81393d65a5c0adf2cd9ddea8e47cc1f512c455",
+  clickLevels: "724c636c46013d9c380ca9fe8ebdcdb58c149f99fe5f2d3ec921502eded796ab",
+  other: "d565d5aa2983e758bbfcf315d7b2da8ba4a71206479ffdd68e7f808ee9aec80d",
 };
 const CLICK_KEYS = [
   "id",
@@ -481,7 +483,7 @@ describe("T-092 criterion 3: every other map_click field as at 5d72ca5, no key a
 });
 
 describe("T-092 criterion 4: the 365 other questions deep-equal 5d72ca5's, count 415", () => {
-  test("every non-map_click question, level included, hashes to 5d72ca5's", () => {
+  test("every non-map_click question, level included, hashes to 6a515e2's (re-pinned T-085a, row 20)", () => {
     const file = readFile();
     expect(file.questions.filter((q) => !isClick(q))).toHaveLength(365);
     expect(digestsOf(file).other).toBe(MAIN_FILE.other);
@@ -556,7 +558,7 @@ describe("T-092 criterion 7: other formats keep four choices and a correctIndex"
 });
 
 describe("T-092 criterion 8: committed map_click levels equal 5d72ca5's", () => {
-  test("(id, level) of the 50, in order, hash to 5d72ca5's", () => {
+  test("(id, level) of the 50, in order, hash to 6a515e2's (re-pinned T-085a, row 21)", () => {
     const click = readFile().questions.filter(isClick);
     for (const q of click) expect(typeof q.level).toBe("number");
     expect(digestsOf(readFile()).clickLevels).toBe(MAIN_FILE.clickLevels);
@@ -637,9 +639,10 @@ describe("T-092 criterion 10: map_click shortPools entries as at 5d72ca5", () =>
 describe("T-092 criteria 11 and 12: content.json does not move", () => {
   // Criterion 11's regeneration is the backend drift guard
   // (backend/tests/test_content_build.py); this pins criterion 12.
-  test("backend/app/data/content.json is byte-identical to 5d72ca5's", () => {
+  // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 22).
+  test("backend/app/data/content.json is byte-identical to 6a515e2's", () => {
     expect(sha(readFileSync(join(REPO, "backend/app/data/content.json")))).toBe(
-      "20e46a9b701fb7f3b6652ab9918a4cbeb5252c4f03f0b51398655614ad0f8ceb",
+      "a4bedfbd447bec246b3d18886fbcaea4af545711a7e5eb712392c96e36105dee",
     );
   });
 });
@@ -648,10 +651,12 @@ describe("T-092 criterion 13: E-29 records the change; E-1..E-28 untouched", () 
   const doc = readFileSync(join(REPO, "engineering-decisions.md"), "utf8");
   const sections = decisionSections(doc);
 
-  // T-070 row W45: E-30 makes 30 headings at the branch head; the E-1..E-28 digest is unchanged.
-  test("E-1..E-28 are byte-identical to 5d72ca5's, and there are 30 E-n headings at the branch head", () => {
+  // T-070 row W45: E-30 makes 30 headings at the branch head. The E-1..E-28
+  // digest is re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 23),
+  // after T-085a amended E-22.
+  test("E-1..E-28 are byte-identical to 6a515e2's, and there are 30 E-n headings at the branch head", () => {
     const text = Array.from({ length: 28 }, (_, i) => sections.get(`E-${i + 1}`)).join("");
-    expect(sha(text)).toBe("4d6020aa79f08b6c984d9e185fe2a4987533535e7c4deed97d73791a984881d8");
+    expect(sha(text)).toBe("9d19c2e9a2326d20a34a952f93e14ce565c81e1f9de3d40b1ce83124525abd31");
     expect(sections.size).toBe(30);
     expect(doc.match(/^## E-\d+/gm)).toHaveLength(30);
   });
@@ -728,10 +733,12 @@ describe("T-092 criterion 16: no other surface changes", () => {
     ["e2e", [], "ee820bf3f3f4a5fafeb6863c0fdb02506d29d5b5233e00bc2e247f45465be3eb"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
     ["openapi.yaml", [], "35831a81e0e9a3abc5f8e1e6bf4e02514adb63a27c64e2d8455e5b1e8514d6e6"],
+    // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 24), after
+    // T-085a regenerated content.json. Same exception list.
     [
       "backend/app",
       ["backend/app/content_build.py"],
-      "cf7cdfbdc7fe6c4e7ab0d848db01bbdc193e3d8cb44b6a57b127d5d25d0e2005",
+      "64a3af5f7e1aa351500f269f863550479e8ddaac070f1a13c7f25d67c6dfbf16",
     ],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);

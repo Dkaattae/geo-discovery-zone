@@ -568,18 +568,19 @@ describe("T-090 criterion 11: only the three wrong answers moved", () => {
 });
 
 describe("T-090 criterion 12: nothing else in the bank moved", () => {
-  test("question file: every non-climate question deep-equal to 3279555", () => {
-    // T-092 (approved Test change request, row 20): 3279555's file with
-    // `choices`, `correctIndex` and `choiceGeometryIds` stripped from map_click.
+  // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 16), after
+  // T-085a moved the four HI/AK map levels.
+  test("question file: every non-climate question deep-equal to 6a515e2", () => {
     expect(nonClimateDigest(committedQb.questions)).toBe(
-      "a7407efb948aeebe863f5e74b6af341666cb57fea0d74122891591f700481c3f",
+      "55f6d655784a6a2e69786f19a7fb8542ebd777501c668b8284beeb11bf247b62",
     );
   });
 
-  // T-070 row W44 (E-30): no map_click filter; re-pinned at b0ee336.
-  test("content.json: every non-climate question deep-equal to b0ee336's", () => {
+  // T-070 row W44 (E-30): no map_click filter. Re-pinned at 6a515e2
+  // (re-pinned T-085a, Test change request row 17).
+  test("content.json: every non-climate question deep-equal to 6a515e2's", () => {
     expect(nonClimateDigest(content.questions)).toBe(
-      "5533329af273847232d7760aca18a95f1b03920a083e89189d9f4db0d7a3fd87",
+      "e2d605217c441c4a6f3921b0580c38177691a24d07170a08b7303a06ce8126db",
     );
   });
 
@@ -599,12 +600,14 @@ describe("T-090 criterion 12: nothing else in the bank moved", () => {
 });
 
 describe("T-090 criterion 13: no weight moved", () => {
-  test("LEVEL_SEED_WEIGHTS deep-equal to 3279555, concept_load for climate still 3", () => {
+  // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 18), after
+  // T-085a set familiarity_bonus and added its two keys.
+  test("LEVEL_SEED_WEIGHTS deep-equal to 6a515e2, concept_load for climate still 3", () => {
     expect(
       LEVEL_SEED_WEIGHTS.concept_load[CLIMATE_TPL as keyof typeof LEVEL_SEED_WEIGHTS.concept_load],
     ).toBe(3);
     expect(sha(canon(LEVEL_SEED_WEIGHTS))).toBe(
-      "5ccdad6e67df3534ef507346e5c4095acad3f21141c0445afb3390d442effde5",
+      "ba1a081d54a8a09ef2c6a802e3e7870e7f6d33ea93545bad80121356610e60b8",
     );
   });
 });
@@ -625,7 +628,19 @@ describe("T-090 criterion 14: the re-read is a new E-n entry", () => {
     expect(entry).toMatch(/T-090/);
   });
 
-  test("(a) the ten states' rows match the regenerated bank, with a verdict and a reason", () => {
+  // Modified T-085a (Test change request row 19): E-27 quotes HI and AK as
+  // measured under T-090's weights, so levels are compared under those: the
+  // committed constant with familiarity_bonus overridden to 0 in place.
+  test("(a) the ten states' rows match the bank under T-090's weights (familiarity_bonus overridden to 0 in place, T-085a), with a verdict and a reason", () => {
+    const saved = LEVEL_SEED_WEIGHTS.familiarity_bonus;
+    let t090Levels: Map<string, number>;
+    try {
+      LEVEL_SEED_WEIGHTS.familiarity_bonus = 0;
+      t090Levels = new Map(buildQuestionBank(entities).questions.map((q) => [q.id, q.level]));
+    } finally {
+      LEVEL_SEED_WEIGHTS.familiarity_bonus = saved;
+    }
+    expect(LEVEL_SEED_WEIGHTS.familiarity_bonus).toBe(saved);
     const rows = entry
       .split("\n")
       .filter((l) => /^\| [A-Z]{2} \|/.test(l))
@@ -645,7 +660,7 @@ describe("T-090 criterion 14: the re-read is a new E-n entry", () => {
         prompt: q.prompt,
         correct: q.choices[q.correctIndex],
         wrong: [...wrongOf(q)].sort(),
-        level: q.level as number,
+        level: t090Levels.get(q.id) as number,
       });
       expect(["too easy", "about right", "too hard"]).toContain(verdict as string);
       if (verdict !== "about right") expect((why as string).length).toBeGreaterThan(10);

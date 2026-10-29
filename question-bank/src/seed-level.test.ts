@@ -192,7 +192,10 @@ describe("E-22 records the constant", () => {
     for (const [key, value] of Object.entries(LEVEL_SEED_WEIGHTS)) {
       expect(entry).toContain(key);
       if (typeof value === "number") expect(entry).toContain(`${key}: ${value}`);
-      else if (Array.isArray(value)) expect(entry).toContain(`${key}: [${value.join(", ")}]`);
+      // Modified T-085a (Test change request row 1): arrays are matched as
+      // JSON, so string arrays appear quoted; number arrays read as before.
+      else if (Array.isArray(value))
+        expect(entry).toContain(`${key}: ${JSON.stringify(value).replaceAll(",", ", ")}`);
       else
         for (const [k, v] of Object.entries(value)) expect(entry).toContain(`"${k}": ${String(v)}`);
     }

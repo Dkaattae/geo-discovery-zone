@@ -126,15 +126,17 @@ describe("T-026 criterion 3: four distinct choices, the answer at correctIndex",
 });
 
 describe("T-026 criterion 4: the old 150 unchanged, count 415", () => {
-  test("the old-template questions hash to main's 150 (45b00d7), field for field, in order", () => {
+  test("the old-template questions hash to 6a515e2's 150, field for field, in order (re-pinned T-085a, row 25)", () => {
     const old = committed.questions.filter((q) => OLD_IDS.includes(q.templateId));
     expect(old).toHaveLength(150);
     // sha256 of JSON.stringify(main's `questions` array), recorded from 45b00d7.
     // T-092 (approved Test change request, row 23): re-pinned to the same 150
     // with `choices`, `correctIndex` and `choiceGeometryIds` stripped from the
     // 50 map_click questions, key order kept.
+    // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 25), after
+    // T-085a moved the four HI/AK map levels.
     const digest = createHash("sha256").update(JSON.stringify(old)).digest("hex");
-    expect(digest).toBe("b5405bf7092ff90ccc2fe99e4458239273bdfef41e422f539aa9317faf3704b4");
+    expect(digest).toBe("f9e7455e46246d26d90f607966a149c0719e8ec122e63de5bb6f7f8a3b6cfe66");
   });
   test("count is 415 and matches the array", () => {
     expect(committed.count).toBe(415);
