@@ -1,7 +1,7 @@
 # T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" — run log
 
 **Task:** T-084 · **Branch:** `claude/stoic-babbage-lsgku4` · **PR:** Dkaattae/geo-discovery-zone#105
-**Started:** 2026-10-29 · **Outcome:** in progress
+**Started:** 2026-10-29 · **Outcome:** ready for merge
 
 ## Preflight — 2026-10-29
 - `origin/main` at `12cb7e6`; `tasks/` held only `README.md` and `TEMPLATE.md`.
@@ -119,3 +119,40 @@ At their instruction the orchestrator updated only the brief header, as the halt
 **Files**
 - /home/user/geo-discovery-zone/question-bank/src/mul-labels-verify.test.ts (new, 12 tests)
 - /home/user/geo-discovery-zone/tasks/T-084-mul-labels.md (Verdict, Status `verified — pass`, Next step `reviewer`, my Sessions row)
+
+## Round 4 — reviewer — 2026-10-29
+`Next step` on entry: `reviewer` → on exit: `human` (review commit `e3758b9`), then brief deleted by the sweep · branch head `67a8eb2`
+
+**I approved T-084 with no escalation, swept it, and marked PR #105 ready for review.** The push landed: the head of `origin/claude/stoic-babbage-lsgku4` is `67a8eb2`. Next step: Dkaattae merges PR #105. I did not merge it.
+
+**Checks**
+- **PR state:** open, draft until I approved it, not merged.
+- **Every role's work is in the PR:** the expander, worker, tester and orchestrator each have commits on the branch. Each stayed in its lane: the expander touched only `tasks/` and `tasks.md`, and the tester added only a new test file.
+- **Code fit:** the query keeps the existing explicit `rdfs:label` pattern, and its comments still match what it does. Only `question-bank/src/queries/us-states.ts` and two new test files changed. There is no diff against `origin/main` in `data/`, the fixtures, `backend/`, the elevation query, any `package.json` or lockfile, or `openapi.yaml`.
+- **Tests (I reran question-bank):** 2510 pass, 0 fail. Typecheck, lint and format:check are clean.
+- **CI on `41a40f9`:** question-bank, frontend, backend and integration are green. The postgres and e2e jobs were still running when I checked; the PR body says so.
+- **Live checklist:** present in the Handoff with its output, and all boxes are ticked.
+
+**Envelope:** inside it, so no escalation.
+- The tester passed and no dependency was added.
+- No child-facing text changed, and neither did `openapi.yaml`, a migration or the plan.
+- No pre-existing test was touched (`Test changes: none`).
+- The one scope decision, Q1 split, was made by the person attending the session, not by an agent.
+
+**The worker's two flags**
+- **`FILTER(BOUND(?borderLabelRaw))`:** decided, kept. A border with neither label is still dropped whole, as on `main`.
+- **Denali changes on the first refresh:** deferred to T-095. The live check showed Denali has only a `mul` label too, so Alaska's highest point will go from blank to "Denali".
+
+**Commits**
+- **`e3758b9`:** adds a `## Review` section to the brief, sets Status to approved and Next step to `human`, and adds my Sessions row. This keeps the review in git history.
+- **`67a8eb2`, the sweep:**
+  - Deleted the brief and the T-084 entry from `tasks.md`, and added a line to the sweep log.
+  - Amended T-095 to take over T-084's leftover "Done when" items: re-record both fixtures, and check live that Alaska's capital is `Juneau`. It also carries the Denali note. I amended rather than adding a task because T-095 already owns the first real refresh PR.
+  - Added a T-084 line under Completed tasks in `PROGRESS.md`, and rewrote the known-gap line about the monthly refresh.
+
+**PR #105 body:** rewritten with the TL;DR, all ten criteria verbatim with what verified each, the live check results, the review, and where the findings went.
+
+I left `runs/T-084-mul-labels.md` unchanged; its outcome line is the orchestrator's to write.
+
+## Ended — 2026-10-29
+Reviewer approved and marked PR Dkaattae/geo-discovery-zone#105 ready. It is Dkaattae's to merge. No role merged.
