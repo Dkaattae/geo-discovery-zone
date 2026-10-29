@@ -237,7 +237,7 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
 
-### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · todo
+### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · doing
 **Depends on:** nothing. The lists and the five added farm animals were approved by Dkaattae on 2026-10-27.
 **Option chosen 2026-10-27 (Dkaattae): (a)**, a person-approved "also
 grown/raised" list per state, used as an exclusion. **Lists approved
