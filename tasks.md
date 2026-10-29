@@ -171,7 +171,8 @@ serves, so a curated field reaches a child once a template asks about it
 (since T-026, PR #91, every topic field has one) and both committed files are
 regenerated (T-087).
 
-### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · todo
+### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · doing — brief blocked on Q1
+**Expanded 2026-10-29** into `tasks/T-084-mul-labels.md`, drafted for the split (query half only). It is blocked on Q1 there: a person picks split or whole.
 **Depends on:** — (T-077's guard landed in PR #77, so this is a fix, not a
 safety net). **Gates switching on the monthly refresh routine**: since T-077, a
 live refresh blanks Alaska's capital, with a warning, instead of shipping
