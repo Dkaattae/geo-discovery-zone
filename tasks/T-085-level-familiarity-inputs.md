@@ -1,7 +1,7 @@
 # T-085a — Level input the weights cannot reach: Hawaii and Alaska are drawn apart from the mainland
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved (escalated)`
+**Next step:** `human` (merge decision, see `## Review`)
 **Decision:** Dkaattae, 2026-10-29, given in the orchestrator's session, answering the worker's block: "split it — do T-085a now"
 **Approved:** orchestrator — 2026-10-29, unattended run (T-085a, after the split). See `runs/T-085-level-familiarity-inputs.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-29`
@@ -20,6 +20,7 @@
 | worker (T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value as every row above, from `$CLAUDE_CODE_REMOTE_SESSION_ID`; the tester must confirm its own id differs) |
 | tester (T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value again. This run is orchestrated (`runs/T-085-level-familiarity-inputs.md` exists), and every orchestrated role shares one id, so the id check proves nothing either way. Independence rests on being a freshly spawned subagent with its own context, not on a separate session) |
 | tester (T-085a, attended: applied the approved test change request) | 2026-10-29 | cse_011oDiJfZrCMMJkAPHVAy8tQ (differs from every row above) |
+| reviewer (T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (orchestrated, shared id, P-14) |
 
 ## Goal
 
@@ -569,6 +570,68 @@ constant-in-E-22 rule).
   `hand-check-levels-verify` criterion 7's JSON parse if it were in the block.
 - The proposed modify keeps the numeric case byte-identical
   (`rank_bucket_edges: [10, 20, 35]`) and pins string arrays exactly as hard.
+
+## Review
+
+**TL;DR (reviewer, 2026-10-29): approved, escalated. The code change is small, in
+style and inside the Constraints; the suite is green; every pre-existing test
+change is one of Dkaattae's 30 approved rows, all in the tester's `be2557c`.
+Escalated because the brief reserves one judgement for a person (are the six
+new levels right for a child) and because the −2 amount was queued as "a first
+guess the task may tune" but E-22 now records it as approved.**
+
+**Every role's work is in the PR.** Sessions rows: expander (x2), worker (x2),
+tester (x2). Commits: `7a8c10d`, `c0a76d6`, `5b42feb` (expander), `e02fa6f`,
+`f97c283` (worker), `b061fd8`, `be2557c`, `971a3bb` (tester), plus the
+orchestrator's run-log commits. Nothing stranded.
+
+**Lanes.**
+- **Expander** commits touch only the brief and `tasks.md`.
+- **Worker** `f97c283` touches only the Constraints' files: `seed-level.ts`,
+  the question file, `content.json`, E-22, a new test file, the brief.
+- **Tester** commits touch only test files and the brief. The 10 modified
+  pre-existing test files match rows 1-30 of the approved request; I read the
+  diff of each and none asserts less than the row says.
+- **Orchestrator** commits touch only `runs/` and the brief header.
+
+**Findings.** None blocks.
+
+1. **E-22 overstates what was approved (non-blocking, decided by the human
+   at merge).** `engineering-decisions.md` E-22, 2026-10-29 paragraph: "The
+   list, the amount and the three templates were approved by Dkaattae on
+   2026-10-27; the amount is that approval's −2, not tuned." The queue entry
+   that recorded the approval says "The membership is approved. The amounts are
+   a first guess the task may tune." The brief then pinned −2 under an
+   orchestrator stamp. If Dkaattae confirms −2, the sentence is true now; if
+   not, it needs correcting. Not a new task: the merge decision settles it.
+2. **One overlong line in E-22** (`engineering-decisions.md:1154`, 127
+   chars) and a short line in "Revisit when". Cosmetic; not queued.
+
+**Worker's and tester's flags, disposed.**
+- **Three flat keys, not a nested object**: accepted. It is the only shape both
+  existing E-22 block rules can read, and it keeps `familiarity_bonus` a
+  number. Restructuring when a second input lands is written into T-085b.
+- **`familiarity_bonus` now means the drawn-apart amount**: deferred to T-085b
+  (written into its entry).
+- **The Revisit sentence keeps a bare "T-085"** for the loose-ends criterion-5
+  regex: accepted, the sentence is true as written. T-085b's entry notes it.
+- **Two conflicting constant-in-E-22 rules (row 1)**: settled by Dkaattae's
+  approval of row 1; I concur, numeric arrays are matched exactly as before.
+- **Shared session id**: already `P-14` in `process-tasks.md`; nothing new.
+- **Census hosts refused by the proxy**: already T-085b's `Depends on`, with
+  the three ways a person can unblock it; no separate ticket.
+
+**Escalation.** Outside the envelope on: (a) the brief's Review checklist,
+which only a person can tick (HI 4.5 / 5.5 / 7.5 and AK 4 / 5 / 6 next to
+their neighbours); (b) the amount −2 being fixed by the brief rather than by a
+person (finding 1). Inside it on everything else: tester pass, suite green,
+nothing outside Constraints, no dependency, no `openapi.yaml`, migration or
+plan change, no child-readable text, test changes approved by a person,
+`CI fix: none`.
+
+**Verified locally on `6793b38`:** question-bank `bun test` 2558 pass 0 fail,
+typecheck, lint and `format:check` clean; backend `uv run pytest -q` 742 pass
+9 skipped, `make lint` clean.
 
 ## Test change request
 
