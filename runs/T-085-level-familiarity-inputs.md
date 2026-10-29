@@ -1,7 +1,7 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city — run log
 
 **Task:** T-085 · **Branch:** `claude/loving-knuth-umj4pp` · **PR:** #107
-**Started:** 2026-10-29 · **Outcome:** in progress
+**Started:** 2026-10-29 · **Outcome:** ready for merge — escalated, needs Dkaattae's decision
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -205,3 +205,57 @@ Raised by the tester in commit `b061fd8` (branch head at halt). Rows not copied 
 
 ## Human answer — 2026-10-29
 Dkaattae, in the orchestrator's session: "ci fixed please proceed". The branch head had moved since the halt (`6a515e2` → `971a3bb`): an attended tester session applied the approved test change request (`be2557c`) and recorded a pass (`971a3bb`). Header on re-read: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-29`. The orchestrator carried on from `Next step`.
+
+## Round 6 — reviewer (T-085a) — 2026-10-29
+`Next step` on entry: `reviewer` → on exit: `human` (Status `pass` → `approved (escalated)`, read from `7a1cbb9`; the sweep in `3079bf6` deleted the brief)
+
+**T-085a: I approved the work and escalated the merge.** PR #107 is now marked ready, not draft, and its body opens with an escalation note: do not merge without a decision. The sweep went into the PR branch and the push landed: local HEAD and `origin/claude/loving-knuth-umj4pp` are both `3079bf6`. **Next: Dkaattae decides the two points below, then merges or not.** I did not merge.
+
+**What Dkaattae has to decide before merging**
+- **(a) Are the six new levels right?** The brief's Review checklist leaves one judgement to a person: do Hawaii at 4.5 / 5.5 / 7.5 and Alaska at 4 / 5 / 6 look right for a 7-to-10-year-old next to their neighbours? No test can answer that.
+- **(b) Was −2 approved?**
+  - The queue's 2026-10-27 record says "The amounts are a first guess the task may tune."
+  - The brief fixed −2 under the orchestrator's unattended stamp.
+  - E-22 now says "the amount ... approved by Dkaattae on 2026-10-27".
+  - If Dkaattae confirms −2, that sentence is true. If not, it needs correcting.
+
+**Review results**
+- **Every role's work is in the PR.** Each Sessions row has its commits on this branch; nothing is stranded elsewhere.
+- **Each role stayed in its lane:**
+  - the expander changed only `tasks/` and `tasks.md`;
+  - the worker's `f97c283` changed only files the Constraints allow;
+  - the tester changed only tests and the brief;
+  - the orchestrator changed only `runs/` and the brief header.
+- **Pre-existing test changes:** all 30 were approved row by row by Dkaattae in an attended tester session, and all are in the tester's commit `be2557c`. None was deleted. I read each diff against its row and none tests less than the row says.
+- **Code:** a 5-line conditional in `levelFor`, with every number and list kept in `LEVEL_SEED_WEIGHTS`. It fits the module.
+- **Findings:** nothing blocks. Besides (b), E-22 has one 127-character line. That is cosmetic and I did not queue it.
+- **Flags from the worker and tester, settled:**
+  - **The three flat keys:** accepted.
+  - **The meaning of the `familiarity_bonus` name, and the bare "T-085" kept in E-22's Revisit sentence:** written into T-085b.
+  - **Test change request row 1:** I agree with Dkaattae's approval.
+  - **The shared session id:** already tracked as P-14.
+  - **Census hosts refused by the proxy:** already T-085b's `Depends on`.
+
+**Suite, run locally on `6793b38`**
+- **question-bank:** 2558 pass, 0 fail. Typecheck, lint and `format:check` are clean. I re-ran the tests after the sweep: still 0 fail.
+- **backend:** 742 pass, 9 skipped. `make lint` is clean.
+- **Not run here:** the full frontend suite (`bun install` is refused by the proxy) and the Docker integration job.
+- **CI:** the checks were still running when I pushed the sweep, so CI has to run again on `3079bf6`.
+
+**Commits pushed**
+- **`7a1cbb9`:** a `## Review` section in the brief, `Status: approved (escalated)`, `Next step: human`, and a reviewer row in the Sessions table.
+- **`3079bf6`, the sweep:**
+  - the brief is deleted;
+  - the T-085 entry is gone from `tasks.md`, and its accepted Rhode Island risk record moved into T-085b;
+  - T-085b now carries what T-085a left it: the key shape, the Revisit sentence, and the new pins that will go red;
+  - T-095 lists the two new test files that pin bank state;
+  - `PROGRESS.md` has a Completed-tasks entry and an updated Question-bank paragraph.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-085-level-familiarity-inputs.md (deleted; the Review section is in `7a1cbb9`)
+- https://github.com/Dkaattae/geo-discovery-zone/pull/107
+
+## Ended — 2026-10-29
+PR #107 marked ready by the reviewer, escalated. The merge is Dkaattae's: decide (a) whether HI 4.5/5.5/7.5 and AK 4/5/6 look right, and (b) whether −2 was approved, so E-22's "approved by Dkaattae on 2026-10-27" stands or is corrected. No role merges (D-4).
