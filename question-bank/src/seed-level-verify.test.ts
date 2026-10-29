@@ -481,20 +481,29 @@ describe("T-023 criteria 17-18: concept_load and familiarity_bonus", () => {
     }
   });
 
-  test("criterion 18: familiarity_bonus is 0, and the stage takes no player input", () => {
-    expect(LEVEL_SEED_WEIGHTS.familiarity_bonus).toBe(0);
+  // Modified T-085a (Test change request row 15): T-085a sets the term to 2.
+  test("criterion 18: familiarity_bonus is 2 (T-085a), and the stage takes no player input", () => {
+    expect(LEVEL_SEED_WEIGHTS.familiarity_bonus).toBe(2);
     // questions, entities, templates: at most three parameters.
     expect(seedLevels.length).toBeLessThanOrEqual(3);
     const code = readFileSync(join(SRC, "seed-level.ts"), "utf8")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\/\/.*$/gm, "");
     expect(code).not.toMatch(/profile|player|home_?state|homeState|famous/i);
-    // No list of entities anywhere in the constant: only number arrays.
+    // No list of entities anywhere in the constant: only number arrays, except
+    // T-085a's two approved lists, pinned exactly (Test change request row 29).
+    const { familiarity_bonus_states, familiarity_bonus_templates, ...rest } = LEVEL_SEED_WEIGHTS;
+    expect([...familiarity_bonus_states]).toEqual(["us-state-hi", "us-state-ak"]);
+    expect([...familiarity_bonus_templates]).toEqual([
+      "tpl-identify-on-map",
+      "tpl-click-the-map",
+      "tpl-climate-of",
+    ]);
     const walk = (v: unknown): void => {
       if (Array.isArray(v)) for (const x of v) expect(typeof x).toBe("number");
       else if (v && typeof v === "object") for (const x of Object.values(v)) walk(x);
     };
-    walk(LEVEL_SEED_WEIGHTS);
+    walk(rest);
   });
   test("criterion 18: with every rank equal, a question's level depends only on template and near count (no per-entity bonus)", () => {
     const states = bank().map((e) => ({ ...e, population_rank: 25, area_rank: 25 }));

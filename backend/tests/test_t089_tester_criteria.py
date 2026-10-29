@@ -253,9 +253,11 @@ def test_criterion_12_no_tracked_file_names_lib_session_ts_outside_the_allowed()
 
 # --- Criterion 13: E-28, and E-1..E-27 untouched ------------------------------
 
-#: sha256 of `engineering-decisions.md` on the default branch (115324 bytes).
-DECISIONS_ON_MAIN = "5d033ac59c3e422e601fb7dc40720cf5d74b3e792bd24f788841bebb4d8a2dac"
-DECISIONS_ON_MAIN_LEN = 115324
+#: sha256 of `engineering-decisions.md` up to E-28 (E-1..E-27), re-pinned at
+#: 6a515e2 (re-pinned T-085a, Test change request row 28) after T-085a amended
+#: E-22 (117864 bytes).
+DECISIONS_ON_MAIN = "fde253a730e3f673a6342505b69c85d04be4710f5f00e2f11ba36135eb08d34f"
+DECISIONS_ON_MAIN_LEN = 117864
 
 
 def decisions() -> str:

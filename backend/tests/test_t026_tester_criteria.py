@@ -65,8 +65,10 @@ def test_c37_old_served_questions_are_byte_for_byte_main_s() -> None:
     ]
     assert len(old) == 100
     # sha256 of json.dumps(main's served questions, sort_keys=True), recorded at 45b00d7.
+    # Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 26), after
+    # T-085a moved the HI/AK identify-on-map levels.
     digest = hashlib.sha256(json.dumps(old, sort_keys=True).encode()).hexdigest()
-    assert digest == "55ce822c824d8fff500a55d04f8ba5771aedc7447e2585641d9dc5f61ef183d5"
+    assert digest == "a5ab2c2915ca3ff03e0d8be02f371f1dccf9e7b2d798e359e2df98a0ddda0266"
 
 
 def test_c37_no_served_question_gains_a_prose_field() -> None:

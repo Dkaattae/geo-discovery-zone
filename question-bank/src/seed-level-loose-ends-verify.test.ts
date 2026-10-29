@@ -36,10 +36,11 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
 // ---- baselines at 41811f9 ----
 
-// Criterion 10's levels and weights are re-pinned at b0ee336, over all of
-// TEMPLATES (T-070 rows W40 and W41, E-30). Computed in a worktree of b0ee336.
+// Criterion 10's levels and weights are re-pinned at 6a515e2, over all of
+// TEMPLATES: re-pinned T-085a (Test change request rows 3 and 4, E-30), after
+// T-085a lowered six HI/AK levels by 2 and added its two familiarity keys.
 const R_LEVELS_COUNT = 415;
-const R_LEVELS_SHA = "a3a28b64868133f64d53b620f27698a7ba4dbb3a22a6b74834f2a800bb102ca0";
+const R_LEVELS_SHA = "278a0744173b07550e43e2c431ca26f0889412d5362888a5e0beb3ada5cac59f";
 const R_WEIGHTS = {
   rank_bucket_edges: [10, 20, 35],
   population_rank_weight: 1,
@@ -58,12 +59,15 @@ const R_WEIGHTS = {
     "tpl-farm-animal-of": 1,
   },
   concept_load_default: 1,
-  familiarity_bonus: 0,
+  familiarity_bonus: 2,
+  familiarity_bonus_states: ["us-state-hi", "us-state-ak"],
+  familiarity_bonus_templates: ["tpl-identify-on-map", "tpl-click-the-map", "tpl-climate-of"],
 };
-// Criterion 12, re-pinned at T-070's branch head, E-30 included (row W42, E-30).
-const HEAD_OUTSIDE_E22_SHA = "e487a48196d6de37dd060305e9629ec375c1a195eb0fcc5cb874a2176ff663b3";
+// Criterion 12, re-pinned at 6a515e2: re-pinned T-085a (Test change request
+// rows 5 and 6, E-30), after T-085a renamed E-22's heading.
+const HEAD_OUTSIDE_E22_SHA = "4942e90431cd81d5c020b3de224ec78f409eef8345265c4087d4fbe6a3d0eeb7";
 const BASE_E22_HEADING =
-  "## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` is 0";
+  "## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` lowers only the states drawn apart from the mainland";
 const BASE_E_HEADING_COUNT = 23;
 const BASE_TABLE_SHA = "abbae9b5089f52608433bae0b8d0e25d9a4fe389b1058fed9a8f9d7199329efd";
 
@@ -264,17 +268,20 @@ describe("T-086 criteria 5-6: no stale T-025 future references in E-22", () => {
     expect(text).not.toMatch(/so T-025 can set/);
   });
 
-  test("criterion 6: the 'Why familiarity_bonus is 0' bullet still explains it and keeps the term", () => {
+  // Modified T-085a (Test change request row 2): the "Why familiarity_bonus
+  // is 0" bullet became "What familiarity_bonus covers" (T-085a criterion 20).
+  test("criterion 6: the 'What familiarity_bonus covers' bullet explains its sources and keeps the term (T-085a)", () => {
     const bullets = e22()
       .split(/\n(?=- )/)
-      .filter((b) => /Why `familiarity_bonus` is 0/.test(b));
+      .filter((b) => /What `familiarity_bonus` covers/.test(b));
     expect(bullets.length).toBe(1);
     const b = flat(bullets[0] as string);
     expect({
       home: b.includes("home state"),
       famous: b.includes("famous"),
-      stays: /term stays in the formula and the constant/.test(b),
-    }).toEqual({ home: true, famous: true, stays: true });
+      serving: b.includes("serving time"),
+      approved: b.includes("approved"),
+    }).toEqual({ home: true, famous: true, serving: true, approved: true });
   });
 });
 
@@ -339,7 +346,7 @@ describe("T-086 criteria 7-9: the band paragraph", () => {
 // ---- criteria 10-12: what must not move ----
 
 describe("T-086 criteria 10-12: what must not move", () => {
-  test("criterion 10: the seeded levels by id, over all TEMPLATES, equal b0ee336's", () => {
+  test("criterion 10: the seeded levels by id, over all TEMPLATES, equal 6a515e2's (re-pinned T-085a, row 3)", () => {
     const entities = bank();
     const { questions } = buildChoices(generate(entities, TEMPLATES).drafts, entities, TEMPLATES);
     const pairs = seedLevels(questions, entities, TEMPLATES)
@@ -349,7 +356,7 @@ describe("T-086 criteria 10-12: what must not move", () => {
     expect(sha(JSON.stringify(pairs))).toBe(R_LEVELS_SHA);
   });
 
-  test("criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to b0ee336's", () => {
+  test("criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to 6a515e2's (re-pinned T-085a, row 4)", () => {
     expect(LEVEL_SEED_WEIGHTS).toEqual(R_WEIGHTS);
   });
 

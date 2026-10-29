@@ -295,8 +295,11 @@ describe("T-025 criteria 1-5: the 30 questions are recorded", () => {
     }
   });
 
-  test("criterion 4: the Final column equals seedLevels under the committed weights (within 0.05)", () => {
-    const levels = levelsById();
+  // Modified T-085a (Test change request row 7): the T-025 table keeps its
+  // HI/AK values (T-085a criterion 22), so it is checked under T-025's weights:
+  // the committed constant with familiarity_bonus overridden to 0 in place.
+  test("criterion 4: the Final column equals seedLevels under T-025's weights (the committed constant with familiarity_bonus overridden to 0 in place, T-085a), within 0.05", () => {
+    const levels = withWeights({ ...current(), familiarity_bonus: 0 }, levelsById);
     for (const r of table()) {
       const id = rowId(r);
       const computed = levels.get(id) as number;
@@ -381,10 +384,22 @@ function leaves(w: typeof T023): Leaf[] {
 
 const current = () => structuredClone(LEVEL_SEED_WEIGHTS) as unknown as typeof T023;
 
+/**
+ * T-085a (Test change request rows 8 and 9): T-085a, not T-025, changed
+ * familiarity_bonus and added familiarity_bonus_states and
+ * familiarity_bonus_templates, so the T-025 record is compared without them.
+ */
+const T085A_KEYS = new Set([
+  "familiarity_bonus",
+  "familiarity_bonus_states",
+  "familiarity_bonus_templates",
+]);
+const t025Leaves = () => leaves(T023).filter((l) => !T085A_KEYS.has(l.key));
+
 describe("T-025 criteria 6-9: the weight decision is recorded and matches the code", () => {
   test("criterion 6: the 'which weights changed' list names exactly the changed keys, each with old -> new and a reason", () => {
     const final = current();
-    const changed = leaves(T023).filter((l) => l.get(T023) !== l.get(final));
+    const changed = t025Leaves().filter((l) => l.get(T023) !== l.get(final));
     const s = e22();
     const at = s.search(/weights? changed/i);
     expect(at).toBeGreaterThanOrEqual(0);
@@ -423,7 +438,7 @@ describe("T-025 criteria 6-9: the weight decision is recorded and matches the co
     // Pins the hand-off state the record describes; a different committed
     // constant would need the record (above) to change with it.
     const final = current();
-    const changed = leaves(T023)
+    const changed = t025Leaves()
       .filter((l) => l.get(T023) !== l.get(final))
       .map((l) => `${l.key}:${l.get(T023)}->${l.get(final)}`);
     expect(changed).toEqual([`concept_load["${CAPITAL}"]:1->2`]);
@@ -540,8 +555,11 @@ function exportSignatures(): string[] {
 }
 
 describe("T-025 criteria 10-13: what must still hold", () => {
-  test("criterion 10: the key set of LEVEL_SEED_WEIGHTS and of concept_load equal the T-023 sets", () => {
-    expect(Object.keys(LEVEL_SEED_WEIGHTS).sort()).toEqual(Object.keys(T023).sort());
+  // Modified T-085a (Test change request row 10): plus T-085a's two keys.
+  test("criterion 10: the key set of LEVEL_SEED_WEIGHTS and of concept_load equal the T-023 sets plus T-085a's familiarity_bonus_states and familiarity_bonus_templates", () => {
+    expect(Object.keys(LEVEL_SEED_WEIGHTS).sort()).toEqual(
+      [...Object.keys(T023), "familiarity_bonus_states", "familiarity_bonus_templates"].sort(),
+    );
     // T-026 (approved Test change request row 74): plus exactly the six new ids.
     expect(Object.keys(LEVEL_SEED_WEIGHTS.concept_load).sort()).toEqual(
       [...Object.keys(T023.concept_load), ...T026_IDS].sort(),
@@ -579,20 +597,31 @@ describe("T-025 criteria 10-13: what must still hold", () => {
     expect(TEMPLATES).toHaveLength(9);
   });
 
-  test("criterion 12: familiarity_bonus is still 0", () => {
-    expect(LEVEL_SEED_WEIGHTS.familiarity_bonus).toBe(0);
+  // Modified T-085a (Test change request row 11).
+  test("criterion 12: familiarity_bonus is 2, set by T-085a", () => {
+    expect(LEVEL_SEED_WEIGHTS.familiarity_bonus).toBe(2);
   });
 
   test("criterion 12: no famous / familiar / well-known list under src/ beyond what aa88101 had", () => {
     // Non-test source only: test files (this one included) name the words to
-    // check for them. These six lines are every match at aa88101.
+    // check for them. The curated/ lines are every curated/ match at aa88101;
+    // the seed-level.ts lines are re-pinned at 6a515e2 (re-pinned T-085a, Test
+    // change request row 12), every match in T-085a's seed-level.ts.
     const BASELINE = [
       "curated/us-states.ts:* One to three genuinely famous plant crops, hand-picked (not NASS-derived,",
       'curated/us-states.ts:text: "Idaho grows more potatoes than any other state, and its license plates say Famous Potatoes.",',
       'curated/us-states.ts:text: "Kentucky is famous for the Kentucky Derby, a horse race run every year since 1875.",',
-      "seed-level.ts:*         - familiarity_bonus           0 for now: see E-22",
-      "seed-level.ts:familiarity_bonus: 0,",
-      "seed-level.ts:weights.familiarity_bonus;",
+      "seed-level.ts:*         - familiarity_bonus           drawn apart from the mainland: see E-22",
+      "seed-level.ts:* Subtracted from a question whose entity is in `familiarity_bonus_states`",
+      "seed-level.ts:* and whose template is in `familiarity_bonus_templates`; every other",
+      "seed-level.ts:familiarity_bonus: 2,",
+      'seed-level.ts:familiarity_bonus_states: ["us-state-hi", "us-state-ak"] as readonly string[],',
+      "seed-level.ts:familiarity_bonus_templates: [",
+      "seed-level.ts:const familiarity =",
+      "seed-level.ts:weights.familiarity_bonus_states.includes(own.id) &&",
+      "seed-level.ts:weights.familiarity_bonus_templates.includes(template.id)",
+      "seed-level.ts:? weights.familiarity_bonus",
+      "seed-level.ts:familiarity;",
     ];
     const walk = (d: string): string[] =>
       readdirSync(d).flatMap((f) => {
@@ -621,9 +650,13 @@ describe("T-025 criteria 10-13: what must still hold", () => {
     expect(hits).toEqual([...BASELINE].sort());
   });
 
-  test("criterion 12: seed-level.ts names no state", () => {
+  // Modified T-085a (Test change request row 13): T-085a criterion 6 requires
+  // exactly the two drawn-apart ids in the constant.
+  test("criterion 12: seed-level.ts names no state but us-state-hi and us-state-ak (T-085a)", () => {
     const src = readFileSync(join(SRC, "seed-level.ts"), "utf8");
-    expect(src).not.toMatch(/us-state-[a-z]{2}/);
+    expect(new Set(src.match(/us-state-[a-z]{2}/g) ?? [])).toEqual(
+      new Set(["us-state-hi", "us-state-ak"]),
+    );
     for (const e of bank())
       expect({ name: e.name, named: src.includes(`"${e.name}"`) }).toEqual({
         name: e.name,
@@ -738,10 +771,12 @@ function walkFiles(d: string): string[] {
 }
 
 describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified", () => {
-  // T-070 row W38 (E-30): every file under data/ is pinned at b0ee336, with no
+  // T-070 row W38 (E-30): every file under data/ is pinned, with no
   // exclusion. Bank files go through `bankFileDigest` (built_at aside); the rest
   // are hashed byte for byte. The fixtures are not pinned: a refresh re-records them.
-  test("criterion 14: question-bank/data is unchanged since b0ee336, built_at aside", () => {
+  // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 14), after
+  // T-085a regenerated the question file.
+  test("criterion 14: question-bank/data is unchanged since 6a515e2, built_at aside", () => {
     const BANK = "question-bank/data/us-states/";
     const digest = sha(
       walkFiles(join(REPO, "question-bank/data"))
@@ -756,7 +791,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
         })
         .join(""),
     );
-    expect(digest).toBe("7760ab89e1031e6fde35ea78a5844e270025224ea1ff593749d620ecd7e207a6");
+    expect(digest).toBe("2edc3a19c1fa094b638ea61bc1493a67c141c0b23d963f98b038fdca63660d49");
   });
 
   // T-040 archived this file byte-for-byte and replaced the served one with the generated bank.
@@ -882,6 +917,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // Re-pinned by T-026's approved Test change request (rows 1–92, A1; this is A2).
     // Re-pinned by T-092's approved Test change request rows 1–31 (this is row 32).
     // Re-pinned at T-070's branch head after its approved rows W1–W57 (this is W39).
-    expect(digest).toBe("e82de50155b301b30b9f9a85591a1754cf4cab560ec730e5078f20d326d21ec4");
+    // Re-pinned by T-085a's approved Test change request rows 1, 15 and 29 (this is row 30).
+    expect(digest).toBe("b12acc913808ae57927a14931f681b0f0cd27ed181c61a73c090e14fc2719228");
   });
 });
