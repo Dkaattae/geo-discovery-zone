@@ -89,7 +89,9 @@ restored per-template answer-position checks (PR #101): T-094 deleted. Swept aga
 after T-070 re-pinned the digest guards at `b0ee336` (PR #103): T-070 deleted;
 T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 2026-10-29, after T-084 made the 50-state query read `mul`
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
-live Juneau check._
+live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
+Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended._
 
 ## How this list is ordered
 
@@ -181,78 +183,8 @@ Since T-040 (PR #88) every served question is generated, as the plan's central
 claim asks (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · doing (as T-085a)
-**Split 2026-10-29 (Dkaattae, "split it — do T-085a now"),** after the worker
-found no Census Bureau host reachable from the session. **T-085a** (the brief
-in `tasks/`, PR #107) lands the drawn-apart entry only. The largest-city
-entry, its 17-state list and the accepted Rhode Island risk move to **T-085b**
-below; the text in this entry about them is kept as the record of what was
-approved.
-**Depends on:** nothing. The list below was approved by Dkaattae on 2026-10-27.
-**Option chosen 2026-10-27 (Dkaattae): the person-approved `familiarity_bonus`
-list.** **The largest-city risk is accepted** (Dkaattae, same day): a
-largest-city entry lowers Providence (RI) from 10, which T-025 read as
-`about right`, and that is wanted. **This line is the record of the accepted
-risk** until T-085 writes it into E-22. It could not go into E-22 directly:
-T-089's and T-092's verify tests pin E-1..E-28 byte for byte, so that edit
-needs this task's attended Test change request.
-**List approved 2026-10-27 (Dkaattae)** (drafted in a chat session
-from E-22's T-025 table and E-26/E-27 table D, not from a committed source).
-The membership is approved. The amounts are a first guess the task may tune. `familiarity_bonus` becomes a per-entry lookup, not one scalar:
-- **Drawn apart from the mainland, −2** on `tpl-identify-on-map`,
-  `tpl-click-the-map` and `tpl-climate-of`: **HI** (6.5→4.5, 7.5→5.5,
-  9.5→7.5), **AK** (6→4, 7→5, 8→6).
-- **Capital is the state's largest city, −1** on `tpl-capital-of`, 17 states:
-  AZ Phoenix, AR Little Rock, CO Denver, GA Atlanta, HI Honolulu, ID Boise,
-  IN Indianapolis, IA Des Moines, MA Boston, MS Jackson, OH Columbus,
-  OK Oklahoma City, RI Providence, TN Nashville, UT Salt Lake City,
-  WV Charleston, WY Cheyenne. **Flag:** TN (Memphis), WV (Huntington) and WY
-  (Casper) are close calls. Check all 17 against current Census city
-  populations before they ship, and leave out any the source does not confirm.
-**New 2026-10-16, from T-025's reviewer (PR #85).** T-025's hand-check
-(`engineering-decisions.md` E-22, "T-025 hand-check of 30 questions") left six
-of 30 rows `too hard`, and no weight can fix them, because the formula sees
-only rank and near-distractor count:
-- **Map, both templates: HI and AK.** A state drawn apart from the mainland, or
-  in an inset, is easy to pick out. Its ranks still put it with RI and VT.
-- **Capital: Denver and Honolulu.** Each is its state's largest city, so it is
-  likelier to be a name a child has met.
-**Options (a person picks one, because a familiarity list needs approval under
-the content rule):**
-- **A fact field per input**, such as "drawn apart from the mainland" (AK, HI)
-  or "capital is the largest city". These are checkable facts, not guesses
-  about fame. A new term in the formula, a new key in `LEVEL_SEED_WEIGHTS`, and
-  a new E-22 bullet.
-- **A person-approved `familiarity_bonus` list.** The term and the key exist
-  already.
-- **Accept it**, and record in E-22 that seeded levels are this coarse until
-  Elo (plan §1.4).
-**Check while there:** Providence is Rhode Island's largest city too, but T-025
-marked its row `about right`, at the bank's maximum of 10. A "largest city"
-input would lower it with Denver and Honolulu. Decide whether that is wanted.
-**Test cost:** a new `LEVEL_SEED_WEIGHTS` key, or a changed level, turns
-`hand-check-levels-verify.test.ts` red (criteria 4, 7, 8, 10, 10a), and
-probably `seed-level-verify.test.ts` criterion 20. Plan to attend the tester
-step (D-14, D-15).
-**Since T-086 (PR #86):** `seed-level-loose-ends-verify.test.ts` turns red
-too: criterion 10 pins the 150 levels (sha) and `LEVEL_SEED_WEIGHTS` at
-`41811f9`, and criterion 12 pins `engineering-decisions.md` outside E-22 up to
-E-23. Since T-040 (PR #88) a new `E-n` after E-23 no longer breaks it, but an
-edit to E-1..E-21 or E-23 does. Its criteria 1-8
-read E-22 prose: keep the "What the module exports" bullet, the band
-paragraph's `3.5 - 2 = 1.5`, and a `**Revisit when**` that names T-085 and the
-other three triggers, or list those rows in the Test change request.
-`levelFor` and `nearDistractorCount` are no longer exported (E-22); edit
-`levelFor` in place.
-**Amended 2026-10-23 by T-050's reviewer (PR #92): two more rows.** E-26
-table D marks `tpl-climate-of` HI (9.5) and AK (8) `too hard` for the same
-cause: rank buckets with no input for a state drawn apart. Judge the chosen
-option against them too, which makes six served rows, not four.
-**Done when:** the chosen option has landed and E-22 records it, or E-22 says
-why the coarseness is accepted.
-
 ### T-085b — Capital is the state's largest city: the Census-checked half of T-085 · S · todo
-**Depends on:** T-085a merged (it changes `familiarity_bonus`'s shape and the
+**Depends on:** T-085a (PR #107) merged (it changes `familiarity_bonus`'s shape and the
 bank this regenerates), and **a reachable U.S. Census Bureau release**. The
 2026-10-29 worker found `api.census.gov`, `www.census.gov`, `data.census.gov`
 and `www2.census.gov` refused by the web session's proxy (403 on CONNECT), so
@@ -267,9 +199,27 @@ OH Columbus, OK Oklahoma City, RI Providence, TN Nashville, UT Salt Lake City,
 WV Charleston, WY Cheyenne. **Flag:** TN (Memphis), WV (Huntington) and WY
 (Casper) are close calls. Check all 17 against one named Census release and
 leave out any it does not confirm (strictly larger than every other city).
-**The accepted risk** (Dkaattae, 2026-10-27) is recorded in T-085 above:
-Providence's capital question drops from 10, which T-025 read as
-`about right`. It goes into E-22 with this task.
+**The accepted risk** (Dkaattae, 2026-10-27; moved here from T-085 when
+T-085a landed, PR #107): a largest-city entry lowers Providence (RI) from 10,
+which T-025 read as `about right`, and that is wanted. **This line is the
+record of the accepted risk** until this task writes it into E-22. The amount
+(−1) is a first guess the task may tune; the membership is what was approved.
+**What T-085a left for this task** (reviewer, PR #107):
+- **The key shape.** T-085a added three flat keys: `familiarity_bonus` (the
+  drawn-apart amount, 2), `familiarity_bonus_states` and
+  `familiarity_bonus_templates`. A second input needs either its own three
+  keys or a restructure into per-input entries; decide which, and rename
+  `familiarity_bonus` if it stops meaning "the drawn-apart amount". E-22's
+  constant block must stay JSON-parseable per line
+  (`hand-check-levels-verify` criterion 7) and arrays are matched quoted
+  (`seed-level.test.ts`, as modified by T-085a row 1).
+- **E-22's Revisit sentence** keeps a bare "T-085" only so
+  `seed-level-loose-ends-verify.test.ts` criterion 5's `\bT-085\b` stays green;
+  rewording it is that test's row in the Test change request.
+- **The pins that will go red** are T-085a's family again, plus T-085a's own
+  `familiarity-drawn-apart-verify.test.ts` (it pins the constant's key set,
+  the HI/AK levels, and `5ae564a` digests) and
+  `backend/tests/test_t085a_tester_criteria.py`.
 **Decide in the brief:** how the two inputs combine if one question ever gets
 both (none does under the approved lists).
 **Test cost:** the same family as T-085a (E-22 pins, `LEVEL_SEED_WEIGHTS`
@@ -504,6 +454,13 @@ Alaska's capital is `Juneau` from that live run (it is `Juneau` in the
 committed fixture already). T-084's worker also found Denali has lost its `en`
 label: on `main`'s query Alaska's `highestPoint` came back empty live, and the
 new query binds `Denali`. Expect that field to move on the first refresh.
+**Amended 2026-10-29 by T-085a's reviewer (PR #107).** T-085a re-pinned the
+guards above at `6a515e2` (so `hand-check-levels-verify` criterion 14 is now
+`2edc3a19…`, not `7760ab89…`), and added two more files that pin bank state:
+`question-bank/src/familiarity-drawn-apart-verify.test.ts` (digests of the
+question file, `content.json`, `data/us-states/` and the levels at `5ae564a`)
+and `backend/tests/test_t085a_tester_criteria.py`. A refresh turns both red;
+option (a) must cover them too.
 **Done when:** a refresh that moves a real bank field opens a PR whose suite is
 green, or (c) is chosen and recorded as the next unused `E-n`.
 

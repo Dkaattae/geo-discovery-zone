@@ -211,7 +211,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   the person-approved same-thing lists beside them (E-25). `src/seed-level.ts`
   `seedLevels` (T-023) adds a `level` in 0–18 from plan §1.4's formula, every
   weight in `LEVEL_SEED_WEIGHTS` (E-22), hand-checked against 30 questions
-  (T-025). `src/tags.ts` `tagQuestions` (T-024) adds the other five
+  (T-025), with Hawaii and Alaska two lower on map and climate questions from
+  a person-approved list (T-085a). `src/tags.ts` `tagQuestions` (T-024) adds the other five
   `GET /questions` tags (`scope`, `entityType`, `topic`, `region`, `ageBand`;
   E-23). `write-questions.ts` writes them to the committed question file
   (T-040, E-24).
@@ -364,6 +365,24 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-085a — Hawaii and Alaska are drawn apart from the mainland: two levels
+  lower on map and climate questions** (PR #107, 2026-10-29).
+  `LEVEL_SEED_WEIGHTS.familiarity_bonus` is 2, subtracted only when the entity
+  is in `familiarity_bonus_states` (`us-state-hi`, `us-state-ak`) and the
+  template in `familiarity_bonus_templates` (identify-on-map, click-the-map,
+  climate). Six served levels moved (HI 4.5 / 5.5 / 7.5, AK 4 / 5 / 6),
+  nothing else; both committed files regenerated; E-22 records the input and
+  the six rows. *Where it differed from the brief:* T-085 was split by
+  Dkaattae after the worker found every Census Bureau host refused by the
+  session proxy, so the largest-city half is T-085b. String arrays in the
+  constant could not satisfy both existing E-22 block rules, so 30
+  pre-existing tests were modified (28 raised, 2 found while applying; none
+  deleted), all approved row by row by Dkaattae in an attended tester session.
+  Brief approval was an orchestrator stamp; the reviewer escalated the merge
+  for a person's read of the six levels and of the −2 amount, which the queue
+  had called a first guess. Run orchestrated, one session id across the roles
+  except the attended tester (`P-14`).
 
 - **T-084 — The 50-state query reads Wikidata's `mul` labels after `en`**
   (PR #105, 2026-10-29). `US_STATES_QUERY` asks the label service for
