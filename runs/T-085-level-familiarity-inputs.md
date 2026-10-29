@@ -120,3 +120,55 @@ Orchestrator recorded it in the brief header as a `Decision:` line, set `Status:
 
 ## Approval — 2026-10-29 (T-085a)
 Orchestrator re-wrote the unattended-run `Approved:` stamp for the split brief (not a certification of the criteria). Dkaattae's "do T-085a now" authorised the split, not the 25 criteria, which no person has seen.
+
+## Round 4 — worker (T-085a) — 2026-10-29
+`Next step` on entry: `worker` → on exit: `tester` (Status `awaiting approval` → `awaiting verification`)
+
+T-085a is built and pushed to `claude/loving-knuth-umj4pp` (commit f97c283; `git log origin/claude/loving-knuth-umj4pp -1` shows it). Hawaii and Alaska now come out exactly 2 lower on identify-on-map, click-the-map and climate. Those are the six questions of criterion 1, and no other question changed. Brief is at Status `awaiting verification`, Next step `tester`.
+
+Some existing tests now fail on purpose because they pin the old levels and constant: 25 in question-bank, 3 in backend, plus one question-bank typecheck error from one of them. The tester has to raise a Test change request for a person to approve (D-14).
+
+**What changed**
+- **`question-bank/src/seed-level.ts`**: `familiarity_bonus` is now 2, and the constant gains two lists: `familiarity_bonus_states` (`us-state-hi`, `us-state-ak`) and `familiarity_bonus_templates` (the three templates). `levelFor` subtracts the amount only when both the state and the template are on those lists; the clamp still runs after it. Exports are unchanged.
+- **`question-bank/data/questions/us-states.json`** and **`backend/app/data/content.json`**: regenerated with the brief's two commands. Only the six `level` values changed. Running both commands again on the final tree changed nothing.
+- **`engineering-decisions.md`, E-22 only**:
+  - the heading, formula line and constant block are updated;
+  - the "Why `familiarity_bonus` is 0" bullet is rewritten;
+  - a new 2026-10-29 (T-085a) paragraph gives the amount, the two states, the three templates, Dkaattae's 2026-10-27 approval and a six-row before/after table;
+  - it says the largest-city input is not landed and T-085b decides it;
+  - "Revisit when" is updated.
+  The T-025 table and every other entry are untouched.
+- **`question-bank/src/seed-level-familiarity.test.ts`** (new): checks that the reduction follows the state and the template, that the clamp holds at 2, 1.5 and 2.5, and that setting the amount to 0 or 3 moves exactly the six questions.
+- **Brief**: Handoff (criterion-by-criterion table and stale-test table), a Sessions row and Notes.
+
+**Suite results**
+
+| Suite | Before | After |
+|---|---|---|
+| question-bank tests | 0 fail | 2490 pass, 25 fail |
+| question-bank typecheck | clean | 1 error, in `seed-level-loose-ends-verify.test.ts:353` |
+| question-bank lint | – | clean |
+| backend tests | 739 pass | 736 pass, 3 fail, 9 skipped |
+| backend lint | – | clean |
+
+- **Lint needs an install first**: `bun install --frozen-lockfile` was needed in question-bank, or the 11 T-066 lint tests fail on main too (`oxlint` not found). That installs from the existing lockfile and adds nothing.
+- **Frontend**: the proxy refuses the `react-simple-maps` download, so three map test files can't load. Its failures are identical before and after this change. `bun test src/lib`, which reads `content.json`, passes 96 of 96.
+- **Nothing else moved**: no dependency, lockfile, `openapi.yaml` or entity-file change.
+
+**Tests made stale**: all 28 are listed in the brief with file, test name and a proposed fix. Most just need re-pinning to the new levels and constant.
+
+Two of them can't be made to pass by any version of this change:
+- **The constant-in-E-22 rule in `seed-level.test.ts`** expects lists written without quotes. Another existing test requires the same lines as quoted JSON, so no list of state or template ids can satisfy both. I kept the JSON form.
+- **The loose-ends criterion-6 test** requires a bullet titled "Why `familiarity_bonus` is 0". This brief's criterion 20 forbids that sentence.
+
+**Decisions for others**
+- **Key naming**: I kept three flat keys, with `familiarity_bonus` now meaning the drawn-apart amount, so existing tests that treat it as a number keep working. T-085b's expander should rename or restructure them when the largest-city input arrives.
+- **Session id**: `$CLAUDE_CODE_REMOTE_SESSION_ID` again gave the same id as every earlier row in the Sessions table. The orchestrator should check this before the tester starts, since the tester refuses to run in the worker's session.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-085-level-familiarity-inputs.md
+- /home/user/geo-discovery-zone/question-bank/src/seed-level.ts
+- /home/user/geo-discovery-zone/question-bank/src/seed-level-familiarity.test.ts
+- /home/user/geo-discovery-zone/question-bank/data/questions/us-states.json
+- /home/user/geo-discovery-zone/backend/app/data/content.json
+- /home/user/geo-discovery-zone/engineering-decisions.md
