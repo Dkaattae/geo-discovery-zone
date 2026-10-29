@@ -1,7 +1,7 @@
 # T-070 — Re-pin the digest guards, and let them survive a refresh — run log
 
 **Task:** T-070 · **Branch:** `claude/charming-pascal-jqpxd3` · **PR:** #103
-**Started:** 2026-10-28 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-28 · **Outcome:** in progress (resumed 2026-10-29)
 
 ## Round 1 — task-expander — 2026-10-28
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -104,3 +104,9 @@ I did not compute the new values for W29, W38–W42, W44 or W53; the tester that
 Raised by commit `21de0e4` (header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`). Rows not copied here; the orchestrator has not read them.
 
 What a person has to do: start the `tester` step for T-070 in a session they are attending. It will ask about each row, apply what is approved, and finish verifying. The orchestrator cannot take the approval.
+
+## Attended tester — outside this run — 2026-10-29
+Not spawned by the orchestrator. Header after it: `Test changes: approved — Dkaattae, 2026-10-29`, `Status: pass`, `Next step: reviewer`. Commits `83aadd6` (apply approved test change request), `a0a516e` (verdict pass). Its result was not returned to the orchestrator and is not copied here.
+
+## Resumed — 2026-10-29
+Dkaattae, in the orchestrator's session: "ci is fixed, please proceed". Gates G0–G4 re-run on `a0a516e`: one role (`reviewer`), G1 clean, approved, verdicts 0 fail / 0 blocked, branch matches header.
