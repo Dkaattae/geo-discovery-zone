@@ -181,7 +181,13 @@ Since T-040 (PR #88) every served question is generated, as the plan's central
 claim asks (§1.2), and generation is what turns curated fields
 (§B) into the topics the app does not have yet.
 
-### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · doing
+### T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city · M · doing (as T-085a)
+**Split 2026-10-29 (Dkaattae, "split it — do T-085a now"),** after the worker
+found no Census Bureau host reachable from the session. **T-085a** (the brief
+in `tasks/`, PR #107) lands the drawn-apart entry only. The largest-city
+entry, its 17-state list and the accepted Rhode Island risk move to **T-085b**
+below; the text in this entry about them is kept as the record of what was
+approved.
 **Depends on:** nothing. The list below was approved by Dkaattae on 2026-10-27.
 **Option chosen 2026-10-27 (Dkaattae): the person-approved `familiarity_bonus`
 list.** **The largest-city risk is accepted** (Dkaattae, same day): a
@@ -244,6 +250,33 @@ cause: rank buckets with no input for a state drawn apart. Judge the chosen
 option against them too, which makes six served rows, not four.
 **Done when:** the chosen option has landed and E-22 records it, or E-22 says
 why the coarseness is accepted.
+
+### T-085b — Capital is the state's largest city: the Census-checked half of T-085 · S · todo
+**Depends on:** T-085a merged (it changes `familiarity_bonus`'s shape and the
+bank this regenerates), and **a reachable U.S. Census Bureau release**. The
+2026-10-29 worker found `api.census.gov`, `www.census.gov`, `data.census.gov`
+and `www2.census.gov` refused by the web session's proxy (403 on CONNECT), so
+a person first picks one: allow `*.census.gov` for the session; supply the 17
+rows by hand from one named release; or accept Wikidata P1082 statements whose
+reference is a named Census release (a source change, which needs the
+expander and a fresh approval).
+**Approved 2026-10-27 (Dkaattae), carried over from T-085:** −1 on
+`tpl-capital-of` for AZ Phoenix, AR Little Rock, CO Denver, GA Atlanta,
+HI Honolulu, ID Boise, IN Indianapolis, IA Des Moines, MA Boston, MS Jackson,
+OH Columbus, OK Oklahoma City, RI Providence, TN Nashville, UT Salt Lake City,
+WV Charleston, WY Cheyenne. **Flag:** TN (Memphis), WV (Huntington) and WY
+(Casper) are close calls. Check all 17 against one named Census release and
+leave out any it does not confirm (strictly larger than every other city).
+**The accepted risk** (Dkaattae, 2026-10-27) is recorded in T-085 above:
+Providence's capital question drops from 10, which T-025 read as
+`about right`. It goes into E-22 with this task.
+**Decide in the brief:** how the two inputs combine if one question ever gets
+both (none does under the approved lists).
+**Test cost:** the same family as T-085a (E-22 pins, `LEVEL_SEED_WEIGHTS`
+sha, bank digests). Plan to attend the tester step.
+**Done when:** the confirmed capitals' questions are one lower, E-22 names the
+release and records every row confirmed or left out, and the RI risk is in
+E-22.
 
 ---
 

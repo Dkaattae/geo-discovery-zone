@@ -1,12 +1,12 @@
-# T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city
+# T-085a — Level input the weights cannot reach: Hawaii and Alaska are drawn apart from the mainland
 
-**Status:** `human decision recorded`
-**Next step:** `task-expander`
+**Status:** `awaiting approval`
+**Next step:** `worker`
 **Decision:** Dkaattae, 2026-10-29, given in the orchestrator's session, answering the worker's block: "split it — do T-085a now"
-**Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-085-level-familiarity-inputs.md`.
+**Approved:** `pending` — the split rewrote the criteria, so the 2026-10-29 unattended stamp for the unsplit brief no longer covers them
 **Test changes:** `none`
 **CI fix:** `none`
-**From:** [`tasks.md`](../tasks.md) T-085
+**From:** [`tasks.md`](../tasks.md) T-085 (now T-085a; the largest-city half is T-085b)
 **Branch:** `claude/loving-knuth-umj4pp`
 **PR:** #107, opened draft at expand time, built from the branch above
 **Fault:**
@@ -17,39 +17,57 @@
 |---|---|---|
 | task-expander | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P |
 | worker | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same id as the expander's row: the environment variable gave this value; the tester should check its own differs) |
+| task-expander (split into T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value again, from `$CLAUDE_CODE_REMOTE_SESSION_ID`; see the worker's Note on the shared id) |
 
 ## Goal
 
-Six served questions about Hawaii and Alaska, and the capital questions whose
-answer is the state's largest city, are seeded harder than a child finds them,
-because the level formula sees only rank and near-distractor count. Dkaattae
-chose (2026-10-27) to fix this with the person-approved `familiarity_bonus`
-list in `tasks.md` T-085, and accepted that it lowers Providence too. This task
-lands that list, regenerates the bank, and writes it into E-22.
+Six served questions about Hawaii and Alaska (both map templates and the
+climate question) are seeded harder than a child finds them, because the level
+formula sees only rank and near-distractor count. Dkaattae approved
+(2026-10-27) a person-approved `familiarity_bonus` entry for the two states
+drawn apart from the mainland; this task lands that entry alone, regenerates
+the bank, and writes it into E-22. The largest-city entry needs a Census check
+this environment cannot reach, so it is split out to T-085b (Dkaattae,
+2026-10-29).
 
 ## Already true, and what remains
 
 - **Already true.** The `familiarity_bonus` term exists in the formula and in
-  `LEVEL_SEED_WEIGHTS` (`question-bank/src/seed-level.ts`, `levelFor`), at a
-  single scalar `0` subtracted from every question. The clamp to 0–18 exists.
-  `levelFor` and `nearDistractorCount` are already unexported (E-22, T-086).
-  `ageBand` comes from the template's `min_age_band` (`tags.ts`), not from the
-  level, so it does not move.
-- **Baseline levels in the committed bank at the start of this task**
-  (`question-bank/data/questions/us-states.json`, read by the expander):
-  HI identify 6.5, click 7.5, climate 9.5; AK identify 6, click 7, climate 8.
-  Capital questions of the 17 listed states: AZ 6.5, AR 8.5, CO 7.5, GA 6.5,
-  HI 8.5, ID 9, IN 8, IA 8.5, MA 8, MS 8.5, OH 6.5, OK 8, RI 10, TN 8, UT 8,
-  WV 10, WY 8.5.
-- **Remains.** The per-entry bonus, the source check of the 17 capitals, both
-  committed files regenerated, and E-22 amended.
+  `LEVEL_SEED_WEIGHTS` (`question-bank/src/seed-level.ts:68`), as a single
+  scalar `0` subtracted in `levelFor` (`seed-level.ts:221`) from every
+  question. `levelFor` receives the question, so it can see `templateId` and
+  `entityId`. The clamp to 0–18 exists (`seed-level.ts:222`). `levelFor` and
+  `nearDistractorCount` are already unexported (E-22, T-086). `ageBand` comes
+  from the template's `min_age_band` (`tags.ts`), not from the level, so it
+  does not move.
+- **Baseline levels** ("before": `question-bank/data/questions/us-states.json`
+  at `5ae564a`, which is `origin/main` and this branch's merge base; read by the
+  expander). 415 questions; levels run 3 to 10. Every HI and AK question:
+
+  | Template | HI | AK |
+  |---|---|---|
+  | `tpl-identify-on-map` | 6.5 | 6 |
+  | `tpl-click-the-map` | 7.5 | 7 |
+  | `tpl-climate-of` | 9.5 | 8 |
+  | `tpl-capital-of` | 8.5 | 8 |
+  | `tpl-biggest-state` | 8.5 | 7 |
+  | `tpl-state-animal-of` | 8.5 | 8 |
+  | `tpl-landmark-in` | 8.5 | 8 |
+  | `tpl-crop-of` | 8.5 | 7 |
+
+- **Probably already true after the change, but checked anyway (criterion
+  18).** E-22's range sentences: the lowest map level is 3.5 (CA, TX), and HI's
+  4.5 and AK's 4 stay above it. The highest stays 10. The climate levels 7.5 and
+  6 stay inside the 3–10 range of the 265 T-026 levels.
+- **Remains.** The per-state, per-template entry, both committed files
+  regenerated, and E-22 amended.
 
 ## Acceptance criteria
 
 "The bank" below means `seedLevels` applied to the committed entities in
 `question-bank/data/us-states/` with the default templates, which is what
 `question-bank/data/questions/us-states.json` is generated from. "Before" means
-the levels on `main` at `5ae564a`.
+the levels on `origin/main` at `5ae564a` (the table above).
 
 **Drawn apart from the mainland**
 
@@ -58,130 +76,115 @@ the levels on `main` at `5ae564a`.
    `gen:tpl-click-the-map:us-state-hi` 5.5, `gen:tpl-climate-of:us-state-hi`
    7.5, `gen:tpl-identify-on-map:us-state-ak` 4,
    `gen:tpl-click-the-map:us-state-ak` 5, `gen:tpl-climate-of:us-state-ak` 6.
-2. No other template's question about Hawaii or Alaska changes level because
-   of the drawn-apart input: in particular `gen:tpl-capital-of:us-state-ak`
-   stays 8, and every HI and AK question outside the three templates in
-   criterion 1 has its before level, except `gen:tpl-capital-of:us-state-hi`
-   (criterion 4).
-3. No state other than Hawaii and Alaska gets the drawn-apart reduction on any
-   template.
+2. Every HI and AK question of the other five templates (`tpl-capital-of`,
+   `tpl-biggest-state`, `tpl-state-animal-of`, `tpl-landmark-in`,
+   `tpl-crop-of`) has exactly its before level in the bank; in particular
+   `gen:tpl-capital-of:us-state-hi` stays 8.5 and
+   `gen:tpl-capital-of:us-state-ak` stays 8.
+3. No question about any of the other 48 states changes level, on any template.
+4. On a synthetic input, the reduction follows the entity, not the bank: a
+   `tpl-identify-on-map` question whose entity is `us-state-hi` gets a level 2
+   lower than the same question whose entity is an otherwise identical entity
+   with a different id; and a question on a template outside the three of
+   criterion 1 gets no reduction for `us-state-hi` or `us-state-ak`.
 
-**Capital is the state's largest city**
+**The largest-city half is not landed**
 
-4. In the bank, the `tpl-capital-of` question of every state on the confirmed
-   list (criterion 8) has a level exactly 1 lower than before, and the
-   `tpl-capital-of` question of every other state has its before level. If all
-   17 are confirmed, that is: AZ 5.5, AR 7.5, CO 6.5, GA 5.5, HI 7.5, ID 8,
-   IN 7, IA 7.5, MA 7, MS 7.5, OH 5.5, OK 7, RI 9, TN 7, UT 7, WV 9, WY 7.5.
-5. The largest-city reduction applies only to `tpl-capital-of`: no question of
-   any other template changes level because of it.
-6. The confirmed list is a subset of the 17 approved states (AZ, AR, CO, GA,
-   HI, ID, IN, IA, MA, MS, OH, OK, RI, TN, UT, WV, WY). No state outside the 17
-   gets the reduction, even one whose capital is in fact its largest city.
+5. Every `tpl-capital-of` question in the bank has exactly its before level
+   (all 50).
+6. `LEVEL_SEED_WEIGHTS` names no state id other than `us-state-hi` and
+   `us-state-ak`, and names no capital or city: no unconfirmed largest-city
+   membership ships, not even at a reduction of 0.
 
-**The source check** (the queue entry: "Check all 17 against current Census
-city populations before they ship, and leave out any the source does not
-confirm")
+**The clamp and the module**
 
-7. E-22 names one U.S. Census Bureau release, with its year or vintage, as the
-   source of every city population it records for this task.
-8. For each of the 17 states, E-22 records the capital, its population, the
-   state's largest city other than the capital, and that city's population,
-   all from the release in criterion 7, and whether the state is **confirmed**
-   (the capital's population is strictly greater) or **left out**. A state is
-   on the confirmed list exactly when its row says confirmed, and the set of
-   states that get the reduction in the bank (criterion 4) equals the set E-22
-   marks confirmed.
-9. Every state E-22 marks left out names why (a larger other city, or the
-   release did not give a figure), and its capital question keeps its before
-   level.
-
-**Everything else holds still**
-
-10. Every question in the bank other than the six of criterion 1 and the
-    capital questions of the confirmed states has exactly its before level.
-    No question's fields other than `level` change.
-11. The clamp still holds with the new inputs: `seedLevels` on a synthetic
-    input where the drawn-apart reduction would take a raw level below 0
-    returns 0 for that question, not a negative number; and no level in the
-    bank is below 0 or above 18.
-12. `seedLevels` is still pure and deterministic: called twice on the same
-    inputs it returns deep-equal results, and it mutates neither its
-    `questions`, `entities` nor `templates` arguments.
-13. Every amount and every state id the new inputs use is reachable from
-    `LEVEL_SEED_WEIGHTS`, so the levels change when, and only when, that
-    constant changes. Overriding the constant in place (as T-025 did) to a
-    reduction of 0 for both inputs gives back exactly the before levels for
-    all 415 questions.
-14. `question-bank/src/seed-level.ts` exports exactly what it exports now:
+7. The clamp holds under the new input, on both sides of 0: on a synthetic
+   input, a drawn-apart question whose level before the reduction is exactly 2
+   gets 0; one whose level before the reduction is 1.5 gets 0, not -0.5; and
+   one at 2.5 gets 0.5.
+8. No level in the bank is below 0 or above 18.
+9. `seedLevels` is still pure and deterministic: called twice on the same
+   inputs it returns deep-equal results, and it mutates neither its
+   `questions`, `entities` nor `templates` arguments.
+10. The amount, the two state ids and the three template ids are all read from
+    `LEVEL_SEED_WEIGHTS`: overriding the constant in place (as T-025 did) so
+    the drawn-apart amount is 0 gives back exactly the before levels for all
+    415 questions; and overriding it so the amount is 3 gives the six
+    questions of criterion 1 a level exactly 3 below before, and changes no
+    other question.
+11. `question-bank/src/seed-level.ts` exports exactly what it exports now:
     `seedLevels`, `LEVEL_SEED_WEIGHTS`, `LEVEL_MIN`, `LEVEL_MAX`,
     `LevelSeedWeights`, `LeveledQuestion`. `levelFor` and
     `nearDistractorCount` stay unexported.
 
+**Everything else holds still**
+
+12. Every question in the bank other than the six of criterion 1 has exactly
+    its before level (409 questions).
+13. No question's fields other than `level` change, in the question file or in
+    `content.json`.
+
 **The committed files**
 
-15. `question-bank/data/questions/us-states.json` equals what
+14. `question-bank/data/questions/us-states.json` equals what
     `cd question-bank && bun run ./src/write-questions.ts` writes from the
-    committed tree (byte-identical), and carries the levels of criteria 1, 4
-    and 10.
-16. `backend/app/data/content.json` equals what `make -C backend content`
+    committed tree (byte-identical), and carries the levels of criteria 1
+    and 12.
+15. `backend/app/data/content.json` equals what `make -C backend content`
     writes from the committed tree, and each served question's `level` equals
     the same question's level in the question file.
-17. No file under `question-bank/data/us-states/` changes. No entity gains a
+16. No file under `question-bank/data/us-states/` changes. No entity gains a
     field.
 
 **E-22**
 
-18. E-22 (`engineering-decisions.md`) has a new dated paragraph,
-    `2026-10-29 (T-085)` or the date it lands, that states both inputs: the
-    drawn-apart reduction (amount, the two states, the three templates) and the
-    largest-city reduction (amount, `tpl-capital-of`, the confirmed states),
-    and that the list was approved by Dkaattae on 2026-10-27.
-19. E-22 records the accepted risk: the largest-city input lowers Rhode
-    Island's capital question from 10 to 9, which T-025 had read as
-    `about right`, and Dkaattae accepted that on 2026-10-27. (If RI is left out
-    under criterion 9, E-22 says so instead.)
-20. E-22 has a table of every question whose level changed, one row each, with
-    its id, the before level and the after level, and those values equal the
-    bank's.
-21. No sentence or heading in E-22 still says `familiarity_bonus` is 0 for
-    every question, that it is 0 because no reviewed list exists, or that
-    whether it is set is T-085's question.
-22. E-22's statements about the range of levels over the committed bank (the
+17. E-22 (`engineering-decisions.md`) has a new dated paragraph,
+    `2026-10-29 (T-085a)` or the date it lands, that states the drawn-apart
+    input: its amount (2), the two states (Hawaii, Alaska), the three templates
+    (`tpl-identify-on-map`, `tpl-click-the-map`, `tpl-climate-of`), and that the
+    list was approved by Dkaattae on 2026-10-27.
+18. E-22's statements about the range of levels over the committed bank (the
     "150 levels run from … to …" and "265 new levels run from … to …"
     sentences, and the states named at each end) are true of the regenerated
     bank, or carry a dated note giving the new range and states.
-23. Every key and numeric leaf of `LEVEL_SEED_WEIGHTS` appears in E-22's
-    "constant, as the code spells it" block with its value (the existing rule
-    in `seed-level.test.ts`, "one E-22 heading, and every key and numeric
-    value of LEVEL_SEED_WEIGHTS in it").
-24. E-22's T-025 hand-check table (the 30 rows under "T-025 hand-check of 30
+19. E-22 has a table of every question whose level changed, one row each (six
+    rows), with its id, the before level and the after level, and those values
+    equal the bank's.
+20. E-22 says the largest-city input is not landed and names T-085b as where
+    it is decided; and no sentence or heading in E-22 still says
+    `familiarity_bonus` is 0 for every question, that it is 0 because no
+    reviewed list exists, or that whether it is set is T-085's question.
+21. Every key and numeric leaf of `LEVEL_SEED_WEIGHTS` appears in E-22's
+    "constant, as the code spells it" block with its value.
+22. E-22's T-025 hand-check table (the 30 rows under "T-025 hand-check of 30
     questions") is unchanged, as is every `E-n` entry other than E-22.
 
 **Negative**
 
-25. No new dependency: the three `package.json` files, `bun.lock` files,
+23. No new dependency: the three `package.json` files, `bun.lock` files,
     `backend/pyproject.toml` and `backend/uv.lock` are unchanged.
-26. No test reaches the network.
-27. `openapi.yaml` is unchanged.
+24. No test reaches the network.
+25. `openapi.yaml` is unchanged.
 
 ## Out of scope
 
-- **Tuning the amounts.** The queue says the amounts "are a first guess the
-  task may tune". This brief pins the approved −2 and −1, because a criterion
-  whose expected value the worker may choose is not a criterion. If the worker
-  finds a reason to tune, it says so in Notes and the change comes back through
-  the expander for a fresh approval.
-- **Both reductions on one question.** Under the approved list no
-  (state, template) pair gets both, so no criterion says how they combine. Do
-  not add a test that pins stacking either way.
-- **The fact-field option** (a new entity field "drawn apart", "capital is the
-  largest city"). Not chosen. No entity schema change, no Wikidata query
-  change, no `normalize.ts` change.
+- **The largest-city input, all of it** (the 17 capitals, the Census check,
+  Rhode Island's accepted risk). That is T-085b in `tasks.md`. Do not add a
+  placeholder for it (criterion 6), and do not write the RI risk into E-22.
+- **Tuning the amount.** The queue says the amounts "are a first guess the
+  task may tune". This brief pins the approved −2, because a criterion whose
+  expected value the worker may choose is not a criterion. If the worker finds
+  a reason to tune, it says so in Notes and the change comes back through the
+  expander for a fresh approval.
+- **How two familiarity inputs combine.** Only one exists after this task. Do
+  not add a test that pins stacking either way; T-085b decides it.
+- **The fact-field option** (a new entity field "drawn apart"). Not chosen. No
+  entity schema change, no Wikidata query change, no `normalize.ts` change.
 - **A player's home state** as a familiarity source. That is serving-time, not
   a seeded level (E-22).
 - **The other `too hard` rows** of E-26 and E-27 (California's climate, NY and
-  RI climate), and the climate distractor rules (T-091).
+  RI climate), the capital rows for Denver and Honolulu (T-085b), and the
+  climate distractor rules (T-091).
 - **Rewriting history.** E-26's and E-27's tables, which quote the old HI/AK
   levels as measured on their dates, stay as they are. So does T-025's table.
 - **Selection, the level window, and serving** (`backend/app/`, E-10, E-28),
@@ -198,16 +201,16 @@ confirm")
   test files, and the brief.
 - **Invariant (E-22): every number the computation uses lives in
   `LEVEL_SEED_WEIGHTS`**, and the module stays pure: no network, no file, no
-  clock, no randomness. The per-state membership is data the computation uses,
-  so it lives there too.
-- **The content rule bites on the 17 capitals.** "Prefer a blank field to a
-  guessed one": a state whose capital the named Census release does not show
-  as strictly the largest city is left out, not shipped from memory. **If the
-  worker cannot reach any Census Bureau release** (the session has no network,
-  or the proxy refuses it), it does not fill the table from general knowledge
-  and does not leave all 17 out to get green: it sets `Status: blocked`,
-  `Next step: human`, and says what it could not reach. The queue already flags
-  TN (Memphis), WV (Huntington) and WY (Casper) as close calls.
+  clock, no randomness. The per-state membership and the template list are data
+  the computation uses, so they live there too.
+- **No outside source is needed.** HI and AK membership was approved by a
+  person on 2026-10-27; it is not a population figure and needs no Census
+  check.
+- **The constant's shape meets an existing rule.** `seed-level.test.ts`
+  ("one E-22 heading, and every key and numeric value of LEVEL_SEED_WEIGHTS in
+  it") checks numbers, arrays and one level of object nesting against E-22's
+  text. A deeper nested shape may turn it red. Either keep a shape it can read,
+  or list it under **Tests made stale**; do not edit it.
 - **Existing tests will go red by design, and the worker does not touch them.**
   The queue entry lists the known ones: `hand-check-levels-verify.test.ts`
   (criteria 4, 7, 8, 10, 10a, 12, 14), `seed-level-verify.test.ts` (criteria
@@ -224,26 +227,27 @@ confirm")
   then `make -C backend content`. Run both, in that order, and commit both
   files.
 - **Dependencies:** none (`CLAUDE.md`, "Packages").
-- **Model:** this touches data correctness and a design with more than one
-  defensible shape. Opus.
+- **Model:** Opus. Data correctness, and many pinned tests to account for.
 
 ## Context
 
 **Required reading for the worker and the tester.**
 
-- `tasks.md` T-085 — the approved list, the option chosen, the accepted risk,
-  and the test cost. The list there is the source of the 17 and of HI/AK.
+- `tasks.md` T-085 (T-085a) — the approved HI/AK list and the option chosen —
+  and T-085b, to know what is deliberately left out.
 - `engineering-decisions.md` **E-22** in full (the formula, the constant block,
-  "Why `familiarity_bonus` is 0", "What the module exports", the T-025
-  hand-check table and "What the reading found the formula cannot express").
+  "Why `familiarity_bonus` is 0", "What the module exports", the range
+  sentences, the T-025 hand-check table, "What the reading found the formula
+  cannot express", and its **Revisit when**).
 - `engineering-decisions.md` **E-26** table D and **E-27** table D, for the
   `tpl-climate-of` HI and AK rows that make six served rows, not four.
 - `engineering-decisions.md` **E-24** — the question file and `content.json`
   are committed and regenerated by hand.
 - `geoquizdataplan.md` **§1.4** — the level formula, "very famous" entities as
   a familiarity source, and Elo later.
-- `question-bank/src/seed-level.ts` — `LEVEL_SEED_WEIGHTS`, `levelFor`,
-  `seedLevels`.
+- `question-bank/src/seed-level.ts` — `LEVEL_SEED_WEIGHTS` (line 29),
+  `levelFor` (line 206), `seedLevels` (line 235).
+- `question-bank/src/seed-level.test.ts:182` — the constant-in-E-22 rule.
 - `question-bank/src/question-file.ts:44` — where `seedLevels` runs in the
   pipeline; `question-bank/src/write-questions.ts`.
 - `backend/app/content_build.py`, `backend/Makefile` target `content`.
@@ -254,13 +258,11 @@ confirm")
 
 ## Review checklist
 
-The criteria above are testable for shape and consistency. A test cannot check
-that a Census figure is right. A person checks:
+The criteria are testable. A person checks the one judgement a test cannot:
 
-- [ ] E-22's release is a real U.S. Census Bureau release, and for at least the
-      three close calls (TN, WV, WY) the populations E-22 records match it.
-- [ ] Every state E-22 marks confirmed really has its capital as its largest
-      city in that release.
+- [ ] Hawaii at 4.5 / 5.5 / 7.5 and Alaska at 4 / 5 / 6 read as about right for
+      a seven-to-ten-year-old next to their neighbours in the bank (for
+      example Florida's and California's map questions).
 
 ## Handoff
 
@@ -346,3 +348,11 @@ obviously allow.
   what `$CLAUDE_CODE_REMOTE_SESSION_ID` returned. The orchestrator relay may be
   sharing the id across spawned roles. Orchestrator to check, because the tester
   relies on that table to confirm it is a different session.
+
+- **Task-expander, 2026-10-29 (split).** Dkaattae chose the worker's proposed
+  split. This brief is now T-085a, drawn-apart only; the criteria were
+  rewritten and renumbered (25 instead of 27), so `Approved:` is back to
+  `pending`. The **Handoff** above is the worker's round-1 report on the unsplit
+  brief; its Census block does not apply to T-085a, and the next worker
+  replaces it. The largest-city half, its approved list, the Census blocker and
+  the RI accepted-risk record are now `tasks.md` T-085b.
