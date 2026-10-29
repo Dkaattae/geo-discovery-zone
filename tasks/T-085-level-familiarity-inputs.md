@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-085
 **Branch:** `claude/loving-knuth-umj4pp`
-**PR:** opened draft at expand time against the branch above (number in the PR list; see the Sessions row)
+**PR:** #107, opened draft at expand time, built from the branch above
 **Fault:**
 
 **Sessions:**
