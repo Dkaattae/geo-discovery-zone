@@ -21,6 +21,7 @@ import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { bankFileDigest } from "./bank-pins";
 import { buildChoices, clickDistractorsFor } from "./distractors";
 import { generate } from "./generate";
 import { LEVEL_MAX, LEVEL_MIN, LEVEL_SEED_WEIGHTS, seedLevels } from "./seed-level";
@@ -736,28 +737,26 @@ function walkFiles(d: string): string[] {
   });
 }
 
-function manifestSha(dir: string, except: string[] = []): string {
-  return sha(
-    walkFiles(join(REPO, dir))
-      .map((p) => relative(REPO, p))
-      .filter((r) => !except.some((prefix) => r.startsWith(prefix)))
-      .sort()
-      .map((r) => `${r}\t${sha(readFileSync(join(REPO, r)))}\n`)
-      .join(""),
-  );
-}
-
 describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified", () => {
-  // T-040 added question-bank/data/questions/ (its committed question file); everything
-  // that was under data/ at aa88101 is still pinned.
-  test("criterion 14: question-bank/data (outside T-040's data/questions/) and src/fixtures are byte-identical to aa88101", () => {
-    expect({
-      data: manifestSha("question-bank/data", ["question-bank/data/questions/"]),
-      fixtures: manifestSha("question-bank/src/fixtures"),
-    }).toEqual({
-      data: "a67db5024454f4604068fa61b3020489b14f603caa4e4ec81b70af8c973fb8d6",
-      fixtures: "b7fe3a940c8b232710015de66f972308ce72e872bf76b3c27eedc35c16cf7676",
-    });
+  // T-070 row W38 (E-30): every file under data/ is pinned at b0ee336, with no
+  // exclusion. Bank files go through `bankFileDigest` (built_at aside); the rest
+  // are hashed byte for byte. The fixtures are not pinned: a refresh re-records them.
+  test("criterion 14: question-bank/data is unchanged since b0ee336, built_at aside", () => {
+    const BANK = "question-bank/data/us-states/";
+    const digest = sha(
+      walkFiles(join(REPO, "question-bank/data"))
+        .map((p) => relative(REPO, p))
+        .sort()
+        .map((r) => {
+          const bytes = readFileSync(join(REPO, r));
+          const d = r.startsWith(BANK)
+            ? bankFileDigest(r.slice(BANK.length), bytes.toString("utf8"))
+            : sha(bytes);
+          return `${r}\t${d}\n`;
+        })
+        .join(""),
+    );
+    expect(digest).toBe("7760ab89e1031e6fde35ea78a5844e270025224ea1ff593749d620ecd7e207a6");
   });
 
   // T-040 archived this file byte-for-byte and replaced the served one with the generated bank.
@@ -882,6 +881,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // Re-pinned by T-064's approved Test change request rows 1–39.
     // Re-pinned by T-026's approved Test change request (rows 1–92, A1; this is A2).
     // Re-pinned by T-092's approved Test change request rows 1–31 (this is row 32).
-    expect(digest).toBe("8b1652c9613dd2fc8e3b68ee957ad7a47cb475b04c7519fac59d1cac47a0e089");
+    // Re-pinned at T-070's branch head after its approved rows W1–W57 (this is W39).
+    expect(digest).toBe("e82de50155b301b30b9f9a85591a1754cf4cab560ec730e5078f20d326d21ec4");
   });
 });

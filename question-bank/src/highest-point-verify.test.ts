@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { BANK_DIGESTS, bankFileDigest } from "./bank-pins";
 import { CURATED_US_STATES, curatedByPostal } from "./curated/us-states";
 import { normalizeUsStates } from "./normalize";
 import { DEAD_PROXY, rebuildOffline } from "./offline-rebuild";
@@ -15,16 +15,13 @@ import type { SparqlResults } from "./sparql";
  * `highest-point.test.ts` (which the worker wrote alongside the change).
  *
  * It is not a copy of that file. Every expected value below is derived from a
- * criterion's own wording or from the **default branch's committed bytes**
- * (`origin/main` at `284b8bc`), never from reading this branch's
- * implementation:
+ * criterion's own wording or from committed bytes, never from reading this
+ * branch's implementation:
  *
- *  - `DEFAULT_BRANCH_DIGESTS` is the SHA-256 of each of the 51 tracked bank
- *    paths **as they stand on the default branch**, computed once here with `git show origin/main:<path>`. That is
- *    criteria 5 and 6 stated byte-for-byte rather than observed in a diff:
- *    Alaska's file must digest to that value once its one new
- *    `highest_point` line is removed, and the other 51 paths must digest to it
- *    untouched.
+ *  - Criteria 5 and 6 are checked against the bank pins in `bank-pins.ts`
+ *    (`BANK_DIGESTS`, recorded at `b0ee336`; T-070 rows W17, W21 and W28,
+ *    `engineering-decisions.md` E-30): every bank file, Alaska's included,
+ *    digests to its pin with only `sources.built_at` left out.
  *  - Criterion 9's full-fixture warning count is 3: T-079's three
  *    `highest_point_m` overrides (its approved test change request row 6) and
  *    nothing else. The CLI's stdout carrying that 3 is pinned by
@@ -43,8 +40,6 @@ const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
 const FIXTURE = join(PKG, "src/fixtures/us-states.sparql.json");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
-
-const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
 
 /**
  * `git ls-files`, so a tracked-but-deleted file is a failure rather than a
@@ -65,82 +60,6 @@ const trackedStateFiles = () =>
     .sort();
 
 const readState = (name: string) => readFileSync(join(DATA_DIR, name), "utf8");
-
-/**
- * SHA-256 of each path as committed on the **default branch** (`origin/main`,
- * `284b8bc` — the commit this branch forked from), computed with
- * `git show origin/main:<path> | sha256sum`. Criterion 6 says 51 of these must
- * still match exactly; criterion 5 says the fifty-second, Alaska's, must match
- * once one added line is removed and nothing else.
- *
- * **Re-pinned 2026-09-18 (T-017).** `region` moved on every one of the 50
- * state files, the largest change any of these guards has absorbed. It had a
- * real value at `284b8bc` too (this field predates every task these guards
- * cover), so it cannot be restored to a shared baseline the way `top_crops`
- * is — the `"region": "…",` line is dropped from every tracked state file's
- * bytes, `index.json` and the sample untouched, before hashing.
- */
-const DEFAULT_BRANCH_DIGESTS: Record<string, string> = {
-  "index.json": "cd6822166faad67383db4d0506bcc1a833e142884e1792b03292795ce3e1e066",
-  "us-state-ak.json": "5f508c213fec6f7f903d351430d9470bd5e9875e6e92dc7be2189591e074435f",
-  "us-state-al.json": "976a08cffa6472f7a81dae41bee5af4df38cb6562d7d992fe4152d811db58364",
-  "us-state-ar.json": "391190121f27f0f026f46c07be83323d857d007a729b9a6f432635c5be4baddd",
-  "us-state-az.json": "df66142fb344d3f5e70c8d2b5693508c96df397d2fb6ef57344bad46b5e92d74",
-  "us-state-ca.json": "cd8fa13d58d0f804f661c8d08d1362f0934e0b0b004eb88a7fa08eb6bb48af19",
-  "us-state-co.json": "280fc99a98973a843e197355dac9b541e220c26397247e52d71499b9281ce8f6",
-  "us-state-ct.json": "d1266794f87c76ecf5336fa7530151759d7a71cd8cda72c51a0a0573e9f2bfdd",
-  "us-state-de.json": "1e00b5a2c038fec3741567da6381b624c1bf0ae373fdf2d0cefe7eaa6a283a5f",
-  "us-state-fl.json": "f71591fce78be334bc532421bb5eaab6917df20cb39e2a2e90dd7ff37de69b59",
-  "us-state-ga.json": "6b0d8be13b0be83df026f2ab852c861044309688441e856d001ca4da4678082e",
-  "us-state-hi.json": "b8f9f577ff98cca104c103bb8a3ce45b3ccf913e9ac405ea589f716f100185dd",
-  "us-state-ia.json": "e44d17b59a40625e071856236c53b144235206190b5659186b6a7d0853fc4b31",
-  "us-state-id.json": "deaf02c2cbddf1bfa548195a65f73f86d4a93395cd36ab519314f1e0aaaee250",
-  "us-state-il.json": "1252d91aa43576f5d842de47d081463f46686c933ab0caea1b74090a23bfa981",
-  "us-state-in.json": "ef74779886bbdbb23c056b097056487b4ff2e98cfc35abb9b1a82650e785ea64",
-  "us-state-ks.json": "113536dc719800ab229866f755ff440884f09b4673aed3d7062cddd403a8b1d9",
-  "us-state-ky.json": "cb6fbad12b34345309a24a10a4b0f07e530e730398b90d78e3a70598a9317031",
-  "us-state-la.json": "a9243a4c60c6e0d5a61c21da45e825b3fa8667464adeebfb8ee928d96ea2e26d",
-  "us-state-ma.json": "8d88607befcc8e397d5429dee3ee505290e1fb8ffe65fdf359815e0439acdaea",
-  "us-state-md.json": "b1a5b19eea78ea6ba829451529a4ea5465d4f866b8ac0c93a4c35749e5d266c6",
-  "us-state-me.json": "c6306b41835837ee42a88b086d4e077f0eb27013a74be8a0db69c65fbbe638bb",
-  "us-state-mi.json": "f8f5a95003eace6c96b78dafc6223ad54fddbada8717ad515835e996794d78a7",
-  "us-state-mn.json": "acce74f6c78f86699878074e788b2e95de6bba406741a197e8bb6a6a96ba261a",
-  "us-state-mo.json": "1234fca1408d7155e7b3e32f64dc1e6c511bc6a6cde567456ff3ab9410bcd47b",
-  "us-state-ms.json": "24aafafe092112e362ff2409156ababfd7315cc4a37c8c8b8104c12d553909ea",
-  "us-state-mt.json": "bd36649c061e60ae7588781fe04d71c44489ebeb172e80044fb78417604eacaa",
-  "us-state-nc.json": "42a971e398d55bfc36fafa047febdb4e4f104511eaea9ad8faae97af59c80190",
-  "us-state-nd.json": "1e0976187ecb0a4988f5a77e2fc06513dd169cb3d536548f9d449e615742c6ae",
-  "us-state-ne.json": "b648a8c394208fda459a0afee0ae75fb956890edfdbc663c373de70dc21b3a56",
-  "us-state-nh.json": "e71e1968f351ed158ad6c7227e776f94fb1142ab66b7c326b4575482f7913585",
-  "us-state-nj.json": "d44a922e7eb00316e36935d96207489a2ac45ff25bce45b58da3da13e5400153",
-  "us-state-nm.json": "549545ee1577eb48739bbe2a51d7d9e3b67a6d7ed7422bc20d276c7c9714c972",
-  "us-state-nv.json": "2aef523367d859a6897072b3058ce3e190f76fd1aee7b9bac8c2e3a2e3382822",
-  "us-state-ny.json": "ca26b1830c3c114c5c8873de14481dac98b6652654182acf1e2a37fbd62c48b7",
-  "us-state-oh.json": "e780161e00329fb5f6c6df629a5c966ef658e65e91b7d300a686db0a0a5643cf",
-  "us-state-ok.json": "b1b150235fd9b5aa019df79db9846bf791790f081f1de1a576cf2cf511f236f0",
-  "us-state-or.json": "de48c5ed88ecf7169cbe1a7b26bf2a9cd500bdfc22d36293f6ac505d042d5169",
-  "us-state-pa.json": "33ef0776fe5faebfd1210f971e914e64e485453094747abe80e44a2983da9f20",
-  "us-state-ri.json": "6d66bb8c1347a73efb7f6e59c2721a208128bcb3f4fe7bd3ad48606a148fce51",
-  "us-state-sc.json": "5b0ee2d95db871f16719290707c429b855fb9442aabbc7f5a25569a615b1e07c",
-  "us-state-sd.json": "95564391b72f7749485fbd9885d8b48aa65133502af16e11b6dd71e4e6e849ff",
-  "us-state-tn.json": "c86cb16812e3dbc1bb6fd9c0f7419f218e5535aa8199d26940bc43a2f7c06729",
-  "us-state-tx.json": "012b7628d0a2f1dffefc3bdc6d29bacf287a670d35d3572a966690e8e7a2eecb",
-  "us-state-ut.json": "e218e7865fefa58b178025b419039d3decc4f94c22faa62658fae65a6b947499",
-  "us-state-va.json": "c27a36695e24e7b8fa5e004bf6126423fdbf96c92a014842eae8a648d3b52827",
-  "us-state-vt.json": "448a202ca4235bfa0be7cc83ab659393b18e80d6726cfc3901a1ce568be71d14",
-  "us-state-wa.json": "51078af3252e946731552fb59c859d02f70daff5644ba785d7d05779790bc997",
-  "us-state-wi.json": "cee9689d0071eebcdbd45ba1a84b0d8c0fc7ed7678225adbeaa5183ed4046bb7",
-  "us-state-wv.json": "63d390aee0a350e51f3bc07ad4cb6bd29fdeffb0048ef245497a0fa293b4813d",
-  "us-state-wy.json": "4c2aff03fe94762eac25f355dd73567e13e5b08278ca307518e7d30c92cf1507",
-};
-
-/** T-017: the region field is dropped before hashing — see DEFAULT_BRANCH_DIGESTS above. */
-const REGION_LINE = /^ {2}"region": "[^"]*",\n/m;
-const withoutRegion = (raw: string) => raw.replace(REGION_LINE, "");
-
-/** T-068: the top_livestock block is dropped before hashing too — absent at the baseline. */
-const TOP_LIVESTOCK_BLOCK = /^ {2}"top_livestock": \[[^\]]*\],\n/m;
-const withoutTopLivestock = (raw: string) => raw.replace(TOP_LIVESTOCK_BLOCK, "");
 
 /** A minimal row — `parseUsStates` guarantees these three keys and nothing more. */
 const rowFor = (name: string, overrides: Partial<WikidataStateRow> = {}): WikidataStateRow => ({
@@ -293,15 +212,11 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
    * differs from the default branch. The test below is widened to name both
    * differences explicitly rather than pretend only one exists.
    */
-  test("removing the highest_point line, reverting landmark, dropping region and dropping top_livestock reproduces the default branch's bytes exactly", () => {
-    const withoutLine = withoutTopLivestock(
-      withoutRegion(
-        raw
-          .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
-          .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
-      ),
+  test("us-state-ak.json digests to its b0ee336 pin, built_at aside", () => {
+    // T-070 (row W17, E-30): Alaska is pinned like every other file, whole.
+    expect(bankFileDigest("us-state-ak.json", raw)).toBe(
+      BANK_DIGESTS["us-state-ak.json"] as string,
     );
-    expect(sha256(withoutLine)).toBe(DEFAULT_BRANCH_DIGESTS["us-state-ak.json"] as string);
   });
 
   test("landmark is the only other field that differs from the default branch, and it equals the decided value", () => {
@@ -315,76 +230,33 @@ describe("T-016 tester, criterion 5 — us-state-ak.json gains one line and noth
     expect(entity.highest_point).toBe("Mount McKinley");
   });
 
-  test("that removal is real — the neutralised bytes differ and no longer carry the value", () => {
-    const withoutLine = raw.replace(/^ {2}"highest_point": "[^"]*",\n/m, "");
-    expect(withoutLine).not.toBe(raw);
-    expect(withoutLine).not.toContain('"highest_point"');
-    expect(raw.split("\n")).toHaveLength(withoutLine.split("\n").length + 1);
-  });
-
-  test("the file on disk is not byte-identical to the default branch — the line really was added", () => {
-    expect(sha256(raw)).not.toBe(DEFAULT_BRANCH_DIGESTS["us-state-ak.json"] as string);
-  });
-
-  test("highest_point_m is still 6190 and sources.built_at is still the fixture's pinned instant", () => {
+  test("highest_point_m is still 6190 and sources.built_at equals the fixture's captured_at", () => {
+    // T-070 row W20: no literal instant, so a refresh that moves both stays green.
+    const fixture = JSON.parse(readFileSync(FIXTURE, "utf8")) as {
+      _fixture: { captured_at: string };
+    };
     expect(entity.highest_point_m).toBe(6190);
-    expect(entity.sources?.built_at).toBe("2026-08-04T16:05:35.000Z");
+    expect(entity.sources?.built_at).toBe(new Date(fixture._fixture.captured_at).toISOString());
   });
 });
 
-/**
- * T-069 (2026-10-03, a later approved task; approved test change request,
- * row 5) converts `highest_point_m` to metres in five files that shipped
- * feet. Their line is rewritten to the default-branch value before the other
- * neutralisers; the other 45 files are untouched by this.
- */
-const T069_DEFAULT_BRANCH_HIGHEST_POINT_M: Record<string, number> = {
-  "us-state-az.json": 12622,
-  "us-state-or.json": 11237,
-  "us-state-ne.json": 5429,
-  "us-state-ks.json": 4039,
-  "us-state-ia.json": 1670,
-  // T-079 (2026-10-06; approved test change request, rows 7 and 10) ships a
-  // curated highest_point_m for these three; restored to the default branch's
-  // Wikidata value the same way. The line regex is widened to [\d.]+ so it
-  // matches 727.2.
-  "us-state-ct.json": 748,
-  "us-state-ok.json": 1737,
-  "us-state-va.json": 1825,
-};
-const withDefaultBranchHighestPointM = (file: string, raw: string) => {
-  const metres = T069_DEFAULT_BRANCH_HIGHEST_POINT_M[file];
-  return metres === undefined
-    ? raw
-    : raw.replace(/^ {2}"highest_point_m": [\d.]+,\n/m, `  "highest_point_m": ${metres},\n`);
-};
-
-describe("T-016 tester, criterion 6 — the other 49 files, index.json and the sample are untouched", () => {
-  test("each of the 49 non-Alaska state files matches the default branch once T-017's region line and T-068's top_livestock line are dropped, and T-079's three highest_point_m lines restored", () => {
-    // The T-079 restore is not a no-op.
-    expect(
-      withDefaultBranchHighestPointM("us-state-ct.json", readState("us-state-ct.json")),
-    ).toContain('\n  "highest_point_m": 748,\n');
-    for (const name of trackedStateFiles()) {
-      if (name === "us-state-ak.json") continue;
-      const raw = withDefaultBranchHighestPointM(name, readState(name));
-      expect({ name, digest: sha256(withoutTopLivestock(withoutRegion(raw))) }).toEqual({
+describe("T-016 tester, criterion 6 — the other 49 state files and index.json match b0ee336", () => {
+  test("each of the 49 non-Alaska state files digests to its b0ee336 pin, built_at aside", () => {
+    // T-070 (row W21, E-30): nothing is stripped or restored before hashing.
+    const names = trackedStateFiles().filter((name) => name !== "us-state-ak.json");
+    expect(names).toHaveLength(49);
+    for (const name of names) {
+      expect({ name, digest: bankFileDigest(name, readState(name)) }).toEqual({
         name,
-        digest: DEFAULT_BRANCH_DIGESTS[name] as string,
+        digest: BANK_DIGESTS[name] as string,
       });
     }
   });
 
-  test("the region removal actually drops the line — otherwise the check above proves nothing (T-017)", () => {
-    const il = readState("us-state-il.json");
-    const neutralised = withoutRegion(il);
-    expect(neutralised).not.toBe(il);
-    expect(il).toContain('"region": "Great Lakes"');
-    expect(neutralised).not.toContain('"region"');
-  });
-
-  test("index.json is byte-identical to the default branch", () => {
-    expect(sha256(readState("index.json"))).toBe(DEFAULT_BRANCH_DIGESTS["index.json"] as string);
+  test("index.json is byte-identical to b0ee336's", () => {
+    expect(bankFileDigest("index.json", readState("index.json"))).toBe(
+      BANK_DIGESTS["index.json"] as string,
+    );
   });
 });
 
@@ -419,7 +291,7 @@ describe("T-016 tester, criterion 8 — a state left without a name says so", ()
   });
 });
 
-describe("T-016 tester, criterion 9 — the full fixture build warns about nothing at all", () => {
+describe("T-016 tester, criterion 9 — the full fixture build warns about nothing but T-079's three overrides", () => {
   test("normalizeUsStates over all 50 parsed fixture rows emits zero highest_point warnings", () => {
     const rows = fixtureRows();
     expect(rows).toHaveLength(50);
@@ -477,41 +349,23 @@ describe("T-016 tester, criterion 10 — the pinned digest guards were not weake
     });
   }
 
-  test("no guard strips highest_point unconditionally — every removal is gated on us-state-ak.json", () => {
-    // Criterion 10: "only Alaska's new highest_point line is removed before
-    // hashing — the other 49 files keep their highest_point in the hashed
-    // bytes". A blanket `delete parsed["highest_point"]` or an ungated textual
-    // strip is exactly what that forbids.
-    let gated = 0;
+  test("no guard strips highest_point before comparing", () => {
+    // T-070 (row W25, E-30): the guards no longer neutralise anything, so the
+    // same scan of their sources finds no highest_point removal at all.
+    const removals: { guard: string; line: string }[] = [];
     for (const guard of GUARDS) {
       const source = readFileSync(join(PKG, guard), "utf8");
-      const removals = source
+      for (const line of source
         .split("\n")
-        .filter((line) => !line.trimStart().startsWith("*") && !line.trimStart().startsWith("//"))
+        .filter((l) => !l.trimStart().startsWith("*") && !l.trimStart().startsWith("//"))
         .filter(
-          (line) =>
-            /delete\s+parsed\[["']highest_point["']\]/.test(line) ||
-            /replace\(\s*ALASKA_HIGHEST_POINT_LINE/.test(line),
-        );
-      for (const line of removals) {
-        expect({
-          guard,
-          line,
-          gatedOnAlaska:
-            line.includes("us-state-ak.json") ||
-            /file === "us-state-ak/.test(line) ||
-            /^\s*file === /.test(line),
-        }).toEqual({
-          guard,
-          line,
-          gatedOnAlaska: true,
-        });
-        gated++;
-      }
+          (l) =>
+            /delete\s+parsed\[["']highest_point["']\]/.test(l) ||
+            /replace\(\s*ALASKA_HIGHEST_POINT_LINE/.test(l),
+        ))
+        removals.push({ guard, line });
     }
-    // Two parsed routes plus one textual helper: if a guard stopped
-    // neutralising entirely this would be zero and the loop above vacuous.
-    expect(gated).toBeGreaterThanOrEqual(3);
+    expect(removals).toEqual([]);
   });
 
   test("the 49 non-Alaska files really do still carry highest_point in their hashed bytes", () => {
@@ -522,46 +376,6 @@ describe("T-016 tester, criterion 10 — the pinned digest guards were not weake
       (name) => !readState(name).includes('"highest_point"'),
     );
     expect(without).toEqual([]);
-  });
-});
-
-describe("T-016 tester, criterion 11 — both neutralisation routes are proven real", () => {
-  const raw = readState("us-state-ak.json");
-  const value = (JSON.parse(raw) as { highest_point: string }).highest_point;
-
-  // Addendum, 2026-09-18: see criterion 5's addendum above — `landmark` also
-  // differs from the default branch now, by the same deliberate, human-decided
-  // edit, so reproducing the default branch's bytes needs that reverted too.
-  // A second addendum, same day (T-017): `region` also differs now, and has no
-  // baseline to revert to, so it is dropped rather than restored.
-  test("the textual route (top-crops-verify) changes the bytes and drops the value", () => {
-    const neutralised = withoutTopLivestock(
-      withoutRegion(
-        raw
-          .replace(/^ {2}"highest_point": "[^"]*",\n/m, "")
-          .replace(/^ {2}"landmark": "[^"]*",$/m, '  "landmark": "Denali",'),
-      ),
-    );
-    expect(neutralised).not.toBe(raw);
-    expect(neutralised).not.toContain('"highest_point"');
-    expect(neutralised).not.toContain(`"highest_point": "${value}"`);
-    expect(sha256(neutralised)).toBe(DEFAULT_BRANCH_DIGESTS["us-state-ak.json"] as string);
-  });
-
-  test("the parsed route (landmarks-verify, climate-kid-verify) drops the key from the object", () => {
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const before = JSON.stringify(parsed);
-    delete parsed["highest_point"];
-    const after = JSON.stringify(parsed);
-    expect(after).not.toBe(before);
-    expect(Object.keys(parsed)).not.toContain("highest_point");
-    expect(after).not.toContain(`"highest_point":"${value}"`);
-  });
-
-  test("neutralising a non-Alaska file would change it too, so the Alaska-only gate is load-bearing", () => {
-    const co = readState("us-state-co.json");
-    expect(co).toContain('"highest_point"');
-    expect(co.replace(/^ {2}"highest_point": "[^"]*",\n/m, "")).not.toBe(co);
   });
 });
 
@@ -678,14 +492,12 @@ describe("T-016 tester, criterion 16 — engineering-decisions.md records the de
 // ---------------------------------------------------------------------------
 
 describe("T-016 tester — the pins above are not vacuous", () => {
-  test("DEFAULT_BRANCH_DIGESTS covers exactly the 51 tracked paths", () => {
-    expect(Object.keys(DEFAULT_BRANCH_DIGESTS).sort()).toEqual(
-      ["index.json", ...trackedStateFiles()].sort(),
-    );
+  test("BANK_DIGESTS covers exactly the 51 tracked paths", () => {
+    expect(Object.keys(BANK_DIGESTS).sort()).toEqual(["index.json", ...trackedStateFiles()].sort());
   });
 
   test("every pinned digest is a distinct 64-hex SHA-256", () => {
-    const values = Object.values(DEFAULT_BRANCH_DIGESTS);
+    const values = Object.values(BANK_DIGESTS);
     for (const value of values) expect(value).toMatch(/^[0-9a-f]{64}$/);
     expect(new Set(values).size).toBe(values.length);
   });

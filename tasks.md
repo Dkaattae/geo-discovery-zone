@@ -85,7 +85,9 @@ after T-051 served and rendered `map_click` (PR #96): T-051 deleted; T-092
 and T-093 new; T-070, T-053 and T-045 amended. Swept again 2026-10-27,
 after T-092 stopped writing candidates on `map_click` (PR #100): T-092
 deleted; T-094 new; T-070 amended. Swept again 2026-10-27, after T-094
-restored per-template answer-position checks (PR #101): T-094 deleted._
+restored per-template answer-position checks (PR #101): T-094 deleted. Swept again 2026-10-29,
+after T-070 re-pinned the digest guards at `b0ee336` (PR #103): T-070 deleted;
+T-084 unblocked and its skip log folded; T-087 and T-095 amended._
 
 ## How this list is ordered
 
@@ -169,211 +171,17 @@ serves, so a curated field reaches a child once a template asks about it
 (since T-026, PR #91, every topic field has one) and both committed files are
 regenerated (T-087).
 
-### T-070 — Re-pin the bank's digest guards, or write down why not · M · todo
-**Depends on:** nothing. Q1 is answered (below). Still needs an attended tester step.
-**Q1 answered 2026-10-27 (Dkaattae): re-pin, and survive the refresh.** Re-pin
-every digest guard against the default branch and delete the neutralisations.
-The re-pinned guards must stay green across a `bun run refresh` in which only
-`sources.built_at` and the SPARQL fixtures moved. Record it as the next unused
-`E-n`. The history below is the case for it. The "Q1, still open" paragraph is
-kept as the record of the question.
-**Split 2026-10-06 (Dkaattae, answering the T-070 expander's Q2, PR #73).** This
-entry used to hold three pieces. **(b)** became **T-080** and the git leftover
-**T-081**; both have landed (PRs #73, #74). What stays here is **(a)** alone, re-sized to M because
-it edits four or five verify suites, and every one of those edits needs an
-approved Test change request (D-14, D-15). **Plan to attend its tester step.**
-**Q1, still open:** re-pin against the default branch and delete every
-neutralisation, or keep the historical pins behind one shared helper and write
-down the `top_crops` blind spot? Either way: must the guard survive a refresh
-where only `sources.built_at` and the fixture moved? The expander's survey for
-this half (more guards than the entry says: `highest-point-in-state-verify.test.ts`
-pins digests too, at `:135`, `:148`, `:463`) is in PR #73's history, commit
-`3cedfe8`. `E-20` went to T-021 (PR #80); take the next unused number,
-`E-21` unless something else lands first.
-**Since T-025 (PR #85): a fifth guard, and a wider one.**
-`hand-check-levels-verify.test.ts` pins these at `aa88101`: `TEMPLATES`
-(criterion 11), every file under `question-bank/data/` and
-`src/fixtures/` (T-064 dropped `sample-data/` from it, PR #89) plus `backend/app/data/content.json` (14), every
-`package.json`/lockfile/`pyproject.toml` in the repo (15), and every
-question-bank test file (17). Criteria 1 and 13 (c) also assume exactly the
-three templates, each with its own `concept_load` entry. Unlike the field
-guards, these are not limited to the bank. Any dependency add or any edit to
-an older test turns them red too. Whatever Q1 decides should cover this file.
-**Since T-086 (PR #86): a sixth guard, on the decisions log itself.**
-`seed-level-loose-ends-verify.test.ts` criterion 12 pins
-`engineering-decisions.md` outside E-22 (sha256) and the `## E-n` heading
-count (23) at `41811f9`; criterion 10 pins the 150 seeded levels and
-`LEVEL_SEED_WEIGHTS`. The first task that adds or edits any other `E-n` entry,
-this one included, turns it red. Whatever Q1 decides should cover it (P-17).
-**Since T-090 (PR #93): a seventh guard, and the widest yet.**
-`climate-far-phrases-verify.test.ts` criterion 20 pins sha256 tree digests at
-`3279555` for `frontend/`, `backend/app/` (except `data/content.json`),
-`backend/migrations`, `openapi.yaml` and `geoquizdataplan.md`. Its criterion
-17 pins every manifest and lockfile. The next task that touches the frontend
-or the backend app turns these red: T-056, T-051, T-043, T-048, T-076 and the
-section E tasks. Each such task needs a test change request until Q1 settles
-how base pins expire. Whatever Q1 decides should cover this file.
-**Since T-089 (PR #94): an eighth guard, the first in the backend suite.**
-`backend/tests/test_t089_tester_criteria.py` pins, at `2b4edb2`: the `## E-n`
-numbering as exactly 1..28 (criterion 13), so the next `E-n` turns it red; a
-canonical digest of `openapi.yaml` with two descriptions removed (criterion
-15), so any operation or schema edit turns it red even though E-14 says that
-file follows the backend; `content.json`'s sha256 (criterion 17), so any bank
-refresh (T-087) turns it red; and "only `0001_initial_schema.py`" under
-`migrations/versions` (criterion 18). It also holds prefix digests of
-`test_selection.py` and `engineering-decisions.md`, and full digests of
-`measure_selection.py` and its test. Whatever Q1 decides should cover it.
-**Amended 2026-10-27 by T-051's reviewer (PR #96): two guards are smaller.**
-Under a person's approval (T-051 Test change request rows 27, 28, 31), T-089's
-criteria 15 (`openapi.yaml` digest) and 17 (`content.json` sha) were deleted,
-and so were T-090 criterion 20's three tree pins (`frontend/`, `openapi.yaml`,
-`backend/app`). T-089 criterion 13 now pins `E-n` as exactly 1..29, so the next
-`E-n` still turns it red. T-090 criterion 12 now compares only the
-non-`map_click` questions with `3279555`. The rest of both guards stands.
-**Amended 2026-10-27 by T-092's reviewer (PR #100): four pins re-pinned, not
-retired.** Under a person's approval (T-092 Test change request rows 19, 20,
-23, 32), `climate-far-phrases-verify.test.ts` criteria 7 and 12 now pin
-`e7213f8a…` and `a7407efb…`, and `t026-tester-verify.test.ts` criterion 4 pins
-`b5405bf7…`: each is the old base's output with `choices`, `correctIndex` and
-`choiceGeometryIds` stripped from `map_click`, recomputed on `5d72ca5`.
-`hand-check-levels-verify.test.ts` criterion 17 now pins `8b1652c9…` over the
-same 48 files. These are the current values Q1's answer has to cover.
-**New 2026-09-18, from T-016's reviewer (PR #47).** Two small things in
-`question-bank/`'s test suite, both consequences of the same design, and both
-cheaper to settle once than to work around a fifth time.
-
-**(a) The pinned-digest guards now carry one exception per task, and there are
-four.** `landmarks-verify.test.ts` (T-013 criterion 9), `climate-kid-verify.test.ts`
-(T-014 criterion 15) and `top-crops-verify.test.ts` (T-015 criterion 13) each
-assert "nothing but this task's field moved in the bank" by hashing every tracked
-file against a digest pinned at an older branch point. Every later task that
-touches the bank must neutralise its own change before hashing, and the list only
-grows: `climate_kid` is deleted, `top_crops` is set back to the literal `[]` (the
-key predates those digests, so deleting it is the wrong fix — T-015's worker
-checked that empirically against AK), Colorado's `climate_kid` is exempted from
-the deletion, and T-016 added a fourth — Alaska's `highest_point` stripped for
-`us-state-ak.json` alone, in all three guards, because the field predated every
-pin for the other 49 states. **Each exception covers a little less, and the shape
-is not the same each time**: T-016's had to be asymmetric, and T-015's had to be a
-reset rather than a delete. T-016's tester proved the asymmetry is load-bearing by
-mutation (a symmetric strip turns the guard red), which is the same thing as
-saying it is easy to get wrong.
-**Either** re-pin all three baselines against the current default branch and
-delete the accumulated exceptions — the guards then mean "nothing has moved since
-today", which is what each new task actually wants — **or** write down why the
-historical pins are worth more than what they now cost, and give the neutralisation
-one shared helper instead of three hand-copied conditionals. Re-pinning looks
-right, but it discards the "unchanged since T-013" property those digests exist to
-hold, so it is a deliberate call rather than a tidy-up. Whichever way it goes, say
-it in `engineering-decisions.md` so the next field task inherits an answer instead
-of the question.
-**(b) is done: T-080, PR #73** (split 2026-10-06).
-**(c) and the git leftovers are done.** T-072 (PR #55, E-11) and T-073 (PR #56,
-E-12) deleted the red-on-`main` git baselines. T-081 (PR #74) closed the last
-fail-open `git` check, `climate-kid.test.ts:598`, and added
-`question-bank/src/git-exit-guard.criteria.test.ts` as the standing guard for
-`question-bank/src/`. Their history is in those PRs.
-**Amended 2026-10-02 by T-063's reviewer (PR #68): (a) now gates the monthly
-refresh routine.** `bun run refresh` (T-063) moves `sources.built_at` in all 50
-bank files on every *changed* refresh, by design (E-6's reproducibility), so the
-first refresh PR will be red on all four digest guards (`landmarks-verify`,
-`climate-kid-verify`, `top-crops-verify`, `highest-point-verify`) unless (a) is
-settled first. Whichever way (a) goes, the answer has to survive a bank where
-only `built_at` and the fixture moved. Do this, and T-084 (T-077 landed in PR #77
-and only blanks a bare-QID label), before the routine is switched on.
-**Amended 2026-10-03 by T-068's reviewer (PR #69): a fifth neutralisation, and
-a blind spot worth knowing.** T-068 added `top_livestock` to all 50 files and,
-as this entry asked, neutralised it rather than re-pinning. `top-crops-verify`
-and `highest-point-verify` strip it textually
-(`/^ {2}"top_livestock": \[[^\]]*\],\n/m`); `landmarks-verify` and
-`climate-kid-verify` `delete` it. Nine more tests also gained the same
-exclusion: the five sample comparisons (T-064) and three "no unexpected key"
-allow-lists. That is 14 test edits for one new key. Whatever (a) decides
-should also cover those allow-lists. **The blind spot:** three of the four guards reset
-`top_crops` to `[]` before hashing, so none of them turns red on a `top_crops`
-change. Only `highest-point-verify` and T-015's curated-source and rebuild tests
-catch one. T-068's tester proved this by mutation. A re-pin removes the reset
-and with it the blind spot. Keeping the pins means the blind spot has to be
-written down.
-**Amended 2026-10-04 by T-069's reviewer (PR #70): a sixth neutralisation, and
-a new kind.** T-069 changed five *values*: `highest_point_m` in AZ, OR, NE, KS and
-IA went from feet to metres. All four guards (`landmarks-verify`,
-`climate-kid-verify`, `top-crops-verify`, `highest-point-verify`) now **put the old
-feet values back** before hashing.
-- **How it is written:** the same five-entry table
-  (`T069_DEFAULT_BRANCH_HIGHEST_POINT_M`) is pasted into each of the four files.
-  Two of them do a textual line rewrite; the other two set the parsed key.
-- **Why it is a new kind:** every earlier exception stripped or reset a key
-  that a task added. This is the first that restores a value a task
-  *corrected*.
-- **What it costs:** the guards now assert that those five files still carry
-  wrong data underneath, and any later correction to the same field will need
-  another table.
-- **Ten pre-existing tests changed** (approved by Dkaattae, D-15). Their
-  rebuild and refresh helpers also learned to read the second fixture,
-  `us-states-elevation.sparql.json`.
-- **Re-pinning would remove all of this at once.** The cost grows with every
-  task that corrects a value rather than adding one.
-**Amended 2026-10-06 by T-079's reviewer (PR #71): a seventh neutralisation,
-the same kind as the sixth.** T-079 replaced `highest_point_m` in CT, OK and VA
-with curated values (727.2, 1516.4, 1740.6; `engineering-decisions.md` E-19).
-All four guards now also put back `748`, `1737` and `1825` for those files before
-hashing, and the two textual guards widened their line regex from `\d+` to
-`[\d.]+` to match a decimal. That is the second task in a row that restores a
-*corrected* value, so the guards now assert eight files still carry wrong data
-underneath. Eleven pre-existing tests changed (approved in an attended tester
-session, D-15). A full build and every changed refresh now also print three
-`highest_point_m` override warnings by design, which any stdout-counting test
-under (b), now T-080, must expect.
-**Amended 2026-10-12 by T-083's reviewer (PR #76): one more stale name in
-the same file.** `highest-point-verify.test.ts`'s describe "T-016 tester,
-criterion 9 — the full fixture build warns about nothing at all" is untrue: the
-count has been 3 since T-079, and the tests and comments under it say so.
-T-083's criteria covered comments only, so it left the name alone. This task
-already edits that file under an attended Test change request, so add a row to
-rename it there instead of opening a task for one string.
-**Amended 2026-10-13 by T-078's reviewer (PR #78): the fixture pins go red on
-a refresh too.** `highest-point-in-state-verify.test.ts`'s describe "T-079
-tester, criterion 19 — both SPARQL fixtures are byte-identical to 323254c"
-hashes both `us-states.sparql.json` and `us-states-elevation.sparql.json` whole.
-T-078 had to re-pin the main one (approved row, Dkaattae) just to change
-`regenerate_with`. A changed `bun run refresh` re-records both files, so both
-entries go red on the first refresh, and on T-084's re-record. Whatever (a)
-decides about surviving a refresh has to cover these two pins as well as the
-four bank guards.
-**Amended 2026-10-19 by T-040's reviewer (PR #88): two of the guards were
-loosened in passing.** Under approved rows, `hand-check-levels-verify.test.ts`
-criterion 14 now excludes `question-bank/data/questions/` and checks the old
-`content.json` at `archive/hand-written-bank/content.json`; criterion 16 allows
-any gap-free `E-1..E-max`; criterion 17's digest was re-pinned. In
-`seed-level-loose-ends-verify.test.ts` criterion 12 now stops at E-23, so a new
-`E-n` no longer turns it red. An edit to E-1..E-23 still does. Whatever Q1
-decides starts from these.
-**Amended 2026-10-20 by T-064's reviewer (PR #89): the sample is gone, and
-two stale phrases are left in `highest-point-verify.test.ts`.** T-064 deleted
-`sample-data/`, so the five sample comparisons named in the 2026-10-03
-amendment above no longer exist, and `DEFAULT_BRANCH_DIGESTS` lost its sample
-key (approved rows, Dkaattae). Two phrases its rows did not cover are now
-untrue: the header comment's "the other 51 paths must digest to it" (50 now),
-and the describe "T-016 tester, criterion 6 — the other 49 files, index.json
-and the sample are untouched". Add them to this task's Test change request
-alongside the criterion 9 rename above. T-064 also re-pinned
-`question-bank/package.json` in `hand-check-levels-verify.test.ts` criterion 15
-and `highest-point-in-state-verify.test.ts` T-079 criterion 20, and re-pinned
-the criterion 17 aggregate (P-17).
-**Done when:** the pinned-digest guards no longer need a per-task exception (or the
-decision to keep them is written down in `engineering-decisions.md` as the next
-unused `E-n`, `E-25` at the time of writing).
-
 ### T-084 — Read Wikidata's `mul` labels, so Juneau comes back as "Juneau" · S · todo
 **Depends on:** — (T-077's guard landed in PR #77, so this is a fix, not a
-safety net). Touches the query, so it moves the fixture and every digest guard —
-sequence it with T-070 (a). **Gates switching on the monthly refresh routine**
-alongside T-070 (a): since T-077, a live refresh blanks Alaska's capital, with a
-warning, instead of shipping `Q29445`.
-**Since T-025 (PR #85):** a data or fixture change also turns
-`hand-check-levels-verify.test.ts` criterion 14 red, and criterion 2 too if a
-choice label moves (T-070).
+safety net). **Gates switching on the monthly refresh routine**: since T-077, a
+live refresh blanks Alaska's capital, with a warning, instead of shipping
+`Q29445`.
+**Since T-070 (PR #103, E-30):** the SPARQL fixtures are no longer pinned, so
+re-recording one turns no fixture pin red. But Alaska's capital moving is a
+real bank change, so `BANK_DIGESTS` in `question-bank/src/bank-pins.ts` and the
+other bank pins listed under T-095 go red and need re-pinning through a Test
+change request (attended tester step), unless T-095 has landed first. If a
+choice label moves, `hand-check-levels-verify.test.ts` criterion 2 goes red too.
 **New 2026-10-13, from T-077's worker.** The query reads the right item: Alaska's
 P36 points at `Q29445`, which is Juneau. It has no `en` label any more, only a
 `mul` ("default for all languages") label `Juneau`, with labels in about 20 other
@@ -386,38 +194,13 @@ same blind spot. There a `mul`-only item gives an absent binding, not a QID.
 **Done when:** the label service asks for `"en,mul"`, the explicit label reads
 accept `mul` as a fallback after `en`, the fixture is re-recorded, and Alaska's
 capital is `Juneau` from a live refresh.
-**Skipped by the expander, 2026-10-13. Its `Depends on: —` is incomplete.**
-Re-recording the fixture is a changed refresh. That moves `sources.built_at` in
-all 50 bank files, and the four digest guards go red until T-070 (a) is
-settled, which waits on Q1. So this Done-when cannot land before T-070 (a).
-**Proposed split, for a human to decide:** the query half (`"en,mul"`, plus a
-`mul` fallback for `highestPoint` and `borderNames`) is offline-checkable today
-and moves no committed byte. The fixture already records `Juneau`
-(`src/fixtures/us-states.sparql.json:100`), and `fixture-transport.ts` matches
-by query identity. The re-record and the live check would move to the first
-refresh after T-070 (a). T-078 was taken instead.
-**Since T-078 (PR #78):** a re-record also turns T-079's criterion-19 fixture
-pins red (`highest-point-in-state-verify.test.ts`). See T-070's 2026-10-13
-amendment; the re-record needs a Test change request row for each.
-**Skipped again by the expander, 2026-10-13, for T-020.** Nothing has changed
-since the note above: Q1 is still open, and nobody has decided the proposed
-split.
-**Skipped again, 2026-10-15, for T-021.** Same reason.
-**Skipped again, 2026-10-15, for T-023.** Same reason.
-**Skipped again, 2026-10-15, for T-024.** Same reason.
-**Skipped again, 2026-10-15, for T-025.** Same reason.
-**Skipped again, 2026-10-16, for T-086.** Same reason.
-**Skipped again, 2026-10-23, for T-050.** Same reason. T-070, T-085, T-088 and
-T-056 were passed over too: each is waiting on a person.
-**Skipped again, 2026-10-23, for T-090.** Same reason. T-070, T-085 and T-088
-were passed over too: each is still waiting on a person.
-**Skipped again, 2026-10-23, for T-089.** Same reason. T-070, T-085, T-088,
-T-091 and T-056 were passed over too: each is waiting on a person.
-**Skipped again, 2026-10-26, for T-051.** Same reason.
-**Skipped again, 2026-10-27, for T-092.** Same reason. T-070, T-085, T-088,
-T-091 and T-056 were passed over too: each is waiting on a person.
-**Skipped again, 2026-10-27, for T-094.** Same reason. T-070, T-085, T-088,
-T-091 and T-056 were passed over too: each is waiting on a person.
+**Skipped by expanders 2026-10-13 to 2026-10-27 (thirteen times)** because the
+re-record could not land before T-070 settled the digest guards. T-070 has now
+landed, so that blocker is gone. The proposed split still stands for a person
+to decide: the query half (`"en,mul"`, plus a `mul` fallback for `highestPoint`
+and `borderNames`) is offline-checkable and moves no committed byte (the
+fixture already records `Juneau`, `src/fixtures/us-states.sparql.json:100`);
+the re-record and the live check go with the first refresh.
 
 ---
 
@@ -668,9 +451,49 @@ Two things:
 - **Say it where the refresh is run.** Either `bun run refresh` prints the two
   commands when it changes the bank, or the refresh docs list them. Chaining
   them into the refresh is the bigger option, and it was out of T-040's scope.
+**Amended 2026-10-29 by T-070's reviewer (PR #103).** T-070 made four backend
+drift tests ignore `_source.extractedAt` so a `built_at`-only refresh stays
+green (approved rows W54–W57: `test_content_build.py`, `test_t040_tester_criteria.py`
+×2, `test_t051_tester_criteria.py`). A stale date in `content.json` now passes.
+If this task makes the refresh regenerate `content.json`, restore the full
+comparison in those four tests through a Test change request.
 **Done when:** a person running a changed refresh is told, by the command or by
 the doc next to it, to regenerate both files, and the question-file command is
 either a named script or the reason it is not is written down.
+
+### T-095 — A real refresh still turns the re-pinned bank guards red · S · todo
+**Depends on:** T-070. **Needs a person's call before it is expanded** (Q below).
+**New 2026-10-28, from T-070's expander (PR #103), added at Dkaattae's request.**
+T-070 makes the bank guards survive a refresh in which only `sources.built_at`
+and the SPARQL fixtures moved, which is what Q1 asked for. But `bun run refresh`
+writes nothing in that case: it exits 2, `bank unchanged`
+(`question-bank/src/refresh.ts`, header comment). Every refresh that writes has
+moved at least one other bank field, so every real refresh PR will still go red
+on the re-pinned guards, starting with T-070's `bank-pins.ts` / `BANK_DIGESTS`.
+That is safe, but it means the monthly routine can never open a green PR on its
+own. T-087 is related (it regenerates the question file and served bank) and may
+land in the same PR as whatever this decides.
+**Q (for a person):** which of these?
+- **(a) The refresh PR re-pins.** The refresh, or a documented step after it,
+  regenerates the bank pins, so the PR's diff shows the pin change next to the
+  data change and a reviewer sees both. The guards keep pinning exact values.
+- **(b) The bank guards stop pinning values a refresh may move.** They keep
+  checking shape, the curated fields and anything Wikidata does not supply, and
+  leave refreshable values to `committed-bank.test.ts` (offline rebuild matches
+  the committed bank, E-6).
+- **(c) Accept the red PR,** and write down that a refresh PR is re-pinned by
+  hand in an attended tester step (D-14).
+**Amended 2026-10-29 by T-070's reviewer (PR #103): the bank is pinned in more
+than one place.** Option (a) has to re-pin all of these, not just
+`BANK_DIGESTS`: `hand-check-levels-verify.test.ts` criterion 14 (one digest over
+`question-bank/data/`, `7760ab89…`), `highest-point-metres-verify.test.ts`
+`LINE_AT_B0EE336`, `climate-far-phrases-verify.test.ts` criterion 12's
+`content.json` digest, and `seed-level-loose-ends-verify.test.ts` criterion 10's
+levels digest. Eleven guards hash whole bank files, all through `BANK_DIGESTS`.
+Folding the rest into `bank-pins.ts`, together with the `fixtureBuiltAt` helper
+now copied into seven test files, would make (a) one edit.
+**Done when:** a refresh that moves a real bank field opens a PR whose suite is
+green, or (c) is chosen and recorded as the next unused `E-n`.
 
 ---
 

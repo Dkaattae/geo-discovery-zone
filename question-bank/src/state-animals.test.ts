@@ -44,8 +44,16 @@ const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
-/** Criterion 6 names this instant literally. */
-const PINNED_BUILT_AT = "2026-08-04T16:05:35.000Z";
+/**
+ * Criterion 6's instant is the main fixture's `captured_at`, compared rather than
+ * written out, so a refresh that moves both stays green (T-070 row W51).
+ */
+const MAIN_FIXTURE = join(PKG, "src/fixtures/us-states.sparql.json");
+const fixtureBuiltAt = () =>
+  new Date(
+    (JSON.parse(readFileSync(MAIN_FIXTURE, "utf8")) as { _fixture: { captured_at: string } })
+      ._fixture.captured_at,
+  ).toISOString();
 
 /**
  * Criterion 1: "the set of states this brief's `## Handoff` names as
@@ -439,12 +447,10 @@ describe("T-012 criterion 6 — the bank is built, not hand-edited", () => {
     });
   }
 
-  test(`sources.built_at is ${PINNED_BUILT_AT} in every tracked file`, () => {
+  test("sources.built_at equals the main fixture's captured_at in every tracked file", () => {
+    const builtAt = fixtureBuiltAt();
     for (const { file, entity } of trackedStateFiles()) {
-      expect({ file, builtAt: entity.sources?.built_at }).toEqual({
-        file,
-        builtAt: PINNED_BUILT_AT,
-      });
+      expect({ file, builtAt: entity.sources?.built_at }).toEqual({ file, builtAt });
     }
   });
 });

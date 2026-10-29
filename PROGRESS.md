@@ -365,6 +365,22 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-070 — Digest guards re-pinned at `b0ee336`, neutralisations gone** (PR
+  #103, 2026-10-29). New `question-bank/src/bank-pins.ts` holds one pin per bank
+  file (`index.json` and the 50 states), hashed whole except
+  `sources.built_at`, and every bank guard now compares through it with no
+  strip, reset or restore, so the `top_crops` blind spot is closed. Fixture
+  byte pins and literal `built_at` pins are gone; the suite is green on a
+  simulated refresh that moves only `built_at` and the fixtures. E-30 records
+  the decision. *Where it differed from the brief:* the brief listed only
+  pinned guards, but criterion 11 also needed four backend `content.json`
+  drift tests to stop comparing `_source.extractedAt`, which a refresh moves
+  (a stale date now passes; T-087). 58 pre-existing test changes, 22 of them
+  deletions, were approved by Dkaattae row by row in an attended tester
+  session, which also chose the narrow reading of criterion 4. A real refresh
+  still turns the pins red, as designed (T-095). Brief approval was an
+  orchestrator stamp; expander, worker and first tester shared one session id.
+
 - **T-094 — Answer-position spread checked again for every positioned template**
   (PR #101, 2026-10-27). New `question-bank/src/answer-position-spread.test.ts`
   asserts that every `TEMPLATES` entry whose format is not `map_click` puts its
@@ -1588,7 +1604,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   one (E-27, T-091).
 - **Regenerating is by hand.** After the entity bank changes, two commands
   rewrite the question file and `content.json`, and a drift test is red until
-  both are run (E-24). Nothing prompts for them yet (T-087).
+  both are run (E-24). Nothing prompts for them yet (T-087). Since T-070, the
+  backend drift tests ignore `content.json`'s `_source.extractedAt`, so a stale
+  date there passes.
 - Fun facts: all 50 exist in the **pipeline** bank, curated and marked
   `reviewed: true` (T-011, PR #41). Two things are still open. Their **substance**
   — are they true, do they read well to a nine-year-old — is a human read, and
@@ -1656,8 +1674,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `drag_order`, `pin_*` and `click_profile` have no answer key; submitting one is
   a 422 rather than a guess (T-045).
 - **The monthly bank refresh is built but not switched on** (T-063). Two things
-  have to land first: T-070 (a), or the first changed refresh is red on the
-  four digest guards, and T-084, or Alaska's capital is blanked. Its English
+  have to land first: T-095, or every refresh that writes is red on the bank
+  pins T-070 re-pinned at `b0ee336` (E-30), and T-084, or Alaska's capital is
+  blanked. Its English
   label now lives in Wikidata's `mul` label, which the query does not read; T-077
   (PR #77) stops the bare QID `Q29445` shipping, but leaves the field empty.
 - Bun's `fetch` cannot traverse some egress proxies, so the pipeline falls back

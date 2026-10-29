@@ -131,10 +131,24 @@ def test_c5_every_served_map_click_reveals_with_map_highlight() -> None:
     assert {q["reveal"] for q in _served_map_click().values()} == {"map_highlight"}
 
 
+def _without_extracted_at(text: str) -> dict[str, Any]:
+    """The rendered file, parsed, with `_source.extractedAt` removed.
+
+    T-070 (rows W57, approved): `extractedAt` is the newest bank `built_at`
+    date, which a refresh moves without regenerating `content.json` (T-087 owns
+    that). Everything else is still compared.
+    """
+    parsed = json.loads(text)
+    del parsed["_source"]["extractedAt"]
+    return parsed
+
+
 def test_c6_committed_content_json_is_what_the_build_writes_and_repeats() -> None:
     first = render_committed_inputs()
     second = render_committed_inputs()
-    assert CONTENT_FILE.read_text(encoding="utf-8") == first
+    committed = CONTENT_FILE.read_text(encoding="utf-8")
+    assert _without_extracted_at(committed) == _without_extracted_at(first)
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", json.loads(committed)["_source"]["extractedAt"])
     assert first == second
 
 

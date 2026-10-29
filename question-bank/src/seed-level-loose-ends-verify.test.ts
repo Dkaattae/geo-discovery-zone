@@ -36,18 +36,32 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
 // ---- baselines at 41811f9 ----
 
-const BASE_LEVELS_SHA = "6af643acafd9cba393dbd52da67a88034ae0019977e0b7fc57e6efc85376f5da";
-const BASE_WEIGHTS = {
+// Criterion 10's levels and weights are re-pinned at b0ee336, over all of
+// TEMPLATES (T-070 rows W40 and W41, E-30). Computed in a worktree of b0ee336.
+const R_LEVELS_COUNT = 415;
+const R_LEVELS_SHA = "a3a28b64868133f64d53b620f27698a7ba4dbb3a22a6b74834f2a800bb102ca0";
+const R_WEIGHTS = {
   rank_bucket_edges: [10, 20, 35],
   population_rank_weight: 1,
   area_rank_weight: 0.5,
   missing_rank_bucket: 2,
   near_distractor_weight: 0.5,
-  concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 2, "tpl-click-the-map": 0 },
+  concept_load: {
+    "tpl-identify-on-map": 0,
+    "tpl-capital-of": 2,
+    "tpl-click-the-map": 0,
+    "tpl-biggest-state": 2,
+    "tpl-state-animal-of": 2,
+    "tpl-landmark-in": 2,
+    "tpl-climate-of": 3,
+    "tpl-crop-of": 2,
+    "tpl-farm-animal-of": 1,
+  },
   concept_load_default: 1,
   familiarity_bonus: 0,
 };
-const BASE_OUTSIDE_E22_SHA = "399b5eb68794105712edda7f1a9dacf08ade39dc7fff43918cf46a0c49e40728";
+// Criterion 12, re-pinned at T-070's branch head, E-30 included (row W42, E-30).
+const HEAD_OUTSIDE_E22_SHA = "e487a48196d6de37dd060305e9629ec375c1a195eb0fcc5cb874a2176ff663b3";
 const BASE_E22_HEADING =
   "## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` is 0";
 const BASE_E_HEADING_COUNT = 23;
@@ -325,37 +339,18 @@ describe("T-086 criteria 7-9: the band paragraph", () => {
 // ---- criteria 10-12: what must not move ----
 
 describe("T-086 criteria 10-12: what must not move", () => {
-  test("criterion 10: the 150 seeded levels by id equal 41811f9's", () => {
-    // T-026 (approved Test change request, S3): the three original templates.
-    const original = TEMPLATES.slice(0, 3);
+  test("criterion 10: the seeded levels by id, over all TEMPLATES, equal b0ee336's", () => {
     const entities = bank();
-    const { questions } = buildChoices(generate(entities, original).drafts, entities, original);
-    const pairs = seedLevels(questions, entities, original)
+    const { questions } = buildChoices(generate(entities, TEMPLATES).drafts, entities, TEMPLATES);
+    const pairs = seedLevels(questions, entities, TEMPLATES)
       .map((q) => [q.id, q.level] as [string, number])
       .sort((a, b) => (a[0] < b[0] ? -1 : 1));
-    expect(pairs.length).toBe(150);
-    expect(sha(JSON.stringify(pairs))).toBe(BASE_LEVELS_SHA);
+    expect(pairs.length).toBe(R_LEVELS_COUNT);
+    expect(sha(JSON.stringify(pairs))).toBe(R_LEVELS_SHA);
   });
 
-  test("criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to 41811f9's", () => {
-    // T-026 (approved Test change request row 71): six concept_load keys are
-    // added, one per new template; everything 41811f9 had is unchanged.
-    const added = [
-      "tpl-biggest-state",
-      "tpl-state-animal-of",
-      "tpl-landmark-in",
-      "tpl-climate-of",
-      "tpl-crop-of",
-      "tpl-farm-animal-of",
-    ];
-    const load = { ...LEVEL_SEED_WEIGHTS.concept_load } as Record<string, number>;
-    expect(
-      Object.keys(load)
-        .filter((k) => !(k in BASE_WEIGHTS.concept_load))
-        .sort(),
-    ).toEqual([...added].sort());
-    for (const k of added) delete load[k];
-    expect({ ...LEVEL_SEED_WEIGHTS, concept_load: load }).toEqual(BASE_WEIGHTS);
+  test("criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to b0ee336's", () => {
+    expect(LEVEL_SEED_WEIGHTS).toEqual(R_WEIGHTS);
   });
 
   test("criterion 11: the T-025 hand-check table (header, separator, 30 rows) is byte-identical to 41811f9's", () => {
@@ -373,14 +368,11 @@ describe("T-086 criteria 10-12: what must not move", () => {
     expect(sha(table.join("\n"))).toBe(BASE_TABLE_SHA);
   });
 
-  // T-040 appended E-24; everything 41811f9 had outside E-22's body is still pinned.
-  test("criterion 12: engineering-decisions.md outside E-22's body, up to the first heading after E-23, is byte-identical to 41811f9's", () => {
-    const all = decisionLines();
-    const later = all.findIndex((l) => Number(l.match(/^## E-(\d+)\b/)?.[1]) > 23);
-    const lines = later < 0 ? all : [...all.slice(0, later - 1), ""];
+  test("criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's", () => {
+    const lines = decisionLines();
     const [s, e] = e22Bounds(lines);
     const outside = [...lines.slice(0, s + 1), ...lines.slice(e)].join("\n");
-    expect(sha(outside)).toBe(BASE_OUTSIDE_E22_SHA);
+    expect(sha(outside)).toBe(HEAD_OUTSIDE_E22_SHA);
   });
 
   // T-040 appended E-24, so headings above E-23 are allowed; none of 41811f9's may go.

@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
+import { BANK_DIGESTS, bankFileDigest } from "./bank-pins";
 import { runBuild } from "./build";
 import { CURATED_US_STATES } from "./curated/us-states";
 import { normalizeUsStates, type BuildWarning } from "./normalize";
@@ -25,8 +26,9 @@ import type { SparqlResults, SparqlRow, SparqlTransport } from "./sparql";
  * Every expected value below comes from a criterion's own wording — 1609 m,
  * 12622 ft → 3846.8–3847.8, 3852 m + 12637 ft → 3850–3853, the five ranges of
  * criterion 8, Denali's 6190 — or, for criteria 11 and 12, from the default
- * branch `main` at `e10f94d`, pinned below (computed once with
- * `git show e10f94d:<path>`, because CI's checkout has no history to ask).
+ * branch at `b0ee336`, pinned below and in `bank-pins.ts` (T-070 rows
+ * W29–W31, `engineering-decisions.md` E-30; computed once with
+ * `git show b0ee336:<path>`, because CI's checkout has no history to ask).
  *
  * No network: hand-built responses go through `parseUsStates` →
  * `normalizeUsStates` directly; criteria 7 and 16 go through the
@@ -348,228 +350,82 @@ describe("T-069 tester, criteria 9–10 — Alaska untouched, nothing taller tha
 });
 
 /**
- * The default branch (`main` at `e10f94d`), per file: its `highest_point_m`
- * line, and the SHA-256 of the file with that line removed. Computed once with
- * `git show e10f94d:question-bank/data/us-states/<name>`.
+ * The default branch at `b0ee336`, per file: its `highest_point_m` line
+ * (T-070 row W29). Computed once with
+ * `git show b0ee336:question-bank/data/us-states/<name>`.
  */
-const MAIN_AT_E10F94D: Record<string, { line: string | null; rest: string }> = {
-  "index.json": {
-    line: null,
-    rest: "cd6822166faad67383db4d0506bcc1a833e142884e1792b03292795ce3e1e066",
-  },
-  "us-state-ak.json": {
-    line: "6190",
-    rest: "3e82b6dd9e303bc5264c0cf08ee77c73949569ff800b2ae5df71c7234e53f56c",
-  },
-  "us-state-al.json": {
-    line: "735.5",
-    rest: "2073ef62a053c71630ff28c3fef3a5b0068b7ac73d0c6ec4e1e823867b92d5d2",
-  },
-  "us-state-ar.json": {
-    line: "839",
-    rest: "0779455f73e7c5f262fc25f137afdac92fe155992498f897df8b5a842233c0dc",
-  },
-  "us-state-az.json": {
-    line: "12622",
-    rest: "1977b77c934df67d2eafc21edeedc6c8f1582056b8b6efd880360d5131618051",
-  },
-  "us-state-ca.json": {
-    line: "4421",
-    rest: "5a45453fa543525aa49e122c4fcb3a6ccddc6cd5fd05ff1dc30226aed9654a05",
-  },
-  "us-state-co.json": {
-    line: "4401",
-    rest: "cb7dc6e309233bdffd75226ee45ee9063be872ea2a1218627bc7a4eeed67c7a9",
-  },
-  "us-state-ct.json": {
-    line: "748",
-    rest: "41a87e764537ec113ea97a9435b7f89bfdefd2a7faf70d5935ae8c168883da9a",
-  },
-  "us-state-de.json": {
-    line: "137",
-    rest: "390cdfcaebc8cdf71ec530d925998b3e54818ce8d5936851c10f136463bed3cd",
-  },
-  "us-state-fl.json": {
-    line: "105",
-    rest: "e92b96c2e9fc2812cc761aee904f1e94d237427948651d073c1601e222dfac48",
-  },
-  "us-state-ga.json": {
-    line: "1458",
-    rest: "c535ea5d1c94b1306a8814994e1af293641d685ef49fca4b4f7474ef374dd928",
-  },
-  "us-state-hi.json": {
-    line: "4207.3",
-    rest: "2995d8c23548be1fe375333479c04ee4ed06285576b2cf4c9741542546217266",
-  },
-  "us-state-ia.json": {
-    line: "1670",
-    rest: "d42c975efb5294a0e1a812d1fd0613d26dbc8320f80982bf57a2b2aef97ca668",
-  },
-  "us-state-id.json": {
-    line: "3857",
-    rest: "b35df560f1edd62732478a064f29221e72e4dfabf23ea06f2c39a52cce17ac36",
-  },
-  "us-state-il.json": {
-    line: "376",
-    rest: "49fab827d863f0f32a659f739dc672f54aa6fe050fd2b9e28367637b29de84b6",
-  },
-  "us-state-in.json": {
-    line: "383",
-    rest: "27fe9b26c7cabd19ffc7d6cbb864e3b8a3ca2e01f98e93f50255f1491501d976",
-  },
-  "us-state-ks.json": {
-    line: "4039",
-    rest: "70f67882303c72b90285f6dfdd0cae38bb1855bb370ee282fa7eee47e27acd0c",
-  },
-  "us-state-ky.json": {
-    line: "1263",
-    rest: "be166171d1ed86e50b5203c447d709b06c7080d5f75f8a5133b9b57f7fa2ce17",
-  },
-  "us-state-la.json": {
-    line: "163",
-    rest: "7bd641ea02cd934c0c19ab2b6b339bd8de566786b3cc0054eabab2c6ff6fee39",
-  },
-  "us-state-ma.json": {
-    line: "1064",
-    rest: "01ed85cf577fa8cd395f0128a59dcdc61894fcdecba65fb74c0fd1c0bc2a8feb",
-  },
-  "us-state-md.json": {
-    line: "1020",
-    rest: "0fcc471506e3afe0164e3e23b6ca4022577e64a47b7c8e13bcffda5beb90784e",
-  },
-  "us-state-me.json": {
-    line: "1606",
-    rest: "fddfc0f3604662470b2f38b7b16fb6d524fe1fb0976e73dc826096b080ebbdcb",
-  },
-  "us-state-mi.json": {
-    line: "603",
-    rest: "a1ee6ce37905ef04ab8101eb4a2a31eb2015c4bf1cb6913bcd604bd6bcd90d8b",
-  },
-  "us-state-mn.json": {
-    line: "701",
-    rest: "9f8722d991794210f565e4a62acf9c55f59fdaabd2728678d3f080b0d3eb2933",
-  },
-  "us-state-mo.json": {
-    line: "540",
-    rest: "db9df63317b56f00acd66dd02993fdde9012e2c3ee987b83abf536a00d1b5c3f",
-  },
-  "us-state-ms.json": {
-    line: "246",
-    rest: "3cb6fd161d2925c6617c057252dea578660e1abbf88a14a3e73ade69d35c6148",
-  },
-  "us-state-mt.json": {
-    line: "3904",
-    rest: "35c44b2872306576f33925bfb4c856a8eda15429cf77003ccef186fe96915402",
-  },
-  "us-state-nc.json": {
-    line: "2037",
-    rest: "2376642dac3841d4e36f3ab7f75d7d5f43cbaf2b5686d2cbdafe2fef3ccbc1f4",
-  },
-  "us-state-nd.json": {
-    line: "1069",
-    rest: "26fdbbf43f2fdd400a1ed82440ce1261068197d2d7886fc3eecac6103038c69a",
-  },
-  "us-state-ne.json": {
-    line: "5429",
-    rest: "db5e133ce3db5c8de71b07283ac80b6a5a1393c2cf6dba1068b24944be90928b",
-  },
-  "us-state-nh.json": {
-    line: "1917",
-    rest: "89f0fdd9d36f33542cae0060d6c5a71630476163aea602867af8e703a1652265",
-  },
-  "us-state-nj.json": {
-    line: "550",
-    rest: "6cd243f0ee7c2242efcb516f99a4b9bf32741176fb7e42cd627756149095c698",
-  },
-  "us-state-nm.json": {
-    line: "4011",
-    rest: "7701b662b27e14e7dcdf38981d2d3bfc581d2a50cab1bee8f5ba34c6cae4b5d5",
-  },
-  "us-state-nv.json": {
-    line: "4007",
-    rest: "24bb3336faca4cc9e1b0f74df0766382f3d9d4be388f994745a0bfd44ed7291d",
-  },
-  "us-state-ny.json": {
-    line: "1629",
-    rest: "3ee29c6fa4365a855d7b4161d4e370d654ed001032fc2ee4d9748e0e826e1e0f",
-  },
-  "us-state-oh.json": {
-    line: "472",
-    rest: "86b849b95a800825be471dd5a82ddc480955c4d6b87eea89d7585b4f095455f5",
-  },
-  "us-state-ok.json": {
-    line: "1737",
-    rest: "bedd06d6730993b86dc54ebd1ccd2cf9f0acfd3d9fe1e70c9e16132f722d381b",
-  },
-  "us-state-or.json": {
-    line: "11237",
-    rest: "4e211829a2dd930f974a1e9601e25d323c548d0278b180c9fd8e1e5c9bea866d",
-  },
-  "us-state-pa.json": {
-    line: "979",
-    rest: "d50fc1104b24fd6ea002e67f86d465b11994a419d1e4847a251bbde882a9c5c4",
-  },
-  "us-state-ri.json": {
-    line: "247",
-    rest: "47ddfeb43ebc3455f0c67157ad7aabe8aefd2f51c6b6c4f9e91103ced3cff1ad",
-  },
-  "us-state-sc.json": {
-    line: "1085",
-    rest: "5d4fa063e3718d4bd71b3920bc8fb9825294aef536c3851c668e080611f0c8a2",
-  },
-  "us-state-sd.json": {
-    line: "2208",
-    rest: "041790bf4247b1c75dee99f90082edd0e2d9228550b2031e9cff691ae20de5da",
-  },
-  "us-state-tn.json": {
-    line: "2025",
-    rest: "bb23efe697b43e1db8f0877a89d6657031f1855c05da28d44e7e557cb3a25aa1",
-  },
-  "us-state-tx.json": {
-    line: "2667",
-    rest: "08e423ec3e9b7cea3d328e45ad89c089f23511fb5ab63364a1e1d2535f35da82",
-  },
-  "us-state-ut.json": {
-    line: "4123",
-    rest: "6dcabf23a575fa61fe0f6017bf48b27db1f47af27b84153447f6b14df0f936de",
-  },
-  "us-state-va.json": {
-    line: "1825",
-    rest: "2f248e459d283a03b39074001b7d4276cceec8cf21de1165e825dfbdc2faa566",
-  },
-  "us-state-vt.json": {
-    line: "1339.69",
-    rest: "0c74f0a89b690b9eac8a35311e34a01c044f9e3c2fc1c10e8ec0bf042c74ffce",
-  },
-  "us-state-wa.json": {
-    line: "4389",
-    rest: "7f419d25cb197218d69a66d37212ad5e54488016ec0e1841f0af825ccecce0c7",
-  },
-  "us-state-wi.json": {
-    line: "594.8",
-    rest: "f966e78103566d2918c513ce65f4149691e9f9babcca74795af9b869d1a017b9",
-  },
-  "us-state-wv.json": {
-    line: "1482",
-    rest: "81bc89203fda01a1a74b4de892237c31dfdfc5d2815b4bbc84552d0d1994f280",
-  },
-  "us-state-wy.json": {
-    line: "4207",
-    rest: "07ca7a8a0fda5ebd04ddca727d9687f4e434bd42b3eae3c00204bc4644e826e2",
-  },
+const LINE_AT_B0EE336: Record<string, string | null> = {
+  "index.json": null,
+  "us-state-ak.json": "6190",
+  "us-state-al.json": "735.5",
+  "us-state-ar.json": "839",
+  "us-state-az.json": "3847",
+  "us-state-ca.json": "4421",
+  "us-state-co.json": "4401",
+  "us-state-ct.json": "727.2",
+  "us-state-de.json": "137",
+  "us-state-fl.json": "105",
+  "us-state-ga.json": "1458",
+  "us-state-hi.json": "4207.3",
+  "us-state-ia.json": "509",
+  "us-state-id.json": "3857",
+  "us-state-il.json": "376",
+  "us-state-in.json": "383",
+  "us-state-ks.json": "1231",
+  "us-state-ky.json": "1263",
+  "us-state-la.json": "163",
+  "us-state-ma.json": "1064",
+  "us-state-md.json": "1020",
+  "us-state-me.json": "1606",
+  "us-state-mi.json": "603",
+  "us-state-mn.json": "701",
+  "us-state-mo.json": "540",
+  "us-state-ms.json": "246",
+  "us-state-mt.json": "3904",
+  "us-state-nc.json": "2037",
+  "us-state-nd.json": "1069",
+  "us-state-ne.json": "1655",
+  "us-state-nh.json": "1917",
+  "us-state-nj.json": "550",
+  "us-state-nm.json": "4011",
+  "us-state-nv.json": "4007",
+  "us-state-ny.json": "1629",
+  "us-state-oh.json": "472",
+  "us-state-ok.json": "1516.4",
+  "us-state-or.json": "3425",
+  "us-state-pa.json": "979",
+  "us-state-ri.json": "247",
+  "us-state-sc.json": "1085",
+  "us-state-sd.json": "2208",
+  "us-state-tn.json": "2025",
+  "us-state-tx.json": "2667",
+  "us-state-ut.json": "4123",
+  "us-state-va.json": "1740.6",
+  "us-state-vt.json": "1339.69",
+  "us-state-wa.json": "4389",
+  "us-state-wi.json": "594.8",
+  "us-state-wv.json": "1482",
+  "us-state-wy.json": "4207",
 };
 
-/** T-079's curated overrides: bank file → the highest_point_m it now ships. */
-const T079_OVERRIDES: Record<string, string> = {
-  "us-state-ct.json": "727.2",
-  "us-state-ok.json": "1516.4",
-  "us-state-va.json": "1740.6",
-};
+/**
+ * T-070 row W32: the `e10f94d` values that `LINE_AT_B0EE336` no longer holds
+ * (the five feet values T-069 converted, and the three Wikidata values T-079
+ * overrode). Kept as search terms so criterion 15's scan does not lose them.
+ */
+const E10F94D_VALUES_SINCE_MOVED = [
+  "12622",
+  "11237",
+  "5429",
+  "4039",
+  "1670",
+  "748",
+  "1737",
+  "1825",
+];
 
 const ELEVATION_LINE = /^ {2}"highest_point_m": ([^,\n]+),\n/m;
-const sha256 = (text: string) => new Bun.CryptoHasher("sha256").update(text).digest("hex");
 const elevationLine = (raw: string) => ELEVATION_LINE.exec(raw)?.[1] ?? null;
-const withoutElevationLine = (raw: string) => raw.replace(ELEVATION_LINE, "");
 
 /** Bank file name → the set of units its recorded statements carry. */
 function recordedUnitsByPostal(): Map<string, Set<string>> {
@@ -598,27 +454,20 @@ describe("T-069 tester, criterion 11 — only unit-corrected states moved", () =
     expect([...recordedUnitsByPostal().keys()].sort()).toEqual(stateFiles().sort());
   });
 
-  // T-079 test change request rows 1–2 (approved): CT, OK and VA are metre-only
-  // in the recording but now ship a curated override, so they move by design.
-  test("every state whose recorded unit is metre (and only metre) keeps main's highest_point_m bytes, except CT, OK, VA (T-079 overrides)", () => {
+  test("every state whose recorded unit is metre keeps b0ee336's highest_point_m line", () => {
+    // T-070 row W29: re-pinned at b0ee336, with no file excluded.
     const units = recordedUnitsByPostal();
     const metreOnly = stateFiles().filter((n) => {
       const set = units.get(n);
       return set?.size === 1 && set.has(METRE);
     });
     expect(metreOnly.length).toBeGreaterThan(0);
-    for (const n of Object.keys(T079_OVERRIDES)) expect(metreOnly).toContain(n);
-    const moved = metreOnly
-      .filter((n) => !Object.hasOwn(T079_OVERRIDES, n))
-      .filter((n) => elevationLine(readState(n)) !== MAIN_AT_E10F94D[n]?.line);
+    const moved = metreOnly.filter((n) => elevationLine(readState(n)) !== LINE_AT_B0EE336[n]);
     expect(moved).toEqual([]);
-    // The exclusion pins the new value rather than merely skipping the file.
-    for (const [n, value] of Object.entries(T079_OVERRIDES)) {
-      expect(elevationLine(readState(n))).toBe(value);
-    }
   });
 
-  test("the changed set is the non-metre states AZ, IA, KS, NE, OR plus the T-079 overrides CT, OK, VA", () => {
+  test("no state's highest_point_m line differs from b0ee336", () => {
+    // T-070 row W30.
     const units = recordedUnitsByPostal();
     const notMetre = stateFiles()
       .filter((n) => {
@@ -627,9 +476,8 @@ describe("T-069 tester, criterion 11 — only unit-corrected states moved", () =
       })
       .sort();
     const changed = stateFiles()
-      .filter((n) => elevationLine(readState(n)) !== MAIN_AT_E10F94D[n]?.line)
+      .filter((n) => elevationLine(readState(n)) !== LINE_AT_B0EE336[n])
       .sort();
-    expect(changed.filter((n) => !Object.hasOwn(T079_OVERRIDES, n))).toEqual(notMetre);
     expect(notMetre).toEqual([
       "us-state-az.json",
       "us-state-ia.json",
@@ -637,32 +485,19 @@ describe("T-069 tester, criterion 11 — only unit-corrected states moved", () =
       "us-state-ne.json",
       "us-state-or.json",
     ]);
-    expect(changed).toEqual([
-      "us-state-az.json",
-      "us-state-ct.json",
-      "us-state-ia.json",
-      "us-state-ks.json",
-      "us-state-ne.json",
-      "us-state-ok.json",
-      "us-state-or.json",
-      "us-state-va.json",
-    ]);
+    expect(changed).toEqual([]);
   });
 });
 
 describe("T-069 tester, criterion 12 — nothing else in the bank moved", () => {
-  test("the bank holds exactly main's 51 files", () => {
-    expect(readdirSync(DATA_DIR).sort()).toEqual(Object.keys(MAIN_AT_E10F94D).sort());
+  test("the bank holds exactly b0ee336's 51 files", () => {
+    expect(readdirSync(DATA_DIR).sort()).toEqual(Object.keys(BANK_DIGESTS).sort());
   });
 
-  for (const name of Object.keys(MAIN_AT_E10F94D)) {
-    test(`${name}: everything but the highest_point_m line digests to main's bytes`, () => {
-      const raw = readState(name);
-      // The line is still there (a key removed would be caught here) …
-      if (MAIN_AT_E10F94D[name]?.line !== null) expect(elevationLine(raw)).not.toBeNull();
-      else expect(elevationLine(raw)).toBeNull();
-      // … and nothing else in the file differs, built_at included.
-      expect(sha256(withoutElevationLine(raw))).toBe(MAIN_AT_E10F94D[name]?.rest as string);
+  // T-070 row W31: pinned whole at b0ee336 through `bank-pins.ts`.
+  for (const name of Object.keys(BANK_DIGESTS)) {
+    test(`${name} digests to its b0ee336 pin, built_at aside`, () => {
+      expect(bankFileDigest(name, readState(name))).toBe(BANK_DIGESTS[name] as string);
     });
   }
 });
@@ -728,11 +563,10 @@ describe("T-069 tester, criterion 15 — no hand-written elevation", () => {
   });
 
   test("no non-test source under src/ holds a shipped highest_point_m value as code, except the three T-079 overrides in curated/us-states.ts", () => {
-    // Every shipped value, and every feet value the default branch shipped.
-    const values = new Set<string>();
-    for (const [name, pin] of Object.entries(MAIN_AT_E10F94D)) {
-      if (pin.line) values.add(pin.line);
-      const now = name === "index.json" ? undefined : shipped(name);
+    // Every shipped value, and every value e10f94d shipped (T-070 row W32).
+    const values = new Set<string>(E10F94D_VALUES_SINCE_MOVED);
+    for (const name of stateFiles()) {
+      const now = shipped(name);
       if (typeof now === "number") values.add(String(now));
     }
     const sources: string[] = [];

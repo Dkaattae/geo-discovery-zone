@@ -45,8 +45,16 @@ const REPO = resolve(PKG, "..");
 const DATA_DIR = join(PKG, "data/us-states");
 const BUILD_SCRIPT = join(PKG, "src/build.ts");
 
-/** Criterion 12 names this instant literally. */
-const PINNED_BUILT_AT = "2026-08-04T16:05:35.000Z";
+/**
+ * Criterion 12's instant is the main fixture's `captured_at`, compared rather than
+ * written out, so a refresh that moves both stays green (T-070 row W50).
+ */
+const MAIN_FIXTURE = join(PKG, "src/fixtures/us-states.sparql.json");
+const fixtureBuiltAt = () =>
+  new Date(
+    (JSON.parse(readFileSync(MAIN_FIXTURE, "utf8")) as { _fixture: { captured_at: string } })
+      ._fixture.captured_at,
+  ).toISOString();
 
 /**
  * Criterion 17: the Handoff's 50-row table, postal → the exact `climate_kid`
@@ -569,12 +577,10 @@ describe("T-014 criterion 12 — the bank is built, not hand-edited", () => {
     });
   }
 
-  test(`sources.built_at is ${PINNED_BUILT_AT} in every tracked file`, () => {
+  test("sources.built_at equals the main fixture's captured_at in every tracked file", () => {
+    const builtAt = fixtureBuiltAt();
     for (const { file, entity } of trackedStateFiles()) {
-      expect({ file, builtAt: entity.sources?.built_at }).toEqual({
-        file,
-        builtAt: PINNED_BUILT_AT,
-      });
+      expect({ file, builtAt: entity.sources?.built_at }).toEqual({ file, builtAt });
     }
   });
 });
@@ -860,7 +866,9 @@ describe("T-014 criterion 19 — nothing already verified is weakened", () => {
     // T-064 row 38: tests 52 → 50, rows 9–10 deleted the sample comparisons.
     "landmarks.test.ts": { tests: 50, expects: 88 },
     // T-064 row 39: tests 36 → 35, row 12 deleted the sample comparison.
-    "landmarks-verify.test.ts": { tests: 35, expects: 69 },
+    // T-070 row W10b: 35/69 → 34/65; rows W3 (two CT restore expects) and W4
+    // (one test, two expects) removed exactly that.
+    "landmarks-verify.test.ts": { tests: 34, expects: 65 },
     "normalize.test.ts": { tests: 14, expects: 31 },
     "sparql.test.ts": { tests: 5, expects: 7 },
   };

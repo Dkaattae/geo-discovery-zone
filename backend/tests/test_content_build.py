@@ -61,10 +61,24 @@ async def _all(client: httpx.AsyncClient, path: str, **params: Any) -> list[dict
 # -- the committed file is what the command writes (criteria 4, 5) -----------
 
 
+def _without_extracted_at(text: str) -> dict[str, Any]:
+    """The rendered file, parsed, with `_source.extractedAt` removed.
+
+    T-070 (rows W54, approved): `extractedAt` is the newest bank `built_at`
+    date, which a refresh moves without regenerating `content.json` (T-087 owns
+    that). Everything else is still compared.
+    """
+    parsed = json.loads(text)
+    del parsed["_source"]["extractedAt"]
+    return parsed
+
+
 def test_committed_content_json_is_what_the_loader_writes_from_committed_inputs() -> None:
-    assert content_build.CONTENT_FILE.read_text(encoding="utf-8") == (
+    committed = content_build.CONTENT_FILE.read_text(encoding="utf-8")
+    assert _without_extracted_at(committed) == _without_extracted_at(
         content_build.render_committed_inputs()
     )
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", json.loads(committed)["_source"]["extractedAt"])
 
 
 def test_one_changed_entity_field_makes_the_drift_check_fail() -> None:

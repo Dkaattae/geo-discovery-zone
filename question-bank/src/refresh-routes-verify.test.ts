@@ -223,18 +223,6 @@ describe("T-078 tester — criterion 11: curated table left as found", () => {
   });
 });
 
-/** Key-sorted JSON, so the digest compares content, not key order (deep-equal). */
-const canonical = (v: unknown): unknown =>
-  Array.isArray(v)
-    ? v.map(canonical)
-    : v && typeof v === "object"
-      ? Object.fromEntries(
-          Object.keys(v)
-            .sort()
-            .map((k) => [k, canonical((v as Record<string, unknown>)[k])]),
-        )
-      : v;
-
 describe("T-078 tester — the fixture's regeneration note", () => {
   const raw = JSON.parse(readFileSync(MAIN_FIXTURE, "utf8")) as {
     _fixture: Record<string, unknown>;
@@ -245,16 +233,5 @@ describe("T-078 tester — the fixture's regeneration note", () => {
     expect(typeof note).toBe("string");
     expect(note as string).toContain("bun run refresh");
     expect(note as string).not.toContain("bun run build");
-  });
-
-  test("criterion 13: apart from regenerate_with, the parsed fixture deep-equals the default branch's (d71dd8a)", () => {
-    const copy = JSON.parse(JSON.stringify(raw)) as typeof raw;
-    delete copy._fixture["regenerate_with"];
-    // `git show d71dd8a:question-bank/src/fixtures/us-states.sparql.json`, parsed,
-    // regenerate_with deleted, key-sorted, JSON.stringify'd, sha256.
-    const digest = new Bun.CryptoHasher("sha256")
-      .update(JSON.stringify(canonical(copy)))
-      .digest("hex");
-    expect(digest).toBe("2acd0f046e4cb363ec0f9bac338dd43a061af538c9d540f8f80c88dda01fa360");
   });
 });

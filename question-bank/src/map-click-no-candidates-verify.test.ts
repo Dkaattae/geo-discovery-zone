@@ -58,7 +58,8 @@ function digestsOf(file: { count: number; questions: Q[] }) {
   const other = file.questions.filter((q) => q.format !== "map_click");
   return {
     order: sha(canon(file.questions.map((q) => [q.id, q.format]))),
-    clickFields: sha(canon(click.map((q) => omit(q, [...CANDIDATE_KEYS, "level"])))),
+    // T-070 row W46: only `level` is left out; the candidate keys are no longer stripped (c3).
+    clickFields: sha(canon(click.map((q) => omit(q, ["level"])))),
     clickLevels: sha(canon(click.map((q) => [q.id, q["level"]]))),
     other: sha(canon(other)),
   };
@@ -410,7 +411,8 @@ function baselineOf(entities: Entity[]): Baseline {
       .filter((p) => p.draftId.startsWith(CLICK_PREFIX))
       .map(({ draftId, found, reason }) => ({ draftId, found, reason })),
     others: sha(canon(qs.filter((q) => !isClick(q)))),
-    clickRest: sha(canon(qs.filter(isClick).map((q) => omit(q, CANDIDATE_KEYS)))),
+    // T-070 row W47: no key is stripped before hashing.
+    clickRest: sha(canon(qs.filter(isClick))),
   };
 }
 
@@ -646,11 +648,12 @@ describe("T-092 criterion 13: E-29 records the change; E-1..E-28 untouched", () 
   const doc = readFileSync(join(REPO, "engineering-decisions.md"), "utf8");
   const sections = decisionSections(doc);
 
-  test("E-1..E-28 are byte-identical to 5d72ca5's, and there are still 29 E-n headings", () => {
+  // T-070 row W45: E-30 makes 30 headings at the branch head; the E-1..E-28 digest is unchanged.
+  test("E-1..E-28 are byte-identical to 5d72ca5's, and there are 30 E-n headings at the branch head", () => {
     const text = Array.from({ length: 28 }, (_, i) => sections.get(`E-${i + 1}`)).join("");
     expect(sha(text)).toBe("4d6020aa79f08b6c984d9e185fe2a4987533535e7c4deed97d73791a984881d8");
-    expect(sections.size).toBe(29);
-    expect(doc.match(/^## E-\d+/gm)).toHaveLength(29);
+    expect(sections.size).toBe(30);
+    expect(doc.match(/^## E-\d+/gm)).toHaveLength(30);
   });
 
   test("E-29 has a dated paragraph naming T-092 that says what changed and why levels did not", () => {

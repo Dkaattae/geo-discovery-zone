@@ -1879,3 +1879,58 @@ adds shapes too small to tap without a magnifier (plan §2.5), the server must
 stop sending the entity whose `geometryId` is the answer (T-053), or a
 `map_click` level should stop counting distractors it never offers (T-092 Q1
 options (b) and (c)).
+
+## E-30 — Content guards pin the default branch, not the task that wrote the content, and a refresh of `built_at` and the fixtures is not red
+
+**2026-10-28 (T-070).** Every test that compares committed content with a
+value recorded earlier (a "pinned guard": a digest, a byte or deep-equality
+copy, or a literal list such as an `E-n` range) is **re-pinned** against
+`b0ee336`, the default-branch commit T-070's branch starts from. The old pins
+are not kept. Each guard compares the content as it stands, and no longer
+strips, resets or restores what later tasks changed before comparing.
+
+**Why: Dkaattae's answer to T-070 Q1**, 2026-10-27: re-pin every digest guard
+against the default branch, delete the neutralisations, and keep the guards
+green across a refresh in which only `sources.built_at` and the SPARQL
+fixtures moved. Since T-013, every task that touched the bank taught four to
+eight guards to ignore its own change. By then the guards asserted that eight
+files still held wrong elevations underneath, and three of them could not see a
+`top_crops` change at all.
+
+- **What the guards do not pin.** `sources.built_at` in a bank entity file is
+  the one value a guard may remove before comparing; it is the only part of a
+  bank file left unpinned. The two SPARQL fixtures, `us-states.sparql.json`
+  and `us-states-elevation.sparql.json`, are not pinned in whole or in part,
+  and no test pins a literal `built_at` or `_fixture.captured_at`. This is so
+  that a refresh that moves only those does not turn the suite red. Tests may
+  still read a fixture, and may still require one shared `built_at` across the
+  50 files, or `built_at` to equal the fixture's `captured_at`.
+- **The `top_crops` blind spot is closed.** T-068's reviewer found that three
+  guards reset `top_crops` to `[]` before hashing, so a `top_crops` change
+  passed all three. No guard resets it now. `question-bank/src/bank-pins.ts`
+  holds one pin per bank file (`index.json` and the 50 state files), hashed
+  whole apart from `built_at`, and `bank-pins.test.ts` checks them.
+- **The rule for a later task.** A task that changes pinned content on purpose
+  re-pins the values it moves, through a Test change request (D-14, D-15), and
+  labels each new pin with the commit it was recorded at. It does not add a
+  removal, reset, restoration or exclusion so that the old pin still holds.
+
+**What re-pinning gave up.** A pin no longer shows that content is unchanged
+since the task that wrote it (T-013, T-014, T-015, T-016, T-025, T-069, T-079
+and the rest). It shows only that content is unchanged since `b0ee336`, or
+since the commit a later re-pin names. The history of who wrote which field
+now lives in git and in the earlier entries, not in the guards.
+
+**Options not taken.**
+- *Keep the historical pins behind one shared helper* that applies every
+  later task's neutralisation in one place. It keeps the provenance, but the
+  helper grows with every task and still has to hide each later change, which
+  is how the `top_crops` blind spot arose.
+- *Make the guards tolerate a refresh that moves a real field.* `bun run
+  refresh` writes nothing unless some field other than `built_at` moved
+  (`refresh.ts`, exit 2 `bank unchanged`), so every refresh that writes will
+  turn the bank pins red, by design. Q1 did not ask for more.
+
+**Revisit when** the monthly refresh routine is switched on and its PRs must
+open green: either that PR re-pins the bank (this entry's rule), or the bank
+pins stop covering fields a refresh may move.

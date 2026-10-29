@@ -126,8 +126,24 @@ def test_c4_the_command_is_documented_in_backend_readme_and_conventions() -> Non
     assert re.search(r"^UV\s*:=\s*uv$", makefile, re.M)
 
 
+def _without_extracted_at(text: str) -> dict[str, Any]:
+    """The rendered file, parsed, with `_source.extractedAt` removed.
+
+    T-070 (rows W55 and W56, approved): `extractedAt` is the newest bank `built_at`
+    date, which a refresh moves without regenerating `content.json` (T-087 owns
+    that). Everything else is still compared.
+    """
+    parsed = json.loads(text)
+    del parsed["_source"]["extractedAt"]
+    return parsed
+
+
 def test_c4_c5_the_committed_file_is_byte_for_byte_what_the_command_writes() -> None:
-    assert content_build.render_committed_inputs() == CONTENT.read_text(encoding="utf-8")
+    committed = CONTENT.read_text(encoding="utf-8")
+    assert _without_extracted_at(content_build.render_committed_inputs()) == (
+        _without_extracted_at(committed)
+    )
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", json.loads(committed)["_source"]["extractedAt"])
 
 
 def test_c4_two_renders_are_byte_identical() -> None:
@@ -141,9 +157,11 @@ def test_c5_a_changed_input_field_would_be_caught() -> None:
     changed = copy.deepcopy(entities)
     changed[0]["capital"] = "Not A Capital"
     questions = content_build.load_generated_questions()
-    committed = CONTENT.read_text(encoding="utf-8")
-    assert content_build.render(content_build.build_content(entities, questions)) == committed
-    assert content_build.render(content_build.build_content(changed, questions)) != committed
+    committed = _without_extracted_at(CONTENT.read_text(encoding="utf-8"))
+    same = content_build.render(content_build.build_content(entities, questions))
+    moved = content_build.render(content_build.build_content(changed, questions))
+    assert _without_extracted_at(same) == committed
+    assert _without_extracted_at(moved) != committed
 
 
 # -- criteria 6-10: entities -----------------------------------------------------
