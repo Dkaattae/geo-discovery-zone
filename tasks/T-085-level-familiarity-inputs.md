@@ -1,7 +1,7 @@
 # T-085a — Level input the weights cannot reach: Hawaii and Alaska are drawn apart from the mainland
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Decision:** Dkaattae, 2026-10-29, given in the orchestrator's session, answering the worker's block: "split it — do T-085a now"
 **Approved:** orchestrator — 2026-10-29, unattended run (T-085a, after the split). See `runs/T-085-level-familiarity-inputs.md`.
 **Test changes:** `none`
@@ -18,6 +18,7 @@
 | task-expander | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P |
 | worker | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same id as the expander's row: the environment variable gave this value; the tester should check its own differs) |
 | task-expander (split into T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value again, from `$CLAUDE_CODE_REMOTE_SESSION_ID`; see the worker's Note on the shared id) |
+| worker (T-085a) | 2026-10-29 | cse_011oDiJdDaFDaDrfHH2XNp8P (same value as every row above, from `$CLAUDE_CODE_REMOTE_SESSION_ID`; the tester must confirm its own id differs) |
 
 ## Goal
 
@@ -266,72 +267,153 @@ The criteria are testable. A person checks the one judgement a test cannot:
 
 ## Handoff
 
-**TL;DR: blocked before building. No U.S. Census Bureau host is reachable from
-this session (the proxy refuses every one with a 403), and the brief's
-Constraints say to stop rather than fill the 17-capital table from memory. A
-human must either open Census access or choose another source, then re-run
-`worker`.**
+**TL;DR: built. Hawaii and Alaska drop exactly 2 on identify-on-map,
+click-the-map and climate (six questions); nothing else moved. Both committed
+files are regenerated and E-22 is amended. 25 existing question-bank tests, 3
+backend tests and the question-bank typecheck go red by design; every one is
+listed under Tests made stale, and the tester has to raise a Test change
+request (D-14) for a person.**
 
-**What I could not reach** (2026-10-29, through the session's agent proxy;
-`curl -sS "$HTTPS_PROXY/__agentproxy/status"` logs each one as
-`connect_rejected`, "gateway answered 403 to CONNECT"):
+(The round-1 Census block that stood here applied to the unsplit brief and is
+replaced, as the expander's Note says.)
 
-- `https://api.census.gov/` (PEP API)
-- `https://www.census.gov/`
-- `https://data.census.gov/`
-- `https://www2.census.gov/` (the popest city totals datasets)
+**What changed, file by file**
 
-**What is reachable:** `en.wikipedia.org` and `query.wikidata.org`. Neither is
-a Census Bureau release, so I did not use either as the source. I made one
-probe query to see what Wikidata would give (P1082 with references, Memphis
-and Nashville). Its references are uneven: Memphis 633,104 at 2020-04-01
-cites "2020 United States Census", but Nashville 689,447 dated 2020-01-01 has
-no `stated in` and links only to a census.gov search page. That would be a
-secondary transcription with patchy provenance, which criterion 7 does not
-obviously allow.
+- **`question-bank/src/seed-level.ts`**: `familiarity_bonus: 0` became
+  `familiarity_bonus: 2`, and two keys were added:
+  `familiarity_bonus_states: ["us-state-hi", "us-state-ak"]` and
+  `familiarity_bonus_templates: ["tpl-identify-on-map", "tpl-click-the-map", "tpl-climate-of"]`
+  (both `readonly string[]`). `levelFor` subtracts `familiarity_bonus` only
+  when `own.id` is in the states list and `template.id` is in the templates
+  list. Otherwise it subtracts 0. The clamp is unchanged and still comes after
+  the subtraction. The header comment and the doc comments are updated. Exports
+  are unchanged.
+- **`question-bank/data/questions/us-states.json`**: regenerated with
+  `bun run ./src/write-questions.ts`. Only the six `level` values changed.
+- **`backend/app/data/content.json`**: regenerated with
+  `make -C backend content`. Only the same six `level` values changed.
+- **`engineering-decisions.md`**: E-22 only.
+  - The heading is renamed.
+  - The formula line and the constant block now show the three keys.
+  - The "Why `familiarity_bonus` is 0" bullet became "What
+    `familiarity_bonus` covers".
+  - New paragraph **2026-10-29 (T-085a)**: the amount, the states, the
+    templates, Dkaattae's 2026-10-27 approval, the six-row before/after
+    table, and a note that the range sentences still hold.
+  - New paragraph: the largest-city input is not landed, and T-085b decides it.
+  - "Revisit when" now names T-085 / T-085b for the largest-city input.
+  - The last sentence of "What the reading found the formula cannot express"
+    no longer says the term "stays 0".
+  - The T-025 table and every other `E-n` are untouched.
+- **`question-bank/src/seed-level-familiarity.test.ts`** (new, worker's own):
+  - the reduction follows the entity id and the template id
+  - templates outside the three get no reduction
+  - the clamp at 2 / 1.5 / 2.5 before the reduction
+  - in-place overrides to amount 0 and 3 move exactly the six questions
 
-**What the human needs to decide (proposed owner: Dkaattae):**
+**Where each criterion lives**
 
-1. **Allow `*.census.gov` for the worker session** (preferred). Then a fresh
-   `worker` fetches one release, for example Vintage 2023 or 2024 Population
-   Estimates for incorporated places (SUB-IP-EST), and builds the task as
-   briefed. Or:
-2. **Supply the 17 rows by hand from one named release.** For each state:
-   capital, its population, the largest other city and its population. Commit
-   them to the brief's Notes and the worker transcribes them. Or:
-3. **Accept Wikidata P1082 statements whose reference is a named Census
-   release** as the source. This changes how criterion 7 is read, so it goes
-   back to `task-expander` for re-approval, not to the worker.
+| Criteria | Where |
+|---|---|
+| 1–3, 5, 12, 13 | `levelFor` in `seed-level.ts` (the `familiarity` const); the regenerated question file. I checked the diff against the before file: exactly the six ids move, by −2, and no field other than `level` changed. |
+| 4 | `levelFor` compares `own.id`, which is the resolved `question.entityId`, and `template.id`. |
+| 6 | `LEVEL_SEED_WEIGHTS` names only `us-state-hi` and `us-state-ak`, and no capital or city. |
+| 7, 8 | Clamp `Math.min(LEVEL_MAX, Math.max(LEVEL_MIN, raw))`, unchanged. The bank's levels run 3 to 10. |
+| 9, 11 | `seedLevels` is unchanged. The export list is unchanged. |
+| 10 | All three values are read from `LEVEL_SEED_WEIGHTS` at call time. To override the amount, set `LEVEL_SEED_WEIGHTS.familiarity_bonus`. |
+| 14, 15 | Both regeneration commands were re-run on the final tree, and `git diff` was empty after the second run. |
+| 16, 23, 25 | `git diff --quiet` over `data/us-states/`, all `package.json`, `bun.lock`, `pyproject.toml`, `uv.lock` and `openapi.yaml` passed. |
+| 17–22 | E-22, as listed above. |
+| 24 | The new test reads only the committed bank. |
 
-**What changed:** nothing in code or data. The only file touched is this brief
-(Status, Next step, Sessions row, Handoff, Notes).
+**Decided, and who should confirm**
 
-**What I deliberately did not do:**
+- **Shape: three flat keys, not a nested object.**
+  - `familiarity_bonus` stays the numeric amount, so the T-025-era tests that
+    treat it as a number keep working.
+  - The two lists are top-level arrays. Every block line stays JSON-parseable
+    for `hand-check-levels-verify` criterion 7, which still passes.
+  - Cost: `seed-level.test.ts`'s E-22 rule joins array elements without
+    quotes, so no string array can satisfy both it and the JSON block rule.
+    It is listed as stale below.
+  - T-085b's expander should rename or restructure these keys when a second
+    input arrives.
+- **The key name `familiarity_bonus` now means "the drawn-apart amount"**,
+  which was fine while there is one input. Owner: T-085b's expander.
 
-- **Did not land the drawn-apart half alone.** It needs no external source, but
-  the brief is one unit: criteria 10, 15, 16, 20 and 22 describe one
-  regenerated bank with both inputs. Landing half would mean regenerating the
-  committed files twice and churning the stale-test list twice. If the human
-  would rather split it, the split is: T-085a, drawn-apart (criteria 1–3 and
-  the HI/AK rows of 10–24); T-085b, largest-city (criteria 4–9). Expander to
-  decide.
-- **Did not fill any of the 17 rows from general knowledge, and did not mark
-  all 17 left out**, as the Constraints require.
+**Deliberately not done**
 
-**Survey, for the next worker (all still true at `d698b23`):**
+- No largest-city key or placeholder (criterion 6, Out of scope).
+- No tuning of the amount.
+- E-26, E-27 and the T-025 table are not touched, even though they quote the
+  old HI/AK levels. That is "Rewriting history", which is out of scope.
+- No existing test was touched.
 
-- `question-bank/src/seed-level.ts:68` has `familiarity_bonus: 0`, a scalar.
-  `levelFor` (line 206) subtracts it at line 221 and receives the question,
-  so it can see `templateId` and `entityId`. The planned shape: make
-  `familiarity_bonus` an object in `LEVEL_SEED_WEIGHTS`:
-  `{ drawn_apart: { amount: 2, states: [...], templates: [...] }, capital_is_largest_city: { amount: 1, states: [...confirmed], templates: ['tpl-capital-of'] } }`.
-  `levelFor` then sums the matching amounts before the clamp. Criterion 23's
-  existing rule needs every numeric leaf named in E-22's constant block.
-- **Exports**: still the six of criterion 14.
-- **Tests made stale**: not applicable, since nothing was built. The brief's
-  Constraints list is the starting point for whoever builds it.
+**Contradictions with the brief:** none that block.
 
-**How to run:** nothing to run. The suite is untouched by this session.
+- The brief's Constraints said the constant-in-E-22 rule "may" go red for a
+  nested shape. With string arrays it goes red for any shape (see above).
+- The loose-ends criterion-6 test requires a bullet titled "Why
+  `familiarity_bonus` is 0", and this brief's criterion 20 forbids that
+  sentence. So it is stale by design.
+
+**How to run**
+
+- `cd question-bank && bun install --frozen-lockfile && bun test && bun run typecheck && bun run lint`
+  - Without `bun install`, the 11 T-066 lint tests fail on main too:
+    `oxlint` is not found.
+- `cd backend && uv run pytest -q && make lint`
+- Regenerate: `cd question-bank && bun run ./src/write-questions.ts`, then `make -C backend content`.
+
+**Suite results on the final tree**
+
+- **question-bank:** 2490 pass, 25 fail (all listed below). Lint is clean.
+  Typecheck fails with one error, in a stale test (listed below).
+- **backend:** 736 pass, 3 fail (all listed below), 9 skipped. `make lint` is
+  clean.
+- **Before the change:** question-bank 0 fail, typecheck clean; backend 739
+  pass.
+- **frontend:** not changed. `bun install` is refused by the proxy
+  (react-simple-maps tarball, 403), so the full frontend suite cannot load
+  three map test files. Its reds are identical before and after this change.
+  `bun test src/lib` (which reads `content.json`) passes, 96 of 96.
+
+**Tests made stale** (all pre-existing; proposal per row)
+
+| File | Test | Why stale | Proposal |
+|---|---|---|---|
+| `question-bank/src/seed-level.test.ts` | E-22 records the constant > one E-22 heading, and every key and numeric value of LEVEL_SEED_WEIGHTS in it | Criterion 21 needs the new string arrays in the block. The rule expects `key: [a, b]` unquoted, while the JSON block (and hand-check criterion 7) needs quotes. | Modify: compare arrays as `` `${key}: ${JSON.stringify(value).replace(/,/g, ", ")}` `` |
+| `question-bank/src/seed-level-loose-ends-verify.test.ts` | T-086 criteria 5-6 > criterion 6: the 'Why familiarity_bonus is 0' bullet still explains it and keeps the term | Criterion 20 forbids that bullet | Delete, or re-point to the "What `familiarity_bonus` covers" bullet (home state, famous, approved list) |
+| same | T-086 criteria 10-12 > criterion 10: the seeded levels by id, over all TEMPLATES, equal b0ee336's | Criterion 1 moves six levels | Re-pin `R_LEVELS_SHA` to the new bank |
+| same | T-086 criteria 10-12 > criterion 10: LEVEL_SEED_WEIGHTS is deep-equal to b0ee336's | New amount and keys | Re-pin `R_WEIGHTS`. Its type is also the **typecheck error** at line 353 (TS2769: missing `familiarity_bonus_states`, `familiarity_bonus_templates`) |
+| same | T-086 criteria 10-12 > criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's | The heading line changed (criterion 20) | Re-pin `HEAD_OUTSIDE_E22_SHA` |
+| same | T-086 criteria 10-12 > criterion 12: E-22's heading line is unchanged and no ## E-n heading up to E-23 is added or removed | Heading renamed (criterion 20) | Re-pin `BASE_E22_HEADING` to the new heading |
+| `question-bank/src/hand-check-levels-verify.test.ts` | T-025 criteria 1-5 > criterion 4: the Final column equals seedLevels under the committed weights (within 0.05) | The T-025 table keeps the old HI/AK values (criterion 22) | Modify: exempt the four HI/AK map rows, or compare under `familiarity_bonus` 0 |
+| same | T-025 criteria 6-9 > criterion 6: the 'which weights changed' list names exactly the changed keys… | `familiarity_bonus` 0 → 2 is a changed leaf against T-023 | Modify: exclude `familiarity_bonus`, since T-085a changed it, not T-025 |
+| same | T-025 criteria 6-9 > criterion 6: the changed keys are exactly what the code changed (concept_load capital 1 -> 2 at hand-off) | Same | Same |
+| same | T-025 criteria 10-13 > criterion 10: the key set of LEVEL_SEED_WEIGHTS and of concept_load equal the T-023 sets | Two keys added | Add the two keys |
+| same | T-025 criteria 10-13 > criterion 12: familiarity_bonus is still 0 | Now 2 | Delete |
+| same | T-025 criteria 10-13 > criterion 12: no famous / familiar / well-known list under src/ beyond what aa88101 had | The changed lines in `seed-level.ts` contain "familiarity" | Re-baseline to the new `seed-level.ts` lines |
+| same | T-025 criteria 10-13 > criterion 12: seed-level.ts names no state | Criterion 6 requires `us-state-hi` / `us-state-ak` | Modify: allow exactly those two ids |
+| same | T-025 criteria 14-17 > criterion 14: question-bank/data is unchanged since b0ee336, built_at aside | The question file regenerated | Re-pin |
+| `question-bank/src/seed-level-verify.test.ts` | T-023 criteria 17-18 > criterion 18: familiarity_bonus is 0, and the stage takes no player input | Now 2 | Modify: keep the no-player-input half, drop the `toBe(0)` |
+| `question-bank/src/climate-far-phrases-verify.test.ts` | T-090 criterion 12 > question file: every non-climate question deep-equal to 3279555 | HI/AK map levels moved | Re-pin |
+| same | T-090 criterion 12 > content.json: every non-climate question deep-equal to b0ee336's | Same | Re-pin |
+| same | T-090 criterion 13 > LEVEL_SEED_WEIGHTS deep-equal to 3279555, concept_load for climate still 3 | New amount and keys | Re-pin |
+| same | T-090 criterion 14 > (a) the ten states' rows match the regenerated bank, with a verdict and a reason | E-27 table D quotes HI 9.5 and AK 8 as measured (out of scope to rewrite) | Modify: compare levels under `familiarity_bonus` 0, or exempt the HI/AK level cells |
+| `question-bank/src/map-click-no-candidates-verify.test.ts` | T-092 criterion 4 > every non-map_click question, level included, hashes to 5d72ca5's | Four non-click levels moved | Re-pin |
+| same | T-092 criterion 8 > (id, level) of the 50, in order, hash to 5d72ca5's | HI/AK click levels moved | Re-pin |
+| same | T-092 criteria 11 and 12 > backend/app/data/content.json is byte-identical to 5d72ca5's | Regenerated (criterion 15) | Re-pin |
+| same | T-092 criterion 13 > E-1..E-28 are byte-identical to 5d72ca5's, and there are 30 E-n headings at the branch head | E-22 amended (criteria 17–21) | Re-pin |
+| same | T-092 criterion 16 > backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 5d72ca5 | `content.json` changed | Re-pin, or also except `content.json` |
+| `question-bank/src/t026-tester-verify.test.ts` | T-026 criterion 4 > the old-template questions hash to main's 150 (45b00d7), field for field, in order | Four of the 150 moved | Re-pin |
+| `backend/tests/test_t026_tester_criteria.py` | `test_c37_old_served_questions_are_byte_for_byte_main_s` | Served HI/AK map levels moved | Re-pin |
+| `backend/tests/test_t051_tester_criteria.py` | `test_c1_the_questions_served_before_t051_are_still_served_unchanged` | Same | Re-pin |
+| `backend/tests/test_t089_tester_criteria.py` | `test_criterion_13_e1_to_e27_are_byte_identical` | E-22 amended | Re-pin `DECISIONS_ON_MAIN` |
+
+- **No count floors** are among these.
+- **Checked and still passing:** `highest-point-metres-verify.test.ts` and
+  `hand-check-levels-verify` criterion 7 (the constant block).
 
 ## Verdict
 
@@ -356,3 +438,18 @@ obviously allow.
   brief; its Census block does not apply to T-085a, and the next worker
   replaces it. The largest-city half, its approved list, the Census blocker and
   the RI accepted-risk record are now `tasks.md` T-085b.
+
+- **Worker, 2026-10-29 (T-085a).** Ran on Opus.
+  - **Two test rules conflict for string arrays.** The two existing
+    constant-in-E-22 rules cannot both hold once the constant has a string
+    array. That was not foreseeable from the brief's "may turn it red". I kept
+    the JSON form because `hand-check-levels-verify` criterion 7 parses the
+    block as JSON and compares it to the constant. Tester and reviewer to
+    confirm.
+  - **The Revisit sentence keeps a bare "T-085".** `\bT-085\b` in the
+    loose-ends criterion-5 test does not match "T-085b", so the sentence
+    names T-085 and also T-085b. That keeps the test green.
+  - **The shared session id.** The id `$CLAUDE_CODE_REMOTE_SESSION_ID`
+    returned is again the same as every earlier row's. Orchestrator to check
+    before the tester starts.
+

@@ -1632,7 +1632,7 @@
         "Montana"
       ],
       "correctIndex": 1,
-      "level": 6,
+      "level": 4,
       "topic": "location",
       "scope": "us",
       "entityType": "state",
@@ -1852,7 +1852,7 @@
         "Nevada"
       ],
       "correctIndex": 2,
-      "level": 6.5,
+      "level": 4.5,
       "topic": "location",
       "scope": "us",
       "entityType": "state",
@@ -3776,7 +3776,7 @@
       "format": "map_click",
       "prompt": "Find Alaska on the map.",
       "answerGeometryId": "02",
-      "level": 7,
+      "level": 5,
       "topic": "location",
       "scope": "us",
       "entityType": "state",
@@ -3926,7 +3926,7 @@
       "format": "map_click",
       "prompt": "Find Hawaii on the map.",
       "answerGeometryId": "15",
-      "level": 7.5,
+      "level": 5.5,
       "topic": "location",
       "scope": "us",
       "entityType": "state",
@@ -7493,7 +7493,7 @@
         "hot muggy summers and mild winters, with thunderstorms common in the warm months"
       ],
       "correctIndex": 2,
-      "level": 8,
+      "level": 6,
       "topic": "climate",
       "scope": "us",
       "entityType": "state",
@@ -7703,7 +7703,7 @@
         "warm breezy weather all year, with wetter mountains and drier coasts nearby"
       ],
       "correctIndex": 3,
-      "level": 9.5,
+      "level": 7.5,
       "topic": "climate",
       "scope": "us",
       "entityType": "state",

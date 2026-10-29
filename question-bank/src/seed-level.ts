@@ -9,7 +9,7 @@
  *         + entity_obscurity            population_rank / area_rank, bucketed
  *         + distractor_tightness        per near distractor
  *         + concept_load                per template id
- *         - familiarity_bonus           0 for now: see E-22
+ *         - familiarity_bonus           drawn apart from the mainland: see E-22
  *
  * then clamped to 0–18. Not rounded. Every number the computation uses lives
  * in `LEVEL_SEED_WEIGHTS`, so it is tuned in one place.
@@ -64,8 +64,23 @@ export const LEVEL_SEED_WEIGHTS = {
   } as Readonly<Record<string, number>>,
   /** `concept_load` for a template id with no entry above. */
   concept_load_default: 1,
-  /** Subtracted from every question. 0: see E-22. */
-  familiarity_bonus: 0,
+  /**
+   * Subtracted from a question whose entity is in `familiarity_bonus_states`
+   * and whose template is in `familiarity_bonus_templates`; every other
+   * question gets 0. The input is "drawn apart from the mainland": a state
+   * drawn on its own, away from the 48, is easy to see on a map and its
+   * climate is easy to tell. The list was approved by Dkaattae on
+   * 2026-10-27 (E-22, T-085a).
+   */
+  familiarity_bonus: 2,
+  /** The states drawn apart from the mainland: Hawaii and Alaska. */
+  familiarity_bonus_states: ["us-state-hi", "us-state-ak"] as readonly string[],
+  /** The templates where being drawn apart makes the question easier. */
+  familiarity_bonus_templates: [
+    "tpl-identify-on-map",
+    "tpl-click-the-map",
+    "tpl-climate-of",
+  ] as readonly string[],
 };
 
 /**
@@ -213,12 +228,17 @@ function levelFor(
   const conceptLoad = Object.hasOwn(weights.concept_load, template.id)
     ? (weights.concept_load[template.id] as number)
     : weights.concept_load_default;
+  const familiarity =
+    weights.familiarity_bonus_states.includes(own.id) &&
+    weights.familiarity_bonus_templates.includes(template.id)
+      ? weights.familiarity_bonus
+      : 0;
   const raw =
     template.base_difficulty +
     entityObscurity(own, weights) +
     weights.near_distractor_weight * nearDistractorCount(question, own, template, entities) +
     conceptLoad -
-    weights.familiarity_bonus;
+    familiarity;
   return Math.min(LEVEL_MAX, Math.max(LEVEL_MIN, raw));
 }
 

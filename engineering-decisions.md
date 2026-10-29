@@ -1040,7 +1040,7 @@ country centroids misleads for large or oddly shaped countries), when T-023 want
 adds templates whose answers can coincide (same state animal, climate or crop)
 and needs a guard beyond same-text.
 
-## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` is 0
+## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` lowers only the states drawn apart from the mainland
 
 **2026-10-15 (T-023).** `question-bank/src/seed-level.ts` `seedLevels(questions,
 entities, templates)` takes the questions `buildChoices` returned and returns
@@ -1059,7 +1059,8 @@ level = base_level(template)      the template's base_difficulty
                                   + area_rank_weight * bucket(area_rank)
       + distractor_tightness      near_distractor_weight * (near distractors, 0-3)
       + concept_load              concept_load[template id], else concept_load_default
-      - familiarity_bonus         familiarity_bonus, 0 for every question
+      - familiarity_bonus         familiarity_bonus when the entity is in familiarity_bonus_states
+                                  and the template in familiarity_bonus_templates, else 0
 ```
 
 **The constant, as the code spells it:**
@@ -1072,7 +1073,9 @@ missing_rank_bucket: 2
 near_distractor_weight: 0.5
 concept_load: { "tpl-identify-on-map": 0, "tpl-capital-of": 2, "tpl-click-the-map": 0, "tpl-biggest-state": 2, "tpl-state-animal-of": 2, "tpl-landmark-in": 2, "tpl-climate-of": 3, "tpl-crop-of": 2, "tpl-farm-animal-of": 1 }
 concept_load_default: 1
-familiarity_bonus: 0
+familiarity_bonus: 2
+familiarity_bonus_states: ["us-state-hi", "us-state-ak"]
+familiarity_bonus_templates: ["tpl-identify-on-map", "tpl-click-the-map", "tpl-climate-of"]
 ```
 
 - **Buckets.** A rank's bucket is the number of `rank_bucket_edges` it is
@@ -1095,13 +1098,13 @@ familiarity_bonus: 0
   lean on; the map templates show the shape. T-025 raised the capital's load
   from 1 to 2 after reading 30 questions (the record below); the map values
   are still the T-023 first guess.
-- **Why `familiarity_bonus` is 0.** The plan's two sources are the player's home
-  state and "very famous" entities. A home state is per-player, so it belongs at
-  serving time, not in a stored level. No list of famous states exists in the
-  bank, and a guessed one is what "prefer a blank field to a guessed one" rules
-  out. The term stays in the formula and the constant, at 0, so that a reviewed
-  input can fill it without a new term. T-025 left it at 0 (the record below);
-  whether it is ever set is T-085's question.
+- **What `familiarity_bonus` covers.** The plan's two sources are the player's
+  home state and "very famous" entities. A home state is per-player, so it
+  belongs at serving time, not in a stored level. A guessed list of famous
+  states is what "prefer a blank field to a guessed one" rules out, so the term
+  is set only from a list a person approved: since T-085a, the states drawn
+  apart from the mainland (the 2026-10-29 record below). Every other question
+  gets 0 from it.
 - **What the module exports** (2026-10-16, T-086). `seedLevels`,
   `LEVEL_SEED_WEIGHTS`, `LEVEL_MIN`, `LEVEL_MAX`, `LevelSeedWeights` and
   `LeveledQuestion`. Three things T-023 had and T-086 removed, because nothing
@@ -1140,14 +1143,51 @@ the superlative's next-ranked states are near or far by accident, and a
 list-valued choice (a crop, a farm animal) matches no entity by text, so it
 always counts as far.
 
+**2026-10-29 (T-085a).** The states drawn apart from the mainland.
+`familiarity_bonus` is 2, subtracted before the clamp from a question whose
+entity is in `familiarity_bonus_states` and whose template is in
+`familiarity_bonus_templates`; every other question gets 0 from the term. The
+two states are Hawaii (`us-state-hi`) and Alaska (`us-state-ak`), the states a
+US map draws apart from the 48. The three templates are `tpl-identify-on-map`,
+`tpl-click-the-map` and `tpl-climate-of`: on a map, a state drawn on its own is
+easy to see, and E-26 and E-27 read both states' climate questions as too
+hard, their right answer standing apart from three mainland phrases. The other templates (capital, biggest state, state animal,
+landmark, crop) ask a fact that being drawn apart does not help with, so they
+keep their level. The list, the amount and the three templates were approved
+by Dkaattae on 2026-10-27; the amount is that approval's −2, not tuned. This
+is the fix for the four `too hard` map rows of the T-025 hand-check below and
+the Hawaii and Alaska climate rows of E-26 and E-27, which are left as they
+were measured. The six questions whose level changed, over the committed bank:
+
+| Question | Before | After |
+|---|---|---|
+| `gen:tpl-identify-on-map:us-state-hi` | 6.5 | 4.5 |
+| `gen:tpl-click-the-map:us-state-hi` | 7.5 | 5.5 |
+| `gen:tpl-climate-of:us-state-hi` | 9.5 | 7.5 |
+| `gen:tpl-identify-on-map:us-state-ak` | 6 | 4 |
+| `gen:tpl-click-the-map:us-state-ak` | 7 | 5 |
+| `gen:tpl-climate-of:us-state-ak` | 8 | 6 |
+
+No other question's level moved. The two range sentences above still hold
+after T-085a: Hawaii's and Alaska's map levels (4.5, 5.5, 4, 5) stay above the
+lowest map level, 3.5 (California and Texas), and their climate levels (7.5,
+6) stay inside 3 to 10.
+
+**The largest-city input is not landed.** T-025 also found that a capital
+which is the state's largest city reads easier than its level. That input
+needs a population check against one named release, so it is not in the
+constant, not even at 0. Whether and how it lands, and how it combines with
+the drawn-apart input, is T-085b's to decide.
+
 **The option not taken:** a continuous `(rank - 1) / 49` scale instead of
 buckets. It needs no edges, but the plan says "bucketed", and a handful of
 buckets is easier for T-025 to tune by reading 30 questions than a slope.
 
-**Revisit when** T-085 settles the inputs the weights cannot reach (a state
-drawn apart from the mainland, a capital that is the largest city; T-025's
-hand-check below found them), a world-scope bank arrives (rank counts other
-than 50, and region near/far means something else for countries), a player
+**Revisit when** T-085 settles the last input the weights cannot reach (a
+capital that is the largest city, queued as T-085b; T-025's hand-check below
+found it, with the drawn-apart states that T-085a settled), a world-scope bank
+arrives (rank counts other than 50, and region near/far means something else
+for countries), a player
 profile exists to carry a home state, or Elo ratings replace seeded levels
 (plan §1.4).
 
@@ -1221,7 +1261,8 @@ population and area rank. The two `too hard` capital rows share another: the
 capital is the state's largest city. Both need a new input, not a weight, and
 either a fact field (drawn in an inset; capital is the largest city) or a
 `familiarity_bonus` list. A list needs a person's approval (the content rule
-above), so `familiarity_bonus` stays 0.
+above), so T-025 left the term unset; T-085a later set it for the drawn-apart
+states, from a list Dkaattae approved (the 2026-10-29 record above).
 
 **Map questions and the near-distractor term.** 48 of each map template's 50
 questions have 3 near distractors; only Hawaii (0) and Alaska (2) differ. For
