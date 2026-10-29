@@ -1,7 +1,7 @@
 # T-085 — Level inputs the weights cannot reach: drawn apart, and capital is the largest city — run log
 
 **Task:** T-085 · **Branch:** `claude/loving-knuth-umj4pp` · **PR:** #107
-**Started:** 2026-10-29 · **Outcome:** in progress
+**Started:** 2026-10-29 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -37,3 +37,29 @@
 
 ## Approval — 2026-10-29
 Orchestrator wrote the unattended-run `Approved:` stamp (not a certification of the criteria).
+
+## Round 2 — worker — 2026-10-29
+`Next step` on entry: `worker` → on exit: `human` (Status `awaiting approval` → `blocked`)
+
+**T-085 is blocked and I built nothing.** The brief requires a U.S. Census Bureau release for the 17 capitals, and the session proxy refuses every Census host with a 403. As the brief's Constraints require, I did not fill the table from memory and did not mark all 17 left out. Status is `blocked`, Next step is `human`.
+
+- **Pushed:** commit `e02fa6f` ("T-085 worker: blocked, Census Bureau hosts refused by the session proxy") is on `origin/claude/loving-knuth-umj4pp`. `git log origin/claude/loving-knuth-umj4pp -1` shows it.
+- **Changed:** only `/home/user/geo-discovery-zone/tasks/T-085-level-familiarity-inputs.md` (Status, Next step, Sessions row, Handoff, Notes). No code, data or tests were touched.
+
+**What was refused:** `api.census.gov`, `www.census.gov`, `data.census.gov` and `www2.census.gov`. The proxy status endpoint logs each as `connect_rejected` (403 to CONNECT). Wikipedia and Wikidata are reachable. I made one test query to Wikidata: Memphis's 2020 population cites the 2020 Census, but Nashville's has no `stated in` reference. So Wikidata would be a secondary source with patchy references, and I did not use it.
+
+**Decision needed (proposed owner: Dkaattae)**, one of:
+1. **Allow `*.census.gov`** for the worker session, then re-run `worker`. This is the preferred option.
+2. **Supply the 17 rows by hand** from one named release, written into the brief's Notes, for the worker to transcribe.
+3. **Accept Wikidata figures that cite a named Census release.** This changes how criterion 7 is read, so the brief goes back to `task-expander` for re-approval.
+
+**Not done, on purpose:**
+- **The Hawaii/Alaska half was not landed alone.** It needs no external source, but the criteria describe one regenerated bank with both changes. If someone wants it done first, the Handoff proposes splitting it into T-085a (Hawaii/Alaska) and T-085b (largest city). Expander to decide.
+- **The Handoff records the planned code shape** (`familiarity_bonus` as an object in `LEVEL_SEED_WEIGHTS`, summed in `levelFor` before the clamp), so the next worker starts fast.
+
+**For the orchestrator to check:**
+- **Same session id for both roles.** `$CLAUDE_CODE_REMOTE_SESSION_ID` returned the expander's id, `cse_011oDiJdDaFDaDrfHH2XNp8P`. The tester relies on the Sessions table to confirm it is a different session, so the relay may be passing one id to every role it spawns.
+- **Census is outside the web harness's allowed hosts.** Any future task that needs Census figures will hit the same block. I suggested a `process-tasks.md` entry or an allowlist change, owned by Dkaattae.
+
+## Halted — 2026-10-29
+`Status: blocked`, `Next step: human`, at branch head `e02fa6f`. The worker asks Dkaattae to choose one of: (1) allow `*.census.gov` and re-run the worker; (2) supply the 17 capital/largest-city rows from one named Census release in the brief's Notes; (3) accept Wikidata figures citing a named Census release, which sends the brief back to the task-expander. Optional: split into T-085a (Hawaii/Alaska) / T-085b (largest city). Shared session id across roles is known (skill §4, P-14).
