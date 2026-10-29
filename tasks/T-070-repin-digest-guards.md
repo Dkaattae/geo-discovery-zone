@@ -1,7 +1,7 @@
 # T-070 — Re-pin the digest guards, and let them survive a refresh
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved, escalated`
+**Next step:** `human` (merge decision on PR #103)
 **Approved:** orchestrator — 2026-10-28, unattended run. See `runs/T-070-repin-digest-guards.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-29`
 **From:** [`tasks.md`](../tasks.md) T-070
@@ -16,6 +16,7 @@
 | worker | 2026-10-28 | cse_011oDiJcaEvyueGBAthPSQu3 (same remote session id as the expander: the orchestrator spawned both as subagents of one session; the tester must still be a fresh one) |
 | tester | 2026-10-28 | cse_011oDiJcaEvyueGBAthPSQu3 (orchestrated run: same remote session id as worker and expander. A freshly spawned subagent with its own context, not a separate session; see Verdict) |
 | tester (attended) | 2026-10-29 | cse_011oDiJdsZFzW3GaxRfDpUmx (a separate session; Dkaattae attending) |
+| reviewer | 2026-10-29 | cse_011oDiJcaEvyueGBAthPSQu3 (orchestrated: same remote session id as expander and worker; a freshly spawned subagent that wrote none of this work) |
 
 > **Read before approving: this task is mostly edits to tests that already
 > exist.** A worker may not make those edits (D-14). The worker writes `E-30`,
@@ -696,6 +697,62 @@ because my recomputation strips only `built_at`.
   branch head where c7 allows, the same way the guard computes it.
 - **Every mutation and S(t) worktree was reverted or removed.** `git status` is
   clean apart from this brief.
+
+## Review
+
+**TL;DR. Approved, escalated on size.** The work is good: one shared pin table,
+every neutralisation gone, every pre-existing test change matching an approved
+row and coming only from the tester's commit `83aadd6`. It is escalated only
+because the diff (≈1,280 lines deleted over 20 test files) is too large for the
+envelope's "hold all of it at once". Swept in this branch; PR marked ready.
+
+- **Every role's work is in the PR.** Sessions rows: expander (`f0d2cab`,
+  `ad0b117`), worker (`4ee772f`), tester (`21de0e4`), attended tester
+  (`83aadd6`, `a0a516e`). No stranded branch.
+- **Lanes held.** Expander touched only `tasks/` and `tasks.md`. Worker touched
+  no existing test (only `engineering-decisions.md`, `bank-pins.ts`,
+  `bank-pins.test.ts`, the brief). Tester touched only test files and the brief,
+  not `bank-pins.ts`. `0068552` (T-095, at Dkaattae's request) touches only
+  `tasks.md`; `runs/` is orchestrator bookkeeping.
+- **Test changes:** approved by Dkaattae (a person), 58 rows. The 22 deletions
+  and the modifications in `83aadd6` match the rows; the count checks out
+  (2513 − 22 = 2491).
+- **Re-ran here, proxies dead:** `question-bank` `bun test` 2491/0, typecheck
+  and lint clean; backend 739 passed, 9 skipped. Frontend not runnable in this
+  sandbox (`react-simple-maps` missing); CI's frontend job covers it.
+
+### Findings (none blocks)
+
+1. **Backend drift checks weakened** (W54–W57): `_source.extractedAt` is no
+   longer compared, so a stale date passes. Approved and owned by T-087 →
+   **amended T-087** to restore the comparison when it regenerates
+   `content.json`.
+2. **The bank is pinned in more places than `BANK_DIGESTS`**: T-025 c14's data
+   digest, `LINE_AT_B0EE336`, T-090 c12's `content.json` digest and T-086 c10's
+   levels digest. A refresh re-pin has to touch all of them. Also
+   `fixtureBuiltAt` is copied into seven test files and `_without_extracted_at`
+   into three; `bank-pins.ts` / a conftest is the obvious home. →
+   **amended T-095**, which owns refresh re-pinning.
+3. **W42 widened a "nothing else moved" pin**: T-086 c12 now pins the whole
+   decisions log (outside E-22) at the branch head, so every later `E-n` turns
+   three pins red. → **amended P-17** (fifth instance), which owns this pattern.
+
+### Flags disposed
+
+- **F1** (W54–W57): decided by Dkaattae (approved); follow-up on T-087.
+- **F2** (narrow reading of c4): decided by Dkaattae. I agree: the strict
+  reading would turn each task's own named slice into a whole-content pin,
+  which is P-17's problem made worse.
+- **F3** (modify, not delete, the `built_at` tests): decided; keeps a real
+  check and the count floors.
+- **F4** (W30 degenerate): decided as modify; harmless, still a real check.
+
+### Escalation
+
+Outside the envelope on one line only: **the diff is too large to hold at
+once.** Everything else is inside it: no dependency, no `openapi.yaml`,
+migration or plan change, no child-facing text, nothing outside Constraints
+beyond loop bookkeeping, and every test change person-approved.
 
 ## Test change request
 
