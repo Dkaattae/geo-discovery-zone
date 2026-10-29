@@ -1,7 +1,7 @@
 # T-070 — Re-pin the digest guards, and let them survive a refresh — run log
 
 **Task:** T-070 · **Branch:** `claude/charming-pascal-jqpxd3` · **PR:** #103
-**Started:** 2026-10-28 · **Outcome:** in progress (resumed 2026-10-29)
+**Started:** 2026-10-28 · **Outcome:** ready for merge (approved, escalated on diff size)
 
 ## Round 1 — task-expander — 2026-10-28
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -110,3 +110,42 @@ Not spawned by the orchestrator. Header after it: `Test changes: approved — Dk
 
 ## Resumed — 2026-10-29
 Dkaattae, in the orchestrator's session: "ci is fixed, please proceed". Gates G0–G4 re-run on `a0a516e`: one role (`reviewer`), G1 clean, approved, verdicts 0 fail / 0 blocked, branch matches header.
+
+## Round 4 — reviewer — 2026-10-29
+`Next step` on entry: `reviewer` → on exit: `human` (merge decision on PR #103)
+
+**T-070 is approved and escalated.** PR #103 is marked ready for review but not merged. I escalated it for one reason: the diff is too large to hold at once (about 1,280 lines deleted across 20 test files). Everything else is inside the envelope. The sweep is pushed to `claude/charming-pascal-jqpxd3` and the remote head is `fe69192`, so the push landed.
+
+**Next step: `human`.** Dkaattae makes the merge decision on PR #103 and should read the escalation note at the top of the PR body first.
+
+**Review**
+- **Every role's work is in the PR.** Expander (`f0d2cab`, `ad0b117`), worker (`4ee772f`), tester (`21de0e4`) and attended tester (`83aadd6`, `a0a516e`) all have commits.
+- **Each role stayed in its lane.**
+  - The expander touched only `tasks/` and `tasks.md`.
+  - The worker edited no existing test.
+  - The tester touched only test files and the brief.
+  - `0068552` (T-095, added at Dkaattae's request) touches only `tasks.md`.
+- **The test changes match what was approved.** Dkaattae approved all 58 rows in an attended session, and the header names a person, not `orchestrator`. All the edits to pre-existing tests are in `83aadd6` and match the rows. There are 22 deletions, all class (i) or (ii).
+- **I re-ran the suites with the proxies dead.**
+  - `question-bank`: `bun test` 2491 pass, 0 fail; typecheck and lint clean.
+  - Backend: 739 passed, 9 skipped.
+  - Frontend: could not run here because `react-simple-maps` is missing from the sandbox, so CI's frontend job is the only check on it.
+
+**Findings.** None blocks; each went into a task that already owns the area:
+1. **Four backend drift tests no longer compare `_source.extractedAt`** (rows W54–W57), so a stale date in `content.json` would pass. I amended **T-087** to restore the comparison.
+2. **The bank is pinned in four places besides `BANK_DIGESTS`.** Two helpers are also copied between files: `fixtureBuiltAt` into 7 and `_without_extracted_at` into 3. I amended **T-095**, because re-pinning after a refresh has to cover all of them.
+3. **Row W42 now pins the whole decisions log**, so every new `E-n` turns three pins red. I added this as the fifth instance on **P-17** in `process-tasks.md`.
+
+Flags F1–F4 were all already settled, F1 and F2 by Dkaattae, and I agree with each.
+
+**Sweep**
+- **Commit order:** in `2f8bb3d` I added a `## Review` section, my Sessions row and `Status: approved, escalated` to the brief, so they stay in git history. `fe69192` then deleted the brief.
+- **`tasks.md`:** removed the T-070 entry. T-084 is unblocked, its stale fixture-pin notes are rewritten, and its 13-line skip log is folded into one paragraph. T-087 and T-095 are amended, and the sweep log line is added.
+- **`PROGRESS.md`:** added the T-070 Completed entry and updated two Known-gaps lines (the refresh gate now points at T-095, plus a note on the `extractedAt` change).
+
+**PR #103:** the body now has the escalation note at the top, the criteria verbatim, what verified each, and what was not done. I posted a review comment, and the PR is marked ready, not merged.
+
+CI was still running on the earlier head when I checked. Only the backend job had finished, and it passed. I did not see results for `fe69192`.
+
+## Ended — 2026-10-29
+Reviewer marked PR #103 ready and escalated it (diff size). The run stops here. Merging is Dkaattae's (D-4).
