@@ -27,10 +27,12 @@ alone, without reading the plan, and spawns a fresh `ci-fix` to apply it. A fres
 tester then re-verifies. The reviewer escalates any PR fixed on that stamp. See
 `process-decisions.md` D-17.
 
-**Only the tester touches a test that existed before the task because the task
-made it stale**, and only after a person approves it in the tester's own session.
-(A `ci-fix` may name one in its plan when a `fail` runs through it, below; the
-reviewer escalates that when the orchestrator's stamp approved it.) When a task's change makes an
+**Two roles may change a test that existed before the task: the tester and the
+`ci-fix`.** The `ci-fix` changes any test, the task's own or a pre-existing one,
+stale or not, only as a row of its CI fix plan. That plan is approved by a person
+or, after an hour, by the orchestrator's stamp, and the reviewer escalates any
+test row the stamp approved (D-18). The tester's route is below, and needs a
+person in its own session. When a task's change makes an
 existing test stale, the worker leaves it red and lists it in its Handoff. The
 tester raises a `## Test change request` in the brief and pushes, which notifies
 you. If you are in its session, it asks you there, applies what you approve, and

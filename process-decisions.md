@@ -926,6 +926,10 @@ anyway. If it goes through, record that here and keep it.
 
 ## D-17 — A `fail` goes to a `ci-fix` role, which asks before it fixes
 
+> **Extended by D-18 (2026-10-29).** The `ci-fix` may change any test, the
+> task's own or a pre-existing one, as an approved plan row, and the
+> orchestrator's stamp covers those rows.
+
 **2026-10-29.** Done by hand, as a process change. Until now a tester's `fail`
 went straight back to the `worker`. The tester cannot repair what it found: it may
 not edit source, and it may not rewrite its test to match the code. The person's
@@ -1003,3 +1007,45 @@ request then becomes a plain `Next step: human`, the way D-15 went. If `ci-fix`
 rounds keep ending in a second `fail`, the brief is the likelier problem than the
 code. Then look at sending a second fail to the `task-expander` instead of
 spending the G3 bound.
+
+## D-18 — The `ci-fix` may change any test, on a person's approval or the orchestrator's stamp
+
+**2026-10-29.** Done by hand, as a process change. D-17 let the `ci-fix` change
+tests, but its "Pre-existing tests" section called a test that existed before the
+task the tester's territory under D-14, told it to expect the harness to refuse
+the edit, and sent stale tests back through the tester's Test change request.
+Trying it out, the person found the `ci-fix` saying it could not change tests.
+Their ruling (katechen150621@gmail.com, 2026-10-29): *"set it up in agents that ci
+fix can change tests, but need human approval. or the orchestrator approval with
+stamp."*
+
+**Decided:**
+
+- **The `ci-fix` may modify or delete any test**, the task's own or a
+  pre-existing one, stale or not, when an approved row of its `## CI fix plan`
+  names it. Approved means a person's Decision, or the orchestrator's D-17
+  timeout stamp, which approves every row as written. Nothing else counts.
+- **A test row is one of three changes.** A *modify* quotes the criterion and
+  pins it as hard as the old test pinned what it got wrong. A *delete* quotes the
+  brief's line that removes what the test pinned. A *lowered count floor* drops by
+  exactly the approved deletions from its file. A `pre-existing test` row also
+  gives the commit and task that introduced it.
+- **The orchestrator's procedure does not change.** It still stamps from three
+  header values without reading the plan, so D-3's blindness holds. It needs no
+  way of telling test rows from source rows.
+- **The reviewer escalates as before.** Any CI fix applied on the stamp is
+  escalated, and the plan is copied into the PR body. So no test change
+  approved only by the stamp merges without a person seeing it.
+
+**What it does not touch.** The tester's Test change request (D-14, D-15) stays
+for stale tests a tester finds itself, approved only by a person in the tester's
+session, and the orchestrator still never stamps it. The worker still never
+changes a pre-existing test. "Never weaken a test" still holds for the `ci-fix`.
+
+**The known risk, unchanged from D-17.** A spawned `ci-fix` acting on the stamp is
+acting on file-based authority, which the harness's classifier refused on T-071
+and T-075. If it refuses a test edit, the `ci-fix` records the refusal and stops
+`blocked` / `human`, and the person applies the rows by hand. **What would make
+this worth revisiting:** a stamped test row that is refused, which argues for
+dropping the stamp for test rows only, or a stamped test row the reviewer's
+escalation shows was a weakening.

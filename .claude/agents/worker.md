@@ -100,8 +100,8 @@ guide.
 every test on the default branch when the task's branch was cut. Tests you added
 on this branch are yours to edit. The rule holds **even when the brief asks you
 to** remove or rewrite one: the brief's wording does not transfer the job. Only
-the tester may change an existing test, and only with a human's written approval
-(`process-decisions.md` D-14).
+the tester may change an existing test, with a human's approval (D-14), or the
+`ci-fix`, through an approved CI fix plan (D-18).
 
 When your change makes an existing test stale or wrong, meaning it now asserts
 something the brief deliberately changes, leave it failing and list it in the

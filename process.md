@@ -29,12 +29,14 @@ each and are deliberately unable to do the others' jobs; the sixth drives them.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
   edit source to make a test pass, and cannot edit the criteria either. The only
   role that may delete or modify an existing test the task has made stale, and
-  only once a human has approved each one (D-14).
+  only once a human has approved each one (D-14). The `ci-fix` may too, through
+  its approved plan (D-18).
 - **`ci-fix`** (opus) — comes in on a `fail`, in a fresh session. Writes a CI fix
   plan, gets it approved — by a person, or after an hour with nobody answering,
   by the orchestrator's stamp — then applies exactly the approved rows, source
-  and tests, and hands back to the tester. Cannot edit the criteria, cannot
-  weaken a test, and never skips the re-verify (D-17).
+  and tests, including tests that existed before the task (D-18), and hands back
+  to the tester. Cannot edit the criteria, cannot weaken a test, and never skips
+  the re-verify (D-17).
 - **`reviewer`** (opus) — judges quality rather than correctness. On approve it
   sweeps, then marks the PR ready for a person to merge, flagging it when the
   change falls outside a narrow envelope;
@@ -65,7 +67,7 @@ list forbids stalls silently, which is how the first version of this flow broke.
 | `task-expander` | Read, Grep, Glob, Write, Edit, Bash, PR-open | `tasks/`, `tasks.md`, `PROGRESS.md` | source, tests, config |
 | `worker` | Read, Grep, Glob, Write, Edit, Bash | source, new tests, the brief's Handoff | acceptance criteria, **any test that existed before the task** |
 | `tester` | Read, Grep, Glob, Write, Edit, Bash | test files, the brief's Verdict and Test change request; existing tests **only as a human approved** | source, acceptance criteria |
-| `ci-fix` | Read, Grep, Glob, Write, Edit, Bash | the brief's CI fix plan and CI fix sections; then source and tests **only as its approved plan rows name** | acceptance criteria, anything before approval, any weakened test |
+| `ci-fix` | Read, Grep, Glob, Write, Edit, Bash | the brief's CI fix plan and CI fix sections; then source and tests, pre-existing ones included, **only as its approved plan rows name** | acceptance criteria, anything before approval, any weakened test |
 | `reviewer` | Read, Grep, Glob, Write, Edit, Bash, PR-ready, PR-open | `tasks.md`, `PROGRESS.md`, deletes the brief | source, tests, **the merge** |
 | `orchestrator` | Read, Write, Edit, Bash, **Task** | `runs/`, the brief's `Approved:` line, a CI fix timeout stamp (D-17), a refused sweep's `### Sweep to apply` (D-16) | source, tests, criteria, any role's signed section |
 
@@ -513,8 +515,8 @@ the loop cannot tell the difference on its own.
 Passing includes the whole suite plus typecheck and lint — not only the new tests.
 
 **Stale or wrong tests go through the tester, and through a person.** When the
-task's own change has made an existing test stale, the tester is the only role
-that may delete or modify it. It asks the way the `task-expander` asks (D-15):
+task's own change has made an existing test stale, the tester may delete or
+modify it (so may the `ci-fix`, as a row of its plan; see 4a). It asks the way the `task-expander` asks (D-15):
 
 1. **Raise.** It verifies everything else, then fills in the brief's `## Test
    change request`: each test, the commit and task that introduced it, why the
@@ -577,10 +579,13 @@ It runs in two passes, and **the approval works the way the expander's does**:
 The criteria stay frozen through all of this. A fix that needs one changed is
 `blocked` and goes to the `task-expander`; one that needs a dependency, a
 product call or children's text is `blocked` and goes to you, and the one-hour
-timeout never applies to `blocked`. A test may change only where the plan quotes
-the criterion it is measured against, and never to assert less. Stale tests the
-task made obsolete still go through the tester's Test change request (D-14,
-D-15). The reviewer escalates any PR where a CI fix ran on the orchestrator's
+timeout never applies to `blocked`. **Any test may change, the task's own or a
+pre-existing one, as an approved row**: a modify quotes the criterion it is
+measured against and never asserts less; a delete names the brief's line that
+removes what the test pinned. The person's approval and the orchestrator's stamp
+both cover test rows (D-18). The tester's Test change request still exists for
+stale tests a tester finds itself, and the orchestrator still never stamps that
+one. The reviewer escalates any PR where a CI fix ran on the orchestrator's
 stamp, and copies the plan into the PR body. The rest is in
 `.claude/agents/ci-fix.md` and D-17.
 

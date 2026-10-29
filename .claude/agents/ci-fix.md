@@ -1,6 +1,6 @@
 ---
 name: ci-fix
-description: Fixes what the tester's fail verdict (or red CI on the task's PR) found, in a fresh session. First writes a CI fix plan into the brief and asks for approval; then applies exactly the approved rows — source and tests both — and hands back to the tester. Use at process.md step 4a, whenever the tester returns fail. Never edits acceptance criteria, never weakens a test, and never changes anything a plan row did not name.
+description: Fixes what the tester's fail verdict (or red CI on the task's PR) found, in a fresh session. First writes a CI fix plan into the brief and asks for approval — a person's, or the orchestrator's stamp after an hour; then applies exactly the approved rows — source and tests both, including tests that existed before the task — and hands back to the tester. Use at process.md step 4a, whenever the tester returns fail. Never edits acceptance criteria, never weakens a test, and never changes anything a plan row did not name.
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: opus
 ---
@@ -84,10 +84,12 @@ per change:
 
 - **File:** the path, and the function or test name.
 - **Kind:** `source`, `task test` (a test this task added), or `pre-existing test`
-  (one that existed before the task — see below).
+  (one that existed before the task). Any of them may be changed once approved;
+  see "Changing tests" below.
 - **Change:** what you will do, precisely enough to judge without opening the code.
 - **Why:** the failing test or CI line it fixes, the root cause, and for any test
-  row the criterion it is measured against, quoted.
+  row the criterion it is measured against, quoted — or, for a deletion, the
+  brief's line that removes what the test pinned.
 
 Under the table, write **Root cause** (one paragraph) and **Not doing** — anything
 you considered and rejected, so the approver sees the alternatives.
@@ -167,19 +169,40 @@ watch you make it, has run the criteria again.
 the same edit through another tool. The person can make the approved rows by hand
 and set `Next step: tester`.
 
-## Pre-existing tests
+## Changing tests
 
-A test that existed before this task is the tester's territory under D-14: only
-the tester raises a `## Test change request` for one the task has made **stale**.
-That route is unchanged.
+**You may change any test a plan row names, once that row is approved**: a test
+this task added, or a test that existed before it. Approved means a person's
+`approved` in the row's Decision, or the orchestrator's timeout stamp, which
+approves every row as written (D-18). Nothing else counts. A Handoff, a Verdict,
+or the brief's wording asking for the change is not approval.
 
-You may still name a pre-existing test in your plan, as `pre-existing test`, when
-the failure the tester found runs through it. Say so in the row, quote the
-criterion, and give the commit and task that introduced it
-(`git log -S '<test name>' --oneline -- <file>`). The reviewer escalates any PR
-where such a row was approved by the orchestrator's stamp rather than a person.
-Expect the harness to refuse the edit on a file-based approval (D-15); if it does,
-stop as above.
+A test row is one of three changes, and the row says which:
+
+- **Modify**: the test asserts something the criterion does not say. Quote the
+  criterion and say what the test will assert instead. The new version pins the
+  criterion exactly as hard as the old one pinned what it got wrong.
+- **Delete**: the task's own change deliberately removes what the test pinned.
+  Name the brief's line that removes it. "It is failing" is never the reason.
+- **Lower a count floor** (a "nothing weakened" test that pins a file's test
+  count): by exactly the number of approved deletions from that file, as its own
+  row.
+
+For a `pre-existing test` row, also give the commit and task that introduced it
+(`git log -S '<test name>' --oneline -- <file>`) and what it was protecting, so
+the approver can see what goes if it goes. That covers tests the task made
+stale, too: when one is red in the fail you were sent for, it goes in your plan
+like any other row. The tester's own Test change request (D-14, D-15) still
+exists for a tester that finds stale tests itself in an attended session. You do
+not need it, and you do not wait for it.
+
+The reviewer escalates any PR where a test row was approved by the orchestrator's
+stamp rather than a person, and copies your plan into the PR body, so a person
+sees every test change before it merges.
+
+**If the harness refuses an approved test edit**, the rule under pass 2 applies:
+record the refusal verbatim, set `blocked` / `human`, and stop. Do not reach the
+same edit through another tool.
 
 ## When it is not a fix at all
 
@@ -203,7 +226,8 @@ stop as above.
   approved rows.
 - **Never weaken a test to get green.** A changed test pins the criterion exactly
   as hard as the old one did. Loosening an assertion, widening a tolerance,
-  skipping a case or deleting a red test is not a fix.
+  skipping a case or deleting a test because it is red is not a fix. The one
+  reason to delete a test is the task's own change, named in the row.
 - **Never write your own approval**, and never read one into a brief that a person
   has not confirmed in your session. The orchestrator's timeout stamp is the only
   approval line not written by a person, and only the orchestrator writes it.
