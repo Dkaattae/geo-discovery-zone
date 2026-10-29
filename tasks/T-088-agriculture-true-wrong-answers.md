@@ -1,14 +1,14 @@
 # T-088 — Wrong answers that are true: crops and farm animals a state does grow
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-088-agriculture-true-wrong-answers.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — the person attending session_011oDiJfrwMg1JqLUkLqFoYa (no name given), 2026-10-29`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-088
 **Branch:** `claude/epic-hopper-pav2ip`
 **PR:** #109, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it
-**Fault:** all 31 criteria are met, but 18 pre-existing tests pin main's bank or main's `engineering-decisions.md` and go red by design; the Test change request below waits for a person's approval in an attended tester session.
+**Fault:**
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa |
 | worker | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (same id as the expander's: the orchestrator's subagents report the parent session's id; see Notes) |
 | tester | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (orchestrated run: same id as every role; independence is a freshly spawned agent's own context, see Verdict) |
+| tester (attended, TCR) | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (the orchestrator's own session, attended; applied the approved request only, see Verdict addendum) |
 
 **Worker model:** Opus. The task is data correctness in text a child reads.
 
@@ -595,6 +596,50 @@ session.** That tester applies the approved rows and re-runs everything.
 - E-22's "six farm animals" line is left stale, as Out of scope says.
 - The NASS check in the Review checklist is still open.
 
+### Addendum — attended tester, test change request applied — 2026-10-29
+
+**TL;DR. Pass.** All 18 rows were approved and applied exactly as written, in `8aea8b5`.
+The whole suite is green in question-bank and backend. **Next: reviewer.**
+
+- **Approval.** I put the 18 rows to the person attending this session, one line each,
+  and asked for their name and "approve all 18" or a row-by-row answer. Their reply,
+  verbatim: **"approve"**. I took that as all 18. No name was given. Header:
+  `Test changes: approved — the person attending session_011oDiJfrwMg1JqLUkLqFoYa (no name given), 2026-10-29`.
+- **Independence, weaker than a cold tester.** This addendum was written in the
+  orchestrator's own session. It had read the expander's, worker's and first tester's
+  returned reports, though not the diff or the Handoff. The criteria verdicts above
+  are the first tester's, a freshly spawned agent's. This step re-checked that the 18
+  rows still matched the red tests, applied them, and re-ran the suites. It did not
+  re-derive any criterion.
+- **Rows still held.** Before applying, the reds on the branch head were exactly rows
+  1–13 and 15–17 (question-bank, 16) and rows 14 and 18 (backend, 2). The bank files
+  and `engineering-decisions.md` at HEAD are byte-identical to `6587ed0`, so every
+  re-pin was taken from the branch head.
+- **What changed** (all modify, none deleted, no count floor touched):
+  - **Rows 1–3** (`t026-templates.test.ts`, `t026-tester-verify.test.ts` ×2): the five
+    added animals are allowed as literals. Row 3 adds them only for `tpl-farm-animal-of`.
+  - **Rows 4–6** (`climate-far-phrases-verify.test.ts`), **7–10, 16**
+    (`map-click-no-candidates-verify.test.ts`), **11** (`hand-check-levels-verify.test.ts`),
+    **12, 13, 17** (`familiarity-drawn-apart-verify.test.ts`), **15**
+    (`seed-level-loose-ends-verify.test.ts`): digests re-recorded at `6587ed0`, names
+    renamed as the rows say, comments cite T-088 and the row number. Row 9's
+    `backend/app` entry was split out of its `test.each` table into its own test, so
+    only that row's name moves. Its exception list is unchanged, and the other four
+    table rows keep their `5d72ca5` pins.
+  - **Row 14** (`test_t051_tester_criteria.py`): `MAIN_SERVED_DIGEST` re-recorded;
+    `MAIN_SERVED_COUNT` stays 365.
+  - **Row 18** (`test_t089_tester_criteria.py`): `DECISIONS_ON_MAIN` and
+    `DECISIONS_ON_MAIN_LEN` (117864 → 120049) re-recorded. It still asserts the
+    `\n## E-28 ` boundary.
+
+| Suite | Result |
+|---|---|
+| question-bank `bun test` | 2615 pass, 0 fail |
+| question-bank typecheck / lint / format:check | clean |
+| backend `pytest` | 744 passed, 9 skipped, 0 failed |
+| backend `ruff check` / `ruff format --check` | clean |
+| frontend | **not run.** `bun install --frozen-lockfile` fails here with `ProxyConnectFailed (403) downloading tarball d3-timer@2.0.0`. No tracked frontend file changed. CI on the PR is the check |
+
 ## Test change request
 
 Every row is red only because the task changes what it pins:
@@ -613,24 +658,24 @@ row 18.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/t026-templates.test.ts` › `farm animals` › "answer is the first animal; no distractor is one the state lists, none invented" | `a6e3478`, T-026 worker: no farm-animal distractor is invented outside the entities' `top_livestock` | Criteria 5 and 16: `goats`, `horses`, `ducks`, `rabbits`, `bison` are now wrong answers that no entity lists | modify | "answer is the first animal; no distractor is one the state lists; none invented beyond T-088's five added animals". Same 24-state set. The answer is the state's `top_livestock[0]`. No wrong answer is in the state's own `top_livestock`. Every wrong answer is in some entity's `top_livestock` **or** is one of the literal five (written in the test, not imported). Never `cattle` + `dairy cows`. Comment cites T-088 TCR row 1 | |
-| 2 | `question-bank/src/t026-tester-verify.test.ts` › `T-026 criteria 32-34: farm animals` › "criterion 33: answer is the first entry; distractors not the state's, but another's" | `d201e70`, T-026 tester: farm-animal distractors come from other states' animals | Same as row 1 | modify | "criterion 33: answer is the first entry; distractors not the state's, but another's or one of T-088's five". The answer is `own[0]`. No wrong answer is in `own`. Each wrong answer is in another entity's `top_livestock` **or** is one of the literal five. Comment cites T-088 TCR row 2 | |
-| 3 | `question-bank/src/t026-tester-verify.test.ts` › `T-026 criteria 50-51: no entity data changed, choices copied from entity fields` › "criterion 51: every new choice is a value of its template's answer field on some entity" | `d201e70`, T-026 tester: no choice text is invented | Same as row 1 | modify | Same name, with " (T-088: farm animals may also be one of its five)" appended. For `tpl-farm-animal-of` only, the allowed set is the entity values plus the literal five. Every other new template is unchanged: entity values only. Comment cites T-088 TCR row 3 | |
-| 4 | `question-bank/src/climate-far-phrases-verify.test.ts` › `T-090 criterion 7: every other strategy gives what it gave at 3279555` › "committed entities, every non-climate template" | `2023a09`, T-090 tester: the climate change moved no other strategy's output (re-pinned by T-092) | Criteria 14 and 18: agriculture `buildChoices` output changes | modify | Same computation over **all** non-climate templates, agriculture included (not narrowed). Expected digest re-recorded at `6587ed0`. Comment cites T-088 TCR row 4 | |
-| 5 | `question-bank/src/climate-far-phrases-verify.test.ts` › `T-090 criterion 12: nothing else in the bank moved` › "question file: every non-climate question deep-equal to 6a515e2" | `be2557c`, T-085a re-pin of T-090's guard: non-climate questions in the question file do not move | Criterion 18 regenerates 36 agriculture `choices` | modify | Name ends "…deep-equal to 6587ed0". Same computation, digest re-recorded at `6587ed0`. Comment cites T-088 TCR row 5 | |
-| 6 | Same file › same describe › "content.json: every non-climate question deep-equal to 6a515e2's" | `be2557c`, as row 5, for `content.json` | Criterion 19 | modify | Name ends "…to 6587ed0's". Digest re-recorded at `6587ed0`. TCR row 6 | |
-| 7 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 4: the 365 other questions deep-equal 5d72ca5's, count 415` › "every non-map_click question, level included, hashes to 6a515e2's (re-pinned T-085a, row 20)" | `be2557c`, T-085a re-pin of T-092's guard: non-map_click questions do not move | Criterion 18 | modify | Name "…hashes to 6587ed0's (re-pinned T-088, row 7)". Count 415 is kept. Digest re-recorded at `6587ed0` | |
-| 8 | Same file › `T-092 criteria 11 and 12: content.json does not move` › "backend/app/data/content.json is byte-identical to 6a515e2's" | `be2557c`, T-085a re-pin: the served bank does not move | Criterion 19 | modify | Name "…byte-identical to 6587ed0's". File digest re-recorded at `6587ed0`. TCR row 8 | |
-| 9 | Same file › `T-092 criterion 16: no other surface changes` › "backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 5d72ca5" | `cf63f66`, T-092 tester: nothing else under `backend/app` changes | Criterion 19 changes `backend/app/data/content.json` | modify | The exception list is unchanged (`content.json` is **not** added). The `backend/app` tree digest is re-recorded at `6587ed0`. The `5d72ca5` in the name becomes `6587ed0` for this row only. Every other path in the table keeps its pin. TCR row 9 | |
-| 10 | Same file › `T-092 criterion 17: no network, no child-facing text changed` › "every prompt, choices entry and funFact in content.json is as at 5d72ca5" | `cf63f66`, T-092 tester: no child-facing text in the served bank changed | Criterion 19: agriculture `choices` change | modify | Name ends "…as at 6587ed0". Same computation, digest re-recorded at `6587ed0`. TCR row 10 | |
-| 11 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › "criterion 14: question-bank/data is unchanged since 6a515e2, built_at aside" | T-025 tester, last re-pinned `83aadd6` (T-070): `question-bank/data` does not drift | Criterion 18 regenerates `data/questions/us-states.json` | modify | Name "…unchanged since 6587ed0, built_at aside". Same computation, digest re-recorded at `6587ed0`. TCR row 11 | |
-| 12 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 12-16: everything else holds still; the committed files` › "criterion 13: no field but level changed in the question file" | `b061fd8`, T-085a tester: only `level` moved in the question file | Criterion 18 changes agriculture `choices` | modify | Same name. `BEFORE_Q_NO_LEVEL_SHA` re-recorded at `6587ed0` (comment: T-088 TCR row 12). Same computation | |
-| 13 | Same file › same describe › "criterion 13: no field but level changed in content.json" | `b061fd8`, as row 12 | Criterion 19 | modify | Same name. `BEFORE_C_NO_LEVEL_SHA` re-recorded at `6587ed0`. TCR row 13 | |
-| 14 | `backend/tests/test_t051_tester_criteria.py::test_c1_the_questions_served_before_t051_are_still_served_unchanged` | `6537059`, T-051 tester: the questions served before T-051 are served unchanged | Criterion 19: 36 served agriculture questions change `choices` | modify | Same name. `MAIN_SERVED_DIGEST` re-recorded at `6587ed0`. `MAIN_SERVED_COUNT` is unchanged. Comment cites T-088 TCR row 14 | |
-| 15 | `question-bank/src/seed-level-loose-ends-verify.test.ts` › `T-086 criteria 10-12: what must not move` › "criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's" | `4009ee5`, T-086 tester: only E-22's body changed | Criteria 26–31 amend E-25 | modify | Same name. The digest of the file outside E-22's body is re-recorded at `6587ed0`. TCR row 15 | |
-| 16 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › "E-1..E-28 are byte-identical to 6a515e2's, and there are 30 E-n headings at the branch head" | `cf63f66`, T-092 tester: no other E-n moved | Criteria 26–31 amend E-25 | modify | Name "…byte-identical to 6587ed0's, and there are 30 E-n headings…". Heading count stays 30. Digest re-recorded at `6587ed0`. TCR row 16 | |
-| 17 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 17-22: E-22` › "criterion 22: every E-n entry other than E-22 is byte-identical to 5ae564a's" | `b061fd8`, T-085a tester: only E-22 moved | Criteria 26–31 amend E-25 | modify | Name "…byte-identical to 6587ed0's". `BEFORE_ED_OUTSIDE_E22_SHA` re-recorded at `6587ed0`. TCR row 17 | |
-| 18 | `backend/tests/test_t089_tester_criteria.py::test_criterion_13_e1_to_e27_are_byte_identical` | `eebec2c`, T-089 tester: E-1..E-27 are untouched by T-089's E-28 | Criteria 26–31 amend E-25, which lies inside the pinned prefix. **Missed by the worker's list** | modify | Same name and shape. `DECISIONS_ON_MAIN` and `DECISIONS_ON_MAIN_LEN` re-recorded at `6587ed0` as the sha256 and byte length of the file up to `\n## E-28 `. It still asserts that the bytes after it start with `\n## E-28 `. Comment cites T-088 TCR row 18 | |
+| 1 | `question-bank/src/t026-templates.test.ts` › `farm animals` › "answer is the first animal; no distractor is one the state lists, none invented" | `a6e3478`, T-026 worker: no farm-animal distractor is invented outside the entities' `top_livestock` | Criteria 5 and 16: `goats`, `horses`, `ducks`, `rabbits`, `bison` are now wrong answers that no entity lists | modify | "answer is the first animal; no distractor is one the state lists; none invented beyond T-088's five added animals". Same 24-state set. The answer is the state's `top_livestock[0]`. No wrong answer is in the state's own `top_livestock`. Every wrong answer is in some entity's `top_livestock` **or** is one of the literal five (written in the test, not imported). Never `cattle` + `dairy cows`. Comment cites T-088 TCR row 1 || approved, 2026-10-29 ("approve", attended session) |
+| 2 | `question-bank/src/t026-tester-verify.test.ts` › `T-026 criteria 32-34: farm animals` › "criterion 33: answer is the first entry; distractors not the state's, but another's" | `d201e70`, T-026 tester: farm-animal distractors come from other states' animals | Same as row 1 | modify | "criterion 33: answer is the first entry; distractors not the state's, but another's or one of T-088's five". The answer is `own[0]`. No wrong answer is in `own`. Each wrong answer is in another entity's `top_livestock` **or** is one of the literal five. Comment cites T-088 TCR row 2 || approved, 2026-10-29 ("approve", attended session) |
+| 3 | `question-bank/src/t026-tester-verify.test.ts` › `T-026 criteria 50-51: no entity data changed, choices copied from entity fields` › "criterion 51: every new choice is a value of its template's answer field on some entity" | `d201e70`, T-026 tester: no choice text is invented | Same as row 1 | modify | Same name, with " (T-088: farm animals may also be one of its five)" appended. For `tpl-farm-animal-of` only, the allowed set is the entity values plus the literal five. Every other new template is unchanged: entity values only. Comment cites T-088 TCR row 3 || approved, 2026-10-29 ("approve", attended session) |
+| 4 | `question-bank/src/climate-far-phrases-verify.test.ts` › `T-090 criterion 7: every other strategy gives what it gave at 3279555` › "committed entities, every non-climate template" | `2023a09`, T-090 tester: the climate change moved no other strategy's output (re-pinned by T-092) | Criteria 14 and 18: agriculture `buildChoices` output changes | modify | Same computation over **all** non-climate templates, agriculture included (not narrowed). Expected digest re-recorded at `6587ed0`. Comment cites T-088 TCR row 4 || approved, 2026-10-29 ("approve", attended session) |
+| 5 | `question-bank/src/climate-far-phrases-verify.test.ts` › `T-090 criterion 12: nothing else in the bank moved` › "question file: every non-climate question deep-equal to 6a515e2" | `be2557c`, T-085a re-pin of T-090's guard: non-climate questions in the question file do not move | Criterion 18 regenerates 36 agriculture `choices` | modify | Name ends "…deep-equal to 6587ed0". Same computation, digest re-recorded at `6587ed0`. Comment cites T-088 TCR row 5 || approved, 2026-10-29 ("approve", attended session) |
+| 6 | Same file › same describe › "content.json: every non-climate question deep-equal to 6a515e2's" | `be2557c`, as row 5, for `content.json` | Criterion 19 | modify | Name ends "…to 6587ed0's". Digest re-recorded at `6587ed0`. TCR row 6 || approved, 2026-10-29 ("approve", attended session) |
+| 7 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 4: the 365 other questions deep-equal 5d72ca5's, count 415` › "every non-map_click question, level included, hashes to 6a515e2's (re-pinned T-085a, row 20)" | `be2557c`, T-085a re-pin of T-092's guard: non-map_click questions do not move | Criterion 18 | modify | Name "…hashes to 6587ed0's (re-pinned T-088, row 7)". Count 415 is kept. Digest re-recorded at `6587ed0` || approved, 2026-10-29 ("approve", attended session) |
+| 8 | Same file › `T-092 criteria 11 and 12: content.json does not move` › "backend/app/data/content.json is byte-identical to 6a515e2's" | `be2557c`, T-085a re-pin: the served bank does not move | Criterion 19 | modify | Name "…byte-identical to 6587ed0's". File digest re-recorded at `6587ed0`. TCR row 8 || approved, 2026-10-29 ("approve", attended session) |
+| 9 | Same file › `T-092 criterion 16: no other surface changes` › "backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 5d72ca5" | `cf63f66`, T-092 tester: nothing else under `backend/app` changes | Criterion 19 changes `backend/app/data/content.json` | modify | The exception list is unchanged (`content.json` is **not** added). The `backend/app` tree digest is re-recorded at `6587ed0`. The `5d72ca5` in the name becomes `6587ed0` for this row only. Every other path in the table keeps its pin. TCR row 9 || approved, 2026-10-29 ("approve", attended session) |
+| 10 | Same file › `T-092 criterion 17: no network, no child-facing text changed` › "every prompt, choices entry and funFact in content.json is as at 5d72ca5" | `cf63f66`, T-092 tester: no child-facing text in the served bank changed | Criterion 19: agriculture `choices` change | modify | Name ends "…as at 6587ed0". Same computation, digest re-recorded at `6587ed0`. TCR row 10 || approved, 2026-10-29 ("approve", attended session) |
+| 11 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › "criterion 14: question-bank/data is unchanged since 6a515e2, built_at aside" | T-025 tester, last re-pinned `83aadd6` (T-070): `question-bank/data` does not drift | Criterion 18 regenerates `data/questions/us-states.json` | modify | Name "…unchanged since 6587ed0, built_at aside". Same computation, digest re-recorded at `6587ed0`. TCR row 11 || approved, 2026-10-29 ("approve", attended session) |
+| 12 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 12-16: everything else holds still; the committed files` › "criterion 13: no field but level changed in the question file" | `b061fd8`, T-085a tester: only `level` moved in the question file | Criterion 18 changes agriculture `choices` | modify | Same name. `BEFORE_Q_NO_LEVEL_SHA` re-recorded at `6587ed0` (comment: T-088 TCR row 12). Same computation || approved, 2026-10-29 ("approve", attended session) |
+| 13 | Same file › same describe › "criterion 13: no field but level changed in content.json" | `b061fd8`, as row 12 | Criterion 19 | modify | Same name. `BEFORE_C_NO_LEVEL_SHA` re-recorded at `6587ed0`. TCR row 13 || approved, 2026-10-29 ("approve", attended session) |
+| 14 | `backend/tests/test_t051_tester_criteria.py::test_c1_the_questions_served_before_t051_are_still_served_unchanged` | `6537059`, T-051 tester: the questions served before T-051 are served unchanged | Criterion 19: 36 served agriculture questions change `choices` | modify | Same name. `MAIN_SERVED_DIGEST` re-recorded at `6587ed0`. `MAIN_SERVED_COUNT` is unchanged. Comment cites T-088 TCR row 14 || approved, 2026-10-29 ("approve", attended session) |
+| 15 | `question-bank/src/seed-level-loose-ends-verify.test.ts` › `T-086 criteria 10-12: what must not move` › "criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's" | `4009ee5`, T-086 tester: only E-22's body changed | Criteria 26–31 amend E-25 | modify | Same name. The digest of the file outside E-22's body is re-recorded at `6587ed0`. TCR row 15 || approved, 2026-10-29 ("approve", attended session) |
+| 16 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › "E-1..E-28 are byte-identical to 6a515e2's, and there are 30 E-n headings at the branch head" | `cf63f66`, T-092 tester: no other E-n moved | Criteria 26–31 amend E-25 | modify | Name "…byte-identical to 6587ed0's, and there are 30 E-n headings…". Heading count stays 30. Digest re-recorded at `6587ed0`. TCR row 16 || approved, 2026-10-29 ("approve", attended session) |
+| 17 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 17-22: E-22` › "criterion 22: every E-n entry other than E-22 is byte-identical to 5ae564a's" | `b061fd8`, T-085a tester: only E-22 moved | Criteria 26–31 amend E-25 | modify | Name "…byte-identical to 6587ed0's". `BEFORE_ED_OUTSIDE_E22_SHA` re-recorded at `6587ed0`. TCR row 17 || approved, 2026-10-29 ("approve", attended session) |
+| 18 | `backend/tests/test_t089_tester_criteria.py::test_criterion_13_e1_to_e27_are_byte_identical` | `eebec2c`, T-089 tester: E-1..E-27 are untouched by T-089's E-28 | Criteria 26–31 amend E-25, which lies inside the pinned prefix. **Missed by the worker's list** | modify | Same name and shape. `DECISIONS_ON_MAIN` and `DECISIONS_ON_MAIN_LEN` re-recorded at `6587ed0` as the sha256 and byte length of the file up to `\n## E-28 `. It still asserts that the bytes after it start with `\n## E-28 `. Comment cites T-088 TCR row 18 || approved, 2026-10-29 ("approve", attended session) |
 
 ## Notes
 
