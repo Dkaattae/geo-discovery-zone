@@ -667,6 +667,13 @@ criterion 20. Each needed its own row. The counter-example is in the same PR:
 its tester verified T-064's own "nothing else moved" criteria (4, 8–11) once,
 by `git diff` against base, recorded the output in the Verdict, and pinned
 nothing. That is the first option above, done by hand.
+**Fifth instance, 2026-10-29, from T-070's reviewer (PR #103).** E-30 now makes
+re-pinning the rule rather than the exception, and T-070 widened one of these:
+`seed-level-loose-ends-verify.test.ts` criterion 12 used to stop at E-23 and now
+pins all of `engineering-decisions.md` outside E-22, at T-070's branch head. So
+every later task that adds an `E-n` turns three pins red, not two (that one,
+`map-click-no-candidates-verify` T-092 c13's heading count, and backend
+`test_t089` criterion 13's `range`), each an attended Test change request row.
 **This is a process-file change**, so it is done by hand.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.
