@@ -172,6 +172,13 @@ replaces the table rather than appending to it; git keeps the old one.
 |---|---|---|---|---|---|
 | 1 | `src/x.ts` › `fn` | source / task test / pre-existing test | exactly what changes | `x.test.ts` › "…" fails because … | approved / refused |
 
+A test row, the task's own or pre-existing, is a modify (quote the criterion; it
+pins as hard as before), a delete (quote the brief's line that removes what it
+pinned) or a lowered count floor (by exactly the approved deletions). A
+`pre-existing test` row also gives the commit and task that introduced it. The
+orchestrator's stamp approves test rows like any other, and the reviewer then
+escalates (D-18).
+
 **Root cause:** one paragraph.
 
 **Not doing:** what was considered and rejected, and why.

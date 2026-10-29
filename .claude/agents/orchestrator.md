@@ -234,6 +234,10 @@ for the brief, with an hour's grace in front of it.
    push, confirm it landed, and log it in `runs/` with the time you waited. Then
    spawn a **fresh** `ci-fix` with the ordinary template — no sentence about the
    approval. It reads the header and applies the plan.
+
+   The stamp approves **every row as written**: source rows and test rows alike,
+   including `pre-existing test` rows (D-18). You do not need to know which kinds
+   the plan holds, and you do not look.
 5. **If the harness refuses the stamp, stop.** Record the refusal in `runs/` and
    leave the halt for the person. Do not retry by another route, and do not spawn
    a role to write it for you.
@@ -244,7 +248,9 @@ escalate and the person who merges knows which kind of approval this was. Blindn
 is intact: you read three header values, wrote three, and spawned a template.
 
 The timeout never applies to `Status: blocked`, to a test change request, or to a
-`CI fix:` line that reads anything but `requested`.
+`CI fix:` line that reads anything but `requested`. A test change request is the
+tester's (`Test changes:`). A test the `ci-fix` wants to change is a row in its
+CI fix plan, and the plan is what you stamp.
 
 ## The gates
 
