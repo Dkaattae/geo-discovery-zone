@@ -1,14 +1,14 @@
 # T-087 — A bank refresh tells you to regenerate the question file and the served bank
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-087-refresh-regenerate-reminder.md`.
-**Test changes:** rows 1-12 `approved — Dkaattae, 2026-10-30`; rows 10a, 11a, 13, 14 `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-30` (rows 1-12, 10a, 11a, 13, 14)
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-087
 **Branch:** `claude/hopeful-gates-wh4fep`
 **PR:** #112, opened draft at expand time against the branch above
-**Fault:** rows 1-12 approved and applied (uncommitted until the rest is decided). Four follow-on rows (10a, 11a, 13, 14) are waiting for a person's approval: rows 10-11 hit their own stop rule, and two guards the request did not name went red once the approved rows were applied.
+**Fault:** none
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx |
 | worker | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx |
 | tester | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx (orchestrated: shared id; fresh subagent context) |
+| tester (attended) | 2026-10-30 | cse_011oDiJctHP57TNboL3nFxs6 |
 
 **Worker model:** Sonnet is enough. One `package.json` script, a few printed
 lines in `refresh.ts`, two doc edits. No data moves and no question changes.
@@ -332,6 +333,43 @@ worth a `tasks.md` entry. **Owner: reviewer at the sweep.**
 
 ## Verdict
 
+### Round 2 (attended tester, 2026-10-30): pass
+
+**TL;DR. Pass.** A person approved the test change request, and every approved row is applied. The question-bank suite is green: 2713 pass, 0 fail, and typecheck, lint and format:check are clean. **Next step: reviewer.**
+
+- **Independence: a separate session.** This session is `cse_011oDiJctHP57TNboL3nFxs6`. The expander, worker and round-1 tester ran as `cse_011oDiJf8mLL75U1jKWTn7Jx`. A person started this session directly and answered in it, so it is attended.
+- **Approval, in the person's words:** "Approve all 12" for rows 1-12, then "Approve all 4" for rows 10a, 11a, 13 and 14, with the name "Dkaattae". The header records it: `Test changes: approved — Dkaattae, 2026-10-30`.
+- **Rows checked before asking.** The branch is level with main (`0a98e11`). The 12 red tests were exactly rows 1-12.
+- **Applied in `8bf0959`**, exactly the approved rows, nothing else. Every row is a modify, nothing was deleted, and no count floor moved.
+
+| Row | Test modified | What changed |
+|---|---|---|
+| 1, 2, 5, 7 | T-079 c20, T-088 c23, T-025 c15, T-085a c23 | `question-bank/package.json` digest → `8e276875…a3a3`; the other digests are unchanged |
+| 3, 4 | T-090 c17, T-092 c15 | combined manifest digest → `0ce355ae…5c99`; only `question-bank/package.json` moved (`git diff --name-status origin/main..HEAD`) |
+| 6, 8 | T-096 c20, T-091 c21 | combined dependency digest → `9e3ffca9…cabc`; same evidence |
+| 9 | T-091 c20 | source-tree digest → `8f004afd…ace6`; the only file that moved is `refresh.ts` (`41de4902…2631`) |
+| 10 + 10a | T-096 c21 | T-087's file set added to `CRITERION_21_ALLOWED`; count 297 → 293, digest → `ceaf01f5…e62a` |
+| 11 + 11a | T-091 c22 (untouchable) | the same file set added to `CRITERION_22_ALLOWED`; count 301 → 297, digest → `b6b89907…c739` |
+| 12 | T-091 c22 (pre-existing tests) | new `T087_TEST_FILES` exclusion; count 110 → 107, digest → `bc91f541…291d` |
+| 13 | T-091 c22 (request files at 8108a42) | four `APPLIED_REQUEST_FILE_SHAS` entries → this branch's bytes; "still differs from main" kept |
+| 14 | T-025 c17 | the 48-file digest → `2e90dd58…f6aa6` |
+
+- **Why 10a, 11a, 13 and 14 exist.**
+  - **10a, 11a:** rows 10 and 11 hit their own stop rule. Exempting four files that already exist on main has to shrink the counted set, so "the count stays" could not hold.
+  - **Nothing else moved.** I ran the same filters on a `git worktree` of main. It gives the same counts and digests as this branch for rows 10, 11 and 12.
+  - **13, 14:** two guards the request did not name went red only after rows 1-12 were applied.
+- **Nothing was weakened.** Every modified test still pins exact bytes. Each pin now covers the T-087 state, which main's own state confirms for 10a, 11a and 12.
+
+**Suite**
+
+- **question-bank:** 2713 pass, 0 fail (71 files). `typecheck`, `lint` and `format:check` are clean.
+- **backend:** `uv run pytest` gives 744 passed, 9 skipped (the Postgres-only tests). `ruff check` and `ruff format --check` are clean.
+- **frontend: not run locally.** `bun install --frozen-lockfile` is refused by the proxy (403 on the `d3-transition` / `internmap` tarballs), and without the packages the tests error. T-087 changes nothing under `frontend/` (round-1 criterion 15). CI runs that job on this push.
+- **Criterion 18: met** on question-bank and backend locally. Frontend and e2e rest on CI.
+- **Criteria 1-17:** round 1's verdict stands. Its test file, `refresh-regenerate-reminder-verify.test.ts`, is unmodified and passes in the run above.
+
+### Round 1 (orchestrated tester)
+
 **TL;DR. Criteria 1–17 are met. Criterion 18 is held up only by 12 stale pins, and they need a person's approval.** The 12 are pre-existing question-bank tests that pin `package.json`, `refresh.ts`, or the set of tracked files. This task changes all three by design. A Test change request for 12 rows is below. **Next step: a human.** Start a `tester` in a session you are attending and approve or refuse each row there.
 
 - **Independence: weaker than a separate session.** This run is orchestrated (`runs/T-087-refresh-regenerate-reminder.md` exists). So `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJf8mLL75U1jKWTn7Jx`) is the same id as the expander's and the worker's, and the id check proves nothing. My independence rests only on being a freshly spawned subagent with its own context: I did not see the work done or the worker's reasoning. That depends on the orchestrator having spawned me correctly, which I cannot check myself.
@@ -422,10 +460,10 @@ All 12 rows go stale for the same reason. T-087 has to change `question-bank/pac
 
 | # | Test (file › describe › name) | Introduced | Why stale | Action | Becomes | Decision |
 |---|---|---|---|---|---|---|
-| 10a | as row 10 | `47581ea`, T-096 | row 10 as written cannot hold (above) | modify | Row 10's exemption, plus `MAIN_UNTOUCHABLE_SHA` re-pinned to `ceaf01f5308835cf8ee2fa75aff2f6a4a8011ab085b0133706418c4ce212e62a`, the value main gives with the same exemption. The `297` expectation becomes `293`, with a comment saying the four files left the counted set and that main gives the same pair | |
-| 11a | as row 11 | `950f334`, T-091 | row 11 as written cannot hold (above) | modify | Row 11's exemption, plus `MAIN_UNTOUCHABLE_COUNT` 301 → 297 and `MAIN_UNTOUCHABLE_SHA` → `b6b899079f1e4877d74d60bb6243662199b907691ce1c1a92e982c7d493ac739`, both equal to main's with the same exemption. Same comment | |
-| 13 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091: each file in T-091's request holds exactly its approved re-pin | rows 2, 4, 6, 7 and 10 (T-087) change four of those files | modify | Same name and both checks. `APPLIED_REQUEST_FILE_SHAS` for `agriculture-true-wrong-answers-verify`, `map-click-no-candidates-verify`, `farm-animal-loose-ends-verify` and `familiarity-drawn-apart-verify` becomes each file's digest after T-087's approved rows. The other two entries and `MAIN_REQUEST_FILE_SHAS` are unchanged, so "differs from main" still holds. A comment cites T-087 row 13 | |
-| 14 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › `criterion 17: every question-bank test file at aa88101 is present and unmodified` | `236b0e0`, T-025: no old test edited without approval | row 1 modifies `highest-point-in-state-verify.test.ts`, one of the 48 | modify | Same name, same 48-file list and length check. The digest is re-pinned to the value after T-087's approved rows, with a comment line `Re-pinned by T-087's approved rows 1-13 (this is row 14).` under the existing ones | |
+| 10a | as row 10 | `47581ea`, T-096 | row 10 as written cannot hold (above) | modify | Row 10's exemption, plus `MAIN_UNTOUCHABLE_SHA` re-pinned to `ceaf01f5308835cf8ee2fa75aff2f6a4a8011ab085b0133706418c4ce212e62a`, the value main gives with the same exemption. The `297` expectation becomes `293`, with a comment saying the four files left the counted set and that main gives the same pair | approved — Dkaattae, 2026-10-30, in the attended tester session |
+| 11a | as row 11 | `950f334`, T-091 | row 11 as written cannot hold (above) | modify | Row 11's exemption, plus `MAIN_UNTOUCHABLE_COUNT` 301 → 297 and `MAIN_UNTOUCHABLE_SHA` → `b6b899079f1e4877d74d60bb6243662199b907691ce1c1a92e982c7d493ac739`, both equal to main's with the same exemption. Same comment | approved — Dkaattae, 2026-10-30, in the attended tester session |
+| 13 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091: each file in T-091's request holds exactly its approved re-pin | rows 2, 4, 6, 7 and 10 (T-087) change four of those files | modify | Same name and both checks. `APPLIED_REQUEST_FILE_SHAS` for `agriculture-true-wrong-answers-verify`, `map-click-no-candidates-verify`, `farm-animal-loose-ends-verify` and `familiarity-drawn-apart-verify` becomes each file's digest after T-087's approved rows. The other two entries and `MAIN_REQUEST_FILE_SHAS` are unchanged, so "differs from main" still holds. A comment cites T-087 row 13 | approved — Dkaattae, 2026-10-30, in the attended tester session |
+| 14 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › `criterion 17: every question-bank test file at aa88101 is present and unmodified` | `236b0e0`, T-025: no old test edited without approval | row 1 modifies `highest-point-in-state-verify.test.ts`, one of the 48 | modify | Same name, same 48-file list and length check. The digest is re-pinned to the value after T-087's approved rows, with a comment line `Re-pinned by T-087's approved rows 1-13 (this is row 14).` under the existing ones | approved — Dkaattae, 2026-10-30, in the attended tester session |
 
 **Not in the request.** `T-091 criterion 22 › each test in the approved Test change request is 8108a42's` still passes, and rows 8, 9, 11 and 12 do not touch its files. If applying the rows turns it red, add a row for it rather than editing it.
 
