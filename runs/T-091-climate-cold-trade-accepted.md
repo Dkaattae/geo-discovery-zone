@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted — run log
 
 **Task:** T-091 · **Branch:** `claude/amazing-ritchie-wwz0je` · **PR:** #111
-**Started:** 2026-10-30 · **Outcome:** in progress
+**Started:** 2026-10-30 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-10-30
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -76,3 +76,37 @@ The brief also named `hand-check-levels-verify.test.ts` and `climate-far-phrases
 Files:
 - /home/user/geo-discovery-zone/engineering-decisions.md
 - /home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md
+
+## Round 3 — tester — 2026-10-30
+`Next step` on entry: `tester` → on exit: `human`
+
+**TL;DR:** T-091 meets all 24 acceptance criteria, but I could not give a final verdict. The task stops at `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Seven existing guards pin `engineering-decisions.md` or the set of tracked files, and this task's own edits turn them red as expected. A person has to approve the 7-row Test change request in a tester session they are attending. Nothing was approved or applied in this run. Pushed as `950f334` to `claude/amazing-ritchie-wwz0je`; local HEAD matches `origin`.
+
+**Independence:** `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJeSdbcuQndNDoPuD3h`, the same id the expander and worker recorded, because this is an orchestrated run. So the id check proves nothing. My independence rests only on being a freshly spawned subagent with its own context. That is weaker than a separate session, and the Verdict says so.
+
+**What I did**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts`. 26 tests, one `describe` per criterion, all passing.
+  - **Baselines:** main's (`12d242e`) are embedded as digests. I recorded them by running the same file in a `git worktree` of `12d242e`, where criteria 13–21 passed.
+  - **Counts:** criteria 5–7 compute them from the bank: 22 / 18 / 8. The amendment states the same numbers.
+- **Mutation check:** I made 14 deliberate edits to the record and the bank, and each one turned the test for its criterion red (criteria 1, 5–11, 13–16 and 18/22). All edits were reverted, and `engineering-decisions.md` matches its backup (`cmp`).
+
+**Suites**
+- **question-bank:** 2666 pass, 6 fail; typecheck, lint and format:check are clean.
+- **Backend:** 743 pass, 9 skipped, 1 fail.
+- **The 7 failures:** exactly the stale guards in the request.
+- **Frontend:** 4 local failures because `react-simple-maps` is not installed; the proxy blocks the install. `frontend` CI passed at `3123e26`, and `frontend/` is byte-identical to main.
+
+**The Test change request:** seven rows in the brief, I checked each against the worker's list, and it missed none.
+- **Rows 1–4, 6, 7:** move pins to their new values, each labelled "re-pinned at `4818fc8`". The files are `agriculture-true-wrong-answers-verify`, `seed-level-loose-ends-verify`, `map-click-no-candidates-verify` (renamed test), `farm-animal-loose-ends-verify` criterion 9, `familiarity-drawn-apart-verify` (renamed test), and `test_t089_tester_criteria.py` (sha and length `120943`).
+- **Row 5 needs a decision:** `farm-animal-loose-ends-verify` criterion 21 cannot simply be re-pinned. It pins the whole set of tracked files, and this task's own brief and run log change with every commit. I propose adding those two T-091 files to its allowed set. That is an exclusion, which E-30 forbids for content guards, but `4d5f283` set a precedent for it. Refusing the row is the alternative. My own criterion 22 test has the same weakness for later tasks.
+
+**Observation for the reviewer:** `tasks.md` differs from main only by the expander's `todo` → `doing` change on the T-091 line. I treated it as the loop's own record, as T-096's tester did.
+
+**Next:** a person starts a `tester` session they are attending for T-091. It asks them to approve rows 1–7, applies only the approved rows, runs the whole suite again, and writes the final verdict.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md` (the `## Verdict` and `## Test change request` sections, plus the header and Sessions row).
+
+## Halted — test change request — 2026-10-30
+Raised at commit `950f334` (header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`). Rows not copied here; the orchestrator did not read them.
+
+What a human has to decide: approve or refuse the tester's Test change request. Per D-15 this cannot be approved in the orchestrator's session — start the `tester` step for T-091 in a session you are attending; it will ask about each row, apply what you approve, and finish verifying.
