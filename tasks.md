@@ -237,7 +237,7 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
 
-### T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` · S · todo
+### T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` · S · doing
 **Depends on:** nothing.
 **New 2026-10-30, from T-088's reviewer (PR #109).** T-088 added five farm
 animals to the wrong-answer pool, so the farm-animal choices now come from
