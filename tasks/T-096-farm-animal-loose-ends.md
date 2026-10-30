@@ -1,7 +1,7 @@
 # T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-096-farm-animal-loose-ends.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq |
+| worker | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq |
 
 **Worker model:** Sonnet is enough. Two comment fixes, two doc rewordings and a
 one-line guard; no data, no level, no question moves.
@@ -187,10 +188,111 @@ in `top_livestock` (`cattle`, `chickens`, `dairy cows`, `pigs`, `sheep`,
 
 ## Handoff
 
+**TL;DR:** built. Two wording fixes, the comment move and the throw guard are in.
+`bun test` in question-bank has **2 reds, both stale by design** (E-22 digest
+pins), and backend has **1 stale red** (same cause). The bank does not move.
+Tester: raise one Test change request for the three pins below.
+
+**What changed, file by file**
+
+- **`engineering-decisions.md`** — E-22 farm-animal bullet only: "one of six
+  farm animals a child already knows" became "one of eleven farm animals a
+  child already knows (E-25 says where they come from)". No other line.
+- **`question-bank/src/seed-level.ts`** — `concept_load` JSDoc only: "come from
+  only six animals" became "come from eleven animals a child already knows".
+  "six T-026 entries" kept (it counts templates). Weights untouched.
+- **`question-bank/src/distractors.ts`** — the `poolFor` JSDoc moved from above
+  `type Pick` to directly above `function poolFor(`; wording unchanged.
+  `clickDistractorsFor` now maps with a guard: a pick with `entity === null`
+  throws `Error("clickDistractorsFor: <draft.id> picked a fixed-pool wrong
+  answer (\"<text>\"), which has no geometry to click")`. Entity picks still
+  return `p.entity.geometry_id as string`; `ShortPool` still returned as-is.
+- **`question-bank/src/farm-animal-loose-ends.test.ts`** (new) — throw on a
+  fixed-pool pick (IA + TX only, farm-animal template), message contains the
+  draft id, every element over the committed bank's `map_click` drafts is
+  another entity's `geometry_id` string, both `ShortPool` reasons pass through.
+  The throw test fails on main (main returns an array with `undefined`).
+
+**Where each criterion lives**
+
+| Criteria | Where |
+|---|---|
+| 1-3 | `engineering-decisions.md` E-22 bullet starting `` - `"tpl-farm-animal-of": 1` `` (count: eleven) |
+| 4-5 | `seed-level.ts` JSDoc above `concept_load: {` (count: eleven) |
+| 6 | Whitespace-collapsed grep over tracked files outside the exempt set: no hits (worker ran it) |
+| 7-8 | Not touched: `LEVEL_SEED_WEIGHTS` and the E-22 constant block |
+| 9 | Diff to `engineering-decisions.md` is the two bullet lines inside E-22 |
+| 10-11 | `distractors.ts`, around the `type Pick` / `function poolFor` lines |
+| 12-16 | `distractors.ts` `clickDistractorsFor` |
+| 17-19 | No data file touched |
+| 20-21 | No `package.json` / lockfile touched; diff = the three files + new test + this brief |
+
+**Tests made stale** (left red; tester's Test change request)
+
+- `question-bank/src/agriculture-true-wrong-answers-verify.test.ts`,
+  `T-088 criteria 20-25: what must not change > criterion 25: outside E-25,
+  engineering-decisions.md is main's; still E-1..E-30` — E-22 is outside
+  E-25 and this task edits it (criteria 2-3). Modify: re-pin
+  `MAIN_ED_OUTSIDE_E25_SHA` to
+  `5eded744b349191071927afd82baf3dc9b996911a99f7090e8fc9422c9f151c7`.
+- `question-bank/src/map-click-no-candidates-verify.test.ts`,
+  `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched > E-1..E-28
+  are byte-identical to 6587ed0's, and there are 30 E-n headings at the branch
+  head` — same cause. Modify: re-pin the digest to
+  `2ab3d27ab7e9538a262ddcdf10475547f1c394fcd49d817b38e89dd8d4db51e0` (and the
+  commit named in the title/comment, as earlier re-pins did).
+- `backend/tests/test_t089_tester_criteria.py`,
+  `test_criterion_13_e1_to_e27_are_byte_identical` — same cause. Modify:
+  `DECISIONS_ON_MAIN_LEN = 120085`, `DECISIONS_ON_MAIN =
+  "f38eb54642ddf4ea479eb9d5a6db8745791d6e9db0bd606e56ace1df350588f0"`.
+- No count floors affected: no pre-existing test file changed. No source-file
+  digest pin on `distractors.ts` or `seed-level.ts` went red.
+
+**Suite results at the branch head** (worker run)
+
+- `question-bank`: `bun test` 2619 pass / 2 fail (the two above); typecheck,
+  lint (0 warnings, 0 errors) and `format:check` clean. Main: 2615 / 0.
+- `make -C backend test`: 743 pass / 1 fail (the one above) / 9 skipped.
+- `frontend`: 392 pass / 4 fail **on main and on the branch alike**: the
+  sandbox proxy returns 403 on the `react-simple-maps` tarball, so
+  `bun install` cannot finish and three `.tsx` test files cannot import it.
+  Environment, not this task; nothing under `frontend/` changed.
+
+**How to run**
+
+- `cd question-bank && bun install --frozen-lockfile && bun test src/farm-animal-loose-ends.test.ts`
+- Whole suites as in criterion 23.
+
+**Deliberately not done**
+
+- No guard for an entity pick with a missing `geometry_id` (Out of scope). See
+  the criterion 14 flag in Notes.
+- No pre-existing test touched.
+
 ## Verdict
 
 ## Notes
 
+- **Worker flag, criterion 14 vs Out of scope.** Criterion 14 says every
+  returned element is a string; Out of scope forbids a guard for an entity
+  pick with no `geometry_id`, so `as string` remains on that path and an
+  entity without `geometry_id` would still yield `undefined`. Every committed
+  entity has one, so criterion 14 holds over the bank (the new test checks
+  it). Decided: follow Out of scope. Tester to judge criterion 14 against the
+  committed bank; if it means "for any input", back to `task-expander`.
+- **Worker flag, same session id.** `$CLAUDE_CODE_REMOTE_SESSION_ID` printed
+  the expander's id, `cse_011oDiJfRVR9sPsnPiXjAsMq`, for this worker session
+  too (orchestrated run; the harness seems to share it across sub-agents). Recorded as
+  printed rather than invented. Tester to note it when checking the Sessions
+  table; `orchestrator` / human to confirm sub-agent isolation.
+- **Environment trap, not committed.** Before `bun install` in `question-bank/`,
+  `bun run format` used some other prettier and rewrote three pre-existing
+  test files (`distractors.test.ts`, `highest-point-metres-verify.test.ts`,
+  `mul-labels-verify.test.ts`); a frontend test run also rewrote
+  `frontend/README.md`. All four reverted with `git checkout`, none committed.
+  With local `node_modules`, `format:check` passes on the untouched files.
+  Owner: whoever runs the next suite should `bun install --frozen-lockfile`
+  first.
 - **Already true on main (expander survey, by reading only):** the pool is
   eleven distinct strings — six from the committed entities' `top_livestock`
   plus the five `ADDED_FARM_ANIMALS`. `concept_load["tpl-farm-animal-of"]` is 1.
