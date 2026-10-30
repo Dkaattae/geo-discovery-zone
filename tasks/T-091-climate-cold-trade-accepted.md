@@ -1,14 +1,14 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-091-climate-cold-trade-accepted.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-30`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-091
 **Branch:** `claude/amazing-ritchie-wwz0je`
 **PR:** #111, opened draft at expand time against the branch above
-**Fault:** test changes are waiting for approval: seven pre-existing guards pin `engineering-decisions.md` or the tracked-file set, and this task's own edit (criteria 1 and 11) and loop records turn them red by design; no criterion is unmet.
+**Fault:**
 
 **Sessions:**
 
@@ -339,6 +339,42 @@ cd frontend && bun install --frozen-lockfile && bun test
 ```
 
 ## Verdict
+
+**TL;DR: pass.** All 24 criteria are met. Dkaattae approved Test change
+request rows 1–7 in this attended session. They are applied in `8108a42`,
+and the whole suite is green. **Next:** reviewer, who escalates the PR as the
+brief requires.
+
+**Approval.** Header: `Test changes: approved — Dkaattae, 2026-10-30`.
+Dkaattae's words in this session: *"approve all, Dkaattae"*.
+
+**Independence.** This attended tester ran in session
+`cse_011oDiJbguF5W6xXdBB7Kxc5`. The expander's and worker's session is
+`cse_011oDiJeSdbcuQndNDoPuD3h`, so this is a genuinely separate session,
+not only a fresh subagent. I computed the counts and every re-pin value
+independently before reading the orchestrated tester's request. Rows 1–4, 6
+and 7 matched it value for value. For row 5 I had proposed a plain re-pin to
+299; the orchestrated tester's allowed-set entry is right instead, because
+the brief changes at every commit.
+
+**Tests changed (all `modify`, as approved):**
+
+- **Row 1**: `agriculture-true-wrong-answers-verify.test.ts`, T-088 criterion 25: `MAIN_ED_OUTSIDE_E25_SHA` re-pinned at `4818fc8`.
+- **Row 2**: `seed-level-loose-ends-verify.test.ts`, T-086 criterion 12: `HEAD_OUTSIDE_E22_SHA` re-pinned at `4818fc8`.
+- **Row 3**: `map-click-no-candidates-verify.test.ts`, T-092 criterion 13: digest re-pinned at `4818fc8`, and the name now reads `4818fc8's`.
+- **Row 4**: `farm-animal-loose-ends-verify.test.ts`, T-096 criterion 9: `MAIN_ED_FROM_E23_SHA` re-pinned at `4818fc8`.
+- **Row 5**: `farm-animal-loose-ends-verify.test.ts`, T-096 criterion 21: `CRITERION_21_ALLOWED` gains the T-091 brief and run log. 297 and `MAIN_UNTOUCHABLE_SHA` are unchanged. This is an exclusion, approved knowingly. P-17 still owns the general fix.
+- **Row 6**: `familiarity-drawn-apart-verify.test.ts`, T-085a criterion 22: `BEFORE_ED_OUTSIDE_E22_SHA` re-pinned at `4818fc8`, and the name now reads `4818fc8's`.
+- **Row 7**: `backend/tests/test_t089_tester_criteria.py`, criterion 13: `DECISIONS_ON_MAIN` and `_LEN` (120943) re-pinned at `4818fc8`.
+
+**Suites after `8108a42` (this session):**
+
+- `question-bank`: `bun test` **2672 pass, 0 fail**. Typecheck, lint and `format:check` are clean.
+- `make -C backend test`: **744 passed, 9 skipped**. `lint` and `format-check` are clean.
+- `frontend`: **not run here**. `bun install` gets a 403 from the agent proxy on `d3-color`. `frontend/` is byte-identical to main (criterion 20), and the frontend CI job on #111 was green. CI on the pushed head is the evidence for this suite.
+
+### Round 1 (orchestrated tester), kept for the record
+
 
 **TL;DR: all 24 criteria are met, and no criterion fails. The verdict is
 held at `test changes requested`.** The edit to `engineering-decisions.md`
