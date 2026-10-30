@@ -366,6 +366,23 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-091 — Climate: record that the "only cold phrase" trade is accepted**
+  (PR #111, 2026-10-30). Records only. E-25's `climates_outside_group` bullet
+  gains a T-091 amendment: Dkaattae chose option (a) on 2026-10-27, the rule
+  and caps are unchanged, and the accepted trade is counted on the committed
+  bank (22 of 50 only-cold answers, 18 of 50 HI+CA+OR wrong sets, 8 with both
+  WA and OR). E-27 (b)'s open "Owner" line now reads as settled. No source,
+  data or level moved. *Where it differed from the brief:* the bank's counts
+  equalled E-27 (b)'s, so nothing diverged. Seven pre-existing guards went red
+  by design: six digest pins on `engineering-decisions.md`, plus T-096's
+  tracked-file pin, which turned red on T-091's own brief and run log. All
+  seven were re-pinned in an attended session that Dkaattae approved. Row 5
+  added an allowed-set exclusion. It took one reviewer round-trip, because the
+  tester's own test read the brief that the sweep deletes. The tester's
+  criterion 22 adds another permanent whole-repo pin (P-17). As with T-096, a
+  note in PR #111's body asks a person to add this instance to
+  `process-tasks.md` by hand.
+
 - **T-096 — T-088's loose ends: eleven farm animals, and
   `clickDistractorsFor` throws on a fixed-pool pick** (PR #110, 2026-10-30).
   E-22's `"tpl-farm-animal-of": 1` bullet and the `concept_load` JSDoc in
@@ -1666,10 +1683,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   or known for, using person-approved lists in `distractors.ts`. Those lists
   come from general knowledge and are not yet checked against USDA NASS
   (E-25). A wrong or missing row means a true "wrong" answer.
-- **Climate wrong answers give the answer away.** Since T-090, no climate
-  question offers both Hawaii's and Alaska's phrases. But in 22 of 50 the
-  answer is the only "cold" phrase, and California's is still the only sunny
-  one (E-27, T-091).
+- **Climate wrong answers give the answer away, and that is accepted.** Since
+  T-090, no climate question offers both Hawaii's and Alaska's phrases. But in
+  22 of 50 the answer is the only "cold" phrase, and California's is still the
+  only sunny one. Dkaattae accepted this trade on 2026-10-27, option (a), with
+  no rule change (T-091, E-25). NY, RI and CA stay `too hard` (E-27 (a)).
 - **Regenerating is by hand.** After the entity bank changes, two commands
   rewrite the question file and `content.json`, and a drift test is red until
   both are run (E-24). Nothing prompts for them yet (T-087). Since T-070, the
