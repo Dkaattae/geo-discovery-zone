@@ -32,3 +32,47 @@
 - **Stale queue line:** the T-091 entry still says "Test cost: regenerates both committed files". That stopped applying once option (a) was chosen. The brief says so; I left the queue text alone.
 - **Reviewer should escalate the PR:** it records a trade in content children read. This is in Constraints.
 - **Not run:** I ran no build, tests or pipeline. Everything above came from reading the committed files.
+
+## Round 2 — worker — 2026-10-30
+`Next step` on entry: `worker` → on exit: `tester`
+
+**T-091 worker: done, and the brief is ready for the tester.** I wrote the decision into `engineering-decisions.md`: a T-091 amendment in E-25's climate bullet, and E-27 (b)'s Owner line now marked settled. Counted from the committed bank, the numbers match E-27 (b): 22, 18 and 8. No code or data changed. Commit `4818fc8` is pushed to `claude/amazing-ritchie-wwz0je`, and `git log origin/claude/amazing-ritchie-wwz0je -1` shows it. Status is `awaiting verification`, next step `tester`.
+
+**Tests are not all green.** Seven existing guards are red, all listed under Tests made stale. A Test change request is needed, as the brief expected.
+
+**What changed**
+- **E-25, the `climates_outside_group` bullet:** a new `**Amended 2026-10-30 (T-091):**` paragraph after the T-090 one. It records:
+  - Dkaattae chose option (a) on 2026-10-27.
+  - The rule and both caps are unchanged, and the bank was not regenerated.
+  - The counts: 22 of 50 answers are the only "cold" phrase, 18 of 50 have wrong answers exactly HI + CA + OR, and 8 offer both WA and OR.
+  - NY, RI and CA stay `too hard`.
+  - Options (b), (c) and (d) were not taken.
+- **E-27 (b), closing paragraph:** "is the content call" became "was the content call T-090 left out of scope", and the Owner line became "Settled 2026-10-27 by Dkaattae: accepted, option (a)…".
+- **The brief:** Status, my Sessions row, Handoff and Notes.
+
+I checked criteria 1–16 myself against `12d242e`, and all pass. Criteria 17–21 hold because `git diff 12d242e` shows nothing under `question-bank`, `backend` or `frontend`.
+
+**Suite results**
+- **`question-bank`:** typecheck, lint and `format:check` are clean. `bun test` has 6 failures, all listed as stale below. The container had no `node_modules`, so I ran `bun install --frozen-lockfile` first; no tracked file changed.
+- **Backend:** 743 pass, 9 skipped, 1 failure, also stale.
+- **Frontend:** 4 test files fail because `react-simple-maps` will not install. The proxy returns 403 for tarballs on `europe-west1-npm.pkg.dev`. Nothing under `frontend/` changed, so this is the environment, not T-091. The tester should re-run where installs work, or use CI.
+
+**Tests made stale** (the Handoff has the received digests; each one is a re-pin per E-30)
+1. `agriculture-true-wrong-answers-verify.test.ts`, T-088 criterion 25 (`MAIN_ED_OUTSIDE_E25_SHA`).
+2. `seed-level-loose-ends-verify.test.ts`, T-086 criterion 12 (`HEAD_OUTSIDE_E22_SHA`).
+3. `map-click-no-candidates-verify.test.ts`, T-092 criterion 13 (the inline digest, and the test name, which says 49444c8).
+4. `farm-animal-loose-ends-verify.test.ts`, T-096 criterion 9 (`MAIN_ED_FROM_E23_SHA`).
+5. `farm-animal-loose-ends-verify.test.ts`, T-096 criterion 21 (count floor 297, now 299). This was already red before my edit: the expander's brief and the orchestrator's run log added the two files.
+6. `familiarity-drawn-apart-verify.test.ts`, T-085a criterion 22 (`BEFORE_ED_OUTSIDE_E22_SHA`).
+7. `backend/tests/test_t089_tester_criteria.py::test_criterion_13_e1_to_e27_are_byte_identical` (`DECISIONS_ON_MAIN` and `DECISIONS_ON_MAIN_LEN`, now 120943).
+
+The brief also named `hand-check-levels-verify.test.ts` and `climate-far-phrases-verify.test.ts`; both are still green.
+
+**Decisions for others**
+- **Shared session id:** the expander and I report the same session id, `cse_011oDiJeSdbcuQndNDoPuD3h`, because the orchestrator runs every role under one remote session. Each role still started with fresh context. The tester, or a human, should decide whether that counts as "not the same session".
+- **Amendment wording:** I kept it to the trade E-27 (b) describes and nothing broader. The reviewer should confirm it against the brief's review checklist.
+- **Criterion 21 floor:** whether that pin should count per-task loop records at all is for the tester and whoever approves the Test change request.
+
+Files:
+- /home/user/geo-discovery-zone/engineering-decisions.md
+- /home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md
