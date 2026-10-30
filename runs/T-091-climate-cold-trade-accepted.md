@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted — run log
 
 **Task:** T-091 · **Branch:** `claude/amazing-ritchie-wwz0je` · **PR:** #111
-**Started:** 2026-10-30 · **Outcome:** halted — needs human
+**Started:** 2026-10-30 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-30
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -110,3 +110,7 @@ Brief: `/home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md
 Raised at commit `950f334` (header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`). Rows not copied here; the orchestrator did not read them.
 
 What a human has to decide: approve or refuse the tester's Test change request. Per D-15 this cannot be approved in the orchestrator's session — start the `tester` step for T-091 in a session you are attending; it will ask about each row, apply what you approve, and finish verifying.
+
+## Resumed — 2026-10-30
+Dkaattae, in the orchestrator's session: "ci is fixed please proceed".
+The branch head had moved since the halt (`bc93435` → `6bd86ac`): an attended tester session (`cse_011oDiJbguF5W6xXdBB7Kxc5`) applied the approved test change request (`8108a42`) and wrote its verdict (`6bd86ac`). Header now reads `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-30`. Carrying on from `Next step`.
