@@ -265,7 +265,7 @@ pick that was not a review (`grading.py:146-147`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
-### T-087 — A bank refresh regenerates the question file and the served bank · S · todo
+### T-087 — A bank refresh regenerates the question file and the served bank · S · doing
 **Depends on:** —
 **New 2026-10-19, from T-040's reviewer (PR #88).** T-040 left two hand-run
 commands: `cd question-bank && bun run ./src/write-questions.ts`, then
