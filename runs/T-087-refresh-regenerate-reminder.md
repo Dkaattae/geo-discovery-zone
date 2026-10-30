@@ -1,7 +1,7 @@
 # T-087 — A bank refresh tells you to regenerate the question file and the served bank — run log
 
 **Task:** T-087 · **Branch:** `claude/hopeful-gates-wh4fep` · **PR:** #112
-**Started:** 2026-10-30 · **Outcome:** in progress
+**Started:** 2026-10-30 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-10-30
 `Next step` on entry: `none — no brief` → on exit: `worker`
@@ -69,3 +69,46 @@ Stamped `Approved:` as an unattended run (orchestrator.md "Approval"). Criteria 
 - **Install before formatting:** `node_modules` was missing at the start, so `bun run format` used a different prettier and rewrote 3 pre-existing tests. I reverted them and none is committed. Later roles should run `bun install --frozen-lockfile` before formatting.
 
 G5: Status and Next step both changed — pass.
+
+## Round 3 — tester — 2026-10-30
+`Next step` on entry: `tester` (Status `awaiting verification`) → on exit: `human` (Status `test changes requested`, Test changes `requested`)
+
+**TL;DR.** T-087 meets criteria 1–17. Criterion 18 (the whole suite passes) is held up only by 12 stale pre-existing question-bank pins, so there is no pass verdict yet. I raised a 12-row Test change request and halted: Status `test changes requested`, Next step `human`, Test changes `requested`. A person needs to start a `tester` in a session they are attending and approve or refuse each row there.
+
+**Push landed.** Commit `40f6c54` ("T-087 tester: criteria tests, 1-17 met; test change request for 12 stale pins") is on `origin/claude/hopeful-gates-wh4fep`, which `git log` after a fetch confirms.
+
+**Independence is the weaker kind.** This run is orchestrated, so `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJf8mLL75U1jKWTn7Jx`) is the same id the expander and worker used, and the session check proves nothing. My independence comes only from being a freshly spawned subagent that did not see the build or the worker's reasoning. The Verdict says this, and my Sessions row is marked as orchestrated.
+
+**What I did**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/refresh-regenerate-reminder-verify.test.ts`. It has 33 tests, one `describe` per criterion, and all pass.
+  - The two commands are checked against the brief's literal text, not the constants exported by `refresh.ts`.
+  - Main's file contents are pinned as sha256 digests taken from a temporary checkout of `0a98e11`. No git call in the tests is handed a revision, as the T-081 guard requires.
+  - Criteria 3–5 run `bun run questions` and `bun run ./src/write-questions.ts` in temporary copies of `question-bank/`. Criterion 4 moves Colorado's capital to `Boulder` and checks both commands write identical bytes that differ from main's.
+  - Every refresh test goes through `SparqlTransport` with the recorded fixture; nothing reaches the network.
+- **Mutations:** I made 11 deliberate breaks in the code, docs and `package.json`, and each one turned the matching tests red. Examples: dropping the reminder call, swapping the two lines, printing to stderr, printing on the exit-2 or exit-1 paths, pointing the script somewhere else, adding an extra script, having the refresh write the question file, and reverting the docs. All were reverted, and `git status` was clean afterwards.
+
+**Suite results**
+- **question-bank:** 2701 pass, 12 fail. typecheck, lint and format:check are clean.
+- **Backend:** `make -C backend test` gives 744 passed, 9 skipped.
+- **Frontend, locally:** 4 fails and 4 errors, all from the environment. `react-simple-maps` is not installed, because the proxy refuses `bun install` (403 on the npm tarballs). Nothing under `frontend/` changed (criterion 15 pin). CI's frontend job is green on `22e7a12`; only CI's question-bank job is red, from the stale pins.
+
+**Test change request (12 rows, all modify, none delete)**
+- **8 rows** re-pin the `question-bank/package.json` digest from `5286f4f7…` to `8e276875…a3a3`, with the other pins untouched.
+- **1 row** re-pins the source-tree digest because `refresh.ts` changed. The worker found this one.
+- **2 rows** add T-087's seven changed or added files to the allowed lists of the T-096 criterion 21 and T-091 criterion 22 whole-tree checks. They keep their counts and digests, and stop if those no longer match.
+- **1 row** is new and the worker missed it: T-091 criterion 22, "pre-existing test files are main's". It counts tracked test files and expects 110; this task's two new test files make 112. The row excludes them and the rows' own files, then recomputes the count and digest.
+
+**Flagged for the reviewer**
+- **`Approved:` is the orchestrator's stamp**, and the run log says "Criteria not read". No person has approved the criteria yet.
+- **The whole-tree checks will keep tripping** on every later task, including on its own brief. That is worth a `tasks.md` entry.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks/T-087-refresh-regenerate-reminder.md (Verdict, Test change request, header, Sessions row)
+- /home/user/geo-discovery-zone/question-bank/src/refresh-regenerate-reminder-verify.test.ts
+
+G5: Status and Next step both changed — pass.
+
+## Halted — test change request — 2026-10-30
+Raised by the tester in commit `40f6c54`. Rows not copied here; the orchestrator has not read them.
+
+What a human has to decide: whether to approve the tester's test change request. Per D-15 the orchestrator cannot take that approval. To resume: start the `tester` step for T-087 in a session you are attending. It will ask about each row, apply what you approve, and finish verifying. Its header then names the next role, and a new run starts from there.
