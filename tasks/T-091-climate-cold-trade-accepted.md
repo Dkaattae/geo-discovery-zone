@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted
 
-**Status:** `pass`
-**Next step:** `reviewer` — review finding 1 is fixed in the tester's own file; re-review, then escalate as the brief requires
+**Status:** `approved — escalated`
+**Next step:** `human` — Dkaattae reads the escalation in PR #111's body and merges or not; the reviewer's sweep (next commit) deletes this brief
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-091-climate-cold-trade-accepted.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-30`
 **CI fix:** `none`
@@ -20,6 +20,7 @@
 | tester | 2026-10-30 | cse_011oDiJbguF5W6xXdBB7Kxc5 (attended; resumed the request, applied the approved rows) |
 | reviewer | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; shared remote id, see Review) |
 | tester | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; shared remote id; fixed review finding 1, see Verdict) |
+| reviewer | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; shared remote id; round 2, approved and escalated) |
 
 **Worker model:** Sonnet is enough. Two edits to `engineering-decisions.md` and
 three counts read off the committed question file. No source, no data, no level
@@ -552,6 +553,46 @@ flagged above.
 | 7 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | T-089 tester; last re-pinned `c5e0064` (T-096 row 3). Pins the byte prefix through E-27 | criteria 1 and 11 add bytes to E-25 and E-27 | modify | same name and assertions; `DECISIONS_ON_MAIN` → `6c2f3daf046ec0008cad757465b67225bd0ad048e76542feaa19c6c765e785c0`, `DECISIONS_ON_MAIN_LEN` → `120943` (the offset of `\n## E-28 `, which the second assert still checks); comment adds "Re-pinned at 4818fc8 (re-pinned T-091, Test change request row 7) after T-091 amended E-25 and E-27 (120943 bytes)" || approved — Dkaattae, 2026-10-30, in the attended tester session ("approve all, Dkaattae") |
 
 ## Review
+
+### Round 2: approved, escalated
+
+**TL;DR: approved, and escalated.** Finding 1 is fixed: the tester's test no
+longer reads this brief, and the suite stays green with the brief deleted (I
+checked it again). The PR is marked ready, but its body says at the top that
+it must not merge without Dkaattae's read: it records a content trade in text a
+child reads (Constraints, "Escalate at review"). The brief's `Approved:` line is
+also the orchestrator's stamp, not a person's.
+
+**Finding 1, re-checked.** `bac230d` changes only
+`climate-cold-trade-accepted-verify.test.ts` (the tester's own new file) and
+this brief. The test now pins the six Test change request files at `8108a42`
+(`APPLIED_REQUEST_FILE_SHAS`, labelled per E-30) and asserts that none of them
+equals its `12d242e` digest. I recomputed all six sha256 values on the working
+tree. They match the pins. `git diff 8108a42 HEAD` on those six files is empty.
+This is an improvement on the old `else` branch, which checked nothing.
+**Closed.**
+
+**Lanes (commits 3bef782..ea3683b):** still clean. The new commits since round 1
+are `77b312a` (reviewer: brief only), `bac230d` (tester: its own test file and
+the brief), and `ef3ae4c` / `ea3683b` (orchestrator: `runs/` only).
+
+**Finding 2 (P-17), disposition changed.** In round 1 I said the sweep would
+amend `process-tasks.md` P-17. It cannot. Criterion 22 (frozen) does not allow
+`process-tasks.md` in this diff, and the tester's criterion 22 test would go red
+on it. T-096's reviewer hit the same wall. As with T-096, the P-17 note goes
+in PR #111's body, for a person to add to `process-tasks.md` by hand.
+
+**Envelope:** escalated, for these reasons:
+
+- **Child-facing content.** The record accepts climate distractors that give
+  the answer away in 22 of 50 questions. The brief requires an escalation.
+- **The brief was approved by the orchestrator's stamp**, not a person's.
+- **Pre-existing tests modified:** a person approved them (`Test changes:
+  approved — Dkaattae`), and the diff matches rows 1–7 and comes only from
+  tester commit `8108a42`. That is within the envelope, but row 5 is an
+  exclusion, and it is copied into the PR body for that reason.
+
+### Round 1: changes requested
 
 **TL;DR: changes requested, sent back to `tester`.** The record edit is good
 and both checklist items hold. But one of the tester's new tests reads this
