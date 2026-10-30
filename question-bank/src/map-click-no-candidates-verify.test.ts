@@ -419,11 +419,13 @@ function baselineOf(entities: Entity[]): Baseline {
 // 5d72ca5's question file, as digests (helpers above, `digestsOf`). `clickLevels`
 // and `other` are re-pinned at 6a515e2 (re-pinned T-085a, Test change request
 // rows 21 and 20), after T-085a moved the six HI/AK map and climate levels.
+// `other` is re-pinned at 6587ed0 (re-pinned T-088, Test change request row 7),
+// after T-088 regenerated 36 agriculture questions' choices.
 const MAIN_FILE = {
   order: "5a5e2d5b8b1a15d0ce4bbb35f3414d57194e7ba09490aa06fc8853ff33c6f01e",
   clickFields: "8ddf07bc1dde01463daa3dc68fff106883fb88ea8653f86c6db8474ae625bfd9",
   clickLevels: "724c636c46013d9c380ca9fe8ebdcdb58c149f99fe5f2d3ec921502eded796ab",
-  other: "d565d5aa2983e758bbfcf315d7b2da8ba4a71206479ffdd68e7f808ee9aec80d",
+  other: "c0c5072bc4a4f27fbf6bace1c302fff498a49f6f40574e7d3ae41e0500a7d601",
 };
 const CLICK_KEYS = [
   "id",
@@ -483,7 +485,7 @@ describe("T-092 criterion 3: every other map_click field as at 5d72ca5, no key a
 });
 
 describe("T-092 criterion 4: the 365 other questions deep-equal 5d72ca5's, count 415", () => {
-  test("every non-map_click question, level included, hashes to 6a515e2's (re-pinned T-085a, row 20)", () => {
+  test("every non-map_click question, level included, hashes to 6587ed0's (re-pinned T-088, row 7)", () => {
     const file = readFile();
     expect(file.questions.filter((q) => !isClick(q))).toHaveLength(365);
     expect(digestsOf(file).other).toBe(MAIN_FILE.other);
@@ -640,9 +642,10 @@ describe("T-092 criteria 11 and 12: content.json does not move", () => {
   // Criterion 11's regeneration is the backend drift guard
   // (backend/tests/test_content_build.py); this pins criterion 12.
   // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 22).
-  test("backend/app/data/content.json is byte-identical to 6a515e2's", () => {
+  // Re-pinned at 6587ed0 (re-pinned T-088, Test change request row 8).
+  test("backend/app/data/content.json is byte-identical to 6587ed0's", () => {
     expect(sha(readFileSync(join(REPO, "backend/app/data/content.json")))).toBe(
-      "a4bedfbd447bec246b3d18886fbcaea4af545711a7e5eb712392c96e36105dee",
+      "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d39853eb66862a33e58",
     );
   });
 });
@@ -653,10 +656,11 @@ describe("T-092 criterion 13: E-29 records the change; E-1..E-28 untouched", () 
 
   // T-070 row W45: E-30 makes 30 headings at the branch head. The E-1..E-28
   // digest is re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 23),
-  // after T-085a amended E-22.
-  test("E-1..E-28 are byte-identical to 6a515e2's, and there are 30 E-n headings at the branch head", () => {
+  // after T-085a amended E-22. Re-pinned at 6587ed0 (re-pinned T-088, Test change
+  // request row 16), after T-088 amended E-25.
+  test("E-1..E-28 are byte-identical to 6587ed0's, and there are 30 E-n headings at the branch head", () => {
     const text = Array.from({ length: 28 }, (_, i) => sections.get(`E-${i + 1}`)).join("");
-    expect(sha(text)).toBe("9d19c2e9a2326d20a34a952f93e14ce565c81e1f9de3d40b1ce83124525abd31");
+    expect(sha(text)).toBe("22e7f2d501abaa84f2e79f9947a9213dc5741210e37e756000b27d814221671e");
     expect(sections.size).toBe(30);
     expect(doc.match(/^## E-\d+/gm)).toHaveLength(30);
   });
@@ -733,15 +737,18 @@ describe("T-092 criterion 16: no other surface changes", () => {
     ["e2e", [], "ee820bf3f3f4a5fafeb6863c0fdb02506d29d5b5233e00bc2e247f45465be3eb"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
     ["openapi.yaml", [], "35831a81e0e9a3abc5f8e1e6bf4e02514adb63a27c64e2d8455e5b1e8514d6e6"],
-    // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 24), after
-    // T-085a regenerated content.json. Same exception list.
-    [
-      "backend/app",
-      ["backend/app/content_build.py"],
-      "64a3af5f7e1aa351500f269f863550479e8ddaac070f1a13c7f25d67c6dfbf16",
-    ],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);
+  });
+
+  // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 24), after
+  // T-085a regenerated content.json. Re-pinned at 6587ed0 (re-pinned T-088, Test
+  // change request row 9), after T-088 regenerated content.json. Same exception
+  // list; split out of the table above so only this row's name moves.
+  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 6587ed0', () => {
+    expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
+      "291b1e49a35674790bdf91c287adfd07f5b596a88116ada1b0370de1204f11de",
+    );
   });
 });
 
@@ -761,7 +768,9 @@ describe("T-092 criterion 17: no network, no child-facing text changed", () => {
     }
   });
 
-  test("every prompt, choices entry and funFact in content.json is as at 5d72ca5", () => {
+  // Re-pinned at 6587ed0 (re-pinned T-088, Test change request row 10), after
+  // T-088 changed 36 agriculture questions' choices.
+  test("every prompt, choices entry and funFact in content.json is as at 6587ed0", () => {
     const out: unknown[] = [];
     const walk = (node: unknown): void => {
       if (Array.isArray(node)) for (const n of node) walk(n);
@@ -774,7 +783,7 @@ describe("T-092 criterion 17: no network, no child-facing text changed", () => {
     walk(JSON.parse(readFileSync(join(REPO, "backend/app/data/content.json"), "utf8")));
     expect(out).toHaveLength(830);
     expect(sha(canon(out))).toBe(
-      "a7df4a051999fe0e4d85941c35cb9ee3b0c4d3181468d7612127cd4f39eaf789",
+      "1d347f318e923db43f380e95534bca92ac4d48d00203a34d3d29b4f9181f847c",
     );
   });
 });

@@ -484,8 +484,10 @@ describe("T-090 criterion 7: every other strategy gives what it gave at 3279555"
     const out = buildChoices(generate(entities, tpls).drafts, entities, tpls);
     // T-092 (approved Test change request, row 19): 3279555's output with
     // `choices`, `correctIndex` and `choiceGeometryIds` stripped from map_click.
+    // Re-pinned at 6587ed0 (re-pinned T-088, Test change request row 4, E-30),
+    // after T-088 changed the agriculture strategies' choices.
     expect(sha(canon(out))).toBe(
-      "e7213f8a9137f8faca571a16af99eee27735b54c4e8945873174b39a1cbefb5c",
+      "f9a7be1d560ceb4170d96d6d52d37d519077406a04d3ab751b470f9af7dbce11",
     );
   });
 });
@@ -570,17 +572,20 @@ describe("T-090 criterion 11: only the three wrong answers moved", () => {
 describe("T-090 criterion 12: nothing else in the bank moved", () => {
   // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 16), after
   // T-085a moved the four HI/AK map levels.
-  test("question file: every non-climate question deep-equal to 6a515e2", () => {
+  // Re-pinned at 6587ed0 (re-pinned T-088, Test change request row 5), after
+  // T-088 regenerated 36 agriculture questions' choices.
+  test("question file: every non-climate question deep-equal to 6587ed0", () => {
     expect(nonClimateDigest(committedQb.questions)).toBe(
-      "55f6d655784a6a2e69786f19a7fb8542ebd777501c668b8284beeb11bf247b62",
+      "9881e32783aac041c46024a505c22f2d1ca1e892a9f6dad981578513352843d0",
     );
   });
 
   // T-070 row W44 (E-30): no map_click filter. Re-pinned at 6a515e2
   // (re-pinned T-085a, Test change request row 17).
-  test("content.json: every non-climate question deep-equal to 6a515e2's", () => {
+  // Re-pinned at 6587ed0 (re-pinned T-088, Test change request row 6).
+  test("content.json: every non-climate question deep-equal to 6587ed0's", () => {
     expect(nonClimateDigest(content.questions)).toBe(
-      "e2d605217c441c4a6f3921b0580c38177691a24d07170a08b7303a06ce8126db",
+      "81117d4cc05c097f1aa239d1edc101c7c4721cfc34eb7fe42f057578b1c2a024",
     );
   });
 

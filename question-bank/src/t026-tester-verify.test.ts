@@ -449,13 +449,17 @@ describe("T-026 criteria 32-34: farm animals", () => {
         .sort(),
     ).toEqual(want);
   });
-  test("criterion 33: answer is the first entry; distractors not the state's, but another's", () => {
+  // T-088 TCR row 2 (approved): T-088's five added animals may also be wrong answers.
+  test("criterion 33: answer is the first entry; distractors not the state's, but another's or one of T-088's five", () => {
+    const added = ["goats", "horses", "ducks", "rabbits", "bison"];
     for (const q of of(FARM)) {
       const own = stock(entityOf(q));
       expect(q.answer).toBe(own[0] as string);
       for (const w of wrongOf(q)) {
         expect(own).not.toContain(w);
-        expect(entities.some((e) => e.id !== q.entityId && stock(e).includes(w))).toBe(true);
+        expect(
+          entities.some((e) => e.id !== q.entityId && stock(e).includes(w)) || added.includes(w),
+        ).toBe(true);
       }
     }
   });
@@ -511,7 +515,8 @@ describe("T-026 criteria 50-51: no entity data changed, choices copied from enti
         digest: BANK_DIGESTS[f] as string,
       });
   });
-  test("criterion 51: every new choice is a value of its template's answer field on some entity", () => {
+  // T-088 TCR row 3 (approved): for tpl-farm-animal-of only, T-088's five added animals are allowed too.
+  test("criterion 51: every new choice is a value of its template's answer field on some entity (T-088: farm animals may also be one of its five)", () => {
     const values = (t: Template): Set<string> =>
       new Set(
         entities.flatMap((e) => {
@@ -521,6 +526,8 @@ describe("T-026 criteria 50-51: no entity data changed, choices copied from enti
       );
     for (const t of NEW) {
       const ok = values(t);
+      if (t.id === "tpl-farm-animal-of")
+        for (const a of ["goats", "horses", "ducks", "rabbits", "bison"]) ok.add(a);
       for (const q of of(t)) for (const c of q.choices as string[]) expect(ok.has(c)).toBe(true);
     }
   });

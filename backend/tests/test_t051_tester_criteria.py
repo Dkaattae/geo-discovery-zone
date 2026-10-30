@@ -38,9 +38,10 @@ SPEC_FILE = REPO / "openapi.yaml"
 # separators=(",", ":")), computed by the tester from
 # `git show 1032b77:backend/app/data/content.json`. Re-pinned at 6a515e2
 # (re-pinned T-085a, Test change request row 27), after T-085a moved four
-# HI/AK levels in these 365.
+# HI/AK levels in these 365. Re-pinned at 6587ed0 (re-pinned T-088, Test change
+# request row 14), after T-088 changed 36 served agriculture questions' choices.
 MAIN_SERVED_COUNT = 365
-MAIN_SERVED_DIGEST = "ddd2d5abb7a0129fa6c7941761dbb896a5d96df08c883fe3fd865b4d12232f0a"
+MAIN_SERVED_DIGEST = "3e49e00f1f5ce1a778241e43181b97f1f97c1f07aca6819d7775f1164ce21c5c"
 
 FIFTY_STATE_CODES = sorted(
     {

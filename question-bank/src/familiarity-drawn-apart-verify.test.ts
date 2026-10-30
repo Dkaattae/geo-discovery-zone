@@ -29,19 +29,19 @@ const read = (rel: string): string => readFileSync(join(REPO_ROOT, rel), "utf8")
 
 /** sha256 of JSON.stringify([[id, level], ...]) over the 415 questions, in file order, at 5ae564a. Same for content.json. */
 const BEFORE_LEVELS_SHA = "fb8c50247d9b25338dbd90566d65575666087cc2d5a209226c6904976c037bd9";
-/** sha256 of the question file's questions with `level` removed, at 5ae564a. */
-const BEFORE_Q_NO_LEVEL_SHA = "b8a2e03ae871dc5a5eef53a2c7a275bd6ceb7799502730a7045c32105eba4337";
+/** sha256 of the question file's questions with `level` removed, re-pinned at 6587ed0 (T-088 TCR row 12, E-30). */
+const BEFORE_Q_NO_LEVEL_SHA = "47f2b645de2c500182d0aff53e38766a3b2db87d2d1b984459cb86d0b84dfac9";
 /** sha256 of the question file's `_source`, at 5ae564a. */
 const BEFORE_Q_SOURCE_SHA = "ba95a246d73bbbdfe6f5d2a15f98895973c8f33c5cbfb87489287effa0e3378d";
-/** sha256 of content.json's questions with `level` removed, at 5ae564a. */
-const BEFORE_C_NO_LEVEL_SHA = "d156aca9dca69e36051bd5ae46b033f1e4e7a32e1b33770673c1f3cd246bc80c";
+/** sha256 of content.json's questions with `level` removed, re-pinned at 6587ed0 (T-088 TCR row 13, E-30). */
+const BEFORE_C_NO_LEVEL_SHA = "3d5e3f3c440a47e767a6b78fb0a573de7b30b8f4228111bdeb117f26dff834b2";
 /** sha256 of JSON.stringify({...content, questions: null}), at 5ae564a. */
 const BEFORE_C_REST_SHA = "f3bdb765bc79a6641354a39fc4a992df264a49271bd173b5b10fe44ec14869e6";
 /** sha256 of [[file, json-without-sources.built_at], ...] over data/us-states/, sorted, at 5ae564a. */
 const BEFORE_ENTITIES_SHA = "431b7fa2c5d1e013523d7fb3c8e6c7d7b433d2d1b7345ca9c6eccb14c2476822";
-/** sha256 of engineering-decisions.md before "## E-22 " + NUL + from "## E-23 " on, at 5ae564a. */
+/** sha256 of engineering-decisions.md before "## E-22 " + NUL + from "## E-23 " on, re-pinned at 6587ed0 (T-088 TCR row 17, E-30). */
 const BEFORE_ED_OUTSIDE_E22_SHA =
-  "681e9bee1d377c22684ed6f1bd82bbf03cd797094a02788db47e635b8add47cc";
+  "33a662fa0c663716244c3f30d56edb1626daa870efc088f2e09be061e143ee51";
 /** sha256 of the T-025 hand-check table's "| " lines (header + 30 rows), at 5ae564a. */
 const BEFORE_T025_TABLE_SHA = "7d04c99ce29c19b29c812b90866f12bac25ffd38b55e38ba90716c26e7401636";
 /** sha256 of each file whole, at 5ae564a. */
@@ -648,7 +648,7 @@ describe("T-085a criteria 17-22: E-22", () => {
     expect(sha(rows.join("\n"))).toBe(BEFORE_T025_TABLE_SHA);
   });
 
-  test("criterion 22: every E-n entry other than E-22 is byte-identical to 5ae564a's", () => {
+  test("criterion 22: every E-n entry other than E-22 is byte-identical to 6587ed0's", () => {
     expect(sha(`${ed.slice(0, a)}\u0000${ed.slice(b)}`)).toBe(BEFORE_ED_OUTSIDE_E22_SHA);
   });
 });

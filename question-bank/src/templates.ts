@@ -137,10 +137,13 @@ export const TEMPLATE_TOPICS: Readonly<Record<string, Topic>> = {
  *   skipped, and a pool the caps leave short is short; they are never relaxed.
  * - `crops_not_grown_nearby`: any crop some other state lists, nearest first,
  *   except crops the answer state, a bordering state or a same-region state
- *   lists, and never both members of an agriculture pair.
+ *   lists, and crops in the answer state's "also grown" row (`ALSO_GROWN`,
+ *   T-088), and never both members of an agriculture pair.
  * - `livestock_not_raised`: any farm animal some other state lists, nearest
- *   first, except those the answer state lists, and never both members of an
- *   agriculture pair.
+ *   first, then the five `ADDED_FARM_ANIMALS` in their listed order (never an
+ *   answer), except those the answer state lists or has in its "also raised"
+ *   row (`ALSO_RAISED`, T-088), and never both members of an agriculture
+ *   pair.
  */
 export const DISTRACTOR_STRATEGIES = [
   "neighbours_first",

@@ -776,7 +776,9 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
   // are hashed byte for byte. The fixtures are not pinned: a refresh re-records them.
   // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 14), after
   // T-085a regenerated the question file.
-  test("criterion 14: question-bank/data is unchanged since 6a515e2, built_at aside", () => {
+  // Re-pinned at 6587ed0 (re-pinned T-088, Test change request row 11), after
+  // T-088 regenerated the question file.
+  test("criterion 14: question-bank/data is unchanged since 6587ed0, built_at aside", () => {
     const BANK = "question-bank/data/us-states/";
     const digest = sha(
       walkFiles(join(REPO, "question-bank/data"))
@@ -791,7 +793,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
         })
         .join(""),
     );
-    expect(digest).toBe("2edc3a19c1fa094b638ea61bc1493a67c141c0b23d963f98b038fdca63660d49");
+    expect(digest).toBe("acbe3f86db09d7ec790fd97babd09ae1d06c95202ef20ece8007a8bc978e073f");
   });
 
   // T-040 archived this file byte-for-byte and replaced the served one with the generated bank.
