@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-096
 **Branch:** `claude/eager-noether-41dajj`
-**PR:** opened draft at expand time against the branch above (number in the PR list; see Notes)
+**PR:** #110, opened draft at expand time against the branch above
 **Fault:**
 
 **Sessions:**
@@ -198,5 +198,5 @@ in `top_livestock` (`cattle`, `chickens`, `dairy cows`, `pigs`, `sheep`,
 - **"six" elsewhere in E-22 is legitimate** — "the six T-026 templates", "All
   six have `base_difficulty` 2", "the six questions whose level changed". The
   criteria scope the ban to the farm-animal bullet for that reason.
-- **PR:** opened draft at expand time; its number is in the PR list for branch
+- **PR:** #110, opened draft at expand time from branch
   `claude/eager-noether-41dajj`.
