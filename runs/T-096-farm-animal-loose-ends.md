@@ -1,7 +1,7 @@
 # T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` — run log
 
 **Task:** T-096 · **Branch:** `claude/eager-noether-41dajj` · **PR:** #110
-**Started:** 2026-10-30 · **Outcome:** in progress
+**Started:** 2026-10-30 · **Outcome:** ready for merge
 
 ## Preflight — 2026-10-30
 Branch at `origin/main` (`85612ed`), no live brief in `tasks/`, branch not yet on the remote. G1 trivially clean.
@@ -121,3 +121,45 @@ Raised by `47581ea` (T-096 tester). Header: `Test changes: requested`, `Status: 
 
 ## Resumed — 2026-10-30
 Dkaattae, in the orchestrator's session: "ci is fixed you can proceed". The attended tester had pushed `c5e0064` (apply approved test change request) and `3912701` (verdict pass). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-30`. Orchestrator did not take the approval; it was given in the tester's session.
+
+## Round 4 — reviewer — 2026-10-30
+`Next step` on entry: `reviewer` → on exit: brief deleted by sweep (`48fe8b1`); PR #110 marked ready.
+
+**TL;DR:** I approved T-096. PR #110 is marked **ready for review** with no escalation note, so it is routine. It is **not merged**: the merge is Dkaattae's. The sweep is in the PR as `48fe8b1`, pushed to `claude/eager-noether-41dajj`, and the remote head matches. All 7 CI checks on `48fe8b1` are green.
+
+**Review**
+- **Diff:** small and fits the code around it.
+  - **E-22 bullet and `seed-level.ts` JSDoc:** "six" became "eleven".
+  - **`distractors.ts`:** the `poolFor` JSDoc moved onto `poolFor`, and `clickDistractorsFor` now throws an `Error` naming `draft.id` when a pick has no entity.
+- **The new comment is true:** it says the guard never fires on the committed bank. The only caller, `seed-level.ts` `distractorEntities`, calls it only for `map_click` questions.
+- **Every role's work is in the PR:** expander, worker and tester each have commits. Each commit stays in its lane: the expander touched only `tasks.md` and the brief, the tester touched only tests and the brief, and there was no `ci-fix`.
+- **Inside the envelope:**
+  - The three pre-existing tests that changed are `engineering-decisions.md` digest re-pins. Dkaattae approved them as a person in an attended session.
+  - No dependency was added.
+  - Nothing touched `openapi.yaml`, a migration or the plan.
+  - No text a child reads changed.
+- **Flags settled:**
+  - **Criterion 14 vs Out of scope:** decided here, no task needed.
+  - **Shared session id:** P-14 already owns it.
+  - **Tester exempting `runs/` and the `tasks.md` status flip from criterion 21:** agreed.
+
+**Non-blocking finding, for a person:**
+- **What it is:** the tester's criterion 21 test in `question-bank/src/farm-animal-loose-ends-verify.test.ts` (`MAIN_UNTOUCHABLE_SHA`) is one digest over 298 tracked files. Almost any later task will turn it red. That is the P-17 pattern again.
+- **Why I did not record it:** the pinned files include `process-tasks.md`, so adding this to P-17 from this PR would have turned the pin red. I reverted that edit.
+- **What to do:** paste the P-17 "sixth instance" text from the PR body into `process-tasks.md` by hand.
+
+**Sweep (`48fe8b1`)**
+- Deleted the brief `tasks/T-096-farm-animal-loose-ends.md`, so there is no `## Review` section or Sessions row in it. The review record is in the PR body.
+- Removed T-096's entry from `/home/user/geo-discovery-zone/tasks.md` and added a sweep note.
+- Logged T-096 in `/home/user/geo-discovery-zone/PROGRESS.md` and updated the T-088 follow-on line.
+- No other queue entry moved.
+
+**Suites at `48fe8b1`**
+- **question-bank:** 2646 pass / 0 fail; typecheck, lint and format:check clean.
+- **backend:** 744 passed / 9 skipped.
+- **frontend:** not run locally, because the sandbox cannot install `react-simple-maps`. The frontend CI job is green.
+
+**PR body:** rewritten through the REST API. It carries the TL;DR, the review, the test changes, the evidence for each criterion and the acceptance criteria verbatim. `gh pr edit` and `gh pr ready` failed because GraphQL is blocked here, so I used `PATCH /pulls/110` and the CCR `ready_for_review` route. Afterwards the PR showed `draft: false`, `state: open`, `merged: false`.
+
+## Ended — 2026-10-30
+Reviewer approved and marked PR #110 ready. Run over; merge is Dkaattae's.
