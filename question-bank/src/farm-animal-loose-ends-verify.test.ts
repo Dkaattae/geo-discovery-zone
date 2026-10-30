@@ -118,8 +118,12 @@ const MAIN_E22_CONCEPT_LOAD_LINE =
 /** sha256 of lines[0..E-22 heading line] joined by "\n", at 85612ed. */
 const MAIN_ED_THROUGH_E22_HEADING_SHA =
   "6a68061fae737e6755c74036cfb811277a80c4b6fe6ee98c40a903de25f3876d";
-/** sha256 of lines[E-23 heading line..end] joined by "\n", at 85612ed. */
-const MAIN_ED_FROM_E23_SHA = "af99b88815830b629cdb17758ce9fc9ce41c268cb1896dc23d395d52fb679d17";
+/**
+ * sha256 of lines[E-23 heading line..end] joined by "\n", at 85612ed;
+ * re-pinned at `4818fc8` (T-091, Test change request row 4) after T-091
+ * amended E-25 and E-27.
+ */
+const MAIN_ED_FROM_E23_SHA = "c598bc8a37bb989e8256cf0eb53ad190450207b4d11c775a4af54eaa29fc280f";
 /** sha256 of JSON.stringify(every `## E-n ` heading line, in order), at 85612ed. */
 const MAIN_ED_HEADINGS_SHA = "cab21883894bbad1d7a812f5616b1b65582ffd1b08b7f9193a204b821619b71a";
 
@@ -149,7 +153,10 @@ const MAIN_UNTOUCHABLE_SHA = "1ac2ad7968a23ed927e05fd90b5fd4a2bca4d2f146ed5cb067
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
  * deliverable (named in the Verdict). `process-tasks.md` is the loop's queue
- * too, and P-17's T-096 instance is recorded there.
+ * too, and P-17's T-096 instance is recorded there. T-091's brief and run log
+ * joined the set through T-091's Test change request row 5 (approved by
+ * Dkaattae, 2026-10-30, in the session that made the edit): every task's loop
+ * records are new tracked files, and the brief changes at every commit.
  */
 const CRITERION_21_ALLOWED = new Set([
   "engineering-decisions.md",
@@ -160,6 +167,8 @@ const CRITERION_21_ALLOWED = new Set([
   "PROGRESS.md",
   "runs/T-096-farm-animal-loose-ends.md",
   "process-tasks.md",
+  "tasks/T-091-climate-cold-trade-accepted.md",
+  "runs/T-091-climate-cold-trade-accepted.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);

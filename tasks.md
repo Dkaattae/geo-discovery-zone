@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved._
 
 ## How this list is ordered
 
@@ -236,30 +236,6 @@ T-040 (PR #88) bridged the pipeline to the app: `backend/app/data/content.json`
 is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
-
-### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo
-**Depends on:** nothing
-**Option chosen 2026-10-27 (Dkaattae): (a), accept the trade.** No rule
-changes and no regeneration. The task is to record the acceptance in E-25 and
-in E-27 (b)'s "Owner" line.
-**New 2026-10-23, from T-090 (PR #93), E-27 (b).** Capping Hawaii's and
-Alaska's phrases took away the only other "cold" phrase in most eastern
-states' questions. The next farthest picks are West Coast phrases, so:
-- in **22 of 50** the answer is the only phrase with "cold" in it (1 before),
-  so it is the odd one out;
-- HI + CA + OR is the wrong-answer set in 18;
-- Washington's and Oregon's near-twin phrases appear together in 8.
-California is unchanged and still `too hard` (three "cold snowy winters"
-phrases from two groups). E-27 (a) also reads NY and RI as `too hard` now.
-**Options:** (a) accept the trade and record it in E-25; (b) at most one
-wrong answer per same-climate group (changes CA); (c) require at least one
-wrong answer that shares the answer's season word ("cold", "hot", "mild");
-(d) never offer two phrases opening with the same words.
-**Test cost:** regenerates both committed files. Expect a test change request
-on `climate-far-phrases-verify.test.ts`, which pins the current climate rule
-and bank.
-**Done when:** the chosen option has landed and E-25 records it. Distractors
-are text a child reads, so the reviewer escalates.
 
 ### T-056 — The map cannot fill in on a child's first day · M · todo
 **Depends on:** a design decision below

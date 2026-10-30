@@ -39,9 +39,9 @@ const BEFORE_C_NO_LEVEL_SHA = "3d5e3f3c440a47e767a6b78fb0a573de7b30b8f4228111bde
 const BEFORE_C_REST_SHA = "f3bdb765bc79a6641354a39fc4a992df264a49271bd173b5b10fe44ec14869e6";
 /** sha256 of [[file, json-without-sources.built_at], ...] over data/us-states/, sorted, at 5ae564a. */
 const BEFORE_ENTITIES_SHA = "431b7fa2c5d1e013523d7fb3c8e6c7d7b433d2d1b7345ca9c6eccb14c2476822";
-/** sha256 of engineering-decisions.md before "## E-22 " + NUL + from "## E-23 " on, re-pinned at 6587ed0 (T-088 TCR row 17, E-30). */
+/** sha256 of engineering-decisions.md before "## E-22 " + NUL + from "## E-23 " on, re-pinned at 6587ed0 (T-088 TCR row 17, E-30), re-pinned at 4818fc8 (T-091 TCR row 6, E-30). */
 const BEFORE_ED_OUTSIDE_E22_SHA =
-  "33a662fa0c663716244c3f30d56edb1626daa870efc088f2e09be061e143ee51";
+  "572149631f0e348469449657e89234e941bb16464d4dc7d2f1c6278596ee827c";
 /** sha256 of the T-025 hand-check table's "| " lines (header + 30 rows), at 5ae564a. */
 const BEFORE_T025_TABLE_SHA = "7d04c99ce29c19b29c812b90866f12bac25ffd38b55e38ba90716c26e7401636";
 /** sha256 of each file whole, at 5ae564a. */
@@ -648,7 +648,7 @@ describe("T-085a criteria 17-22: E-22", () => {
     expect(sha(rows.join("\n"))).toBe(BEFORE_T025_TABLE_SHA);
   });
 
-  test("criterion 22: every E-n entry other than E-22 is byte-identical to 6587ed0's", () => {
+  test("criterion 22: every E-n entry other than E-22 is byte-identical to 4818fc8's", () => {
     expect(sha(`${ed.slice(0, a)}\u0000${ed.slice(b)}`)).toBe(BEFORE_ED_OUTSIDE_E22_SHA);
   });
 });

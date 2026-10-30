@@ -1418,6 +1418,17 @@ climate, crops, farm animals) each have their own `distractor_strategy` in
   allowed). A candidate that would break a cap is skipped. The caps are never
   relaxed: a pool they leave with fewer than three is a short pool. What the
   regenerated bank looks like is E-27.
+  **Amended 2026-10-30 (T-091):** Dkaattae chose option (a) on 2026-10-27:
+  accept the trade E-27 (b) describes. `climates_outside_group`'s rule and
+  both caps are unchanged, and the bank was not regenerated. What is
+  accepted, counted on the committed bank: the answer is the only phrase
+  with "cold" in it in 22 of 50 climate questions. The wrong answers are
+  exactly Hawaii's, California's and Oregon's phrases in 18 of 50. In 8
+  questions both Washington's and Oregon's phrases are wrong answers.
+  E-27 (a) reads NY, RI and CA as `too hard`, and those three questions stay
+  as they are. Not taken: (b) at most one wrong answer per same-climate
+  group; (c) at least one wrong answer sharing the answer's season word;
+  (d) never two phrases opening with the same words.
 - **`crops_not_grown_nearby`**: the answer is the first crop the state lists.
   The wrong choices are crops other states list, nearest first, but never one
   that the state, a state it borders, or a state in its region lists (brief
@@ -1822,9 +1833,10 @@ eastern half of the country that step is the West Coast:
 
 None of this breaks a T-090 criterion. Each is the rule working as written.
 Whether to accept it, or ask for a stricter rule (at most one per group, or a
-"no answer is the only cold or only warm phrase" check) is the content call
-the brief left out of scope. **Owner: the person reading T-090's escalated
-review.**
+"no answer is the only cold or only warm phrase" check) was the content call
+T-090 left out of scope. **Settled 2026-10-27 by Dkaattae: accepted, option
+(a), no rule change. Recorded by T-091 in E-25's `climates_outside_group`
+bullet.**
 
 ### (c) `concept_load["tpl-climate-of"]` (3): keep
 

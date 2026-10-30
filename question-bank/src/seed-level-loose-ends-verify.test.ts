@@ -66,7 +66,9 @@ const R_WEIGHTS = {
 // Criterion 12, re-pinned at 6a515e2: re-pinned T-085a (Test change request
 // rows 5 and 6, E-30), after T-085a renamed E-22's heading. Re-pinned at 6587ed0:
 // re-pinned T-088 (Test change request row 15, E-30), after T-088 amended E-25.
-const HEAD_OUTSIDE_E22_SHA = "e7c73b04169f05abe26ae651b8092481dcac0b7801f75db07d0221859aa46ed5";
+// Re-pinned at 4818fc8: re-pinned T-091 (Test change request row 2, E-30), after
+// T-091 amended E-25 and E-27.
+const HEAD_OUTSIDE_E22_SHA = "4493eb37a2179d39ba610aedf337db1118e40a43e6ae04fdedff8ee2c41bcdf4";
 const BASE_E22_HEADING =
   "## E-22 — `level` is seeded by a stage after `buildChoices`, from one constant of weights; `familiarity_bonus` lowers only the states drawn apart from the mainland";
 const BASE_E_HEADING_COUNT = 23;
