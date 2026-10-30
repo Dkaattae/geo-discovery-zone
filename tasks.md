@@ -237,7 +237,7 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
 
-### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo
+### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · doing
 **Depends on:** nothing
 **Option chosen 2026-10-27 (Dkaattae): (a), accept the trade.** No rule
 changes and no regeneration. The task is to record the acceptance in E-25 and
