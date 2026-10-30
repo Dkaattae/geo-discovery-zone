@@ -1,7 +1,7 @@
 # T-088 — Wrong answers that are true: crops and farm animals a state does grow — run log
 
 **Task:** T-088 · **Branch:** `claude/epic-hopper-pav2ip` · **PR:** #109
-**Started:** 2026-10-29 · **Outcome:** in progress — tester pass, next reviewer
+**Started:** 2026-10-29 · **Outcome:** ready for merge — escalated by the reviewer (PR #109 marked ready, not to be merged without a decision)
 
 ## Round 1 — task-expander — 2026-10-29
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -141,3 +141,65 @@ To resume: a person starts the `tester` step for T-088 in a session they are att
 The person in this session said "run the tester step for T-088". D-15 requires the approval to be given in the session that makes the edits, so this session acted as the attended tester rather than spawning a subagent. It was shown the 18 rows and answered, verbatim: **"approve"**. No name was given. All 18 rows were applied in `8aea8b5`, and the verdict was written in `62dbe6d`: `pass`. question-bank 2615/0 and backend 744 passed, 9 skipped; typecheck, lint and format are clean. The frontend was not run here (proxy 403 on `d3-timer`).
 
 Caveat recorded in the Verdict addendum: this session had read the earlier roles' returned reports, so this step's independence is weaker than a cold tester's. It applied the approved rows and re-ran the suites. The criteria verdicts are the first tester's.
+
+## Round 5 — reviewer — 2026-10-30
+`Next step` on entry: `reviewer` → on exit: `human` (approved — escalated; brief swept in `9b61eeb`)
+
+**T-088 is approved and escalated.** PR #109 is now ready for review, with a warning at the top of its body saying it must not be merged without a decision. The sweep is inside the PR. Next: Dkaattae decides whether to merge. I did not merge.
+
+**Why it is escalated:**
+- **Child-facing text.** 36 of the 74 agriculture questions changed their `choices`.
+- **The NASS check has not been done.** `tasks.md` T-088 required Tables A and B to be checked against USDA NASS "before it ships", and nobody has.
+- **No person read the criteria.** The brief's `Approved:` line is the orchestrator's stamp. Dkaattae approved only Tables A and B, on 2026-10-27.
+- **The test change approver gave no name.** A person approved it, so the D-14/D-15 rule is met, but the record has no name. I copied all 18 rows into the PR body.
+
+**What I checked:**
+- **The PR has every role's work.** Commits are there from the expander (`7918629`, `545d646`), the worker (`6587ed0`) and the tester (`e9d666e`, `8aea8b5`, `62dbe6d`). The orchestrator's commits only touch `runs/`.
+- **Each role stayed in its lane.**
+  - The expander's commits touch only `tasks.md` and the brief.
+  - The worker changed no existing test.
+  - Existing tests changed only in the tester's `8aea8b5`. Those changes are exactly the 9 files named in test change request rows 1–18, and each matches its row. Nothing was deleted and no count floor was lowered.
+- **Nothing landed outside the brief's Constraints.** There is no dependency, and `openapi.yaml`, `frontend/`, migrations and the plan are untouched.
+- **The suites pass.**
+  - At `5b93e41`: question-bank 2615 pass, 0 fail; typecheck, lint and format check are clean. Backend: 744 passed, 9 skipped. All six CI jobs on the PR are green, including frontend and e2e.
+  - After the sweep commit, both local suites still pass. CI on that commit was still running when I finished.
+- **I read all 24 farm-animal questions.** The table is in the PR body.
+
+**Findings (none block the merge).** All three are queued as one new task, **T-096**:
+1. In `question-bank/src/distractors.ts`, the doc comment for `poolFor` sits above `type Pick` instead.
+2. `clickDistractorsFor` uses `p.entity?.geometry_id as string`. If a pool ever reached a `map_click` question it would silently emit `undefined`; it should throw instead.
+3. E-22 and the `concept_load` comment in `seed-level.ts` still say "six farm animals". The brief left this out of scope.
+
+**What I decided on the worker's and tester's flags:**
+- **Added animals go last, in their listed order: confirmed.** That keeps the "rabbits is never right" giveaway as rare as possible: 8 of 24 questions.
+- **Iowa still offers `dairy cows`.** This matches the approved table, which lists items where the state is roughly a top-10 producer. It is on the person's checklist.
+- **The frontend could not run locally.** CI's frontend and e2e jobs pass, so that is covered.
+- **Every role reports the same session id.** That is already tracked as P-14 in `process-tasks.md`.
+
+**Sweep, pushed to `claude/epic-hopper-pav2ip`:**
+- `85b05a9` added the `## Review` section to the brief, set Status to `approved — escalated` and Next step to `human`, and added my Sessions row.
+- `9b61eeb`:
+  - Deleted the brief.
+  - Removed T-088 from `tasks.md` and added T-096.
+  - Noted in T-095 that T-088 re-pinned the bank guards at `6587ed0` and added two new pinning test files.
+  - Added the sweep line to `tasks.md`.
+  - In `PROGRESS.md`: logged T-088 under Completed tasks, rewrote its known-gap line to say the lists are not yet checked against NASS, and removed it from Next.
+- The push landed: `origin/claude/epic-hopper-pav2ip` is at `9b61eeb`.
+
+**What the person merging needs to do** (the checklist is in the PR body):
+- Check Tables A and B against USDA NASS.
+- Confirm or overturn Iowa and dairy cows.
+- Read the 24 farm-animal questions and a sample of crop questions.
+- Accept, or not, that the five added animals are never a correct answer.
+
+`gh pr edit` was refused by the permission classifier. I made the PR update with `mcp__github__update_pull_request` instead, which is the route the reviewer role names.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/question-bank/src/distractors.ts
+- /home/user/geo-discovery-zone/tasks/T-088-agriculture-true-wrong-answers.md (deleted; its last version is at `85b05a9`)
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/109
+
+## Ended — 2026-10-30
+The reviewer approved, escalated and marked PR #109 ready. The run ends here; merging is Dkaattae's (D-4).
