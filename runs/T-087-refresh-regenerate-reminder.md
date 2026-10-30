@@ -1,7 +1,7 @@
 # T-087 — A bank refresh tells you to regenerate the question file and the served bank — run log
 
 **Task:** T-087 · **Branch:** `claude/hopeful-gates-wh4fep` · **PR:** #112
-**Started:** 2026-10-30 · **Outcome:** in progress
+**Started:** 2026-10-30 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-10-30
 `Next step` on entry: `none — no brief` → on exit: `worker`
@@ -116,3 +116,42 @@ What a human has to decide: whether to approve the tester's test change request.
 ## Resumed — 2026-10-30
 Dkaattae, in the orchestrator's session: "Ci is fixed please proceed".
 Since the halt the branch moved (`0ce2398` → `7672370`): an attended tester applied the test change request (header: `Test changes: approved — Dkaattae, 2026-10-30` (rows 1-12, 10a, 11a, 13, 14)) and wrote `Status: pass`, `Next step: reviewer`. Carrying on from that Next step.
+
+## Round 4 — reviewer — 2026-10-30
+`Next step` on entry: `reviewer` (Status `pass`) → on exit: `human` (Status `approved`), then brief deleted in the sweep
+
+**I approved T-087, swept it, and marked PR #112 ready. No escalation.** The work is small and does what the brief asked, and the suite is green. Dkaattae still has to merge it, and one bookkeeping edit is left for a person to make by hand.
+
+**State**
+- **PR #112:** ready for review, not merged. https://github.com/Dkaattae/geo-discovery-zone/pull/112
+- **Branch `claude/hopeful-gates-wh4fep`:** fetch confirms it is at `a69cc35`. The two reviewer commits are `5b500aa` (review written into the brief) and `a69cc35` (the sweep).
+- **Brief:** I set it to Status `approved`, Next step `human`, added my Sessions row and a `## Review` section in `5b500aa`, then deleted the file in the sweep. It survives in git history and its criteria are in the PR body.
+
+**Review**
+- **Every role committed to this PR:** expander, worker, tester (both rounds) and orchestrator.
+- **Each role stayed in its own files.** Pre-existing tests were changed only in the tester's commit `8bf0959`, and those changes match the 16 rows Dkaattae approved (1-12, 10a, 11a, 13, 14). All are modify-only; nothing was deleted.
+- **The code fits.** `printNextSteps` follows the existing `printSummary` pattern. Nothing extra was added, and the docs match the new behaviour.
+- **Tests, run here after the sweep:** question-bank 2713 pass, 0 fail, with typecheck, lint and format:check clean. Backend: 744 passed, 9 skipped.
+- **CI on the commit before the sweep:** question-bank, both backend jobs, frontend and integration passed. e2e was still running when I checked. I did not see the result, and CI on the sweep commit has not been checked.
+- **Not run locally:** the frontend suite, because package install is blocked by the proxy. It relies on CI.
+
+**Flags from earlier roles**
+- **Reminder wording:** accepted as written.
+- **Queue entry for the drift-test failure messages:** declined, because the README now names both failing tests.
+- **The criteria were never approved by a person.** `Approved:` is the orchestrator's unattended-run stamp. That is not a reason to escalate, but I put it at the top of the PR body so whoever merges sees it.
+- **Tests that pin every file in the repo, which every task trips:** this is already tracked as P-17. I could not add T-087 as its seventh instance, because one of those pins (T-091's criterion 22) covers `process-tasks.md` and editing that file would turn the suite red. The PR body asks a person to add it by hand.
+
+**Sweep**
+- **Deleted:** `/home/user/geo-discovery-zone/tasks/T-087-refresh-regenerate-reminder.md` and the T-087 entry in `/home/user/geo-discovery-zone/tasks.md`.
+- **T-095 amended:** it wrongly said T-087 "regenerates"; that is corrected. It also now owns restoring T-070's four relaxed `extractedAt` tests, if T-095 makes the refresh run the regeneration itself.
+- **Other `tasks.md` edits:** the §B intro is reworded and a line is added to the sweep log.
+- **`/home/user/geo-discovery-zone/PROGRESS.md`:** a Completed tasks entry for T-087, and the "Regenerating is by hand" bullet updated.
+
+**What a person needs to do**
+- **Merge PR #112.**
+- **Add T-087 under P-17** in `/home/user/geo-discovery-zone/process-tasks.md`.
+
+G5: brief swept and PR marked ready — the run's end state.
+
+## Ended — 2026-10-30
+PR #112 is ready for Dkaattae to merge. Nothing in this loop merges.
