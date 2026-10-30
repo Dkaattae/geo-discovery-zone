@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-087
 **Branch:** `claude/hopeful-gates-wh4fep`
-**PR:** opened draft at expand time against the branch above (number in the PR list; see Notes)
+**PR:** #112, opened draft at expand time against the branch above
 **Fault:**
 
 **Sessions:**
