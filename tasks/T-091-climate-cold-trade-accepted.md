@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted
 
-**Status:** `changes requested`
-**Next step:** `tester` — come back and fix review finding 1 (one test in `climate-cold-trade-accepted-verify.test.ts`), then hand back to `reviewer`
+**Status:** `pass`
+**Next step:** `reviewer` — review finding 1 is fixed in the tester's own file; re-review, then escalate as the brief requires
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-091-climate-cold-trade-accepted.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-30`
 **CI fix:** `none`
@@ -19,6 +19,7 @@
 | tester | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; same shared id, see Verdict) |
 | tester | 2026-10-30 | cse_011oDiJbguF5W6xXdBB7Kxc5 (attended; resumed the request, applied the approved rows) |
 | reviewer | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; shared remote id, see Review) |
+| tester | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; shared remote id; fixed review finding 1, see Verdict) |
 
 **Worker model:** Sonnet is enough. Two edits to `engineering-decisions.md` and
 three counts read off the committed question file. No source, no data, no level
@@ -340,6 +341,60 @@ cd frontend && bun install --frozen-lockfile && bun test
 ```
 
 ## Verdict
+
+### Round 3 (orchestrated tester): review finding 1 fixed
+
+**TL;DR: pass.** The test that read this brief no longer does. It now pins
+the six Test change request files at `8108a42`, so the reviewer's sweep can
+delete the brief and the suite stays green (checked). All 24 criteria still
+hold. **Next:** reviewer, who escalates the PR as the brief requires.
+
+**Independence.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_011oDiJeSdbcuQndNDoPuD3h`, shared by every orchestrated role
+(`runs/T-091-…` exists), so the id check proves nothing. My independence
+rests only on being a freshly spawned subagent with its own context. That is
+weaker than a separate session. The separate-session evidence for the
+approved test changes is still the attended tester (`cse_011oDiJbguF5W6xXdBB7Kxc5`).
+
+**What changed (my own new file only, no Test change request needed):**
+
+- `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, criterion
+  22: the old test "a test named in the Test change request differs from main
+  only once the brief says approved" is replaced by "each test in the approved
+  Test change request is 8108a42's: changed from main by its row's re-pin
+  only". It no longer reads the brief.
+- **New pin** `APPLIED_REQUEST_FILE_SHAS`, labelled "recorded at `8108a42`"
+  (E-30). Each value is `git show 8108a42:<file> | sha256sum`, and equals the
+  working tree.
+- **Before pinning,** I checked `git diff 12d242e HEAD` on the six files:
+  each diff is exactly its row's re-pin and comment (rows 1–7), nothing else.
+- The test asserts each file equals its `8108a42` digest, and that none of
+  them equals its `12d242e` digest. The second assertion shows the approved
+  change was actually applied.
+
+**Mutations (every one reverted, `cmp` against a backup):**
+
+- `seed-level-loose-ends-verify.test.ts` put back to `12d242e`'s: the new test went red.
+- One trailing line added to the same file: red.
+- `120943` → `120944` in `test_t089_tester_criteria.py`: red.
+
+**Sweep simulation.** I removed the brief from the index and the tree, then
+ran the suites: `question-bank` `bun test` **2672 pass, 0 fail**, and
+`make -C backend test` **744 passed, 9 skipped**. Afterwards I restored the
+brief and checked it with `cmp`.
+
+**Suites (this run, brief present):**
+
+- `question-bank`: `bun test` **2672 pass, 0 fail**. Typecheck, lint
+  (`0 warnings and 0 errors`) and `format:check` are clean.
+- `make -C backend test`: **744 passed, 9 skipped** (from the sweep run).
+- `frontend`: 391 pass / 5 fail locally. Every failure is `Cannot find package
+  'react-simple-maps'`: there is no `node_modules` here, and the proxy blocks
+  the install. `frontend/` is byte-identical to main. CI on `ef3ae4c` is
+  **success** on all six jobs (`frontend`, `question-bank`, `backend` ×2,
+  `integration`, `e2e`). CI on this commit is the evidence for the new head.
+
+### Round 2 (attended tester)
 
 **TL;DR: pass.** All 24 criteria are met. Dkaattae approved Test change
 request rows 1–7 in this attended session. They are applied in `8108a42`,

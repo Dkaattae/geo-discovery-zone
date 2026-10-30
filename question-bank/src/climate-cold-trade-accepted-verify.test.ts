@@ -85,6 +85,28 @@ const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
 };
 
 /**
+ * Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, recorded at `8108a42`,
+ * the commit that applied the brief's Test change request rows 1-7 (approved by
+ * Dkaattae, 2026-10-30). Each differs from its 12d242e digest above only by
+ * that row's re-pin. Pinned here rather than read from the brief, because the
+ * reviewer's sweep deletes the brief (T-091 review finding 1).
+ */
+const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
+  "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
+    "01b8bd525f8e0b75018d73c2ef1044dd30987f3d4f68b0ef344d5af416b0d7a5",
+  "question-bank/src/seed-level-loose-ends-verify.test.ts":
+    "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
+  "question-bank/src/map-click-no-candidates-verify.test.ts":
+    "255f1a2fc8feb9566a5155f5700b4f76521ce8e1f85313cf8929fe2650eb7005",
+  "question-bank/src/farm-animal-loose-ends-verify.test.ts":
+    "9e1fdb0c7fdc63f24f6c843fc503ce669a357d690809c1d4e642f5e8b16d7081",
+  "question-bank/src/familiarity-drawn-apart-verify.test.ts":
+    "6e91b954a94f7e0d072450315360cd987c2ab45e1dd3b0eba3e883cc7fd0fc10",
+  "backend/tests/test_t089_tester_criteria.py":
+    "81a845389db2cebee246542d388c9e6fcceba57b97d7611f8c3d650fc52cb7a7",
+};
+
+/**
  * Criterion 22's list. `tasks.md` and `PROGRESS.md` are the reviewer's sweep;
  * `tasks.md` also carries the expander's `todo` -> `doing` flip on T-091's
  * heading, the loop's own record (same reading as T-096's tester).
@@ -99,8 +121,8 @@ const CRITERION_22_ALLOWED = new Set([
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
 /**
- * Pre-existing tests named in the brief's Test change request. They may differ
- * from main only once the brief's header reads `Test changes: approved`.
+ * Pre-existing tests named in the brief's Test change request. Each holds
+ * exactly the approved re-pin: its digest is APPLIED_REQUEST_FILE_SHAS's.
  */
 const TEST_CHANGE_REQUEST_FILES = new Set([
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts",
@@ -427,14 +449,14 @@ describe("T-091 criterion 22: the diff touches only the allowed files", () => {
     expect(tests.length).toBe(MAIN_TESTS_COUNT);
     expect(fileRowsSha(tests)).toBe(MAIN_TESTS_SHA);
   });
-  test("a test named in the Test change request differs from main only once the brief says approved", () => {
-    const brief = read("tasks/T-091-climate-cold-trade-accepted.md").split("\n").slice(0, 20);
-    const approved = brief.some((l) => /^\*\*Test changes:\*\* `?approved/.test(l));
+  test("each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only", () => {
     const now = Object.fromEntries(
       [...TEST_CHANGE_REQUEST_FILES].map((f) => [f, sha(readFileSync(join(REPO, f)))]),
     );
-    if (!approved) expect(now).toEqual(MAIN_REQUEST_FILE_SHAS);
-    else expect(Object.keys(now).sort()).toEqual(Object.keys(MAIN_REQUEST_FILE_SHAS).sort());
+    expect(now).toEqual(APPLIED_REQUEST_FILE_SHAS);
+    for (const f of TEST_CHANGE_REQUEST_FILES) {
+      expect([f, now[f] === MAIN_REQUEST_FILE_SHAS[f]]).toEqual([f, false]);
+    }
   });
 });
 
