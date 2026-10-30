@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved._
 
 ## How this list is ordered
 
@@ -236,28 +236,6 @@ T-040 (PR #88) bridged the pipeline to the app: `backend/app/data/content.json`
 is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
-
-### T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` · S · doing
-**Depends on:** nothing.
-**New 2026-10-30, from T-088's reviewer (PR #109).** T-088 added five farm
-animals to the wrong-answer pool, so the farm-animal choices now come from
-eleven animals, not six. Three small fixes:
-- **E-22** (`engineering-decisions.md`, the `"tpl-farm-animal-of": 1` bullet)
-  and the `concept_load` comment in `question-bank/src/seed-level.ts` both say
-  "six farm animals". The number becomes eleven, or the claim is reworded.
-  `concept_load` itself stays 1. Re-judging it is a separate call.
-- **`distractors.ts`**: the doc comment "The fixed-pool candidates a strategy
-  offers after its entity candidates" sits above `type Pick`, not above
-  `poolFor`. Move it.
-- **`distractors.ts` `clickDistractorsFor`**: `p.entity?.geometry_id as string`
-  would emit `undefined` if a pool pick ever reached a `map_click` template.
-  Throw instead, so the assumption in the comment is enforced.
-**Test cost:** E-22 is pinned by T-085a's and T-086's guards
-(`familiarity-drawn-apart-verify.test.ts`, `seed-level-loose-ends-verify.test.ts`),
-and a source digest may pin `seed-level.ts` or `distractors.ts`. Expect a
-small Test change request. The bank must not move.
-**Done when:** no doc says "six farm animals", and both `distractors.ts`
-comments say what the code does.
 
 ### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo
 **Depends on:** nothing

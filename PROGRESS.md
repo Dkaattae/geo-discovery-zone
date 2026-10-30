@@ -366,6 +366,25 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-096 — T-088's loose ends: eleven farm animals, and
+  `clickDistractorsFor` throws on a fixed-pool pick** (PR #110, 2026-10-30).
+  E-22's `"tpl-farm-animal-of": 1` bullet and the `concept_load` JSDoc in
+  `seed-level.ts` now say the farm-animal choices come from eleven animals,
+  not six; `concept_load` stays 1. In `distractors.ts` the `poolFor` JSDoc
+  moved from above `type Pick` to above `poolFor`, and `clickDistractorsFor`
+  throws an `Error` naming the draft id when a pick has no entity, instead of
+  returning `undefined`. Only `map_click` questions reach it (`seed-level.ts`
+  `distractorEntities`), so it never fires on the committed bank, and the bank
+  and every level are byte-identical to main's. *Where it differed from the
+  brief:* the stale pins were three `engineering-decisions.md` digests (T-088
+  c25, T-092 c13, backend `test_t089` c13), not the T-085a/T-086 guards the
+  queue entry predicted; no source-file pin went red. Dkaattae approved all
+  three re-pins in an attended tester session. The tester's own criteria 9 and
+  15-21 tests add more permanent "nothing else moved" pins, including one over
+  298 tracked files that includes `process-tasks.md`, so the reviewer could
+  not even add this as P-17's sixth instance without turning it red; the note
+  is in PR #110's body for a person to add by hand.
+
 - **T-088 — Agriculture wrong answers skip what a state does grow or raise**
   (PR #109, 2026-10-30). `distractors.ts` holds two person-approved lists,
   keyed by postal code: `ALSO_GROWN` for 50 crop rows and `ALSO_RAISED` for 24
@@ -380,8 +399,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   `test_t089` went red, the second missed by the worker and found by the
   tester. All 18 rows were approved by an unnamed person attending the tester
   session. **Escalated, not routine:** the lists are not yet checked against
-  USDA NASS, which `tasks.md` required before shipping. Follow-on T-096 fixes
-  the stale "six farm animals" wording.
+  USDA NASS, which `tasks.md` required before shipping. Follow-on T-096
+  (PR #110) fixed the stale "six farm animals" wording.
 
 - **T-085a — Hawaii and Alaska are drawn apart from the mainland: two levels
   lower on map and climate questions** (PR #107, 2026-10-29).
