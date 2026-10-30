@@ -1,7 +1,7 @@
 # T-087 — A bank refresh tells you to regenerate the question file and the served bank
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-087-refresh-regenerate-reminder.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx |
+| worker | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx |
 
 **Worker model:** Sonnet is enough. One `package.json` script, a few printed
 lines in `refresh.ts`, two doc edits. No data moves and no question changes.
@@ -189,6 +190,145 @@ root.
 
 ## Handoff
 
+**TL;DR.** I added a `questions` script. A changed refresh now prints both
+regenerate commands to stdout, in order, after the summary. It does not run them.
+Both docs are updated. 11 pre-existing tests in 8 files are stale reds caused by
+this change, and 2 more were already red at branch HEAD before I touched
+anything. A **Test change request is needed**.
+
+**Session note.** The worker session id matches the expander's
+(`cse_011oDiJf8mLL75U1jKWTn7Jx`): the orchestrator ran both roles in one remote
+session. The tester should run in a different one.
+
+### What changed
+
+- **`question-bank/package.json`**: one added line,
+  `"questions": "bun run src/write-questions.ts"`, after `refresh`. No other
+  key changed. `bun.lock` and the dependencies are untouched.
+- **`question-bank/src/refresh.ts`**: exports `QUESTIONS_COMMAND` and
+  `CONTENT_COMMAND`, which hold the brief's exact text. Adds `printNextSteps(out)`,
+  called only on the success path, right after `printSummary`. It prints three
+  stdout lines:
+  - `Next, from the repository root, regenerate in this order:`
+  - `  1. cd question-bank && bun run questions   # …`
+  - `  2. make -C backend content   # …`
+
+  None of them starts with `  us-state-`. The header comment for exit 0 says the
+  commands are printed and not run.
+- **`question-bank/README.md`**: in "Refreshing the committed bank", a paragraph
+  after the stdout/stderr paragraph, plus a bash block with both commands
+  (question command first) and a note on which drift tests fail until they run.
+- **`conventions.md`**: in the question-bank command block,
+  `bun run ./src/write-questions.ts` is replaced by `bun run questions`, with the
+  same comment.
+- **New: `question-bank/src/refresh-next-steps.test.ts`** (worker tests, 8):
+  - the exact command text
+  - order on stdout, and nothing on stderr
+  - no `  us-state-` line added
+  - the question file and served bank are byte-identical after a changed refresh
+  - no command printed on exit 2 or on the three exit-1 paths
+
+  Everything goes through `SparqlTransport` with the committed fixture and temp
+  copies. No network.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1–2 | `question-bank/package.json` `scripts.questions` |
+| 3, 5 | Checked by hand: `bun run questions` and `bun run ./src/write-questions.ts` both leave `data/questions/us-states.json` clean in `git status` |
+| 4 | The script runs exactly `bun run src/write-questions.ts`, so the bytes match by construction. The tester should check it on a modified bank copy |
+| 6–7 | `refresh.ts` `printNextSteps`, called after `printSummary` |
+| 8–9 | `printNextSteps` is reached only on the `EXIT_CHANGED` path. Every `return EXIT_FAILED` / `EXIT_UNCHANGED` comes before it |
+| 10 | `refreshBank` writes only the bank dir and the two fixture paths, as before |
+| 11 | The three refresh test files are unmodified and pass |
+| 12 | `question-bank/README.md` "Refreshing the committed bank" |
+| 13 | `conventions.md` `## Commands` block. `frontend/src/conventions-doc.test.ts` passes (81/81) |
+| 14–16 | Nothing under `backend/`, `frontend/`, `e2e/` or `data/` changed. No dependency added |
+
+### How to run
+
+```bash
+cd question-bank && bun install --frozen-lockfile   # node_modules was absent in this session
+bun test src/refresh-next-steps.test.ts src/refresh.test.ts src/refresh-verify.test.ts src/refresh-routes-verify.test.ts
+bun test && bun run typecheck && bun run lint && bun run format:check
+make -C backend test
+```
+
+### Results in this session
+
+- **question-bank `bun test`**: 2669 pass, 11 fail. The 11 are listed below and
+  include the 2 that were red before this change.
+- **typecheck, lint, format:check**: clean (prettier 3.9.6 from
+  `node_modules`).
+- **`make -C backend test`**: 744 passed, 9 skipped.
+- **frontend**: **the full `bun test` was not run.**
+  `bun install --frozen-lockfile` in `frontend/` failed: the proxy refused a
+  CONNECT to `europe-west1-npm.pkg.dev` (403, policy denial), where the lockfile
+  resolves its tarballs. Only `src/conventions-doc.test.ts` ran, and it passed
+  81/81. That is the one frontend test that reads a file this task touched.
+
+### Tests made stale
+
+All but one are stale because `question-bank/package.json` changed bytes, which
+criteria 1–2 require. For each pin, the fix is the same: **modify it to accept
+this task's `package.json`.** Either re-pin the digest, or exempt
+`question-bank/package.json` and leave the lockfiles pinned. None should be
+deleted.
+
+| File | Test (describe > test) | Why stale |
+|---|---|---|
+| `highest-point-in-state-verify.test.ts` | `T-079 tester, criterion 20 — every package.json and bun.lock is byte-identical to 323254c` > `question-bank/package.json` | sha256 of `package.json` |
+| `agriculture-true-wrong-answers-verify.test.ts` | `T-088 criteria 20-25: what must not change` > `criterion 23: every package.json, bun.lock, pyproject.toml and uv.lock is main's` | manifest pin |
+| `climate-far-phrases-verify.test.ts` | `T-090 criterion 17: no new dependency, no lockfile change` > `every package.json, pyproject.toml and lockfile is byte-identical to 3279555, none added` | manifest pin |
+| `map-click-no-candidates-verify.test.ts` | `T-092 criterion 15: no new dependency, no manifest or lockfile change` > `every package.json, pyproject.toml and lockfile is byte-identical to 5d72ca5's, none added` | manifest pin |
+| `hand-check-levels-verify.test.ts` | `T-025 criteria 14-17: …` > `criterion 15: every package.json and lockfile is byte-identical to aa88101, and none was added` | manifest pin |
+| `farm-animal-loose-ends-verify.test.ts` | `T-096 criteria 17-21: the bank and the boundaries` > `criterion 20: every package.json, bun.lock, pyproject.toml and uv.lock is main's` | manifest pin |
+| `familiarity-drawn-apart-verify.test.ts` | `T-085a criteria 23-25: negative` > `criterion 23: no package.json, bun.lock, pyproject.toml or uv.lock changed since 5ae564a` | manifest pin |
+| `climate-cold-trade-accepted-verify.test.ts` | `T-091 criterion 21: no dependency is added or changed` > `every package.json, bun.lock, backend/pyproject.toml and backend/uv.lock is 12d242e's` | manifest pin |
+| `climate-cold-trade-accepted-verify.test.ts` | `T-091 criterion 20: no non-test source file moves` > `every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's` | **Not in the expander's list.** It pins `question-bank/src/refresh.ts`, which this task must change (criteria 6–7). Modify it to exempt `refresh.ts`, or re-pin |
+
+**Already red at branch HEAD `ca63b6e`, before any worker change.** With my
+changes stashed, these two fail. Both count tracked non-test files, and the
+expander and orchestrator commits added two: `tasks/T-087-…md` and
+`runs/T-087-…md`. This task also changes `package.json`, `refresh.ts`,
+`README.md` and `conventions.md`, so they would go red even without those added
+files.
+
+- `farm-animal-loose-ends-verify.test.ts`: `T-096 criteria 17-21: the bank and
+  the boundaries` > `criterion 21: outside the allowed files and test files,
+  every tracked file is main's, and none is added`
+- `climate-cold-trade-accepted-verify.test.ts`: `T-091 criterion 22: the diff
+  touches only the allowed files` > `every tracked non-test file outside the
+  allowed list is 12d242e's, and none is added` (expects 301 files, gets 303 at
+  HEAD)
+
+What to do: modify both to tolerate brief and run-log files under `tasks/` and
+`runs/`, plus this task's four changed files. **Tester to raise this with a
+human.** It is a standing hazard for every task, not only T-087, so it is also
+worth a `tasks.md` entry. **Owner: reviewer at the sweep.**
+
+### What I deliberately did not do
+
+- **No chaining**: the refresh does not run either command (Out of scope,
+  criterion 10).
+- **No `--help` text change.** It was allowed, not required.
+- **`_source.generatedBy`, the docstrings and `backend/README.md` are
+  untouched** (Out of scope). They still name a working command.
+- **No queue entry** for the drift-test failure messages (Out of scope says
+  optional). The new README paragraph names the failing tests, which covers most
+  of the value. **Owner: reviewer**, if they want the entry.
+
+### Contradictions with the brief
+
+- **The expander's stale list misses `T-091 criterion 20`**, which pins
+  `refresh.ts`.
+- **The `Approved:` line and the last Notes bullet disagree.** The line is an
+  orchestrator stamp. The bullet says it "stays `pending` until a person
+  writes their name". I took the orchestrator stamp as valid, which my role
+  instructions allow. **Owner: reviewer**, to confirm a human has looked at the
+  criteria before merge.
+
 ## Verdict
 
 ## Notes
@@ -208,3 +348,15 @@ root.
 - **Approval is not delegated.** Under the orchestrator this step is skipped,
   not performed. `Approved:` stays `pending` until a person writes their name
   and the date.
+- **Worker: `bun run format` rewrites pre-existing tests when the pinned
+  prettier is absent.** At the start of this session `question-bank/node_modules`
+  was missing, so `bun run format` used some other prettier. It reformatted
+  three pre-existing test files (`distractors.test.ts`,
+  `highest-point-metres-verify.test.ts`, `mul-labels-verify.test.ts`). I
+  reverted them with `git checkout`, and none is in the commit. After
+  `bun install --frozen-lockfile`, prettier 3.9.6 reports the tree clean. Later
+  roles should install before formatting.
+- **Worker: the reminder's wording.** I numbered the two lines (`1.` / `2.`)
+  and put an arrow comment on each naming the file it writes. The order is
+  visible even if someone reads only one line, and neither line can be mistaken
+  for a change line. **Owner: reviewer**, to accept or reword.
