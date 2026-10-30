@@ -192,8 +192,11 @@ const MAIN_FRONTEND_SHA = "ca9fdb5fc806c9d17f7b844f79c78c426070620e35a71499fc70b
 /** sha256 of canon(LEVEL_SEED_WEIGHTS), at a42b71b. */
 const MAIN_LEVEL_SEED_WEIGHTS_SHA =
   "ba1a081d54a8a09ef2c6a802e3e7870e7f6d33ea93545bad80121356610e60b8";
-/** sha256 of JSON.stringify(engineering-decisions.md split at "## E-n ", E-25's part as null), at a42b71b. */
-const MAIN_ED_OUTSIDE_E25_SHA = "200e70af161f4c933414b0ac9393337fbb57997e9c1b0439ac00b7e0f3b88503";
+/**
+ * sha256 of JSON.stringify(engineering-decisions.md split at "## E-n ", E-25's part as null), at a42b71b;
+ * re-pinned at `49444c8` (T-096, Test change request row 1) after T-096 amended E-22.
+ */
+const MAIN_ED_OUTSIDE_E25_SHA = "5eded744b349191071927afd82baf3dc9b996911a99f7090e8fc9422c9f151c7";
 /** sha256 of each file whole, at a42b71b. */
 const MAIN_FILE_SHA: Record<string, string> = {
   "question-bank/src/curated/us-states.ts":

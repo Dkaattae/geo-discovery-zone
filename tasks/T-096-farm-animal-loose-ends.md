@@ -3,7 +3,7 @@
 **Status:** `test changes requested`
 **Next step:** `human`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-096-farm-animal-loose-ends.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-10-30`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-096
 **Branch:** `claude/eager-noether-41dajj`
@@ -272,8 +272,9 @@ Tester: raise one Test change request for the three pins below.
 
 ## Test change request
 
-Raised by the tester, 2026-10-30, under an orchestrated run: **nobody has
-approved these rows.** No test here has been changed. Each row is a digest pin
+Raised by the tester, 2026-10-30, under an orchestrated run. **Approved by
+Dkaattae, 2026-10-30**, row by row in an attended tester session
+(`cse_011oDiJcjghuTZkm1d8jpx2q`); all three applied as written. Each row is a digest pin
 of `engineering-decisions.md` that covers E-22; criteria 2-3 require editing the
 E-22 farm-animal bullet, so each pin goes red by design. Each "Becomes" re-pins
 the same span, at the same strength, to the branch head's bytes, which this
@@ -283,9 +284,9 @@ E-22's body. All three pass on main (`85612ed` worktree: the two bun files
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 25: outside E-25, engineering-decisions.md is main's; still E-1..E-30" | `e9d666e`, T-088 tester: E-1..E-30 outside E-25 unchanged by T-088 | T-096 criteria 2-3 edit E-22, which is outside E-25 | modify | Same name and body; `MAIN_ED_OUTSIDE_E25_SHA` becomes `5eded744b349191071927afd82baf3dc9b996911a99f7090e8fc9422c9f151c7` (same masking of E-25, same 30-heading check); its doc comment adds "re-pinned at `49444c8` (T-096, Test change request row 1) after T-096 amended E-22". | *(pending: a person, in an attended tester session)* |
-| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › "E-1..E-28 are byte-identical to 6587ed0's, and there are 30 E-n headings at the branch head" | `cf63f66`, T-092 tester (digest last re-pinned `8aea8b5`, T-088 row 16): E-1..E-28 unchanged by T-092 | T-096 criteria 2-3 edit E-22, inside E-1..E-28 | modify | Renamed "E-1..E-28 are byte-identical to 49444c8's, and there are 30 E-n headings at the branch head"; the sha256 of E-1..E-28 concatenated becomes `2ab3d27ab7e9538a262ddcdf10475547f1c394fcd49d817b38e89dd8d4db51e0`; both 30-heading assertions unchanged; comment adds "Re-pinned at 49444c8 (re-pinned T-096, Test change request row 2), after T-096 amended E-22." | *(pending)* |
-| 3 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | `eebec2c`, T-089 tester (re-pinned `8aea8b5`, T-088 row 18): E-1..E-27 unchanged by T-089 | T-096 criteria 2-3 edit E-22, inside E-1..E-27; the bullet grew by 36 bytes | modify | Same name and both assertions; `DECISIONS_ON_MAIN = "f38eb54642ddf4ea479eb9d5a6db8745791d6e9db0bd606e56ace1df350588f0"`, `DECISIONS_ON_MAIN_LEN = 120085` (still followed by `\n## E-28 `); comment adds "Re-pinned at 49444c8 (re-pinned T-096, Test change request row 3) after T-096 amended E-22 (120085 bytes)." | *(pending)* |
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 25: outside E-25, engineering-decisions.md is main's; still E-1..E-30" | `e9d666e`, T-088 tester: E-1..E-30 outside E-25 unchanged by T-088 | T-096 criteria 2-3 edit E-22, which is outside E-25 | modify | Same name and body; `MAIN_ED_OUTSIDE_E25_SHA` becomes `5eded744b349191071927afd82baf3dc9b996911a99f7090e8fc9422c9f151c7` (same masking of E-25, same 30-heading check); its doc comment adds "re-pinned at `49444c8` (T-096, Test change request row 1) after T-096 amended E-22". | approved — Dkaattae, 2026-10-30, attended tester session cse_011oDiJcjghuTZkm1d8jpx2q ("Approve") |
+| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › "E-1..E-28 are byte-identical to 6587ed0's, and there are 30 E-n headings at the branch head" | `cf63f66`, T-092 tester (digest last re-pinned `8aea8b5`, T-088 row 16): E-1..E-28 unchanged by T-092 | T-096 criteria 2-3 edit E-22, inside E-1..E-28 | modify | Renamed "E-1..E-28 are byte-identical to 49444c8's, and there are 30 E-n headings at the branch head"; the sha256 of E-1..E-28 concatenated becomes `2ab3d27ab7e9538a262ddcdf10475547f1c394fcd49d817b38e89dd8d4db51e0`; both 30-heading assertions unchanged; comment adds "Re-pinned at 49444c8 (re-pinned T-096, Test change request row 2), after T-096 amended E-22." | approved — Dkaattae, 2026-10-30, attended tester session cse_011oDiJcjghuTZkm1d8jpx2q ("Approve") |
+| 3 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | `eebec2c`, T-089 tester (re-pinned `8aea8b5`, T-088 row 18): E-1..E-27 unchanged by T-089 | T-096 criteria 2-3 edit E-22, inside E-1..E-27; the bullet grew by 36 bytes | modify | Same name and both assertions; `DECISIONS_ON_MAIN = "f38eb54642ddf4ea479eb9d5a6db8745791d6e9db0bd606e56ace1df350588f0"`, `DECISIONS_ON_MAIN_LEN = 120085` (still followed by `\n## E-28 `); comment adds "Re-pinned at 49444c8 (re-pinned T-096, Test change request row 3) after T-096 amended E-22 (120085 bytes)." | approved — Dkaattae, 2026-10-30, attended tester session cse_011oDiJcjghuTZkm1d8jpx2q ("Approve") |
 
 No count floor is affected (no deletion). Digests were computed by this tester
 from the branch head and agree with the worker's Handoff values.
