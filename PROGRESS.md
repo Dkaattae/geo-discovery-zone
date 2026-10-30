@@ -366,6 +366,23 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-088 — Agriculture wrong answers skip what a state does grow or raise**
+  (PR #109, 2026-10-30). `distractors.ts` holds two person-approved lists,
+  keyed by postal code: `ALSO_GROWN` for 50 crop rows and `ALSO_RAISED` for 24
+  farm-animal rows. They exclude items as wrong answers on top of T-026's
+  rules. Five added farm animals (goats, horses, ducks, rabbits, bison) are
+  offered only after every state-listed animal, and are never correct. 36 of
+  74 agriculture questions changed `choices`, and no level or other question
+  moved. E-25 records the lists, the ordering and the counts: 8 of 24
+  farm-animal questions offer an added animal. *Where it differed from the
+  brief:* 18 old tests went stale, not the handful predicted. Three of the
+  backend files the brief named stayed green, while `test_t051` and
+  `test_t089` went red, the second missed by the worker and found by the
+  tester. All 18 rows were approved by an unnamed person attending the tester
+  session. **Escalated, not routine:** the lists are not yet checked against
+  USDA NASS, which `tasks.md` required before shipping. Follow-on T-096 fixes
+  the stale "six farm animals" wording.
+
 - **T-085a — Hawaii and Alaska are drawn apart from the mainland: two levels
   lower on map and climate questions** (PR #107, 2026-10-29).
   `LEVEL_SEED_WEIGHTS.familiarity_bonus` is 2, subtracted only when the entity
@@ -1625,10 +1642,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   and Connecticut no larger hit area than their outline (T-051). Whether a
   finger can hit them on a tablet is a person's check on PR #96, not yet done.
 - **An undone answer still counts as a place seen** in the summary (T-093).
-- **Some agriculture wrong answers are true.** The crop and farm-animal fields
-  list what a state is known for, not all it grows, so a "wrong" choice is
-  sometimes right: Iowa "chickens", Texas "sheep", Minnesota "sugar beets"
-  (T-088).
+- **The agriculture exclusion lists are unchecked.** Since T-088, crop and
+  farm-animal wrong answers skip what a state is roughly a top-10 producer of,
+  or known for, using person-approved lists in `distractors.ts`. Those lists
+  come from general knowledge and are not yet checked against USDA NASS
+  (E-25). A wrong or missing row means a true "wrong" answer.
 - **Climate wrong answers give the answer away.** Since T-090, no climate
   question offers both Hawaii's and Alaska's phrases. But in 22 of 50 the
   answer is the only "cold" phrase, and California's is still the only sunny
@@ -1722,9 +1740,7 @@ states wide and, since T-026, seven questions deep per state.
 
 The shortest path to an app that is worth playing for an hour:
 
-1. **T-088** — the agriculture wrong answers that are true, before more
-   children meet them.
-2. **T-056** — the map cannot fill in during a single-topic first sitting.
+1. **T-056** — the map cannot fill in during a single-topic first sitting.
 
 CI now guards all of it: the backend, the Postgres path and the compose stack
 run on every pull request (T-009, T-052).

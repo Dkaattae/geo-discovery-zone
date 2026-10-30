@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended._
 
 ## How this list is ordered
 
@@ -237,106 +237,27 @@ is generated from `question-bank/data/` and the 50 states are served
 (`engineering-decisions.md` E-24). T-051 (PR #96) served the third format,
 `map_click`. What is left here is making that bank behave well at its size.
 
-### T-088 — Wrong answers that are true: crops and farm animals a state does grow · M · doing
-**Depends on:** nothing. The lists and the five added farm animals were approved by Dkaattae on 2026-10-27.
-**Option chosen 2026-10-27 (Dkaattae): (a)**, a person-approved "also
-grown/raised" list per state, used as an exclusion. **Lists approved
-2026-10-27 (Dkaattae)**, drafted in a chat session from general knowledge,
-not a committed source. The rule: a state "also grows/raises" an item when it
-is roughly a top-10 national producer or the item is widely known for it.
-**Check every row against USDA NASS state rankings before it ships.** An
-extra exclusion only removes a wrong answer, so it is safe; a missing one is
-the risk this task exists to fix.
-**Decided with the lists (Dkaattae):** `cattle` and `dairy cows` stay
-separate animals. Six farm-animal questions (CA, IA, MN, PA, SD, TX) keep
-fewer than three wrong answers out of six animals, so **option (ii): add more
-farm animals** to the pool. **Approved 2026-10-27 (Dkaattae):** goats, horses,
-ducks, rabbits and bison, with the exclusions below. With them every state
-keeps at least three wrong answers (PA and CA exactly three).
-Farm animals, excluded (besides the state's own `top_livestock`):
-- AL goats · AR turkeys · AZ dairy cows · CA cattle, chickens, turkeys,
-  sheep, goats, horses, ducks · CO dairy cows, sheep, bison · DE none ·
-  GA goats · IA cattle, chickens, turkeys, sheep, goats · ID cattle, sheep ·
-  KS pigs, bison · MD none · MN pigs, dairy cows, chickens, cattle, goats ·
-  MS none · MT sheep, bison · NC chickens, goats · NE pigs, bison · NY goats ·
-  OK pigs, chickens, goats, horses, bison · PA chickens, pigs, turkeys, goats,
-  horses, ducks · SD pigs, turkeys, sheep, bison · TX chickens, sheep, dairy
-  cows, goats, horses · VT none · WI goats · WY sheep, bison
-Crops, excluded (besides the state's own `top_crops`):
-- AK potatoes, barley, hay · AL soybeans, corn, pecans, peaches · AR cotton,
-  corn, wheat, peanuts, sorghum · AZ alfalfa hay, hay, wheat, pecans ·
-  CA cherries, potatoes, apples, tomatoes, lettuce, rice, oranges, peaches,
-  pears, cotton, alfalfa hay, hay, wheat, corn, sweet corn, sweet potatoes,
-  blueberries, mushrooms, sugar beets, chile peppers, lima beans, sunflowers ·
-  CO sunflowers, corn, wheat, hay, alfalfa hay, sugar beets, barley, sorghum ·
-  CT apples, maple syrup, sweet corn · DE corn, soybeans, sweet corn ·
-  FL sugarcane, tomatoes, sweet corn, peanuts, blueberries, potatoes, cotton ·
-  GA cotton, blueberries, corn, soybeans, tobacco, sweet corn · HI none ·
-  IA hay, alfalfa hay · ID wheat, barley, sugar beets, alfalfa hay, hay ·
-  IL wheat, sweet corn, hay · IN wheat, tomatoes, hay · KS corn, soybeans,
-  sunflowers, hay, alfalfa hay · KY soybeans, wheat, hay, alfalfa hay ·
-  LA soybeans, cotton, sweet potatoes, corn, pecans · MA apples, sweet corn ·
-  MD wheat, sweet corn, barley, hay · ME apples, maple syrup, hay · MI corn,
-  soybeans, sugar beets, potatoes, grapes, wheat, hay · MN sugar beets, wheat,
-  hay, alfalfa hay, sweet corn, potatoes · MO cotton, rice, wheat, sorghum,
-  hay · MS corn, rice, sweet potatoes, peanuts · MT hay, alfalfa hay, sugar
-  beets, cherries · NC corn, soybeans, cotton, peanuts, blueberries,
-  strawberries, apples, wheat · ND sugar beets, soybeans, corn, barley,
-  potatoes, hay · NE wheat, sorghum, hay, alfalfa hay, sugar beets · NH sweet
-  corn, hay · NJ peaches, sweet corn, apples · NM hay, alfalfa hay, cotton,
-  sorghum, peanuts, corn · NV hay, potatoes · NY sweet corn, potatoes, corn,
-  soybeans, hay · OH wheat, tomatoes, hay, sweet corn · OK cotton, sorghum,
-  hay, alfalfa hay, peanuts, pecans, corn, soybeans · OR wheat, barley, hay,
-  alfalfa hay, potatoes, cherries, blueberries, grapes, apples · PA corn,
-  soybeans, hay, tobacco, sweet corn, peaches, grapes, potatoes · RI apples ·
-  SC soybeans, corn, peanuts, tobacco, sweet potatoes, wheat, pecans ·
-  SD sorghum, wheat, sunflowers, hay, alfalfa hay · TN corn, wheat, hay,
-  tobacco, tomatoes · TX corn, peaches, wheat, hay, rice, peanuts, pecans,
-  oranges · UT hay, wheat · VA soybeans, corn, wheat, hay, apples, sweet
-  potatoes, tomatoes, cotton · VT hay, sweet corn, corn · WA wheat, barley,
-  alfalfa hay, hay, potatoes, pears, grapes, blueberries, sweet corn ·
-  WI soybeans, potatoes, sweet corn, hay, alfalfa hay, cherries · WV hay,
-  corn · WY alfalfa hay, barley, wheat, corn
-**New 2026-10-20, from T-026's worker.** T-026's crop rule (brief call C3)
-removes crops grown by the state, its neighbours and its region. Its
-farm-animal rule removes only the animals the state lists. Approving C3
-accepted the risk that "a far-away crop the state also grows" is offered
-as wrong. Reading the 74 generated agriculture questions shows that risk is
-common, not rare. Nearest-first ordering picks crops from just outside the
-region, and those are the likeliest to be grown there too. Examples the
-worker is fairly sure of (from general knowledge, not a committed source):
-- **Crops:** Minnesota and North Dakota offered "sugar beets" (both lead the
-  country). Washington offered "wheat", "barley" and "alfalfa hay". Oregon
-  offered "wheat" and "hay". Texas offered "corn" and "peaches". California
-  offered "cherries", "potatoes" and "apples". Alaska offered "potatoes".
-  Oklahoma offered "peanuts" and "hay". New York and New Jersey offered
-  "sweet corn" and "potatoes".
-- **Farm animals:** Texas offered "sheep" and "chickens". Minnesota offered
-  "pigs". Iowa offered "chickens" and "turkeys". North Carolina offered
-  "chickens".
-**Since T-026's review (PR #91):** farm animals are the worse half.
-`top_livestock` lists what a state is known for, not all it raises, so
-"not listed" is read as "not raised". From the committed file: Iowa is also
-offered "dairy cows", Minnesota "dairy cows", California "turkeys". Escalated
-on PR #91; Dkaattae decided 2026-10-22 that it follows the merge, not blocks it.
-**Options:** (a) a person-approved "also grown/raised" list per state, used
-as an exclusion; (b) farthest-first ordering, as T-026 did for climate (E-25),
-which mostly offers Hawaii's and Alaska's crops; (c) take the answer from a
-source that ranks crops, so a distractor can be checked against it; (d) accept
-the risk and record it in E-25.
-**Test cost:** changes the committed question file and `content.json`, so
-both drift tests need a regeneration. T-026's own tests pin the current
-distractors only through the rules, not by value.
-**Since T-050 (PR #92):** option (b) has a measured cost. E-26 found
-farthest-first put Hawaii's or Alaska's climate phrase in 47 of 50 climate
-questions and both in 42, a two-way pick once a child spots them (T-090).
-Expect the same of HI and AK crops.
-**Since T-090 (PR #93):** climate now caps HI and AK at one wrong answer each
-question (E-27), and option (b) would need the same cap for crops. Expect a
-**test change request**: `climate-far-phrases-verify.test.ts` pins every
-non-climate question in both committed files at `3279555` (criteria 7, 11,
-12 and 19), so regenerating agriculture turns those pins red.
-**Done when:** the chosen option has landed and E-25 records it.
+### T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` · S · todo
+**Depends on:** nothing.
+**New 2026-10-30, from T-088's reviewer (PR #109).** T-088 added five farm
+animals to the wrong-answer pool, so the farm-animal choices now come from
+eleven animals, not six. Three small fixes:
+- **E-22** (`engineering-decisions.md`, the `"tpl-farm-animal-of": 1` bullet)
+  and the `concept_load` comment in `question-bank/src/seed-level.ts` both say
+  "six farm animals". The number becomes eleven, or the claim is reworded.
+  `concept_load` itself stays 1. Re-judging it is a separate call.
+- **`distractors.ts`**: the doc comment "The fixed-pool candidates a strategy
+  offers after its entity candidates" sits above `type Pick`, not above
+  `poolFor`. Move it.
+- **`distractors.ts` `clickDistractorsFor`**: `p.entity?.geometry_id as string`
+  would emit `undefined` if a pool pick ever reached a `map_click` template.
+  Throw instead, so the assumption in the comment is enforced.
+**Test cost:** E-22 is pinned by T-085a's and T-086's guards
+(`familiarity-drawn-apart-verify.test.ts`, `seed-level-loose-ends-verify.test.ts`),
+and a source digest may pin `seed-level.ts` or `distractors.ts`. Expect a
+small Test change request. The bank must not move.
+**Done when:** no doc says "six farm animals", and both `distractors.ts`
+comments say what the code does.
 
 ### T-091 — Climate: the answer is now the only "cold" phrase in 22 of 50 questions · S · todo
 **Depends on:** nothing
@@ -461,6 +382,14 @@ guards above at `6a515e2` (so `hand-check-levels-verify` criterion 14 is now
 question file, `content.json`, `data/us-states/` and the levels at `5ae564a`)
 and `backend/tests/test_t085a_tester_criteria.py`. A refresh turns both red;
 option (a) must cover them too.
+**Amended 2026-10-30 by T-088's reviewer (PR #109).** T-088 re-pinned the
+bank and E-n guards at `6587ed0`: the guards in `climate-far-phrases-verify`,
+`map-click-no-candidates-verify`, `hand-check-levels-verify` criterion 14,
+`familiarity-drawn-apart-verify` criterion 13, and `test_t051_tester_criteria.py`.
+It added two more files that pin main's bank at `a42b71b` by digest:
+`question-bank/src/agriculture-true-wrong-answers-verify.test.ts` (criteria
+1–3, 20–23) and `backend/tests/test_t088_tester_criteria.py`. Option (a) must
+cover them too.
 **Done when:** a refresh that moves a real bank field opens a PR whose suite is
 green, or (c) is chosen and recorded as the next unused `E-n`.
 
