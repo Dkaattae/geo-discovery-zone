@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-091-climate-cold-trade-accepted.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h |
+| worker | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent; `$CLAUDE_CODE_REMOTE_SESSION_ID` is shared with the expander's, see Notes) |
 
 **Worker model:** Sonnet is enough. Two edits to `engineering-decisions.md` and
 three counts read off the committed question file. No source, no data, no level
@@ -209,10 +210,156 @@ the record says what was decided.
 
 ## Handoff
 
+**TL;DR:** the decision is recorded in `engineering-decisions.md`, in two
+places: a T-091 amendment in E-25's climate bullet, and E-27 (b)'s closing
+paragraph, where the Owner line is now marked settled. The bank's counts match
+E-27 (b): 22, 18 and 8. No code or data changed. **Seven existing guards are
+red by design** (six digest pins on `engineering-decisions.md`, one file-count
+pin), listed below for the tester's Test change request.
+
+**What changed**
+
+- `engineering-decisions.md`, E-25, `climates_outside_group` bullet: added
+  `**Amended 2026-10-30 (T-091):**` after the T-090 amendment. It covers
+  Dkaattae's choice of (a) on 2026-10-27; that the rule and both caps are
+  unchanged and the bank was not regenerated; the three counts (22 of 50,
+  18 of 50, 8); NY, RI and CA staying `too hard`; and (b), (c) and (d) as not taken.
+- `engineering-decisions.md`, E-27 (b), closing paragraph: "Whether to accept
+  it … is the content call" became "was the content call T-090 left out of
+  scope". The `**Owner: …**` line became `**Settled 2026-10-27 by Dkaattae:
+  accepted, option (a), no rule change. Recorded by T-091 in E-25's
+  `climates_outside_group` bullet.**`
+- This brief (Status, Sessions, Handoff, Notes).
+- Nothing else. No new test file: these are record edits. The tester's
+  verify file is the check.
+
+**Where each criterion lives**
+
+| Criteria | Where |
+|---|---|
+| 1–9 | E-25 climate bullet, the paragraph starting `**Amended 2026-10-30 (T-091):**` (one match, after the T-090 one) |
+| 5–7 counts | Computed from `question-bank/data/questions/us-states.json` and each state's `climate_kid`, with state = file name `us-state-xx.json`. Results: only-cold answer **22**, wrong set exactly {HI, CA, OR} **18**, WA and OR both wrong **8**. These match E-27 (b), so nothing diverges. The 22 are AK CT IA IL IN MA MD ME MI MN MO NC NH NJ NY OH PA RI VA VT WI WV, the same list as E-27. |
+| 7 phrasing | The 8 is in its own sentence: "In 8 questions both Washington's and Oregon's phrases are wrong answers." The 22 and 18 sit in sentences of their own, so a "number … Washington … Oregon" match cannot pick them up. |
+| 10–12 | E-27 (b), last paragraph before `### (c)`. The `**47** offer at least one` and `**0** offer both` strings are untouched. |
+| 13–16 | My own check against `git show 12d242e:engineering-decisions.md`: E-27's head up to `None of this breaks`, E-27 from `### (c)`, E-25 outside the bullet, and everything outside E-25/E-27 are all byte-identical. Headings are E-1..E-30 and unchanged. |
+| 17–21 | Not touched. `git diff 12d242e -- question-bank backend frontend` is empty. |
+| 22 | Diff against main: `engineering-decisions.md`, this brief, `runs/T-091-…` (orchestrator). |
+| 23 | No test added by me. |
+| 24 | See "Suite results" below. |
+
+**Suite results (worker's run, after edit)**
+
+- `question-bank`: `bun test` 2640 pass / **6 fail** (all listed below);
+  typecheck, lint (`0 warnings and 0 errors`) and `format:check` clean. I had
+  to run `bun install --frozen-lockfile` first, because the container had no
+  `node_modules`. That changed no tracked file.
+- `make -C backend test`: 743 pass, 9 skipped, **1 fail** (listed below).
+- `frontend` `bun test`: 392 pass / **4 fail, environmental**. These four
+  files cannot resolve `react-simple-maps`: `t026-setup.criteria.test.tsx`,
+  `t051-map-click.test.tsx`, `t051-tester.criteria.test.tsx`,
+  `screens.criteria.test.tsx`. `bun install --frozen-lockfile` in `frontend/`
+  fails here: the agent proxy answers 403 to tarballs on
+  `europe-west1-npm.pkg.dev` (d3-array, d3-drag). `frontend/` is
+  byte-identical to main, so this is not caused by T-091. The tester should
+  re-run in an environment that can install, or CI is the evidence.
+
+**Tests made stale**
+
+All are guards that pin `engineering-decisions.md` (or the tracked-file set)
+by digest. Proposal for each: **modify**. Re-pin to the value at this worker
+commit, labelled per E-30 ("re-pinned at <sha> (re-pinned T-091, Test change
+request row n)"). No strip, reset or exclusion. Received values are from my run.
+
+1. `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` >
+   `T-088 criteria 20-25: what must not change` > `criterion 25: outside E-25,
+   engineering-decisions.md is main's; still E-1..E-30`. Stale because of
+   criterion 11 (E-27 (b) edit; E-27 is outside E-25). `MAIN_ED_OUTSIDE_E25_SHA`
+   → `ee4ead2780b3eb34b59f6f378b798447a06f69310555a766631141c3c71ba9bd`.
+2. `question-bank/src/seed-level-loose-ends-verify.test.ts` > `T-086 criteria
+   10-12: what must not move` > `criterion 12: engineering-decisions.md outside
+   E-22's body is byte-identical to the branch head's`. Stale because of
+   criteria 1 and 11. `HEAD_OUTSIDE_E22_SHA` →
+   `4493eb37a2179d39ba610aedf337db1118e40a43e6ae04fdedff8ee2c41bcdf4`.
+3. `question-bank/src/map-click-no-candidates-verify.test.ts` > `T-092
+   criterion 13: E-29 records the change; E-1..E-28 untouched` > `E-1..E-28
+   are byte-identical to 49444c8's, and there are 30 E-n headings at the branch
+   head`. Stale because of criteria 1 and 11. The inline digest at line 664 →
+   `82f931806649319e7a4995f9260051b340d4c5393472dee333f25f0c3e0a9d22`. The
+   test name says "49444c8's" and would need relabelling with the new commit.
+4. `question-bank/src/farm-animal-loose-ends-verify.test.ts` > `T-096 criteria
+   7-9: nothing about levels changes` > `criterion 9: engineering-decisions.md
+   outside E-22's body is main's; headings unchanged`. Stale because of
+   criteria 1 and 11. `MAIN_ED_FROM_E23_SHA` →
+   `c598bc8a37bb989e8256cf0eb53ad190450207b4d11c775a4af54eaa29fc280f`.
+   `MAIN_ED_THROUGH_E22_HEADING_SHA` still passes.
+5. `question-bank/src/farm-animal-loose-ends-verify.test.ts` > `T-096 criteria
+   17-21: the bank and the boundaries` > `criterion 21: outside the allowed
+   files and test files, every tracked file is main's, and none is added`.
+   **Red before my edit**: it already failed at `2d590ba`, the orchestrator's
+   head, with 299 files against a 297 floor. The cause is the two new loop
+   records `tasks/T-091-climate-cold-trade-accepted.md` and
+   `runs/T-091-climate-cold-trade-accepted.md`. My edit does not touch this
+   pin, because `engineering-decisions.md` is in its allowed set. This is a
+   count floor: re-pin to 299 and to the matching `MAIN_UNTOUCHABLE_SHA` at
+   this commit. If the reviewer's sweep adds files, the count moves again, so
+   whether the pin should cover per-task loop records at all is for the
+   tester and the human approving the Test change request to settle.
+6. `question-bank/src/familiarity-drawn-apart-verify.test.ts` > `T-085a
+   criteria 17-22: E-22` > `criterion 22: every E-n entry other than E-22 is
+   byte-identical to 6587ed0's`. Stale because of criteria 1 and 11.
+   `BEFORE_ED_OUTSIDE_E22_SHA` →
+   `572149631f0e348469449657e89234e941bb16464d4dc7d2f1c6278596ee827c`.
+7. `backend/tests/test_t089_tester_criteria.py::test_criterion_13_e1_to_e27_are_byte_identical`.
+   Stale because of criteria 1 and 11. `DECISIONS_ON_MAIN` →
+   `6c2f3daf046ec0008cad757465b67225bd0ad048e76542feaa19c6c765e785c0` and
+   `DECISIONS_ON_MAIN_LEN` → `120943`, the byte offset of `\n## E-28 `.
+
+The brief also names `hand-check-levels-verify.test.ts` and
+`climate-far-phrases-verify.test.ts`. Both stay **green**, unmodified.
+
+**Deliberately not done**
+
+- No new tests. The deliverable is two record edits; the tester's verify file
+  owns criteria 1–24.
+- Did not touch E-25's `**Revisit when**` paragraph, E-27 (a)'s table, its
+  counts, or the T-088 amendment (out of scope; criteria 13–15).
+- Did not edit `tasks.md`'s T-091 entry. That is the reviewer's sweep.
+
+**Contradictions with the brief:** none found. The bank's counts equal E-27
+(b)'s.
+
+**How to run**
+
+```bash
+cd question-bank && bun install --frozen-lockfile && bun test && bun run typecheck && bun run lint && bun run format:check
+make -C backend test
+cd frontend && bun install --frozen-lockfile && bun test
+```
+
 ## Verdict
 
 ## Notes
 
+- **Worker (2026-10-30), model:** ran on the session model (Opus), not the
+  Sonnet the brief suggested. The task was small enough that it made no
+  difference.
+- **Session id is shared with the expander's.** `$CLAUDE_CODE_REMOTE_SESSION_ID`
+  returned `cse_011oDiJeSdbcuQndNDoPuD3h` for this worker too, because the
+  orchestrator spawns roles as subagents under one remote session. Each role
+  still had its own fresh context. Whether the tester accepts a matching id as
+  "not the same session" is for the tester to judge against D-numbered
+  isolation rules, or the human to confirm.
+- **Counts reproduced:** I mapped each choice to a state by exact
+  `climate_kid` equality, using the code from the file name. "Cold" is a
+  case-insensitive substring. The results are 22 / 18 / 8, the same as E-27 (b).
+- **Wording judgment:** the amendment says "accept the trade E-27 (b)
+  describes" and lists exactly that trade, nothing broader. E-27 (b)'s "is the
+  content call the brief left out of scope" became "was the content call T-090
+  left out of scope", so the paragraph reads as settled. Reviewer to confirm
+  this against the review checklist.
+- **Pre-existing red on the branch:** T-096 criterion 21 (file count 299 vs
+  297) was red before the worker started, caused by the expander's and
+  orchestrator's new files. Tester to fold it into the Test change request.
 - **Already true on main (expander survey, by reading only):** no rule,
   bank or level change is needed. E-27 (b) already describes the trade and its
   counts; what is missing is the decision. E-25's climate bullet has the T-090
