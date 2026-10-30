@@ -1,14 +1,13 @@
 # T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts`
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-096-farm-animal-loose-ends.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-30`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-096
 **Branch:** `claude/eager-noether-41dajj`
 **PR:** #110, opened draft at expand time against the branch above
-**Fault:** test changes are waiting for approval: three engineering-decisions.md digest pins (Test change request rows 1-3) went stale because criteria 2-3 edit E-22. Everything else verified. Resume with a `tester` in a session a person is attending.
 
 **Sessions:**
 
@@ -17,6 +16,7 @@
 | task-expander | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq |
 | worker | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq |
 | tester | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq (orchestrated: shared id, freshly spawned subagent) |
+| tester (attended, test change request) | 2026-10-30 | cse_011oDiJcjghuTZkm1d8jpx2q |
 
 **Worker model:** Sonnet is enough. Two comment fixes, two doc rewordings and a
 one-line guard; no data, no level, no question moves.
@@ -298,10 +298,46 @@ the approved edits yourself, by hand, and set `Next step: tester`.
 
 ## Verdict
 
-**TL;DR: not yet a verdict — halted on a Test change request.** All 23
-criteria are met by the code; criterion 23 (whole suites green) is held red
-only by three stale E-22 digest pins (rows 1-3 above), which need a person's
-approval. Next: a `tester` in a session a person attends, to ask and apply.
+**TL;DR: pass.** All 23 criteria are met. Dkaattae approved the three stale
+E-22 digest pins (Test change request rows 1-3), and they are re-pinned in
+`c5e0064`. question-bank and backend are now fully green. Next: `reviewer`.
+
+**Attended resume (2026-10-30, session `cse_011oDiJcjghuTZkm1d8jpx2q`).**
+
+- **Independence:** this session's id is not in the Sessions table, so the
+  session-id check passes for this resume. The 25 criteria tests were written by
+  the orchestrated tester below, and its weaker independence still applies to them.
+- **Rows re-checked before asking:** all three digests recomputed at
+  `3fc93f1` independently of the tests. Row 1 is `5eded744…51c7`, row 2 is
+  `2ab3d27a…51e0`, row 3 is `f38eb546…88f0` over 120085 bytes, followed by
+  `\n## E-28 `. The only `engineering-decisions.md` change against main is the
+  two-line E-22 bullet. No drift, and no stale test missing from the list.
+- **Approval:** Dkaattae answered each row in this session: row 1 "Approve",
+  row 2 "Approve", row 3 "Approve", and the name "Dkaattae". The header reads
+  `Test changes: approved — Dkaattae, 2026-10-30`.
+- **Applied, exactly as written** (`c5e0064`, nothing else touched):
+  - `agriculture-true-wrong-answers-verify.test.ts` › "criterion 25…":
+    `MAIN_ED_OUTSIDE_E25_SHA` re-pinned, doc comment cites T-096 row 1.
+  - `map-click-no-candidates-verify.test.ts` › renamed "E-1..E-28 are
+    byte-identical to 49444c8's, …"; digest re-pinned; 30-heading assertions
+    unchanged; comment cites T-096 row 2.
+  - `backend/tests/test_t089_tester_criteria.py` ›
+    `test_criterion_13_e1_to_e27_are_byte_identical`: digest and length
+    re-pinned, the `\n## E-28 ` assertion unchanged; comment cites T-096 row 3.
+  - Each pin covers the same span at the same strength. No test deleted, no
+    count floor touched.
+- **Suites after the commit:**
+  - `question-bank`: `bun test` **2646 pass / 0 fail**; typecheck, lint
+    (0 warnings, 0 errors) and `format:check` clean.
+  - `make -C backend test`: **744 pass / 0 fail / 9 skipped**.
+  - `frontend`: 392 pass / 4 fail. Three test files cannot import
+    `react-simple-maps` because the sandbox proxy returns 403 on its tarball,
+    and `screens.criteria.test.tsx` reports an unhandled error between tests.
+    One earlier run gave 391 / 5; I did not capture the extra failure and it
+    did not repeat. Everything under `frontend/` is byte-identical to main
+    (`git diff --quiet 85612ed HEAD -- frontend`), so CI is the authority there.
+
+**Orchestrated run (earlier, same day), kept below as written.**
 
 **Independence.** This run is orchestrated (`runs/T-096-farm-animal-loose-ends.md`
 exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` printed `cse_011oDiJfRVR9sPsnPiXjAsMq`,
@@ -331,7 +367,7 @@ worktree of `85612ed` and pinned, because CI checks out shallow.
 | 17-20 | met | question file, 51 entity files, `content.json`, all 8 dependency files match main's digests |
 | 21 | met | 298 tracked non-test files outside the allowed set match main; only the new test files were added |
 | 22 | met | static scan of both T-096 test files; whole suite run with the proxy pointed at `127.0.0.1:1` |
-| 23 | **held** | question-bank `bun test` 2644 pass / 2 fail (rows 1-2); typecheck, lint (0/0) and `format:check` clean. `make -C backend test` 743 pass / 1 fail (row 3) / 9 skipped. Frontend 392 pass / 4 fail: `react-simple-maps` is not installed in this sandbox (`Cannot find package`), same on main; nothing under `frontend/` changed, so CI is the authority there. |
+| 23 | met (after rows 1-3, attended resume) | before: question-bank `bun test` 2644 pass / 2 fail (rows 1-2), backend 743 / 1 (row 3). After `c5e0064`: question-bank 2646 / 0 with typecheck, lint and `format:check` clean, backend 744 / 0 / 9 skipped. Frontend 392 pass / 4 fail: `react-simple-maps` is not installed in this sandbox (`Cannot find package`), same on main; nothing under `frontend/` changed, so CI is the authority there. |
 
 **Mutations** (each reverted; `git status` clean afterwards except the new test file):
 
