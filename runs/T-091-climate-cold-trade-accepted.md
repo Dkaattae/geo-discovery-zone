@@ -148,3 +148,31 @@ The branch head had moved since the halt (`bc93435` → `6bd86ac`): an attended 
 - **PR comment:** https://github.com/Dkaattae/geo-discovery-zone/pull/111#issuecomment-6532082753
 
 **Next:** run `tester` on the same branch to fix finding 1, then `reviewer` again.
+
+## Round 5 — tester — 2026-10-30
+`Next step` on entry: `tester` — come back and fix review finding 1 … → on exit: `reviewer` — review finding 1 is fixed in the tester's own file; re-review, then escalate as the brief requires
+
+**TL;DR: pass. Review finding 1 is fixed, and the sweep can now delete the brief without the suite going red.** One test in my own file read the brief; it now checks against fixed hashes instead. Pushed as `bac230d` to `claude/amazing-ritchie-wwz0je`, and the remote head matches. **Next:** `reviewer`, who re-reviews and then escalates the PR as the brief requires.
+
+**Independence.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJeSdbcuQndNDoPuD3h`, the same id every orchestrated role gets (`runs/T-091-climate-cold-trade-accepted.md` exists). So the id check proves nothing here. My independence rests only on being a freshly spawned subagent with its own context. That is weaker evidence than a separate session. The separate-session evidence for the approved test changes is still the attended tester (`cse_011oDiJbguF5W6xXdBB7Kxc5`).
+
+**What changed (only my own new test file, so no Test change request was needed):**
+- **Test replaced:** in `/home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts`, criterion 22, the old test "…differs from main only once the brief says approved" is gone. Its replacement is "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only", and it does not read the brief.
+- **New pin:** `APPLIED_REQUEST_FILE_SHAS` holds the sha256 of each of the six files, recorded at `8108a42` and labelled that way (E-30). For every file, the digest at `8108a42` equals the working tree.
+- **Diffs checked first:** before pinning, I compared `git diff 12d242e HEAD` for the six files against the approved rows 1–7. Each file changed only by its row's re-pin and comment.
+- **What the test asserts:** each file equals its `8108a42` digest, and none equals its `12d242e` digest.
+
+**Mutations (all reverted, each checked with `cmp` against a backup):**
+- **File put back to main's version** (`seed-level-loose-ends-verify.test.ts` at `12d242e`): the new test went red.
+- **One line appended to the same file:** red.
+- **`120943` changed to `120944`** in `test_t089_tester_criteria.py`: red.
+
+**Sweep simulation:** I removed the brief from the index and the working tree, then ran the suites. `question-bank` `bun test` gave 2672 pass, 0 fail, and `make -C backend test` gave 744 passed, 9 skipped. The brief was then restored and checked with `cmp`.
+
+**Suites:**
+- **question-bank:** 2672 pass, 0 fail. Typecheck, lint and `format:check` are clean.
+- **backend:** 744 passed, 9 skipped.
+- **frontend:** 391 pass, 5 fail locally. Every failure is `Cannot find package 'react-simple-maps'`: the package is not installed here and the proxy blocks the install. `frontend/` is byte-identical to main.
+- **CI:** all six jobs succeeded on `ef3ae4c`, the commit before mine. CI on `bac230d` is the evidence for the new head.
+
+**Brief updated** (`/home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md`): Status is `pass`, Next step is `reviewer`, there is a new tester row under Sessions, and a "Round 3" section sits at the top of the Verdict, with earlier rounds kept below it.
