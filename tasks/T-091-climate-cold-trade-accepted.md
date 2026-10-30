@@ -1,14 +1,14 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-091-climate-cold-trade-accepted.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-091
 **Branch:** `claude/amazing-ritchie-wwz0je`
 **PR:** #111, opened draft at expand time against the branch above
-**Fault:**
+**Fault:** test changes are waiting for approval: seven pre-existing guards pin `engineering-decisions.md` or the tracked-file set, and this task's own edit (criteria 1 and 11) and loop records turn them red by design; no criterion is unmet.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h |
 | worker | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent; `$CLAUDE_CODE_REMOTE_SESSION_ID` is shared with the expander's, see Notes) |
+| tester | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; same shared id, see Verdict) |
 
 **Worker model:** Sonnet is enough. Two edits to `engineering-decisions.md` and
 three counts read off the committed question file. No source, no data, no level
@@ -337,6 +338,125 @@ cd frontend && bun install --frozen-lockfile && bun test
 ```
 
 ## Verdict
+
+**TL;DR: all 24 criteria are met, and no criterion fails. The verdict is
+held at `test changes requested`.** The edit to `engineering-decisions.md`
+turns seven pre-existing guards red by design. They need a person's approval
+before they change (rows below). This run is orchestrated, so nobody can
+approve here. **Next:** start a `tester` in a session a person is attending.
+It asks for approval of rows 1–7, applies the approved rows, re-runs the
+suite, and writes the final verdict.
+
+**What my independence rests on.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_011oDiJeSdbcuQndNDoPuD3h`, the same id as the expander's and the
+worker's. That is because the orchestrator spawns every role under one remote
+session (`runs/T-091-climate-cold-trade-accepted.md` exists). So the id check
+proves nothing here. My independence rests only on being a freshly spawned
+subagent with its own context: I did not see the work being done or the
+worker's reasoning. That is weaker evidence than a separate session, because
+it depends on the orchestrator having spawned me correctly.
+
+**Test file:** `question-bank/src/climate-cold-trade-accepted-verify.test.ts`,
+26 tests across 24 `describe`s, one per criterion. All 26 pass on this branch.
+Baselines for main (`12d242e`) were recorded by running this same file in a
+`git worktree` of `12d242e`, where criteria 13–21 passed. They are embedded
+as digests, so the test never hands git a revision (T-081 guard). Criteria
+5–7 compute their counts from `us-states.json` and each state's `climate_kid`.
+The bank gives **22 / 18 / 8**, and the amendment states the same numbers.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | one T-091 marker in the climate bullet, after the T-090 one |
+| 2–4 | met | Dkaattae, 2026-10-27, (a); `accept`, `unchanged`; `E-27` |
+| 5 | met | bank 22; `22 of 50` in a sentence with "cold" |
+| 6 | met | bank 18; `18 of 50` in a sentence naming Hawaii, California, Oregon |
+| 7 | met | bank 8; the only number followed in its sentence by Washington and Oregon is 8 |
+| 8, 9 | met | (b)/(c)/(d) with their key terms; NY, RI, CA and `too hard` |
+| 10–12 | met | Owner line gone; Dkaattae/2026-10-27/T-091/E-25 present; `**47**`/`**0**` strings kept |
+| 13–16 | met | byte digests equal main's; headings E-1..E-30 unchanged |
+| 17–21 | met | bank, state files, content.json, source trees, dependency files equal main's |
+| 22 | met | non-test files outside the allowed list equal main's (301); pre-existing test files equal main's |
+| 23 | met | the new file has no fetch/URL/http import and spawns only `git ls-files` |
+| 24 | **not yet green** | the 7 stale guards below; frontend is green in CI only (see suites) |
+
+**Mutations (against the record and the bank, every one reverted, and
+`engineering-decisions.md` checked with `cmp` against its backup):**
+
+- `22 of 50` → `23 of 50`: criterion 5 red
+- `18 of 50` → `17 of 50`: criterion 6 red
+- `In 8` → `In 9`: criterion 7 red
+- a second `Amended 2026-10-31 (T-091)`: criterion 1 red
+- the Owner sentence put back in E-27 (b): criterion 10 red
+- `by Dkaattae` → `by the owner` in E-27 (b): criterion 11 red
+- `season word` → `season term`: criterion 8 red
+- `too hard` → `hard`: criterion 9 red
+- a whitespace edit in E-27 before `None of this…`: criterion 13 red
+- a word added to the `### (c)` heading: criterion 14 red
+- a space added in E-25's `**Revisit when**`: criterion 15 red
+- a space added to the E-1 heading, and a line added in E-28: criterion 16 red
+- a space appended to `us-state-wa.json`: criteria 18 and 22 red
+
+**Suites (this run, on this branch with my test file):**
+
+- **`question-bank`**: `bun test` 2666 pass / **6 fail**. All six are rows
+  1–6 below. Typecheck, lint (`0 warnings and 0 errors`) and `format:check`
+  are clean.
+- **`make -C backend test`**: 743 pass, 9 skipped, **1 fail**, row 7.
+- **`frontend` `bun test`**: 392 pass / 4 fail, all of them
+  `Cannot find package 'react-simple-maps'`. This is environmental: the
+  container's `node_modules` lacks it and the proxy blocks the install. In CI
+  at `3123e26`, `frontend (typecheck, lint, test)` is **success**, and
+  `frontend/` is byte-identical to main (criterion 20). The red CI jobs at
+  `3123e26` are question-bank and the two backend jobs, which are the stale
+  guards.
+
+**Tests made stale: I checked the worker's list myself.** Each of the seven
+fails is a byte pin that the T-091 edit to E-25 and E-27, or T-091's own
+loop records, changed. None of them is red because code is wrong.
+`hand-check-levels-verify.test.ts` and `climate-far-phrases-verify.test.ts`
+stay green, and so does every other guard. I found no stale test the worker
+missed.
+
+**Observation for the reviewer.** `tasks.md` differs from main only by the
+expander's `todo` → `doing` flip on T-091's heading. My criterion 22 test
+treats that as the loop's own record, which is the same reading T-096's
+tester made. It sits in criterion 22's allowed list in any case, as part of
+the reviewer's `tasks.md` sweep.
+
+**Note on row 5.** That guard pins the whole tracked-file set, so the brief
+and run log of every later task break it. I cannot re-pin it to a digest
+that includes this brief: the brief changes at every role's commit, and so
+does the run log. This includes the commit that applies the request. That
+leaves two ways to fix the row. Neither is clean, and the person approving
+should choose:
+
+- **Add the two T-091 loop records to its allowed set.** This keeps 297 and
+  the sha. It is an exclusion, which E-30's rule forbids for content guards,
+  but `4d5f283` already did it for `process-tasks.md` with Dkaattae's
+  approval. This is the option I propose.
+- **Refuse the row** and let the guard stay red until P-17's process task
+  decides how loop records are pinned.
+
+My own criterion 22 test has the same shape. A later task's tester will see
+it go red for that task's records.
+
+## Test change request
+
+Every new pin is labelled with the commit it was recorded at:
+`4818fc8` (the worker's commit, which holds the edited
+`engineering-decisions.md`). Received values are from my run on this branch.
+None of them adds a strip, reset or exclusion, except row 5, which is
+flagged above.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 25: outside E-25, engineering-decisions.md is main's; still E-1..E-30" | T-088 tester; last re-pinned `c5e0064` (T-096 row 1). Pins every E-n except E-25 | criterion 11 edits E-27 (b), which is outside E-25 | modify | same name and assertions; `MAIN_ED_OUTSIDE_E25_SHA` → `ee4ead2780b3eb34b59f6f378b798447a06f69310555a766631141c3c71ba9bd`, comment adds "re-pinned at `4818fc8` (T-091, Test change request row 1) after T-091 amended E-25 and E-27" | |
+| 2 | `question-bank/src/seed-level-loose-ends-verify.test.ts` › `T-086 criteria 10-12: what must not move` › "criterion 12: engineering-decisions.md outside E-22's body is byte-identical to the branch head's" | T-086 tester; last re-pinned `8aea8b5` (T-088 row 15). Pins the file outside E-22 | criteria 1 and 11 edit E-25 and E-27 | modify | same name and assertions; `HEAD_OUTSIDE_E22_SHA` → `4493eb37a2179d39ba610aedf337db1118e40a43e6ae04fdedff8ee2c41bcdf4`, comment adds "Re-pinned at `4818fc8`: re-pinned T-091 (Test change request row 2, E-30), after T-091 amended E-25 and E-27" | |
+| 3 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › "E-1..E-28 are byte-identical to 49444c8's, and there are 30 E-n headings at the branch head" | T-092 tester; last re-pinned `c5e0064` (T-096 row 2). Pins E-1..E-28 | criteria 1 and 11 edit E-25 and E-27 | modify | renamed "E-1..E-28 are byte-identical to 4818fc8's, and there are 30 E-n headings at the branch head"; inline digest → `82f931806649319e7a4995f9260051b340d4c5393472dee333f25f0c3e0a9d22`; both count assertions (30) unchanged; comment adds the T-091 row 3 re-pin | |
+| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 7-9: nothing about levels changes` › "criterion 9: engineering-decisions.md outside E-22's body is main's; headings unchanged" | `47581ea`, T-096 tester. Pins lines from E-23 to the end | criteria 1 and 11 edit E-25 and E-27 | modify | same name and assertions; `MAIN_ED_FROM_E23_SHA` → `c598bc8a37bb989e8256cf0eb53ad190450207b4d11c775a4af54eaa29fc280f`, comment "re-pinned at `4818fc8` (T-091, Test change request row 4)"; `MAIN_ED_THROUGH_E22_HEADING_SHA` unchanged | |
+| 5 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester; allowed set widened in `4d5f283` (`process-tasks.md`). Pins the tracked non-test file set at 297 | T-091's own loop records, `tasks/T-091-climate-cold-trade-accepted.md` and `runs/T-091-climate-cold-trade-accepted.md`, are new tracked files (count 299) | modify | same name and assertions (`297` and `MAIN_UNTOUCHABLE_SHA` `1ac2ad79…` both unchanged); `CRITERION_21_ALLOWED` gains those two paths, with a comment citing T-091 Test change request row 5. **This is an exclusion. See "Note on row 5" above** | |
+| 6 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 17-22: E-22` › "criterion 22: every E-n entry other than E-22 is byte-identical to 6587ed0's" | T-085a tester; last re-pinned `8aea8b5` (T-088 row 17). Pins the file outside E-22 | criteria 1 and 11 edit E-25 and E-27 | modify | renamed "criterion 22: every E-n entry other than E-22 is byte-identical to 4818fc8's"; `BEFORE_ED_OUTSIDE_E22_SHA` → `572149631f0e348469449657e89234e941bb16464d4dc7d2f1c6278596ee827c`, comment adds the T-091 row 6 re-pin | |
+| 7 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | T-089 tester; last re-pinned `c5e0064` (T-096 row 3). Pins the byte prefix through E-27 | criteria 1 and 11 add bytes to E-25 and E-27 | modify | same name and assertions; `DECISIONS_ON_MAIN` → `6c2f3daf046ec0008cad757465b67225bd0ad048e76542feaa19c6c765e785c0`, `DECISIONS_ON_MAIN_LEN` → `120943` (the offset of `\n## E-28 `, which the second assert still checks); comment adds "Re-pinned at 4818fc8 (re-pinned T-091, Test change request row 7) after T-091 amended E-25 and E-27 (120943 bytes)" | |
 
 ## Notes
 
