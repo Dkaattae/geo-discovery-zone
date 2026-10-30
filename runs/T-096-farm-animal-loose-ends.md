@@ -1,7 +1,7 @@
 # T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` — run log
 
 **Task:** T-096 · **Branch:** `claude/eager-noether-41dajj` · **PR:** #110
-**Started:** 2026-10-30 · **Outcome:** in progress
+**Started:** 2026-10-30 · **Outcome:** halted — needs human (test change request)
 
 ## Preflight — 2026-10-30
 Branch at `origin/main` (`85612ed`), no live brief in `tasks/`, branch not yet on the remote. G1 trivially clean.
@@ -71,3 +71,50 @@ Unattended run: orchestrator stamps `Approved:` per `orchestrator.md` "Approval"
 Files: `/home/user/geo-discovery-zone/tasks/T-096-farm-animal-loose-ends.md`, `/home/user/geo-discovery-zone/question-bank/src/distractors.ts`, `/home/user/geo-discovery-zone/question-bank/src/seed-level.ts`, `/home/user/geo-discovery-zone/engineering-decisions.md`, `/home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends.test.ts`
 
 Orchestrator note: every spawned role shares this session's id (next-task §4, P-14); the tester reports it in its Verdict.
+
+## Round 3 — tester — 2026-10-30
+`Next step` on entry: `tester` → on exit: `human`
+
+**TL;DR:** T-096 is halted on a Test change request. The code meets all 23 criteria. Criterion 23 (whole suites green) is red only because of 3 old digest pins that went stale on purpose, and a person has to approve changing them. The brief now reads Status `test changes requested`, Next step `human`, Test changes `requested`. The work is pushed to `claude/eager-noether-41dajj` at `47581ea`, and the remote branch matches.
+
+**Independence:** this is an orchestrated run (`runs/T-096-farm-animal-loose-ends.md` exists). The session id is `cse_011oDiJfRVR9sPsnPiXjAsMq`, the same id already listed for task-expander and worker. So the id check proves nothing and did not pass. My independence rests only on being a freshly spawned subagent with its own context, which depends on the orchestrator having spawned me correctly.
+
+**What I did**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts`, 25 tests, all green. Main's state was computed in a temporary worktree of `85612ed` and stored as fixed values and sha256 digests, because CI checks out shallow and cannot read main. The worktree has been removed.
+- **Strongest check (criteria 12–15):** I ran `clickDistractorsFor` over the whole committed bank, every template and every draft. On main, 8 farm-animal drafts returned `undefined` in their array (CA, IA, MN, NC, OK, PA, SD, TX). On the branch, exactly those 8 throw an `Error` naming the draft id. The other 410 results, and the 50 `map_click` drafts, match main's results exactly.
+- **Brief** (`/home/user/geo-discovery-zone/tasks/T-096-farm-animal-loose-ends.md`): I wrote the Verdict and the Test change request, updated the header, Fault and Status, and added my Sessions row with the shared-id caveat.
+
+**Suites**
+| Suite | Result | Why |
+|---|---|---|
+| question-bank `bun test` | 2644 pass / 2 fail | Both failures are stale pins (rows 1–2 below) |
+| question-bank typecheck, lint, `format:check` | clean | — |
+| `make -C backend test` | 743 pass / 1 fail / 9 skipped | The failure is a stale pin (row 3) |
+| frontend `bun test` | 392 pass / 4 fail | `react-simple-maps` cannot be installed in this sandbox. Same result on main, and nothing under `frontend/` changed, so CI decides this one |
+
+All three stale pins pass on main and fail only on the branch.
+
+**Mutations:** each one was reverted, and `git status` was clean afterwards.
+- Changing "eleven" to "six" or another number in the E-22 bullet or in `seed-level.ts` turned criteria 2–6 red.
+- Moving the JSDoc back turned 10–11 red.
+- Disabling the guard turned 12–14 red, and changing the message to use `draft.entityId` turned 12–13 red.
+- Reversing the order of the picks turned 15 red.
+- Throwing a ShortPool instead of returning it turned 16 red.
+- Changing the farm-animal weight to 2 turned 7 red; editing E-22's weights line turned 8 red; editing the E-24 heading turned 9 red.
+- Appending one byte to `openapi.yaml`, an entity file, `content.json` or `package.json` turned 18–21 red.
+
+**Test change request** (all three rows are modify, and all are pending a person's decision)
+1. `question-bank/src/agriculture-true-wrong-answers-verify.test.ts`, the T-088 criterion 25 test: `MAIN_ED_OUTSIDE_E25_SHA` becomes `5eded744…151c7`.
+2. `question-bank/src/map-click-no-candidates-verify.test.ts`, the T-092 criterion 13 E-1..E-28 test: the digest becomes `2ab3d27a…e0`, and the test name changes to say `49444c8`.
+3. `backend/tests/test_t089_tester_criteria.py` `test_criterion_13_e1_to_e27_are_byte_identical`: `DECISIONS_ON_MAIN` becomes `f38eb546…f0`, `DECISIONS_ON_MAIN_LEN` becomes `120085`.
+
+I computed these digests myself, and they match the worker's Handoff. No pre-existing test was touched.
+
+**Two readings I chose, recorded in the Verdict**
+- **Criterion 21:** the branch also changes `runs/T-096…` and flips `tasks.md` from todo to doing. I treated both as the loop's records rather than the task's work, and exempted them in the test.
+- **Criterion 14:** I tested it over the committed bank and real subsets of it. An entity with no `geometry_id` would still give `undefined`, but Out of scope leaves that case unspecified, so I did not block on it.
+
+**Needed next:** a person starts a `tester` in a session they are attending, approves or refuses rows 1–3, and that tester applies the approved rows and gives the final verdict.
+
+## Halted — test change request — 2026-10-30
+Raised by `47581ea` (T-096 tester). Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Per D-15 the orchestrator does not approve, stamp or relay it. A person resumes it by starting the `tester` step for T-096 in a session they are attending.
