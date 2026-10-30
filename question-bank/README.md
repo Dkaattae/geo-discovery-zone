@@ -86,6 +86,19 @@ bun run refresh -- --no-fun-facts  # skip the Wikipedia draft pass
 Progress and failures go to stderr; the change summary and warnings go to
 stdout, so stdout is what the routine pastes into the PR body.
 
+A changed refresh (exit `0`) ends by printing the two commands that bring the
+rest of the tree back in line, and does not run them itself. Run them from the
+repository root, in this order — the served bank is built from the question
+file:
+
+```bash
+cd question-bank && bun run questions   # data/us-states/ → data/questions/us-states.json
+make -C backend content                 # question-bank/data/ → backend/app/data/content.json
+```
+
+Until both have run, `question-file.test.ts` and the backend's
+`test_content_build.py` fail on the stale files (E-24).
+
 ## What the first live run found
 
 The query has now run against `query.wikidata.org` for real: 50 states, every

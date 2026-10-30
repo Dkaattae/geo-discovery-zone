@@ -410,8 +410,9 @@ describe("T-079 tester, criterion 18 — E-1 to E-18 are unchanged", () => {
 describe("T-079 tester, criterion 20 — every package.json and bun.lock is byte-identical to 323254c", () => {
   const manifests: Record<string, string> = {
     // re-pinned by T-064 row 32: build:sample removed (its criterion 2)
+    // re-pinned by T-087 row 1: questions script added (its criteria 1-2)
     "question-bank/package.json":
-      "5286f4f725a98f5e54d45cf2646be5b38152ffc87ba5ac91039b919c49ec3f72",
+      "8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3",
     "question-bank/bun.lock": "6bb53377c455e7936275e795c81aa62b41fcb239017b4dd9a744dfd38bda34d1",
     "frontend/package.json": "22870bb992a6e2db8770998ce5cb0b095ce785fcc16801f6bf9deb25e33e332f",
     "frontend/bun.lock": "5ec60daccc0422c6a67e520b46e372be8a16b04bf2a37b3170f087ef69afc733",

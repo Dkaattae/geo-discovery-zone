@@ -728,8 +728,10 @@ describe("T-092 criterion 15: no new dependency, no manifest or lockfile change"
       ),
     );
     expect(all.sort()).toEqual([...MANIFESTS].sort());
+    // re-pinned by T-087 row 4: questions script added (its criteria 1-2). Only
+    // question-bank/package.json moved, to 8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3.
     expect(sha(MANIFESTS.map((p) => `${p}\t${sha(readFileSync(join(REPO, p)))}\n`).join(""))).toBe(
-      "dd74b9811dd802443fc620e283b070bad1e0580e468abe903fda41544cc3c8b9",
+      "0ce355ae18e0091ec6745e44261b60ba0a136d63354e06b765fdb3fe32de5c99",
     );
   });
 });

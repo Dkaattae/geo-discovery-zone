@@ -6,6 +6,7 @@
   "scripts": {
     "build": "bun run src/build.ts",
     "refresh": "bun run src/refresh.ts",
+    "questions": "bun run src/write-questions.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives --format default src",
     "format": "prettier --write \"src/**/*.ts\"",
