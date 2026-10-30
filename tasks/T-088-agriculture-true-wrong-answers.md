@@ -1,7 +1,7 @@
 # T-088 — Wrong answers that are true: crops and farm animals a state does grow
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision on PR #109; see Review)
 **Approved:** orchestrator — 2026-10-29, unattended run. See `runs/T-088-agriculture-true-wrong-answers.md`.
 **Test changes:** `approved — the person attending session_011oDiJfrwMg1JqLUkLqFoYa (no name given), 2026-10-29`
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | worker | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (same id as the expander's: the orchestrator's subagents report the parent session's id; see Notes) |
 | tester | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (orchestrated run: same id as every role; independence is a freshly spawned agent's own context, see Verdict) |
 | tester (attended, TCR) | 2026-10-29 | cse_011oDiJfrwMg1JqLUkLqFoYa (the orchestrator's own session, attended; applied the approved request only, see Verdict addendum) |
+| reviewer | 2026-10-30 | cse_011oDiJfrwMg1JqLUkLqFoYa (orchestrated: freshly spawned subagent, same id as every role, P-14) |
 
 **Worker model:** Opus. The task is data correctness in text a child reads.
 
@@ -639,6 +640,91 @@ The whole suite is green in question-bank and backend. **Next: reviewer.**
 | backend `pytest` | 744 passed, 9 skipped, 0 failed |
 | backend `ruff check` / `ruff format --check` | clean |
 | frontend | **not run.** `bun install --frozen-lockfile` fails here with `ProxyConnectFailed (403) downloading tarball d3-timer@2.0.0`. No tracked frontend file changed. CI on the PR is the check |
+
+## Review
+
+**TL;DR. Approved, and escalated.** The code is small, in the file's own idiom,
+and inside the Constraints. Every role stayed in its lane, and the suite is
+green locally and on CI. **It must not be merged without a person.** The
+changed `choices` are text a child reads, and the NASS check of Tables A and B
+that `tasks.md` T-088 requires "before it ships" has not been done.
+
+**Escalated because** (any one is enough):
+
+- **Text a child reads.** 36 agriculture questions' `choices` changed.
+- **The NASS check is open.** The Review checklist's first item is a
+  pre-merge condition, and no one has done it.
+- **The brief's criteria carry the orchestrator's stamp.** The tables were
+  approved by Dkaattae on 2026-10-27, but no person read the 31 criteria.
+- **The Test change request approver gave no name.** The header names a person,
+  so this is within D-14/D-15, but the record has no name. The 18 rows are
+  copied into the PR body.
+
+**Checks.**
+
+- **PR open, draft, every role's work present.** The expander's commits are
+  `7918629` and `545d646`, the worker's `6587ed0`, the tester's `e9d666e`, `8aea8b5`
+  and `62dbe6d`. Orchestrator run logs touch only `runs/`.
+- **Lanes.** The expander commits touch only `tasks.md` and the brief. The
+  worker commit changes no pre-existing test. Tester commits touch only tests
+  and the brief. Pre-existing tests changed only in `8aea8b5`, across exactly
+  the 9 files of TCR rows 1–18. Each change matches its row, with nothing
+  deleted and no count floor moved.
+- **Constraints.** Every non-test file changed is on the expected list:
+  `distractors.ts`, `templates.ts` (docstrings only), both bank files, and
+  `engineering-decisions.md` (E-25 only). There are no dependencies, no
+  `openapi.yaml` or `frontend/` change, and no migration or plan change.
+- **Suites, re-run by the reviewer at `5b93e41`.** question-bank: 2615 pass,
+  0 fail. Typecheck, lint and format:check are clean. backend: 744 passed,
+  9 skipped. PR CI on `5b93e41` is green in all six jobs, frontend and e2e
+  included.
+- **Read all 24 farm-animal questions.** Every one matches criteria 5–10.
+
+**Findings (none blocking).**
+
+1. **`question-bank/src/distractors.ts` ~line 474: an orphaned doc comment.**
+   `/** The fixed-pool candidates a strategy offers after its entity candidates. */`
+   sits directly above `Pick`'s doc comment, and `poolFor` below has none. It
+   belongs to `poolFor`. Cosmetic.
+2. **`question-bank/src/distractors.ts` `clickDistractorsFor`:
+   `p.entity?.geometry_id as string`.** If a pool ever reached a `map_click`
+   template, this would silently emit `undefined` as a geometry id. It does not
+   today, and a comment says why. Throwing would make that assumption
+   enforced instead of commented.
+3. **E-22 and `seed-level.ts` now say "six farm animals"** (E-22 line ~1135,
+   and the `concept_load` comment at `seed-level.ts` ~line 52). The pool is now
+   eleven. Out of scope here, as the brief says.
+
+Findings 1–3 are queued together as **T-096** in `tasks.md`. Nothing already
+queued owns this area. Their fixes all move pinned bytes, so they share one
+Test change request.
+
+**The worker's and tester's flags, disposed of.**
+
+- **Ordering of the added animals (after every state-listed animal, in the
+  order goats, horses, ducks, rabbits, bison): confirmed.** Using them only
+  when the listed pool runs dry keeps the "never correct" tell as rare as it
+  can be (8 of 24 questions). That is the right bias for the trade the
+  checklist's fourth item names.
+- **Iowa still offers `dairy cows`: consistent with the approved table, left
+  to the person's NASS check.** Iowa is not roughly a top-10 milk state, so
+  Table A's rule does not list it. Changing the row is out of scope (E-25). If
+  NASS says otherwise, the row comes back through the expander.
+- **E-22 and `seed-level.ts` wording:** queued as T-096 (finding 3).
+- **The frontend was not run locally (proxy 403):** settled by CI. The
+  frontend and e2e jobs pass on `5b93e41`.
+- **Session-id independence:** already owned by `process-tasks.md` P-14.
+  Nothing is added.
+
+**For the person merging (the Review checklist above, still open).**
+
+- [ ] Check Tables A and B against USDA NASS, and update E-25's "not yet
+      checked" sentence if any row is wrong.
+- [ ] Iowa and dairy cows (see above).
+- [ ] Read the 24 farm-animal questions (listed in the PR body) and a sample of
+      crop questions.
+- [ ] Accept, or not, that the five added animals are never correct:
+      8 of 24 questions; goats 1, horses 4, ducks 4, rabbits 2, bison 2.
 
 ## Test change request
 
