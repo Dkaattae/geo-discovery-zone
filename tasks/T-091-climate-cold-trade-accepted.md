@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-091
 **Branch:** `claude/amazing-ritchie-wwz0je`
-**PR:** opened draft at expand time against the branch above (number in the PR list; see Notes)
+**PR:** #111, opened draft at expand time against the branch above
 **Fault:**
 
 **Sessions:**
@@ -225,5 +225,5 @@ the record says what was decided.
   `**Revisit when**`, so text placed there would land inside T-088's amendment.
 - **Picked over T-085b**, which is first in the queue but needs a Census
   source a person has not chosen yet.
-- **PR:** opened draft at expand time; its number is in the PR list for branch
+- **PR:** #111, opened draft at expand time from branch
   `claude/amazing-ritchie-wwz0je`.
