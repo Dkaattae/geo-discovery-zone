@@ -1132,8 +1132,8 @@ T-050 and T-085):
 - `"tpl-state-animal-of": 2`, `"tpl-landmark-in": 2`, `"tpl-crop-of": 2` — a
   second fact about a named state, the capital's reasoning.
 - `"tpl-climate-of": 3` — the same, and each choice is a long phrase to read.
-- `"tpl-farm-animal-of": 1` — every choice is one of six farm animals a child
-  already knows.
+- `"tpl-farm-animal-of": 1` — every choice is one of eleven farm animals a
+  child already knows (E-25 says where they come from).
 
 All six have `base_difficulty` 2, like the capital. Over the committed bank
 the 265 new levels run from 3 (California and Texas, farm animal) to 10 (state

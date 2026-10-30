@@ -657,10 +657,11 @@ describe("T-092 criterion 13: E-29 records the change; E-1..E-28 untouched", () 
   // T-070 row W45: E-30 makes 30 headings at the branch head. The E-1..E-28
   // digest is re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 23),
   // after T-085a amended E-22. Re-pinned at 6587ed0 (re-pinned T-088, Test change
-  // request row 16), after T-088 amended E-25.
-  test("E-1..E-28 are byte-identical to 6587ed0's, and there are 30 E-n headings at the branch head", () => {
+  // request row 16), after T-088 amended E-25. Re-pinned at 49444c8 (re-pinned
+  // T-096, Test change request row 2), after T-096 amended E-22.
+  test("E-1..E-28 are byte-identical to 49444c8's, and there are 30 E-n headings at the branch head", () => {
     const text = Array.from({ length: 28 }, (_, i) => sections.get(`E-${i + 1}`)).join("");
-    expect(sha(text)).toBe("22e7f2d501abaa84f2e79f9947a9213dc5741210e37e756000b27d814221671e");
+    expect(sha(text)).toBe("2ab3d27ab7e9538a262ddcdf10475547f1c394fcd49d817b38e89dd8d4db51e0");
     expect(sections.size).toBe(30);
     expect(doc.match(/^## E-\d+/gm)).toHaveLength(30);
   });

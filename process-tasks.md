@@ -674,6 +674,15 @@ pins all of `engineering-decisions.md` outside E-22, at T-070's branch head. So
 every later task that adds an `E-n` turns three pins red, not two (that one,
 `map-click-no-candidates-verify` T-092 c13's heading count, and backend
 `test_t089` criterion 13's `range`), each an attended Test change request row.
+**Sixth instance, 2026-10-30, from T-096's reviewer (PR #110).** The widest
+shape yet: T-096's criterion 21 became `farm-animal-loose-ends-verify.test.ts`
+`MAIN_UNTOUCHABLE_SHA`, one digest over 298 tracked non-test files at
+`85612ed`, and that includes `process-tasks.md`, so T-096's reviewer could not
+record this instance here without turning it red. Almost any later task that
+edits a source file or doc outside T-096's own three will turn it red. So will
+its criteria 15 (every draft's `clickDistractorsFor` result) and 17-20 (the
+bank, `content.json`, dependency files). T-096 itself paid three re-pin rows for
+older pins of the same kind.
 **This is a process-file change**, so it is done by hand.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.

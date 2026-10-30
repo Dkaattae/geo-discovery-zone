@@ -471,10 +471,10 @@ interface PoolCandidate {
   text: string;
 }
 
-/** The fixed-pool candidates a strategy offers after its entity candidates. */
 /** A wrong answer as picked: from an entity, or from a fixed pool. */
 type Pick = Candidate | PoolCandidate;
 
+/** The fixed-pool candidates a strategy offers after its entity candidates. */
 function poolFor(strategy: DistractorStrategy): PoolCandidate[] {
   return strategy === "livestock_not_raised"
     ? ADDED_FARM_ANIMALS.map((text) => ({ entity: null, text }))
@@ -677,9 +677,20 @@ export function clickDistractorsFor(
 ): string[] | ShortPool {
   const found = distractorsFor(draft, own, template, entities);
   if (!Array.isArray(found)) return found;
-  // A fixed-pool pick has no entity, but only `livestock_not_raised` has a
-  // pool, and no farm-animal template is `map_click`.
-  return found.map((p) => p.entity?.geometry_id as string);
+  // A fixed-pool pick has no entity, so no geometry to click. Only
+  // `livestock_not_raised` has a pool and no farm-animal template is
+  // `map_click`, so this never fires on the committed bank: it is there so a
+  // future template that breaks the assumption fails loudly, not with
+  // `undefined` in the list.
+  return found.map((p) => {
+    if (p.entity === null) {
+      throw new Error(
+        `clickDistractorsFor: ${draft.id} picked a fixed-pool wrong answer ` +
+          `(${JSON.stringify(p.text)}), which has no geometry to click`,
+      );
+    }
+    return p.entity.geometry_id as string;
+  });
 }
 
 function questionFor(

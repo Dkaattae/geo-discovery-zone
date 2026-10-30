@@ -49,7 +49,7 @@ export const LEVEL_SEED_WEIGHTS = {
    * Per template id. A capital is a recalled fact; a map shows the shape. The
    * six T-026 entries are first guesses (E-22): each is a recalled fact like a
    * capital, a climate phrase is the longest to read, and the farm-animal
-   * choices come from only six animals.
+   * choices come from eleven animals a child already knows.
    */
   concept_load: {
     "tpl-identify-on-map": 0,
