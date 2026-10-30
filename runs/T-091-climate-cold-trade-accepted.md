@@ -114,3 +114,37 @@ What a human has to decide: approve or refuse the tester's Test change request. 
 ## Resumed — 2026-10-30
 Dkaattae, in the orchestrator's session: "ci is fixed please proceed".
 The branch head had moved since the halt (`bc93435` → `6bd86ac`): an attended tester session (`cse_011oDiJbguF5W6xXdBB7Kxc5`) applied the approved test change request (`8108a42`) and wrote its verdict (`6bd86ac`). Header now reads `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-30`. Carrying on from `Next step`.
+
+## Round 4 — reviewer — 2026-10-30
+`Next step` on entry: `reviewer` → on exit: `tester` — come back and fix review finding 1 (one test in `climate-cold-trade-accepted-verify.test.ts`), then hand back to `reviewer`
+
+**T-091 is sent back to `tester`, and PR #111 stays draft.** The record edit itself is good and both review-checklist items hold. But one of the tester's new tests reads the brief, and my sweep has to delete the brief, so sweeping would turn the suite red. I did not sweep and did not mark the PR ready.
+
+**Blocking finding (for `tester`)**
+- **The test:** `/home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts`, lines 430-438. Line 431 reads `tasks/T-091-climate-cold-trade-accepted.md`.
+- **What I ran:** I removed the brief from the tree and the index, then ran `bun test` in `question-bank/`. Result: 2671 pass, 1 fail (`ENOENT`). I restored the brief afterwards.
+- **Second problem:** once the header says approved, the test only compares two constant key sets, so it checks nothing about the files.
+- **Acceptable when:** the test no longer depends on the brief existing and still checks something real. One option is to pin the six request files' sha256 at `8108a42`, labelled per E-30. It is the tester's own new file, so no Test change request is needed.
+
+**Not blocking**
+- **P-17 pattern again:** row 5's allowed-set exclusion and T-091's own criterion 22 both pin the whole tracked-file set, so the next task's loop records will turn both red. At sweep time this gets recorded as a further instance on P-17 in `process-tasks.md`, not as a new ticket.
+
+**Checked, no finding**
+- **Lanes:** every role stayed in its lane. Commit `8108a42` applies exactly the Test change request rows 1–7 that Dkaattae approved.
+- **Record matches the bank:** the amendment's counts (22 / 18 / 8) and E-27 (a)'s NY, RI and CA `too hard` rows are right.
+- **Nothing else changed:** no source, data, dependency, `openapi.yaml` or migration change.
+- **Worker's flags:** all decided in the Review.
+- **CI:** still running on `294834c` when I looked.
+
+**Escalation still applies:** when the PR comes back approved, it must be escalated, because it records a content trade in text a child reads.
+
+**State I left**
+- **Brief** `/home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md`:
+  - `Status: changes requested`
+  - `Next step: tester`
+  - reviewer row added to the Sessions table
+  - `## Review` section written
+- **Push:** commit `77b312a`, pushed to `claude/amazing-ritchie-wwz0je`. Local and remote heads match.
+- **PR comment:** https://github.com/Dkaattae/geo-discovery-zone/pull/111#issuecomment-6532082753
+
+**Next:** run `tester` on the same branch to fix finding 1, then `reviewer` again.
