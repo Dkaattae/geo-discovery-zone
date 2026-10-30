@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — come back and fix review finding 1 (one test in `climate-cold-trade-accepted-verify.test.ts`), then hand back to `reviewer`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-091-climate-cold-trade-accepted.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-30`
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | worker | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent; `$CLAUDE_CODE_REMOTE_SESSION_ID` is shared with the expander's, see Notes) |
 | tester | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; same shared id, see Verdict) |
 | tester | 2026-10-30 | cse_011oDiJbguF5W6xXdBB7Kxc5 (attended; resumed the request, applied the approved rows) |
+| reviewer | 2026-10-30 | cse_011oDiJeSdbcuQndNDoPuD3h (orchestrated subagent, fresh context; shared remote id, see Review) |
 
 **Worker model:** Sonnet is enough. Two edits to `engineering-decisions.md` and
 three counts read off the committed question file. No source, no data, no level
@@ -494,6 +495,84 @@ flagged above.
 | 5 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester; allowed set widened in `4d5f283` (`process-tasks.md`). Pins the tracked non-test file set at 297 | T-091's own loop records, `tasks/T-091-climate-cold-trade-accepted.md` and `runs/T-091-climate-cold-trade-accepted.md`, are new tracked files (count 299) | modify | same name and assertions (`297` and `MAIN_UNTOUCHABLE_SHA` `1ac2ad79…` both unchanged); `CRITERION_21_ALLOWED` gains those two paths, with a comment citing T-091 Test change request row 5. **This is an exclusion. See "Note on row 5" above** || approved — Dkaattae, 2026-10-30, in the attended tester session ("approve all, Dkaattae") |
 | 6 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › `T-085a criteria 17-22: E-22` › "criterion 22: every E-n entry other than E-22 is byte-identical to 6587ed0's" | T-085a tester; last re-pinned `8aea8b5` (T-088 row 17). Pins the file outside E-22 | criteria 1 and 11 edit E-25 and E-27 | modify | renamed "criterion 22: every E-n entry other than E-22 is byte-identical to 4818fc8's"; `BEFORE_ED_OUTSIDE_E22_SHA` → `572149631f0e348469449657e89234e941bb16464d4dc7d2f1c6278596ee827c`, comment adds the T-091 row 6 re-pin || approved — Dkaattae, 2026-10-30, in the attended tester session ("approve all, Dkaattae") |
 | 7 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | T-089 tester; last re-pinned `c5e0064` (T-096 row 3). Pins the byte prefix through E-27 | criteria 1 and 11 add bytes to E-25 and E-27 | modify | same name and assertions; `DECISIONS_ON_MAIN` → `6c2f3daf046ec0008cad757465b67225bd0ad048e76542feaa19c6c765e785c0`, `DECISIONS_ON_MAIN_LEN` → `120943` (the offset of `\n## E-28 `, which the second assert still checks); comment adds "Re-pinned at 4818fc8 (re-pinned T-091, Test change request row 7) after T-091 amended E-25 and E-27 (120943 bytes)" || approved — Dkaattae, 2026-10-30, in the attended tester session ("approve all, Dkaattae") |
+
+## Review
+
+**TL;DR: changes requested, sent back to `tester`.** The record edit is good
+and both checklist items hold. But one of the tester's new tests reads this
+brief, and the reviewer's sweep deletes this brief, so the sweep turns the
+suite red. The PR stays draft. **Next:** `tester` fixes finding 1, then
+`reviewer` again. When it comes back approved, it is still **escalated**
+(child-facing content trade, per Constraints).
+
+**Independence.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_011oDiJeSdbcuQndNDoPuD3h`, the same as the expander's and worker's,
+because the orchestrator runs every role under one remote session. I am a
+freshly spawned subagent and did not write any of this work.
+
+**Lanes (commits 3bef782..294834c):** clean. Expander touched only `tasks/`
+and `tasks.md`. Worker touched only `engineering-decisions.md` and the brief.
+Tester `950f334` added one new test file. Tester `8108a42` changed exactly the
+six files of Test change request rows 1–7, with the values the rows name.
+Orchestrator touched only `runs/` and the `Approved:` line. No `ci-fix`.
+
+### Blocking
+
+1. **The sweep breaks the tester's own test.**
+   `question-bank/src/climate-cold-trade-accepted-verify.test.ts:430-438`,
+   "a test named in the Test change request differs from main only once the
+   brief says approved". Line 431 calls
+   `read("tasks/T-091-climate-cold-trade-accepted.md")`. The reviewer's sweep
+   deletes that file (`process.md` step 6, reviewer §4.1). I checked it: with
+   the brief removed from the index and the tree, `bun test` in
+   `question-bank/` gives **2671 pass / 1 fail**, `ENOENT ... T-091-climate-cold-trade-accepted.md`.
+   So the PR cannot be swept and stay green, and main would carry a red test.
+   Also, once the header reads `approved`, the `else` branch only compares the
+   key set of a constant `Set` with the key set of a constant `Record`. Those
+   are fixed in the file, so the branch checks nothing about the files.
+   **Acceptable when:** the test no longer reads the brief, and it still checks
+   something real. A suggestion, not a requirement: pin the six request files'
+   sha256 at `8108a42` (the commit that applied the approved rows), labelled
+   per E-30. That checks the files hold exactly the approved re-pins. It is the
+   tester's own new file, so this needs no Test change request. Re-run the
+   whole suite, and check it with the brief deleted as well. The
+   `CRITERION_22_ALLOWED` entries for the brief and run log can stay: a deleted
+   path just drops out of `git ls-files`.
+
+### Not blocking (for the sweep that follows approval)
+
+2. **The P-17 pattern again, twice.** Row 5 adds T-091's loop records to
+   T-096 criterion 21's allowed set, and T-091's own criterion 22 pins the whole
+   tracked non-test file set (`MAIN_UNTOUCHABLE_COUNT` / `_SHA`). The next task's
+   brief and run log will turn **both** red, and so will its approved Test
+   change request. **Disposition:** at sweep time, amend `process-tasks.md`
+   P-17 with this as a further instance. No new ticket: P-17 already owns it.
+   Not a `tasks.md` entry, because the gap is in the loop.
+
+### The worker's flags, disposed of
+
+- **Wording, "accept the trade E-27 (b) describes" and "was the content call
+  T-090 left out of scope":** decided, accepted. The amendment states exactly
+  the three counts and the three `too hard` rows, and nothing broader. E-27 (b)
+  now reads as settled, and E-27's **Revisit when** paragraph ("a person decides
+  on a stricter group or 'only odd one out' rule") still makes sense beside it.
+- **Shared session id:** decided. The attended tester's separate session
+  (`cse_011oDiJbguF5W6xXdBB7Kxc5`) is the independence evidence for the
+  verdict. Nothing more is needed.
+- **Row 5 is an exclusion:** a person approved it knowingly. P-17 owns the
+  general fix (finding 2).
+
+### Checklist
+
+- [x] The amendment reads as Dkaattae's decision, (a), and does not overstate it.
+- [x] E-27 (b)'s closing paragraph no longer reads as an open question, and still makes sense next to E-27's Revisit paragraph.
+
+### Checked, no finding
+
+- **Record matches the bank.** E-27 (a) does read NY, RI and CA as `too hard`.
+  The options' wording matches `tasks.md`'s T-091 entry.
+- **No source, data, dependency, `openapi.yaml` or migration change.**
+- **CI** on `294834c` was still running when I looked.
 
 ## Notes
 
