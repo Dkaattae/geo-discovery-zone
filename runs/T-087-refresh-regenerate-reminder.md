@@ -1,7 +1,7 @@
 # T-087 — A bank refresh tells you to regenerate the question file and the served bank — run log
 
 **Task:** T-087 · **Branch:** `claude/hopeful-gates-wh4fep` · **PR:** #112
-**Started:** 2026-10-30 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-30 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-10-30
 `Next step` on entry: `none — no brief` → on exit: `worker`
@@ -112,3 +112,7 @@ G5: Status and Next step both changed — pass.
 Raised by the tester in commit `40f6c54`. Rows not copied here; the orchestrator has not read them.
 
 What a human has to decide: whether to approve the tester's test change request. Per D-15 the orchestrator cannot take that approval. To resume: start the `tester` step for T-087 in a session you are attending. It will ask about each row, apply what you approve, and finish verifying. Its header then names the next role, and a new run starts from there.
+
+## Resumed — 2026-10-30
+Dkaattae, in the orchestrator's session: "Ci is fixed please proceed".
+Since the halt the branch moved (`0ce2398` → `7672370`): an attended tester applied the test change request (header: `Test changes: approved — Dkaattae, 2026-10-30` (rows 1-12, 10a, 11a, 13, 14)) and wrote `Status: pass`, `Next step: reviewer`. Carrying on from that Next step.
