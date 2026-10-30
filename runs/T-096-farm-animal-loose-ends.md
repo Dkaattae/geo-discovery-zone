@@ -1,7 +1,7 @@
 # T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts` — run log
 
 **Task:** T-096 · **Branch:** `claude/eager-noether-41dajj` · **PR:** #110
-**Started:** 2026-10-30 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-10-30 · **Outcome:** in progress
 
 ## Preflight — 2026-10-30
 Branch at `origin/main` (`85612ed`), no live brief in `tasks/`, branch not yet on the remote. G1 trivially clean.
@@ -118,3 +118,6 @@ I computed these digests myself, and they match the worker's Handoff. No pre-exi
 
 ## Halted — test change request — 2026-10-30
 Raised by `47581ea` (T-096 tester). Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Per D-15 the orchestrator does not approve, stamp or relay it. A person resumes it by starting the `tester` step for T-096 in a session they are attending.
+
+## Resumed — 2026-10-30
+Dkaattae, in the orchestrator's session: "ci is fixed you can proceed". The attended tester had pushed `c5e0064` (apply approved test change request) and `3912701` (verdict pass). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-10-30`. Orchestrator did not take the approval; it was given in the tester's session.
