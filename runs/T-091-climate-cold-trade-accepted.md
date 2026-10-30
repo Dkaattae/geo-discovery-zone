@@ -1,7 +1,7 @@
 # T-091 — Climate: record that the "only cold phrase" trade is accepted — run log
 
 **Task:** T-091 · **Branch:** `claude/amazing-ritchie-wwz0je` · **PR:** #111
-**Started:** 2026-10-30 · **Outcome:** in progress
+**Started:** 2026-10-30 · **Outcome:** ready for merge (escalated)
 
 ## Round 1 — task-expander — 2026-10-30
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -176,3 +176,37 @@ The branch head had moved since the halt (`bc93435` → `6bd86ac`): an attended 
 - **CI:** all six jobs succeeded on `ef3ae4c`, the commit before mine. CI on `bac230d` is the evidence for the new head.
 
 **Brief updated** (`/home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md`): Status is `pass`, Next step is `reviewer`, there is a new tester row under Sessions, and a "Round 3" section sits at the top of the Verdict, with earlier rounds kept below it.
+
+## Round 6 — reviewer — 2026-10-30
+`Next step` on entry: `reviewer` — review finding 1 is fixed … → on exit: brief deleted by the sweep (`39d0f26`); PR #111 marked ready, escalated
+
+**T-091 is approved and escalated.** PR #111 is now marked ready and is not merged. The top of its body says it must not be merged until Dkaattae has read the record. The sweep is in the PR, and the push landed: the head is `39d0f26` on `claude/amazing-ritchie-wwz0je`, and local and remote match.
+
+**Needed next:** Dkaattae reads the two record edits in `engineering-decisions.md` and decides whether to merge. No agent step is left.
+
+**Review, round 2:**
+- **Finding 1 is fixed.** In `bac230d` the tester's test no longer reads the brief. It now pins the six changed test files at `8108a42`, the commit that applied the approved changes, and asserts that each one differs from main. I recomputed all six digests and they match. Those files are unchanged since `8108a42`. The suite passes with the brief deleted.
+- **Every role stayed in its lane.** Commits run from `3bef782` to `ea3683b`, and no `ci-fix` ran.
+- **The record edits are good.** The E-25 amendment and the E-27 (b) closing paragraph do what the brief asks, and both checklist items hold.
+
+**Why it is escalated:**
+- **Child-facing content.** It records an accepted trade in climate distractors a child reads, and the brief requires escalation for that.
+- **The brief's approval was the orchestrator's unattended stamp**, not a person's.
+- **Pre-existing tests changed, with a person's approval.** Dkaattae approved rows 1–7. Row 5 adds two files to an allowed list rather than re-pinning, so the Test change request table is copied into the PR body.
+
+**Sweep (commit `39d0f26`):**
+- **Brief deleted:** `/home/user/geo-discovery-zone/tasks/T-091-climate-cold-trade-accepted.md`.
+- **`/home/user/geo-discovery-zone/tasks.md`:** the T-091 entry is removed, and a line is added to the sweep log. No other entry needed to change.
+- **`/home/user/geo-discovery-zone/PROGRESS.md`:** T-091 is logged under Completed tasks. The known-gap bullet on climate wrong answers now says the trade is accepted.
+
+**Changed from round 1: the P-17 note is not in `process-tasks.md`.** In round 1 I said the sweep would add T-091 to P-17 there. It can't: criterion 22, and the tester's test for it, don't allow `process-tasks.md` in this diff, and editing it would turn the suite red. T-096 hit the same limit, so I followed its approach: the note is in the PR body for a person to add by hand.
+
+**Suites, run with the sweep applied:**
+- **question-bank:** 2672 pass, 0 fail; typecheck, lint and format:check are clean.
+- **backend:** 744 passed, 9 skipped.
+- **frontend:** not run. The install fails here because the proxy returns 403 on its packages. `frontend/` is byte-identical to main, so CI is the evidence. CI on the new head had not finished when I stopped.
+
+Commits: `4bedf9c` (round 2 review written into the brief) and `39d0f26` (sweep).
+
+## Ended — 2026-10-30
+Run over. PR #111 is ready and escalated; merging is Dkaattae's (D-4).
