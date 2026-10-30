@@ -1,14 +1,14 @@
 # T-096 — T-088's loose ends: "six farm animals" in E-22 and `seed-level.ts`, and two comments in `distractors.ts`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-096-farm-animal-loose-ends.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-096
 **Branch:** `claude/eager-noether-41dajj`
 **PR:** #110, opened draft at expand time against the branch above
-**Fault:**
+**Fault:** test changes are waiting for approval: three engineering-decisions.md digest pins (Test change request rows 1-3) went stale because criteria 2-3 edit E-22. Everything else verified. Resume with a `tester` in a session a person is attending.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq |
 | worker | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq |
+| tester | 2026-10-30 | cse_011oDiJfRVR9sPsnPiXjAsMq (orchestrated: shared id, freshly spawned subagent) |
 
 **Worker model:** Sonnet is enough. Two comment fixes, two doc rewordings and a
 one-line guard; no data, no level, no question moves.
@@ -269,7 +270,91 @@ Tester: raise one Test change request for the three pins below.
   the criterion 14 flag in Notes.
 - No pre-existing test touched.
 
+## Test change request
+
+Raised by the tester, 2026-10-30, under an orchestrated run: **nobody has
+approved these rows.** No test here has been changed. Each row is a digest pin
+of `engineering-decisions.md` that covers E-22; criteria 2-3 require editing the
+E-22 farm-animal bullet, so each pin goes red by design. Each "Becomes" re-pins
+the same span, at the same strength, to the branch head's bytes, which this
+tester's own criterion 9 test independently pins as identical to main outside
+E-22's body. All three pass on main (`85612ed` worktree: the two bun files
+118 pass / 0 fail) and fail at the branch head only.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 25: outside E-25, engineering-decisions.md is main's; still E-1..E-30" | `e9d666e`, T-088 tester: E-1..E-30 outside E-25 unchanged by T-088 | T-096 criteria 2-3 edit E-22, which is outside E-25 | modify | Same name and body; `MAIN_ED_OUTSIDE_E25_SHA` becomes `5eded744b349191071927afd82baf3dc9b996911a99f7090e8fc9422c9f151c7` (same masking of E-25, same 30-heading check); its doc comment adds "re-pinned at `49444c8` (T-096, Test change request row 1) after T-096 amended E-22". | *(pending: a person, in an attended tester session)* |
+| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 13: E-29 records the change; E-1..E-28 untouched` › "E-1..E-28 are byte-identical to 6587ed0's, and there are 30 E-n headings at the branch head" | `cf63f66`, T-092 tester (digest last re-pinned `8aea8b5`, T-088 row 16): E-1..E-28 unchanged by T-092 | T-096 criteria 2-3 edit E-22, inside E-1..E-28 | modify | Renamed "E-1..E-28 are byte-identical to 49444c8's, and there are 30 E-n headings at the branch head"; the sha256 of E-1..E-28 concatenated becomes `2ab3d27ab7e9538a262ddcdf10475547f1c394fcd49d817b38e89dd8d4db51e0`; both 30-heading assertions unchanged; comment adds "Re-pinned at 49444c8 (re-pinned T-096, Test change request row 2), after T-096 amended E-22." | *(pending)* |
+| 3 | `backend/tests/test_t089_tester_criteria.py` › `test_criterion_13_e1_to_e27_are_byte_identical` | `eebec2c`, T-089 tester (re-pinned `8aea8b5`, T-088 row 18): E-1..E-27 unchanged by T-089 | T-096 criteria 2-3 edit E-22, inside E-1..E-27; the bullet grew by 36 bytes | modify | Same name and both assertions; `DECISIONS_ON_MAIN = "f38eb54642ddf4ea479eb9d5a6db8745791d6e9db0bd606e56ace1df350588f0"`, `DECISIONS_ON_MAIN_LEN = 120085` (still followed by `\n## E-28 `); comment adds "Re-pinned at 49444c8 (re-pinned T-096, Test change request row 3) after T-096 amended E-22 (120085 bytes)." | *(pending)* |
+
+No count floor is affected (no deletion). Digests were computed by this tester
+from the branch head and agree with the worker's Handoff values.
+
+To approve: start the `tester` step for this task in a session you are
+attending, and answer it there. It fills in Decision, sets the header's `Test
+changes:` to `approved — <name>, <date>`, and applies the approved rows. Or make
+the approved edits yourself, by hand, and set `Next step: tester`.
+
 ## Verdict
+
+**TL;DR: not yet a verdict — halted on a Test change request.** All 23
+criteria are met by the code; criterion 23 (whole suites green) is held red
+only by three stale E-22 digest pins (rows 1-3 above), which need a person's
+approval. Next: a `tester` in a session a person attends, to ask and apply.
+
+**Independence.** This run is orchestrated (`runs/T-096-farm-animal-loose-ends.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` printed `cse_011oDiJfRVR9sPsnPiXjAsMq`,
+the same id listed as task-expander and worker, so **the session-id check
+proves nothing here and did not pass.** Independence rests on this being a
+freshly spawned subagent with its own context window, which did not see the
+work or the worker's reasoning. That is weaker than a separate session: it
+depends on the orchestrator having spawned it correctly.
+
+**Tests:** `question-bank/src/farm-animal-loose-ends-verify.test.ts`, 25 tests,
+all green. Main's values (the 8 drafts on which main's `clickDistractorsFor`
+returned `undefined`, a digest of its other 410 results, `LEVEL_SEED_WEIGHTS`,
+E-22's `concept_load` line, file and section digests) were computed in a
+worktree of `85612ed` and pinned, because CI checks out shallow.
+
+| Criteria | Verdict | Evidence |
+|---|---|---|
+| 1-3 | met | bullet found inside E-22; no `six`/`6`; its only animal count is "eleven" |
+| 4-5 | met | JSDoc above `concept_load: {` says "eleven animals"; "six T-026 entries" kept |
+| 6 | met | whitespace-collapsed scan of every tracked non-exempt file: no hits |
+| 7-9 | met | `LEVEL_SEED_WEIGHTS` deep-equals main's; constant line byte-identical; ED before/after E-22's body and every heading match main's digests |
+| 10-11 | met | `poolFor` JSDoc directly above `function poolFor(`; one `Pick` JSDoc; no stacked JSDocs in the region |
+| 12-13 | met | throws `Error` naming `draft.id` for IA alone, IA+TX, NE+CA+HI; over the whole bank it throws on exactly main's 8 undefined-emitting farm drafts |
+| 14 | met | every returned array, over the bank and three subsets (400+ arrays), holds only strings |
+| 15 | met | the other 410 drafts (all templates) and the 50 `map_click` drafts match main's results digest-for-digest |
+| 16 | met | `no_centroid` and `too_few_candidates` ShortPools returned as-is |
+| 17-20 | met | question file, 51 entity files, `content.json`, all 8 dependency files match main's digests |
+| 21 | met | 298 tracked non-test files outside the allowed set match main; only the new test files were added |
+| 22 | met | static scan of both T-096 test files; whole suite run with the proxy pointed at `127.0.0.1:1` |
+| 23 | **held** | question-bank `bun test` 2644 pass / 2 fail (rows 1-2); typecheck, lint (0/0) and `format:check` clean. `make -C backend test` 743 pass / 1 fail (row 3) / 9 skipped. Frontend 392 pass / 4 fail: `react-simple-maps` is not installed in this sandbox (`Cannot find package`), same on main; nothing under `frontend/` changed, so CI is the authority there. |
+
+**Mutations** (each reverted; `git status` clean afterwards except the new test file):
+
+- E-22 "eleven" to "six": criteria 2, 3, 6 red. To "twelve": 3 red.
+- seed-level "eleven animals" to "only six animals": 4, 5, 6 red. To "9 animals": 5 red.
+- `poolFor` JSDoc moved back above `type Pick`: 10, 11 red.
+- guard disabled (main's `p.entity?.geometry_id`): 12-13 (both) and 14 red.
+- message uses `draft.entityId`, not `draft.id`: both 12-13 tests red.
+- picks reversed before mapping: both criterion 15 tests red.
+- ShortPool thrown instead of returned: 16, 15 and the bank-wide 12-13 test red.
+- farm `concept_load` 1 to 2: 7 red. E-22 constant line spacing: 8 red. E-24 heading touched: 9 red.
+- one byte appended to `openapi.yaml`, an entity file, `content.json`, `package.json`: 18, 19, 20, 21 red.
+
+**Interpretations, stated so a reader can disagree:**
+
+- **Criterion 21** lists the allowed files; the diff also holds
+  `runs/T-096-farm-animal-loose-ends.md` (the orchestrator's run log) and the
+  `tasks.md` todo-to-doing flip by the expander. I treated both as the loop's
+  records, not the task's deliverable, and exempted them in the test.
+- **Criterion 14 vs Out of scope** (the worker's flag). An entity pick with no
+  `geometry_id` would still yield `undefined`; Out of scope makes that case
+  unspecified, so I tested 14 over the committed bank and real subsets, where
+  every entity has a `geometry_id`. Not a blocker; if 14 is meant for any
+  input, that is a brief question for `task-expander`.
 
 ## Notes
 
