@@ -163,3 +163,6 @@ Dkaattae, in the orchestrator's session: "ci is fixed you can proceed". The atte
 
 ## Ended — 2026-10-30
 Reviewer approved and marked PR #110 ready. Run over; merge is Dkaattae's.
+
+## After the run — hand edit at Dkaattae's request — 2026-10-30
+Dkaattae, in the orchestrator's session: "add the P-17 note to process-tasks.md". The reviewer's sixth-instance text from PR #110's body was added above P-17's `**This is a process-file change**` line. That turns `farm-animal-loose-ends-verify.test.ts` criterion 21 red, so Dkaattae was asked in this session and chose "Exclude process-tasks.md": `process-tasks.md` added to `CRITERION_21_ALLOWED`, the count went from 298 to 297, and `MAIN_UNTOUCHABLE_SHA` was re-pinned to `1ac2ad79…f293c`. The other 297 files were checked unchanged against `85612ed` (`git diff --name-only 85612ed`). Suites: question-bank 2646 pass / 0 fail, typecheck, lint and format:check clean; backend 744 passed / 9 skipped.

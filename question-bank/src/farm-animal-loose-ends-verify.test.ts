@@ -140,13 +140,16 @@ const MAIN_DEP_FILES = [
 const MAIN_DEP_SHA = "74f692ed8754aa416b9c2d83dc3501213f947b1dba34d1293016e51eea248419";
 /**
  * fileRowsSha over every tracked file at 85612ed that is neither a test file
- * nor in CRITERION_21_ALLOWED: 298 files.
+ * nor in CRITERION_21_ALLOWED: 297 files. Re-pinned when `process-tasks.md`
+ * joined the allowed set (approved by Dkaattae, 2026-10-30, in the session
+ * that made the edit).
  */
-const MAIN_UNTOUCHABLE_SHA = "8cbe1df7316aae7657ba4c37d6217b10aa97e87f80653c0211f4344717c81c07";
+const MAIN_UNTOUCHABLE_SHA = "1ac2ad7968a23ed927e05fd90b5fd4a2bca4d2f146ed5cb067654be7484f293c";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
- * deliverable (named in the Verdict).
+ * deliverable (named in the Verdict). `process-tasks.md` is the loop's queue
+ * too, and P-17's T-096 instance is recorded there.
  */
 const CRITERION_21_ALLOWED = new Set([
   "engineering-decisions.md",
@@ -156,6 +159,7 @@ const CRITERION_21_ALLOWED = new Set([
   "tasks.md",
   "PROGRESS.md",
   "runs/T-096-farm-animal-loose-ends.md",
+  "process-tasks.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
@@ -518,7 +522,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(298);
+    expect(rest.length).toBe(297);
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });
