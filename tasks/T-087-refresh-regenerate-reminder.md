@@ -1,7 +1,7 @@
 # T-087 — A bank refresh tells you to regenerate the question file and the served bank
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #112 (Dkaattae)
 **Approved:** orchestrator — 2026-10-30, unattended run. See `runs/T-087-refresh-regenerate-reminder.md`.
 **Test changes:** `approved — Dkaattae, 2026-10-30` (rows 1-12, 10a, 11a, 13, 14)
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | worker | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx |
 | tester | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx (orchestrated: shared id; fresh subagent context) |
 | tester (attended) | 2026-10-30 | cse_011oDiJctHP57TNboL3nFxs6 |
+| reviewer | 2026-10-30 | cse_011oDiJf8mLL75U1jKWTn7Jx (orchestrated: shared id; fresh subagent context) |
 
 **Worker model:** Sonnet is enough. One `package.json` script, a few printed
 lines in `refresh.ts`, two doc edits. No data moves and no question changes.
@@ -468,6 +469,36 @@ All 12 rows go stale for the same reason. T-087 has to change `question-bank/pac
 **Not in the request.** `T-091 criterion 22 › each test in the approved Test change request is 8108a42's` still passes, and rows 8, 9, 11 and 12 do not touch its files. If applying the rows turns it red, add a row for it rather than editing it.
 
 **Observation, not a request.** Rows 10–12 count every tracked file, so each later task trips them, including on its own brief. The worker suggested a `tasks.md` entry for that. **Owner: reviewer.**
+
+## Review
+
+**TL;DR. Approved, inside the envelope.** The change is small, idiomatic and exactly what the brief asked for. The suite is green locally and in CI. Swept in this PR and marked ready; **Dkaattae merges.** One thing to know before merging: the criteria carry the orchestrator's `Approved:` stamp, so no person approved them by name.
+
+**Checks**
+
+- **PR open and draft**, built from `claude/hopeful-gates-wh4fep`, level with main `0a98e11`.
+- **Every role has a commit:** expander `0d2072c`/`37daa9e`, worker `e982550`, tester `40f6c54`/`ed1fc30`/`8bf0959`/`7672370`, orchestrator `ca63b6e`/`22e7a12`/`0ce2398`/`de4148a`.
+- **Lanes held.** The expander touched only `tasks/` and `tasks.md`. The tester touched only test files and the brief. Pre-existing tests changed only in `8bf0959` (tester), and they match rows 1-14 exactly.
+- **Suite, this session:** question-bank `bun test` 2713 pass, 0 fail. `typecheck`, `lint` and `format:check` are clean. CI on `de4148a`: question-bank, backend, backend (postgres), frontend and integration all pass. e2e was still running when I checked.
+
+**Findings: none block.**
+
+- **Fits the codebase.** `printNextSteps(out)` follows `printSummary` / `printWarnings`: same `out` injection, same placement on the success path. Exporting the two command constants is the least that lets tests import them. The tester's tests deliberately use the brief's literal text instead.
+- **No scope creep.** Nothing is chained. The `--help` text and `generatedBy` are untouched.
+- **Docs are true.** The README paragraph, the `refresh.ts` header comment and `conventions.md` match the behaviour. `backend/README.md:52` and `engineering-decisions.md` still name `bun run ./src/write-questions.ts`. That command still works, and the brief keeps it out of scope.
+
+**Flags disposed**
+
+- **The reminder's wording (worker):** accepted as written. The numbering and the arrow comments make the order readable from either line.
+- **`Approved:` is an orchestrator stamp (worker, tester):** not an envelope trigger (D-2: the stamp records that nobody checked). It is called out at the top of the PR body so the merger sees it. Dkaattae was present for the attended tester step, but approving test rows is not approving the criteria.
+- **Queue entry for the drift-test failure messages (worker):** declined. The new README paragraph names both failing tests. Only the drift test's own message would add anything, and that is not worth a queue slot.
+- **Whole-repo tracked-file pins trip every task (worker, tester):** already P-17. T-087 is a seventh instance: rows 10-14 existed only because of those pins. I did **not** add it to `process-tasks.md`. T-091's criterion 22 pins every tracked non-test file outside its allowed set, and `process-tasks.md` is not in that set, so the edit would turn the suite red. The PR body asks a person to add it by hand. This is the same thing T-091's and T-096's reviewers did.
+
+**Queue changes (sweep)**
+
+- **T-087:** deleted. Logged under "Completed tasks" in `PROGRESS.md`.
+- **T-095 amended:** its sentence saying T-087 "regenerates" was untrue, and is corrected. It now owns the restore of T-070's four relaxed `extractedAt` tests if its option (a) makes the refresh regenerate `content.json`. That condition moved here from T-087's queue entry.
+- **`tasks.md` §B intro and `PROGRESS.md` "Regenerating is by hand":** reworded. The refresh now prints the commands but does not run them.
 
 ## Notes
 
