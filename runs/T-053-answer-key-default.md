@@ -139,3 +139,32 @@ Dkaattae, in the orchestrator's session, verbatim: "approved as written, includi
 - **Function default left as is:** `serializers.question_payload` and `served_payload` still default to `include_answer_key=True`. No HTTP response depends on that default, and flipping it would make one more test stale (`test_t051_map_click.py:114`). Reviewer to confirm, or to ask for the flip.
 - **Bundle `ETag`/caching:** out of scope here. The reviewer's sweep should add the `tasks.md` entry the brief proposes.
 - **Sessions table:** my worker row has the same session id as the expander rows (`cse_011oDiJctNqgXZb5TuFbpsXz`), because the environment variable returns the parent session's id. I ran as a separate subagent. The tester should take that into account when checking that it runs in a different session from me. Process owner to decide how subagent sessions should be recorded.
+
+## Round 4 — tester — 2026-11-02
+`Next step` on entry: `tester` → on exit: `human` (`Status: test changes requested`, `Test changes: requested`)
+
+**TL;DR: T-053 is halted on a Test change request, not a verdict.** The code meets criteria 1-20 and 22-26: I wrote 40 new tests and all pass. The suite is still red because 43 existing unit tests, plus the integration test that criterion 21 rewrites, read the answer key off a default response. That breakage is what the task intends. **Next: a person approves the request in a `tester` session they are attending.** I could not get that approval here, and you cannot give it for them (D-15).
+
+**Header now reads:** Status `test changes requested`, Next step `human`, Test changes `requested`. Fault is set, and my Sessions row is added. Pushed to `claude/magical-davinci-y58qf6`: commit `249fdf9`, and the remote head matches it.
+
+**How independent this was:** this is an orchestrated run, so my session id is the same as the worker's row and the id check proves nothing. My independence comes only from being a freshly spawned subagent with my own context. That is weaker than a separate session, and the Verdict says so.
+
+**Evidence**
+- **Criteria tests:** `/home/user/geo-discovery-zone/backend/tests/test_t053_tester_criteria.py`, 40 passed. Each test is named after its criterion, c1 to c26. Criterion 21 is the exception: it is row 18 of the request.
+- **Mutation:** I temporarily put back the old `True` defaults in `content.py` (three places), `models.NextQuestionRequest` and `_serve_next`. 22 of the 40 tests went red (c1, c4, c6, c8, c10-c14). The other 18 check spec text, the opt-in path or the git diff, so that change should not trip them. I reverted it, and `git status` was clean apart from the new test file.
+- **Full unit run (`uv run pytest -q`):** 43 failed, 841 passed, 9 skipped. The 43 failures match the worker's "Tests made stale" list exactly; I diffed the two.
+- **Proof they are stale, not broken:** I ran the same 43 against the pre-task `backend/app` and `openapi.yaml` from commit `e2e6495`: all 43 passed. I then restored both.
+- **Lint:** `ruff check` and `ruff format --check` are clean. The backend has no typechecker configured.
+- **Not run:** the integration suite (it needs docker compose) and e2e (the only e2e change is a comment).
+
+**The request** (in `/home/user/geo-discovery-zone/tasks/T-053-answer-key-default.md`, `## Test change request`)
+- **18 rows covering 44 tests, all modify, none delete.** No assertion is dropped and no count floor changes.
+- **The fix is the same throughout:** ask for the key with `includeAnswerKey=true`. Three shared helper changes (H1-H3) are listed so they can be approved too.
+- **Rows that do more than add the opt-in:** row 14 (spec text `=false` becomes `=true`), row 16, row 17, and row 18 (the integration test, renamed as criterion 21 requires).
+- **Rows 16 and 17 are tightened:** each now also checks that the key is withheld when no flag is passed.
+
+**Noticed, not acted on:** `serializers.question_payload` and `served_payload` still default `include_answer_key=True` as plain functions. No HTTP response depends on that. Whether to flip it is the reviewer's call.
+
+## Halted — test change request — 2026-11-02
+Raised in commit `249fdf9` (branch head at halt). Rows not copied here; the orchestrator has not read them.
+To resume: Dkaattae starts the `tester` step for T-053 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take this approval (D-15). This run ends here.
