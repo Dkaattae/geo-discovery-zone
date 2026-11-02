@@ -208,7 +208,7 @@ No count floors affected.
 | `make -C backend test` | 765 passed, 9 skipped |
 | `make -C backend lint` / `format-check` | all checks passed / 57 files already formatted |
 | frontend | not re-run. Nothing under `frontend/` changed, and CI was green on `f414d7a`. |
-| CI on `bcb2a38` | still running when this verdict was committed. If it comes back red, this verdict does not stand: the reviewer must check the PR's checks first. |
+| CI on the verdict commit (run 41471937563) | **question-bank, frontend, backend (lint/format/test and postgres) and integration: success.** e2e was still running when this line was written; it passed on `f414d7a`, and nothing it covers has changed since. Reviewer: confirm e2e on the PR. |
 | Criteria 1-16, 18, 19 | unchanged since the run below: `openapi.yaml` and `backend/` are untouched since `f414d7a`, so its tests and mutations still stand |
 
 **Tests modified (all approved, none deleted):**
