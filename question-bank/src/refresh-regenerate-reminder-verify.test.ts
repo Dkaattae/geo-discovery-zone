@@ -73,7 +73,7 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // and added two backend test files.
 // Re-pinned by T-053 (Test change request row 27): T-053 changed three backend/app
 // files, two e2e files and eleven backend test files, and added two backend test files.
-const MAIN_BOUNDARY_SHA = "fa18fa95d519770dd4e7f202651e973ae7bb258f1936fcc7f1679046a767733f";
+const MAIN_BOUNDARY_SHA = "4843e13ac1f45c7af461d9fc510182e3138a524ffda59248e817fef157a853e4";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",
