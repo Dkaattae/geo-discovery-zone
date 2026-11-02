@@ -138,8 +138,9 @@ prose in the plan. §C and §D below are the path to them.
 
 The one exception is the endpoints that exist and serve nothing —
 `/geometry/{layer}`, `/elevation-profiles`, `/superlative-axes` — which return
-404 or an empty list on purpose, because the data they need is not in this repo
-(T-039).
+404 or an empty list on purpose, because the data they need is not in this repo.
+`openapi.yaml` marks each one "Not implemented in v1" and says what serving it
+would take (T-039, PR #113).
 
 ---
 
@@ -335,33 +336,17 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-039 — Three endpoints exist and serve nothing · S · doing (awaiting approval, see `tasks/T-039-empty-content-endpoints.md`)
-**Depends on:** —
-**New 2026-08-24.** `/geometry/{layer}` returns 404, `/elevation-profiles` and
-`/superlative-axes` return empty lists. That is deliberate — they need sampled or
-licensed source data this repo does not carry, and inventing numbers in an app
-that claims to teach children is the one thing `CLAUDE.md` forbids outright — but
-"implemented, returns nothing" is a state that should not last indefinitely.
-
-Three separable decisions:
-- **Geometry.** The client bundles `us-atlas` at build time and does not need
-  this endpoint. Either source real vector layers or say the endpoint is for
-  later clients and mark it so in the contract.
-- **Superlatives** are nearly free (plan §1.8) — the rank fields are populated.
-  T-026 (PR #91) serves area superlatives from `area_rank` without this endpoint.
-- **Elevation** needs a real terrain source (plan §2.6) and is a project of its own.
-**Done when:** each of the three is either serving real data or documented in
-`openapi.yaml` as intentionally unimplemented, with what it would take.
-
 ### T-045 — Three question formats have no answer key · S · todo
 **Depends on:** —
 **New 2026-08-24.** `drag_order`, `pin_*` and `click_profile` questions cannot be
 graded by the seeded bank — submitting one returns 422 rather than a guess, which
 is the right failure. Pin grading is implemented as nearest-centroid with a
 distance cap; the contract's polygon-then-centroid strategy (§2.5) needs the
-geometry layers from T-039. Decide whether these formats are near-term (in which
-case they need keys and T-039's geometry) or whether the contract should mark
-them as not yet gradeable.
+geometry layers, and `/geometry/{layer}` serves none: T-039 (PR #113) documented
+it as not implemented in v1 and kept for later clients. Decide whether these
+formats are near-term (in which case they need keys, and sourcing the TopoJSON
+layers becomes part of this task) or whether the contract should mark them as
+not yet gradeable.
 **Amended 2026-10-27 by T-051's reviewer (PR #96).** T-051 gave
 `UngradableAnswer` a `path`, so a `map_click` 422 names `/tappedGeometryId`.
 A pin question's 422 still names `/choiceIndex` (`grading.py`, `PIN_FORMATS`
@@ -581,7 +566,8 @@ Not broken down yet — they depend on decisions above. Break each one down when
 it comes into view.
 
 - **Superlatives** — area "biggest" landed in T-026 (PR #91). Other axes,
-  `ab_compare` and region scopes are left, with T-039
+  `ab_compare` and region scopes are left. `/superlative-axes` is documented
+  as not implemented in v1 (T-039, PR #113)
 - **Countries**, then world cities, then rivers / mountains / oceans (plan §1.7).
   Not before the US loop feels good (plan §4) — which means not before §D
 - **Pin formats** and point-in-polygon grading (plan §2.5) — see T-045
