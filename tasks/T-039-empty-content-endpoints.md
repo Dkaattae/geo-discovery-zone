@@ -1,7 +1,7 @@
 # T-039 — Three endpoints exist and serve nothing
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #113 (Dkaattae)
 **Approved:** Dkaattae — 2026-11-02, given in the orchestrator's session ("I approve it"). See `runs/T-039-empty-content-endpoints.md`.
 **Test changes:** `approved — the person attending tester session cse_011oDiJcM1hdV3SgkFgmp95W (no name given), 2026-11-02`
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | worker | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` |
 | tester | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` (orchestrated subagent; same id as every role, see Verdict) |
 | tester | 2026-11-02 | `cse_011oDiJcM1hdV3SgkFgmp95W` (attended; a separate session from every row above) |
+| reviewer | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` (orchestrated subagent; shared id, fresh context) |
 
 ## TL;DR
 
@@ -288,6 +289,43 @@ Raised 2026-11-02 by the tester. **Approved (all 8 rows) and applied in `bcb2a38
 Rows 5, 7 and 8 change file counts inside digest pins. None of them is a T-066-style test-count floor. If only some rows are approved, the suite stays red and the verdict is `blocked`.
 
 To approve: start the `tester` step for T-039 in a session you are attending and answer row by row there. Writing the Decision column here first is fine, but the tester will still ask you to confirm it in its session.
+
+## Review
+
+**TL;DR. Approved, inside the envelope.** The `openapi.yaml` prose is accurate against `backend/app/routers/content.py`, it stays inside the four operations and the one overview bullet, and nothing else in the product moved. Swept in this PR and marked ready. **Dkaattae merges.** Nothing here needs a decision first.
+
+**Checks**
+
+- **PR #113 open and draft**, built from `claude/kind-pasteur-34x9tx`, base `main` `bfa9af1`.
+- **Every role has a commit:** expander `1e607ae`/`cc00b4f`/`da50ae9`, worker `ed00235`, tester `8d3ee5a` (orchestrated) and `00f3290`/`bcb2a38`/`ec44132`/`e9464f8` (attended), orchestrator `c697d51`…`ef59ac2`.
+- **Lanes held.** The expander's commits touch only `tasks/` and `tasks.md`. The worker touched `openapi.yaml`, one new backend test and the brief. The tester touched only test files and the brief. Pre-existing tests changed only in `bcb2a38` (tester), and the six files match rows 1-8 exactly.
+- **Suite, this session:** `make -C backend test` 765 passed, 9 skipped; `make -C backend lint` clean. question-bank and frontend: see the tester's table; CI is the authority for those (this container lacks `oxlint`, `prettier` and `frontend/node_modules`).
+
+**Envelope**
+
+- **`openapi.yaml` changed.** `.claude/agents/reviewer.md` still lists that as an escalation trigger, but `engineering-decisions.md` E-14 (amended by P-8, by the user) says a change to it needs "no special care, no announcement and no escalation", and `CLAUDE.md` says the same. The newer, explicit human rule wins. The stale line in `reviewer.md` is a loop gap; see the PR body.
+- **Pre-existing tests modified, none deleted:** rows 1-8, approved by a person in attended tester session `cse_011oDiJcM1hdV3SgkFgmp95W`. Not an orchestrator stamp. The person gave no name; the header records the session, which is what D-14 needs.
+- **No dependency, migration, plan change, CI fix, or text a child reads.** The new prose is in operation descriptions; no response changes (criterion 13).
+
+**Findings: none block.**
+
+1. **Criterion 18 is met in substance, not in letter.** It says nothing under `question-bank/` changes, and the approved rows changed six `question-bank/src/*-verify.test.ts` files. The tester checked 18 at `f414d7a`, before the rows were applied. The approval resolves the conflict; the criterion's intent (no source, data or lockfile change) holds. Recorded in the PR body rather than left implicit. No task: P-16 already covers the expander not predicting byte pins.
+2. **The tester's criteria 14-16 tests are new permanent pins** (`backend/tests/test_t039_tester_criteria.py`). c15 pins the full set of 32 operations, so the next task that adds an endpoint turns it red. c16 pins the `required` lists of the three schemas the eventual implementing task is most likely to touch. c14 pins four other tests' bytes. This is P-17 (an eighth instance). I did **not** add it to `process-tasks.md`: T-096's criterion 21 and T-091's criterion 22 pin that file, so the edit would turn the suite red. The PR body asks a person to add it by hand, as T-087's, T-091's and T-096's reviewers did.
+3. **Worker and tester tests overlap.** `test_unimplemented_content_docs.py` checks a subset of what `test_t039_tester_criteria.py` checks. Harmless and the repo's usual shape (worker tests, then independent tester tests). No task.
+
+**Flags disposed**
+
+- **"Once served" text kept (worker):** accepted. It still describes the shape the kept schemas define, and it is clearly fenced from the v1 statement.
+- **`getElevationProfile` gained a description (worker):** correct; criterion 1 required one.
+- **The expander should grep for `openapi.yaml` pins (worker):** deferred to P-16, which is exactly that.
+- **Shared session id across roles (worker, tester):** P-14. The attended tester session gives real independence for the final verdict.
+- **Confirm e2e on the PR (tester):** checked at review time; see the PR body.
+
+**Queue changes (sweep)**
+
+- **T-039:** deleted; logged under "Completed tasks" in `PROGRESS.md`.
+- **T-045 amended:** it said polygon pin grading "needs the geometry layers from T-039". T-039 decided not to serve them, so sourcing geometry is now part of T-045's own decision.
+- **`tasks.md` §C intro and §H superlatives line, `PROGRESS.md` known gap:** now say the three endpoints are documented as not implemented in v1, instead of pointing at an open T-039.
 
 ## Notes
 
