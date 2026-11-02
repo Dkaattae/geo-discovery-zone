@@ -1,7 +1,7 @@
 # T-039 — Three endpoints exist and serve nothing — run log
 
 **Task:** T-039 · **Branch:** `claude/kind-pasteur-34x9tx` · **PR:** #113
-**Started:** 2026-11-02 · **Outcome:** halted — needs human
+**Started:** 2026-11-02 · **Outcome:** halted — test change request, needs an attended tester
 
 ## Round 1 — task-expander — 2026-11-02
 `Next step` on entry: `(no brief)` → on exit: `human` (`Status: blocked`)
@@ -137,3 +137,43 @@ Dkaattae, in the orchestrator's session, answering "How should it be approved?":
 - **Old explanations kept** (owner: reviewer, to confirm or trim): I kept each operation's previous text under "Once served" instead of deleting it.
 
 _Orchestrator note: this hand-back was delivered to the orchestrator's context in full; none of it goes into the tester's prompt, which is the unmodified template._
+
+## Round 4 — tester — 2026-11-02
+`Next step` on entry: `tester` → on exit: `human` (`Status: test changes requested`, `Test changes: requested`)
+
+**T-039 tester: `test changes requested`, so it needs a human. It is not a pass yet.** Criteria 1-16, 18 and 19 are met, and each has a test (18 new tests, all green). Criterion 17 is not met: six existing question-bank pins went red because of this task's own change. The worker named three of them; the other three are new. The push landed: local HEAD and `origin/claude/kind-pasteur-34x9tx` are both `8d3ee5a`. **Next:** a person has to approve rows 1-6 in a tester session they are attending. I applied none of them.
+
+**Independence.** This run is orchestrated (`runs/T-039-empty-content-endpoints.md` exists), so every role, including mine, reports the same session id `cse_011oDiJespfZF72h12BCQwBp`. The Sessions-table check therefore proves nothing. My independence rests only on being a freshly spawned subagent with its own context, which depends on the orchestrator having spawned me correctly. The Verdict says this.
+
+**Criteria**
+- **1-16 and 19:** met, one test each in `/home/user/geo-discovery-zone/backend/tests/test_t039_tester_criteria.py`. Criterion 14 hashes the four existing tests' source lines against `3de6aca`. Criterion 15 compares all 32 (path, method, operationId) entries against `3de6aca`.
+- **18:** met. I checked it by command (`git diff --name-only 3de6aca HEAD -- backend/app frontend question-bank e2e '*lock*'` is empty) rather than with a lasting tree pin, because tree pins are what caused rows 4 and 5.
+- **17:** not met.
+  - Backend: 765 passed, 9 skipped. Lint and format are clean.
+  - question-bank: 2674 pass, 19 fail. 6 of those are the stale pins. 13 are already red on `3de6aca` or fail only because tools are missing here: T-066 ×11 (no oxlint/prettier), T-096 c21 and T-091 c22a. The last one is bun's "unhandled error" because `prettier` is not installed.
+  - Frontend: red locally only because this container has no `node_modules`. CI on `f414d7a` shows frontend, backend, postgres, e2e and integration green, and only question-bank red.
+
+**Test change request (rows 1-6 in the brief)**
+- **Rows 1-3:** the openapi.yaml byte pins in T-088 c21, T-092 c16 and T-085a c25. These are the three the worker listed.
+- **Row 4:** T-087 c15, which pins the whole backend/frontend/e2e tree. It went red because of the new backend test files: the worker's, and now mine.
+- **Row 5:** T-091 c22b, which pins the pre-existing test files. Its count goes from 107 to 109.
+- **Row 6:** T-091 c22c, which pins the bytes of the three files rows 1-3 edit. It only moves if rows 1-3 are applied.
+- **The values are tested:** I applied all six rows in a scratch worktree. question-bank then dropped to 14 fails, all of them the pre-existing or missing-tool ones. Every value in the rows comes from that simulation.
+
+**Mutation checks on my own tests:** each one went red when I broke what it checks. All mutations are reverted and `git status` was clean.
+- I broke the spec in several ways: reverted `openapi.yaml` to `3de6aca`, removed the "not implemented" mark from one operation, marked `listEntities`, put `/geometry` back in the Content bullet, dropped `tpl-biggest-state`, renamed an operationId, and dropped a `required` entry.
+- I also changed the existing content tests and set `SUPERLATIVE_AXES` in the router to a non-empty value.
+- One test was weak and is now fixed. Criterion 14 first hashed with `ast.get_source_segment`, which ignores a trailing comment, so a changed test could still pass. It now hashes whole lines and goes red on that change.
+
+**Brief header:** Status `test changes requested`, Next step `human`, Test changes `requested`. The Fault line says the test changes are waiting for approval. My Sessions row is added.
+
+**Files**
+- `/home/user/geo-discovery-zone/backend/tests/test_t039_tester_criteria.py` (new)
+- `/home/user/geo-discovery-zone/tasks/T-039-empty-content-endpoints.md` (Verdict and Test change request sections, header, Sessions row)
+
+## Halted — test change request — 2026-11-02
+Raised by the tester in commit `8d3ee5a` (branch head at halt). Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not copied here; the orchestrator has not read them and cannot approve them (D-15).
+
+To resume: Dkaattae starts the `tester` step for T-039 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. After that, a run carries on from the header's `Next step`.
+
+Round counts at halt: fail 0, blocked 0.
