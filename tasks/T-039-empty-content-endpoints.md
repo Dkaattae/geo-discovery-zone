@@ -1,14 +1,14 @@
 # T-039 — Three endpoints exist and serve nothing
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-11-02, given in the orchestrator's session ("I approve it"). See `runs/T-039-empty-content-endpoints.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-039
 **Branch:** `claude/kind-pasteur-34x9tx`
 **PR:** #113, opened draft at expand time against the branch above
-**Fault:** the queue entry is three separable product decisions, none of them made, so no criterion can be written without the expander making them (task-expander, 2026-11-02).
+**Fault:** test changes are waiting for approval: six pre-existing question-bank pins (rows 1-6 of `## Test change request`) are red by this task's own change, so criterion 17 cannot pass until a person approves them in an attended `tester` session (tester, 2026-11-02).
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` |
 | task-expander | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` (resumed after Dkaattae's answers) |
 | worker | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` |
+| tester | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` (orchestrated subagent; same id as every role, see Verdict) |
 
 ## TL;DR
 
@@ -191,6 +192,73 @@ No count floors affected.
 - **Criterion 17** also cannot be fully observed in this container for `frontend` (no deps). Tester to rerun where `bun install` works; owner: tester.
 
 ## Verdict
+
+**TL;DR:** `test changes requested`, not yet pass. Criteria 1-16, 18 and 19 are met, each with a test in `backend/tests/test_t039_tester_criteria.py` (18 tests, all green). Criterion 17 is not met yet: the question-bank suite has **six** red pins caused by this task's own change. The worker named three; I found two more plus a knock-on one. **Next: a person approves rows 1-6 below in an attended `tester` session.** That session applies them and finishes the verdict.
+
+**Independence.** This run is orchestrated (`runs/T-039-empty-content-endpoints.md` exists). Every role reports the same `CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJespfZF72h12BCQwBp`), so the Sessions-table check proves nothing here. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly, and I cannot check that myself.
+
+| # | Verdict | Evidence (`backend/tests/test_t039_tester_criteria.py`) |
+|---|---|---|
+| 1 | met | `test_c1_…`: all four descriptions contain `Not implemented in v1` |
+| 2 | met | `test_c2_…`: walks every path and method; no other operation has the mark |
+| 3 | met | `test_c3_…`: `404` plus "every layer" |
+| 4 | met | `test_c4_…`: `us-atlas`, `build time`, "does not call" |
+| 5 | met | `test_c5_…`: `TopoJSON`, `Census TIGER`, `Natural Earth` |
+| 6 | met | `test_c6_…`: the word `later` |
+| 7 | met | `test_c7_…` (empty, `data`, `entityType`); runtime half in `test_c13_…` (`?entityType=state/river/country` → `{"data": []}`) |
+| 8 | met | `test_c8_…`: `tpl-biggest-state`, `/questions`, "biggest" |
+| 9 | met | `test_c9_…`: `promptMost`, `reviewed`, "rank" |
+| 10 | met | `test_c10_…`: list "empty" + `data`; get `404` + "every `profileKey`" |
+| 11 | met | `test_c11_…`: `terrain` + `build time` on the list; get refers to `listElevationProfiles` |
+| 12 | met | `test_c12_…`: the Content bullet's served list leaves out all three paths; the bullet then says "not implemented in v1" and names all three |
+| 13 | met | `test_c13_…`: the five responses, exactly as the criterion gives them |
+| 14 | met | `test_c14_…`: sha256 of each of the four functions' whole source lines equals its value at `3de6aca`. The four tests pass. |
+| 15 | met | `test_c15_…`: (path, method, operationId) set equals the 32 at `3de6aca`; `test_contract.py` passes |
+| 16 | met | `test_c16_…`: the three schemas are present; `required` lists match `3de6aca` (`GeometryLayer` is a string enum with no `required`) |
+| 17 | **not met** | YAML parses (`test_c17_…`) and the backend suite is green. **question-bank is red by this task's change:** rows 1-6 below. Frontend: green in CI on `f414d7a`. Locally it is environmental only (see below). |
+| 18 | met | `git diff --name-only 3de6aca HEAD -- backend/app frontend question-bank e2e '*lock*'` is empty. Checked by command, not by a test: a lasting tree pin is exactly what produced rows 4-5. |
+| 19 | met | `test_c19_…`: neither T-039 test file imports a network client or names a URL. The runtime tests use the in-process ASGI client from `conftest.py`. |
+
+**Runs (this container, branch head `f414d7a` plus my test file):**
+- `make -C backend test`: **765 passed, 9 skipped.**
+- `make -C backend lint`: all checks passed. `make -C backend format-check`: 57 files already formatted.
+- `cd question-bank && bun test`: **2674 pass, 19 fail.**
+  - 6 are rows 1-6 below.
+  - 13 are pre-existing: T-066 c1-8 and c15 (11 tests: `oxlint` and `prettier` are not installed here), T-096 c21, and T-091 c22's first test. I confirmed T-096 c21 and T-091 c22a are red on `3de6aca`, before this task.
+  - 1 more is bun's "Unhandled error between tests": `src/prettier-gate.test.ts` cannot find package `prettier`. Also environmental.
+- `cd frontend && bun test`: 386 pass, 10 fail. Every failure is environmental: `react/jsx-runtime` is missing, and the lint and format scripts are absent because this container has no `frontend/node_modules`. No frontend file changed. CI on `f414d7a` reports `frontend (typecheck, lint, test)` **success**, and so do backend, postgres, e2e and integration. Only `question-bank` fails, which matches rows 1-6.
+- One frontend test rewrote `frontend/README.md` during the run. I reverted it and did not commit it.
+
+**Simulation of the request.** In a scratch worktree (HEAD plus this test file), I applied rows 1-6 exactly as written below. The question-bank suite then went to **2679 pass, 14 fail**. All 14 were the pre-existing and environmental reds listed above: the 13 tests plus the `prettier` load error. So the six rows are sufficient and every value in them is exact. I committed none of those edits.
+
+**How my own tests were checked (temporary mutations, all reverted, `git status` clean afterwards):**
+- I swapped `openapi.yaml` for its `3de6aca` version. c1 and c3-c12 went red (11 tests).
+- I removed the mark from `getElevationProfile`. Only c1 went red.
+- I added the mark to `listEntities`. Only c2 went red.
+- I put `/geometry` back in the Content bullet's served list. Only c12 went red.
+- I replaced `tpl-biggest-state` with other text. Only c8 went red.
+- I renamed operationId `getElevationProfile` and dropped `promptMost` from `SuperlativeAxis.required`. c15 and c16 went red, and so did c1, c2, c10 and c11, because they look the operation up by its id.
+- I added a trailing comment to `test_an_unknown_geometry_layer_is_rejected_by_the_enum`. c14 was green at first, because `ast.get_source_segment` ignores trailing comments. I fixed my test to hash whole lines, and it then went red. I also made `test_superlative_axes_are_empty_…` assert `or True`, and c14 went red.
+- I set `SUPERLATIVE_AXES = [{"id": "x"}]` in `content.py`. c13 went red. Reverted.
+
+**For whoever reviews this.** The worker's "Tests made stale" list named rows 1-3 only. Rows 4 and 5 are red because the worker's commit added a tracked test file under `backend/`, and my commit adds a second one. Row 6 follows from applying rows 1-3. Any later task that edits `openapi.yaml` or adds a backend test file will hit these same pins.
+
+## Test change request
+
+Raised 2026-11-02 by the tester. **Not approved, and nothing is applied.** Each row was checked against the branch at `f414d7a` plus this commit. Values were computed in a scratch worktree with all six rows applied: the suite then had only the 14 pre-existing reds. All file paths are under `question-bank/src/`. "T-039" in a comment means the re-pin is this request's.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25: what must not change" › "criterion 21: openapi.yaml is byte-identical to main's" | `e9d666e`, T-088 tester: T-088 must not touch the contract | Criteria 1-12 require editing `openapi.yaml` (changed in `ed00235`) | modify | Same name. `MAIN_FILE_SHA["openapi.yaml"]` changes from `cddf482a…f216` to `cd4015e64025f5a3b1b88e5a8948597708f7c5924df924109454850f21c5bcb0`, with comment `// re-pinned at \`ed00235\` (T-039, Test change request row 1): …`. It still asserts the whole file's sha256 equals that value. | |
+| 2 | `map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › `"openapi.yaml (except []) is byte-identical to 5d72ca5"` (a `test.each` row) | `cf63f66`, T-092 tester: T-092 must not touch the contract | Same as row 1 | modify | Remove the `openapi.yaml` row from the `test.each` table. Add a separate test, `"openapi.yaml (except []) is byte-identical to ed00235"`, asserting `treeDigest(REPO, "openapi.yaml", [])` is `8453b57aee6100483248586f57da6555368adfd8b90abe820aaf35e2c9ffac5f`, with a "Re-pinned at ed00235 (re-pinned T-039, Test change request row 2)" comment. This is the same split as the file's existing `backend/app` precedent. | |
+| 3 | `familiarity-drawn-apart-verify.test.ts` › "T-085a criteria 23-25: negative" › "criterion 25: openapi.yaml is unchanged since 5ae564a" | `b061fd8`, T-085a tester: T-085a must not touch the contract | Same as row 1 | modify | Renamed to "criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039)". `BEFORE_FILE_SHA["openapi.yaml"]` changes to `cd4015e64025f5a3b1b88e5a8948597708f7c5924df924109454850f21c5bcb0`, with a comment. It still asserts the whole file's sha256. The other `BEFORE_FILE_SHA` loop excludes `openapi.yaml`, so nothing else moves. | |
+| 4 | `refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is 0a98e11's, none added or removed" | `40f6c54`, T-087 tester: T-087 must not touch those trees | The brief's Constraints allow a new test file under `backend/tests/`. `ed00235` added `test_unimplemented_content_docs.py`, and the tester commit adds `test_t039_tester_criteria.py`. | modify | Renamed to "every tracked file under the three trees is as re-pinned by T-039, none added or removed". `MAIN_BOUNDARY_SHA` changes from `a0171194…5c6e` to `dd45779913252a004865a331e645d523cdb14831fc5ca9b3b3074c9fa157a043`, with comment `// Re-pinned by T-039 (Test change request row 4): T-039 added two backend test files.` It still asserts the `fileRowsSha` over every tracked file under the three trees. | |
+| 5 | `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester; re-pinned by `8bf0959` (T-087). It protects every other test file from being changed. | The same two new backend test files raise the count and change the digest | modify | Same name. `MAIN_TESTS_COUNT` 107 → **109**. `MAIN_TESTS_SHA` changes from `bc91f541…291d` to `31f18e10587d68449c2355ffb1e9df00acf0faac7df1b5a04e52630b2f2ab81b`, with comment `// Re-pinned by T-039 (Test change request row 5): …`. It still asserts the count and the `fileRowsSha`. | |
+| 6 | `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091 tester. It pins T-091's re-pinned files to their exact bytes. | Rows 1-3 edit three of those files, so their pinned digests must move with them. This is a consequence of approving rows 1-3, not a separate change. | modify | Same name. In `APPLIED_REQUEST_FILE_SHAS`, each of these three entries gets a `// re-pinned by T-039 (Test change request row 6)` comment and a new value: `agriculture-true-wrong-answers-verify.test.ts` → `52f8995e0f16a61f32219509e46834789f3b0d181571ad6d4363277dc8b6c6fd`, `map-click-no-candidates-verify.test.ts` → `2a1295a694459096b61458e17feed0054567669c6982b434ac0296b3b7357d6c`, `familiarity-drawn-apart-verify.test.ts` → `bb16434585d6bc28d219b9231d91ba4122e6c79de2ecf07a8e6d84c33744cc0d`. These digests assume rows 1-3 are applied with exactly the bytes in the sim. Recompute them after applying, and refuse row 6 if rows 1-3 are refused. The other entries do not change, and the "differs from main" half still holds. | |
+
+None of these is a count floor. If only some rows are approved, the suite stays red and the verdict is `blocked`.
+
+To approve: start the `tester` step for T-039 in a session you are attending and answer row by row there. Writing the Decision column here first is fine, but the tester will still ask you to confirm it in its session.
 
 ## Notes
 
