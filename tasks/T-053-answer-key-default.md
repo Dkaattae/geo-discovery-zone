@@ -1,7 +1,7 @@
 # T-053 — The public bank hands out the answer key by default
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` (fix review finding 1, then back to `reviewer`)
 **Approved:** Dkaattae — 2026-11-02, "approved as written, including 10–11", given in the orchestrator's session. See `runs/T-053-answer-key-default.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-02` (rows 1-18 applied in `0c53042`; rows 19-33 applied from `89434f3` on; criteria 22 and 23 amended by the same person in the same session)
 **CI fix:** `none`
@@ -20,6 +20,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (subagent spawned by the orchestrator; the env var reports the parent session's id, same as the expander rows) |
 | tester | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (fresh subagent spawned by the orchestrator; same parent id, so the id check proves nothing here) |
 | tester | 2026-11-02 | `session_011oDiJbUGyPxtYXDq2xV2Bz` (attended; applied the approved test change request) |
+| reviewer | 2026-11-02 | `session_011oDiJbUGyPxtYXDq2xV2Bz` (subagent spawned from the attended tester session above, so the id matches that row; fresh context, wrote none of this work. The id proves nothing either way) |
 
 ## For the approver — read this first
 
@@ -581,6 +582,112 @@ recomputed for the changed file.
 **Not run here:** `uv run pytest integration` (no docker daemon), e2e
 (Playwright needs the built stack), and the question-bank lint and prettier
 gates (tools not installed). All of them run in CI on PR #117.
+
+## Review
+
+*(reviewer, 2026-11-02, on head `992057f`; CI run 41523740781 green on all six jobs)*
+
+**TL;DR: changes requested. Next: `tester`, finding 1 only.** The code change is
+right and small, and the doc changes are true. Every role stayed in its lane, and
+the pre-existing test edits match approved rows 1-33 and H1-H3. One blocker: six
+of T-053's own tests diff against a fixed commit at test time. That is the
+pattern E-11 and E-12 deleted twice. They skip in CI, and in a full clone they
+go red after the next task that touches `question-bank/`.
+
+**1. Blocking (`tester`): six tests resolve a git revision at test time.**
+`backend/tests/test_t053_tester_criteria.py:25` pins `BASE = "e2e6495"`, and
+lines 410-501 run `git diff BASE HEAD`:
+
+- `test_c20_contract_test_file_is_unchanged`
+- `test_c22_no_change_under_frontend_question_bank_or_app_data`
+- `test_c23_e2e_change_is_only_the_answer_lookup_doc_comment`
+- `test_c24_grading_is_unchanged`
+- `test_c25_no_dependency_change`
+- `test_c23_amended_map_click_spec_change_is_only_the_key_opt_in`
+
+**What goes wrong:**
+
+- **In CI they assert nothing.** The checkout is shallow, so all six skip, and
+  CI was green with them skipped.
+- **In a full clone they go red after merge.** Once this merges, `BASE..HEAD`
+  means "everything since T-053", not "what T-053 changed". `test_c22` goes red
+  as soon as any later task touches any `question-bank/` file other than the
+  six named, or anything under `frontend/`. The others go red on the next change
+  to `e2e/`, `grading.py`, the dependency files or `test_contract.py`.
+- **That breaks a documented promise.** `PROGRESS.md`, "Known gaps", says "No
+  test fails on `main` in a full clone any more", and the repo removed this
+  shape twice (E-11, E-12). `backend/tests/` has no guard of its own like
+  `frontend/src/git-baseline-guard.criteria.test.ts`, so nothing caught it.
+
+**What would make it acceptable:**
+
+- **Delete those six tests.** They are T-053's own new tests, not pre-existing
+  ones, so no Test change request is needed (D-14 covers existing tests).
+- **Record each check once, by hand, in the Verdict:** the `git diff --stat
+  e2e6495..<head> -- <paths>` output for c20, c22 (as amended), c23 (as
+  amended), c24 and c25. This is T-064's method, and the docstring of
+  `test_climate_koppen_t067_criteria.py` does the same.
+- **Do not replace them with digest pins.** That is the re-pin problem
+  `process-tasks.md` already tracks.
+- **Recompute rows 27 and 31,** since they hash this test file, the same way
+  "Values that moved after approval" already records.
+- **Re-run, push, and confirm CI is green.** Then set `Next step: reviewer`.
+
+The rest of the file (c1-c19, c26 and the behaviour tests) is good and stays
+as it is.
+
+**2. Decided (worker's flag): `serializers.question_payload` and
+`served_payload` keep `include_answer_key=True` as their function default.** All
+five call sites pass the flag explicitly (`content.py:193, 210, 259`,
+`sessions.py:105, 131`). Both functions are keyword-only, so no HTTP response
+depends on the default. Flipping it would mean an attended Test change request
+row for `test_t051_map_click.py:114`, which tests the pure function, and it
+would buy nothing today. Not a task.
+
+**3. Not blocking, for the approving reviewer's sweep: the bundle `ETag` entry
+the brief proposes.** Add it to `tasks.md` §E, sized S, worded from what
+`content.py:246-261` actually does:
+
+- `GET /bundles/{id}` gives the same strong `ETag` to the keyed and the
+  unkeyed body.
+- A client that sends that `ETag` with `If-None-Match` on the other variant gets
+  a 304 and keeps the wrong body.
+- Shared caches key on the full URL, query string included, so the "shared cache
+  serves the keyed body" risk in Out of scope is weaker than the brief says. The
+  defect is the `ETag`, not the cache.
+- **Done when:** the two variants carry different `ETag`s, for example with the
+  flag folded into the tag, and a test pins that.
+
+**4. Not blocking, for the approving reviewer's sweep: `backend/tests/` has no
+git-revision guard.** `frontend/` and `question-bank/` each have one
+(`git-baseline-guard`, `git-exit-guard`). `backend/` does not, which is how
+finding 1 got in. Add a `tasks.md` entry (S): a backend test that fails when any
+file under `backend/tests/` or `backend/integration/` passes a revision to
+`git`. `git ls-files` and `git status` stay allowed.
+
+**5. Not blocking: the criteria 22/23 amendment record is adequate.** It has the
+person's words verbatim, the amended text, the date and the rows that forced it.
+Its one weakness is placement: criteria 22 and 23 in "Acceptance criteria" do
+not point to the amendment, and the sweep deletes this brief. **The approving
+reviewer must put the amended text next to the originals in the PR body.** No
+name was typed in session; recording Dkaattae as the repo owner who was
+attending is reasonable.
+
+**Checked and fine:**
+
+- **Lanes:** the expander's commits touch only `tasks/` and `tasks.md`, the
+  orchestrator's only `runs/` and the brief, and the tester's no source.
+- **The worker's change:** five one-line default flips plus a docstring. Nothing
+  outside the Constraints, apart from the amended c22/c23 files.
+- **No new dependency,** and no `grading.py`, `backend/app/data/` or `frontend/`
+  change.
+- **The `openapi.yaml` text matches the behaviour.** No other doc still
+  describes the old default. `PROGRESS.md:1780`'s known-gap line is for the
+  sweep to remove.
+- **Unit suite run locally:** 885 passed, 9 skipped, and `ruff` is clean.
+
+**When it comes back approved, this PR escalates:** it changes `openapi.yaml`,
+it changed two criteria mid-test, and the diff is about 1,600 lines.
 
 ## Notes
 
