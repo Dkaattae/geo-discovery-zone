@@ -8,7 +8,9 @@
  * Exit codes — the monthly routine branches on these, so a failure must never
  * look like "nothing moved":
  *
- *   0  the bank changed; new files are written and the change summary printed
+ *   0  the bank changed; new files are written and the change summary printed,
+ *      followed by the two commands to run next (question file, then served
+ *      bank — T-087); the refresh does not run them itself
  *   1  the refresh failed (network, a malformed response, fewer than 50 states
  *      matched); nothing is written
  *   2  `bank unchanged`; nothing is written
@@ -371,7 +373,22 @@ export async function refreshBank(options: RefreshOptions): Promise<RefreshExitC
   }
 
   printSummary(diff, capturedAt, out);
+  printNextSteps(out);
   return EXIT_CHANGED;
+}
+
+/**
+ * T-087: the two commands a changed bank needs before the suite is green
+ * again, in the order they must run — the served bank reads the question
+ * file. Written as run from the repository root. Printed, never run.
+ */
+export const QUESTIONS_COMMAND = "cd question-bank && bun run questions";
+export const CONTENT_COMMAND = "make -C backend content";
+
+function printNextSteps(out: (line: string) => void): void {
+  out("Next, from the repository root, regenerate in this order:");
+  out(`  1. ${QUESTIONS_COMMAND}   # data/us-states/ → data/questions/us-states.json`);
+  out(`  2. ${CONTENT_COMMAND}   # question-bank/data/ → backend/app/data/content.json`);
 }
 
 function printWarnings(warnings: BuildWarning[], out: (line: string) => void): void {

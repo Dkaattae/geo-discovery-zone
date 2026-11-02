@@ -57,17 +57,33 @@ const MAIN_QUESTIONS_SHA = "cfd2f1f9092ac70b9a455110bb254c8145b71fff1b5d1331d384
 const MAIN_STATES_DIR_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd95f179c";
 /** Criterion 19. */
 const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d39853eb66862a33e58";
-/** Criterion 20: every tracked non-test file under the three source trees. */
-const MAIN_SOURCE_TREES_SHA = "3bd8eaa669e229cb4efe714e28233f802204759078a392aa5aa29b19c6763150";
-/** Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock. */
+/**
+ * Criterion 20: every tracked non-test file under the three source trees.
+ * Re-pinned by T-087 row 9: the only file that moved is question-bank/src/refresh.ts
+ * (now 41de4902890f281040a4d3b683a5e4a457eb1a280d205a274bf133cf296c2631, its criteria 6-7).
+ */
+const MAIN_SOURCE_TREES_SHA = "8f004afd4de818d1c403c2257892a3fe569c55d93018bee260d3a76dc6b0ace6";
+/**
+ * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
+ * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
+ */
 const MAIN_DEPENDENCY_FILES_SHA =
-  "74f692ed8754aa416b9c2d83dc3501213f947b1dba34d1293016e51eea248419";
-/** Criterion 22: tracked non-test files outside CRITERION_22_ALLOWED. */
-const MAIN_UNTOUCHABLE_SHA = "e0084ca28ce178da03ccef730813962af2b7415611b7a19a3e2f26a3c68d12b2";
-const MAIN_UNTOUCHABLE_COUNT = 301;
-/** Criterion 22: pre-existing test files, less the ones named in the brief's Test change request. */
-const MAIN_TESTS_SHA = "0a3987e8c7dd965e77da71dba31fdea0f23c5ed66c163f50dcfc3e6cfdda6e8b";
-const MAIN_TESTS_COUNT = 110;
+  "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7d0cabc";
+/**
+ * Criterion 22: tracked non-test files outside CRITERION_22_ALLOWED. Re-pinned by
+ * T-087 row 11a: four of T-087's files already existed on main, so joining the
+ * allowed set takes them out of the counted set (301 -> 297). main (0a98e11)
+ * gives the same count and digest with the same exemption.
+ */
+const MAIN_UNTOUCHABLE_SHA = "b6b899079f1e4877d74d60bb6243662199b907691ce1c1a92e982c7d493ac739";
+const MAIN_UNTOUCHABLE_COUNT = 297;
+/**
+ * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
+ * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
+ * over the same set.
+ */
+const MAIN_TESTS_SHA = "bc91f541a08a2951dff3da2509f881559e7abba96a5fe69e12ad8e1d7539291d";
+const MAIN_TESTS_COUNT = 107;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -90,18 +106,22 @@ const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
  * Dkaattae, 2026-10-30). Each differs from its 12d242e digest above only by
  * that row's re-pin. Pinned here rather than read from the brief, because the
  * reviewer's sweep deletes the brief (T-091 review finding 1).
+ *
+ * Re-pinned by T-087 row 13 (approved by Dkaattae, 2026-10-30): four of these
+ * files now also hold T-087's approved re-pins (its rows 2, 4, 6, 7, 10 and
+ * 10a), so their digests are this branch's. The other two are 8108a42's.
  */
 const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "01b8bd525f8e0b75018d73c2ef1044dd30987f3d4f68b0ef344d5af416b0d7a5",
+    "1f31bd54243f59354c080399ba56587375c15f9d9cfefda2a0f4e6d9d09138c1",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "255f1a2fc8feb9566a5155f5700b4f76521ce8e1f85313cf8929fe2650eb7005",
+    "b84fd23f51ce2f01477dca323dc2482b2c32d38a7b36ee48551c8afd26c0bf42",
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "9e1fdb0c7fdc63f24f6c843fc503ce669a357d690809c1d4e642f5e8b16d7081",
+    "0ad22c7b41a19c5479bedbb5c828de182a96350aab00c8100613093afd51b8c6",
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
-    "6e91b954a94f7e0d072450315360cd987c2ab45e1dd3b0eba3e883cc7fd0fc10",
+    "e9ce9703abacea92c89d567c99ce4197c812e91d6488ce5054e0579bc6a978fb",
   "backend/tests/test_t089_tester_criteria.py":
     "81a845389db2cebee246542d388c9e6fcceba57b97d7611f8c3d650fc52cb7a7",
 };
@@ -117,6 +137,14 @@ const CRITERION_22_ALLOWED = new Set([
   "runs/T-091-climate-cold-trade-accepted.md",
   "tasks.md",
   "PROGRESS.md",
+  // T-087's file set, joined through T-087's Test change request row 11
+  // (approved by Dkaattae, 2026-10-30, in the session that made the edit).
+  "question-bank/package.json",
+  "question-bank/src/refresh.ts",
+  "question-bank/README.md",
+  "conventions.md",
+  "tasks/T-087-refresh-regenerate-reminder.md",
+  "runs/T-087-refresh-regenerate-reminder.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
@@ -131,6 +159,18 @@ const TEST_CHANGE_REQUEST_FILES = new Set([
   "question-bank/src/farm-animal-loose-ends-verify.test.ts",
   "question-bank/src/familiarity-drawn-apart-verify.test.ts",
   "backend/tests/test_t089_tester_criteria.py",
+]);
+/**
+ * T-087's Test change request row 12 (approved by Dkaattae, 2026-10-30, in the
+ * session that made the edit): T-087's two new test files, and the pre-existing
+ * tests its rows 1-11 modify that are not already excluded above.
+ */
+const T087_TEST_FILES = new Set([
+  "question-bank/src/refresh-next-steps.test.ts",
+  "question-bank/src/refresh-regenerate-reminder-verify.test.ts",
+  "question-bank/src/highest-point-in-state-verify.test.ts",
+  "question-bank/src/climate-far-phrases-verify.test.ts",
+  "question-bank/src/hand-check-levels-verify.test.ts",
 ]);
 
 // ---- The record -------------------------------------------------------------
@@ -444,7 +484,11 @@ describe("T-091 criterion 22: the diff touches only the allowed files", () => {
   });
   test("pre-existing test files are main's, except ones in an approved Test change request", () => {
     const tests = gitLsFiles().filter(
-      (f) => isTestFile(f) && !T091_TEST_FILES.has(f) && !TEST_CHANGE_REQUEST_FILES.has(f),
+      (f) =>
+        isTestFile(f) &&
+        !T091_TEST_FILES.has(f) &&
+        !TEST_CHANGE_REQUEST_FILES.has(f) &&
+        !T087_TEST_FILES.has(f),
     );
     expect(tests.length).toBe(MAIN_TESTS_COUNT);
     expect(fileRowsSha(tests)).toBe(MAIN_TESTS_SHA);

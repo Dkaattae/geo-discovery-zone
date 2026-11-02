@@ -366,6 +366,20 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-087 — A bank refresh tells you to regenerate the question file and the
+  served bank** (PR #112, 2026-10-30). `question-bank/package.json` gains a
+  `questions` script (`bun run src/write-questions.ts`). A refresh that exits 0
+  now ends by printing, on stdout, `cd question-bank && bun run questions` and
+  then `make -C backend content`. It does not run them. The README's refresh
+  section and `conventions.md` say the same. *Where it differed from the brief:*
+  the expander predicted eight stale pins and there were sixteen rows (1-12,
+  10a, 11a, 13, 14), all modify-only, approved by Dkaattae in an attended tester
+  session. The extra rows came from T-091's source-tree pin on `refresh.ts` and
+  from T-091's and T-096's whole-repo pins, which trip on any task's brief and
+  files: a seventh P-17 instance. That instance is not yet recorded in
+  `process-tasks.md`, because T-091's criterion 22 pins that file. The criteria
+  carry the orchestrator's `Approved:` stamp.
+
 - **T-091 — Climate: record that the "only cold phrase" trade is accepted**
   (PR #111, 2026-10-30). Records only. E-25's `climates_outside_group` bullet
   gains a T-091 amendment: Dkaattae chose option (a) on 2026-10-27, the rule
@@ -1690,7 +1704,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   no rule change (T-091, E-25). NY, RI and CA stay `too hard` (E-27 (a)).
 - **Regenerating is by hand.** After the entity bank changes, two commands
   rewrite the question file and `content.json`, and a drift test is red until
-  both are run (E-24). Nothing prompts for them yet (T-087). Since T-070, the
+  both are run (E-24). A changed `bun run refresh` prints both, in order, but
+  does not run them (T-087). Since T-070, the
   backend drift tests ignore `content.json`'s `_source.extractedAt`, so a stale
   date there passes.
 - Fun facts: all 50 exist in the **pipeline** bank, curated and marked
