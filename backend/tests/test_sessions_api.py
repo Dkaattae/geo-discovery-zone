@@ -28,7 +28,13 @@ async def answer(
     *,
     correct: bool,
 ) -> dict[str, Any]:
-    question = served["question"]
+    # T-053 (Test change request H1): a served question is withheld by default,
+    # so the key is read from the public bank with an explicit opt-in.
+    keyed = await client.get(
+        f"/questions/{served['question']['id']}", params={"includeAnswerKey": "true"}
+    )
+    assert keyed.status_code == 200, keyed.text
+    question = keyed.json()
     if question["format"] == "map_click":
         # T-051 (Test change request row 25): a map_click is answered by a tap.
         key = question["answerGeometryId"]
@@ -198,7 +204,11 @@ async def test_a_correct_answer_returns_the_reward_and_the_key(
         assert "correctIndex" not in result
         assert result["correctAnswer"] == served["entity"]["name"]
     else:
-        assert result["correctIndex"] == served["question"]["correctIndex"]
+        # T-053 (Test change request row 7): compare against the opted-in key.
+        keyed = await client.get(
+            f"/questions/{served['question']['id']}", params={"includeAnswerKey": "true"}
+        )
+        assert result["correctIndex"] == keyed.json()["correctIndex"]
     assert result["session"]["counts"] == {
         "answered": 1,
         "correct": 1,

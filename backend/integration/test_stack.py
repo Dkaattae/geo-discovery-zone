@@ -115,19 +115,17 @@ def test_the_served_bank_matches_what_health_reports(http: httpx.Client, api: ht
     assert entities["page"]["total"] == health["entities"]
 
 
-def test_the_answer_key_can_be_withheld_from_the_public_bank(api: httpx.Client) -> None:
-    """`/questions` is public and `includeAnswerKey` defaults to **true**, which
-    the contract explains as the v1 client grading locally. It does not any more
-    — the server grades — so today a child with the network tab open can read
-    `correctIndex` off the unauthenticated bank. Flipping that default is a
-    contract change and its own task; what is asserted here is that opting out
-    works, which is the half a test can hold steady while the default is decided.
+def test_the_public_bank_withholds_the_answer_key_unless_asked(api: httpx.Client) -> None:
+    """`/questions` is public, and since T-053 the answer key is withheld by
+    default: a child with the network tab open cannot read `correctIndex` off
+    the unauthenticated bank. `includeAnswerKey=true` opts in, which is how the
+    e2e suite builds its answer lookup.
     """
-    with_key = api.get("/questions", params={"limit": 1}).json()["data"][0]
-    assert "correctIndex" in with_key  # the current default, contract line 1166
+    default = api.get("/questions", params={"limit": 1}).json()["data"][0]
+    assert "correctIndex" not in default
 
-    without = api.get("/questions", params={"limit": 1, "includeAnswerKey": "false"})
-    assert "correctIndex" not in without.json()["data"][0]
+    with_key = api.get("/questions", params={"limit": 1, "includeAnswerKey": "true"})
+    assert "correctIndex" in with_key.json()["data"][0]
 
 
 def test_a_bundle_revalidates_rather_than_being_resent(api: httpx.Client) -> None:

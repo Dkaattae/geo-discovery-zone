@@ -124,7 +124,12 @@ async def test_c46_a_new_topic_session_serves_only_that_topic_outside_review(
     session_id = started.json()["session"]["id"]
     non_review = 0
     for i in range(16):
-        served = await client.post(f"/sessions/{session_id}/next-question", headers=auth_headers)
+        # T-053 (Test change request row 8): opt in to the key explicitly.
+        served = await client.post(
+            f"/sessions/{session_id}/next-question",
+            headers=auth_headers,
+            json={"includeAnswerKey": True},
+        )
         assert served.status_code == 200, served.text
         question = served.json()["question"]
         is_review = served.json()["isReview"]

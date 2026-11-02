@@ -100,7 +100,12 @@ async def test_a_correct_superlative_answer_highlights_the_answer_state(
         for e in json.loads(content_build.CONTENT_FILE.read_text(encoding="utf-8"))["entities"]
     }
     for correct in (True, False):
-        served = await client.post(f"/sessions/{session_id}/next-question", headers=auth_headers)
+        # T-053 (Test change request row 9): opt in to the key explicitly.
+        served = await client.post(
+            f"/sessions/{session_id}/next-question",
+            headers=auth_headers,
+            json={"includeAnswerKey": True},
+        )
         assert served.status_code == 200, served.text
         question = served.json()["question"]
         assert question["topic"] == "superlative"
