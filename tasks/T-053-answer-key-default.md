@@ -464,7 +464,7 @@ suite is now green: **884 passed, 9 skipped, 0 failed**. Criterion 21's
 integration test could not run here (no docker daemon), so CI's `integration`
 job is the first real run of it.
 
-**Approval.** Header: `Test changes: approved — Dkaattae (...), 2026-11-02`.
+**Approval.** Header: `Test changes: approved — Dkaattae, 2026-11-02`.
 The person's words in this session, answering the request row by row:
 "Approve all 18 + H1–H3". No name was typed in-session. I recorded Dkaattae
 as the repo owner named in `CLAUDE.md`; correct it if someone else approved.
