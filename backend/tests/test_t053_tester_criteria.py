@@ -474,13 +474,16 @@ def test_c25_no_dependency_change() -> None:
 
 def test_c23_amended_map_click_spec_change_is_only_the_key_opt_in() -> None:
     """Row 22: the only e2e behaviour change is the lookup asking for the key."""
-    diff = subprocess.run(
-        ["git", "diff", "-U0", BASE, "HEAD", "--", "e2e/tests/map-click.spec.ts"],
-        cwd=REPO,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
+    try:
+        diff = subprocess.run(
+            ["git", "diff", "-U0", BASE, "HEAD", "--", "e2e/tests/map-click.spec.ts"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pytest.skip(f"git history at {BASE} not available")
     removed = [
         line[1:].strip()
         for line in diff.splitlines()
