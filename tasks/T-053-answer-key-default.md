@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-053
 **Branch:** `claude/magical-davinci-y58qf6`
-**PR:** opened draft at expand time against the branch above; number recorded in the PR list for this branch (see "Notes")
+**PR:** #117, opened draft at expand time, built from the branch above
 **Fault:** the queue entry reserves the default as a product decision ("The decision here is the product one"), and the survey found the leak is wider than `correctIndex`, so no criterion can be written without a person's call — owned by `human`.
 
 **Sessions:**
