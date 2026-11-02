@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-039
 **Branch:** `claude/kind-pasteur-34x9tx`
-**PR:** opened draft at expand time against the branch above; see the PR list for `claude/kind-pasteur-34x9tx`
+**PR:** #113, opened draft at expand time against the branch above
 **Fault:** the queue entry is three separable product decisions, none of them made, so no criterion can be written without the expander making them (task-expander, 2026-11-02).
 
 **Sessions:**
