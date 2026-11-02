@@ -66,6 +66,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - Unit and endpoint tests, including contract tests that walk `openapi.yaml`
   in both directions, plus integration tests and browser tests against a real
   stack (`backend/integration/`, `e2e/`).
+- **The answer key is withheld unless asked for** (T-053, PR #117): content
+  endpoints and next-question omit `correctIndex` and `answerGeometryId` unless
+  `includeAnswerKey=true`; `POST /sessions` and review rounds never send them.
+  Grading runs on the server from the stored question.
 - **The session commits before the response is sent** (`DbSessionMiddleware`).
   It used to commit after, which FastAPI runs *after the response has reached the
   client* — so `register` could answer 201 before the row existed and the very
@@ -365,6 +369,28 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-053 — The answer key is withheld by default** (PR #117, 2026-11-02).
+  `GET /questions`, `GET /questions/{id}`, `GET /bundles/{id}` and the
+  next-question body now default `includeAnswerKey` to `false`, so
+  `correctIndex` and `answerGeometryId` are omitted unless a caller passes
+  `true`. The first question from `POST /sessions` and every question from
+  `review-round` are always served without the key; neither takes the flag.
+  `openapi.yaml`'s defaults and "Answer keys" paragraph match, and the paragraph
+  names the accepted limitation (Dkaattae, Q2 a and Q3): where the answer is the
+  question's own entity, `entityId`, the served `entity` and
+  `highlightGeometryId` still give it away. `listQuestions`' description now says
+  it filters to one fixed level window. Grading and the frontend are unchanged.
+  *Where it differed from the brief:* the brief named the integration test and
+  "likely" unit tests as stale; 43 unit tests went red, then CI found 17 more
+  the worker and first tester round had missed (6 integration, 1 e2e, 10
+  question-bank boundary pins). All were changed in attended tester sessions a
+  person approved, in two Test change requests (rows 1-33). Approving them
+  meant amending criteria 22 and 23 mid-test, to allow the six re-pinned
+  `question-bank/` boundary tests and a one-line e2e opt-in. Review sent it back
+  once: six of T-053's own tests ran `git diff` against a fixed commit, and were
+  replaced by hand checks recorded in the PR (T-098 adds the backend guard that
+  would have caught them). T-097 is the bundle `ETag` follow-on.
 
 - **T-045 — Four question formats are documented and refused as not gradeable
   in v1** (PR #115, 2026-11-02). `grading.py` refuses `drag_order` at `/order`,
@@ -1777,8 +1803,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- The public question bank hands out `correctIndex` by default — a leftover from
-  when the client graded locally (T-053).
+- `GET /bundles/{id}` sends the same `ETag` for the keyed and the unkeyed body,
+  so `If-None-Match` across the two variants can 304 the wrong one (T-097).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
   still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.

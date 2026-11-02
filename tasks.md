@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review._
 
 ## How this list is ordered
 
@@ -164,7 +164,24 @@ place, so nobody rebuilds it:
 | **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
 | **Formatting** | prettier pinned to one exact version in both `frontend/` and `question-bank/`, and CI runs `format:check` in both (T-071, E-16; T-075, E-17) |
 
-Nothing in section A is queued: T-075 (PR #66) closed the last gap.
+T-075 (PR #66) closed the last gap in that table; T-098 is new since.
+
+### T-098 — `backend/` has no guard against tests that resolve a git revision · S · todo
+**Depends on:** —
+**New 2026-11-02, from T-053's review (PR #117).** `frontend/` and
+`question-bank/` each have a guard that fails when a test hands `git` a fixed
+revision (`frontend/src/git-baseline-guard.criteria.test.ts`,
+`question-bank/src/git-exit-guard.criteria.test.ts`, E-11, E-12). `backend/`
+has none, which is how T-053's tester wrote six `git diff e2e6495 HEAD` tests
+that skipped in CI's shallow clone and would have gone red on `main` after the
+next task (deleted before merge). Today the only `git` call under
+`backend/tests/` and `backend/integration/` is `git ls-files`
+(`test_t089_tester_criteria.py`), so the guard starts green.
+**Done when:** a backend test fails if any file under `backend/tests/` or
+`backend/integration/` passes a revision or range to `git` (`git diff <rev>`,
+`git show <rev>:…`, `git log <range>` and the like); `git ls-files` and
+`git status` stay allowed; and a mutation that adds a `git diff <sha> HEAD` call
+turns it red.
 
 ---
 
@@ -336,46 +353,6 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-053 — The public bank hands out the answer key by default · S · doing (brief awaiting approval — `tasks/T-053-answer-key-default.md`)
-**Depends on:** —
-**New 2026-08-24, found while writing T-052.** `GET /questions` and
-`GET /questions/{id}` take `includeAnswerKey`, and `openapi.yaml` sets its
-**default to `true`** (line 1166). The contract explains why: "the v1 client
-grades locally. Set `false` once grading runs through
-`POST /sessions/{sessionId}/answers`."
-
-**Grading moved to the server.** The client already passes `includeAnswerKey=false`
-on every call. What is left is the default on a public, unauthenticated endpoint:
-`curl /api/v1/questions` returns `correctIndex` for all 26 questions, so a child
-who opens the network tab can read every answer.
-
-Not a security hole — the bank is public reference data by design, and nothing
-stops someone reading the questions either. It is a **product** problem: the app
-is built so a wrong answer is not a failure, and an answer key one tap away
-undercuts that more than it enables cheating.
-
-Flipping the default changes `openapi.yaml` too, which since E-14 (amended by
-P-8) is just a file to update to match the backend, not a contract to defend.
-The decision here is the product one. An integration test asserts the current
-behaviour on purpose, and it is the test to update when this is decided.
-**Since T-026 (PR #91):** a superlative question's served `entity` *is* its
-answer, so `includeAnswerKey=false` does not hide it. Whatever is decided
-here, decide it for the superlative's entity too.
-**Since T-089 (PR #94):** `listQuestions`' description says "`level` +
-`levelSpan` mirror the server's widening search in `serveNextQuestion`". The
-endpoint applies one fixed `±levelSpan` window (`routers/content.py:169`,
-`store.py:240`) and widens nothing, and the selector's nearest fallback (E-28)
-has no `levelSpan` equivalent. While editing this operation's text, say that it
-filters to one window.
-**Since T-051 (PR #96):** a `map_click` question carries a second answer key,
-`answerGeometryId`, served by default and withheld with `includeAnswerKey=false`
-(E-29). Its served `entity.geometryId` is the same code, as a superlative's
-entity is, so `includeAnswerKey=false` does not hide that either. Decide both
-with the superlative's entity.
-**Done when:** the default is decided, `openapi.yaml` and the implementation
-agree, and `test_the_answer_key_can_be_withheld_from_the_public_bank` reflects
-whichever way it went.
-
 ### T-093 — An undone answer still counts as a place seen · S · todo
 **Depends on:** —
 **New 2026-10-27, from T-051's tester and reviewer (PR #96).** `apply_answer`
@@ -387,6 +364,21 @@ mis-tap likelier, since every state is a target. Either snapshot the list, or
 decide that a place looked at is a place seen and say so in the undo docstring.
 **Done when:** an undone first answer on a state leaves `placesSeen` where it
 was, or the choice is written down.
+
+### T-097 — A bundle's `ETag` is the same with and without the answer key · S · todo
+**Depends on:** —
+**New 2026-11-02, from T-053's review (PR #117).** `GET /bundles/{bundleId}`
+(`backend/app/routers/content.py`, `get_bundle`) computes one strong `ETag` per
+bundle and sends it, with `Cache-Control: public, immutable`, whatever
+`includeAnswerKey` is. A client that cached the keyed body and later asks for the
+unkeyed one with `If-None-Match` gets a 304 and keeps the keyed body, and the
+reverse. Shared caches key on the full URL, query string included, so the
+"shared cache serves the keyed body" risk T-053's brief named is weaker than it
+said: the defect is the `ETag`, not the cache. Since T-053 the unkeyed body is
+the default, so the keyed variant is the opt-in one.
+**Done when:** the keyed and unkeyed bodies of one bundle carry different
+`ETag`s (for example with the flag folded into the tag), a test pins that, and
+`If-None-Match` with one variant's tag does not 304 a request for the other.
 
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
