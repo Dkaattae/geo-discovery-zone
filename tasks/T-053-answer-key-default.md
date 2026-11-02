@@ -1,8 +1,8 @@
 # T-053 — The public bank hands out the answer key by default
 
-**Status:** `awaiting approval`
+**Status:** `approved`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** Dkaattae — 2026-11-02, "approved as written, including 10–11", given in the orchestrator's session. See `runs/T-053-answer-key-default.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-053

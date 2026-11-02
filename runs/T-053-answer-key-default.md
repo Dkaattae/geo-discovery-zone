@@ -101,3 +101,6 @@ Orchestrator wrote the answer into the brief under `### Answers` (before `## Goa
 - **Not run:** no build, tests or pipeline, as the role requires (D-7).
 
 Orchestrator: a person is present in the session and the expander flagged criteria 10–11 for them, so the `Approved:` line is held for their answer rather than stamped unattended.
+
+## Approval — 2026-11-02
+Dkaattae, in the orchestrator's session, verbatim: "approved as written, including 10–11". Written into the brief's `Approved:` line; `Status: approved`. Next step stays `worker`.
