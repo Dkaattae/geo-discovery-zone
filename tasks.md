@@ -336,7 +336,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-053 — The public bank hands out the answer key by default · S · doing (blocked: needs a person — Q1–Q3 in `tasks/T-053-answer-key-default.md`)
+### T-053 — The public bank hands out the answer key by default · S · doing (brief awaiting approval — `tasks/T-053-answer-key-default.md`)
 **Depends on:** —
 **New 2026-08-24, found while writing T-052.** `GET /questions` and
 `GET /questions/{id}` take `includeAnswerKey`, and `openapi.yaml` sets its
