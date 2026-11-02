@@ -1,7 +1,7 @@
 # T-045 — Three question formats have no answer key
 
-**Status:** `test changes requested`
-**Next step:** `human` — approve or refuse the ten rows of `## Test change request`, in the attended tester session
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-11-02, given in the orchestrator's session: "approved, mark them not gradeable". See `runs/T-045-ungradable-formats.md`.
 **Test changes:** `approved — session owner (name not given), 2026-11-02`
 **CI fix:** `none`
@@ -9,7 +9,7 @@
 **Branch:** `claude/compassionate-fermat-0jr2q7`
 **PR:** #115, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:** test changes are waiting for approval: nine pre-existing question-bank pins (plus one consequential digest row) moved with T-045's own change.
+**Fault:**
 
 **Sessions:**
 
@@ -408,6 +408,56 @@ leaves the counted set when it joins the allowed set.
 | 10 | `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester; re-pinned T-039 row 6. Pins re-pinned test files to their exact bytes. | Rows 1, 2-3, 5 and 9 edit four of those files. A consequence of approving them, not a separate change. | modify | Same name. In `APPLIED_REQUEST_FILE_SHAS`, comments become `re-pinned by T-039 (…row 6), then by T-045 (row 10)` and: agriculture → `5239ae5ba15b3d18f2b3145ac9645617b7e8b85aa1e25333e2ee7bf50b626c6d`, map-click → `cde59340141d375fd4dbca8720731f816a31bd30bcc3c60dd9bf9a98939f658e`, farm-animal → `e85ff35d6084f0264a04159ffcb43be08ffe7541c48ae1b903d713da89a03eec`, familiarity → `d210e4b9ad8e6fadd86344770659ba7b06ee21ed96d8de03ac86b75f347d96bc`. Recompute if any of rows 1-3, 5, 9 is refused or changed. | approved — "approve all" |
 
 ## Verdict
+
+> **TL;DR. Pass.** All 18 criteria met; 41 new tester tests, mutation-checked.
+> CI's only red job (`question-bank`) was ten stale pins, re-pinned through the
+> approved Test change request. Backend 841 pass / 9 skip, question-bank 2713 / 0.
+> **Next: reviewer.**
+
+**Independence:** attended session `cse_011oDiJeg4jb2L7baywCodpG`, a different
+session from the expander and worker (`cse_011oDiJfu1cshxQFeafboWxE`). This is the
+separate-session kind of independence, not only a fresh subagent.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `test_c1_and_c8_drag_order_is_refused_at_order` × 5 (no order, own id alone, ids in any sequence, own id first, `choiceIndex`) |
+| 2 | met | `test_c2_and_c8_click_profile_is_refused_at_question_id` × 2 |
+| 3 | met | `test_c3_nearest_centroid_pin_is_graded` × 10: both formats, explicit radius in/out, on centroid, omitted radius 250 km correct / 350 km wrong; `distanceKm` within 1 km |
+| 4 | met | `test_c4_and_c8_geometry_strategy_is_refused_at_pin` × 4, pin exactly on the centroid |
+| 5 | met | `test_c5_and_c8_…` × 6: no `pinTarget`, no strategy, centroid strategy with no centroid |
+| 6 | met | `test_c6_and_c8_…` × 4: nothing, `choiceIndex` alone |
+| 7 | met | `test_c7_multiple_choice_…`, `test_c7_map_click_…` |
+| 8 | met | every 1/2/4-6 test submits twice (422 both times, never 409) and compares session `counts`/`seenEntityIds` and profile `stats`/`mastery`/`reviewQueue` before and after |
+| 9 | met | `test_c9_committed_content_json_serves_none_of_the_six`, `test_c9_building_content_drops_the_six_formats` |
+| 10-15 | met | `test_c10_…` to `test_c15_…`, reading `openapi.yaml` (parses; `test_contract.py` green) |
+| 16 | met | `git diff --name-only origin/main...HEAD -- frontend question-bank backend/app/data` lists only the question-bank test files approved below |
+| 17 | met | the same diff over `backend/uv.lock`, `backend/pyproject.toml`, `*bun.lock*` is empty |
+| 18 | met | both T-045 test files: 76 pass with all six proxy variables on the dead loopback proxy and `uv run --offline` |
+
+**Mutations** (each reverted): drop the strategy check → 4 red; `drag_order` path
+→ `/choiceIndex` → 5 red; default radius 300 → 400 → 2 red; distance comparison
+always false → 6 red; `drag_order` added to `SERVED_FORMATS` → 1 red.
+
+**Worker's flags:** `maxDistanceKm: null` treated as 300 does not conflict with
+criterion 3 (which speaks only of an omitted value). Unknown formats at
+`/questionId` and the pin check order are not covered by any criterion; left to the reviewer.
+
+**Test changes.** The header reads `Test changes: approved — session owner (name
+not given), 2026-11-02`. The person's words in this session: **"approve all"**.
+Applied in `2596941`, exactly rows 1-10 as written, no other test touched:
+
+- **Modified (re-pin):** rows 1-10 in `agriculture-true-wrong-answers-verify`,
+  `map-click-no-candidates-verify` (2 tests, both renamed "…to T-045's"),
+  `refresh-regenerate-reminder-verify`, `familiarity-drawn-apart-verify`,
+  `climate-cold-trade-accepted-verify` (4 tests), `farm-animal-loose-ends-verify`.
+- **Count floors:** climate untouchable 296 → 295, farm-animal 292 → 291
+  (`grading.py` joins the allowed set); climate pre-existing tests 109 → 111
+  (two new backend test files). No test deleted.
+
+**Suite after the commit:** backend 841 passed, 9 skipped; ruff lint and format
+clean. Question-bank 2713 pass, 0 fail; typecheck, oxlint, `format:check` clean.
+Frontend not re-run here (no `frontend/` file changed; CI's frontend and e2e jobs
+were green on the worker's commit).
 
 ## Notes
 
