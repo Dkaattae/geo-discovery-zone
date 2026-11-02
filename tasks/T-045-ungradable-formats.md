@@ -1,7 +1,7 @@
 # T-045 — Three question formats have no answer key
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #115 (Dkaattae)
 **Approved:** Dkaattae — 2026-11-02, given in the orchestrator's session: "approved, mark them not gradeable". See `runs/T-045-ungradable-formats.md`.
 **Test changes:** `approved — session owner (name not given), 2026-11-02`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it
 | task-expander | 2026-11-02 | cse_011oDiJfu1cshxQFeafboWxE (orchestrated, subagent) |
 | worker | 2026-11-02 | cse_011oDiJfu1cshxQFeafboWxE (orchestrated, subagent) |
 | tester | 2026-11-02 | `cse_011oDiJeg4jb2L7baywCodpG` (attended; a separate session from every row above) |
+| reviewer | 2026-11-02 | `cse_011oDiJeg4jb2L7baywCodpG` (spawned subagent in the attended session; fresh context, wrote none of the work) |
 
 > **TL;DR.** T-045 takes the "mark as not yet gradeable" side, not the "build
 > it now" side. `openapi.yaml` says plainly which formats and pin strategies v1
@@ -458,6 +459,46 @@ Applied in `2596941`, exactly rows 1-10 as written, no other test touched:
 clean. Question-bank 2713 pass, 0 fail; typecheck, oxlint, `format:check` clean.
 Frontend not re-run here (no `frontend/` file changed; CI's frontend and e2e jobs
 were green on the worker's commit).
+
+## Review
+
+**TL;DR. Approved, inside the envelope.** About 40 lines of `grading.py` and
+50 of `openapi.yaml`, both in the house style, nothing outside the Constraints,
+CI green on `4045423`. Swept in this PR and marked ready. **Dkaattae merges.**
+No decision is needed first.
+
+**Checks**
+
+- **PR #115 open and draft**, built from `claude/compassionate-fermat-0jr2q7`, base `main` `1194843`.
+- **Every role has a commit:** expander `a0360eb`/`6a53c56`, orchestrator `5522e5d`/`61bffb9`/`0d61109`, worker `9129620`, tester `bea7c13`/`2596941`/`4045423`.
+- **Lanes held.** The expander touched only the brief. The worker touched `grading.py`, `openapi.yaml`, one new backend test and the brief. The tester touched only test files and the brief. Pre-existing tests changed only in `2596941` (tester), and its six files match rows 1-10 of the Test change request exactly.
+- **CI on `4045423`:** all seven checks green (backend, backend postgres, question-bank, frontend, integration, e2e, the waiting-on-human check).
+
+**Envelope**
+
+- **`openapi.yaml` changed.** `reviewer.md` still lists that as an escalation trigger, but `engineering-decisions.md` E-14 (amended by P-8, by the user) says a change to it needs "no special care, no announcement and no escalation", and `CLAUDE.md` says the same. The newer, explicit human rule wins, as T-039's reviewer also ruled (PR #113).
+- **Pre-existing tests modified, none deleted:** rows 1-10, approved by the person attending tester session `cse_011oDiJeg4jb2L7baywCodpG` ("approve all"). Not an orchestrator stamp. D-14 asks for a name and none was given; the header records the session, as T-039's did.
+- **No dependency, migration, plan change, CI fix, or text a child reads.** The product call (mark, don't build) was Dkaattae's at brief approval, not settled along the way.
+
+**Findings: none block.**
+
+1. **`backend/README.md:256-259` (Known gaps) is still true but now incomplete.** It says pin grading is nearest-centroid and that polygon-then-centroid needs geometry. It does not say a geometry-strategy pin is now refused. No task: `openapi.yaml` is where a client author reads this, and §H's pin line (amended in the sweep) will have to rewrite that README paragraph when pins are built.
+2. **Two test files cover the same criteria** (`test_t045_ungradable.py`, worker; `test_t045_tester_criteria.py`, tester). That is the repo's usual shape. No task.
+3. **No new permanent pins.** The tester checked criteria 16-17 with `git diff` instead of digests, so there is no new P-17 instance.
+
+**Flags disposed**
+
+- **Unknown formats answer 422 at `/questionId` (worker): accepted.** `QuestionFormat` is a closed enum and the model validates it, so only a corrupt row reaches this. The reasoning is criterion 2's own, and `submitAnswer`'s description says it.
+- **`maxDistanceKm: null` means 300 (worker): accepted.** `models.PinTarget.max_distance_km` is `float | None = None`, so `null` is the model's own way of saying "omitted". Refusing it would 422 a target the model calls valid, and the old code crashed with a 500.
+- **Pin check order (worker): accepted.** Every path is `/pin`; only the message differs.
+- **Approver recorded as "session owner (name not given)" (tester): accepted, see Envelope.**
+
+**Queue changes (sweep)**
+
+- **T-045:** deleted; logged under "Completed tasks" in `PROGRESS.md`.
+- **§H's pin line:** no longer points at T-045. It now says the contract marks pins not implemented in v1, and that building them means a `GRADED_PIN_STRATEGIES` entry, generators and the README gap.
+- **T-056 and T-093:** their `grading.py` line references were already stale on `main` and moved again; refreshed to `:203-204` and `:190-191`.
+- **`PROGRESS.md` Known gaps:** the T-045 line now describes what landed.
 
 ## Notes
 
