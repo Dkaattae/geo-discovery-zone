@@ -92,3 +92,6 @@ Orchestrator appended those words verbatim to the brief under `## Answers`, and 
   - no dependency is added and no test reaches the network.
 
 **Choice for the approver to check:** the exact phrase `Not implemented in v1` in criterion 1 is my wording. I fixed one phrase so the mark can be tested rather than judged by reading prose.
+
+## Approval — 2026-11-02
+Dkaattae, in the orchestrator's session, answering "How should it be approved?": "I approve it". Orchestrator wrote the `Approved:` line from that answer.
