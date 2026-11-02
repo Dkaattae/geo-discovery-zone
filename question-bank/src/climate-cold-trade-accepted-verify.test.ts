@@ -94,7 +94,7 @@ const MAIN_UNTOUCHABLE_COUNT = 290;
  */
 // Re-pinned by T-039 (Test change request row 5): T-039 added two backend test
 // files, test_unimplemented_content_docs.py and test_t039_tester_criteria.py (107 -> 109).
-const MAIN_TESTS_SHA = "cfb466772602eb1826b1f614b164178ac4eb3951efdb1268ce281b183941000b";
+const MAIN_TESTS_SHA = "bf63a1f4d5e3c21931435f32a82b342cc91217f651445aa9e6ed32ad0769e2f9";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test

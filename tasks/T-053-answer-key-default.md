@@ -494,11 +494,11 @@ criteria.
 | 24 | `question-bank/src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16" › `e2e (except []) is byte-identical to 5d72ca5` (a `test.each` row) | `cf63f66`, T-092 tester | `e2e/tests/app.ts` comment (c23) and row 22 | modify | Split out of the table, as backend/app and openapi.yaml were. Renamed `e2e (except []) is byte-identical to T-053's`. Digest `ee820bf3…b3eb` → `9c9968deb10c9cae7808cc7fb4ea2422c69823a84179df29f08be0d3c9e8f97b`. If row 22 is refused: `b559cad1140ff9151f95f37bbe01218ba3280912b9eb785b10ceef2205aa4df8` || approved |
 | 25 | same file › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-045's` | `cf63f66`; re-pinned T-085a, T-088, T-045 | c1-c12 change `content.py`, `models.py`, `sessions.py` | modify | Renamed `… to T-053's`. `00c348f6…a62b` → `5f842800555af4102353113b52e30c93ef1d9ab579c79ba19dc5623222c32493` || approved |
 | 26 | same file › `openapi.yaml (except []) is byte-identical to T-045's` | `cf63f66`; re-pinned T-039, T-045 | c15-c19 | modify | Renamed `… to T-053's`. `169b52a1…c69e` → `a89a88a043594f8632833f261bc7932a7f08b953925fe47e51a3dbfe901ba677` || approved |
-| 27 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087; re-pinned T-039, T-045 | backend/app, e2e and backend test files change; two test files added | modify | Same name. `MAIN_BOUNDARY_SHA` `b03fdc44…b76f` → `44d0ba6f532e539796aa95ae5fbcbf595e7d4ededff3816624a14276f2535bd2` (with rows 19-22 applied) || approved |
+| 27 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087; re-pinned T-039, T-045 | backend/app, e2e and backend test files change; two test files added | modify | Same name. `MAIN_BOUNDARY_SHA` `b03fdc44…b76f` → `fa18fa95d519770dd4e7f202651e973ae7bb258f1936fcc7f1679046a767733f` (with rows 19-22 applied) || approved |
 | 28 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › "T-085a criteria 23-25" › "criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039)" | `b061fd8`, T-085a; re-pinned T-039, T-045 | c15-c19 | modify | Same name. `BEFORE_FILE_SHA["openapi.yaml"]` → `37db5438…6bae` (as row 23) || approved |
 | 29 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 20" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091; re-pinned T-087, T-045 | three backend/app files move | modify | Same name. `MAIN_SOURCE_TREES_SHA` `0ae3a98b…e36b` → `4c2368a175efe7985a01e5796733f1ece72a96ec84f6990be8ea07279664e55c` || approved |
 | 30 | same file › "T-091 criterion 22" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`; re-pinned T-087, T-039, T-045 | T-053 edits 5 non-test files main had and adds its brief and run log (CI: 295 expected, 297 received) | modify | Same name. `CRITERION_22_ALLOWED` gains `backend/app/models.py`, `backend/app/routers/content.py`, `backend/app/routers/sessions.py`, `e2e/tests/app.ts`, `e2e/tests/map-click.spec.ts`, `tasks/T-053-answer-key-default.md`, `runs/T-053-answer-key-default.md`. `MAIN_UNTOUCHABLE_COUNT` 295 → **290**. `MAIN_UNTOUCHABLE_SHA` → `d7ac83e44b9ef704b9920906c80fd90ebe7ce12d0ed0381595d71ff954ff5381` || approved |
-| 31 | same file › "T-091 criterion 22" › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`; re-pinned T-087, T-039, T-045 | T-053 adds two backend test files and modifies 11 via rows 1-21 | modify | Same name. `MAIN_TESTS_COUNT` 111 → **113**, `MAIN_TESTS_SHA` → `cfb466772602eb1826b1f614b164178ac4eb3951efdb1268ce281b183941000b` || approved |
+| 31 | same file › "T-091 criterion 22" › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`; re-pinned T-087, T-039, T-045 | T-053 adds two backend test files and modifies 11 via rows 1-21 | modify | Same name. `MAIN_TESTS_COUNT` 111 → **113**, `MAIN_TESTS_SHA` → `bf63a1f4d5e3c21931435f32a82b342cc91217f651445aa9e6ed32ad0769e2f9` || approved |
 | 32 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096; re-pinned T-087, T-039, T-045 | As row 30 (CI: 291 expected, 293 received) | modify | Same name. `CRITERION_21_ALLOWED` gains the same seven paths. Count 291 → **286**. `MAIN_UNTOUCHABLE_SHA` → `6e9754b8a2a04c6c5c8bfedd88f10bebe9daeb0dab42e017752470db6bdaff78` || approved |
 | 33 | `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`; re-pinned T-039, T-045 | Rows 23-26, 28, 32 edit four of the files it pins. A consequence of approving them | modify | `APPLIED_REQUEST_FILE_SHAS`: agriculture → `74e9a4e83af0ce31c20005170d6b6deb2c3db69a3be0fbe1968811cff782df1c`, map-click → `6b2b6da34988524c94993d1aa56e93626a4f1e004049f4e2dc5b3f6ef0c5b2c3`, farm-animal → `89cff565ab1b6ce9f4cda55837223ea7a6eafb705966e366dd3621704f6e5327`, familiarity → `2622adedc738eee7402da47bd11d1ac4f1597c634e29a93b0fe8eb4426412328`. Recompute if any of those rows is refused || approved |
 
@@ -517,7 +517,7 @@ written; the tester does not edit criteria):**
 **Values that moved after approval:** rows 27 and 31 hash files that include
 T-053's own `test_t053_tester_criteria.py`. Its c22 and c23 tests were updated
 to the amended criteria, so both pins were recomputed: row 27 is now
-`44d0ba6f…35bd2` and row 31 is `cfb46677…000b`. These are the values shown in
+`fa18fa95…733f` and row 31 is `bf63a1f4…e2f9` (recomputed again after the CI fix to `test_c23_amended_…`). These are the values shown in
 the table. The rows still do what they say; only the hash changed.
 
 ## Verdict
@@ -569,6 +569,14 @@ session re-ran everything.
 | 1-21, 24-26 | met | `backend/tests/test_t053_tester_criteria.py` (41 tests), green; row 18 is c21's test |
 | 22 | met as amended | `test_c22_no_change_under_frontend_question_bank_or_app_data` |
 | 23 | met as amended | `test_c23_e2e_change_is_only_the_answer_lookup_doc_comment`, `test_c23_amended_map_click_spec_change_is_only_the_key_opt_in` |
+
+**CI on `ad261d7` (run 41522072404):** integration, e2e, question-bank and
+frontend were **green**. Both backend jobs failed on one test,
+`test_c23_amended_map_click_spec_change_is_only_the_key_opt_in`. It ran
+`git diff` against `e2e6495`, which CI's shallow checkout does not have. It now
+skips in that case, like every other boundary test in the file (checked by
+pointing `BASE` at a missing commit: 6 skipped, 0 failed). Rows 27 and 31 were
+recomputed for the changed file.
 
 **Not run here:** `uv run pytest integration` (no docker daemon), e2e
 (Playwright needs the built stack), and the question-bank lint and prettier
