@@ -44,3 +44,7 @@ Branch head at halt: `6a53c56`. The expander returned asking a person to approve
 (build `drag_order` / `pin_*` / `click_profile` now, or mark them not gradeable) before the worker runs.
 The orchestrator did not write an `Approved:` stamp: a role asking for a product decision is a halt
 condition, and the orchestrator does not answer it. Asked the person in the orchestrator's session.
+
+## Approved — 2026-11-02
+The person answered in the orchestrator's session, verbatim: "approved, mark them not gradeable".
+Recorded in the brief's `Approved:` line. Resuming at `worker`.
