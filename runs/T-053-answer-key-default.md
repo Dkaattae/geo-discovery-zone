@@ -57,3 +57,8 @@ I ran no build, tests or pipeline (D-7). The question counts come from reading `
 ## Halted — 2026-11-02
 Header on exit: `Status: blocked`, `Next step: human`, `Approved: pending`. Branch head at halt: `75bb7d6`.
 The expander asks a person to answer Q1–Q3 (quoted above) in the brief or on PR #117, then set `Next step: task-expander` and start a new run. No `Approved:` stamp written: there are no criteria yet, and nothing was spawned past the expander.
+
+## Resumed — 2026-11-02
+Dkaattae answered in the orchestrator's session, verbatim: "Q1 a, Q2 a, Q3 accept — go with the recommendations"
+
+Orchestrator wrote the answer into the brief under `### Answers` (before `## Goal`), set `Status: questions answered`, `Next step: task-expander`. Spawning a fresh task-expander.

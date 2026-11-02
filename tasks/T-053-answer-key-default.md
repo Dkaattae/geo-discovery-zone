@@ -1,7 +1,7 @@
 # T-053 — The public bank hands out the answer key by default
 
-**Status:** `blocked`
-**Next step:** `human` — answer Q1–Q3 under "Questions for a person" below, then set `Next step: task-expander`
+**Status:** `questions answered`
+**Next step:** `task-expander`
 **Approved:** `pending`
 **Test changes:** `none`
 **CI fix:** `none`
@@ -121,6 +121,16 @@ would cover:
 
 Expect many backend tests that read `correctIndex` off a default response to
 go red. That needs an attended tester step for the Test change request.
+
+### Answers — Dkaattae, 2026-11-02, given in the orchestrator's session
+
+Verbatim: "Q1 a, Q2 a, Q3 accept — go with the recommendations"
+
+- **Q1:** (a) flip all four surfaces to `false`, keep the parameter.
+- **Q2:** (a) accept the entity-carried answers and say so in `openapi.yaml`.
+- **Q3:** accept `map_click`'s `entity.geometryId`.
+
+Relayed by the orchestrator; recorded in `runs/T-053-answer-key-default.md`.
 
 ## Goal
 
