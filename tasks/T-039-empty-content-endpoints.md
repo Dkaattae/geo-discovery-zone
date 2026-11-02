@@ -1,7 +1,7 @@
 # T-039 — Three endpoints exist and serve nothing
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-11-02, given in the orchestrator's session ("I approve it"). See `runs/T-039-empty-content-endpoints.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` |
 | task-expander | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` (resumed after Dkaattae's answers) |
+| worker | 2026-11-02 | `cse_011oDiJespfZF72h12BCQwBp` |
 
 ## TL;DR
 
@@ -124,12 +125,81 @@ Make `openapi.yaml` tell the truth about the three empty endpoints. A reader of 
 
 ## Handoff
 
+**TL;DR:** `openapi.yaml` now marks the four operations `Not implemented in v1`, with what serving each would take; the `info.description` Content bullet no longer lists them as served. No runtime change. Three existing question-bank tests that pin `openapi.yaml` byte-for-byte are now red **by design** — listed under Tests made stale. Next: tester.
+
+**Note on sessions:** every row in the Sessions table, including the worker's, reports the same `CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJespfZF72h12BCQwBp`). The roles ran as separate subagents under one orchestrated remote session, so that id cannot tell them apart. The tester should record its own id and judge independence on that basis; owner: tester, escalate to human if it cannot.
+
+### What changed
+
+- **`openapi.yaml`**
+  - `info.description`: Content bullet now lists only `/entities`, `/questions`, `/bundles`; the next sentences say `/geometry`, `/elevation-profiles`, `/superlative-axes` are "not implemented in v1".
+  - `getGeometry` description: rewritten (old FIPS/ISO join-key text kept, under "Once served").
+  - `listElevationProfiles` description: rewritten (old "flat arrays / no API key" reasoning kept as part of what serving would take).
+  - `getElevationProfile`: gained a `description` (it had none).
+  - `listSuperlativeAxes` description: rewritten (old "axes, not questions" text kept under "Once served").
+  - Nothing else: no path, method, operationId, parameter, response or schema touched; no `x-` extension.
+- **`backend/tests/test_unimplemented_content_docs.py`** (new, 3 tests): pins criteria 1-2 exactly (the set of operations carrying the mark equals the four), the literal needles of 3-11, and 12. Worker-written, so not the independent check.
+- **`tasks/T-039-empty-content-endpoints.md`**: this section, header, Sessions row, Notes.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1-2 | `openapi.yaml` four operation descriptions, each opening `**Not implemented in v1.**`; no other operation has it |
+| 3-6 | `getGeometry` description: "Every layer currently returns 404", "bundles `us-atlas` at build time … does not call this endpoint", "TopoJSON build artefact … Census TIGER … Natural Earth", "kept, rather than removed, for later clients" |
+| 7-9 | `listSuperlativeAxes` description: "empty `data` list, whatever `entityType`", "`tpl-biggest-state` through `/questions`", "reviewed `promptMost` … child-facing" |
+| 10-11 | `listElevationProfiles` ("empty `data` list", "terrain/elevation data source … DEM such as SRTM … at build time"); `getElevationProfile` ("404 for every `profileKey`", refers to `listElevationProfiles`) |
+| 12 | `info.description`, sentence directly after the Content bullet text, inside the bullet |
+| 13-14 | unchanged `backend/app/routers/content.py`; `backend/tests/test_content_api.py` untouched and passing |
+| 15 | no path/method/operationId change; `test_contract.py` passes |
+| 16 | schemas untouched |
+| 17 | backend suite green; see below for frontend/question-bank |
+| 18 | only `openapi.yaml`, one new backend test, the brief changed |
+| 19 | the new test reads the parsed spec fixture only |
+
+### How to run
+
+- `make -C backend test` — 747 passed, 9 skipped (includes the 3 new tests).
+- `make -C backend lint` and `make -C backend format-check` — clean.
+- `cd question-bank && bun test` — 2676 pass, 17 fail. 14 of those fail identically on the clean head `3de6aca` (see below); 3 are the stale tests.
+- `cd frontend && bun test` — 386 pass, 10 fail, **identical on the clean head**: this container has no `frontend/node_modules` (`react/jsx-runtime`, `@eslint/js` missing), and `bun install --frozen-lockfile` was refused by the proxy (403 on a tarball). No frontend file changed, so this is environmental; the tester should rerun where deps install. Side effect seen: one frontend test rewrites `frontend/README.md` (escapes a `*`) when run; I reverted it, do not commit it.
+
+### Pre-existing reds (not caused by this change; same on `3de6aca` with my diff stashed)
+
+- question-bank, T-066 criteria 1-8 and 15 (11 tests): `oxlint`/`prettier` not installed in this container.
+- question-bank, `T-096 criteria 17-21 … criterion 21` and `T-091 criterion 22 … every tracked non-test file outside the allowed list is 12d242e's` — tree-scope pins already red on the branch head before my change.
+
+### Tests made stale
+
+All three pin `openapi.yaml` to an earlier hash; criteria 1-12 require changing that file, so they cannot pass. Proposed: re-pin each to the new content (new file sha256 `cd4015e64025f5a3b1b88e5a8948597708f7c5924df924109454850f21c5bcb0`), with a "re-pinned T-039" comment as the repo already does.
+
+- `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` — `T-088 criteria 20-25: what must not change > criterion 21: openapi.yaml is byte-identical to main's`. Stale by criteria 1-12. Modify: `MAIN_FILE_SHA["openapi.yaml"]` → `cd4015e6…bcb0`.
+- `question-bank/src/map-click-no-candidates-verify.test.ts` — `T-092 criterion 16: no other surface changes > openapi.yaml (except []) is byte-identical to 5d72ca5`. Stale by criteria 1-12. Modify: the `openapi.yaml` row digest `35831a81…d6e6` → treeDigest `8453b57aee6100483248586f57da6555368adfd8b90abe820aaf35e2c9ffac5f` (test name would then want a new ref).
+- `question-bank/src/familiarity-drawn-apart-verify.test.ts` — `T-085a criteria 23-25: negative > criterion 25: openapi.yaml is unchanged since 5ae564a`. Stale by criteria 1-12. Modify: `BEFORE_FILE_SHA["openapi.yaml"]` → `cd4015e6…bcb0`.
+
+No count floors affected.
+
+### Deliberately not done
+
+- No router, README, or schema change (out of scope; already accurate).
+- No `tasks.md` / `PROGRESS.md` sweep (reviewer's).
+- Did not fix the pre-existing reds above (not this task).
+
+### Contradicts the brief
+
+- **Criterion 17 / 18 vs. existing pins:** the brief says "Test changes: `none`" and criterion 17 expects `question-bank` `bun test` to pass, but three existing tests pin `openapi.yaml`'s bytes, so any change satisfying 1-12 turns them red. Not a contradiction the worker can resolve — tester to raise the test change request (D-14), human to approve.
+- **Criterion 17** also cannot be fully observed in this container for `frontend` (no deps). Tester to rerun where `bun install` works; owner: tester.
+
 ## Verdict
 
 ## Notes
 
 - First expander run halted on Q1–Q4 (commit `1e607ae`). This run writes the criteria from Dkaattae's answers. The queue entry's estimate was M. With every answer being "document", it is S.
 - Criterion 1 fixes one exact phrase on purpose. Without one, "documented as intentionally unimplemented" can only be checked by a person reading prose. With it, a test can walk every operation (criterion 2 is the negative half).
+
+- Worker: kept the old explanatory text of each operation under "Once served" rather than deleting it — it still describes the intended shape, and the schemas stay. Decision mine; reviewer to confirm or trim.
+- Worker: `getElevationProfile` had no `description`, so criterion 1 meant adding one rather than editing one.
+- Worker: the brief's "Test changes: none" missed three question-bank tests that hash `openapi.yaml`. Any future brief that edits `openapi.yaml` hits the same pins; the expander's survey should grep `question-bank/src/*verify*.test.ts` for `openapi.yaml`.
 
 ## Answers — Dkaattae, 2026-11-02
 
