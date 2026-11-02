@@ -72,7 +72,10 @@ async def test_every_seeded_question_points_at_a_seeded_entity(
 async def test_every_seeded_question_has_a_usable_answer_key(
     client: httpx.AsyncClient,
 ) -> None:
-    questions = (await client.get("/questions", params={"limit": 500})).json()["data"]
+    # T-053 (Test change request row 1): the key is opted in, not the default.
+    questions = (
+        await client.get("/questions", params={"limit": 500, "includeAnswerKey": "true"})
+    ).json()["data"]
     codes = {
         q["answerGeometryId"]
         for q in json.loads(QUESTION_FILE.read_text(encoding="utf-8"))["questions"]

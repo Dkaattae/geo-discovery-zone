@@ -197,7 +197,8 @@ async def test_served_question_fields_equal_the_question_file(
     client: httpx.AsyncClient,
 ) -> None:
     generated = _by_id(_generated())
-    for question in await _all(client, "/questions"):
+    # T-053 (Test change request row 2): the key is opted in, not the default.
+    for question in await _all(client, "/questions", includeAnswerKey="true"):
         source = generated[question["id"]]
         # T-051 (Test change request row 8): a map_click serves the file's
         # fields minus its candidates, answerGeometryId included.
@@ -235,7 +236,8 @@ async def test_served_question_fields_equal_the_question_file(
 async def test_question_ids_with_colons_resolve_and_withhold_the_answer_key(
     client: httpx.AsyncClient,
 ) -> None:
-    for question in await _all(client, "/questions"):
+    # T-053 (Test change request row 3): the listing opts in to the key.
+    for question in await _all(client, "/questions", includeAnswerKey="true"):
         response = await client.get(
             f"/questions/{question['id']}", params={"includeAnswerKey": "false"}
         )
@@ -344,7 +346,12 @@ async def _answer(
 async def _next(
     client: httpx.AsyncClient, auth_headers: dict[str, str], session_id: str
 ) -> dict[str, Any]:
-    response = await client.post(f"/sessions/{session_id}/next-question", headers=auth_headers)
+    # T-053 (Test change request H2): opt in to the key explicitly.
+    response = await client.post(
+        f"/sessions/{session_id}/next-question",
+        headers=auth_headers,
+        json={"includeAnswerKey": True},
+    )
     assert response.status_code == 200, response.text
     return response.json()["question"]
 

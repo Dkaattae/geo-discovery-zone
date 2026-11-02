@@ -86,13 +86,17 @@ def _serve_next(
     profile: ProfileRecord,
     *,
     force_review: bool = False,
-    include_answer_key: bool = True,
+    include_answer_key: bool = False,
 ) -> dict[str, Any] | None:
     """Picks, records and renders the next question.
 
     A repeated call with a question still in play re-serves that same question
     rather than burning a new one — a client retrying a request should not skip
     a child past a question they never saw.
+
+    The answer key is withheld unless the caller asks for it (T-053). A re-serve
+    follows the flag of the call in hand, not the one that first served it.
+    `start_session` and the review round never ask, so they always withhold.
     """
     pending = session.pending
     if pending is not None:

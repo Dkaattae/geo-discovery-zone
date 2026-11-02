@@ -195,7 +195,9 @@ def test_c9_question_has_an_optional_string_answer_geometry_id(spec: dict[str, A
     description = prop["description"]
     assert "map_click" in description
     assert "only" in description
-    assert "includeAnswerKey=false" in description
+    # T-053 (Test change request row 14): present only when includeAnswerKey=true.
+    assert "includeAnswerKey=true" in description
+    assert "includeAnswerKey=false" not in description
     assert "correctIndex" in description
 
 
@@ -222,7 +224,8 @@ async def _walk(client: httpx.AsyncClient, **params: Any) -> list[dict[str, Any]
 async def test_c11_listing_map_click_returns_exactly_the_served_ones(
     client: httpx.AsyncClient, spec: dict[str, Any]
 ) -> None:
-    listed = await _walk(client, format="map_click")
+    # T-053 (Test change request row 15): opt in to the key.
+    listed = await _walk(client, format="map_click", includeAnswerKey="true")
     ids = [q["id"] for q in listed]
     assert len(ids) == len(set(ids))
     assert set(ids) == set(_served_map_click())
@@ -243,7 +246,11 @@ async def test_c12_get_question_without_the_key_drops_answer_geometry_id(
         )
         assert withheld.status_code == 200, withheld.text
         assert "answerGeometryId" not in withheld.json()
-        kept = await client.get(f"/questions/{question_id}")
+        # T-053 (Test change request row 16): no flag withholds; true carries the key.
+        default = await client.get(f"/questions/{question_id}")
+        assert default.status_code == 200, default.text
+        assert "answerGeometryId" not in default.json()
+        kept = await client.get(f"/questions/{question_id}", params={"includeAnswerKey": "true"})
         assert (
             kept.json()["answerGeometryId"] == _served_map_click()[question_id]["answerGeometryId"]
         )
@@ -315,7 +322,17 @@ async def test_c12_a_session_serves_map_click_without_the_key_when_asked(
 ) -> None:
     force["id"] = AK
     session_id, served = await _start(client, auth_headers)
-    assert served["question"]["answerGeometryId"] == "02"  # default keeps the key
+    # T-053 (Test change request row 17): the first served question is always withheld.
+    assert served["question"]["id"] == AK
+    assert "answerGeometryId" not in served["question"]
+    keyed = await client.post(
+        f"/sessions/{session_id}/next-question",
+        headers=auth_headers,
+        json={"includeAnswerKey": True},
+    )
+    assert keyed.status_code == 200, keyed.text
+    assert keyed.json()["question"]["id"] == AK
+    assert keyed.json()["question"]["answerGeometryId"] == "02"
     response = await client.post(
         f"/sessions/{session_id}/next-question",
         headers=auth_headers,

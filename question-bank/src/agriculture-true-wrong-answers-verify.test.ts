@@ -205,7 +205,9 @@ const MAIN_FILE_SHA: Record<string, string> = {
   // re-pinned at `ed00235` (T-039, Test change request row 1): T-039 marks four
   // operations "Not implemented in v1". Re-pinned at T-045 (Test change request
   // row 1): T-045 marks four formats and two pin strategies "Not implemented in v1".
-  "openapi.yaml": "cf9a44dd12ad6bea831ceb9a014f7e1b51584656a1d01b5c27292e0f8b56bdb1",
+  // Re-pinned at T-053 (Test change request row 23): T-053 withholds the answer key
+  // by default and rewrites the "Answer keys" text.
+  "openapi.yaml": "37db5438bfd08f7a6239170026f8da861a510be810aa9c5c0db958bee2226bae",
 };
 const MAIN_DEP_SHA: Record<string, string> = {
   "backend/pyproject.toml": "a7741b6f8be54ee317fc9caf308debff1959b93b00f28efc6e7e760468813724",

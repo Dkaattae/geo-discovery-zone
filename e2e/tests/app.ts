@@ -212,10 +212,10 @@ async function gradedCorrect(page: Page): Promise<boolean> {
 /**
  * A lookup from the question on screen to the right answer.
  *
- * The bank is public — `GET /questions` serves it with no token, and
- * `includeAnswerKey` still defaults to true (`tasks.md` T-053) — so a test can
- * know the answer even though the app deliberately does not: the server grades,
- * and the client is never sent the key.
+ * The bank is public — `GET /questions` serves it with no token, and passing
+ * `includeAnswerKey=true` opts in to the key (it is withheld by default since
+ * `tasks.md` T-053) — so a test can know the answer even though the app
+ * deliberately does not: the server grades, and the client is never sent the key.
  *
  * Needed because progress is earned, not given. Mastery moves +0.25 per correct
  * answer and a state fills in on the map at 0.7, so it takes four right answers

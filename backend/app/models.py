@@ -401,7 +401,7 @@ class StartSessionResponse(Schema):
 
 class NextQuestionRequest(Schema):
     force_review: bool = False
-    include_answer_key: bool = True
+    include_answer_key: bool = False
 
 
 class ReviewRoundRequest(Schema):

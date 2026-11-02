@@ -123,7 +123,8 @@ async def test_listing_map_click_returns_exactly_the_served_ones(
     seen: list[dict[str, Any]] = []
     cursor: str | None = None
     while True:
-        params: dict[str, Any] = {"format": "map_click", "limit": 20}
+        # T-053 (Test change request row 13): opt in to the key.
+        params: dict[str, Any] = {"format": "map_click", "limit": 20, "includeAnswerKey": "true"}
         if cursor:
             params["cursor"] = cursor
         page = (await client.get("/questions", params=params)).json()

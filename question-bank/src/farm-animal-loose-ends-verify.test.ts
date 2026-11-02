@@ -157,7 +157,10 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // openapi.yaml, which main counted, leaves the counted set (293 -> 292).
 // Re-pinned by T-045 row 9: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (292 -> 291).
-const MAIN_UNTOUCHABLE_SHA = "d6097f1e2e4838d9807b06b847d2abccd8dfd89c5a276ae008af8c8f777bf2e7";
+// Re-pinned by T-053 row 32: models.py, content.py, sessions.py, e2e/tests/app.ts
+// and map-click.spec.ts, which main counted, join the allowed set with T-053's
+// brief and run log (291 -> 286).
+const MAIN_UNTOUCHABLE_SHA = "6e9754b8a2a04c6c5c8bfedd88f10bebe9daeb0dab42e017752470db6bdaff78";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -196,6 +199,15 @@ const CRITERION_21_ALLOWED = new Set([
   "backend/app/grading.py",
   "tasks/T-045-ungradable-formats.md",
   "runs/T-045-ungradable-formats.md",
+  // T-053's file set, joined through T-053's Test change request row 32
+  // (approved in the attended tester session that made the edit).
+  "backend/app/models.py",
+  "backend/app/routers/content.py",
+  "backend/app/routers/sessions.py",
+  "e2e/tests/app.ts",
+  "e2e/tests/map-click.spec.ts",
+  "tasks/T-053-answer-key-default.md",
+  "runs/T-053-answer-key-default.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
@@ -558,7 +570,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(291); // T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297)
+    expect(rest.length).toBe(286); // T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297))
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });

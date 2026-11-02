@@ -99,11 +99,12 @@ def schema_properties(name: str) -> set[str]:
     return found
 
 
-async def all_rows(client: httpx.AsyncClient, path: str) -> list[dict[str, Any]]:
+async def all_rows(client: httpx.AsyncClient, path: str, **extra: Any) -> list[dict[str, Any]]:
+    # T-053 (Test change request H3): optional extra query params, e.g. the key opt-in.
     rows: list[dict[str, Any]] = []
     cursor: str | None = None
     for _ in range(100):
-        params: dict[str, Any] = {"limit": 25}
+        params: dict[str, Any] = {"limit": 25, **extra}
         if cursor:
             params["cursor"] = cursor
         page = (await client.get(path, params=params)).json()
@@ -276,7 +277,8 @@ async def test_c13_served_question_fields_equal_the_question_file(
 ) -> None:
     source = {q["id"]: q for q in generated()}
     mismatches = []
-    for row in await all_rows(client, "/questions"):
+    # T-053 (Test change request row 10): opt in to the key.
+    for row in await all_rows(client, "/questions", includeAnswerKey="true"):
         want = source[row["id"]]
         # T-051 (Test change request row 17): a map_click serves the file's fields
         # minus its candidates, answerGeometryId included.
@@ -304,7 +306,8 @@ async def test_c14_every_question_validates_and_its_key_is_the_files_answer(
 ) -> None:
     answers = {q["id"]: q["answer"] for q in generated()}
     keys = {q["id"]: q.get("answerGeometryId") for q in generated()}
-    for row in await all_rows(client, "/questions"):
+    # T-053 (Test change request row 11): opt in to the key.
+    for row in await all_rows(client, "/questions", includeAnswerKey="true"):
         Question.model_validate(row)
         # T-051 (Test change request row 18): a map_click's key is the file's code.
         if row["format"] == "map_click":
@@ -407,7 +410,12 @@ async def play(
     session_id = started.json()["session"]["id"]
     played = []
     for _ in range(count):
-        served = await client.post(f"/sessions/{session_id}/next-question", headers=headers)
+        # T-053 (Test change request H3): opt in to the key explicitly.
+        served = await client.post(
+            f"/sessions/{session_id}/next-question",
+            headers=headers,
+            json={"includeAnswerKey": True},
+        )
         assert served.status_code == 200, served.text
         question = served.json()["question"]
         if question["format"] == "map_click":

@@ -96,7 +96,10 @@ def test_an_answer_is_counted_the_instant_it_is_submitted(
         started.json().get("served")
         or api.post(f"/sessions/{session_id}/next-question", headers=account).json()
     )
-    question = served["question"]
+    # T-053: the served question is withheld by default; read the key with an opt-in.
+    question = api.get(
+        f"/questions/{served['question']['id']}", params={"includeAnswerKey": "true"}
+    ).json()
 
     api.post(
         f"/sessions/{session_id}/answers",
