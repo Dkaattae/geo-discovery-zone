@@ -1,15 +1,15 @@
 # T-098 — `backend/` has no guard against tests that resolve a git revision
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-02, unattended run. See `runs/T-098-backend-git-revision-guard.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-098
 **Branch:** `claude/vibrant-feynman-ap8itp`
 **PR:** #118, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:**
+**Fault:** test changes waiting for approval. Five question-bank pins (Test change request rows 1-5) are stale because of T-098's own new files, so criterion 7 cannot be green until a person approves them in an attended `tester` session. Every other criterion is met.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` |
 | worker | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` |
+| tester | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` (orchestrated: shared id, fresh subagent; see Verdict) |
 
 **Not on the light path.** T-098 is sized S, but it needs more than four criteria
 (`process.md`, "The light path"): which forms must trip the guard, which must
@@ -317,6 +318,100 @@ tests above. If a human prefers to treat it as a criterion defect, it goes to
 `task-expander`.
 
 ## Verdict
+
+**TL;DR:** **Halted: test changes requested.** The guard does its job. Criteria
+1-6 and 8-10 hold, and I confirmed each by mutation. Criterion 7 is red only
+because of question-bank whole-tree pins that T-098's own new files make stale.
+That needs the five-row Test change request below. Nobody could approve it in
+this orchestrated run, so **Next step: human**. A person has to start an attended
+`tester` session to approve the rows. That session applies them and finishes the
+verdict.
+
+**Independence:** this run is orchestrated (`runs/T-098-…md` exists).
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfdetw2zh1MqvpkWNK`, the same id the
+expander and worker rows show, so the session check proves nothing here. My
+independence rests only on being a freshly spawned subagent with its own context.
+I did not see the worker's conversation or reasoning. That is weaker evidence than
+a separate session, because it depends on the orchestrator having spawned me
+correctly.
+
+**How I verified:** the deliverable is a test, so I verified it with coverage and
+mutation (tester.md), not with more tests. I committed no test file. A new
+`backend/tests/` file would also trip the same pins again. Every mutation was
+reverted, and `git status` was clean after each batch.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `make -C backend check`: ruff clean, **907 passed, 9 skipped**. The guard is in `backend/tests/`, collected by `testpaths`. Under `make -C backend test`, a planted offender made **1 failed, 906 passed** (rc 2). |
+| 2 | met | Plants in both `backend/tests/` and `backend/integration/` were caught. Untracked plants were caught, and so was a `git add`ed plant (form b, integration, via `make`). Temporarily appending `["git", "rev-parse", "HEAD"]` to each `conftest.py` turned the guard red, naming `backend/tests/conftest.py:201` and `backend/integration/conftest.py:201`. |
+| 3 | met | I planted each of forms (a)-(i), verbatim as in the criterion inside a `test_x` body (b with module-level `BASE = "e2e6495"`, i with `REPO`), as untracked `test_zz_tester_mutation.py` in **each** directory. All 18 runs were red, and the failure message named the file each time. |
+| 4 | met | One planted file holding all four working-tree forms: green in both directories. `test_t089_tester_criteria.py:240` is unchanged and the real scan passes. |
+| 5 | met | A planted file with forms in a module docstring, a function docstring, `#` lines and a trailing `#` comment: green in both directories. The four named files are byte-identical to main and pass. |
+| 6 | met | No `skip`/`skipif`/`xfail`/`importorskip` in the file (grep). Mutations: a scope with no files gave 1 red; `ls-files` with a bad flag gave 2 red; `ls-files` run outside a repo (`cwd="/"`) gave 2 red. Each failed and none skipped. |
+| 7 | **not met: stale pins** | backend green. `cd frontend && bun test`: `git-baseline-guard.criteria.test.ts` passes 15/15 with the new file tracked. The 6 frontend reds are environment reds, below. `cd question-bank && bun test`: **2709 pass, 4 fail**, all whole-tree pins (rows 1-4). |
+| 8 | met | `git diff --name-status 9cac751..HEAD`: one `A` under the four trees (the guard). No other file changed. |
+| 9 | met | `pyproject.toml` and `uv.lock` are unchanged. Imports: `ast`, `re`, `shlex`, `subprocess`, `pathlib`, `pytest`. |
+| 10 | met | The file's only `subprocess.run` is `["git", "ls-files", "-z", …]` with an exit-code assert. Mutated to a bad flag or a non-repo cwd, it fails. |
+
+**Guard-logic mutations** (`backend/tests/test_git_revision_guard.py`, each
+reverted):
+
+| Mutation | Result |
+|---|---|
+| Drop `ast.Tuple` from invocation detection | 1 red (g-tuple) |
+| No global-option skipping (`at += 1`) | 1 red (i) |
+| An unreadable subcommand is allowed | 1 red |
+| Shell-string invocations are ignored | 4 red |
+| Add `diff` to `ALLOWED_SUBCOMMANDS` | 1 red. Most diff samples are still caught by `looks_like_revision`. That is defence in depth, not a gap. |
+| Untracked files not read (`untracked = []`) | **0 red** |
+
+**Coverage gap, not a failure:** the untracked-file reach has no test of its own.
+Criterion 2 accepts it as behaviour, and I confirmed the behaviour with untracked
+plants (criterion 3 runs). Nothing pins it, so a later refactor could drop it
+silently.
+
+**Environment reds (frontend):**
+- `react-simple-maps` is not installed: it is absent from `node_modules`, though
+  `package.json` lists it. Three `components/` files fail to import.
+- `src/lint-gate.test.ts` hits the 5 s timeout. It passes **8/8** with
+  `--timeout 60000`.
+
+None of these touch backend files.
+
+**Stale tests confirmed by probe.** I made untracked copies of the three files
+with logging added, ran them, then deleted the copies:
+- Excluding `tasks/T-098-…md` and `runs/T-098-…md` restores T-091's 290 /
+  `d7ac83e…` and T-096's 286 / its digest exactly.
+- Dropping `backend/tests/test_git_revision_guard.py` restores T-091's 113 /
+  `MAIN_TESTS_SHA` and T-087's `MAIN_BOUNDARY_SHA` exactly.
+- So T-098's three files are the only cause. The worker's list was right, and I
+  added row 5, the cascade from row 3.
+
+**`check-ignore` in the allowlist:** criterion 4 is satisfied either way.
+Criterion 10 governs what the guard runs, and it runs only `ls-files`. I leave
+the call to the reviewer, as the Handoff asks.
+
+## Test change request
+
+T-098's own new files make these stale. Criterion 1 requires a new file under
+`backend/tests/`, and every task adds its brief and run log. No row weakens a
+pin. Rows 1 and 3 follow the T-039/T-045/T-053 precedent of joining a task's loop
+records to the allowed set, with count and digest unchanged. Rows 2 and 4 re-pin
+to digests that include the new file. Row 5 is the cascade T-053's row 33 also
+needed. Paths are relative to `question-bank/`.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no non-test file outside T-091's allowed set changes or appears | T-098's brief and run log are new tracked non-test files (292 ≠ 290) | modify | Same name. Add `tasks/T-098-backend-git-revision-guard.md` and `runs/T-098-backend-git-revision-guard.md` to `CRITERION_22_ALLOWED`, with a comment citing T-098 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **290** and `MAIN_UNTOUCHABLE_SHA` stays `d7ac83e44b9ef704b9920906c80fd90ebe7ce12d0ed0381595d71ff954ff5381` (verified) | |
+| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester: no test file is added, removed or modified outside named exceptions | Criterion 1 adds `backend/tests/test_git_revision_guard.py` (114 ≠ 113) | modify | Same name and filter. `MAIN_TESTS_COUNT` **113 → 114**, `MAIN_TESTS_SHA` → `1ea43d084611aa52c68664791325369bba9a5dc452800ae6410357d28c6bcb51`, comment "Re-pinned by T-098 (Test change request row 2): T-098 added backend/tests/test_git_revision_guard.py (113 -> 114)". Without the guard file the set is byte-identical to the old pin (verified) | |
+| 3 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-098 paths to `CRITERION_21_ALLOWED`, with a comment citing T-098 row 3. Count stays **286** and `MAIN_UNTOUCHABLE_SHA` stays `6e9754b8…bdaff78` (verified) | |
+| 4 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (last re-pinned `bcb2a38`, T-039, then T-045, T-053): every file under the three trees is pinned | Criterion 1 adds a file under `backend/` | modify | Same name and file set. `MAIN_BOUNDARY_SHA` → `1ea8c50dc0edf32de32320fb7550cdef8209ca83e8c78eadf4b7abd3937676af`, comment "Re-pinned by T-098 (Test change request row 4): T-098 added backend/tests/test_git_revision_guard.py". Without that file the tree equals the old pin (verified) | |
+| 5 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today. Row 3 changes `farm-animal-loose-ends-verify.test.ts`, whose digest is pinned in `APPLIED_REQUEST_FILE_SHAS` | modify (only if row 3 is approved) | Same name. Re-pin the `farm-animal-loose-ends-verify.test.ts` entry of `APPLIED_REQUEST_FILE_SHAS` to that file's sha256 after row 3 is applied, and extend its comment to "…then by T-053 (row 33), then by T-098 (row 5)". Every other entry is unchanged | |
+
+**To approve:** start the `tester` step for T-098 in a session you are attending,
+and approve or refuse each row there. That tester applies the approved rows as
+`T-098 tester: apply approved test change request`. It then re-runs all three
+suites and writes the final verdict.
 
 ## Notes
 
