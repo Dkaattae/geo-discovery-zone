@@ -741,7 +741,6 @@ describe("T-092 criterion 16: no other surface changes", () => {
     ["frontend", [], "67777de7b9ecb67e73d957a60d76126e1dae7e906b4d8281783fb7b7c11bc720"],
     ["e2e", [], "ee820bf3f3f4a5fafeb6863c0fdb02506d29d5b5233e00bc2e247f45465be3eb"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
-    ["openapi.yaml", [], "35831a81e0e9a3abc5f8e1e6bf4e02514adb63a27c64e2d8455e5b1e8514d6e6"],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);
   });
@@ -753,6 +752,15 @@ describe("T-092 criterion 16: no other surface changes", () => {
   test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 6587ed0', () => {
     expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
       "291b1e49a35674790bdf91c287adfd07f5b596a88116ada1b0370de1204f11de",
+    );
+  });
+
+  // Re-pinned at ed00235 (re-pinned T-039, Test change request row 2), after
+  // T-039 marked four operations "Not implemented in v1". Split out of the table
+  // above, as backend/app was, so only this row's name moves.
+  test("openapi.yaml (except []) is byte-identical to ed00235", () => {
+    expect(treeDigest(REPO, "openapi.yaml", [])).toBe(
+      "8453b57aee6100483248586f57da6555368adfd8b90abe820aaf35e2c9ffac5f",
     );
   });
 });

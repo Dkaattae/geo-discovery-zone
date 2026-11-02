@@ -75,15 +75,19 @@ const MAIN_DEPENDENCY_FILES_SHA =
  * allowed set takes them out of the counted set (301 -> 297). main (0a98e11)
  * gives the same count and digest with the same exemption.
  */
-const MAIN_UNTOUCHABLE_SHA = "b6b899079f1e4877d74d60bb6243662199b907691ce1c1a92e982c7d493ac739";
-const MAIN_UNTOUCHABLE_COUNT = 297;
+// Re-pinned by T-039 row 7: T-039's three files joined the allowed set, so
+// openapi.yaml, which main counted, leaves the counted set (297 -> 296).
+const MAIN_UNTOUCHABLE_SHA = "c7a674c1a9f9abd2a36631b661cbc3babaf8684bc3c2b53c7765f04d5b2bb9c5";
+const MAIN_UNTOUCHABLE_COUNT = 296;
 /**
  * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
  * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
  * over the same set.
  */
-const MAIN_TESTS_SHA = "bc91f541a08a2951dff3da2509f881559e7abba96a5fe69e12ad8e1d7539291d";
-const MAIN_TESTS_COUNT = 107;
+// Re-pinned by T-039 (Test change request row 5): T-039 added two backend test
+// files, test_unimplemented_content_docs.py and test_t039_tester_criteria.py (107 -> 109).
+const MAIN_TESTS_SHA = "31f18e10587d68449c2355ffb1e9df00acf0faac7df1b5a04e52630b2f2ab81b";
+const MAIN_TESTS_COUNT = 109;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -112,16 +116,20 @@ const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
  * 10a), so their digests are this branch's. The other two are 8108a42's.
  */
 const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
+  // re-pinned by T-039 (Test change request row 6)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "1f31bd54243f59354c080399ba56587375c15f9d9cfefda2a0f4e6d9d09138c1",
+    "f683a4ee562de75491314a2873b68c391b23bf50ac28780e7bb3612cef4d5470",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
+  // re-pinned by T-039 (Test change request row 6)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "b84fd23f51ce2f01477dca323dc2482b2c32d38a7b36ee48551c8afd26c0bf42",
+    "e037f5f4a62f9b54e795a7b4edf95f08b66dcdddb039e5d36e813dd7fc961ccb",
+  // re-pinned by T-039 (Test change request row 6)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "0ad22c7b41a19c5479bedbb5c828de182a96350aab00c8100613093afd51b8c6",
+    "2b66e4d918ac236a64d5738011f325a9c6c5ea6250929a2f3c32a83baffa9a01",
+  // re-pinned by T-039 (Test change request row 6)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
-    "e9ce9703abacea92c89d567c99ce4197c812e91d6488ce5054e0579bc6a978fb",
+    "793b8f0f6cf625d1ce57abedff3156eeb715ec7f9a1132b6124497bc7c52af2e",
   "backend/tests/test_t089_tester_criteria.py":
     "81a845389db2cebee246542d388c9e6fcceba57b97d7611f8c3d650fc52cb7a7",
 };
@@ -145,6 +153,11 @@ const CRITERION_22_ALLOWED = new Set([
   "conventions.md",
   "tasks/T-087-refresh-regenerate-reminder.md",
   "runs/T-087-refresh-regenerate-reminder.md",
+  // T-039's file set, joined through T-039's Test change request row 7
+  // (approved 2026-11-02 in the attended tester session that made the edit).
+  "openapi.yaml",
+  "tasks/T-039-empty-content-endpoints.md",
+  "runs/T-039-empty-content-endpoints.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);

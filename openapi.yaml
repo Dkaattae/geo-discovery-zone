@@ -20,10 +20,12 @@ info:
 
     Three groups of operations, deliberately separable:
 
-    - **Content** (`/entities`, `/questions`, `/bundles`, `/geometry`,
-      `/elevation-profiles`, `/superlative-axes`) — read-only, build-time generated,
-      cacheable, no user data. This is the group worth implementing first; a static
-      file host satisfies it.
+    - **Content** (`/entities`, `/questions`, `/bundles`) — read-only, build-time
+      generated, cacheable, no user data. This is the group worth implementing first;
+      a static file host satisfies it. Three more Content paths — `/geometry`,
+      `/elevation-profiles` and `/superlative-axes` — are not implemented in v1: they
+      exist in the contract and answer requests, but serve no data (404 or an empty
+      list). Each operation's description says what serving it would take.
     - **Profiles** (`/profiles`) — optional in v1. The app works with `localStorage`
       alone; these endpoints exist for the v1.5 export/import story and any later
       server accounts. Implementing them means storing children's data, so treat
@@ -392,8 +394,18 @@ paths:
       tags: [Content]
       summary: Fetch a TopoJSON geometry layer
       description: |
-        Join keys are FIPS for US states (`08` = Colorado) and ISO 3166-1 alpha-3 for
-        countries (`FRA`), matching `Entity.geometryId`. Never join on name strings.
+        **Not implemented in v1.** Every layer currently returns 404: no topology is
+        loaded. The v1 client bundles `us-atlas` at build time and draws maps from that,
+        so it does not call this endpoint. The operation is kept, rather than removed,
+        for later clients that need layers `us-atlas` does not carry.
+
+        Serving it would take a TopoJSON build artefact per layer (and per `detail`),
+        generated from Census TIGER for US layers and Natural Earth for world layers,
+        loaded by the backend at startup.
+
+        Once served: join keys are FIPS for US states (`08` = Colorado) and ISO 3166-1
+        alpha-3 for countries (`FRA`), matching `Entity.geometryId`. Never join on name
+        strings.
       parameters:
         - name: detail
           in: query
@@ -428,8 +440,13 @@ paths:
       tags: [Content]
       summary: List precomputed elevation cross-sections
       description: |
-        Sampled at build time and shipped as flat arrays, so no elevation API key
-        reaches the client and rate limits never apply at play time.
+        **Not implemented in v1.** Returns an empty `data` list, whatever `scope` is
+        given: no profiles exist.
+
+        Serving it would take a real terrain/elevation data source (for example a DEM
+        such as SRTM) sampled along each cut line at build time, and shipped as flat
+        arrays — so no elevation API key reaches the client and rate limits never apply
+        at play time. No profile is invented in the meantime.
       parameters:
         - $ref: "#/components/parameters/Scope"
       responses:
@@ -460,6 +477,10 @@ paths:
       operationId: getElevationProfile
       tags: [Content]
       summary: Fetch one elevation cross-section
+      description: |
+        **Not implemented in v1.** Returns 404 for every `profileKey`, because no
+        profiles exist. What serving it would take is described under
+        `listElevationProfiles`.
       responses:
         "200":
           description: The profile.
@@ -478,9 +499,18 @@ paths:
       tags: [Content]
       summary: List superlative axes
       description: |
-        Axes, not questions — the generator emits per-scope questions from each axis
-        and draws distractors from the next-ranked entities. Exposed so a client can
-        show "longest river" as a browsable category with a map reveal.
+        **Not implemented in v1.** Returns an empty `data` list, whatever `entityType`
+        is given: no axis exists.
+
+        The area superlative ("which state is biggest") is already served without this
+        endpoint, as ordinary questions from the template `tpl-biggest-state` through
+        `/questions`.
+
+        Serving it would take axis objects built from ranked entity fields, plus a
+        reviewed `promptMost` for each axis, because that text is child-facing. Once
+        served: axes, not questions — the generator emits per-scope questions from each
+        axis and draws distractors from the next-ranked entities, and a client can show
+        "longest river" as a browsable category with a map reveal.
       parameters:
         - name: entityType
           in: query

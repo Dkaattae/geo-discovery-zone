@@ -366,6 +366,26 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-039 — The three empty Content endpoints are documented as not implemented
+  in v1** (PR #113, 2026-11-02). `openapi.yaml` only: `getGeometry`,
+  `listElevationProfiles`, `getElevationProfile` and `listSuperlativeAxes` each
+  open with "Not implemented in v1", say what they return today (404 or an empty
+  list), and say what serving them would take (TopoJSON from Census TIGER and
+  Natural Earth; a DEM such as SRTM sampled at build time; ranked axes with a
+  reviewed `promptMost`). `/superlative-axes` points at `tpl-biggest-state`, and
+  the overview's Content bullet no longer lists the three as served. No runtime
+  change. Geometry is kept for later clients (Dkaattae: Q1 reserved, Q2 and Q3
+  unimplemented, one task). *Where it differed from the brief:* the brief
+  expected no test changes, and eight pre-existing question-bank pins went red
+  by design: three `openapi.yaml` hashes, T-087's backend tree digest, and
+  T-091's and T-096's whole-repo pins, which trip on any task's brief and run log.
+  All eight were re-pinned in an attended tester session a person approved, so
+  criterion 18 ("nothing under `question-bank/` changes") holds in substance,
+  not in letter. The tester's criteria 14-16 tests add new permanent pins (the
+  full operation set and three schemas' `required` lists): an eighth P-17
+  instance, not recorded in `process-tasks.md` because T-091 and T-096 pin that
+  file.
+
 - **T-087 — A bank refresh tells you to regenerate the question file and the
   served bank** (PR #112, 2026-10-30). `question-bank/package.json` gains a
   `questions` script (`bun run src/write-questions.ts`). A refresh that exits 0
@@ -1770,8 +1790,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   one question per state, and the review pool is topic-filtered (E-26, T-056).
 - A **React hydration warning** (#418) on first load of the production build. The
   app recovers; the cause is unfound (T-048).
-- `/geometry`, `/elevation-profiles` and `/superlative-axes` are implemented and
-  serve nothing, deliberately — the data is not in this repo (T-039).
+- `/geometry`, `/elevation-profiles` and `/superlative-axes` answer requests and
+  serve nothing, deliberately — the data is not in this repo. `openapi.yaml`
+  marks each "Not implemented in v1" and says what serving it would take (T-039).
 - `drag_order`, `pin_*` and `click_profile` have no answer key; submitting one is
   a 422 rather than a guess (T-045).
 - **The monthly bank refresh is built but not switched on** (T-063). T-095 has

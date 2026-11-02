@@ -68,7 +68,8 @@ const MAIN_CONTENT_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d39853eb6
 /** Criterion 3: every tracked file under `question-bank/data/us-states/`. */
 const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd95f179c";
 /** Criterion 15: every tracked file under `backend/`, `frontend/`, `e2e/`. */
-const MAIN_BOUNDARY_SHA = "a01711941de33c480bf4dc25940e6c416bb7f4dbb5f62df593be249bac215c6e";
+// Re-pinned by T-039 (Test change request row 4): T-039 added two backend test files.
+const MAIN_BOUNDARY_SHA = "dd45779913252a004865a331e645d523cdb14831fc5ca9b3b3074c9fa157a043";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",
@@ -499,7 +500,7 @@ describe("T-087 criterion 14: question file and served bank are main's", () => {
 });
 
 describe("T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes", () => {
-  test("every tracked file under the three trees is 0a98e11's, none added or removed", () => {
+  test("every tracked file under the three trees is as re-pinned by T-039, none added or removed", () => {
     expect(fileRowsSha(gitLsFiles("backend", "frontend", "e2e"))).toBe(MAIN_BOUNDARY_SHA);
   });
 });

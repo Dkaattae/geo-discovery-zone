@@ -153,7 +153,9 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-087 row 10a: four of T-087's files already existed on main, so
 // joining the allowed set takes them out of the counted set (297 -> 293). main
 // (0a98e11) gives the same count and digest with the same exemption.
-const MAIN_UNTOUCHABLE_SHA = "ceaf01f5308835cf8ee2fa75aff2f6a4a8011ab085b0133706418c4ce212e62a";
+// Re-pinned by T-039 row 8: T-039's three files joined the allowed set, so
+// openapi.yaml, which main counted, leaves the counted set (293 -> 292).
+const MAIN_UNTOUCHABLE_SHA = "524637788cc480495650b8a25fd3ceaf5c9e09f2c2fc30802820111d95a418ca";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -182,6 +184,11 @@ const CRITERION_21_ALLOWED = new Set([
   "conventions.md",
   "tasks/T-087-refresh-regenerate-reminder.md",
   "runs/T-087-refresh-regenerate-reminder.md",
+  // T-039's file set, joined through T-039's Test change request row 8
+  // (approved 2026-11-02 in the attended tester session that made the edit).
+  "openapi.yaml",
+  "tasks/T-039-empty-content-endpoints.md",
+  "runs/T-039-empty-content-endpoints.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
@@ -544,7 +551,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(293); // T-087 row 10a: was 297
+    expect(rest.length).toBe(292); // T-039 row 8: was 293 (T-087 row 10a: was 297)
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });

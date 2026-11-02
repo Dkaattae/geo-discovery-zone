@@ -202,7 +202,9 @@ const MAIN_ED_OUTSIDE_E25_SHA = "ee4ead2780b3eb34b59f6f378b798447a06f69310555a76
 const MAIN_FILE_SHA: Record<string, string> = {
   "question-bank/src/curated/us-states.ts":
     "e61e8e50bd0fa6f1c958698009e23c3e92b83ba1e2af71426c6ae7afb95b4cbc",
-  "openapi.yaml": "cddf482a77ecdde887ac0568c44190714825bef6ef9f874b0a195c2200f4d216",
+  // re-pinned at `ed00235` (T-039, Test change request row 1): T-039 marks four
+  // operations "Not implemented in v1".
+  "openapi.yaml": "cd4015e64025f5a3b1b88e5a8948597708f7c5924df924109454850f21c5bcb0",
 };
 const MAIN_DEP_SHA: Record<string, string> = {
   "backend/pyproject.toml": "a7741b6f8be54ee317fc9caf308debff1959b93b00f28efc6e7e760468813724",
