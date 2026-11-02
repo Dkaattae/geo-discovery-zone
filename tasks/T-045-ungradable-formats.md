@@ -1,7 +1,7 @@
 # T-045 — Three question formats have no answer key
 
-**Status:** `awaiting approval`
-**Next step:** `worker` — after a human approves (see "A call the approver should check" below)
+**Status:** `awaiting verification`
+**Next step:** `tester` — attended: eight pre-existing pins are red and need a Test change request (see Handoff, "Tests made stale")
 **Approved:** Dkaattae — 2026-11-02, given in the orchestrator's session: "approved, mark them not gradeable". See `runs/T-045-ungradable-formats.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-02 | cse_011oDiJfu1cshxQFeafboWxE (orchestrated, subagent) |
+| worker | 2026-11-02 | cse_011oDiJfu1cshxQFeafboWxE (orchestrated, subagent) |
 
 > **TL;DR.** T-045 takes the "mark as not yet gradeable" side, not the "build
 > it now" side. `openapi.yaml` says plainly which formats and pin strategies v1
@@ -251,6 +252,144 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+> **TL;DR.** Built: `grade()` now refuses `drag_order` at `/order`, `click_profile`
+> (and any unknown format) at `/questionId`, and every pin refusal — including the
+> two geometry strategies, which were silently graded by centroid — at `/pin`.
+> `openapi.yaml` carries the "Not implemented in v1" text. Backend suite green
+> (800 pass, 9 skip), lint and format clean. **Eight question-bank pins are red,
+> six of them by my change and two already red before it** — the tester needs a
+> Test change request (list below). Frontend reds are environmental, not this task.
+
+**Note on the session id:** every role in this run reports the same
+`CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJfu1cshxQFeafboWxE`) because the
+orchestrator spawns subagents inside one remote session. Each role was a separate
+subagent with its own context; the id cannot show that.
+
+### Files changed
+
+- **`backend/app/grading.py`**
+  - New `GRADED_PIN_STRATEGIES = {"nearest_centroid"}`.
+  - Pin branch rewritten: checks in order no strategy → strategy not graded →
+    no centroid → no pin; every one raises with path `/pin`. Then the unchanged
+    haversine/radius grading. `maxDistanceKm: null` now also means 300 (it would
+    have raised a `TypeError` before); omitted still means 300.
+  - `drag_order` raises at `/order`. The final fall-through (covers
+    `click_profile` and any unknown format) raises at `/questionId`.
+  - `UngradableAnswer`'s default path stays `/choiceIndex`, so the choice-format
+    raises are unchanged.
+- **`openapi.yaml`** — text only, no enum or property removed:
+  - `QuestionFormat.description`: served formats, `image`/`ab_compare` note, and
+    a **Not implemented in v1** paragraph naming the four.
+  - `PinTarget.description`: **Not implemented in v1** for the two strategies,
+    `nearest_centroid` stated as the only graded one; the plan's
+    point-in-polygon reasoning kept as "the design these strategies are for".
+  - `maxDistanceKm.description`: "An omitted value means 300 km."
+  - `submitAnswer.description`: a 422 paragraph listing all five paths and what
+    triggers each.
+  - `AnswerRequest.order.description`: **Not implemented in v1**, 422 at `/order`.
+- **`backend/tests/test_t045_ungradable.py`** (new, 35 tests): pure `grade()`
+  checks plus endpoint checks through the ASGI client.
+- **`sessions.py`**: not changed — `UngradableAnswer.path` already carries the path.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1 | `grading.py`, `drag_order` branch → `/order` |
+| 2 | `grading.py`, final raise → `/questionId` |
+| 3 | `grading.py`, pin branch tail (unchanged maths; null radius hardened) |
+| 4 | `grading.py`, `GRADED_PIN_STRATEGIES` check, before centroid/pin |
+| 5 | `grading.py`, no-strategy and no-centroid checks |
+| 6 | `grading.py`, `pin is None` check |
+| 7 | unchanged paths: `/choiceIndex` default, map_click branch |
+| 8 | `sessions.py:238-252` — `grade()` still runs before `apply_answer`; nothing changed there |
+| 9 | already true: `content_build.py` `SERVED_FORMATS`; `content.json` not touched |
+| 10–14 | `openapi.yaml` as listed above |
+| 15 | enums untouched; `test_contract.py` passes |
+| 16–17 | `git diff --stat origin/main..` touches no `frontend/`, `question-bank/`, bank or lockfile |
+| 18 | new tests use the ASGI client and pure calls only |
+
+**How my endpoint tests reach a pending question of these formats:** start a
+session, take the first served question, then rewrite that `QuestionRow`'s
+`payload` and `format` in the test's own DB session (rolled back at teardown).
+The tester may prefer a different route; this one needs no production seam.
+
+### Deliberately not done
+
+- **No "Not implemented in v1" in `submitAnswer.description`.** My first draft
+  had it, and it turned two existing tests red
+  (`test_t039_tester_criteria.py::test_c2_no_other_operation_carries_the_mark`,
+  `test_unimplemented_content_docs.py::test_exactly_the_empty_endpoints_are_marked_unimplemented`):
+  that phrase marks *operations* that are not implemented, and `submitAnswer`
+  is implemented. Criterion 13 does not need the phrase, so I used plain wording
+  there. Both tests are green.
+- No `engineering-decisions.md` entry: the `openapi.yaml` text carries the reasoning.
+- No `tasks.md` / `PROGRESS.md` edits (reviewer's sweep, per Out of scope).
+
+### Contradictions with the brief
+
+- None in the criteria. The brief predicted T-087's backend digest and
+  `openapi.yaml` hashes would go red; they did (below). It did not predict that
+  two pins were **already red on the branch before I started** (from the new
+  `tasks/` and `runs/` files the expander and orchestrator added).
+
+### How to run
+
+- `make -C backend test` — 800 passed, 9 skipped.
+- `make -C backend lint` and `make -C backend format-check` — clean.
+- `uv run pytest tests/test_t045_ungradable.py -q` in `backend/` — 35 passed.
+- `cd question-bank && bun test` — 2705 pass, 8 fail (all listed below).
+  `bun run typecheck` and `bun run lint` clean.
+- `cd frontend && bun test --timeout 60000` — 392 pass, 4 fail, **all
+  environmental**: `bun install` gets a proxy 403 (`ProxyConnectFailed` on
+  `d3-drag`), so `react-simple-maps` is missing and four component test files
+  cannot load. Under bun's default 5 s timeout the ESLint-spawning gate tests
+  also time out in this container. No `frontend/` file changed.
+
+### Tests made stale
+
+All in `question-bank/src/`. The first six go red because of this change. The
+last two were **already red at `61bffb9`** (before any worker change) and stay red.
+
+| File | Test (describe > name) | Made stale by | Proposed fix |
+|---|---|---|---|
+| `agriculture-true-wrong-answers-verify.test.ts` | T-088 criteria 20-25: what must not change > criterion 21: openapi.yaml is byte-identical to main's | criteria 10–14 (openapi text) | re-pin to this branch's `openapi.yaml` |
+| `map-click-no-candidates-verify.test.ts` | T-092 criterion 16: no other surface changes > backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 6587ed0 | criterion 4 (`grading.py`) | add `backend/app/grading.py` to the exception list, or re-pin |
+| `map-click-no-candidates-verify.test.ts` | T-092 criterion 16: no other surface changes > openapi.yaml (except []) is byte-identical to ed00235 | criteria 10–14 | re-pin to this branch's `openapi.yaml` |
+| `refresh-regenerate-reminder-verify.test.ts` | T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes > every tracked file under the three trees is as re-pinned by T-039, none added or removed | `grading.py` + new backend test file | re-pin `MAIN_BOUNDARY_SHA` (line 72) |
+| `familiarity-drawn-apart-verify.test.ts` | T-085a criteria 23-25: negative > criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039) | criteria 10–14 | re-pin |
+| `climate-cold-trade-accepted-verify.test.ts` | T-091 criterion 20: no non-test source file moves > every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's | `grading.py` | re-pin `MAIN_SOURCE_TREES_SHA` (line 65) |
+| `farm-animal-loose-ends-verify.test.ts` | T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added | **pre-existing**: count 294 vs 292 from the new `tasks/T-045-…md` and `runs/T-045-…md`; once the count is fixed, `grading.py` and `openapi.yaml` will also fail the content check | count floor 292 → 294 is wrong-headed; better add the T-045 files (brief, run log, `grading.py`, `openapi.yaml`) to `CRITERION_21_ALLOWED`, as T-039 row 8 did, keeping 292 |
+| `climate-cold-trade-accepted-verify.test.ts` | T-091 criterion 22: the diff touches only the allowed files > every tracked non-test file outside the allowed list is 12d242e's, and none is added | **pre-existing**: count 298 vs `MAIN_UNTOUCHABLE_COUNT = 296` (line 81), same two files; same follow-on for `grading.py`/`openapi.yaml` | add the same four files to `CRITERION_22_ALLOWED`, as T-039 row 7 did, keeping 296 |
+
+**Count floors:** `farm-animal-loose-ends-verify.test.ts:554` (292) and
+`climate-cold-trade-accepted-verify.test.ts` `MAIN_UNTOUCHABLE_COUNT` (296).
+Adding the four T-045 files to each allowed set keeps both numbers where they are.
+
+### Flags, with owners
+
+- **`maxDistanceKm: null` treated as 300.** Decided because a stored `null`
+  would otherwise crash grading with a 500, and the contract text now says
+  "omitted means 300". Tester to confirm it is within criterion 3; reviewer to
+  overturn if they want `null` refused instead.
+- **Unknown formats answer at `/questionId`** (not just `click_profile`).
+  Decided because the question is what cannot be graded, the same reasoning
+  criterion 2 gives. Reviewer to confirm.
+- **Check order in the pin branch** (target checks before the `pin` check). All
+  paths are `/pin`, so it changes only the `message`. No owner needed beyond the
+  reviewer's read.
+
 ## Verdict
 
 ## Notes
+
+- **Surprise:** the "Not implemented in v1" phrase is load-bearing for two
+  existing tests that use it to mark unimplemented *operations*. It belongs on
+  schemas here, not on `submitAnswer`.
+- **Surprise:** the old pin branch checked `pin is None` before the target, and
+  reported both at `/choiceIndex`; the old fall-through also said `/choiceIndex`
+  for `drag_order`/`click_profile`. The existing
+  `test_grading.py::test_a_format_with_no_answer_key_is_refused_rather_than_guessed`
+  only asserts the exception type, so it stays green.
+- **Environment:** `frontend/` dependencies cannot install here (proxy 403), so
+  the frontend suite could not be fully run. Nothing in `frontend/` changed.
