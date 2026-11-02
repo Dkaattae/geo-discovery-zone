@@ -996,6 +996,26 @@ paths:
         onto the review queue, four correct in a row nudges `level` up by 0.5 and
         three wrong in a row drops it by 0.5 — quietly, with no message, since kids
         read "difficulty lowered" as failure.
+
+        **A question the server cannot grade gets a 422**, and the problem's `errors`
+        name the request field that belongs to the question's format. The formats and
+        pin strategies v1 cannot grade are listed on `QuestionFormat` and `PinTarget`.
+        Grading runs before any side effect, so a 422 changes no count, mastery or
+        review queue, and the question stays pending:
+
+        - `/choiceIndex` — a choice format (`map_identify`, `multiple_choice`, `image`,
+          `ab_compare`) with no `choiceIndex`, or a question with no stored answer key.
+        - `/tappedGeometryId` — `map_click` with no `tappedGeometryId`, or a question
+          with no `answerGeometryId`.
+        - `/pin` — `pin_pick` or `pin_drop` with no `pin`; a question with no
+          `pinTarget`, no `strategy`, or a `nearest_centroid` target with no
+          `centroid`; or a strategy v1 does not grade (`polygon_then_centroid`,
+          `distance_to_line`), which is refused rather than graded by centroid
+          distance.
+        - `/order` — every `drag_order` answer: v1 does not grade the format.
+        - `/questionId` — every `click_profile` answer, and any format the server does
+          not know. `AnswerRequest` has no answer field for these, so the question is
+          what cannot be graded.
       requestBody:
         required: true
         content:
@@ -1355,6 +1375,16 @@ components:
       description: |
         The v1 client emits `map-identify` and `text-mc`; those map to `map_identify`
         and `multiple_choice` respectively.
+
+        The v1 bank serves `map_identify`, `map_click` and `multiple_choice` only.
+        `image` and `ab_compare` grade by `correctIndex` like any choice format, but
+        no question of either is served.
+
+        **Not implemented in v1:** `drag_order`, `click_profile`, `pin_pick` and
+        `pin_drop` have no generator, renderer or (except a `nearest_centroid` pin)
+        answer key, and no served question uses them. Answers to them get a 422 — see
+        `submitAnswer` for the path each one names. The values stay in the enum for the
+        later work the plan describes (§2.5 pins, §4 build order).
       enum:
         - map_identify
         - map_click
@@ -1683,8 +1713,16 @@ components:
     PinTarget:
       type: object
       description: |
-        Grading spec for pin formats. A fixed radius fails at both ends — 200km is
-        generous for Cape Verde and about three pixels at world zoom — so grade by
+        Grading spec for pin formats.
+
+        **Not implemented in v1:** `polygon_then_centroid` and `distance_to_line`.
+        They need geometry the v1 server does not load, so an answer to a question
+        using either gets a 422 at `/pin` rather than a centroid-distance guess.
+        `nearest_centroid` is the only strategy graded: correct when the great-circle
+        distance from the pin to `centroid` is at most `maxDistanceKm`.
+
+        The design these strategies are for: a fixed radius fails at both ends — 200km
+        is generous for Cape Verde and about three pixels at world zoom — so grade by
         point-in-polygon first and fall back to nearest centroid only when the tap
         hits no shape. Rivers grade by distance to the line, since a river's centroid
         can sit in a country the river never touches.
@@ -1699,7 +1737,9 @@ components:
           $ref: "#/components/schemas/LonLat"
         maxDistanceKm:
           type: number
-          description: Cap so a tap mid-Atlantic cannot accidentally win.
+          description: |
+            Cap so a tap mid-Atlantic cannot accidentally win. An omitted value
+            means 300 km.
           example: 600
         autoZoomBounds:
           type: array
@@ -2166,7 +2206,10 @@ components:
           description: For pin formats — the inverse-projected tap.
         order:
           type: array
-          description: For `drag_order`, entity ids in the order the kid arranged them.
+          description: |
+            For `drag_order`, entity ids in the order the kid arranged them.
+            **Not implemented in v1:** this field is not graded, and a `drag_order`
+            answer is a 422 at `/order` whatever it holds.
           items:
             type: string
         elapsedMs:

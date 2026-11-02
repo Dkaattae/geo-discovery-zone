@@ -41,6 +41,9 @@ CHOICE_FORMATS = {"map_identify", "multiple_choice", "image", "ab_compare"}
 # `map_click` question offers no candidates, so any state can be tapped (E-29).
 GEOMETRY_FORMATS = {"map_click"}
 PIN_FORMATS = {"pin_pick", "pin_drop"}
+# `polygon_then_centroid` and `distance_to_line` need geometry v1 does not load,
+# so only the centroid strategy is graded; the others are refused (T-045).
+GRADED_PIN_STRATEGIES = {"nearest_centroid"}
 DEFAULT_PIN_RADIUS_KM = 300.0
 EARTH_RADIUS_KM = 6371.0088
 
@@ -103,21 +106,49 @@ def grade(
         return choice_index == question["correctIndex"], None
 
     if question_format in PIN_FORMATS:
+        # Every pin refusal names `/pin`: it is the only answer field the format has.
         target = question.get("pinTarget") or {}
+        strategy = target.get("strategy")
+        if not strategy:
+            raise UngradableAnswer(
+                question_format,
+                "This question has no pin target, so a tap cannot be graded.",
+                "/pin",
+            )
+        if strategy not in GRADED_PIN_STRATEGIES:
+            # Point-in-polygon and distance-to-line need geometry v1 does not
+            # load. Grading them by centroid distance would be a guess (plan §2.5).
+            raise UngradableAnswer(
+                question_format,
+                f"Pin strategy {strategy} is not implemented in v1.",
+                "/pin",
+            )
         centroid = target.get("centroid")
-        if pin is None:
-            raise UngradableAnswer(question_format, "pin is required for this format.")
         if not centroid:
             raise UngradableAnswer(
                 question_format,
                 "This question has no pin target, so a tap cannot be graded.",
+                "/pin",
             )
+        if pin is None:
+            raise UngradableAnswer(question_format, "pin is required for this format.", "/pin")
         distance = haversine_km(pin, centroid)
-        radius = target.get("maxDistanceKm", DEFAULT_PIN_RADIUS_KM)
+        radius = target.get("maxDistanceKm")
+        if radius is None:
+            radius = DEFAULT_PIN_RADIUS_KM
         return distance <= radius, distance
 
+    if question_format == "drag_order":
+        raise UngradableAnswer(
+            question_format, "Grading for drag_order questions is not implemented in v1.", "/order"
+        )
+
+    # `click_profile` has no answer field in AnswerRequest, and any format this
+    # server does not know is the same case: the question is what cannot be graded.
     raise UngradableAnswer(
-        question_format, f"Grading for {question_format} questions is not implemented."
+        question_format,
+        f"Grading for {question_format} questions is not implemented in v1.",
+        "/questionId",
     )
 
 

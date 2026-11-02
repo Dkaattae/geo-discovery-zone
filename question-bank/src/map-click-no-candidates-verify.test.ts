@@ -748,19 +748,22 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 24), after
   // T-085a regenerated content.json. Re-pinned at 6587ed0 (re-pinned T-088, Test
   // change request row 9), after T-088 regenerated content.json. Same exception
-  // list; split out of the table above so only this row's name moves.
-  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to 6587ed0', () => {
+  // list; split out of the table above so only this row's name moves. Re-pinned
+  // at T-045 (Test change request row 2), after T-045 changed backend/app/grading.py.
+  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-045\'s', () => {
     expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
-      "291b1e49a35674790bdf91c287adfd07f5b596a88116ada1b0370de1204f11de",
+      "00c348f60efeee37be98e1ad05cb1c49d9959b625dd2ab002260c5759e6ea62b",
     );
   });
 
   // Re-pinned at ed00235 (re-pinned T-039, Test change request row 2), after
   // T-039 marked four operations "Not implemented in v1". Split out of the table
-  // above, as backend/app was, so only this row's name moves.
-  test("openapi.yaml (except []) is byte-identical to ed00235", () => {
+  // above, as backend/app was, so only this row's name moves. Re-pinned at T-045
+  // (Test change request row 3), after T-045 marked four formats and two pin
+  // strategies "Not implemented in v1".
+  test("openapi.yaml (except []) is byte-identical to T-045's", () => {
     expect(treeDigest(REPO, "openapi.yaml", [])).toBe(
-      "8453b57aee6100483248586f57da6555368adfd8b90abe820aaf35e2c9ffac5f",
+      "169b52a1c0f9ff5734e51e1c85cdfc5c9502d579734a7045fa8c11e94451c69e",
     );
   });
 });

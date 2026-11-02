@@ -155,7 +155,9 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // (0a98e11) gives the same count and digest with the same exemption.
 // Re-pinned by T-039 row 8: T-039's three files joined the allowed set, so
 // openapi.yaml, which main counted, leaves the counted set (293 -> 292).
-const MAIN_UNTOUCHABLE_SHA = "524637788cc480495650b8a25fd3ceaf5c9e09f2c2fc30802820111d95a418ca";
+// Re-pinned by T-045 row 9: grading.py, which main counted, joins the allowed set
+// with T-045's brief and run log (292 -> 291).
+const MAIN_UNTOUCHABLE_SHA = "d6097f1e2e4838d9807b06b847d2abccd8dfd89c5a276ae008af8c8f777bf2e7";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -189,6 +191,11 @@ const CRITERION_21_ALLOWED = new Set([
   "openapi.yaml",
   "tasks/T-039-empty-content-endpoints.md",
   "runs/T-039-empty-content-endpoints.md",
+  // T-045's file set, joined through T-045's Test change request row 9
+  // (approved 2026-11-02 in the attended tester session that made the edit).
+  "backend/app/grading.py",
+  "tasks/T-045-ungradable-formats.md",
+  "runs/T-045-ungradable-formats.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
@@ -551,7 +558,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(292); // T-039 row 8: was 293 (T-087 row 10a: was 297)
+    expect(rest.length).toBe(291); // T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297)
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });
