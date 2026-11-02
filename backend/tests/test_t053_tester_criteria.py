@@ -6,12 +6,18 @@ Expected values come from the brief's criteria, not from the implementation.
 `map_click` question a string `answerGeometryId`.
 
 All calls go through the in-process ASGI client; nothing reaches the network.
+
+Criteria 20 (the contract test file), 22-25 (the file boundaries) are not
+tested here: a test that diffs against a fixed commit skips in CI's shallow
+clone and goes red on `main` once a later task touches those paths (E-11,
+E-12, T-053 review finding 1). They were checked once, by hand, and the
+`git diff --stat` output is in the brief's Verdict. Criterion 20's behavioural
+half is `tests/test_contract.py`, which runs unchanged. Criterion 26 holds
+because every test here uses the in-process `client` fixture.
 """
 
 from __future__ import annotations
 
-import subprocess
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -21,8 +27,6 @@ import yaml
 from tests.conftest import DEMO_PROFILE_ID, SPEC_PATH
 
 KEY_FIELDS = ("correctIndex", "answerGeometryId")
-REPO = Path(__file__).resolve().parents[2]
-BASE = "e2e6495"  # the approved brief, before the worker's commit
 
 
 def is_withheld(question: dict[str, Any]) -> bool:
@@ -402,100 +406,3 @@ def test_c19_list_questions_description_names_a_fixed_window(raw_spec: dict[str,
     assert "widening" not in description and "widens" not in description
     assert "levelSpan" in description and "level" in description
     assert "fixed" in description.lower() and "window" in description.lower()
-
-
-# -- boundaries (diff against the approved brief's commit) ----------------
-
-
-def _changed(*paths: str) -> list[str]:
-    try:
-        out = subprocess.run(
-            ["git", "diff", "--name-only", BASE, "HEAD", "--", *paths],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pytest.skip(f"git history at {BASE} not available")
-    return [line for line in out.stdout.splitlines() if line]
-
-
-def test_c20_contract_test_file_is_unchanged() -> None:
-    assert _changed("backend/tests/test_contract.py") == []
-
-
-def test_c22_no_change_under_frontend_question_bank_or_app_data() -> None:
-    # Criterion 22 as amended by the person approving Test change request rows
-    # 23-33 (2026-11-02): question-bank/ may change only in the six boundary
-    # tests those rows re-pin.
-    assert _changed("frontend", "backend/app/data") == []
-    assert set(_changed("question-bank")) == {
-        "question-bank/src/agriculture-true-wrong-answers-verify.test.ts",
-        "question-bank/src/climate-cold-trade-accepted-verify.test.ts",
-        "question-bank/src/familiarity-drawn-apart-verify.test.ts",
-        "question-bank/src/farm-animal-loose-ends-verify.test.ts",
-        "question-bank/src/map-click-no-candidates-verify.test.ts",
-        "question-bank/src/refresh-regenerate-reminder-verify.test.ts",
-    }
-
-
-def test_c23_e2e_change_is_only_the_answer_lookup_doc_comment() -> None:
-    # Criterion 23 as amended by the person approving Test change request row 22
-    # (2026-11-02): map-click.spec.ts's answerKey() may also opt in to the key.
-    assert set(_changed("e2e")) <= {"e2e/tests/app.ts", "e2e/tests/map-click.spec.ts"}
-    diff = subprocess.run(
-        ["git", "diff", "-U0", BASE, "HEAD", "--", "e2e/tests/app.ts"],
-        cwd=REPO,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    changed_lines = [
-        line[1:]
-        for line in diff.splitlines()
-        if line[:1] in "+-" and not line.startswith(("+++", "---"))
-    ]
-    for line in changed_lines:
-        assert line.strip().startswith("*"), line
-    for hunk in [h for h in diff.splitlines() if h.startswith("@@")]:
-        old = hunk.split()[1]  # -start,count
-        start = int(old[1:].split(",")[0])
-        assert 212 <= start <= 218, hunk
-
-
-def test_c24_grading_is_unchanged() -> None:
-    assert _changed("backend/app/grading.py") == []
-
-
-def test_c25_no_dependency_change() -> None:
-    assert _changed("backend/pyproject.toml", "backend/uv.lock") == []
-
-
-def test_c23_amended_map_click_spec_change_is_only_the_key_opt_in() -> None:
-    """Row 22: the only e2e behaviour change is the lookup asking for the key."""
-    try:
-        diff = subprocess.run(
-            ["git", "diff", "-U0", BASE, "HEAD", "--", "e2e/tests/map-click.spec.ts"],
-            cwd=REPO,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pytest.skip(f"git history at {BASE} not available")
-    removed = [
-        line[1:].strip()
-        for line in diff.splitlines()
-        if line.startswith("-") and not line.startswith("---")
-    ]
-    added = [
-        line[1:].strip()
-        for line in diff.splitlines()
-        if line.startswith("+") and not line.startswith("+++")
-    ]
-    assert removed == ["`/api/v1/questions/${encodeURIComponent(questionId)}`,"]
-    assert added == [
-        "// T-053: the key is withheld by default, so the lookup opts in.",
-        "`/api/v1/questions/${encodeURIComponent(questionId)}?includeAnswerKey=true`,",
-    ]
