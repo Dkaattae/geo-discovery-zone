@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-098
 **Branch:** `claude/vibrant-feynman-ap8itp`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #118, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
 **Fault:**
 
