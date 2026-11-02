@@ -1,14 +1,16 @@
 # T-053 — The public bank hands out the answer key by default
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** Dkaattae — 2026-11-02, "approved as written, including 10–11", given in the orchestrator's session. See `runs/T-053-answer-key-default.md`.
-**Test changes:** `approved — Dkaattae, 2026-11-02` (given by the person attending tester session session_011oDiJbUGyPxtYXDq2xV2Bz; no name typed in-session)
+**Test changes:** `requested` (rows 1-18: approved — Dkaattae, 2026-11-02, applied in `0c53042`; rows 19-33: requested)
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-053
 **Branch:** `claude/magical-davinci-y58qf6`
 **PR:** #117, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
+
+**Fault:** test changes are waiting for approval: CI on PR #117 found 15 more stale tests (rows 19-33) that read the key off a default response or pin files T-053 changes; owner: a person, in this attended tester session.
 
 **Sessions:**
 
@@ -454,15 +456,66 @@ Shared helper changes (a helper is test code, so it is listed and approved here)
 **Decision (attended tester session, 2026-11-02):** "Approve all 18 + H1–H3".
 Applied in `0c53042`.
 
+### Second request: rows 19-33 (tester, attended session, 2026-11-02)
+
+**Why there is a second request:** the `pass` above was premature. CI on
+`3daabd7` (run 41518840023) ran three jobs I could not run here, and they
+found stale tests that neither the worker's list nor rows 1-18 named:
+
+- **integration:** 6 tests in 3 files (`KeyError: 'correctIndex'`): they read
+  the key off a default served question.
+- **e2e:** `map-click.spec.ts` › "a map_click question: one tap answers, …":
+  its `answerKey()` reads `answerGeometryId` off a default `GET /questions/{id}`
+  (`data-geometry-id="undefined"`).
+- **question-bank:** 10 boundary pins from T-085a, T-087, T-088, T-091, T-092
+  and T-096 hash `backend/app`, `openapi.yaml`, `e2e`, or count files that
+  T-053 changes. T-045's rows 1-10 are the precedent: same constants, same kind
+  of re-pin.
+
+Every value below was computed by applying rows 19-33 to this branch
+(`89434f3`) and running the suite. Question-bank then has 0 failures apart from
+11 T-066 lint-gate tests that fail only locally, because `oxlint` is not
+installed in this container (they pass in CI). Unit suite unchanged at 884
+passed. **No row deletes a test or drops an assertion.**
+
+**Row 22 conflicts with criterion 23** ("Under `e2e/`, only the doc comment …
+may change. No e2e behaviour or assertion changes"). The e2e test cannot pass
+without opting in to the key, which the task's own change requires. Approving
+row 22 means criterion 23 is amended to also allow it. That amendment is the
+`task-expander`'s to write, or the person's to give here; I do not edit
+criteria.
+
+| # | Test (file › name) | Introduced | Why stale | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 19 | `backend/integration/test_child_loop.py` › `answer()` helper, fixing `test_a_child_plays_a_session_from_sign_in_to_summary`, `test_a_wrong_answer_puts_the_place_on_the_review_queue`, `test_the_map_fills_in_as_places_are_learned`, `test_an_accidental_answer_can_be_taken_back` | `7d1b92b` (backend under CI); map_click branch T-051 row 34 | c8, c10: served questions are withheld | modify | Helper reads the question from `GET /questions/{id}?includeAnswerKey=true` instead of `served["question"]`. Test bodies unchanged | |
+| 20 | `backend/integration/test_persistence.py` › `test_a_childs_progress_survives_a_restart` | same | c8, c10 | modify | `question` comes from `GET /questions/{served id}?includeAnswerKey=true`. Every assert unchanged | |
+| 21 | `backend/integration/test_write_durability.py` › `test_an_answer_is_counted_the_instant_it_is_submitted` | same | c8, c10 | modify | As row 20 | |
+| 22 | `e2e/tests/map-click.spec.ts` › `answerKey()` helper, fixing "a map_click question: one tap answers, the reveal draws both states, undo reopens the map" | `6537059`, T-051 tester | c4: `GET /questions/{id}` withholds by default. **Conflicts with c23** | modify | The lookup URL gains `?includeAnswerKey=true`, plus a comment. Nothing else in e2e changes | |
+| 23 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25" › "criterion 21: openapi.yaml is byte-identical to main's" | `e9d666e`, T-088; re-pinned T-039, T-045 | c15-c19 edit `openapi.yaml` | modify | `MAIN_FILE_SHA["openapi.yaml"]` `cf9a44dd…bdb1` → `37db5438bfd08f7a6239170026f8da861a510be810aa9c5c0db958bee2226bae`, comment naming this row | |
+| 24 | `question-bank/src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16" › `e2e (except []) is byte-identical to 5d72ca5` (a `test.each` row) | `cf63f66`, T-092 tester | `e2e/tests/app.ts` comment (c23) and row 22 | modify | Split out of the table, as backend/app and openapi.yaml were. Renamed `e2e (except []) is byte-identical to T-053's`. Digest `ee820bf3…b3eb` → `9c9968deb10c9cae7808cc7fb4ea2422c69823a84179df29f08be0d3c9e8f97b`. If row 22 is refused: `b559cad1140ff9151f95f37bbe01218ba3280912b9eb785b10ceef2205aa4df8` | |
+| 25 | same file › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-045's` | `cf63f66`; re-pinned T-085a, T-088, T-045 | c1-c12 change `content.py`, `models.py`, `sessions.py` | modify | Renamed `… to T-053's`. `00c348f6…a62b` → `5f842800555af4102353113b52e30c93ef1d9ab579c79ba19dc5623222c32493` | |
+| 26 | same file › `openapi.yaml (except []) is byte-identical to T-045's` | `cf63f66`; re-pinned T-039, T-045 | c15-c19 | modify | Renamed `… to T-053's`. `169b52a1…c69e` → `a89a88a043594f8632833f261bc7932a7f08b953925fe47e51a3dbfe901ba677` | |
+| 27 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087; re-pinned T-039, T-045 | backend/app, e2e and backend test files change; two test files added | modify | Same name. `MAIN_BOUNDARY_SHA` `b03fdc44…b76f` → `6173f6fd3e607acc9e040d7a0dc3a1ab924687e0b49fb2a1f3c3d105e57b752b` (with rows 19-22 applied) | |
+| 28 | `question-bank/src/familiarity-drawn-apart-verify.test.ts` › "T-085a criteria 23-25" › "criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039)" | `b061fd8`, T-085a; re-pinned T-039, T-045 | c15-c19 | modify | Same name. `BEFORE_FILE_SHA["openapi.yaml"]` → `37db5438…6bae` (as row 23) | |
+| 29 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 20" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091; re-pinned T-087, T-045 | three backend/app files move | modify | Same name. `MAIN_SOURCE_TREES_SHA` `0ae3a98b…e36b` → `4c2368a175efe7985a01e5796733f1ece72a96ec84f6990be8ea07279664e55c` | |
+| 30 | same file › "T-091 criterion 22" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`; re-pinned T-087, T-039, T-045 | T-053 edits 5 non-test files main had and adds its brief and run log (CI: 295 expected, 297 received) | modify | Same name. `CRITERION_22_ALLOWED` gains `backend/app/models.py`, `backend/app/routers/content.py`, `backend/app/routers/sessions.py`, `e2e/tests/app.ts`, `e2e/tests/map-click.spec.ts`, `tasks/T-053-answer-key-default.md`, `runs/T-053-answer-key-default.md`. `MAIN_UNTOUCHABLE_COUNT` 295 → **290**. `MAIN_UNTOUCHABLE_SHA` → `d7ac83e44b9ef704b9920906c80fd90ebe7ce12d0ed0381595d71ff954ff5381` | |
+| 31 | same file › "T-091 criterion 22" › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`; re-pinned T-087, T-039, T-045 | T-053 adds two backend test files and modifies 11 via rows 1-21 | modify | Same name. `MAIN_TESTS_COUNT` 111 → **113**, `MAIN_TESTS_SHA` → `7655dbde369c2568ffd33f99c0e45fedc35c32baf4c885b01e018c12f4cbffda` | |
+| 32 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096; re-pinned T-087, T-039, T-045 | As row 30 (CI: 291 expected, 293 received) | modify | Same name. `CRITERION_21_ALLOWED` gains the same seven paths. Count 291 → **286**. `MAIN_UNTOUCHABLE_SHA` → `6e9754b8a2a04c6c5c8bfedd88f10bebe9daeb0dab42e017752470db6bdaff78` | |
+| 33 | `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`; re-pinned T-039, T-045 | Rows 23-26, 28, 32 edit four of the files it pins. A consequence of approving them | modify | `APPLIED_REQUEST_FILE_SHAS`: agriculture → `74e9a4e83af0ce31c20005170d6b6deb2c3db69a3be0fbe1968811cff782df1c`, map-click → `6b2b6da34988524c94993d1aa56e93626a4f1e004049f4e2dc5b3f6ef0c5b2c3`, farm-animal → `89cff565ab1b6ce9f4cda55837223ea7a6eafb705966e366dd3621704f6e5327`, familiarity → `2622adedc738eee7402da47bd11d1ac4f1597c634e29a93b0fe8eb4426412328`. Recompute if any of those rows is refused | |
+
 ## Verdict
 
 *(tester, attended session `session_011oDiJbUGyPxtYXDq2xV2Bz`, 2026-11-02)*
 
-**TL;DR: pass.** The person approved all 18 Test change request rows plus
-H1–H3 in this session, and I applied exactly those rows (`0c53042`). The unit
-suite is now green: **884 passed, 9 skipped, 0 failed**. Criterion 21's
-integration test could not run here (no docker daemon), so CI's `integration`
-job is the first real run of it.
+**TL;DR: pass withdrawn: test changes requested again (rows 19-33).** Rows
+1-18 are applied and the unit suite is green, but CI on `3daabd7` is red in
+three jobs I could not run here: integration (6 tests), e2e (1), and
+question-bank (10 boundary pins). All of them are stale for the same reason as
+rows 1-18. Row 22 conflicts with criterion 23. Next: the person decides rows
+19-33 in this session.
+
+*Earlier TL;DR, kept for the record:* the unit suite passed after rows 1-18,
+but integration and e2e were not run.
 
 **Approval.** Header: `Test changes: approved — Dkaattae, 2026-11-02`.
 The person's words in this session, answering the request row by row:
