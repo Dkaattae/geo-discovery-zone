@@ -45,3 +45,8 @@ T-039 says `Depends on: —`, but its body is three separable decisions. Most en
 Header reads `Status: blocked`, `Next step: human`, `Approved: pending`. No `Approved:` stamp written (halted before G2). Branch head at halt: `cc00b4f`.
 
 What a person has to decide, quoted from the expander: "answer Q1–Q4 in the brief or on the PR, then set `Next step: task-expander` and start a new expander run."
+
+## Human answer — 2026-11-02
+Dkaattae, in the orchestrator's session: "Q1 reserved, Q2 unimplemented, Q3 unimplemented — keep it one task"
+
+Orchestrator appended those words verbatim to the brief under `## Answers`, and set the header to `Status: expanding`, `Next step: task-expander` (process.md "Answering": answer in the brief, set Next step back, start a run).

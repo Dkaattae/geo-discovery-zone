@@ -1,7 +1,7 @@
 # T-039 — Three endpoints exist and serve nothing
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `expanding`
+**Next step:** `task-expander`
 **Approved:** `pending`
 **Test changes:** `none`
 **CI fix:** `none`
@@ -112,3 +112,9 @@ To be finished after the answers. In short: stop leaving "implemented, returns n
 ## Verdict
 
 ## Notes
+
+## Answers — Dkaattae, 2026-11-02
+
+Given in the orchestrator's session, recorded verbatim by the orchestrator:
+
+> Q1 reserved, Q2 unimplemented, Q3 unimplemented — keep it one task
