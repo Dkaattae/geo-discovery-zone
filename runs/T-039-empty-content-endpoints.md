@@ -177,3 +177,8 @@ Raised by the tester in commit `8d3ee5a` (branch head at halt). Header: `Status:
 To resume: Dkaattae starts the `tester` step for T-039 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. After that, a run carries on from the header's `Next step`.
 
 Round counts at halt: fail 0, blocked 0.
+
+## Resumed — 2026-11-02
+A person ran an attended tester (session `cse_011oDiJcM1hdV3SgkFgmp95W`) outside this run: commits `00f3290`, `bcb2a38`, `ec44132`, `e9464f8`. Header now: `Status: pass`, `Next step: reviewer`, `Test changes: approved — the person attending tester session cse_011oDiJcM1hdV3SgkFgmp95W (no name given), 2026-11-02`.
+
+Dkaattae, in the orchestrator's session: "ci is fixed please proceed". Orchestrator carries on from the header's `Next step`. Round counts: fail 0, blocked 0.
