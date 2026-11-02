@@ -366,6 +366,24 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-045 — Four question formats are documented and refused as not gradeable
+  in v1** (PR #115, 2026-11-02). `grading.py` refuses `drag_order` at `/order`,
+  `click_profile` and any unknown format at `/questionId`, and every pin refusal
+  at `/pin`, where all three used to say `/choiceIndex`. A pin whose strategy is
+  `polygon_then_centroid` or `distance_to_line` is now a 422 instead of being
+  graded by centroid distance. `openapi.yaml`'s `QuestionFormat`, `PinTarget`,
+  `maxDistanceKm`, `AnswerRequest.order` and `submitAnswer` say which formats
+  and strategies v1 grades and which path each refusal names. Dkaattae chose
+  "mark them not gradeable" over building them at brief approval.
+  *Where it differed from the brief:* the worker also made `maxDistanceKm: null`
+  mean 300 km, because the model allows `null` and it used to crash grading.
+  The brief predicted the `openapi.yaml` and backend-digest pins would go red,
+  but ten pins did: two whole-repo pins tripped on the brief and run log alone,
+  before any code. Two count floors went *down* (296 → 295, 292 → 291), because
+  `grading.py` left the counted set when it joined the allowed one. All ten were
+  re-pinned in an attended tester session a person approved ("approve all", no
+  name given).
+
 - **T-039 — The three empty Content endpoints are documented as not implemented
   in v1** (PR #113, 2026-11-02). `openapi.yaml` only: `getGeometry`,
   `listElevationProfiles`, `getElevationProfile` and `listSuperlativeAxes` each
@@ -1793,8 +1811,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `/geometry`, `/elevation-profiles` and `/superlative-axes` answer requests and
   serve nothing, deliberately — the data is not in this repo. `openapi.yaml`
   marks each "Not implemented in v1" and says what serving it would take (T-039).
-- `drag_order`, `pin_*` and `click_profile` have no answer key; submitting one is
-  a 422 rather than a guess (T-045).
+- `drag_order`, `click_profile` and `pin_*` are not gradeable in v1, and only the
+  `nearest_centroid` pin strategy is graded. `openapi.yaml` says so, and each
+  refusal is a 422 naming its own field (`/order`, `/questionId`, `/pin`) rather
+  than a guess. No served question uses them (T-045).
 - **The monthly bank refresh is built but not switched on** (T-063). T-095 has
   to land first, or every refresh that writes is red on the bank pins T-070
   re-pinned at `b0ee336` (E-30). That first real refresh also re-records the

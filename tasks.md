@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed._
 
 ## How this list is ordered
 
@@ -262,7 +262,7 @@ docstring promises "a different angle". `store.review_questions` draws a
 state's questions from every topic and has no caller. Whether a topic session
 may reach into other topics is one question for mastery and review alike;
 settle both here. Also decide whether a review round should count down on a
-pick that was not a review (`grading.py:146-147`).
+pick that was not a review (`grading.py:203-204`).
 **Done when:** a good first session in any Setup topic visibly colours
 something in, or the gap is accepted and written down.
 
@@ -336,23 +336,6 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-045 — Three question formats have no answer key · S · todo
-**Depends on:** —
-**New 2026-08-24.** `drag_order`, `pin_*` and `click_profile` questions cannot be
-graded by the seeded bank — submitting one returns 422 rather than a guess, which
-is the right failure. Pin grading is implemented as nearest-centroid with a
-distance cap; the contract's polygon-then-centroid strategy (§2.5) needs the
-geometry layers, and `/geometry/{layer}` serves none: T-039 (PR #113) documented
-it as not implemented in v1 and kept for later clients. Decide whether these
-formats are near-term (in which case they need keys, and sourcing the TopoJSON
-layers becomes part of this task) or whether the contract should mark them as
-not yet gradeable.
-**Amended 2026-10-27 by T-051's reviewer (PR #96).** T-051 gave
-`UngradableAnswer` a `path`, so a `map_click` 422 names `/tappedGeometryId`.
-A pin question's 422 still names `/choiceIndex` (`grading.py`, `PIN_FORMATS`
-branch). When these formats get keys, pass the right path (`/pin`, `/order`).
-**Done when:** the gap is closed or written into `openapi.yaml` as deliberate.
-
 ### T-053 — The public bank hands out the answer key by default · S · todo
 **Depends on:** —
 **New 2026-08-24, found while writing T-052.** `GET /questions` and
@@ -396,7 +379,7 @@ whichever way it went.
 ### T-093 — An undone answer still counts as a place seen · S · todo
 **Depends on:** —
 **New 2026-10-27, from T-051's tester and reviewer (PR #96).** `apply_answer`
-appends the entity to `session.seen_entity_ids` (`grading.py:159`), and undo
+appends the entity to `session.seen_entity_ids` (`grading.py:190-191`), and undo
 restores the session from a snapshot that does not hold that list. So an answer
 backed out with "Oops, tapped by mistake" still counts toward the summary's
 `placesSeen` (`routers/sessions.py:407`), for every format. `map_click` makes a
@@ -570,7 +553,12 @@ it comes into view.
   as not implemented in v1 (T-039, PR #113)
 - **Countries**, then world cities, then rivers / mountains / oceans (plan §1.7).
   Not before the US loop feels good (plan §4) — which means not before §D
-- **Pin formats** and point-in-polygon grading (plan §2.5) — see T-045
+- **Pin formats** and point-in-polygon grading (plan §2.5). `openapi.yaml` marks
+  `pin_*`, `drag_order`, `click_profile` and the two geometry pin strategies
+  "Not implemented in v1", and `grading.py` refuses them with a 422 (T-045,
+  PR #115). Building pins means geometry layers, generators, a renderer, a
+  `GRADED_PIN_STRATEGIES` entry, and rewriting `backend/README.md`'s Known-gaps
+  paragraph
 - **Elevation profiles** and the altitude → climate → farming → population chain
   (plan §2.6) — the strongest content for the older band
 - **Elo** — only with real play data. `rating` and `times_answered` already have
