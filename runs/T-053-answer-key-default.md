@@ -62,3 +62,42 @@ The expander asks a person to answer Q1–Q3 (quoted above) in the brief or on P
 Dkaattae answered in the orchestrator's session, verbatim: "Q1 a, Q2 a, Q3 accept — go with the recommendations"
 
 Orchestrator wrote the answer into the brief under `### Answers` (before `## Goal`), set `Status: questions answered`, `Next step: task-expander`. Spawning a fresh task-expander.
+
+## Round 2 — task-expander — 2026-11-02
+`Next step` on entry: `task-expander` → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
+
+**TL;DR:** The T-053 brief now has 26 acceptance criteria, written from Dkaattae's answers (Q1 a, Q2 a, Q3 accept). It is set to `Status: awaiting approval`, `Next step: worker`, `Approved: pending`, committed as `0dcf558` and pushed to `claude/magical-davinci-y58qf6`. The remote head matches. **Before approving, a person should look at criteria 10–11.** They apply the Q1 (a) answer to two places that serve questions, which the first survey missed.
+
+**Criteria 10–11 need a look**
+- **The two missed places:** `POST /sessions` (when `serveFirstQuestion` is left at its default of true) and `POST /sessions/{id}/review-round`. Both always send the answer key today, through `_serve_next`'s default (`backend/app/routers/sessions.py:89`, called at `:159` and `:374`). Neither takes an `includeAnswerKey` parameter.
+- **What the criteria require:** both withhold the key, and no opt-in parameter is added.
+- **Why I wrote them in rather than halting again:**
+  - The frontend calls `review-round` (`frontend/src/lib/api/client.ts:165`), so leaving it out would keep the key in the app's network tab, which is the problem this task fixes.
+  - No caller needs the key from either endpoint.
+  - The approval step will catch it if this is not what Q1 (a) meant.
+- **Where this is flagged:** a "For the approver" section at the top of the brief, and the PR #117 body.
+
+**Corrections and finds**
+- **Route name:** the next-question route is `/sessions/{sessionId}/next-question`, not `/next` as the first pass said. Fixed.
+- **Bundle caching (out of scope, not fixed):** `GET /bundles/{id}` sends the same ETag and `public, immutable` cache headers whether or not the key is included. A shared cache could serve the keyed version to a request that did not ask for it. This was already true; it is a candidate for a new `tasks.md` entry.
+
+**What the criteria cover**
+- **Default:** the key is withheld on all four surfaces that take the parameter, and `includeAnswerKey=true` still includes it.
+- **Re-serve:** a repeated next-question call follows that call's flag, not the first one's.
+- **Withholding removes only the two keys:** `correctIndex` and `answerGeometryId`. Everything else, including `entityId`, the served `entity` and `highlightGeometryId`, is unchanged; that is the documented limitation from Q2 and Q3.
+- **Grading:** results are unaffected.
+- **`openapi.yaml`:** the defaults, the "Answer keys" paragraph (checked by required strings), the `Question` field descriptions, and the `listQuestions` "widening" wording.
+- **Integration test:** it pins the new default, via a Test change request.
+- **Negatives:** no change to `frontend/`, the bank or `grading.py`; only a doc comment may change in `e2e/`; no new dependency; no network in tests.
+
+**What comes next**
+- **A person must approve:** replace `Approved: pending` in the brief.
+- **The tester step will likely need a person present.** Unit tests that read the key from a default response will go stale by design, which means a Test change request.
+
+**What I did**
+- **Commit scope:** the brief, plus the T-053 status line in `tasks.md` (changed from "blocked" to "brief awaiting approval"). `PROGRESS.md` is unchanged.
+- **PR #117:** body and title updated through the GitHub MCP tool: https://github.com/Dkaattae/geo-discovery-zone/pull/117
+- **Sessions table:** I added a second-pass row (`cse_011oDiJctNqgXZb5TuFbpsXz`).
+- **Not run:** no build, tests or pipeline, as the role requires (D-7).
+
+Orchestrator: a person is present in the session and the expander flagged criteria 10–11 for them, so the `Approved:` line is held for their answer rather than stamped unattended.
