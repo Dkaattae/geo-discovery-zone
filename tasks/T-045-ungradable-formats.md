@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-045
 **Branch:** `claude/compassionate-fermat-0jr2q7`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #115, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
 **Fault:**
 
