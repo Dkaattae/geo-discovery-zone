@@ -48,7 +48,10 @@ def test_a_childs_progress_survives_a_restart(
         payload.get("served")
         or api.post(f"/sessions/{session_id}/next-question", headers=account).json()
     )
-    question = served["question"]
+    # T-053: the served question is withheld by default; read the key with an opt-in.
+    question = api.get(
+        f"/questions/{served['question']['id']}", params={"includeAnswerKey": "true"}
+    ).json()
     api.post(
         f"/sessions/{session_id}/answers",
         headers=account,

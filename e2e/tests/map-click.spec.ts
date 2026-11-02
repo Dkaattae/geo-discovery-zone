@@ -91,7 +91,8 @@ async function answerKey(
   questionId: string,
 ): Promise<{ geometryId: string; name: string }> {
   const question = await request.get(
-    `/api/v1/questions/${encodeURIComponent(questionId)}`,
+    // T-053: the key is withheld by default, so the lookup opts in.
+    `/api/v1/questions/${encodeURIComponent(questionId)}?includeAnswerKey=true`,
   );
   expect(question.ok()).toBeTruthy();
   const { answerGeometryId, entityId } = (await question.json()) as {

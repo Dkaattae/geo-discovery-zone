@@ -29,7 +29,11 @@ def answer(
     *,
     correct: bool,
 ) -> dict[str, Any]:
-    question = served["question"]
+    # T-053: a served question is withheld by default, so the key is read from
+    # the public bank with an explicit opt-in.
+    keyed = api.get(f"/questions/{served['question']['id']}", params={"includeAnswerKey": "true"})
+    assert keyed.status_code == 200, keyed.text
+    question = keyed.json()
     if question["format"] == "map_click":
         # T-051 (approved Test change request row 34): a map_click is answered by a tap.
         key = question["answerGeometryId"]

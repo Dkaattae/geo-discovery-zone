@@ -430,7 +430,9 @@ def test_c22_no_change_under_frontend_question_bank_or_app_data() -> None:
 
 
 def test_c23_e2e_change_is_only_the_answer_lookup_doc_comment() -> None:
-    assert set(_changed("e2e")) <= {"e2e/tests/app.ts"}
+    # Criterion 23 as amended by the person approving Test change request row 22
+    # (2026-11-02): map-click.spec.ts's answerKey() may also opt in to the key.
+    assert set(_changed("e2e")) <= {"e2e/tests/app.ts", "e2e/tests/map-click.spec.ts"}
     diff = subprocess.run(
         ["git", "diff", "-U0", BASE, "HEAD", "--", "e2e/tests/app.ts"],
         cwd=REPO,
@@ -457,3 +459,29 @@ def test_c24_grading_is_unchanged() -> None:
 
 def test_c25_no_dependency_change() -> None:
     assert _changed("backend/pyproject.toml", "backend/uv.lock") == []
+
+
+def test_c23_amended_map_click_spec_change_is_only_the_key_opt_in() -> None:
+    """Row 22: the only e2e behaviour change is the lookup asking for the key."""
+    diff = subprocess.run(
+        ["git", "diff", "-U0", BASE, "HEAD", "--", "e2e/tests/map-click.spec.ts"],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    removed = [
+        line[1:].strip()
+        for line in diff.splitlines()
+        if line.startswith("-") and not line.startswith("---")
+    ]
+    added = [
+        line[1:].strip()
+        for line in diff.splitlines()
+        if line.startswith("+") and not line.startswith("+++")
+    ]
+    assert removed == ["`/api/v1/questions/${encodeURIComponent(questionId)}`,"]
+    assert added == [
+        "// T-053: the key is withheld by default, so the lookup opts in.",
+        "`/api/v1/questions/${encodeURIComponent(questionId)}?includeAnswerKey=true`,",
+    ]

@@ -739,7 +739,6 @@ describe("T-092 criterion 15: no new dependency, no manifest or lockfile change"
 describe("T-092 criterion 16: no other surface changes", () => {
   test.each([
     ["frontend", [], "67777de7b9ecb67e73d957a60d76126e1dae7e906b4d8281783fb7b7c11bc720"],
-    ["e2e", [], "ee820bf3f3f4a5fafeb6863c0fdb02506d29d5b5233e00bc2e247f45465be3eb"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);
@@ -750,9 +749,20 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // change request row 9), after T-088 regenerated content.json. Same exception
   // list; split out of the table above so only this row's name moves. Re-pinned
   // at T-045 (Test change request row 2), after T-045 changed backend/app/grading.py.
-  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-045\'s', () => {
+  // Re-pinned at T-053 (Test change request row 25), after T-053 flipped the
+  // includeAnswerKey defaults in content.py, models.py and sessions.py.
+  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-053\'s', () => {
     expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
-      "00c348f60efeee37be98e1ad05cb1c49d9959b625dd2ab002260c5759e6ea62b",
+      "5f842800555af4102353113b52e30c93ef1d9ab579c79ba19dc5623222c32493",
+    );
+  });
+
+  // Was the table row "e2e (except []) is byte-identical to 5d72ca5". Split out
+  // and re-pinned at T-053 (Test change request row 24), after T-053 changed the
+  // answer-lookup comment in e2e/tests/app.ts and map-click.spec.ts's key lookup.
+  test("e2e (except []) is byte-identical to T-053's", () => {
+    expect(treeDigest(REPO, "e2e", [])).toBe(
+      "9c9968deb10c9cae7808cc7fb4ea2422c69823a84179df29f08be0d3c9e8f97b",
     );
   });
 
@@ -760,10 +770,11 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // T-039 marked four operations "Not implemented in v1". Split out of the table
   // above, as backend/app was, so only this row's name moves. Re-pinned at T-045
   // (Test change request row 3), after T-045 marked four formats and two pin
-  // strategies "Not implemented in v1".
-  test("openapi.yaml (except []) is byte-identical to T-045's", () => {
+  // strategies "Not implemented in v1". Re-pinned at T-053 (Test change request
+  // row 26), after T-053 made the answer key withheld by default.
+  test("openapi.yaml (except []) is byte-identical to T-053's", () => {
     expect(treeDigest(REPO, "openapi.yaml", [])).toBe(
-      "169b52a1c0f9ff5734e51e1c85cdfc5c9502d579734a7045fa8c11e94451c69e",
+      "a89a88a043594f8632833f261bc7932a7f08b953925fe47e51a3dbfe901ba677",
     );
   });
 });
