@@ -104,3 +104,38 @@ Orchestrator: a person is present in the session and the expander flagged criter
 
 ## Approval — 2026-11-02
 Dkaattae, in the orchestrator's session, verbatim: "approved as written, including 10–11". Written into the brief's `Approved:` line; `Status: approved`. Next step stays `worker`.
+
+## Round 3 — worker — 2026-11-02
+`Next step` on entry: `worker` → on exit: `tester` (`Status: approved` → `awaiting verification`)
+
+**TL;DR:** T-053 is built. The answer key is now withheld by default on all six places that serve a question, and `openapi.yaml` is updated. 43 existing unit tests now fail on purpose because they read the key from a default response. Each one is listed in the brief, and the tester needs a person to approve a Test change request (D-14) before the suite can go green. Pushed to `claude/magical-davinci-y58qf6`; `git log origin/claude/magical-davinci-y58qf6 -1` shows `c0fcb9b T-053 worker: withhold the answer key by default`.
+
+**Brief state:** Status `awaiting verification`, Next step `tester`. I added my Sessions row and filled in the Handoff and Notes in `/home/user/geo-discovery-zone/tasks/T-053-answer-key-default.md`.
+
+**Changes**
+- **`/home/user/geo-discovery-zone/backend/app/routers/content.py`:** `includeAnswerKey` now defaults to `False` on `GET /questions`, `GET /questions/{id}` and `GET /bundles/{id}`.
+- **`/home/user/geo-discovery-zone/backend/app/models.py`:** `NextQuestionRequest.include_answer_key` now defaults to `False`.
+- **`/home/user/geo-discovery-zone/backend/app/routers/sessions.py`:** `_serve_next` now defaults to `include_answer_key=False`. `POST /sessions` and review-round don't pass the flag, so they always withhold (criteria 10–11). Neither got a new parameter.
+- **`/home/user/geo-discovery-zone/openapi.yaml`:** updated for criteria 15–19:
+  - the "Answer keys" paragraph is rewritten and states the accepted `entityId` / `geometryId` limitation (Q2/Q3);
+  - the `listQuestions` description now describes the one fixed window;
+  - both `includeAnswerKey` defaults are `false`;
+  - the `correctIndex` and `answerGeometryId` descriptions say the field is present only when `includeAnswerKey=true`.
+- **`/home/user/geo-discovery-zone/e2e/tests/app.ts`:** only the doc comment changed.
+- **`/home/user/geo-discovery-zone/backend/tests/test_t053_answer_key_default.py`:** new worker tests (3), all passing.
+
+**Checks run**
+- **Unit suite (`uv run pytest`):** 801 passed, 9 skipped, 43 failed. Every failure is a `KeyError` on `correctIndex` / `answerGeometryId`, or a check on spec wording that criterion 18 removes.
+- **`test_contract.py` and the new tests:** pass.
+- **`ruff check` and `ruff format --check`:** clean.
+- **Not run:** the integration suite (it needs docker compose) and e2e. The e2e change is a comment only.
+
+**Tests made stale**
+- **Unit tests (43):** in `test_sessions_api.py` (18), `test_content_build.py` (7), `test_t040_tester_criteria.py` (6), `test_t026_tester_criteria.py` (5), `test_t051_tester_criteria.py` (4), and one each in `test_content_api.py`, `test_t026_topics.py` and `test_t051_map_click.py`.
+- **Integration test:** `backend/integration/test_stack.py::test_the_answer_key_can_be_withheld_from_the_public_bank` is also stale. Criterion 21 says how to rewrite it.
+- **Proposed fix:** have each test opt in with `includeAnswerKey=true`. Delete none. The brief names every test and covers the special cases.
+
+**Flags, each with an owner**
+- **Function default left as is:** `serializers.question_payload` and `served_payload` still default to `include_answer_key=True`. No HTTP response depends on that default, and flipping it would make one more test stale (`test_t051_map_click.py:114`). Reviewer to confirm, or to ask for the flip.
+- **Bundle `ETag`/caching:** out of scope here. The reviewer's sweep should add the `tasks.md` entry the brief proposes.
+- **Sessions table:** my worker row has the same session id as the expander rows (`cse_011oDiJctNqgXZb5TuFbpsXz`), because the environment variable returns the parent session's id. I ran as a separate subagent. The tester should take that into account when checking that it runs in a different session from me. Process owner to decide how subagent sessions should be recorded.
