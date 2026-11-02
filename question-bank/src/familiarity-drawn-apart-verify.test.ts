@@ -46,7 +46,9 @@ const BEFORE_ED_OUTSIDE_E22_SHA =
 const BEFORE_T025_TABLE_SHA = "7d04c99ce29c19b29c812b90866f12bac25ffd38b55e38ba90716c26e7401636";
 /** sha256 of each file whole, at 5ae564a. */
 const BEFORE_FILE_SHA: Record<string, string> = {
-  "openapi.yaml": "cddf482a77ecdde887ac0568c44190714825bef6ef9f874b0a195c2200f4d216",
+  // re-pinned at `ed00235` (T-039, Test change request row 3): T-039 marks four
+  // operations "Not implemented in v1".
+  "openapi.yaml": "cd4015e64025f5a3b1b88e5a8948597708f7c5924df924109454850f21c5bcb0",
   "backend/pyproject.toml": "a7741b6f8be54ee317fc9caf308debff1959b93b00f28efc6e7e760468813724",
   "backend/uv.lock": "88a95ecef4a5cdcc199de0722c241f754b654d764073562d886b9c440cd1edd8",
   "e2e/bun.lock": "518a40b596a5bc9c4bc1b10ea8dbfbf32342539c08622fde3cef22e546a7574d",
@@ -676,7 +678,7 @@ describe("T-085a criteria 23-25: negative", () => {
     }
   });
 
-  test("criterion 25: openapi.yaml is unchanged since 5ae564a", () => {
+  test("criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039)", () => {
     expect(sha(read("openapi.yaml"))).toBe(BEFORE_FILE_SHA["openapi.yaml"] as string);
   });
 });
