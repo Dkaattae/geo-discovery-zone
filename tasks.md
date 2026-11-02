@@ -335,7 +335,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-039 — Three endpoints exist and serve nothing · M · doing (blocked: needs a person, see `tasks/T-039-empty-content-endpoints.md`)
+### T-039 — Three endpoints exist and serve nothing · S · doing (awaiting approval, see `tasks/T-039-empty-content-endpoints.md`)
 **Depends on:** —
 **New 2026-08-24.** `/geometry/{layer}` returns 404, `/elevation-profiles` and
 `/superlative-axes` return empty lists. That is deliberate — they need sampled or
