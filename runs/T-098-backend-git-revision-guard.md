@@ -1,7 +1,7 @@
 # T-098 — `backend/` has no guard against tests that resolve a git revision — run log
 
 **Task:** T-098 · **Branch:** `claude/vibrant-feynman-ap8itp` · **PR:** #118
-**Started:** 2026-11-02 · **Outcome:** in progress
+**Started:** 2026-11-02 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-11-02
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -74,3 +74,49 @@
 **Decisions for someone to confirm**
 - **`check-ignore` is allowed**, matching the frontend guard. Criterion 10 lists only `ls-files` and `status`, but it governs what the guard itself runs, and the guard runs only `ls-files`. The reviewer should confirm this or drop `check-ignore`.
 - **Same session id:** my Sessions row shows the same id as the expander's, because that is what `$CLAUDE_CODE_REMOTE_SESSION_ID` returned in this run. The tester has to run in a different session.
+
+## Round 3 — tester — 2026-11-02
+`Next step` on entry: `tester` → on exit: `human` (Status `test changes requested`, Test changes `requested`)
+
+**I've stopped T-098 to ask for test changes, and a person has to step in next.** The guard does its job: criteria 1-6 and 8-10 hold, and I checked each one by deliberately breaking it. Criterion 7 fails only on question-bank pins that T-098's own new files make out of date. I wrote a 5-row Test change request for them. Nobody could approve it in this orchestrated run, so the brief now reads **Status: `test changes requested`**, **Next step: `human`**, **Test changes: `requested`**, with a `Fault:` line. The commit is `11851b5` on `claude/vibrant-feynman-ap8itp`, and the local and remote heads match after the push.
+
+**Independence:** this is an orchestrated run (`runs/T-098-…md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfdetw2zh1MqvpkWNK`, the same id as the expander and worker rows, so the session check proves nothing. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. That is weaker than a separate session. The Verdict says so, and my Sessions row records it.
+
+**How I verified:** the deliverable is itself a test, so I added no tests and committed no test file. I checked coverage, then mutation. Every mutation was reverted, and the tree was clean after each batch.
+
+| # | Result | Evidence |
+|---|---|---|
+| 1 | met | `make -C backend check`: **907 passed, 9 skipped**. With one offending file planted, `make -C backend test` exits 2 (1 failed). |
+| 2 | met | Planted files are caught in both directories, whether untracked or `git add`ed. A temporary edit to each `conftest.py` is flagged and the file is named. |
+| 3 | met | Each of forms (a)-(i), planted in each directory: 18 of 18 runs went red, and every failure named the file. |
+| 4, 5 | met | Working-tree reads pass, and so does prose in docstrings and comments. The named existing files are unchanged and pass. |
+| 6 | met | No skip path in the file. An empty scope, a failing `ls-files` and running outside a repo each turn it red; none skips. |
+| 7 | **stale pins** | backend green. frontend's `git-baseline-guard` passes 15/15. question-bank: **2709 pass, 4 fail**, all whole-tree pins. |
+| 8, 9, 10 | met | Only one file was added. No dependency changes. The only git command it runs is `ls-files`, and its exit code is checked. |
+
+**Mutations to the guard itself:**
+- **Caught:** dropping tuple detection, skipping global options, allowing an unreadable subcommand and ignoring shell strings each turned at least one test red. Adding `diff` to the allowlist turned one red; the other diff samples are still refused as revisions, which is a second layer of defence, not a gap.
+- **Not caught:** turning off the read of untracked files left everything green. The behaviour itself works (untracked plants were caught), but no test pins it. I noted this as a coverage gap, not a failure.
+
+**The Test change request (rows 1-5):**
+- **Cause confirmed:** I ran logging copies of the three files (untracked, then deleted). Taking T-098's three files out restores every old pin exactly, so they are the only cause.
+- **Rows 1 and 3:** add T-098's brief and run log to the allowed sets in `climate-cold-trade-accepted-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts`. Counts (290 and 286) and digests stay the same.
+- **Row 2:** re-pin `MAIN_TESTS_COUNT` from 113 to 114 and `MAIN_TESTS_SHA` to `1ea43d08…`.
+- **Row 4:** re-pin `MAIN_BOUNDARY_SHA` in `refresh-regenerate-reminder-verify.test.ts` to `1ea8c50d…`.
+- **Row 5** (the worker's list missed it): it only goes red once row 3 is applied. It re-pins farm-animal's entry in `APPLIED_REQUEST_FILE_SHAS` in the climate file, the same follow-on fix T-053 needed in its row 33.
+
+**Environment failures in frontend, not caused by this change:**
+- `react-simple-maps` is not installed, so three `components/` test files fail to import.
+- `lint-gate.test.ts` times out at 5 s. It passes 8/8 with `--timeout 60000`.
+
+**For the reviewer:** whether to keep `check-ignore` in the allowlist. It does not affect any criterion.
+
+**What you need to do:** start the `tester` step for T-098 in a session you are attending, and approve or refuse each row there. That tester applies the approved rows, re-runs all three suites and writes the final verdict.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-098-backend-git-revision-guard.md
+Guard under test: /home/user/geo-discovery-zone/backend/tests/test_git_revision_guard.py
+
+## Halted — test change request — 2026-11-02
+Raised in commit `11851b5`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not copied here (the orchestrator does not read the request).
+
+What a human has to do: start the `tester` step for T-098 in a session you are attending. It will ask about each row, apply what you approve, and finish verifying. The orchestrator cannot take the approval (D-15).
