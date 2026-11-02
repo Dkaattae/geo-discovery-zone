@@ -1,7 +1,7 @@
 # T-039 — Three endpoints exist and serve nothing — run log
 
 **Task:** T-039 · **Branch:** `claude/kind-pasteur-34x9tx` · **PR:** #113
-**Started:** 2026-11-02 · **Outcome:** halted — test change request, needs an attended tester
+**Started:** 2026-11-02 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-02
 `Next step` on entry: `(no brief)` → on exit: `human` (`Status: blocked`)
@@ -182,3 +182,42 @@ Round counts at halt: fail 0, blocked 0.
 A person ran an attended tester (session `cse_011oDiJcM1hdV3SgkFgmp95W`) outside this run: commits `00f3290`, `bcb2a38`, `ec44132`, `e9464f8`. Header now: `Status: pass`, `Next step: reviewer`, `Test changes: approved — the person attending tester session cse_011oDiJcM1hdV3SgkFgmp95W (no name given), 2026-11-02`.
 
 Dkaattae, in the orchestrator's session: "ci is fixed please proceed". Orchestrator carries on from the header's `Next step`. Round counts: fail 0, blocked 0.
+
+## Round 5 — reviewer — 2026-11-02
+`Next step` on entry: `reviewer` → on exit: `human` — merge PR #113 (`Status: approved`; brief swept in `457f278`)
+
+**TL;DR:** I approved T-039. It is inside the envelope, so nothing needs deciding before merge. I swept it in PR #113, pushed, and marked the PR ready for review (confirmed over the REST API: `draft: false`, head `457f278`). **Next: Dkaattae merges.** I did not merge.
+
+**What I checked before approving**
+- **The PR was open and draft** when I started.
+- **Every role has a commit in it:** task-expander (`1e607ae`, `cc00b4f`, `da50ae9`), worker (`ed00235`), the orchestrated tester (`8d3ee5a`), the attended tester (`00f3290`, `bcb2a38`, `ec44132`, `e9464f8`) and the orchestrator. Nothing is stranded on another branch.
+- **Each role stayed in its lane.** The expander touched only `tasks/` and `tasks.md`. The worker touched `openapi.yaml`, one new backend test and the brief. The tester touched only test files and the brief. Existing tests changed only in `bcb2a38`, and those changes match the 8 rows a person approved in an attended session.
+- **Tests:**
+  - **Backend:** 765 passed, 9 skipped, run again after the sweep. Lint is clean.
+  - **question-bank:** 2681 pass, 12 fail locally. All 12 are because `oxlint` and `prettier` are not installed here.
+  - **CI on `ef59ac2`:** every job passed, e2e included.
+  - **CI on the sweep head `457f278`:** backend, postgres, question-bank, frontend and integration passed. **e2e was still running** when I finished.
+
+**Why it is not escalated**
+- **`openapi.yaml` changed.** `.claude/agents/reviewer.md` still lists that as a reason to escalate, but E-14 (as amended by P-8) and `CLAUDE.md` say it needs "no escalation". I followed the newer rule, and the PR body says so.
+- **No other trigger applies.** The existing test changes were approved by a person, not under an orchestrator stamp. There is no dependency, migration, plan change, CI fix, or text a child will read.
+
+**Findings (none block)**
+1. **Criterion 18 holds in intent but not in its exact wording.** The approved rows changed six `question-bank/src/*-verify.test.ts` files. No source, data or lockfile changed. This is recorded in the PR body and `PROGRESS.md`.
+2. **The tester's c14-c16 tests are new permanent pins.** c15 pins the full set of 32 operations and c16 pins three schemas' `required` lists, so later tasks that touch them will turn them red. This is an eighth P-17 instance. I could not record it in `process-tasks.md`, because T-091 c22 and T-096 c21 pin that file. The PR body asks a person to add it by hand.
+3. **The worker's and tester's tests overlap.** Harmless; no task.
+- **Worker flags:** I accepted the kept "Once served" text. The note that the expander should look for `openapi.yaml` pins goes to P-16.
+
+**Sweep (commit `457f278`)**
+- **Deleted** the brief and T-039's entry in `tasks.md`. **Logged** T-039 under "Completed tasks" in `PROGRESS.md`.
+- **T-045 amended:** geometry layers are no longer coming from T-039.
+- **Updated** the `tasks.md` §C intro, the §H superlatives line and the `PROGRESS.md` known-gap line to say the endpoints are documented as not implemented in v1.
+
+**Two things for a person to do by hand** (both in the PR body):
+- **Add P-17's eighth instance** to `process-tasks.md`.
+- **Fix the stale envelope text:** `reviewer.md` §3, `process.md` step 6 and D-4 still list `openapi.yaml`, which contradicts E-14.
+
+**Commits on `claude/kind-pasteur-34x9tx`:** `948a778` (review in the brief: `Status: approved`, `Next step: human`, reviewer Sessions row) and `457f278` (sweep). The push landed: `origin/claude/kind-pasteur-34x9tx` is at `457f278`.
+
+## Ended — 2026-11-02
+PR #113 marked ready by the reviewer. Roles in order: task-expander → (human answers) → task-expander → (human approval) → worker → tester (test change request) → (attended tester, pass) → reviewer. Rounds: fail 0, blocked 0. Merge is Dkaattae's.
