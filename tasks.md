@@ -166,7 +166,7 @@ place, so nobody rebuilds it:
 
 T-075 (PR #66) closed the last gap in that table; T-098 is new since.
 
-### T-098 — `backend/` has no guard against tests that resolve a git revision · S · todo
+### T-098 — `backend/` has no guard against tests that resolve a git revision · S · doing (brief awaiting approval — `tasks/T-098-backend-git-revision-guard.md`)
 **Depends on:** —
 **New 2026-11-02, from T-053's review (PR #117).** `frontend/` and
 `question-bank/` each have a guard that fails when a test hands `git` a fixed
