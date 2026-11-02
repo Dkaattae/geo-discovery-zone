@@ -95,3 +95,45 @@ Orchestrator appended those words verbatim to the brief under `## Answers`, and 
 
 ## Approval — 2026-11-02
 Dkaattae, in the orchestrator's session, answering "How should it be approved?": "I approve it". Orchestrator wrote the `Approved:` line from that answer.
+
+## Round 3 — worker — 2026-11-02
+`Next step` on entry: `worker` → on exit: `tester` (`Status: awaiting verification`)
+
+**T-039 worker is done and pushed.** `openapi.yaml` now labels the four empty operations `Not implemented in v1` and says what serving each would take. Status is `awaiting verification`, Next step is `tester`. Three existing question-bank tests that check `openapi.yaml` against a fixed hash now fail because of this change. That is expected, and they are listed in the Handoff under **Tests made stale**.
+
+- **Push:** commit `ed00235` is on `claude/kind-pasteur-34x9tx` (the brief's `Branch:` header, and the branch I was on). `git log origin/claude/kind-pasteur-34x9tx -1` shows it.
+
+**What changed**
+- **`/home/user/geo-discovery-zone/openapi.yaml`**
+  - The descriptions of `getGeometry`, `listElevationProfiles` and `listSuperlativeAxes` are rewritten to carry every literal criteria 1-11 ask for.
+  - `getElevationProfile` had no description, so I added one.
+  - The Content bullet in `info.description` now lists only `/entities`, `/questions` and `/bundles`. It then says the other three paths are "not implemented in v1".
+  - No path, method, `operationId`, schema or `x-` extension changed.
+- **`/home/user/geo-discovery-zone/backend/tests/test_unimplemented_content_docs.py`** (new): 3 tests covering criteria 1-12. Criterion 2 is checked exactly: only those four operations carry the label.
+- **`/home/user/geo-discovery-zone/tasks/T-039-empty-content-endpoints.md`**: Handoff (with a per-criterion table), Sessions row, header and Notes.
+- **No runtime change:** nothing under `backend/app/`, `frontend/`, `question-bank/` or `e2e/` changed, and no lockfile.
+
+**Test results**
+
+| Suite | Result | Notes |
+|---|---|---|
+| Backend tests | 747 passed, 9 skipped | Lint and format-check clean |
+| question-bank `bun test` | 2676 pass, 17 fail | 3 are the stale tests; the other 14 fail the same way on the head before my commit (`3de6aca`, checked with my diff stashed) |
+| frontend `bun test` | 386 pass, 10 fail | Same on that head; caused by the container, not this change |
+
+- **question-bank pre-existing reds:** 11 are T-066 tests that need `oxlint`/`prettier`, which are not installed here. The other two are T-096 criterion 21 and T-091 criterion 22, which were already red on the branch.
+- **frontend reds:** this container has no `frontend/node_modules`, and `bun install --frozen-lockfile` was refused by the proxy (403). The tester needs to rerun it somewhere dependencies install.
+- **Side effect:** running the frontend suite rewrites `frontend/README.md`. I reverted it, and it is not committed.
+
+**Tests made stale**, each needing its hash updated:
+- `question-bank/src/agriculture-true-wrong-answers-verify.test.ts`, "T-088 … criterion 21: openapi.yaml is byte-identical to main's".
+- `question-bank/src/map-click-no-candidates-verify.test.ts`, "T-092 criterion 16 … openapi.yaml (except []) is byte-identical to 5d72ca5".
+- `question-bank/src/familiarity-drawn-apart-verify.test.ts`, "T-085a … criterion 25: openapi.yaml is unchanged since 5ae564a".
+- The new hash values are in the Handoff.
+
+**Decisions for others**
+- **Criterion 17 can't pass as written** (owner: tester to raise the test change request under D-14, human to approve). The brief says "Test changes: none" and expects question-bank to pass, but the three hash checks above mean any change meeting criteria 1-12 turns them red.
+- **Session ids don't separate the roles** (owner: tester, human if it can't confirm): every Sessions row, mine included, shows `cse_011oDiJespfZF72h12BCQwBp`, because all roles run as subagents of one remote session. The tester should judge its independence some other way.
+- **Old explanations kept** (owner: reviewer, to confirm or trim): I kept each operation's previous text under "Once served" instead of deleting it.
+
+_Orchestrator note: this hand-back was delivered to the orchestrator's context in full; none of it goes into the tester's prompt, which is the unmodified template._
