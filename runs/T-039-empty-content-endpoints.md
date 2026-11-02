@@ -50,3 +50,45 @@ What a person has to decide, quoted from the expander: "answer Q1–Q4 in the br
 Dkaattae, in the orchestrator's session: "Q1 reserved, Q2 unimplemented, Q3 unimplemented — keep it one task"
 
 Orchestrator appended those words verbatim to the brief under `## Answers`, and set the header to `Status: expanding`, `Next step: task-expander` (process.md "Answering": answer in the brief, set Next step back, start a run).
+
+## Round 2 — task-expander — 2026-11-02
+`Next step` on entry: `task-expander` → on exit: `worker` (`Status: awaiting approval`, `Approved: pending`)
+
+**TL;DR:** T-039 is expanded from Dkaattae's answers, and the brief is now `awaiting approval` with `Next step: worker`. It is a doc-only task, size S. It changes `openapi.yaml` only and has 19 acceptance criteria. The push landed (`e4b1c34..da50ae9`), and I updated PR #113's body. **A person still has to approve:** `Approved:` says `pending`.
+
+**What I did**
+- **Brief:** I rewrote `/home/user/geo-discovery-zone/tasks/T-039-empty-content-endpoints.md`. It now has:
+  - the decisions mapped to the options: Q1 (a) reserved, Q2 (a) unimplemented, Q3 (a) unimplemented, no split;
+  - a survey, the 19 criteria, out of scope, constraints and context;
+  - your recorded answers, kept verbatim.
+- **Header:**
+  - `Status: awaiting approval`, `Next step: worker`, `Approved: pending`.
+  - `Branch: claude/kind-pasteur-34x9tx` and `PR: #113` are unchanged.
+  - I added a second Sessions row for this resumed run (`cse_011oDiJespfZF72h12BCQwBp`).
+  - `Fault:` still holds the earlier one. The template only clears it when the task reaches `pass`.
+- **Queue:** I edited the T-039 heading in `/home/user/geo-discovery-zone/tasks.md` from `M · doing (blocked: needs a person…)` to `S · doing (awaiting approval…)`.
+- **Commit:** `da50ae9`, "T-039 expander: empty-content-endpoints (criteria from Dkaattae's answers)". It touches only `tasks/` and `tasks.md`. The local branch is up to date with origin.
+- **PR #113:** the title is now "T-039: document the three empty content endpoints as not implemented in v1", and the body holds the criteria. It is still a draft.
+
+**What the survey found**
+- **Already true, nothing to change:**
+  - The runtime behaviour, in `backend/app/routers/content.py:44-49` and lines 264-325.
+  - The four pinning tests, in `backend/tests/test_content_api.py:213-238`.
+  - `backend/README.md:38-46` and `PROGRESS.md:1773`, which already say these endpoints serve nothing on purpose.
+- **What remains:** `openapi.yaml` describes the four operations (`getGeometry`, `listElevationProfiles`, `getElevationProfile`, `listSuperlativeAxes`) and the `info.description` Content bullet as if they served data.
+
+**Criteria in brief**
+- **Marking (1-2):** each of the four operation descriptions contains the exact text `Not implemented in v1`, and no other operation's does. A test can check this.
+- **Content (3-12):** each description names its current response and what serving it would take:
+  - geometry: `us-atlas`, TopoJSON, Census TIGER, Natural Earth, kept for later clients;
+  - superlatives: `tpl-biggest-state` via `/questions`, and a reviewed `promptMost`;
+  - elevation: a terrain source sampled at build time;
+  - the `info` bullet says the three are not implemented in v1.
+- **Nothing else moves (13-19):**
+  - runtime responses and the four pinning tests stay unchanged;
+  - the set of paths, methods and operationIds stays the same, and the three schemas keep their `required` lists;
+  - all suites pass;
+  - nothing changes under `backend/app/`, `frontend/`, `question-bank/` or `e2e/`;
+  - no dependency is added and no test reaches the network.
+
+**Choice for the approver to check:** the exact phrase `Not implemented in v1` in criterion 1 is my wording. I fixed one phrase so the mark can be tested rather than judged by reading prose.
