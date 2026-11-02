@@ -46,10 +46,19 @@ info:
     `level`; when volume arrives, backfill `rating = 800 + level * 45` and flip the
     selector. `ageBand` is appropriateness, not challenge, and is filtered separately.
 
-    **Answer keys.** Content responses include the answer key (`correctIndex`, or
-    `answerGeometryId` on a `map_click` question) by default because the v1 client
-    grades locally. Set `includeAnswerKey=false` once grading moves to
-    `POST /sessions/{sessionId}/answers`.
+    **Answer keys.** The answer key (`correctIndex`, or `answerGeometryId` on a
+    `map_click` question) is withheld by default: grading runs through
+    `POST /sessions/{sessionId}/answers`, which reports `correctIndex` after the
+    child answers. Pass `includeAnswerKey=true` to opt in, on the content endpoints
+    and in the `POST /sessions/{sessionId}/next-question` body. The first question
+    served by `POST /sessions` and questions served by
+    `POST /sessions/{sessionId}/review-round` are always served without the key;
+    those two take no `includeAnswerKey`. Withholding removes only those two
+    fields: where a question's answer is its own entity (`map_identify`, and
+    superlative questions), the answer can still be read from `entityId`, the
+    served `entity`, and (for `map_identify`) `highlightGeometryId`. A `map_click`
+    question's served `entity.geometryId` equals its `answerGeometryId`. This is a
+    known, accepted limitation.
 
     **Authentication.** Content is public — it is build-time generated and carries no
     user data, so it stays cacheable and needs no token. Profiles and Sessions hold
@@ -189,9 +198,9 @@ paths:
         `scope=us&entityType=state`; "World Capitals" is `topic=capital&scope=world`;
         "Farms & Weather" is `topic=climate,agriculture&minAgeBand=2`.
 
-        `level` + `levelSpan` mirror the server's widening search in
-        `serveNextQuestion` — the selector tries a tight span first and widens
-        until the pool is non-empty.
+        `level` + `levelSpan` filter to one fixed window around `level`: questions
+        whose level is within `levelSpan` of it. The window is applied as given;
+        an empty result is returned as an empty page.
       parameters:
         - $ref: "#/components/parameters/Scope"
         - name: entityType
@@ -955,7 +964,10 @@ paths:
                   description: Pull from the review queue regardless of position.
                 includeAnswerKey:
                   type: boolean
-                  default: true
+                  default: false
+                  description: |
+                    When `true`, the served question carries its answer key. Withheld
+                    otherwise. Applies to a re-served pending question too.
       responses:
         "200":
           description: The question to present.
@@ -1216,13 +1228,12 @@ components:
       name: includeAnswerKey
       in: query
       description: |
-        When `true` (the v1 default) responses carry the answer key — `correctIndex`,
-        or `answerGeometryId` on a `map_click` question — and the client grades
-        locally. Set `false` once grading runs through
+        The answer key — `correctIndex`, or `answerGeometryId` on a `map_click`
+        question — is withheld unless `true` is passed. Grading runs through
         `POST /sessions/{sessionId}/answers`.
       schema:
         type: boolean
-        default: true
+        default: false
 
   responses:
     Problem:
@@ -1632,7 +1643,7 @@ components:
         correctIndex:
           type: integer
           minimum: 0
-          description: Omitted when `includeAnswerKey=false`.
+          description: Present only when `includeAnswerKey=true`; omitted otherwise.
         level:
           $ref: "#/components/schemas/Level"
         rating:
@@ -1669,8 +1680,8 @@ components:
           description: |
             The answer key of a `map_click` question: the two-digit geometry id of
             the state to tap. Present on `map_click` questions only, which offer no
-            `choices` — any state can be tapped. Withheld when
-            `includeAnswerKey=false`, as `correctIndex` is.
+            `choices` — any state can be tapped. Present only when
+            `includeAnswerKey=true`, as `correctIndex` is; omitted otherwise.
           example: "08"
         imageUrl:
           type: string

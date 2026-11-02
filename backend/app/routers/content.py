@@ -168,7 +168,7 @@ def list_questions(
     level: float | None = None,
     levelSpan: Annotated[float, Query(ge=0)] = DEFAULT_LEVEL_SPAN,
     exclude: str | None = None,
-    includeAnswerKey: bool = True,
+    includeAnswerKey: bool = False,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
     cursor: str | None = None,
 ) -> dict[str, Any]:
@@ -202,7 +202,7 @@ def list_questions(
     summary="Fetch one question",
 )
 def get_question(
-    request: Request, db: Db, questionId: str = Path(), includeAnswerKey: bool = True
+    request: Request, db: Db, questionId: str = Path(), includeAnswerKey: bool = False
 ) -> dict[str, Any]:
     question = store.question(db, questionId)
     if question is None:
@@ -240,7 +240,7 @@ def get_bundle(
     response: Response,
     db: Db,
     bundleId: str = Path(),
-    includeAnswerKey: bool = True,
+    includeAnswerKey: bool = False,
     if_none_match: Annotated[str | None, Header(alias="If-None-Match")] = None,
 ) -> Any:
     etag = store.bundle_etag(db, bundleId)

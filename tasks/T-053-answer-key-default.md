@@ -1,7 +1,7 @@
 # T-053 — The public bank hands out the answer key by default
 
-**Status:** `approved`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-11-02, "approved as written, including 10–11", given in the orchestrator's session. See `runs/T-053-answer-key-default.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (first pass, halted on Q1–Q3) |
 | task-expander | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (second pass, criteria written from the answers) |
+| worker | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (subagent spawned by the orchestrator; the env var reports the parent session's id, same as the expander rows) |
 
 ## For the approver — read this first
 
@@ -267,6 +268,142 @@ both absent** from the question object: omitted, not present with `null`.
 
 *(worker)*
 
+**TL;DR:** Default flipped to "withheld" on all six surfaces (the four with
+`includeAnswerKey`, plus `POST /sessions` and `review-round`), and
+`openapi.yaml` updated per 15-19. **43 existing unit tests go red by design**
+(every one is a `KeyError`/assert on the key read off a default response, or a
+spec-text pin), listed below. The tester needs a Test change request (D-14)
+before the suite is green.
+
+**Files changed**
+
+- `backend/app/routers/content.py`: `includeAnswerKey` default `True` -> `False`
+  in `list_questions`, `get_question`, `get_bundle`.
+- `backend/app/models.py`: `NextQuestionRequest.include_answer_key` default -> `False`.
+- `backend/app/routers/sessions.py`: `_serve_next(include_answer_key=False)` by
+  default, plus a docstring line. `start_session` and the review-round handler
+  call it without the flag, so they now always withhold (10, 11). No new parameter.
+- `openapi.yaml`: `info.description` "Answer keys" paragraph rewritten (one
+  paragraph, includes the Q2/Q3 limitation); `listQuestions` description;
+  next-question body `includeAnswerKey.default: false` plus a description;
+  `IncludeAnswerKey` parameter; `Question.correctIndex` and
+  `Question.answerGeometryId` descriptions.
+- `e2e/tests/app.ts`: doc comment only (lines 212-218), now says the key is
+  withheld by default and the lookup opts in.
+- `backend/tests/test_t053_answer_key_default.py`: new, worker's own tests
+  (content defaults and opt-in, withheld == carried minus the key, session
+  start/next/re-serve/grading). They pass.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1-7 | `content.py` defaults -> `serializers.question_payload` pops the two keys |
+| 8, 9, 12 | `models.NextQuestionRequest` default; `_serve_next` uses the flag of the call in hand for a re-serve too (that was already true) |
+| 10, 11 | `_serve_next` default `False`; `start_session` (`sessions.py` ~163) and review-round (~378) pass nothing |
+| 13 | `question_payload` pops only those two keys; `entity` is added by `served_payload` independent of the flag |
+| 14 | grading reads the stored question (`sessions.py` ~293); unchanged |
+| 15-19 | `openapi.yaml` as listed above |
+| 20 | `tests/test_contract.py` passes unchanged |
+| 21 | **not done**: `backend/integration/test_stack.py::test_the_answer_key_can_be_withheld_from_the_public_bank` is an existing test; tester's TCR |
+| 22-25 | no change under `frontend/`, `question-bank/`, `backend/app/data/`; `grading.py`, `pyproject.toml`, `uv.lock` unchanged |
+| 26 | new test uses the in-process `client` fixture; no network |
+
+**Deliberately not done**
+
+- **`serializers.question_payload` / `served_payload` keep `include_answer_key=True`
+  as their function default.** Every HTTP caller now passes the flag explicitly or
+  goes through `_serve_next` (default `False`), so no response depends on it.
+  Flipping it would also break `test_t051_map_click.py` line 114, which tests the
+  pure function, not the HTTP default. Decided by worker; **reviewer to confirm or
+  ask for the flip** (it would add one more stale test).
+- Bundle `ETag`/caching not touched (Out of scope). Still worth the `tasks.md`
+  entry the brief names; **reviewer's sweep to add it**.
+
+**Contradictions with the brief:** none found. The survey's line numbers held.
+
+**How to run**
+
+- `cd backend && uv run pytest -q` (unit, ~1 min): 801 passed, 9 skipped,
+  **43 failed** (all listed below), on this branch.
+- `uv run pytest -q tests/test_t053_answer_key_default.py tests/test_contract.py`: 8 passed.
+- `uv run ruff check .` and `uv run ruff format --check .`: clean.
+- Not run: the integration suite (`make -C backend test-integration`, needs
+  docker compose) and the e2e suite. The e2e change is a comment.
+
+**Tests made stale**
+
+All 43 fail because they read `correctIndex` / `answerGeometryId` off a response
+that no longer carries it by default (criteria 1, 4, 6, 8, 10), except where
+noted. **Proposed fix for each: pass `includeAnswerKey=true`** (query param on
+content calls, `{"includeAnswerKey": true}` in the next-question body). Where a
+test reads the key off `POST /sessions`' first served question (criterion 10
+makes that impossible), it should start with `serveFirstQuestion: false` and
+fetch via next-question with the opt-in, or read the key from
+`GET /questions/{id}?includeAnswerKey=true`. Delete none.
+
+  - `backend/tests/test_content_api.py::test_every_seeded_question_has_a_usable_answer_key`
+  - `backend/tests/test_content_build.py::test_served_question_fields_equal_the_question_file`
+  - `backend/tests/test_content_build.py::test_question_ids_with_colons_resolve_and_withhold_the_answer_key`
+  - `backend/tests/test_content_build.py::test_reveals[location-True]`
+  - `backend/tests/test_content_build.py::test_reveals[capital-False]`
+  - `backend/tests/test_content_build.py::test_a_perfect_session_reaches_every_question_once[location-100-formats0]`
+  - `backend/tests/test_content_build.py::test_a_perfect_session_reaches_every_question_once[capital-50-formats1]`
+  - `backend/tests/test_content_build.py::test_a_perfect_session_reaches_every_question_once[mixed-100-formats2]`
+  - `backend/tests/test_sessions_api.py::test_a_topic_filters_every_question_served`
+  - `backend/tests/test_sessions_api.py::test_serving_advances_the_index_and_records_what_was_asked`
+  - `backend/tests/test_sessions_api.py::test_a_question_can_be_served_without_its_answer_key`
+  - `backend/tests/test_sessions_api.py::test_a_correct_answer_returns_the_reward_and_the_key`
+  - `backend/tests/test_sessions_api.py::test_a_wrong_answer_returns_the_reason_and_queues_the_entity`
+  - `backend/tests/test_sessions_api.py::test_the_profile_comes_back_advanced`
+  - `backend/tests/test_sessions_api.py::test_answering_the_same_question_twice_is_refused`
+  - `backend/tests/test_sessions_api.py::test_four_correct_in_a_row_raises_the_level_quietly`
+  - `backend/tests/test_sessions_api.py::test_three_wrong_in_a_row_drops_the_level_without_a_message`
+  - `backend/tests/test_sessions_api.py::test_a_level_change_is_absent_when_nothing_moved`
+  - `backend/tests/test_sessions_api.py::test_a_milestone_offers_a_stopping_point`
+  - `backend/tests/test_sessions_api.py::test_undo_backs_out_the_answer_and_its_profile_effects`
+  - `backend/tests/test_sessions_api.py::test_the_question_returns_to_presenting_after_an_undo`
+  - `backend/tests/test_sessions_api.py::test_the_same_answer_cannot_be_undone_twice`
+  - `backend/tests/test_sessions_api.py::test_only_the_most_recent_answer_can_be_undone`
+  - `backend/tests/test_sessions_api.py::test_ending_writes_the_end_level_and_reports_places_learned`
+  - `backend/tests/test_sessions_api.py::test_the_summary_counts_places_learned_this_session`
+  - `backend/tests/test_sessions_api.py::test_ending_twice_returns_the_same_summary`
+  - `backend/tests/test_t026_tester_criteria.py::test_c46_a_new_topic_session_serves_only_that_topic_outside_review[superlative]`
+  - `backend/tests/test_t026_tester_criteria.py::test_c46_a_new_topic_session_serves_only_that_topic_outside_review[wildlife]`
+  - `backend/tests/test_t026_tester_criteria.py::test_c46_a_new_topic_session_serves_only_that_topic_outside_review[landmark]`
+  - `backend/tests/test_t026_tester_criteria.py::test_c46_a_new_topic_session_serves_only_that_topic_outside_review[climate]`
+  - `backend/tests/test_t026_tester_criteria.py::test_c46_a_new_topic_session_serves_only_that_topic_outside_review[agriculture]`
+  - `backend/tests/test_t026_topics.py::test_a_correct_superlative_answer_highlights_the_answer_state`
+  - `backend/tests/test_t040_tester_criteria.py::test_c13_served_question_fields_equal_the_question_file`
+  - `backend/tests/test_t040_tester_criteria.py::test_c14_every_question_validates_and_its_key_is_the_files_answer`
+  - `backend/tests/test_t040_tester_criteria.py::test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal[location-formats0-True-100]`
+  - `backend/tests/test_t040_tester_criteria.py::test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal[capital-formats1-False-50]`
+  - `backend/tests/test_t040_tester_criteria.py::test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`
+  - `backend/tests/test_t040_tester_criteria.py::test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state`
+  - `backend/tests/test_t051_map_click.py::test_listing_map_click_returns_exactly_the_served_ones`
+  - `backend/tests/test_t051_tester_criteria.py::test_c9_question_has_an_optional_string_answer_geometry_id`
+  - `backend/tests/test_t051_tester_criteria.py::test_c11_listing_map_click_returns_exactly_the_served_ones`
+  - `backend/tests/test_t051_tester_criteria.py::test_c12_get_question_without_the_key_drops_answer_geometry_id`
+  - `backend/tests/test_t051_tester_criteria.py::test_c12_a_session_serves_map_click_without_the_key_when_asked`
+
+Special cases inside that list:
+
+- `test_t051_tester_criteria.py::test_c9_question_has_an_optional_string_answer_geometry_id`
+  asserts the spec text contains `includeAnswerKey=false`. Criterion 18 removes
+  that wording. Modify it to assert `includeAnswerKey=true` instead.
+- `test_t040_tester_criteria.py::test_c13_served_question_fields_equal_the_question_file`
+  compares served fields to the file and now sees the key missing on 415 rows.
+  Modify to opt in.
+- `test_content_build.py::test_question_ids_with_colons_resolve_and_withhold_the_answer_key`
+  reads the key off the default response, then checks withholding with `false`.
+  Modify the first call to opt in.
+- **Also stale, not in the unit run:**
+  `backend/integration/test_stack.py::test_the_answer_key_can_be_withheld_from_the_public_bank`
+  (line 118). It asserts `correctIndex` is present by default. Criterion 21 says
+  how to rewrite it.
+
+No count floors are affected: no test was removed.
+
 ## Verdict
 
 *(tester)*
@@ -278,5 +415,13 @@ both absent** from the question object: omitted, not present with `null`.
   `map_identify`, 47 superlative, 50 `map_click`) come from reading
   `backend/app/data/content.json`.
 - `PROGRESS.md` is unchanged: nothing new is true yet.
+- **Worker:** the change itself was five default flips. The cost is the 43
+  stale tests: most session tests answer correctly by reading the served key.
+  Expect the TCR to be large but mechanical.
+- **Worker:** the Sessions table's worker row shares an id with the expander
+  rows because the env var reports the orchestrator's parent session. The
+  worker ran as a separate subagent. Tester to note this when checking
+  isolation; orchestrator/process owner to decide whether subagent ids should be
+  recorded differently.
 - When this merges, `tasks.md` T-053's status line should lose its "blocked"
   wording. That is the reviewer's sweep, not an edit made here.
