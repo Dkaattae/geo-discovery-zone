@@ -168,3 +168,6 @@ Dkaattae, in the orchestrator's session, verbatim: "approved as written, includi
 ## Halted — test change request — 2026-11-02
 Raised in commit `249fdf9` (branch head at halt). Rows not copied here; the orchestrator has not read them.
 To resume: Dkaattae starts the `tester` step for T-053 in a session they are attending; it asks about each row, applies what is approved, and finishes verifying. The orchestrator cannot take this approval (D-15). This run ends here.
+
+## Approval given in the orchestrator's session — 2026-11-02
+Dkaattae, verbatim: "approved, all 18 rows as written". Recorded here only. Per D-15 the orchestrator does not write it into the brief or relay it to a tester; the approval must be given in an attended `tester` session for T-053. Header unchanged (`Test changes: requested`, `Next step: human`).
