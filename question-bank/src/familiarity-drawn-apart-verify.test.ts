@@ -47,8 +47,9 @@ const BEFORE_T025_TABLE_SHA = "7d04c99ce29c19b29c812b90866f12bac25ffd38b55e38ba9
 /** sha256 of each file whole, at 5ae564a. */
 const BEFORE_FILE_SHA: Record<string, string> = {
   // re-pinned at `ed00235` (T-039, Test change request row 3): T-039 marks four
-  // operations "Not implemented in v1".
-  "openapi.yaml": "cd4015e64025f5a3b1b88e5a8948597708f7c5924df924109454850f21c5bcb0",
+  // operations "Not implemented in v1". Re-pinned at T-045 (Test change request
+  // row 5): T-045 marks four formats and two pin strategies "Not implemented in v1".
+  "openapi.yaml": "cf9a44dd12ad6bea831ceb9a014f7e1b51584656a1d01b5c27292e0f8b56bdb1",
   "backend/pyproject.toml": "a7741b6f8be54ee317fc9caf308debff1959b93b00f28efc6e7e760468813724",
   "backend/uv.lock": "88a95ecef4a5cdcc199de0722c241f754b654d764073562d886b9c440cd1edd8",
   "e2e/bun.lock": "518a40b596a5bc9c4bc1b10ea8dbfbf32342539c08622fde3cef22e546a7574d",

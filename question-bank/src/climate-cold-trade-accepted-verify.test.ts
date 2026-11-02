@@ -62,7 +62,8 @@ const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d398
  * Re-pinned by T-087 row 9: the only file that moved is question-bank/src/refresh.ts
  * (now 41de4902890f281040a4d3b683a5e4a457eb1a280d205a274bf133cf296c2631, its criteria 6-7).
  */
-const MAIN_SOURCE_TREES_SHA = "8f004afd4de818d1c403c2257892a3fe569c55d93018bee260d3a76dc6b0ace6";
+// Re-pinned by T-045 row 6: the only file that moved is backend/app/grading.py.
+const MAIN_SOURCE_TREES_SHA = "0ae3a98b08a6931bbd6c8e95e6e188e16bb1b1fb5c1a778bb2d6e5af3e8ee36b";
 /**
  * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
  * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
@@ -77,8 +78,10 @@ const MAIN_DEPENDENCY_FILES_SHA =
  */
 // Re-pinned by T-039 row 7: T-039's three files joined the allowed set, so
 // openapi.yaml, which main counted, leaves the counted set (297 -> 296).
-const MAIN_UNTOUCHABLE_SHA = "c7a674c1a9f9abd2a36631b661cbc3babaf8684bc3c2b53c7765f04d5b2bb9c5";
-const MAIN_UNTOUCHABLE_COUNT = 296;
+const MAIN_UNTOUCHABLE_SHA = "7b218a5e41704155228380a6bc0737c867f17e23bae3f1eef10982f3101f1818";
+// Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
+// with T-045's brief and run log (296 -> 295).
+const MAIN_UNTOUCHABLE_COUNT = 295;
 /**
  * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
  * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
@@ -86,8 +89,10 @@ const MAIN_UNTOUCHABLE_COUNT = 296;
  */
 // Re-pinned by T-039 (Test change request row 5): T-039 added two backend test
 // files, test_unimplemented_content_docs.py and test_t039_tester_criteria.py (107 -> 109).
-const MAIN_TESTS_SHA = "31f18e10587d68449c2355ffb1e9df00acf0faac7df1b5a04e52630b2f2ab81b";
-const MAIN_TESTS_COUNT = 109;
+const MAIN_TESTS_SHA = "6a245d94706f268d0ef16ea0feaf4730701219e48f3c7939777e57847bd4948e";
+// Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
+// files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
+const MAIN_TESTS_COUNT = 111;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -116,20 +121,20 @@ const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
  * 10a), so their digests are this branch's. The other two are 8108a42's.
  */
 const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
-  // re-pinned by T-039 (Test change request row 6)
+  // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "f683a4ee562de75491314a2873b68c391b23bf50ac28780e7bb3612cef4d5470",
+    "5239ae5ba15b3d18f2b3145ac9645617b7e8b85aa1e25333e2ee7bf50b626c6d",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
-  // re-pinned by T-039 (Test change request row 6)
+  // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "e037f5f4a62f9b54e795a7b4edf95f08b66dcdddb039e5d36e813dd7fc961ccb",
-  // re-pinned by T-039 (Test change request row 6)
+    "cde59340141d375fd4dbca8720731f816a31bd30bcc3c60dd9bf9a98939f658e",
+  // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "2b66e4d918ac236a64d5738011f325a9c6c5ea6250929a2f3c32a83baffa9a01",
-  // re-pinned by T-039 (Test change request row 6)
+    "e85ff35d6084f0264a04159ffcb43be08ffe7541c48ae1b903d713da89a03eec",
+  // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
-    "793b8f0f6cf625d1ce57abedff3156eeb715ec7f9a1132b6124497bc7c52af2e",
+    "d210e4b9ad8e6fadd86344770659ba7b06ee21ed96d8de03ac86b75f347d96bc",
   "backend/tests/test_t089_tester_criteria.py":
     "81a845389db2cebee246542d388c9e6fcceba57b97d7611f8c3d650fc52cb7a7",
 };
@@ -158,6 +163,11 @@ const CRITERION_22_ALLOWED = new Set([
   "openapi.yaml",
   "tasks/T-039-empty-content-endpoints.md",
   "runs/T-039-empty-content-endpoints.md",
+  // T-045's file set, joined through T-045's Test change request row 7
+  // (approved 2026-11-02 in the attended tester session that made the edit).
+  "backend/app/grading.py",
+  "tasks/T-045-ungradable-formats.md",
+  "runs/T-045-ungradable-formats.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
