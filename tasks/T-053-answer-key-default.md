@@ -1,15 +1,14 @@
 # T-053 — The public bank hands out the answer key by default
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-11-02, "approved as written, including 10–11", given in the orchestrator's session. See `runs/T-053-answer-key-default.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-02` (given by the person attending tester session session_011oDiJbUGyPxtYXDq2xV2Bz; no name typed in-session)
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-053
 **Branch:** `claude/magical-davinci-y58qf6`
 **PR:** #117, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:** test changes are waiting for approval: 44 pre-existing tests (43 unit + 1 integration) read the answer key off a default response, which this task deliberately withholds; owner: a person, in an attended tester session.
 
 **Sessions:**
 
@@ -19,6 +18,7 @@ draft** until the reviewer approves it
 | task-expander | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (second pass, criteria written from the answers) |
 | worker | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (subagent spawned by the orchestrator; the env var reports the parent session's id, same as the expander rows) |
 | tester | 2026-11-02 | `cse_011oDiJctNqgXZb5TuFbpsXz` (fresh subagent spawned by the orchestrator; same parent id, so the id check proves nothing here) |
+| tester | 2026-11-02 | `session_011oDiJbUGyPxtYXDq2xV2Bz` (attended; applied the approved test change request) |
 
 ## For the approver — read this first
 
@@ -432,96 +432,84 @@ Shared helper changes (a helper is test code, so it is listed and approved here)
 
 | # | Test (file › name) | Introduced (commit, task, what it protected) | Why stale | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `backend/tests/test_content_api.py` › `test_every_seeded_question_has_a_usable_answer_key` | `de417a2`, initial FastAPI backend: every question's key is usable | c1: `GET /questions` with no flag withholds | modify | Same name and asserts; the listing passes `includeAnswerKey=true` | |
-| 2 | `backend/tests/test_content_build.py` › `test_served_question_fields_equal_the_question_file` | `25c7847`, T-040 worker: served fields equal the file | c1 | modify | Same name and asserts; `_all(client, "/questions", includeAnswerKey="true")` | |
-| 3 | `backend/tests/test_content_build.py` › `test_question_ids_with_colons_resolve_and_withhold_the_answer_key` | `25c7847`, T-040: colon ids resolve, `false` withholds | c1 (first listing read the key off the default) | modify | Same name and asserts; the first listing passes `includeAnswerKey=true`; the per-question `false` check is unchanged | |
-| 4 | `backend/tests/test_content_build.py` › `test_reveals[location-True]`, `[capital-False]` | `25c7847`, T-040: reveal on right/wrong | c8 (served via `_next` with no flag) | modify | Unchanged test body; fixed by H2 | |
-| 5 | `backend/tests/test_content_build.py` › `test_a_perfect_session_reaches_every_question_once[location-100-formats0]`, `[capital-50-formats1]`, `[mixed-100-formats2]` | `25c7847`, T-040: a perfect session covers the bank once | c8 | modify | Unchanged test body; fixed by H2 | |
-| 6 | `backend/tests/test_sessions_api.py` › `test_a_topic_filters_every_question_served`, `test_serving_advances_the_index_and_records_what_was_asked`, `test_a_question_can_be_served_without_its_answer_key`, `test_a_wrong_answer_returns_the_reason_and_queues_the_entity`, `test_the_profile_comes_back_advanced`, `test_answering_the_same_question_twice_is_refused`, `test_four_correct_in_a_row_raises_the_level_quietly`, `test_three_wrong_in_a_row_drops_the_level_without_a_message`, `test_a_level_change_is_absent_when_nothing_moved`, `test_a_milestone_offers_a_stopping_point`, `test_undo_backs_out_the_answer_and_its_profile_effects`, `test_the_question_returns_to_presenting_after_an_undo`, `test_the_same_answer_cannot_be_undone_twice`, `test_only_the_most_recent_answer_can_be_undone`, `test_ending_writes_the_end_level_and_reports_places_learned`, `test_the_summary_counts_places_learned_this_session`, `test_ending_twice_returns_the_same_summary` (17 tests) | `de417a2`, initial backend: session lifecycle, each answers via the `answer()` helper | c8, c10: the helper reads the key off a served question | modify | Unchanged test bodies; fixed by H1 | |
-| 7 | `backend/tests/test_sessions_api.py` › `test_a_correct_answer_returns_the_reward_and_the_key` | `de417a2`, initial backend: a correct answer returns the reward and the key | c10; also line 201 compares `result["correctIndex"]` to `served["question"]["correctIndex"]` | modify | H1, and line 201 compares `result["correctIndex"]` to the `correctIndex` of `GET /questions/{id}?includeAnswerKey=true`. Every other assert unchanged | |
-| 8 | `backend/tests/test_t026_tester_criteria.py` › `test_c46_a_new_topic_session_serves_only_that_topic_outside_review[superlative / wildlife / landmark / climate / agriculture]` | `d201e70`, T-026 tester: a topic session serves only that topic | c8 | modify | Same name and asserts; its next-question POST sends `json={"includeAnswerKey": True}` | |
-| 9 | `backend/tests/test_t026_topics.py` › `test_a_correct_superlative_answer_highlights_the_answer_state` | `a6e3478`, T-026 worker: superlative reveal highlights the answer state | c8 | modify | Same name and asserts; its next-question POST sends `json={"includeAnswerKey": True}` | |
-| 10 | `backend/tests/test_t040_tester_criteria.py` › `test_c13_served_question_fields_equal_the_question_file` | `acaa4a1`, T-040 tester: served fields equal the file | c1 | modify | Same name and asserts; `all_rows(client, "/questions", includeAnswerKey="true")` (H3) | |
-| 11 | `backend/tests/test_t040_tester_criteria.py` › `test_c14_every_question_validates_and_its_key_is_the_files_answer` | `acaa4a1`, T-040 tester: each key is the file's answer | c1 | modify | Same as row 10 | |
-| 12 | `backend/tests/test_t040_tester_criteria.py` › `test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal[location-formats0-True-100]`, `[capital-formats1-False-50]`; `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`; `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state` | `acaa4a1`, T-040 tester: session coverage and reveals | c8 | modify | Unchanged test bodies; fixed by H3 | |
-| 13 | `backend/tests/test_t051_map_click.py` › `test_listing_map_click_returns_exactly_the_served_ones` | `e654042`, T-051 worker: listing returns exactly the map_click set, keyed | c1 | modify | Same name and asserts; listing params add `includeAnswerKey=true` | |
-| 14 | `backend/tests/test_t051_tester_criteria.py` › `test_c9_question_has_an_optional_string_answer_geometry_id` | `6537059`, T-051 tester: spec text for `answerGeometryId` | c18: description must say `includeAnswerKey=true`, not `false` | modify | Same name; `assert "includeAnswerKey=true" in description` replaces the `=false` assert, and adds `assert "includeAnswerKey=false" not in description`; other asserts unchanged | |
-| 15 | `backend/tests/test_t051_tester_criteria.py` › `test_c11_listing_map_click_returns_exactly_the_served_ones` | `6537059`, T-051 tester | c1 | modify | Same name and asserts; `_walk(client, format="map_click", includeAnswerKey="true")` | |
-| 16 | `backend/tests/test_t051_tester_criteria.py` › `test_c12_get_question_without_the_key_drops_answer_geometry_id` | `6537059`, T-051 tester: `false` drops the key, default keeps it | c4 / c5: the default now withholds | modify | Same name. For each of the 5 ids: `includeAnswerKey=false` → no `answerGeometryId` (unchanged); **no flag → no `answerGeometryId`** (new); `includeAnswerKey=true` → `answerGeometryId` equals the file's (was the no-flag call) | |
-| 17 | `backend/tests/test_t051_tester_criteria.py` › `test_c12_a_session_serves_map_click_without_the_key_when_asked` | `6537059`, T-051 tester: line 318 pins "default keeps the key" on the first served question | c10: `POST /sessions`' first question is always withheld | modify | Same name. First served AK question has **no** `answerGeometryId`; a next-question with `{"includeAnswerKey": true}` re-serves AK with `answerGeometryId == "02"`; then `{"includeAnswerKey": false}` re-serves AK with no `answerGeometryId`, `format == "map_click"` (unchanged asserts) | |
-| 18 | `backend/integration/test_stack.py` › `test_the_answer_key_can_be_withheld_from_the_public_bank` | `7d1b92b`, "Put the backend under CI": opting out works while the default was undecided | c21 names this change | modify | Renamed `test_the_public_bank_withholds_the_answer_key_unless_asked`. `GET /questions?limit=1` → `"correctIndex" not in` the first row; `?limit=1&includeAnswerKey=true` → `"correctIndex" in` it. Docstring: the key is withheld by default since T-053 and `includeAnswerKey=true` opts in; no mention of a `true` default or local grading | |
+| 1 | `backend/tests/test_content_api.py` › `test_every_seeded_question_has_a_usable_answer_key` | `de417a2`, initial FastAPI backend: every question's key is usable | c1: `GET /questions` with no flag withholds | modify | Same name and asserts; the listing passes `includeAnswerKey=true` || approved |
+| 2 | `backend/tests/test_content_build.py` › `test_served_question_fields_equal_the_question_file` | `25c7847`, T-040 worker: served fields equal the file | c1 | modify | Same name and asserts; `_all(client, "/questions", includeAnswerKey="true")` || approved |
+| 3 | `backend/tests/test_content_build.py` › `test_question_ids_with_colons_resolve_and_withhold_the_answer_key` | `25c7847`, T-040: colon ids resolve, `false` withholds | c1 (first listing read the key off the default) | modify | Same name and asserts; the first listing passes `includeAnswerKey=true`; the per-question `false` check is unchanged || approved |
+| 4 | `backend/tests/test_content_build.py` › `test_reveals[location-True]`, `[capital-False]` | `25c7847`, T-040: reveal on right/wrong | c8 (served via `_next` with no flag) | modify | Unchanged test body; fixed by H2 || approved |
+| 5 | `backend/tests/test_content_build.py` › `test_a_perfect_session_reaches_every_question_once[location-100-formats0]`, `[capital-50-formats1]`, `[mixed-100-formats2]` | `25c7847`, T-040: a perfect session covers the bank once | c8 | modify | Unchanged test body; fixed by H2 || approved |
+| 6 | `backend/tests/test_sessions_api.py` › `test_a_topic_filters_every_question_served`, `test_serving_advances_the_index_and_records_what_was_asked`, `test_a_question_can_be_served_without_its_answer_key`, `test_a_wrong_answer_returns_the_reason_and_queues_the_entity`, `test_the_profile_comes_back_advanced`, `test_answering_the_same_question_twice_is_refused`, `test_four_correct_in_a_row_raises_the_level_quietly`, `test_three_wrong_in_a_row_drops_the_level_without_a_message`, `test_a_level_change_is_absent_when_nothing_moved`, `test_a_milestone_offers_a_stopping_point`, `test_undo_backs_out_the_answer_and_its_profile_effects`, `test_the_question_returns_to_presenting_after_an_undo`, `test_the_same_answer_cannot_be_undone_twice`, `test_only_the_most_recent_answer_can_be_undone`, `test_ending_writes_the_end_level_and_reports_places_learned`, `test_the_summary_counts_places_learned_this_session`, `test_ending_twice_returns_the_same_summary` (17 tests) | `de417a2`, initial backend: session lifecycle, each answers via the `answer()` helper | c8, c10: the helper reads the key off a served question | modify | Unchanged test bodies; fixed by H1 || approved |
+| 7 | `backend/tests/test_sessions_api.py` › `test_a_correct_answer_returns_the_reward_and_the_key` | `de417a2`, initial backend: a correct answer returns the reward and the key | c10; also line 201 compares `result["correctIndex"]` to `served["question"]["correctIndex"]` | modify | H1, and line 201 compares `result["correctIndex"]` to the `correctIndex` of `GET /questions/{id}?includeAnswerKey=true`. Every other assert unchanged || approved |
+| 8 | `backend/tests/test_t026_tester_criteria.py` › `test_c46_a_new_topic_session_serves_only_that_topic_outside_review[superlative / wildlife / landmark / climate / agriculture]` | `d201e70`, T-026 tester: a topic session serves only that topic | c8 | modify | Same name and asserts; its next-question POST sends `json={"includeAnswerKey": True}` || approved |
+| 9 | `backend/tests/test_t026_topics.py` › `test_a_correct_superlative_answer_highlights_the_answer_state` | `a6e3478`, T-026 worker: superlative reveal highlights the answer state | c8 | modify | Same name and asserts; its next-question POST sends `json={"includeAnswerKey": True}` || approved |
+| 10 | `backend/tests/test_t040_tester_criteria.py` › `test_c13_served_question_fields_equal_the_question_file` | `acaa4a1`, T-040 tester: served fields equal the file | c1 | modify | Same name and asserts; `all_rows(client, "/questions", includeAnswerKey="true")` (H3) || approved |
+| 11 | `backend/tests/test_t040_tester_criteria.py` › `test_c14_every_question_validates_and_its_key_is_the_files_answer` | `acaa4a1`, T-040 tester: each key is the file's answer | c1 | modify | Same as row 10 || approved |
+| 12 | `backend/tests/test_t040_tester_criteria.py` › `test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal[location-formats0-True-100]`, `[capital-formats1-False-50]`; `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`; `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state` | `acaa4a1`, T-040 tester: session coverage and reveals | c8 | modify | Unchanged test bodies; fixed by H3 || approved |
+| 13 | `backend/tests/test_t051_map_click.py` › `test_listing_map_click_returns_exactly_the_served_ones` | `e654042`, T-051 worker: listing returns exactly the map_click set, keyed | c1 | modify | Same name and asserts; listing params add `includeAnswerKey=true` || approved |
+| 14 | `backend/tests/test_t051_tester_criteria.py` › `test_c9_question_has_an_optional_string_answer_geometry_id` | `6537059`, T-051 tester: spec text for `answerGeometryId` | c18: description must say `includeAnswerKey=true`, not `false` | modify | Same name; `assert "includeAnswerKey=true" in description` replaces the `=false` assert, and adds `assert "includeAnswerKey=false" not in description`; other asserts unchanged || approved |
+| 15 | `backend/tests/test_t051_tester_criteria.py` › `test_c11_listing_map_click_returns_exactly_the_served_ones` | `6537059`, T-051 tester | c1 | modify | Same name and asserts; `_walk(client, format="map_click", includeAnswerKey="true")` || approved |
+| 16 | `backend/tests/test_t051_tester_criteria.py` › `test_c12_get_question_without_the_key_drops_answer_geometry_id` | `6537059`, T-051 tester: `false` drops the key, default keeps it | c4 / c5: the default now withholds | modify | Same name. For each of the 5 ids: `includeAnswerKey=false` → no `answerGeometryId` (unchanged); **no flag → no `answerGeometryId`** (new); `includeAnswerKey=true` → `answerGeometryId` equals the file's (was the no-flag call) || approved |
+| 17 | `backend/tests/test_t051_tester_criteria.py` › `test_c12_a_session_serves_map_click_without_the_key_when_asked` | `6537059`, T-051 tester: line 318 pins "default keeps the key" on the first served question | c10: `POST /sessions`' first question is always withheld | modify | Same name. First served AK question has **no** `answerGeometryId`; a next-question with `{"includeAnswerKey": true}` re-serves AK with `answerGeometryId == "02"`; then `{"includeAnswerKey": false}` re-serves AK with no `answerGeometryId`, `format == "map_click"` (unchanged asserts) || approved |
+| 18 | `backend/integration/test_stack.py` › `test_the_answer_key_can_be_withheld_from_the_public_bank` | `7d1b92b`, "Put the backend under CI": opting out works while the default was undecided | c21 names this change | modify | Renamed `test_the_public_bank_withholds_the_answer_key_unless_asked`. `GET /questions?limit=1` → `"correctIndex" not in` the first row; `?limit=1&includeAnswerKey=true` → `"correctIndex" in` it. Docstring: the key is withheld by default since T-053 and `includeAnswerKey=true` opts in; no mention of a `true` default or local grading || approved |
 
-To approve: start the `tester` step for T-053 in a session you are attending
-and answer it there, row by row (H1-H3 with the rows they serve).
+**Decision (attended tester session, 2026-11-02):** "Approve all 18 + H1–H3".
+Applied in `0c53042`.
 
 ## Verdict
 
-*(tester, 2026-11-02)*
+*(tester, attended session `session_011oDiJbUGyPxtYXDq2xV2Bz`, 2026-11-02)*
 
-**TL;DR: no verdict yet: test changes requested.** All criteria I can test without
-changing an existing test are met (1-20, 22-26; 40 new tests, all green). The
-suite is red only because of 43 stale unit tests plus the integration test that
-criterion 21 itself changes. Next: a person approves the Test change request in
-an attended `tester` session.
+**TL;DR: pass.** The person approved all 18 Test change request rows plus
+H1–H3 in this session, and I applied exactly those rows (`0c53042`). The unit
+suite is now green: **884 passed, 9 skipped, 0 failed**. Criterion 21's
+integration test could not run here (no docker daemon), so CI's `integration`
+job is the first real run of it.
 
-**Independence:** orchestrated run (`runs/T-053-answer-key-default.md` exists).
-My session id equals the worker's row because every orchestrated role shares the
-parent's id. That check therefore proves nothing here. My independence rests
-only on being a freshly spawned subagent with its own context: I did not watch
-the work and cannot see the worker's reasoning. That is weaker than a separate
-session, because it depends on the orchestrator having spawned me correctly.
+**Approval.** Header: `Test changes: approved — Dkaattae (...), 2026-11-02`.
+The person's words in this session, answering the request row by row:
+"Approve all 18 + H1–H3". No name was typed in-session. I recorded Dkaattae
+as the repo owner named in `CLAUDE.md`; correct it if someone else approved.
 
-| # | Result | Evidence (`backend/tests/test_t053_tester_criteria.py`) |
+**Independence.** This session is not listed as worker, ci-fix or
+task-expander (`session_011oDiJbUGyPxtYXDq2xV2Bz` against `cse_011oDiJctNqgXZb5TuFbpsXz`).
+The criteria tests and mutation check below come from the earlier, orchestrated
+tester round. As that round said, its independence was only that of a fresh
+subagent. This session re-ran everything and added only the approved edits.
+
+**Tests modified (all approved, none deleted, no assertion dropped):**
+
+- **H1** `test_sessions_api.py` › `answer()`: reads the key from
+  `GET /questions/{id}?includeAnswerKey=true` (fixes the 17 tests in row 6).
+- **H2** `test_content_build.py` › `_next()`: posts `{"includeAnswerKey": true}` (rows 4, 5).
+- **H3** `test_t040_tester_criteria.py` › `all_rows(**extra)` and the session loop
+  opt in (row 12).
+- **Rows 1, 2, 3, 8, 9, 10, 11, 13, 15:** the listing or next-question call adds the opt-in.
+- **Row 7:** `correctIndex` compared against the opted-in `GET /questions/{id}`.
+- **Row 14:** asserts `includeAnswerKey=true` is in the description and `includeAnswerKey=false` is not.
+- **Row 16:** for each id, `false` → withheld; **no flag → withheld (new)**;
+  `true` → `answerGeometryId` equals the file's.
+- **Row 17:** the first served AK is withheld; `{"includeAnswerKey": true}` →
+  `"02"`; `{"includeAnswerKey": false}` → withheld, still `map_click`.
+- **Row 18 / criterion 21:** `integration/test_stack.py` renamed to
+  `test_the_public_bank_withholds_the_answer_key_unless_asked`. No flag → no
+  `correctIndex`; `includeAnswerKey=true` → `correctIndex`. The docstring no
+  longer mentions a `true` default or local grading.
+
+| # | Result | Evidence |
 |---|---|---|
-| 1 | met | `test_c1_list_without_flag_withholds_every_question_of_every_format` (whole bank, 415 rows, all formats), `test_c1_a_one_entity_page_with_both_kinds_is_withheld` |
-| 2 | met | `test_c2_list_with_true_carries_every_question` |
-| 3 | met | `test_c3_list_with_false_withholds_every_question` |
-| 4 | met | `test_c4_get_question_without_flag_is_withheld[multiple_choice/map_click]` |
-| 5 | met | `test_c5_get_question_with_true_is_carried[multiple_choice/map_click]` |
-| 6 | met | `test_c6_bundle_without_flag_withholds_every_question` |
-| 7 | met | `test_c7_bundle_with_true_carries_every_question` |
-| 8 | met | `test_c8_next_question_without_flag_is_withheld[no-body/empty-body]`, `test_c8_force_review_without_flag_is_withheld` |
-| 9 | met | `test_c9_next_question_with_true_is_carried` |
-| 10 | met | `test_c10_start_session_default_serves_first_question_withheld` |
-| 11 | met | `test_c11_review_round_serves_withheld` |
-| 12 | met | `test_c12_a_re_serve_follows_the_request_not_the_first_serve[first-none/true/false]`, `test_c12_re_serve_of_the_start_sessions_first_question_can_opt_in` |
-| 13 | met | `test_c13_withheld_equals_carried_minus_exactly_the_key_across_the_bank`, `..._single_question_...[multiple_choice/map_identify/map_click]`, `test_c13_served_question_and_entity_match_with_and_without_the_key` |
-| 14 | met | `test_c14_a_withheld_choice_question_grades_against_the_stored_key[right/wrong]`, `test_c14_a_withheld_map_click_question_grades_against_the_stored_key[right/wrong]` |
-| 15 | met | `test_c15_include_answer_key_parameter_defaults_false` |
-| 16 | met | `test_c16_next_question_body_include_answer_key_defaults_false` |
-| 17 | met | `test_c17_info_answer_keys_paragraph` |
-| 18 | met | `test_c18_question_key_fields_present_only_when_true[correctIndex/answerGeometryId]` |
-| 19 | met | `test_c19_list_questions_description_names_a_fixed_window` |
-| 20 | met | `test_c20_contract_test_file_is_unchanged`; `tests/test_contract.py` green in the full run |
-| 21 | **pending TCR row 18** | the worker did not change it (correctly, D-14). Not run: the integration suite needs docker compose |
-| 22 | met | `test_c22_no_change_under_frontend_question_bank_or_app_data` (diff vs `e2e6495`) |
-| 23 | met | `test_c23_e2e_change_is_only_the_answer_lookup_doc_comment` (every changed line is a `*` comment line in the 212-218 hunk) |
-| 24 | met | `test_c24_grading_is_unchanged` |
-| 25 | met | `test_c25_no_dependency_change` |
-| 26 | met | all new tests use the in-process ASGI `client`; the boundary tests run local `git diff` only |
+| 1-20, 22-26 | met | `backend/tests/test_t053_tester_criteria.py`, 40 tests, green (per-criterion table in this file's history, `249fdf9`) |
+| 21 | met (unit-level), integration run pending CI | rewritten as row 18. The same two requests passed in-process against the ASGI app (throwaway test, deleted). The real docker stack was not run here: `docker info` reports no daemon |
 
-**Mutation check:** I put back the three pre-task defaults (`content.py` ×3,
-`models.NextQuestionRequest`, `_serve_next`) temporarily. 22 of my 40 tests went
-red: c1, c4, c6, c8, c10-c14. The other 18 are pins on spec text, opt-in or the diff,
-and are not expected to turn red from that change. Reverted with `git checkout
-backend/app/`; `git status` was clean apart from the new test file.
+**Runs (`backend/`, on `0c53042`):**
 
-**Runs (on this branch, `backend/`):**
-
-- `uv run pytest -q`: **43 failed, 841 passed, 9 skipped**. The 43 failures match
-  the worker's **Tests made stale** list exactly (diffed).
-- Those 43 against the `e2e6495` `backend/app` + `openapi.yaml`: **43 passed**.
-  They are stale, not broken.
-- `uv run pytest -q tests/test_t053_tester_criteria.py`: 40 passed.
-- `uv run ruff check .`: clean. `uv run ruff format --check .`: clean. The backend
-  has no separate typechecker configured.
-- Not run: the integration suite (docker compose) and e2e (the e2e change is a
-  comment).
+- `uv run pytest -q`: **884 passed, 9 skipped**. Before the edits it was 43
+  failed, 841 passed, 9 skipped, the same 43 as the request (no drift).
+- `uv run ruff check .` and `uv run ruff format --check .`: clean.
+- Not run: `uv run pytest integration` (needs docker) and e2e (its only change
+  is a comment). Both run in CI on PR #117.
 
 **Noticed, not acted on:** `serializers.question_payload` / `served_payload`
-still default `include_answer_key=True` as functions. No HTTP response depends
-on it (mutation and c1-c13 confirm the routes). Whether to flip it is the
-reviewer's call, as the worker said.
+still default `include_answer_key=True` as plain functions. Reviewer's call, as
+the worker said.
 
 ## Notes
 
