@@ -426,7 +426,18 @@ def test_c20_contract_test_file_is_unchanged() -> None:
 
 
 def test_c22_no_change_under_frontend_question_bank_or_app_data() -> None:
-    assert _changed("frontend", "question-bank", "backend/app/data") == []
+    # Criterion 22 as amended by the person approving Test change request rows
+    # 23-33 (2026-11-02): question-bank/ may change only in the six boundary
+    # tests those rows re-pin.
+    assert _changed("frontend", "backend/app/data") == []
+    assert set(_changed("question-bank")) == {
+        "question-bank/src/agriculture-true-wrong-answers-verify.test.ts",
+        "question-bank/src/climate-cold-trade-accepted-verify.test.ts",
+        "question-bank/src/familiarity-drawn-apart-verify.test.ts",
+        "question-bank/src/farm-animal-loose-ends-verify.test.ts",
+        "question-bank/src/map-click-no-candidates-verify.test.ts",
+        "question-bank/src/refresh-regenerate-reminder-verify.test.ts",
+    }
 
 
 def test_c23_e2e_change_is_only_the_answer_lookup_doc_comment() -> None:
