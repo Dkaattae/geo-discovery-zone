@@ -44,3 +44,39 @@
 
 ### Approval stamp — 2026-11-03
 Orchestrator wrote `Approved:` (unattended run). Criteria not read.
+
+## Round 2 — worker — 2026-11-03
+`Next step` on entry: `worker` — once a person replaces `pending` below → on exit: `tester`
+
+**T-093 worker is done: undo now takes the place back out of the session's seen list.** Commit `8f16bb7` is on `origin/claude/tender-fermi-ad0qx3` (I checked with `git log origin/... -1`). The brief is set to Status `awaiting verification`, Next step `tester`. The backend suite passes. Three question-bank guard tests that pin `backend/` to old commits now fail by design and need re-pinning by the tester, with a human's approval.
+
+**Changes**
+- **`/home/user/geo-discovery-zone/backend/app/orm.py`**: `SessionRecord.snapshot` now saves `seen_entity_ids`. `SessionRecord.restore` puts it back only when the key is present, so answers recorded before this change still undo (criterion 8). The router and `grading.py` are untouched.
+- **`/home/user/geo-discovery-zone/backend/tests/test_t093_undo_places_seen.py`** (new, 20 tests): covers criteria 1–8, including all three formats answered right and wrong, and a review-round answer. 17 of them fail without the `orm.py` change. The 3 that pass without it (criteria 2, 6 and 8) already held before this task, so they guard against regressions rather than prove the fix.
+- **`/home/user/geo-discovery-zone/tasks/T-093-undo-places-seen.md`**: Handoff, Notes and my Sessions row are written. My row has the same session id as the expander's (`cse_011oDiJeUyEjWF9EzpoTaWLp`), so the tester must not run under that id.
+
+**Test results**
+
+| Suite | Result | Note |
+|---|---|---|
+| `make -C backend check` | lint and format clean; 927 passed, 9 skipped | |
+| Postgres (local cluster) | 108 passed | only the new file plus `test_sessions_api.py` and `test_t051_tester_criteria.py`; full suite not run on Postgres |
+| frontend `bun test` | 392 pass, 4 fail | environment only: `react-simple-maps` could not be installed (proxy 403 on a dependency tarball). Same result with my change stashed. `git-baseline-guard` passes |
+| question-bank `bun test` | 2708 pass, 5 fail | 3 caused by my change, 2 failing before it (below) |
+
+**Tests made stale** (left failing; the brief bars me from editing them)
+- `map-click-no-candidates-verify.test.ts`, T-092 criterion 16, the `backend/app` byte-identical check: fails because `orm.py` changed. Proposed fix: re-pin the digest.
+- `refresh-regenerate-reminder-verify.test.ts`, T-087 criterion 15: fails because `orm.py` changed and a test file was added. Proposed fix: re-pin the digest and raise the file count by 1.
+- `climate-cold-trade-accepted-verify.test.ts`, T-091 criterion 20: fails because `orm.py` changed. Proposed fix: re-pin the digest.
+
+**Already failing before my change**
+- **Tests:** T-096 criterion 21 in `farm-animal-loose-ends-verify.test.ts` and T-091 criterion 22 in `climate-cold-trade-accepted-verify.test.ts`.
+- **Likely cause:** each file count is 2 over its pin, which matches the brief and run log added earlier on this branch. I have not confirmed that. Tester to confirm and re-pin.
+
+**Gap in the brief:** criteria 9 (question-bank tests pass) and 10 (no existing test changed) can't both hold, because any `backend/app` change trips those guards. That calls for the usual tester re-pin request, not sending the brief back to the expander. Tester to raise it, human to approve.
+
+**Decisions for others to confirm**
+- **Old-style undo leaves the list alone.** When an answer recorded before this change is undone, the seen list is not rebuilt, so the place stays in it. The brief allows either choice. Reviewer to confirm or overturn.
+- **Criterion 8 test edits a real record.** It records an answer through the API, removes the seen-list key from that record's stored snapshot, then undoes it. It does not build a record from scratch. The tester may want to do that to stay independent of my reading.
+- **`askedQuestionIds` is not restored by undo**, as the brief says. That looks right to me, since the question is still waiting for an answer. No queue entry proposed.
+- **`openapi.yaml` left as is**: the brief makes tightening its wording optional.
