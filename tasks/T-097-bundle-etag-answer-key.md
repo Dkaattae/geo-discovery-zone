@@ -1,7 +1,7 @@
 # T-097 — A bundle's `ETag` is the same with and without the answer key
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — a fresh tester session must raise a Test change request for the nine red question-bank pins (finding 1); a person approves it, then the reviewer comes back
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-097-bundle-etag-answer-key.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it
 | task-expander | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 | worker | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 | tester | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
+| reviewer | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) — changes requested |
 
 **Not on the light path.** T-097 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -308,3 +309,92 @@ unknown bundle with a matching `If-None-Match`, `*`, weak comparison, `Vary`).
 - **Noticed:** `mypy app` reports 39 import-not-found errors. That count is the same
   with and without this change: the global mypy cannot see the venv's packages, and
   mypy is not part of `make check`. Nothing to do here.
+
+## Review
+
+**TL;DR: changes requested, sent back to `tester`.** The code is good and I would
+approve it as written. But CI on PR #120 is red: the question-bank job fails 9
+pre-existing whole-tree pins that this task's diff trips. The tester's verdict
+ran only `make -C backend check`, so it never saw them. Needs a fresh `tester`
+to raise a Test change request, then a person to approve it (the orchestrator
+never stamps that request, D-14). Nothing swept; the PR stays draft.
+
+**Checked first**
+
+- **PR #120 is open and draft**, not merged.
+- **Every role's work is in it.** Sessions rows: expander, worker, tester. Commits:
+  `6d17d6a`/`d89e6c7` expander, `8f825a9` worker, `1f48f9f` tester, plus orchestrator
+  run-log commits. None stranded.
+- **Lanes held.** The expander's commits touch only `tasks/` and `tasks.md`; the
+  tester's touch only `backend/tests/test_t097_tester_criteria.py` and the brief;
+  no `ci-fix` ran.
+
+### Findings
+
+1. **Blocks: CI is red, 9 question-bank pins fail** (run 41705776703, job
+   "question-bank (typecheck, lint, test)", step Test: 2704 pass, 9 fail). Every
+   other job is green. They are the same recurring pins T-039, T-045, T-053, T-087,
+   T-093 and T-098 each tripped and re-pinned (`PROGRESS.md`):
+   - `question-bank/src/climate-cold-trade-accepted-verify.test.ts`: T-091 criterion 20
+     (source-tree pin, `backend/app/`), criterion 22 ×2 (whole-repo non-test pin and
+     pre-existing-test pin, from the brief, run log, `openapi.yaml`, the new tests)
+   - T-096 criterion 21 (whole-repo pin)
+   - T-092 criterion 16 ×2 (`backend/app` byte-identical to T-093's; `openapi.yaml`
+     byte-identical to T-053's)
+   - T-087 criterion 15 (every tracked file under `backend/`, `frontend/`, `e2e/`)
+   - T-085a criterion 25 (`openapi.yaml` unchanged since ed00235)
+   - T-088 criterion 21 (`openapi.yaml` byte-identical to main's)
+
+   `grep -rn "<test name>" question-bank/src/` finds each file. **What makes it
+   acceptable:** a fresh `tester` writes a `## Test change request` with one modify
+   row per pin (re-pin to this branch's tree, asserting nothing less), sets
+   `Test changes: requested`, `Next step: human`; a person approves it; an attended
+   tester applies it and re-runs **the whole repo's suites, not only the backend**,
+   and the CI run on the PR goes green. Note for the approver: the brief's
+   Constraints say "anything in `question-bank/`" must not change, and criterion 16
+   says no pre-existing test is modified. Re-pinning contradicts both in letter, as
+   it did for T-053, T-093 and T-098; the approver decides whether to amend them
+   (then `task-expander`) or accept it in substance as before.
+
+2. **Does not block: the tester's verdict claimed "whole suite" from the backend
+   suite alone.** Criterion 16 names only `make -C backend check`, so the verdict
+   is true in letter, but the envelope needs the whole of CI. This is the loop gap,
+   not this tester's alone: briefs that touch `backend/` name only the backend
+   suite. **Not ticketed:** `process-tasks.md` is pinned by T-091's criterion 22, the
+   same reason the T-087, T-039 and T-098 reviewers gave. It goes in the reviewer's
+   sweep note once the pins are re-pinned, or a person adds it by hand.
+
+3. **Does not block: two test files for one task.** `test_t097_bundle_etag_variants.py`
+   (worker, 9 tests) overlaps `test_t097_tester_criteria.py` (tester, 27 tests)
+   almost entirely. Kept: earlier tasks leave both, and the worker's file is small.
+   No task.
+
+### The code, judged
+
+- **Fits.** `bundle_etag` keeps its shape with a keyword-only flag defaulting to the
+  old behaviour; the router uses the variant's tag at the 304 check, the header and
+  the body. Six lines of source, nothing speculative.
+- **Inside Constraints:** `store.py`, `routers/content.py`, `openapi.yaml`, new tests,
+  plus `tasks.md` (T-099, T-100 queued from the Out of scope list, as the brief
+  invited). No dependency, no migration, no child-facing text.
+- **Docs true.** The `getBundle` description matches the behaviour, including the
+  body `etag` and the list's unkeyed tag.
+
+### The worker's flags, disposed
+
+- **"Change only the keyed tag": confirmed.** Leaving the unkeyed tag byte-for-byte as
+  it was keeps every cached default copy valid and needs no change to `GET /bundles`.
+- **"The router, not `store.bundle`, sets the body's `etag`": confirmed.** `store.bundle`
+  has no variant, and the router is where the key is stripped. The cost is that
+  `store.bundle(...)["etag"]` is the unkeyed tag only. Its one other caller,
+  `list_bundles`, wants exactly that.
+- **"`contentVersion` with a `"` breaks criterion 10": no action.** It was true
+  before this task and the version is generated, not typed.
+
+### When it comes back
+
+The reviewer re-reviews only the re-pin diff, then sweeps and **escalates** (not a
+silent ready): `openapi.yaml` changed (criterion 14), and the brief carries the
+orchestrator's unattended `Approved:` stamp, so the two product choices in "For
+the approver" (criteria 8 and 9) were never seen by a person.
+
