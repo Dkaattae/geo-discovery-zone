@@ -1,15 +1,15 @@
 # T-097 — A bundle's `ETag` is the same with and without the answer key
 
-**Status:** `changes requested`
-**Next step:** `tester` — a fresh tester session must raise a Test change request for the nine red question-bank pins (finding 1); a person approves it, then the reviewer comes back
+**Status:** `test changes requested`
+**Next step:** `human` — approve or refuse the 10 rows of the Test change request, in an attended `tester` session for T-097; that tester applies them and re-runs every suite, then the reviewer comes back
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-097-bundle-etag-answer-key.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-097
 **Branch:** `claude/happy-dirac-a1j5no`
 **PR:** #120, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:**
+**Fault:** test changes are waiting for approval: nine question-bank whole-tree pins (T-085a, T-087, T-088, T-091, T-092, T-096) go red on T-097's own required changes, and the fix is a re-pin only a person may approve (D-14, D-15).
 
 **Sessions:**
 
@@ -19,6 +19,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 | tester | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 | reviewer | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) — changes requested |
+| tester | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) — round 2, test change request raised |
 
 **Not on the light path.** T-097 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -235,7 +236,61 @@ the orchestrator's unattended-run stamp, which the worker role accepts.
 
 ## Verdict
 
-**TL;DR: pass.** All 18 criteria hold. 27 new tester tests in
+**TL;DR: test changes requested, halted for a person.** The 18 criteria still hold
+(backend unchanged since round 1: `make -C backend check` green, 998 passed, 9 skipped,
+proxies at `http://127.0.0.1:1`). The question-bank suite is red on exactly the 9
+whole-tree pins the reviewer named (2704 pass, 9 fail, same as CI). Each goes red
+because of a file the Constraints require T-097 to change, so it is a stale pin, not
+a fail. The 10-row request below re-pins them. **Needed next:** a person approves or
+refuses each row in an attended `tester` session for T-097.
+
+**Independence: weaker than a separate session.** Orchestrated run
+(`runs/T-097-bundle-etag-answer-key.md` exists), so my session id matches the
+worker's and the Sessions check proves nothing. I am a freshly spawned subagent
+that did not see the worker's or the round-1 tester's reasoning. That rests on the
+orchestrator having spawned me correctly, not on anything I could verify.
+
+### Round 2 (this session)
+
+- **Source unchanged since round 1.** `git diff --name-only 1f48f9f HEAD` lists only
+  the brief and the run log, so round 1's per-criterion tests and mutations still
+  apply to the same code. I re-ran the backend suite rather than re-mutating.
+- **Question-bank suite, on this branch:** 2704 pass, 9 fail. All 9 are the rows
+  below (1-9). On first run 12 more T-066 lint tests failed only because
+  `question-bank/node_modules` was absent; `bun install --frozen-lockfile` fixed
+  that and changed no tracked file.
+- **Stale, not a fail.** Every one of the 9 pins a file that T-097's Constraints
+  require to change (`backend/app/store.py`, `backend/app/routers/content.py`,
+  `openapi.yaml`, new files under `backend/tests/`) or the loop records every task
+  adds (brief, run log). No pin catches a behaviour that is wrong.
+- **Contradiction for the approver to judge (reviewer finding 1).** Criterion 16
+  says no pre-existing test is modified and "Nothing in this brief makes one stale";
+  Constraints forbid changes in `question-bank/`. Both are false in letter: the
+  required changes do make these pins stale. T-053, T-093 and T-098 had the same
+  conflict and the person accepted the re-pin in substance. If you would rather
+  amend the criterion first, refuse the rows and send the brief to `task-expander`.
+
+**Dry run (in a scratch worktree, deleted afterwards; nothing in the repo was
+edited).** I applied rows 1-10 to a detached worktree at `4cbe98a`, without the new
+comments:
+
+- **The question-bank suite went green:** 2713 pass, 0 fail.
+- **Every old pin came back with T-097's changes taken out.** Restoring `store.py`,
+  `routers/content.py` and `openapi.yaml` to `d7273bd` and untracking the two
+  `test_t097_*.py` files, with the T-097 loop records in the allowed sets, gives
+  290 / `5e702ce3…`, 116 / `d367f38f…`, `c6cf34f6…`, 286 / `7ad951c7…`, `69778f17…`,
+  `0da5b1a5…`, `a89a88a0…` and `37db5438…`. Those are today's pins, so the new
+  digests differ from them only by T-097's own files.
+- **The digest script reproduces every current pin at `d7273bd`** (main, before
+  T-097), so it computes what the tests compute.
+
+**Tests made stale:** the worker said none, and so did round 1. Both missed these 9,
+because both ran only the backend suite. I found nothing beyond the reviewer's 9.
+Row 10 is the cascade, green today.
+
+### Round 1 (superseded: it ran the backend suite only)
+
+**TL;DR (round 1): pass.** All 18 criteria hold. 27 new tester tests in
 `backend/tests/test_t097_tester_criteria.py`, every one green; `make -C backend check`
 green (ruff, format, 998 passed, 9 skipped) with the proxy variables at
 `http://127.0.0.1:1`. 12 mutations of the source, each caught and each reverted.
@@ -297,6 +352,45 @@ went red and none needed changing. No Test change request.
 
 **Not tested, by design:** the brief's out-of-scope items (`bytes`, a 304 for an
 unknown bundle with a matching `If-None-Match`, `*`, weak comparison, `Vary`).
+
+## Test change request
+
+**TL;DR:** 10 modify rows, no deletions, nothing weakened. Rows 1-9 are the 9 red
+pins. Row 10 is the cascade that T-053 row 33, T-098 row 5 and T-093 row 7 also
+needed. Paths are relative to `question-bank/`.
+
+These pins go stale because of T-097's own files. The Constraints require
+`backend/app/store.py` and/or `backend/app/routers/content.py`, `openapi.yaml`
+(criterion 14) and new test files under `backend/tests/`, and every task adds its
+brief and run log.
+
+- **Rows 1 and 4 follow the T-093 / T-098 precedent.** The task's loop records join
+  the allowed set and the counts stay the same. `store.py` stays counted, so the digest
+  is re-pinned and still covers its new bytes. `routers/content.py` and `openapi.yaml`
+  are already allowed (T-053, T-039).
+- **Rows 2, 3 and 5-9 re-pin to digests that include T-097's files.** Each was
+  checked to give back the old pin once those files are taken out (Verdict, "Dry run").
+- **Row 2's count goes up by exactly T-097's two new test files** (116 → 118).
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no non-test file outside T-091's allowed set changes or appears | T-097's brief and run log are new tracked non-test files (292 ≠ 290), and `backend/app/store.py` (counted) moved, as the Constraints allow | modify | Same name. Add `tasks/T-097-bundle-etag-answer-key.md` and `runs/T-097-bundle-etag-answer-key.md` to `CRITERION_22_ALLOWED`, with a comment citing T-097 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **290**. `MAIN_UNTOUCHABLE_SHA` `5e702ce3…bd91d` → `0acaca5633c674a3b96a7bf1ad8f9c327c27dc53b1f3f0a44d7c97e1997eb28b`, comment "Re-pinned by T-097 (Test change request row 1): backend/app/store.py moved". With `d7273bd`'s `store.py` the old digest returns (verified) | |
+| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester: no test file is added, removed or modified outside named exceptions | T-097 adds `backend/tests/test_t097_bundle_etag_variants.py` (worker) and `backend/tests/test_t097_tester_criteria.py` (tester) (118 ≠ 116) | modify | Same name and filter. `MAIN_TESTS_COUNT` **116 → 118**. `MAIN_TESTS_SHA` `d367f38f…3c1c` → `7f7c51408963a166d9bd9dbf325d2847bd7a50894271d2a96351dfa58f951ae2`, comment "Re-pinned by T-097 (Test change request row 2): T-097 added test_t097_bundle_etag_variants.py and test_t097_tester_criteria.py (116 -> 118)". Without those two files the set equals the old pin at 116 (verified) | |
+| 3 | same file › "T-091 criterion 20: no non-test source file moves" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091 tester: no non-test source file under the three trees moves | `backend/app/store.py` and `backend/app/routers/content.py` moved, as the Constraints require | modify | Same name and file set. `MAIN_SOURCE_TREES_SHA` `c6cf34f6…fe9` → `3fed2394767441633ee2459496f07caa373af8c723b41cae71111b76d76f676a`, comment "Re-pinned by T-097 (Test change request row 3): backend/app/store.py and routers/content.py moved". With `d7273bd`'s two files the old digest returns (verified) | |
+| 4 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-097 paths to `CRITERION_21_ALLOWED`, with a comment citing T-097 row 4. Count stays **286**. `MAIN_UNTOUCHABLE_SHA` `7ad951c7…7d12` → `4452ec88ca61c92adf7a03de12147907e8c1cba0f193a364bd71230184c39e07`, comment "Re-pinned by T-097 (Test change request row 4): backend/app/store.py moved". With `d7273bd`'s `store.py` the old digest returns (verified) | |
+| 5 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (renamed `bcb2a38` T-039; re-pinned by T-045, T-053, T-098, T-093): every file under the three trees is pinned | `store.py` and `routers/content.py` changed and two backend test files were added | modify | Same name and file set. `MAIN_BOUNDARY_SHA` `69778f17…89bc2` → `0f3d3da8b4acbbf38fc46a8a8f5d27ade33385eb1063efa89d51681ae3a3be5e`, comment "Re-pinned by T-097 (Test change request row 5): T-097 changed backend/app/store.py and routers/content.py and added two backend test files". The digest includes both test files' bytes at `4cbe98a`, so any later edit to them goes red. With those four files at `d7273bd` the old pin holds (verified) | |
+| 6 | `src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-093's` | `cf63f66`, T-092 tester (re-pinned by T-085a, T-088, T-045, T-053, T-093): `backend/app` does not move | `store.py` and `routers/content.py` moved | modify | Renamed to `… is byte-identical to T-097's` (as T-053 and T-093 renamed it). Same exception list. Digest `0da5b1a5…0b32` → `19de54aa7e38196b75ea590b370776798c0bbf9aa7e244821dbcbc0c5bccbc7c`. Add "Re-pinned at T-097 (Test change request row 6), after T-097 gave the keyed bundle its own ETag in store.py and routers/content.py" to the comment above it. Old digest returns with `d7273bd`'s files (verified) | |
+| 7 | same file › same describe › `openapi.yaml (except []) is byte-identical to T-053's` | `cf63f66`, T-092 tester (re-pinned by T-039, T-045, T-053): `openapi.yaml` does not move | Criterion 14 requires the `getBundle` description change | modify | Renamed to `openapi.yaml (except []) is byte-identical to T-097's`. Digest `a89a88a0…a677` → `80cade8ba3241fcb2afcf7f9b62414ca4bc8355e1071693b0782a1d7d9f33f6c`. Add "Re-pinned at T-097 (Test change request row 7), after T-097 documented the per-variant ETag on getBundle" to the comment above it. Old digest returns with `d7273bd`'s `openapi.yaml` (verified) | |
+| 8 | `src/familiarity-drawn-apart-verify.test.ts` › "T-085a criteria 23-25: negative" › "criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039)" | `b061fd8`, T-085a tester (re-pinned by T-039, T-045, T-053): `openapi.yaml` does not move | Same as row 7 | modify | Same name (T-045 and T-053 kept it). `BEFORE_FILE_SHA["openapi.yaml"]` `37db5438…6bae` → `ec1b1fca3504a3a95922912f97d3c1d7eeb1c2fc3888d3067b7f0521d2a06209` (the file's sha256 now), comment extended with "Re-pinned at T-097 (Test change request row 8): T-097 documents the per-variant ETag on getBundle". Criterion 23's loop over the other entries is unchanged | |
+| 9 | `src/agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25: what must not change" › "criterion 21: openapi.yaml is byte-identical to main's" | `e9d666e`, T-088 tester (re-pinned by T-039, T-045, T-053): `openapi.yaml` does not move | Same as row 7 | modify | Same name. `MAIN_FILE_SHA["openapi.yaml"]` `37db5438…6bae` → `ec1b1fca3504a3a95922912f97d3c1d7eeb1c2fc3888d3067b7f0521d2a06209`, comment extended with "Re-pinned at T-097 (Test change request row 9): T-097 documents the per-variant ETag on getBundle" | |
+| 10 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today. Rows 4, 6-7, 8 and 9 change `farm-animal-loose-ends-verify.test.ts`, `map-click-no-candidates-verify.test.ts`, `familiarity-drawn-apart-verify.test.ts` and `agriculture-true-wrong-answers-verify.test.ts`, whose digests are pinned in `APPLIED_REQUEST_FILE_SHAS` | modify (only for the files whose rows are approved) | Same name. Re-pin those entries of `APPLIED_REQUEST_FILE_SHAS` to each file's sha256 **after** its rows are applied with their comments, and extend each entry's comment with ", then by T-097 (row 10)". `MAIN_REQUEST_FILE_SHAS`, `seed-level-loose-ends-verify.test.ts` and `test_t089_tester_criteria.py` stay as they are. (The dry run's values, without the new comments, were `3e615385…`, `dbcf5e17…`, `8c094c4b…`, `084d830f…`. The real ones differ by the comments, so recompute them) | |
+
+**To approve:** start the `tester` step for T-097 in a session you are attending,
+and approve or refuse each row there. That tester applies the approved rows as
+`T-097 tester: apply approved test change request`, re-runs **all** the suites
+(backend, question-bank, frontend), and writes the final verdict. If you would
+rather amend criterion 16 and the Constraints first, refuse the rows and send the
+brief to `task-expander`.
 
 ## Notes
 
