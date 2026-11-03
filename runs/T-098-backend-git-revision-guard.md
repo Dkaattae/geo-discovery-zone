@@ -1,7 +1,7 @@
 # T-098 — `backend/` has no guard against tests that resolve a git revision — run log
 
 **Task:** T-098 · **Branch:** `claude/vibrant-feynman-ap8itp` · **PR:** #118
-**Started:** 2026-11-02 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-02 · **Outcome:** tester pass — next: reviewer (not yet run)
 
 ## Round 1 — task-expander — 2026-11-02
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -125,3 +125,13 @@ What a human has to do: start the `tester` step for T-098 in a session you are a
 The person wrote: "approve all five rows".
 
 Not written into the brief and no tester spawned (D-15: an approval of a test change request counts only when given in the session making the edits). The person was told to give it to an attended `tester` session for T-098. The halt stands.
+
+## Round 4 — tester (attended, in this session) — 2026-11-03
+`Next step` on entry: `human` → on exit: `reviewer`
+
+The person then wrote "run the tester step for T-098" in this session, so this session left the orchestrator role and ran the attended tester step itself. It did not spawn a subagent: D-15 requires the edits to be made in the session where the person approves them. Independence caveat: this session had read the worker's and the first tester's reports, and the brief's Verdict says so.
+
+- Applied Test change request rows 1-5 exactly as worded: `d30bf88`.
+- question-bank 2713 pass / 0 fail; `make -C backend check` 907 passed / 9 skipped; frontend reds are packages missing because the proxy returned 403 (unchanged from before the task).
+- Verdict: pass. Next step: reviewer.
+- Slip during the run: a stray `git checkout origin/main -- .` overwrote the working tree after `d30bf88` was committed. It was restored at once with `git checkout HEAD -- .`, and the tree was confirmed clean; nothing was lost.

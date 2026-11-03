@@ -1,15 +1,15 @@
 # T-098 — `backend/` has no guard against tests that resolve a git revision
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-02, unattended run. See `runs/T-098-backend-git-revision-guard.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — the person in the attended tester session, 2026-11-03 ("approve all five rows")`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-098
 **Branch:** `claude/vibrant-feynman-ap8itp`
 **PR:** #118, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:** test changes waiting for approval. Five question-bank pins (Test change request rows 1-5) are stale because of T-098's own new files, so criterion 7 cannot be green until a person approves them in an attended `tester` session. Every other criterion is met.
+**Fault:**
 
 **Sessions:**
 
@@ -18,6 +18,7 @@ draft** until the reviewer approves it
 | task-expander | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` |
 | worker | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` |
 | tester | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` (orchestrated: shared id, fresh subagent; see Verdict) |
+| tester (attended) | 2026-11-03 | `cse_011oDiJfdetw2zh1MqvpkWNK` (the orchestrator's own session, resumed by the person; see Verdict) |
 
 **Not on the light path.** T-098 is sized S, but it needs more than four criteria
 (`process.md`, "The light path"): which forms must trip the guard, which must
@@ -319,6 +320,64 @@ tests above. If a human prefers to treat it as a criterion defect, it goes to
 
 ## Verdict
 
+### Final verdict — attended tester, 2026-11-03: **pass**
+
+**TL;DR:** **Pass.** All five Test change request rows were approved by the
+person in this session and applied in `d30bf88`. Every suite this task can
+affect is green: backend 907 passed / 9 skipped, question-bank 2713 pass / 0
+fail. The only red is frontend packages this container cannot download, the
+same as before the task. **Next step: reviewer.**
+
+**The approval, quoted.** In this session the person wrote "approve all five
+rows", then "run the tester step for T-098". Header: `Test changes: approved —
+the person in the attended tester session, 2026-11-03 ("approve all five rows")`.
+No name was given, so none is recorded.
+
+**Independence: weaker than usual, read this.** This attended step ran in the
+**orchestrator's own session**, resumed by the person. That session had read the
+worker's and the first tester's reports. It was not a cold session. What it did
+here was mechanical: apply the five approved rows exactly as the request worded
+them and re-run the suites. It did not re-judge criteria 1-6 or 8-10. Those
+verdicts stand on the first tester's mutation runs below, which were made by a
+freshly spawned subagent. The reviewer should weigh this pass accordingly.
+
+**Rows applied (exactly as approved, nothing else):**
+
+| Row | File | Change |
+|---|---|---|
+| 1 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` | T-098 brief and run log added to `CRITERION_22_ALLOWED`; count 290 and digest unchanged |
+| 2 | same | `MAIN_TESTS_COUNT` 113 → 114, `MAIN_TESTS_SHA` → `1ea43d08…6bcb51` |
+| 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` | the same two paths added to `CRITERION_21_ALLOWED`; count 286 and digest unchanged |
+| 4 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` | `MAIN_BOUNDARY_SHA` → `1ea8c50d…7676af` |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` | farm-animal entry of `APPLIED_REQUEST_FILE_SHAS` → `4998b4cb…27981c`, the file's sha256 after row 3 |
+
+The rows still held on the branch before I applied them: the same four tests
+were red (2709 pass / 4 fail). After rows 1-4, only row 5's test was red
+(2712 / 1), as the request predicted. After row 5: 2713 / 0. Every comment cites
+T-098 and its row.
+
+**Suites after `d30bf88`:**
+
+| Check | Result |
+|---|---|
+| `make -C backend check` | ruff clean, **907 passed, 9 skipped** |
+| question-bank `typecheck` / `lint` / `format:check` / `bun test` | clean / 0 warnings / clean / **2713 pass, 0 fail** |
+| frontend `bun run lint` | exit 0 |
+| frontend `src/lint-gate.test.ts --timeout 60000` | 8 pass |
+| frontend `bun test` | 392 pass, 4 fail: three `components/` files cannot import `react-simple-maps`, plus the lint-gate 5 s timeout |
+| frontend `typecheck` | 3 errors, all `Cannot find module 'react-simple-maps'` / `us-atlas/states-10m.json` |
+
+**Frontend reds are the environment.** `bun install --frozen-lockfile` fails
+with `ProxyConnectFailed (403)` on tarball downloads, so `react-simple-maps` and
+`us-atlas` are absent from `node_modules`. T-098 touches no frontend file. CI,
+which can install, is the check that counts here.
+
+**Carried forward for the reviewer:** the untracked-file reach has no test of
+its own (coverage gap, below), and whether to keep `check-ignore` in the
+allowlist.
+
+### First verdict — orchestrated tester, 2026-11-02 (halted on the request)
+
 **TL;DR:** **Halted: test changes requested.** The guard does its job. Criteria
 1-6 and 8-10 hold, and I confirmed each by mutation. Criterion 7 is red only
 because of question-bank whole-tree pins that T-098's own new files make stale.
@@ -402,11 +461,11 @@ needed. Paths are relative to `question-bank/`.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no non-test file outside T-091's allowed set changes or appears | T-098's brief and run log are new tracked non-test files (292 ≠ 290) | modify | Same name. Add `tasks/T-098-backend-git-revision-guard.md` and `runs/T-098-backend-git-revision-guard.md` to `CRITERION_22_ALLOWED`, with a comment citing T-098 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **290** and `MAIN_UNTOUCHABLE_SHA` stays `d7ac83e44b9ef704b9920906c80fd90ebe7ce12d0ed0381595d71ff954ff5381` (verified) | |
-| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester: no test file is added, removed or modified outside named exceptions | Criterion 1 adds `backend/tests/test_git_revision_guard.py` (114 ≠ 113) | modify | Same name and filter. `MAIN_TESTS_COUNT` **113 → 114**, `MAIN_TESTS_SHA` → `1ea43d084611aa52c68664791325369bba9a5dc452800ae6410357d28c6bcb51`, comment "Re-pinned by T-098 (Test change request row 2): T-098 added backend/tests/test_git_revision_guard.py (113 -> 114)". Without the guard file the set is byte-identical to the old pin (verified) | |
-| 3 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-098 paths to `CRITERION_21_ALLOWED`, with a comment citing T-098 row 3. Count stays **286** and `MAIN_UNTOUCHABLE_SHA` stays `6e9754b8…bdaff78` (verified) | |
-| 4 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (last re-pinned `bcb2a38`, T-039, then T-045, T-053): every file under the three trees is pinned | Criterion 1 adds a file under `backend/` | modify | Same name and file set. `MAIN_BOUNDARY_SHA` → `1ea8c50dc0edf32de32320fb7550cdef8209ca83e8c78eadf4b7abd3937676af`, comment "Re-pinned by T-098 (Test change request row 4): T-098 added backend/tests/test_git_revision_guard.py". Without that file the tree equals the old pin (verified) | |
-| 5 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today. Row 3 changes `farm-animal-loose-ends-verify.test.ts`, whose digest is pinned in `APPLIED_REQUEST_FILE_SHAS` | modify (only if row 3 is approved) | Same name. Re-pin the `farm-animal-loose-ends-verify.test.ts` entry of `APPLIED_REQUEST_FILE_SHAS` to that file's sha256 after row 3 is applied, and extend its comment to "…then by T-053 (row 33), then by T-098 (row 5)". Every other entry is unchanged | |
+| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no non-test file outside T-091's allowed set changes or appears | T-098's brief and run log are new tracked non-test files (292 ≠ 290) | modify | Same name. Add `tasks/T-098-backend-git-revision-guard.md` and `runs/T-098-backend-git-revision-guard.md` to `CRITERION_22_ALLOWED`, with a comment citing T-098 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **290** and `MAIN_UNTOUCHABLE_SHA` stays `d7ac83e44b9ef704b9920906c80fd90ebe7ce12d0ed0381595d71ff954ff5381` (verified) || approved |
+| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester: no test file is added, removed or modified outside named exceptions | Criterion 1 adds `backend/tests/test_git_revision_guard.py` (114 ≠ 113) | modify | Same name and filter. `MAIN_TESTS_COUNT` **113 → 114**, `MAIN_TESTS_SHA` → `1ea43d084611aa52c68664791325369bba9a5dc452800ae6410357d28c6bcb51`, comment "Re-pinned by T-098 (Test change request row 2): T-098 added backend/tests/test_git_revision_guard.py (113 -> 114)". Without the guard file the set is byte-identical to the old pin (verified) || approved |
+| 3 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-098 paths to `CRITERION_21_ALLOWED`, with a comment citing T-098 row 3. Count stays **286** and `MAIN_UNTOUCHABLE_SHA` stays `6e9754b8…bdaff78` (verified) || approved |
+| 4 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (last re-pinned `bcb2a38`, T-039, then T-045, T-053): every file under the three trees is pinned | Criterion 1 adds a file under `backend/` | modify | Same name and file set. `MAIN_BOUNDARY_SHA` → `1ea8c50dc0edf32de32320fb7550cdef8209ca83e8c78eadf4b7abd3937676af`, comment "Re-pinned by T-098 (Test change request row 4): T-098 added backend/tests/test_git_revision_guard.py". Without that file the tree equals the old pin (verified) || approved |
+| 5 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today. Row 3 changes `farm-animal-loose-ends-verify.test.ts`, whose digest is pinned in `APPLIED_REQUEST_FILE_SHAS` | modify (only if row 3 is approved) | Same name. Re-pin the `farm-animal-loose-ends-verify.test.ts` entry of `APPLIED_REQUEST_FILE_SHAS` to that file's sha256 after row 3 is applied, and extend its comment to "…then by T-053 (row 33), then by T-098 (row 5)". Every other entry is unchanged || approved |
 
 **To approve:** start the `tester` step for T-098 in a session you are attending,
 and approve or refuse each row there. That tester applies the approved rows as
