@@ -115,3 +115,41 @@ No dependencies were added. `backend/pyproject.toml` and `backend/uv.lock` are u
 My first mutation pass went wrong: a bad path in the revert command stopped it, so mutations piled up on top of each other. I restored the source, confirmed the tree was clean, and re-ran every mutation on its own. The table is from that second run.
 
 **Tests made stale:** none. No existing test went red, so no test change request was needed.
+
+## Round 4 — reviewer — 2026-11-03
+`Next step` on entry: `reviewer` (Status `pass`) → on exit: `tester` (Status `changes requested`)
+
+**T-097 is sent back to `tester`. PR #120 stays draft and nothing was swept.** The code is good, but CI is red: 9 older question-bank tests that fix the repo's file contents to past snapshots ("pins") now fail because of this diff. The tester ran only `make -C backend check`, so it missed them. Fixing them means changing tests that predate this task, which needs a Test change request that a person approves. The orchestrator never stamps that request (D-14).
+
+- **Next step: `tester`.** A fresh session raises the request, with one modify row per pin, then sets `Next step: human`. After a person approves, an attended tester applies it, runs every suite, and CI must go green.
+- **Push landed:** `be58f97`, on `origin/claude/happy-dirac-a1j5no`. The brief has `Status: changes requested`, the `## Review` section and my Sessions row.
+- **PR comment posted:** https://github.com/Dkaattae/geo-discovery-zone/pull/120#issuecomment-6613844104
+
+**Checks before the review**
+- The PR is open and draft, not merged.
+- Every role with a Sessions row has a commit in the PR: expander `6d17d6a`/`d89e6c7`, worker `8f825a9`, tester `1f48f9f`.
+- Each role stayed in its lane. No `ci-fix` ran.
+
+**Findings**
+1. **Blocks: 9 question-bank tests red in CI.** Run 41705776703, job "question-bank": 2704 pass, 9 fail. All other jobs are green. The failing tests:
+   - T-091 criterion 20, and criterion 22 twice (`question-bank/src/climate-cold-trade-accepted-verify.test.ts`)
+   - T-096 criterion 21
+   - T-092 criterion 16, twice
+   - T-087 criterion 15
+   - T-085a criterion 25
+   - T-088 criterion 21
+
+   These are the same recurring tests that T-039, T-045, T-053, T-087, T-093 and T-098 each had re-pinned. Updating them contradicts the brief's "nothing in `question-bank/` changes" constraint and criterion 16, as it did for those tasks. The person approving decides whether to amend the criteria (via `task-expander`) or accept the change in substance, as before.
+2. **Does not block: the verdict said "whole suite" but only the backend ran.** This is a gap in the loop. I did not open a ticket because `process-tasks.md` is pinned by T-091 criterion 22, the same reason earlier reviewers gave.
+3. **Does not block: the worker's and tester's T-097 test files overlap.** Both are kept and no task was opened.
+
+**The code itself**
+- It fits the codebase: six lines across `store.py` and `routers/content.py`.
+- It stays inside the Constraints: no new dependency, no migration, no text a child will read.
+- `openapi.yaml` describes the new behaviour accurately.
+- T-099 and T-100, which the worker queued from the brief's Out of scope list, are appropriate.
+- I confirmed both of the worker's flagged choices: only the keyed tag changes, and the router sets the body's `etag`.
+
+**When it comes back**, it must be escalated, not marked ready silently. It changes `openapi.yaml`, and because the brief was approved by the orchestrator's unattended stamp, no person has seen the choices behind criteria 8 and 9.
+
+File: /home/user/geo-discovery-zone/tasks/T-097-bundle-etag-answer-key.md
