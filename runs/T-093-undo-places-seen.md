@@ -1,7 +1,7 @@
 # T-093 — An undone answer still counts as a place seen — run log
 
 **Task:** T-093 · **Branch:** `claude/tender-fermi-ad0qx3` · **PR:** #119
-**Started:** 2026-11-03 · **Outcome:** in progress
+**Started:** 2026-11-03 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-11-03
 `Next step` on entry: none (no brief) → on exit: `worker` — once a person replaces `pending` below
@@ -80,3 +80,66 @@ Orchestrator wrote `Approved:` (unattended run). Criteria not read.
 - **Criterion 8 test edits a real record.** It records an answer through the API, removes the seen-list key from that record's stored snapshot, then undoes it. It does not build a record from scratch. The tester may want to do that to stay independent of my reading.
 - **`askedQuestionIds` is not restored by undo**, as the brief says. That looks right to me, since the question is still waiting for an answer. No queue entry proposed.
 - **`openapi.yaml` left as is**: the brief makes tightening its wording optional.
+
+## Round 3 — tester — 2026-11-03
+`Next step` on entry: `tester` → on exit: `human`
+
+**TL;DR:** T-093 is halted with `test changes requested`. Undo now restores the seen list, and criteria 1-8, 11 and 12 are met, each confirmed by mutation. Criterion 9 is red only because seven question-bank whole-tree pins go stale from T-093's own files. **Next step: `human`.** A person has to start an attended `tester` session for T-093 to approve the rows; that session then applies them and finishes the verdict.
+
+**Header now reads:** Status `test changes requested`, Next step `human`, Test changes `requested`, plus a Fault line. I added a tester row to the Sessions table.
+
+**Independence:** this run is orchestrated (`runs/T-093-undo-places-seen.md` exists). My session id, `cse_011oDiJeUyEjWF9EzpoTaWLp`, is the same one the expander and worker rows show, because every role the orchestrator spawns shares it. So the id check proves nothing here. What I can say is that I am a freshly spawned agent: I did not see the work being done or the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly. The Verdict says the same.
+
+**Tests I added:** `/home/user/geo-discovery-zone/backend/tests/test_t093_tester_criteria.py`, 35 tests, all through the HTTP API. Expected values come from the criteria and from the answer keys in `content.json`. For criterion 8 I built the pre-change `AnswerRecord` from scratch, with a hand-written snapshot in the old 11-key shape, rather than editing a record the code wrote.
+
+| # | Verdict |
+|---|---|
+| 1-8 | met |
+| 9 | not met: stale pins (below) |
+| 10 | met for this task's diff; the request below would break it by design |
+| 11, 12 | met |
+
+**Suite results**
+- **`make -C backend check`** (no-network proxy): 962 passed, 9 skipped.
+- **Full backend suite on Postgres 16:** 971 passed.
+- **Frontend:** 392 pass, 4 fail, 3 import errors. The sandbox is missing `react-simple-maps`, and the lint-gate test times out at 5 s. T-093 changes nothing under `frontend/`, and `git-baseline-guard` passes 15/15. I count these as sandbox failures; CI is the real check.
+- **question-bank:** 2707 pass, 6 fail. All six are whole-tree pins.
+
+**Mutations (all reverted, source matches HEAD):**
+- **Old code (snapshot without the seen list):** 18 red. The tests for criteria 2, 6, 7 and 8 stay green, which is expected because they pin behaviour the old code already had.
+- **Restoring the seen list even when the key is missing:** the criterion-8 test goes red.
+- **Snapshot holding the live list instead of a copy:** 18 red.
+- **Restore dropping Alabama from the list:** the criterion-2 test goes red.
+- **Restore skipping `wrong_streak`:** 4 red.
+- **Restore skipping `review_round_remaining`:** this survived my first criterion-7 test, so I added a review-round case, which catches it.
+- **Removing `apply_answer`'s duplicate guard:** survives, because the restored list makes criterion 6 hold anyway.
+
+**Test change request (7 rows, in the brief):**
+1. Climate guard: T-093's brief and run log join the allowed list. The count stays 290 and the digest is re-pinned for `orm.py`.
+2. Climate guard: the backend test-file count goes 114 → 116, with a new digest.
+3. Climate guard: the source-tree digest is re-pinned for `orm.py`.
+4. Farm-animal guard: the same allowed-list addition as row 1. The count stays 286 and the digest is re-pinned.
+5. Refresh guard: the digest over `backend/`, `frontend/` and `e2e/` is re-pinned.
+6. Map-click guard: the `backend/app` digest is re-pinned, and the test is renamed to "…T-093's".
+7. Climate guard: the digests it holds for the farm-animal and map-click guard files are updated after rows 4 and 6.
+
+None of these weakens a pin. With T-093's files taken out, each one returns the old value. With the digests of rows 1-6 applied in a scratch worktree, question-bank gave 2712 pass and 1 fail, and that fail was the row-7 change, as expected.
+
+**Worker's Handoff corrections:**
+- **A sixth stale test it missed:** row 2, "pre-existing test files are main's…".
+- **The refresh guard has no file count**, only a digest.
+
+**Criteria 9 and 10 contradict each other**, as they did in T-098: criterion 9 needs question-bank green, and criterion 10 forbids changing the pins that turn it red. I handled it through the Test change request, as T-098 did. If a person would rather fix the criteria, it goes to `task-expander`.
+
+**Git:** pushed to `claude/tender-fermi-ad0qx3`, and `origin` shows both commits:
+- `a83633e` T-093 tester: criteria tests
+- `ab35131` T-093 tester: verdict and test change request
+
+Files:
+- `/home/user/geo-discovery-zone/tasks/T-093-undo-places-seen.md` (Verdict, Test change request, header)
+- `/home/user/geo-discovery-zone/backend/tests/test_t093_tester_criteria.py`
+
+## Halted — test change request — 2026-11-03
+Raised in commit `ab35131`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not copied here by the orchestrator beyond the tester's own report above; the orchestrator does not approve, stamp or relay this request (D-15).
+
+**What a human has to do:** start the `tester` step for T-093 in a session you are attending. It will ask you about each row, apply what you approve, and finish verifying. Alternatively, if you would rather fix the contradiction between criteria 9 and 10, route it to the `task-expander`.
