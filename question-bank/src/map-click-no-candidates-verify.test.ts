@@ -751,9 +751,11 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // at T-045 (Test change request row 2), after T-045 changed backend/app/grading.py.
   // Re-pinned at T-053 (Test change request row 25), after T-053 flipped the
   // includeAnswerKey defaults in content.py, models.py and sessions.py.
-  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-053\'s', () => {
+  // Re-pinned at T-093 (Test change request row 6), after T-093 added the seen
+  // list to the session undo snapshot in orm.py.
+  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-093\'s', () => {
     expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
-      "5f842800555af4102353113b52e30c93ef1d9ab579c79ba19dc5623222c32493",
+      "0da5b1a578fb9d632876527639660153c1e11c83462c904d405e236695550b32",
     );
   });
 

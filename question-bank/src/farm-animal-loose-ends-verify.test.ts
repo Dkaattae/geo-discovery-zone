@@ -160,7 +160,8 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-053 row 32: models.py, content.py, sessions.py, e2e/tests/app.ts
 // and map-click.spec.ts, which main counted, join the allowed set with T-053's
 // brief and run log (291 -> 286).
-const MAIN_UNTOUCHABLE_SHA = "6e9754b8a2a04c6c5c8bfedd88f10bebe9daeb0dab42e017752470db6bdaff78";
+// Re-pinned by T-093 (Test change request row 4): backend/app/orm.py moved.
+const MAIN_UNTOUCHABLE_SHA = "7ad951c78424a1af05401c47e2499b0df94035ebe36626e9ad21ec2b3e847d12";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -212,6 +213,10 @@ const CRITERION_21_ALLOWED = new Set([
   // (approved in the attended tester session that made the edit).
   "tasks/T-098-backend-git-revision-guard.md",
   "runs/T-098-backend-git-revision-guard.md",
+  // T-093's loop records, joined through T-093's Test change request row 4
+  // (approved by Dkaattae, 2026-11-03, in the attended tester session that made the edit).
+  "tasks/T-093-undo-places-seen.md",
+  "runs/T-093-undo-places-seen.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);

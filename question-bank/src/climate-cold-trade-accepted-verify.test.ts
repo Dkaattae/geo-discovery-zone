@@ -65,7 +65,8 @@ const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d398
 // Re-pinned by T-045 row 6: the only file that moved is backend/app/grading.py.
 // Re-pinned by T-053 row 29: backend/app/models.py, routers/content.py and
 // routers/sessions.py moved (the includeAnswerKey defaults).
-const MAIN_SOURCE_TREES_SHA = "4c2368a175efe7985a01e5796733f1ece72a96ec84f6990be8ea07279664e55c";
+// Re-pinned by T-093 (Test change request row 3): backend/app/orm.py moved.
+const MAIN_SOURCE_TREES_SHA = "c6cf34f62a80d9bbc4d598c662416789eef40544da248e135c956d8053ffcfe9";
 /**
  * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
  * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
@@ -80,7 +81,8 @@ const MAIN_DEPENDENCY_FILES_SHA =
  */
 // Re-pinned by T-039 row 7: T-039's three files joined the allowed set, so
 // openapi.yaml, which main counted, leaves the counted set (297 -> 296).
-const MAIN_UNTOUCHABLE_SHA = "d7ac83e44b9ef704b9920906c80fd90ebe7ce12d0ed0381595d71ff954ff5381";
+// Re-pinned by T-093 (Test change request row 1): backend/app/orm.py moved.
+const MAIN_UNTOUCHABLE_SHA = "5e702ce3585afc89dd0c4502e421b53232d9c78830e382d39acbf0ad360bd91d";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -94,7 +96,7 @@ const MAIN_UNTOUCHABLE_COUNT = 290;
  */
 // Re-pinned by T-039 (Test change request row 5): T-039 added two backend test
 // files, test_unimplemented_content_docs.py and test_t039_tester_criteria.py (107 -> 109).
-const MAIN_TESTS_SHA = "1ea43d084611aa52c68664791325369bba9a5dc452800ae6410357d28c6bcb51";
+const MAIN_TESTS_SHA = "d367f38f012bc230f27fd0125d70bd6ea5f98bc7334dbe495455bd5a9a303c1c";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -102,7 +104,9 @@ const MAIN_TESTS_SHA = "1ea43d084611aa52c68664791325369bba9a5dc452800ae6410357d2
 // and its approved rows 1-21 modified eleven backend test files.
 // Re-pinned by T-098 (Test change request row 2): T-098 added
 // backend/tests/test_git_revision_guard.py (113 -> 114).
-const MAIN_TESTS_COUNT = 114;
+// Re-pinned by T-093 (Test change request row 2): T-093 added
+// test_t093_undo_places_seen.py and test_t093_tester_criteria.py (114 -> 116).
+const MAIN_TESTS_COUNT = 116;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -138,13 +142,13 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33)
+  // then by T-053 (row 33), then by T-093 (row 7)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "6b2b6da34988524c94993d1aa56e93626a4f1e004049f4e2dc5b3f6ef0c5b2c3",
+    "703489a7eb9009a6c43fe93c627de410cd3bcbc83a68215f1eb945eb8fd0696f",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33), then by T-098 (row 5)
+  // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "4998b4cbdf26aa927149c938bb10220c43f4aad9dbb8587738a1a74e1927981c",
+    "138bf3bd0ca1761441196b0f63075e939a2f4c93eca1cf7111023390c314cfae",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -195,6 +199,10 @@ const CRITERION_22_ALLOWED = new Set([
   // (approved in the attended tester session that made the edit).
   "tasks/T-098-backend-git-revision-guard.md",
   "runs/T-098-backend-git-revision-guard.md",
+  // T-093's loop records, joined through T-093's Test change request row 1
+  // (approved by Dkaattae, 2026-11-03, in the attended tester session that made the edit).
+  "tasks/T-093-undo-places-seen.md",
+  "runs/T-093-undo-places-seen.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
