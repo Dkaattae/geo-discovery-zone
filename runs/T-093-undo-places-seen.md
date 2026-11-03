@@ -143,3 +143,8 @@ Files:
 Raised in commit `ab35131`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not copied here by the orchestrator beyond the tester's own report above; the orchestrator does not approve, stamp or relay this request (D-15).
 
 **What a human has to do:** start the `tester` step for T-093 in a session you are attending. It will ask you about each row, apply what you approve, and finish verifying. Alternatively, if you would rather fix the contradiction between criteria 9 and 10, route it to the `task-expander`.
+
+### Person's answer in the orchestrator's session — 2026-11-03
+Dkaattae, verbatim: "approved, apply the test changes"
+
+Not applied, not written into the brief, no tester spawned (orchestrator.md "Test change requests", D-15). The person was told to give the approval to an attended `tester` session for T-093. The header is unchanged.
