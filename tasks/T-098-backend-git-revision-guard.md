@@ -1,7 +1,7 @@
 # T-098 — `backend/` has no guard against tests that resolve a git revision
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #118 (Dkaattae)
 **Approved:** orchestrator — 2026-11-02, unattended run. See `runs/T-098-backend-git-revision-guard.md`.
 **Test changes:** `approved — the person in the attended tester session, 2026-11-03 ("approve all five rows")`
 **CI fix:** `none`
@@ -19,6 +19,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` |
 | tester | 2026-11-02 | `cse_011oDiJfdetw2zh1MqvpkWNK` (orchestrated: shared id, fresh subagent; see Verdict) |
 | tester (attended) | 2026-11-03 | `cse_011oDiJfdetw2zh1MqvpkWNK` (the orchestrator's own session, resumed by the person; see Verdict) |
+| reviewer | 2026-11-03 | `cse_011oDiJfdetw2zh1MqvpkWNK` (orchestrated: spawned subagent, fresh context, wrote none of the work) |
 
 **Not on the light path.** T-098 is sized S, but it needs more than four criteria
 (`process.md`, "The light path"): which forms must trip the guard, which must
@@ -471,6 +472,84 @@ needed. Paths are relative to `question-bank/`.
 and approve or refuse each row there. That tester applies the approved rows as
 `T-098 tester: apply approved test change request`. It then re-runs all three
 suites and writes the final verdict.
+
+## Review
+
+**TL;DR. Approved, inside the envelope.** One 309-line stdlib test file in the
+house style, plus five person-approved re-pins in three question-bank tests. CI
+is green on `66561da` (all seven checks). Swept in this PR and marked ready.
+**Dkaattae merges.** No decision is needed first.
+
+**Checks**
+
+- **PR #118 open and draft**, built from `claude/vibrant-feynman-ap8itp`, base `main` `9cac751`.
+- **Every role has a commit:** expander `a173468`/`b46358c`, orchestrator `9cbf570`/`4812258`/`01a1b50`/`a96cfaa`, worker `0b720ca`, tester `11851b5`, attended tester `d30bf88`/`66561da`.
+- **Lanes held.** The expander touched only `tasks.md` and the brief. The worker touched the new guard and the brief. The testers touched only three `question-bank/src/*.test.ts` files, the brief and the run log. The orchestrator touched only `runs/` and the `Approved:` line.
+- **Pre-existing tests:** modified only in `d30bf88` (tester), none deleted. The diff matches rows 1-5 of the Test change request exactly: two allowed-set additions, one count/digest re-pin, one boundary digest, one cascade digest, each commented with its T-098 row.
+- **Re-ran here:** `make -C backend check` 907 passed / 9 skipped; `cd question-bank && bun test` 2713 pass / 0 fail.
+- **CI on `66561da`:** frontend, question-bank, backend, backend postgres, integration, e2e and the waiting-on-human check are all green. That settles the frontend reds the testers saw in their containers: they were packages the proxy would not download.
+
+**Envelope**
+
+- **Test changes approved by a person, not an orchestrator stamp.** The person wrote "approve all five rows", then "run the tester step for T-098", in the session that made the edits (D-15). No name was given. The header records the session, as T-045's and T-039's did, and T-045's reviewer accepted that.
+- **Files outside the Constraints:** only the three question-bank tests, and only by the approved rows. Criterion 8 as written ("no pre-existing test under `question-bank/src/` is modified") is therefore met only as the request amends it. The request says so in its own words, and the person approved it knowing that. I treat it as a person's decision, not a drift.
+- **No dependency** (`pyproject.toml`, `uv.lock` unchanged), no `openapi.yaml`, migration or plan change, no CI fix, no text a child reads, no product decision.
+- **The brief's `Approved:` is an orchestrator stamp** (unattended run, D-1). That is the normal unattended route and is not in the envelope.
+
+**Independence, weighed as the Verdict asks.** The attended tester ran in the
+orchestrator's own resumed session, which had read the worker's and the first
+tester's reports. What it did was mechanical (apply five worded rows, re-run
+suites), and CI and my re-runs reproduce its numbers. Criteria 1-6 and 8-10 rest
+on the first tester's mutation runs, made by a fresh subagent. I accept the pass
+on that basis.
+
+**Findings: none block.**
+
+1. **Fits the codebase.** Module docstring "T-0xx, written by the `worker`" and
+   `from __future__ import annotations` match every other backend test. `-> None`
+   on tests and `#:` attribute comments match `test_t089_tester_criteria.py`. Ruff
+   is clean. `ast` instead of a hand lexer is simpler and more exact than the
+   frontend's `codeOf`. Good call.
+2. **Not more than it needed.** The extras (module-level name resolution,
+   `from subprocess import run as r`, shell separators, f-strings) each close a
+   bypass that criterion 3's own forms imply. None is a config option or a
+   speculative abstraction.
+3. **The untracked-file reach is not pinned by a test** (first tester's
+   mutation: `untracked = []` stays green). **No task.** Criterion 2 explicitly
+   allows a tracked-only guard, so losing it would leave the guard at a level the
+   brief already accepts. CI only ever sees tracked files anyway.
+4. **The brief did not foresee the boundary pins.** That cost a halt and an
+   attended round for five rows, two of them made red by the brief and run log
+   alone. It is P-17's pattern (whole-tree pins left behind by earlier tasks), not
+   a defect of T-098, and this task added no new permanent pin. Logged in
+   `PROGRESS.md`. Not added to `process-tasks.md`: that file is inside T-091's
+   `MAIN_UNTOUCHABLE_SHA` pin (`climate-cold-trade-accepted-verify.test.ts`), so
+   editing it here would turn question-bank red, which is P-17 again.
+
+**Flags disposed**
+
+- **`check-ignore` in `ALLOWED_SUBCOMMANDS` (worker): kept.** It reads only the
+  working tree and the ignore rules, takes no revision, and the frontend guard's
+  `WORKING_TREE_SUBCOMMANDS` allows the same three. Dropping it would make the two
+  guards disagree for no gain. Criterion 10 governs what the guard itself runs
+  (`ls-files` only), as both the worker and the tester read it.
+- **`-C <dir>` before an allowed subcommand passes (worker):** accepted. The brief
+  left it to the worker, and `ls-files-behind-c` pins the choice.
+- **Untracked reach has no test (tester):** see finding 3. No task.
+- **Weaker independence of the attended tester (tester):** see above. Accepted.
+
+**Queue changes (sweep)**
+
+- **T-098:** brief deleted, entry deleted from `tasks.md`, logged under
+  "Completed tasks" in `PROGRESS.md`.
+- **§A's closing line** now says the three unit suites each refuse a fixed git
+  revision. §A has no open task left.
+- **`PROGRESS.md` Known gaps:** "Two guards now hold the line" becomes three,
+  with the backend guard added.
+- **Nothing else in the queue moved.** No queued task touches backend test
+  tooling. The out-of-scope "fail-closed exit checks for backend `git` calls"
+  needs no task today: the only backend call (`test_t089_tester_criteria.py:240`)
+  already passes `check=True`.
 
 ## Notes
 
