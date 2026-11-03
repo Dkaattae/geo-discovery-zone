@@ -1,15 +1,14 @@
 # T-093 — An undone answer still counts as a place seen
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-093-undo-places-seen.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-03`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-093
 **Branch:** `claude/tender-fermi-ad0qx3`
 **PR:** #119, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:** test changes are waiting for approval: seven question-bank whole-tree pins (rows 1-7 below) go red because of T-093's own `orm.py` change, its two new backend test files and its loop records; criterion 10 forbids editing them and criterion 9 needs them green, so a person must approve the re-pins in an attended tester session.
 
 **Sessions:**
 
@@ -18,6 +17,7 @@ draft** until the reviewer approves it
 | task-expander | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: spawned subagent) |
 | worker | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: spawned subagent; same remote session id as the expander, so the tester must not run under it) |
 | tester | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: freshly spawned subagent; the shared id is the orchestrator's, not evidence of separation, see Verdict) |
+| tester (attended, resumed) | 2026-11-03 | `cse_011oDiJf5mzg8Vrg6qZyj7ii` (separate cloud session, created at the person's request and attended by Dkaattae; not in any row above) |
 
 **Not on the light path.** T-093 is sized S, but it needs more than four criteria
 (`process.md`, "The light path"): the restore itself, the already-seen boundary,
@@ -305,15 +305,80 @@ approve the re-pins.**
 
 ## Verdict
 
-**TL;DR:** **Halted: test changes requested.** Undo now restores the seen
-list. Criteria 1-8, 11 and 12 are met, and mutation confirms each one.
-Criterion 9 is red only because seven question-bank whole-tree pins go stale
-from T-093's own files. Those pins need the seven-row Test change request
-below. Nobody can approve it in this orchestrated run, so **Next step: human**.
-A person has to start an attended `tester` session for T-093, approve the rows
-there, and let that session apply them and finish the verdict.
+**TL;DR:** **Pass.** Undo now restores the seen list, and criteria 1-9, 11 and
+12 are met. Criterion 10 is met except for the seven question-bank pins that
+Dkaattae approved re-pinning in this session. Those were applied in `bdd1ca6`,
+and all three suites are green. **Next: reviewer.**
 
-**Independence:** this run is orchestrated (`runs/T-093-undo-places-seen.md`
+**Resumed in an attended session (2026-11-03).** The verdict below the
+"Resumed" block is the orchestrated tester's (`ab35131`), and its criteria
+evidence still holds. This session re-checked it, took the person's decision,
+applied the rows and re-ran every suite.
+
+- **Independence:** this session's `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+  `cse_011oDiJf5mzg8Vrg6qZyj7ii`. That is not the id on the expander, worker or
+  first tester rows (`cse_011oDiJeUyEjWF9EzpoTaWLp`). The run log records the
+  orchestrator creating this as a separate cloud session. So the session-id check
+  holds this time. I did not see the work being built.
+- **Rows re-checked before asking:** since `ab35131` only
+  `runs/T-093-undo-places-seen.md` changed. question-bank showed the same six
+  reds (rows 1-6) and nothing else. No row had drifted, and none was missing.
+  (A first run also showed 12 T-066 lint-gate reds. `question-bank/node_modules`
+  was not installed. They cleared after `bun install --frozen-lockfile`.)
+- **The person's decision, in this session:** I put the seven rows to them one
+  line each. Their answers, verbatim from the session: rows 1-4 → "Row 1,Row
+  2,Row 3,Row 4"; rows 5-7 → "Row 5,Row 6,Row 7"; name → "Dkaattae". Every row
+  is approved. The header reads `Test changes: approved — Dkaattae, 2026-11-03`.
+  The earlier "approved, apply the test changes" in the orchestrator's session
+  (run log) was not used as the approval (D-15).
+- **Applied, exactly as written, in `bdd1ca6`:**
+  - **Row 1:** `climate-cold-trade-accepted-verify.test.ts`. The T-093 brief
+    and run log joined `CRITERION_22_ALLOWED`. The count stays 290.
+    `MAIN_UNTOUCHABLE_SHA` → `5e702ce3…bd91d`.
+  - **Row 2:** same file. `MAIN_TESTS_COUNT` 114 → 116, and `MAIN_TESTS_SHA` →
+    `d367f38f…3c1c`.
+  - **Row 3:** same file. `MAIN_SOURCE_TREES_SHA` → `c6cf34f6…cfe9`.
+  - **Row 4:** `farm-animal-loose-ends-verify.test.ts`. The same two paths
+    joined `CRITERION_21_ALLOWED`. The count stays 286. `MAIN_UNTOUCHABLE_SHA`
+    → `7ad951c7…7d12`.
+  - **Row 5:** `refresh-regenerate-reminder-verify.test.ts`.
+    `MAIN_BOUNDARY_SHA` → `69778f17…89bc2`.
+  - **Row 6:** `map-click-no-candidates-verify.test.ts`. The test is renamed to
+    `… is byte-identical to T-093's`, and the digest → `0da5b1a5…0b32`.
+  - **Row 7:** `climate-cold-trade-accepted-verify.test.ts`
+    `APPLIED_REQUEST_FILE_SHAS`. The farm-animal entry → `138bf3bd…cfae`, and
+    the map-click entry → `703489a7…0696f`, each file's sha256 after rows 4
+    and 6. No other entry moved.
+  - Each change has a comment citing T-093 and its row. Nothing else changed.
+    `git diff --stat` of `bdd1ca6` touches only those four files (29+, 12−).
+- **Suites after `bdd1ca6`:**
+  - **`make -C backend check`**, all six proxy variables set to
+    `http://127.0.0.1:1`: ruff clean, 64 files formatted, **962 passed, 9 skipped**.
+  - **Full backend suite on Postgres 16** (`GEO_TEST_DATABASE_URL=…/geoquiz_test`):
+    **971 passed**.
+  - **`cd question-bank && bun test`**: **2713 pass, 0 fail**. `bun run lint`
+    and `prettier --check` are both clean.
+  - **`cd frontend && bun test`**: **387 pass, 9 fail**. All 9 come from the
+    environment. `bun install --frozen-lockfile` got a proxy 403 on the d3
+    tarballs, so `react-simple-maps` is missing (3 import errors). Five lint-gate
+    tests time out at 5 s, and the rest are the files that import the map.
+    `git diff 15aac14 HEAD -- frontend` is empty, and
+    `git-baseline-guard.criteria.test.ts` passes **15/15**. CI's frontend job is
+    the real check.
+
+| # | Verdict (final) | Evidence |
+|---|---|---|
+| 1-8 | met | unchanged from the table below. The 35 tests pass in both backend runs above |
+| 9 | **met** | backend green on SQLite and Postgres, question-bank 2713/0. Frontend reds are environmental only (above) |
+| 10 | met, except the approved rows | `git diff --diff-filter=MDR 15aac14 -- backend/tests backend/integration frontend/src` is empty. Under `question-bank/src/`, only the four guard files of rows 1-7 differ, and only by the approved re-pins |
+| 11 | met | no migration, `pyproject.toml` or `uv.lock` change |
+| 12 | met | the dead-proxy backend run above is green |
+
+**Earlier verdict (orchestrated tester, `ab35131`).** Superseded where it
+conflicts with the block above. Its criteria evidence and mutations are what
+criteria 1-8 rest on.
+
+**Independence (then):** this run is orchestrated (`runs/T-093-undo-places-seen.md`
 exists). My `$CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJeUyEjWF9EzpoTaWLp`) is
 the same id the expander and worker rows show, because every role the
 orchestrator spawns shares it. So **the session-id check proves nothing here**.
@@ -422,18 +487,17 @@ T-098 row 5 also needed. Paths are relative to `question-bank/`.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no non-test file outside T-091's allowed set changes or appears | T-093's brief and run log are new tracked non-test files (292 ≠ 290), and `backend/app/orm.py` (counted) moved | modify | Same name. Add `tasks/T-093-undo-places-seen.md` and `runs/T-093-undo-places-seen.md` to `CRITERION_22_ALLOWED`, with a comment citing T-093 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **290**. `MAIN_UNTOUCHABLE_SHA` `d7ac83e4…5381` → `5e702ce3585afc89dd0c4502e421b53232d9c78830e382d39acbf0ad360bd91d`, comment "Re-pinned by T-093 (Test change request row 1): backend/app/orm.py moved". With 15aac14's `orm.py` the old digest returns (verified) | |
-| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester: no test file is added, removed or modified outside named exceptions | T-093 adds `backend/tests/test_t093_undo_places_seen.py` (worker) and `backend/tests/test_t093_tester_criteria.py` (tester) (116 ≠ 114) | modify | Same name and filter. `MAIN_TESTS_COUNT` **114 → 116**. `MAIN_TESTS_SHA` → `d367f38f012bc230f27fd0125d70bd6ea5f98bc7334dbe495455bd5a9a303c1c`, comment "Re-pinned by T-093 (Test change request row 2): T-093 added test_t093_undo_places_seen.py and test_t093_tester_criteria.py (114 -> 116)". Without those two files the set equals the old pin at 114 (verified) | |
-| 3 | same file › "T-091 criterion 20: no non-test source file moves" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091 tester: no non-test source file under the three trees moves | `backend/app/orm.py` moved, as the Constraints require | modify | Same name and file set. `MAIN_SOURCE_TREES_SHA` `4c2368a1…e55c` → `c6cf34f62a80d9bbc4d598c662416789eef40544da248e135c956d8053ffcfe9`, comment "Re-pinned by T-093 (Test change request row 3): backend/app/orm.py moved". With 15aac14's `orm.py` the old digest returns (verified) | |
-| 4 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-093 paths to `CRITERION_21_ALLOWED`, with a comment citing T-093 row 4. Count stays **286**. `MAIN_UNTOUCHABLE_SHA` `6e9754b8…ff78` → `7ad951c78424a1af05401c47e2499b0df94035ebe36626e9ad21ec2b3e847d12`, comment "Re-pinned by T-093 (Test change request row 4): backend/app/orm.py moved". With 15aac14's `orm.py` the old digest returns (verified) | |
-| 5 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (re-pinned by T-039, T-045, T-053, T-098): every file under the three trees is pinned | `orm.py` changed and two backend test files were added | modify | Same name and file set. `MAIN_BOUNDARY_SHA` `1ea8c50d…676af` → `69778f17e64fe1807c7b32e746056a6951d5f310dfdeda82aafa702f7c989bc2`, comment "Re-pinned by T-093 (Test change request row 5): T-093 changed backend/app/orm.py and added two backend test files". The digest includes the bytes of both test files at `a83633e`. At 15aac14 the old pin holds, and the diff from there is only those three files (verified) | |
-| 6 | `src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-053's` | `cf63f66`, T-092 tester (re-pinned by T-085a, T-088, T-045, T-053): `backend/app` does not move | `orm.py` moved | modify | Renamed to `… is byte-identical to T-093's` (as T-053 renamed it). Same exception list. Digest `5f842800…2493` → `0da5b1a578fb9d632876527639660153c1e11c83462c904d405e236695550b32`. Add "Re-pinned at T-093 (Test change request row 6), after T-093 added the seen list to the session undo snapshot in orm.py" to the comment above it | |
-| 7 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today. Rows 4 and 6 change `farm-animal-loose-ends-verify.test.ts` and `map-click-no-candidates-verify.test.ts`, whose digests are pinned in `APPLIED_REQUEST_FILE_SHAS` | modify (only for the files whose row is approved) | Same name. Re-pin those two entries of `APPLIED_REQUEST_FILE_SHAS` to each file's sha256 after rows 4 and 6 are applied. Extend their comments with ", then by T-093 (row 7)". `MAIN_REQUEST_FILE_SHAS` and every other entry stay as they are | |
+| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no non-test file outside T-091's allowed set changes or appears | T-093's brief and run log are new tracked non-test files (292 ≠ 290), and `backend/app/orm.py` (counted) moved | modify | Same name. Add `tasks/T-093-undo-places-seen.md` and `runs/T-093-undo-places-seen.md` to `CRITERION_22_ALLOWED`, with a comment citing T-093 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **290**. `MAIN_UNTOUCHABLE_SHA` `d7ac83e4…5381` → `5e702ce3585afc89dd0c4502e421b53232d9c78830e382d39acbf0ad360bd91d`, comment "Re-pinned by T-093 (Test change request row 1): backend/app/orm.py moved". With 15aac14's `orm.py` the old digest returns (verified) | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
+| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester: no test file is added, removed or modified outside named exceptions | T-093 adds `backend/tests/test_t093_undo_places_seen.py` (worker) and `backend/tests/test_t093_tester_criteria.py` (tester) (116 ≠ 114) | modify | Same name and filter. `MAIN_TESTS_COUNT` **114 → 116**. `MAIN_TESTS_SHA` → `d367f38f012bc230f27fd0125d70bd6ea5f98bc7334dbe495455bd5a9a303c1c`, comment "Re-pinned by T-093 (Test change request row 2): T-093 added test_t093_undo_places_seen.py and test_t093_tester_criteria.py (114 -> 116)". Without those two files the set equals the old pin at 114 (verified) | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
+| 3 | same file › "T-091 criterion 20: no non-test source file moves" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091 tester: no non-test source file under the three trees moves | `backend/app/orm.py` moved, as the Constraints require | modify | Same name and file set. `MAIN_SOURCE_TREES_SHA` `4c2368a1…e55c` → `c6cf34f62a80d9bbc4d598c662416789eef40544da248e135c956d8053ffcfe9`, comment "Re-pinned by T-093 (Test change request row 3): backend/app/orm.py moved". With 15aac14's `orm.py` the old digest returns (verified) | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
+| 4 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-093 paths to `CRITERION_21_ALLOWED`, with a comment citing T-093 row 4. Count stays **286**. `MAIN_UNTOUCHABLE_SHA` `6e9754b8…ff78` → `7ad951c78424a1af05401c47e2499b0df94035ebe36626e9ad21ec2b3e847d12`, comment "Re-pinned by T-093 (Test change request row 4): backend/app/orm.py moved". With 15aac14's `orm.py` the old digest returns (verified) | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
+| 5 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (re-pinned by T-039, T-045, T-053, T-098): every file under the three trees is pinned | `orm.py` changed and two backend test files were added | modify | Same name and file set. `MAIN_BOUNDARY_SHA` `1ea8c50d…676af` → `69778f17e64fe1807c7b32e746056a6951d5f310dfdeda82aafa702f7c989bc2`, comment "Re-pinned by T-093 (Test change request row 5): T-093 changed backend/app/orm.py and added two backend test files". The digest includes the bytes of both test files at `a83633e`. At 15aac14 the old pin holds, and the diff from there is only those three files (verified) | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
+| 6 | `src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-053's` | `cf63f66`, T-092 tester (re-pinned by T-085a, T-088, T-045, T-053): `backend/app` does not move | `orm.py` moved | modify | Renamed to `… is byte-identical to T-093's` (as T-053 renamed it). Same exception list. Digest `5f842800…2493` → `0da5b1a578fb9d632876527639660153c1e11c83462c904d405e236695550b32`. Add "Re-pinned at T-093 (Test change request row 6), after T-093 added the seen list to the session undo snapshot in orm.py" to the comment above it | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
+| 7 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today. Rows 4 and 6 change `farm-animal-loose-ends-verify.test.ts` and `map-click-no-candidates-verify.test.ts`, whose digests are pinned in `APPLIED_REQUEST_FILE_SHAS` | modify (only for the files whose row is approved) | Same name. Re-pin those two entries of `APPLIED_REQUEST_FILE_SHAS` to each file's sha256 after rows 4 and 6 are applied. Extend their comments with ", then by T-093 (row 7)". `MAIN_REQUEST_FILE_SHAS` and every other entry stay as they are | **approved** (Dkaattae, 2026-11-03, this session); applied in `bdd1ca6` |
 
-**To approve:** start the `tester` step for T-093 in a session you are
-attending, and approve or refuse each row there. That tester applies the
-approved rows as `T-093 tester: apply approved test change request`. It then
-re-runs all three suites and writes the final verdict.
+**Approved and applied.** Dkaattae approved all seven rows in the attended tester
+session `cse_011oDiJf5mzg8Vrg6qZyj7ii`. They were applied in `bdd1ca6`
+(`T-093 tester: apply approved test change request`). See the Verdict.
 
 ## Notes
 
