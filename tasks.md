@@ -339,7 +339,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-097 — A bundle's `ETag` is the same with and without the answer key · S · todo
+### T-097 — A bundle's `ETag` is the same with and without the answer key · S · doing (brief awaiting approval — `tasks/T-097-bundle-etag-answer-key.md`)
 **Depends on:** —
 **New 2026-11-02, from T-053's review (PR #117).** `GET /bundles/{bundleId}`
 (`backend/app/routers/content.py`, `get_bundle`) computes one strong `ETag` per
