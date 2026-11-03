@@ -84,13 +84,15 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // openapi.yaml, which main counted, leaves the counted set (297 -> 296).
 // Re-pinned by T-093 (Test change request row 1): backend/app/orm.py moved.
 // Re-pinned by T-097 (Test change request row 1): backend/app/store.py moved.
-const MAIN_UNTOUCHABLE_SHA = "0acaca5633c674a3b96a7bf1ad8f9c327c27dc53b1f3f0a44d7c97e1997eb28b";
+// Re-pinned by hand for P-18: process-tasks.md left the counted set.
+const MAIN_UNTOUCHABLE_SHA = "9211c863bee72b2067666963609ce7baeaaa76cb76a65e9a271a359a2103cf71";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
 // and map-click.spec.ts, which main counted, join the allowed set with T-053's
 // brief and run log (295 -> 290).
-const MAIN_UNTOUCHABLE_COUNT = 290;
+// Re-pinned by hand for P-18: process-tasks.md joins the allowed set (290 -> 289).
+const MAIN_UNTOUCHABLE_COUNT = 289;
 /**
  * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
  * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
@@ -212,6 +214,9 @@ const CRITERION_22_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-03, in the attended tester session that made the edit).
   "tasks/T-097-bundle-etag-answer-key.md",
   "runs/T-097-bundle-etag-answer-key.md",
+  // The loop's own queue, exempted by hand for P-18 (approved by Dkaattae, 2026-11-03,
+  // in the session that made the edit), as T-096 did for its criterion 21 (4d5f283).
+  "process-tasks.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
