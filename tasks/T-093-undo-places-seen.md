@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker` — once a person replaces `pending` below
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-093-undo-places-seen.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-093
