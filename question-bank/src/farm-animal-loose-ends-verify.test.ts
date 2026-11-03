@@ -208,6 +208,10 @@ const CRITERION_21_ALLOWED = new Set([
   "e2e/tests/map-click.spec.ts",
   "tasks/T-053-answer-key-default.md",
   "runs/T-053-answer-key-default.md",
+  // T-098's loop records, joined through T-098's Test change request row 3
+  // (approved in the attended tester session that made the edit).
+  "tasks/T-098-backend-git-revision-guard.md",
+  "runs/T-098-backend-git-revision-guard.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);

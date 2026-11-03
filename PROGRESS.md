@@ -370,6 +370,22 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-098 — Backend tests may not hand `git` a revision** (PR #118, 2026-11-03).
+  `backend/tests/test_git_revision_guard.py` parses every tracked and untracked
+  `.py` file under `backend/tests/` and `backend/integration/` with `ast` and
+  fails on any `git` list, tuple or `subprocess` command string whose subcommand
+  is not `ls-files`, `status` or `check-ignore`, or whose arguments look like a
+  revision. An allowlist rather than revision patterns is what catches T-053's
+  shape, a revision held in a variable. Comments and docstrings never count, and
+  it never skips. *Where it differed from the brief:* the brief expected one new
+  file and nothing else, but five question-bank whole-tree pins from T-087,
+  T-091 and T-096 went red, two of them from the brief and run log alone. A
+  person approved all five re-pins in an attended tester session, which ran in
+  the orchestrator's own resumed session and so was not a cold one (the first,
+  fresh tester's mutation runs carry criteria 1-6 and 8-10). The reviewer could
+  not log that P-17 instance in `process-tasks.md`, because T-091's pin covers
+  that file too.
+
 - **T-053 — The answer key is withheld by default** (PR #117, 2026-11-02).
   `GET /questions`, `GET /questions/{id}`, `GET /bundles/{id}` and the
   next-question body now default `includeAnswerKey` to `false`, so
@@ -1813,7 +1829,7 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - **No test fails on `main` in a full clone any more, and none passes because
   `git` failed.** All four known expired git baselines are gone: `question-bank`'s
   two with T-072 (PR #55, `E-11`) and `frontend`'s one with T-073 (PR #56,
-  `E-12`). T-081 (PR #74) closed the last fail-open `git` check. Two guards now
+  `E-12`). T-081 (PR #74) closed the last fail-open `git` check. Three guards now
   hold the line:
   - `frontend/src/git-baseline-guard.criteria.test.ts` asserts repo-wide that no
     test hands `engineering-decisions.md` to `git`, and within `frontend/src/`
@@ -1824,6 +1840,10 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
     `question-bank/src/`, and also reads calls made through a local `git(args)`
     wrapper. Its exit check is an allowlist of fail-closed shapes. Its lexer is
     heuristic, not a parser.
+  - `backend/tests/test_git_revision_guard.py` (T-098, PR #118) refuses any `git`
+    call under `backend/tests/` or `backend/integration/` that is not a
+    working-tree subcommand, read with Python's own parser. It does not check
+    exit codes; the one backend `git` call already passes `check=True`.
 
 **Behaviour.**
 

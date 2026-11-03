@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved._
 
 ## How this list is ordered
 
@@ -164,24 +164,10 @@ place, so nobody rebuilds it:
 | **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
 | **Formatting** | prettier pinned to one exact version in both `frontend/` and `question-bank/`, and CI runs `format:check` in both (T-071, E-16; T-075, E-17) |
 
-T-075 (PR #66) closed the last gap in that table; T-098 is new since.
-
-### T-098 — `backend/` has no guard against tests that resolve a git revision · S · todo
-**Depends on:** —
-**New 2026-11-02, from T-053's review (PR #117).** `frontend/` and
-`question-bank/` each have a guard that fails when a test hands `git` a fixed
-revision (`frontend/src/git-baseline-guard.criteria.test.ts`,
-`question-bank/src/git-exit-guard.criteria.test.ts`, E-11, E-12). `backend/`
-has none, which is how T-053's tester wrote six `git diff e2e6495 HEAD` tests
-that skipped in CI's shallow clone and would have gone red on `main` after the
-next task (deleted before merge). Today the only `git` call under
-`backend/tests/` and `backend/integration/` is `git ls-files`
-(`test_t089_tester_criteria.py`), so the guard starts green.
-**Done when:** a backend test fails if any file under `backend/tests/` or
-`backend/integration/` passes a revision or range to `git` (`git diff <rev>`,
-`git show <rev>:…`, `git log <range>` and the like); `git ls-files` and
-`git status` stay allowed; and a mutation that adds a `git diff <sha> HEAD` call
-turns it red.
+T-075 (PR #66) closed the last gap in that table. Since T-098 (PR #118), all
+three unit suites refuse a test that hands `git` a fixed revision
+(`backend/tests/test_git_revision_guard.py` joins the frontend and question-bank
+guards). No §A task is open.
 
 ---
 

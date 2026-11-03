@@ -94,13 +94,15 @@ const MAIN_UNTOUCHABLE_COUNT = 290;
  */
 // Re-pinned by T-039 (Test change request row 5): T-039 added two backend test
 // files, test_unimplemented_content_docs.py and test_t039_tester_criteria.py (107 -> 109).
-const MAIN_TESTS_SHA = "462b6d275873db4d7f3f5c5d9089ce9bed3e5af7d4efb857f1bf91701d26daae";
+const MAIN_TESTS_SHA = "1ea43d084611aa52c68664791325369bba9a5dc452800ae6410357d28c6bcb51";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
 // files, test_t053_answer_key_default.py and test_t053_tester_criteria.py (111 -> 113),
 // and its approved rows 1-21 modified eleven backend test files.
-const MAIN_TESTS_COUNT = 113;
+// Re-pinned by T-098 (Test change request row 2): T-098 added
+// backend/tests/test_git_revision_guard.py (113 -> 114).
+const MAIN_TESTS_COUNT = 114;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -140,9 +142,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/map-click-no-candidates-verify.test.ts":
     "6b2b6da34988524c94993d1aa56e93626a4f1e004049f4e2dc5b3f6ef0c5b2c3",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33)
+  // then by T-053 (row 33), then by T-098 (row 5)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "89cff565ab1b6ce9f4cda55837223ea7a6eafb705966e366dd3621704f6e5327",
+    "4998b4cbdf26aa927149c938bb10220c43f4aad9dbb8587738a1a74e1927981c",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -189,6 +191,10 @@ const CRITERION_22_ALLOWED = new Set([
   "e2e/tests/map-click.spec.ts",
   "tasks/T-053-answer-key-default.md",
   "runs/T-053-answer-key-default.md",
+  // T-098's loop records, joined through T-098's Test change request row 1
+  // (approved in the attended tester session that made the edit).
+  "tasks/T-098-backend-git-revision-guard.md",
+  "runs/T-098-backend-git-revision-guard.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
