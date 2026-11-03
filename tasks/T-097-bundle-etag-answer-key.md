@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-097
 **Branch:** `claude/happy-dirac-a1j5no`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #120, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
 **Fault:**
 
