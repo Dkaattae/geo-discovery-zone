@@ -120,3 +120,8 @@ Guard under test: /home/user/geo-discovery-zone/backend/tests/test_git_revision_
 Raised in commit `11851b5`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. Rows not copied here (the orchestrator does not read the request).
 
 What a human has to do: start the `tester` step for T-098 in a session you are attending. It will ask about each row, apply what you approve, and finish verifying. The orchestrator cannot take the approval (D-15).
+
+## Person's answer in the orchestrator's session — 2026-11-03
+The person wrote: "approve all five rows".
+
+Not written into the brief and no tester spawned (D-15: an approval of a test change request counts only when given in the session making the edits). The person was told to give it to an attended `tester` session for T-098. The halt stands.
