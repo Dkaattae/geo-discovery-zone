@@ -1,7 +1,7 @@
 # T-097 — A bundle's `ETag` is the same with and without the answer key — run log
 
 **Task:** T-097 · **Branch:** `claude/happy-dirac-a1j5no` · **PR:** #120
-**Started:** 2026-11-03 · **Outcome:** in progress
+**Started:** 2026-11-03 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-11-03
 `Next step` on entry: (no brief) → on exit: `worker` — once a person replaces `pending` below
@@ -153,3 +153,46 @@ My first mutation pass went wrong: a bad path in the revert command stopped it, 
 **When it comes back**, it must be escalated, not marked ready silently. It changes `openapi.yaml`, and because the brief was approved by the orchestrator's unattended stamp, no person has seen the choices behind criteria 8 and 9.
 
 File: /home/user/geo-discovery-zone/tasks/T-097-bundle-etag-answer-key.md
+
+## Round 5 — tester — 2026-11-03
+`Next step` on entry: `tester` (Status `changes requested`) → on exit: `human` (Status `test changes requested`)
+
+**TL;DR: halted on a test change request for 9 question-bank pins, and it needs a person.** All 18 criteria still hold, and nothing in the code has to change. The question-bank suite fails on this branch with 2704 pass and 9 fail, the same 9 that CI and the reviewer reported. Each one goes red only because of a file T-097 is required to change, so the pins are out of date rather than catching a bug. I raised 10 modify rows to update them. **Next:** a person approves or refuses each row in an attended `tester` session for T-097. The orchestrator must not approve it (D-14, D-15).
+
+**Pushed:** commit `2a1aab6` on `claude/happy-dirac-a1j5no`. `git rev-parse` shows the local branch and `origin` at the same commit, so the push landed. The commit changes only `/home/user/geo-discovery-zone/tasks/T-097-bundle-etag-answer-key.md`. No test file was edited.
+
+**Header now reads:**
+- **Status:** `test changes requested`
+- **Next step:** `human`
+- **Test changes:** `requested`
+- **Fault:** set (approval is pending)
+- **Sessions:** my row added as tester, round 2
+
+**Independence: weaker than a separate session.** This is an orchestrated run (`runs/T-097-bundle-etag-answer-key.md` exists), so my session id `cse_011oDiJfMMsB13in6M72jY1e` matches the worker's and the id check proves nothing. My independence rests only on being a freshly spawned subagent that did not see the earlier sessions' reasoning. I said this in the Verdict.
+
+**What I checked**
+- **Source unchanged since round 1:** `git diff --name-only 1f48f9f HEAD` lists only the brief and the run log.
+- **Backend:** `make -C backend check` is green (998 passed, 9 skipped), with all six proxy variables pointed at `http://127.0.0.1:1`.
+- **Question-bank:** 2704 pass, 9 fail, matching the reviewer's list exactly.
+  - On the first run, 12 more T-066 lint tests failed. That was only because `question-bank/node_modules` was missing. `bun install --frozen-lockfile` fixed it and changed no tracked file.
+- **Dry run:** I applied all 10 rows in a scratch worktree (since removed). The question-bank suite went to 2713 pass, 0 fail.
+  - With T-097's three source files reverted to `d7273bd` and its two test files untracked, every current pin comes back. So the new values differ from the old only by T-097's own files.
+  - The script I used to compute the values reproduces every current pin on `d7273bd`, so it calculates what the tests calculate.
+
+**The request (10 modify rows, no deletions, nothing loosened)**
+- **Rows 1 and 4 (T-091 c22, T-096 c21):** add the T-097 brief and run log to the allowed sets. The counts stay at 290 and 286. The digests are re-pinned because `store.py` moved, and `store.py` stays covered.
+- **Row 2 (T-091 c22 tests):** count goes from 116 to 118, plus a new digest, for T-097's two new backend test files.
+- **Row 3 (T-091 c20):** re-pin for `store.py` and `routers/content.py`.
+- **Row 5 (T-087 c15):** re-pin of the backend, frontend and e2e boundary digest.
+- **Rows 6 and 7 (T-092 c16):** re-pin `backend/app` and `openapi.yaml`, and rename both tests to "T-097's".
+- **Rows 8 and 9 (T-085a c25, T-088 c21):** set the pinned `openapi.yaml` sha to `ec1b1fca…`.
+- **Row 10:** the follow-on change. `APPLIED_REQUEST_FILE_SHAS` gets new values for the four files that rows 4 and 6-9 edit. The tester applying the rows has to recompute those after writing the new comments.
+
+**For the approver:** criterion 16 says no existing test is modified, and the Constraints forbid changes in `question-bank/`. Updating these pins breaks both as written, as it did for T-053, T-093 and T-098. If you would rather amend the criterion first, refuse the rows and send the brief back to `task-expander`.
+
+**Also noted:** neither the worker nor the round-1 tester listed these pins as stale. Both ran only the backend suite.
+
+## Halted — test change request — 2026-11-03
+Raised by the tester in commit `2a1aab6` (branch head at halt). Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`. Rows not copied here; the orchestrator has not read them.
+
+What a human has to decide: approve or refuse the request, in an attended `tester` session for T-097. The orchestrator cannot take the approval (D-15).
