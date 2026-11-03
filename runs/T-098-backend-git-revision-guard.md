@@ -1,7 +1,7 @@
 # T-098 — `backend/` has no guard against tests that resolve a git revision — run log
 
 **Task:** T-098 · **Branch:** `claude/vibrant-feynman-ap8itp` · **PR:** #118
-**Started:** 2026-11-02 · **Outcome:** tester pass — next: reviewer (not yet run)
+**Started:** 2026-11-02 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-02
 `Next step` on entry: (no brief) → on exit: `worker`
@@ -135,3 +135,56 @@ The person then wrote "run the tester step for T-098" in this session, so this s
 - question-bank 2713 pass / 0 fail; `make -C backend check` 907 passed / 9 skipped; frontend reds are packages missing because the proxy returned 403 (unchanged from before the task).
 - Verdict: pass. Next step: reviewer.
 - Slip during the run: a stray `git checkout origin/main -- .` overwrote the working tree after `d30bf88` was committed. It was restored at once with `git checkout HEAD -- .`, and the tree was confirmed clean; nothing was lost.
+
+## Round 5 — reviewer — 2026-11-03
+`Next step` on entry: `reviewer` → on exit: `human — merge PR #118 (Dkaattae)` (brief then deleted by the sweep)
+
+**I approved T-098 and marked PR #118 ready for review, with no escalation note. Dkaattae merges it, and no decision is needed first.** The sweep is pushed to `claude/vibrant-feynman-ap8itp` with the work, and I confirmed the remote head is `fbfb0cf`. CI on that head was still running when I finished (GitHub shows the merge state as "unstable"). The tester's head before my commits, `66561da`, had all seven checks green.
+
+**State now**
+- **PR #118:** open and ready, not merged. The body has the ten criteria word for word, what verified each, the five approved re-pin rows, and my review notes.
+- **Brief:** I wrote a `## Review` section, set `Status: approved` and `Next step: human — merge PR #118 (Dkaattae)`, and added a reviewer row to Sessions (`fd9de88`). The sweep commit then deleted the brief, so that section now lives in git history and in the PR body.
+- **Commits:** `fd9de88` (review) and `fbfb0cf` (sweep: brief deleted, queue trimmed, `PROGRESS.md` updated).
+
+**Checks**
+- **PR state:** open and draft when I started, so the review ran before any merge.
+- **Every role is in the PR:** expander, worker, orchestrated tester, attended tester and orchestrator each have a commit on the branch.
+- **Each role stayed in its lane:**
+  - the expander touched only `tasks.md` and the brief;
+  - the worker added only `backend/tests/test_git_revision_guard.py` and edited the brief;
+  - the testers touched only three `question-bank/src/*.test.ts` files, the brief and `runs/`.
+- **Pre-existing tests:** none deleted. Three question-bank files were modified, only in tester commit `d30bf88`, and the changes match the five approved rows exactly.
+- **Who approved them:** a person, in the session that made the edits ("approve all five rows"). No name was given. T-045's reviewer accepted the same thing.
+- **Nothing else outside the envelope:** no new dependency, no `openapi.yaml`, migration or plan change, no CI fix, no text a child reads.
+- **I re-ran the suites:**
+  - `make -C backend check`: 907 passed, 9 skipped.
+  - `cd question-bank && bun test`: 2713 pass, 0 fail.
+  - `cd frontend && bun test`: 392 pass, 4 fail, the same as before my sweep. Three files cannot import `react-simple-maps` because the proxy blocks the download; the fourth is presumably the known lint-gate 5 s timeout. CI's frontend job is green.
+
+**Judgment calls**
+- **Criterion 8 is met only as the approved test change request amends it.** As written it forbids changing any pre-existing question-bank test, which conflicted with criteria 1 and 7. I treated the person's approval of the rows as the decision rather than as drift, and said so in the PR body.
+- **The attended tester was not a fresh session.** It ran inside the orchestrator's own resumed session, which had already read the worker's and first tester's reports. I accepted its pass because:
+  - its work was mechanical: apply five worded rows and re-run the suites;
+  - CI and my re-runs reproduce its numbers;
+  - criteria 1-6 and 8-10 rest on the first tester's mutation runs, made by a fresh subagent.
+- **Flags disposed:**
+  - **`check-ignore`** stays allowed, matching the frontend guard's list.
+  - **`-C` in front of an allowed subcommand** passes; the brief left that to the worker.
+  - **No test covers the guard reading untracked files.** I filed no task, because criterion 2 already allows a guard that reads tracked files only.
+- **No new tasks.** Backend `git` exit-code checks need none: the one backend `git` call already passes `check=True`.
+
+**Not done, by choice:** I logged the extra halt from earlier tasks' whole-repo pins in `PROGRESS.md`, not in `process-tasks.md`. The process ticket that tracks this pattern (P-17) lives in `process-tasks.md`. That file is pinned by `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, so editing it here would turn question-bank red.
+
+**Sweep**
+- **`tasks/T-098-backend-git-revision-guard.md`:** deleted.
+- **`tasks.md`:** T-098 entry deleted, sweep note appended, and §A's closing line rewritten. Nothing else in the queue moved.
+- **`PROGRESS.md`:** Completed entry added, and the Known-gaps list of git guards now names the backend one too ("Two guards" became three).
+
+Files:
+- /home/user/geo-discovery-zone/backend/tests/test_git_revision_guard.py
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/runs/T-098-backend-git-revision-guard.md
+
+## Ended — 2026-11-03
+PR #118 marked ready by the reviewer. Dkaattae merges; no role merges (D-4).
