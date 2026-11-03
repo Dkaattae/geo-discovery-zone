@@ -339,7 +339,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-093 — An undone answer still counts as a place seen · S · todo
+### T-093 — An undone answer still counts as a place seen · S · doing (brief awaiting approval — `tasks/T-093-undo-places-seen.md`)
 **Depends on:** —
 **New 2026-10-27, from T-051's tester and reviewer (PR #96).** `apply_answer`
 appends the entity to `session.seen_entity_ids` (`grading.py:190-191`), and undo
