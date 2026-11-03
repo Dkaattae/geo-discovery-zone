@@ -1,7 +1,7 @@
 # T-097 — A bundle's `ETag` is the same with and without the answer key
 
-**Status:** `awaiting approval`
-**Next step:** `worker` — once a person replaces `pending` below
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-097-bundle-etag-answer-key.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
+| worker | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 
 **Not on the light path.** T-097 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -173,6 +174,73 @@ stated for bundle `us`, the one bundle the served bank has.
 
 ## Handoff
 
+**TL;DR:** built. The keyed bundle now has its own tag, `"us-<contentVersion>-key"`;
+the unkeyed tag is unchanged at `"us-<contentVersion>"`. The 304 check, the
+`ETag` header and the body's `etag` all use the requested variant's tag.
+`make -C backend check` is green (971 passed, 9 skipped). **Tests made stale: none.**
+
+**What changed, file by file**
+
+- **`backend/app/store.py`**: `bundle_etag(db, bundle_id, *, include_answer_key=False)`.
+  The keyed variant appends `-key` inside the quotes. The default is unchanged, so
+  `store.bundle` (and therefore `GET /bundles`) still carries the unkeyed tag.
+- **`backend/app/routers/content.py`** `get_bundle`: computes the tag with
+  `include_answer_key=includeAnswerKey`, compares `If-None-Match` against it (same
+  comma-split and strip as before), sends it as `ETag`, and overwrites the body's
+  `etag` with it on the copied dict.
+- **`openapi.yaml`**: `getBundle` `description` gains a paragraph. It says the `ETag`
+  differs between the `includeAnswerKey` variants, that one variant's tag does not
+  revalidate the other, that the body `etag` equals the header, and that
+  `GET /bundles` lists the unkeyed tag.
+- **`backend/tests/test_t097_bundle_etag_variants.py`** (new, 9 tests): the worker's
+  own checks for criteria 1-11. They are not the per-criterion tests; those are yours.
+- **`tasks.md`**: two new queue entries for the brief's out-of-scope findings:
+  **T-099** (`bytes` overstates the unkeyed body) and **T-100** (an unknown bundle
+  with a matching `If-None-Match` gets a 304).
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 2, 3 | `store.bundle_etag`: the suffix depends only on the flag, and `false` is the default |
+| 4, 5, 6, 7 | `get_bundle`: the set membership check against the variant's own tag |
+| 8 | `get_bundle`: `bundle["etag"] = etag` |
+| 9 | `list_bundles` → `store.bundle` → `bundle_etag` with the default (unkeyed) |
+| 10 | Tag format `"<id>-<version>[-key]"`. One caveat: it holds only if `contentVersion` itself has no `"` in it. That was already true of the unkeyed tag before this task, and the served bank's version has none |
+| 11 | Both variants take `content_meta.content_version`. My test changes it through `db_session` |
+| 12, 13 | Unchanged code paths in `get_bundle` |
+| 14 | `openapi.yaml`, `/bundles/{bundleId}` → `getBundle` → `description` |
+| 15 | Nothing else touched. Only `get_bundle` sets `ETag` |
+| 16 | `make -C backend check`: ruff check passed, format check passed, 971 passed, 9 skipped. No existing test touched |
+| 17 | `backend/pyproject.toml` and `backend/uv.lock` are not in the diff |
+| 18 | The new tests use only the in-process `client` and `db_session` |
+
+**Deliberately not done**
+
+- **The out-of-scope items** (`bytes`, unknown-bundle 304, `Vary`, `*`, weak
+  comparison) were left alone. The first two are queued as T-099 and T-100.
+- **No `E-n` entry.** Changing only the keyed tag, so the default stays as it was,
+  is the obvious choice. It is not a fork worth recording.
+
+**Contradictions with the brief:** none found. The brief's header still read
+`awaiting approval` / "once a person replaces `pending`", but **Approved** carried
+the orchestrator's unattended-run stamp, which the worker role accepts.
+
+**How to run:** `make -C backend check`, or
+`cd backend && uv run pytest tests/test_t097_bundle_etag_variants.py`.
+
+**Tests made stale:** none.
+
 ## Verdict
 
 ## Notes
+
+- **Decided: change only the keyed tag.** The unkeyed tag stays byte-for-byte what
+  it was. Clients and caches holding the default variant keep revalidating, and
+  `GET /bundles` needed no change for criterion 9. Reviewer to confirm or overturn.
+- **Decided: the router, not `store.bundle`, sets the body's `etag`.** `store.bundle`
+  has no variant: it returns the keyed payload, and the router strips the key. So the
+  router overwrites `etag` at the same point it strips the key. Reviewer to confirm.
+- **Noticed:** `mypy app` reports 39 import-not-found errors. That count is the same
+  with and without this change: the global mypy cannot see the venv's packages, and
+  mypy is not part of `make check`. Nothing to do here.

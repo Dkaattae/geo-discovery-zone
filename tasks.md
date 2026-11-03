@@ -354,6 +354,24 @@ the default, so the keyed variant is the opt-in one.
 `ETag`s (for example with the flag folded into the tag), a test pins that, and
 `If-None-Match` with one variant's tag does not 304 a request for the other.
 
+### T-099 — A bundle's `bytes` overstates the unkeyed body · S · todo
+**Depends on:** T-097
+**New 2026-11-03, from T-097's brief (Out of scope).** `store.bundle` computes
+`bytes` over the keyed payload, before `question_payload` strips the answer key,
+so the default, unkeyed body and the `GET /bundles` summary both report the keyed
+size. A client sizing a download from it overestimates.
+**Done when:** each variant's `bytes` matches the size of the body it describes
+(or the contract says plainly which variant it measures), and a test pins it.
+
+### T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 · S · todo
+**Depends on:** T-097
+**New 2026-11-03, from T-097's brief (Out of scope).** `get_bundle` checks
+`If-None-Match` against `store.bundle_etag` before checking the bundle exists, and
+`bundle_etag` returns a tag for any id. So `GET /bundles/zz` with
+`If-None-Match: "zz-<contentVersion>"` gets a 304 instead of a 404.
+**Done when:** an unknown bundle is a 404 problem document whatever
+`If-None-Match` holds, for both `includeAnswerKey` variants, and a test pins it.
+
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
 **New 2026-08-24. Smaller since T-007 (PR #33).** The service was built in

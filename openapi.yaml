@@ -359,6 +359,11 @@ paths:
       description: |
         Entities and questions for one region in a single response. Supports
         `ETag`/`If-None-Match`; bundles are immutable per `contentVersion`.
+        The `ETag` differs between the `includeAnswerKey` variants: the keyed
+        body (`includeAnswerKey=true`) and the default, unkeyed body each have
+        their own tag, and a tag from one variant does not revalidate the
+        other. The body's `etag` field equals the response's `ETag` header.
+        `GET /bundles` lists the unkeyed (default) variant's tag.
       parameters:
         - $ref: "#/components/parameters/IncludeAnswerKey"
         - name: If-None-Match

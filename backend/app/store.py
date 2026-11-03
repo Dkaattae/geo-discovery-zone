@@ -273,10 +273,17 @@ def bundle_ids(db: Session) -> list[str]:
     return sorted({scope or "us" for scope in scopes})
 
 
-def bundle_etag(db: Session, bundle_id: str) -> str:
-    """Bundles are immutable per `contentVersion`, so that is the whole etag."""
+def bundle_etag(db: Session, bundle_id: str, *, include_answer_key: bool = False) -> str:
+    """Bundles are immutable per `contentVersion`, so that is the whole etag —
+    plus which variant was served. The keyed body (`includeAnswerKey=true`) is a
+    different representation from the default, unkeyed one, so it gets its own
+    tag: a cached copy of one variant must never revalidate as the other (T-097).
+    The unkeyed tag is unchanged from before, so `GET /bundles` still lists it.
+    """
     meta = content_meta(db)
-    return f'"{bundle_id}-{meta.content_version if meta else "unseeded"}"'
+    version = meta.content_version if meta else "unseeded"
+    suffix = "-key" if include_answer_key else ""
+    return f'"{bundle_id}-{version}{suffix}"'
 
 
 def bundle(db: Session, bundle_id: str) -> dict[str, Any] | None:
