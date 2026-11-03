@@ -51,7 +51,9 @@ const BEFORE_FILE_SHA: Record<string, string> = {
   // row 5): T-045 marks four formats and two pin strategies "Not implemented in v1".
   // Re-pinned at T-053 (Test change request row 28): T-053 withholds the answer key
   // by default and rewrites the "Answer keys" text.
-  "openapi.yaml": "37db5438bfd08f7a6239170026f8da861a510be810aa9c5c0db958bee2226bae",
+  // Re-pinned at T-097 (Test change request row 8): T-097 documents the
+  // per-variant ETag on getBundle.
+  "openapi.yaml": "ec1b1fca3504a3a95922912f97d3c1d7eeb1c2fc3888d3067b7f0521d2a06209",
   "backend/pyproject.toml": "a7741b6f8be54ee317fc9caf308debff1959b93b00f28efc6e7e760468813724",
   "backend/uv.lock": "88a95ecef4a5cdcc199de0722c241f754b654d764073562d886b9c440cd1edd8",
   "e2e/bun.lock": "518a40b596a5bc9c4bc1b10ea8dbfbf32342539c08622fde3cef22e546a7574d",

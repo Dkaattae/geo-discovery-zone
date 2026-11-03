@@ -753,9 +753,11 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // includeAnswerKey defaults in content.py, models.py and sessions.py.
   // Re-pinned at T-093 (Test change request row 6), after T-093 added the seen
   // list to the session undo snapshot in orm.py.
-  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-093\'s', () => {
+  // Re-pinned at T-097 (Test change request row 6), after T-097 gave the keyed
+  // bundle its own ETag in store.py and routers/content.py.
+  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-097\'s', () => {
     expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
-      "0da5b1a578fb9d632876527639660153c1e11c83462c904d405e236695550b32",
+      "19de54aa7e38196b75ea590b370776798c0bbf9aa7e244821dbcbc0c5bccbc7c",
     );
   });
 
@@ -774,9 +776,11 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // (Test change request row 3), after T-045 marked four formats and two pin
   // strategies "Not implemented in v1". Re-pinned at T-053 (Test change request
   // row 26), after T-053 made the answer key withheld by default.
-  test("openapi.yaml (except []) is byte-identical to T-053's", () => {
+  // Re-pinned at T-097 (Test change request row 7), after T-097 documented the
+  // per-variant ETag on getBundle.
+  test("openapi.yaml (except []) is byte-identical to T-097's", () => {
     expect(treeDigest(REPO, "openapi.yaml", [])).toBe(
-      "a89a88a043594f8632833f261bc7932a7f08b953925fe47e51a3dbfe901ba677",
+      "80cade8ba3241fcb2afcf7f9b62414ca4bc8355e1071693b0782a1d7d9f33f6c",
     );
   });
 });
