@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved._
 
 ## How this list is ordered
 
@@ -338,18 +338,6 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
-
-### T-093 — An undone answer still counts as a place seen · S · doing (brief awaiting approval — `tasks/T-093-undo-places-seen.md`)
-**Depends on:** —
-**New 2026-10-27, from T-051's tester and reviewer (PR #96).** `apply_answer`
-appends the entity to `session.seen_entity_ids` (`grading.py:190-191`), and undo
-restores the session from a snapshot that does not hold that list. So an answer
-backed out with "Oops, tapped by mistake" still counts toward the summary's
-`placesSeen` (`routers/sessions.py:407`), for every format. `map_click` makes a
-mis-tap likelier, since every state is a target. Either snapshot the list, or
-decide that a place looked at is a place seen and say so in the undo docstring.
-**Done when:** an undone first answer on a state leaves `placesSeen` where it
-was, or the choice is written down.
 
 ### T-097 — A bundle's `ETag` is the same with and without the answer key · S · todo
 **Depends on:** —
