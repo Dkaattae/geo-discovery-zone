@@ -1,7 +1,7 @@
 # T-097 — A bundle's `ETag` is the same with and without the answer key
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-097-bundle-etag-answer-key.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 | worker | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
+| tester | 2026-11-03 | `cse_011oDiJfMMsB13in6M72jY1e` (orchestrated: spawned subagent) |
 
 **Not on the light path.** T-097 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -232,6 +233,69 @@ the orchestrator's unattended-run stamp, which the worker role accepts.
 **Tests made stale:** none.
 
 ## Verdict
+
+**TL;DR: pass.** All 18 criteria hold. 27 new tester tests in
+`backend/tests/test_t097_tester_criteria.py`, every one green; `make -C backend check`
+green (ruff, format, 998 passed, 9 skipped) with the proxy variables at
+`http://127.0.0.1:1`. 12 mutations of the source, each caught and each reverted.
+Next: reviewer, who escalates it for the `openapi.yaml` change (expected).
+
+**Independence: weaker than a separate session.** This was an orchestrated run
+(`runs/T-097-bundle-etag-answer-key.md` exists), so the session id is the same as
+the worker's and the Sessions check proves nothing. The independence rests on my
+being a freshly spawned subagent with its own context: I did not see the worker's
+conversation or reasoning. That depends on the orchestrator having spawned me
+correctly, not on anything I could verify.
+
+| # | Verdict | Evidence (`test_t097_tester_criteria.py`) |
+|---|---|---|
+| 1 | pass | `test_c1_the_two_variants_tags_differ` |
+| 2 | pass | `test_c2_false_is_the_default_variant` |
+| 3 | pass | `test_c3_each_tag_is_stable[unkeyed/keyed]` |
+| 4 | pass | `test_c4_the_unkeyed_tag_does_not_revalidate_the_keyed_body` (200, key carried on every question) |
+| 5 | pass | `test_c5_the_keyed_tag_does_not_revalidate_the_unkeyed_body` (200, key withheld on every question) |
+| 6 | pass | `test_c6_each_variant_revalidates_against_its_own_tag[unkeyed/keyed]` (304, empty body, `ETag` equals own tag) |
+| 7 | pass | `test_c7_a_tag_list_containing_the_variants_tag_is_a_304[first/last × unkeyed/keyed]`, `test_c7_a_list_of_only_the_other_variants_tag_and_an_old_one_is_a_200[unkeyed/keyed]` (lists joined with `", "`) |
+| 8 | pass | `test_c8_the_body_etag_equals_the_header[unkeyed/keyed]` |
+| 9 | pass | `test_c9_the_bundle_list_names_the_default_variants_tag` |
+| 10 | pass | `test_c10_both_tags_are_strong_entity_tags[unkeyed/keyed]` |
+| 11 | pass | `test_c11_both_tags_follow_the_content_version` (sets `content_version` through `db_session`) |
+| 12 | pass | `test_c12_cache_control_is_unchanged[unkeyed/keyed]` |
+| 13 | pass | `test_c13_an_unknown_bundle_is_still_a_404[unkeyed/keyed]` (via `assert_problem`) |
+| 14 | pass | `test_c14_the_contract_says_the_etag_differs_between_variants`, `test_c14_the_contract_says_one_variants_tag_does_not_revalidate_the_other` |
+| 15 | pass | `test_c15_no_other_content_endpoint_sends_an_etag` (`/questions`, `/questions/{id}`, `/entities`, `/content/version`) |
+| 16 | pass | `make -C backend check` green. `git diff --name-status d7273bd HEAD -- backend/tests` shows only `A backend/tests/test_t097_bundle_etag_variants.py`: no existing test changed or deleted. Checked by hand, not pinned (E-11, E-12) |
+| 17 | pass | `git diff d7273bd HEAD -- backend/pyproject.toml backend/uv.lock` is empty. Also empty for `question-bank/`, `frontend/`, `e2e/`, `backend/app/data/`. Checked by hand |
+| 18 | pass | Whole suite run with `HTTP(S)_PROXY`/`ALL_PROXY` (both cases) at `http://127.0.0.1:1`; new tests use only `client` and `db_session` |
+
+**Mutations** (each applied alone, run against the tester file, then reverted with
+`git checkout -- backend/app openapi.yaml`; `git status` clean of source changes afterwards):
+
+| Mutation | Went red |
+|---|---|
+| M1 keyed suffix removed (both variants share a tag) | c1, c4, c5, c7 (other-variant list ×2), c9, c11 |
+| M2 304 check compares against the unkeyed tag only | c4, c6[keyed], c7 (other-variant list, keyed) |
+| M3 body `etag` not overwritten with the variant's tag | c8[keyed] |
+| M4 `contentVersion` dropped from the tag | c11 |
+| M5 `If-None-Match` entries not stripped | c7 (304 list, `last` ×2) |
+| M6 tags made weak (`W/` prefix) | c10 ×2 |
+| M7 keyed suffix contains an inner `"` | c10[keyed] |
+| M8 `bundle_etag` defaults to the keyed variant (list shows keyed tag) | c9 |
+| M9 `Cache-Control` changed | c12 ×2 |
+| M10 `getBundle` description's new sentences deleted | c14 ×2 |
+| M11 `GET /content/version` sends an `ETag` | c15 |
+| M12 unknown bundle returns 200 instead of a 404 | c13 ×2 |
+
+One run of mine first stacked mutations M1 to M10 by accident: a bad pathspec
+aborted the revert. I restored with `git checkout -- backend/app openapi.yaml`,
+confirmed a clean tree, and re-ran every mutation on its own. The table above is
+from that second run.
+
+**Tests made stale:** none found. The worker's list said none; no existing test
+went red and none needed changing. No Test change request.
+
+**Not tested, by design:** the brief's out-of-scope items (`bytes`, a 304 for an
+unknown bundle with a matching `If-None-Match`, `*`, weak comparison, `Vary`).
 
 ## Notes
 
