@@ -148,3 +148,6 @@ Raised in commit `ab35131`. Header: `Test changes: requested`, `Status: test cha
 Dkaattae, verbatim: "approved, apply the test changes"
 
 Not applied, not written into the brief, no tester spawned (orchestrator.md "Test change requests", D-15). The person was told to give the approval to an attended `tester` session for T-093. The header is unchanged.
+
+### Attended tester session started at the person's request — 2026-11-03
+Person: "You can start a new session, and then apply the approved test changes for tester". The orchestrator created cloud session `session_011oDiJf5mzg8Vrg6qZyj7ii` on `claude/tender-fermi-ad0qx3` with the plain tester template (orchestrated paragraph dropped, since a person attends it; no approval text relayed). The person approves the rows in that session.
