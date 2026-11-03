@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-093
 **Branch:** `claude/tender-fermi-ad0qx3`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #119, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
 **Fault:**
 
