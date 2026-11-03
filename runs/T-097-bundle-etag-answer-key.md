@@ -76,3 +76,42 @@
 - **mypy:** `mypy app` reports 39 import-not-found errors with or without this change. It runs outside the project's environment and is not part of `make check`, so I left it alone.
 
 No dependencies were added. `backend/pyproject.toml` and `backend/uv.lock` are unchanged.
+
+## Round 3 — tester — 2026-11-03
+`Next step` on entry: `tester` (Status `awaiting verification`) → on exit: `reviewer` (Status `pass`)
+
+**Verdict: pass.** All 18 criteria of T-097 hold. I wrote 27 per-criterion tests and they all pass. `make -C backend check` passes: ruff check, format check, and 998 passed / 9 skipped, run with the proxy variables pointed at `http://127.0.0.1:1` the way CI does. I made 12 deliberate breakages of the source, one at a time; the tests caught every one, and every one is reverted.
+**Next step:** `reviewer`. It should escalate the PR to a human because it changes `openapi.yaml`; the brief expects that.
+
+**Independence is weaker than a separate session.** This run is orchestrated (`runs/T-097-bundle-etag-answer-key.md` exists), so my session id `cse_011oDiJfMMsB13in6M72jY1e` is the same as the worker's, and the Sessions-table check proves nothing. What independence there is comes from my being a freshly spawned subagent that never saw the worker's conversation or reasoning. That depends on the orchestrator having spawned me correctly, which I cannot check myself.
+
+**Committed and pushed:** commit `1f48f9f` ("T-097 tester: per-criterion tests, verdict pass") is on `claude/happy-dirac-a1j5no`. I fetched afterwards and `origin` points at the same commit, so the push landed. I was already on that branch, so there was no branch mismatch.
+- `/home/user/geo-discovery-zone/backend/tests/test_t097_tester_criteria.py`: new file, tests named `test_c1_…` to `test_c15_…`, each checked for both the keyed and unkeyed variant where the criterion applies.
+- `/home/user/geo-discovery-zone/tasks/T-097-bundle-etag-answer-key.md`: Verdict filled in, with a criterion-by-criterion table and the mutation table. Status is `pass`, Next step is `reviewer`, and I added a tester row to Sessions.
+
+**Criteria not covered by an automated test:**
+- **16 and 17 were checked by hand against the diff from `d7273bd`.** I did not pin them in tests, because a test that diffs against a fixed commit goes red later (E-11, E-12).
+  - The only change under `backend/tests` is the worker's new file, so no existing test was changed or deleted.
+  - `pyproject.toml` and `uv.lock` are unchanged, and so are `question-bank/`, `frontend/`, `e2e/` and `backend/app/data/`.
+- **18:** the whole suite passed with the proxy variables pointed at `127.0.0.1:1`.
+
+**Mutations, and which tests caught them:**
+
+| Mutation | Caught by |
+|---|---|
+| No `-key` suffix | c1, c4, c5, c7, c9, c11 |
+| 304 check compares only the unkeyed tag | c4, c6, c7 |
+| Body `etag` not set to the variant's tag | c8 |
+| Content version dropped from the tag | c11 |
+| `If-None-Match` entries not stripped | c7 (tag last in the list) |
+| Weak tag (`W/` prefix) | c10 |
+| Extra `"` inside the tag | c10 |
+| Bundle list shows the keyed tag | c9 |
+| `Cache-Control` changed | c12 |
+| New `openapi.yaml` sentences deleted | c14 |
+| `GET /content/version` sends an `ETag` | c15 |
+| Unknown bundle returns 200 | c13 |
+
+My first mutation pass went wrong: a bad path in the revert command stopped it, so mutations piled up on top of each other. I restored the source, confirmed the tree was clean, and re-ran every mutation on its own. The table is from that second run.
+
+**Tests made stale:** none. No existing test went red, so no test change request was needed.
