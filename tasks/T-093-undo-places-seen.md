@@ -1,7 +1,7 @@
 # T-093 — An undone answer still counts as a place seen
 
-**Status:** `awaiting approval`
-**Next step:** `worker` — once a person replaces `pending` below
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-093-undo-places-seen.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: spawned subagent) |
+| worker | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: spawned subagent; same remote session id as the expander, so the tester must not run under it) |
 
 **Not on the light path.** T-093 is sized S, but it needs more than four criteria
 (`process.md`, "The light path"): the restore itself, the already-seen boundary,
@@ -187,6 +188,132 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR:** Undo now restores the seen list. The session snapshot gained one key,
+`seen_entity_ids`, and `restore` skips it when it is missing, so snapshots
+written before this change still undo. That is a three-line change in
+`backend/app/orm.py`, plus one new test file. The backend suite is green on
+SQLite, and the touched files pass on Postgres. **Three question-bank
+freeze-guards go red by design.** They pin `backend/` to old commits, and the
+tester needs to re-pin them (listed below).
+
+**Changed**
+
+- **`backend/app/orm.py`**: `SessionRecord.snapshot` adds
+  `"seen_entity_ids": list(self.seen_entity_ids)`. `SessionRecord.restore`
+  assigns it back only `if "seen_entity_ids" in snapshot`.
+- **`backend/tests/test_t093_undo_places_seen.py`** (new, 20 tests). 17 of
+  them fail with the `orm.py` change stashed. The 3 that pass without it are
+  criteria 2, 6 and 8, which already held: the old code never removed X,
+  `apply_answer` never appends X twice, and the old restore never read the
+  key. They are regression pins, not proof of the fix. All 20 pass with the
+  change.
+- **This brief.** Nothing else. No change to `routers/sessions.py`,
+  `grading.py`, `openapi.yaml`, the frontend, migrations or the lockfiles.
+
+**Criterion → where it lives → worker test**
+
+| # | Behaviour lives in | Worker test |
+|---|---|---|
+| 1 | `SessionRecord.snapshot`/`restore` (`orm.py`), called from `submit_answer`/`undo_answer` unchanged | `test_undoing_the_first_answer_leaves_an_empty_seen_list`, `test_undoing_a_new_place_keeps_the_places_already_seen` |
+| 2 | Same. The snapshot already holds the earlier X, so restoring it keeps X once | `test_undo_keeps_a_place_an_earlier_kept_answer_saw` |
+| 3 | `end_session` `placesSeen = len(seen_entity_ids)`, unchanged, now fed a restored list | `test_places_seen_is_zero_after_...`, `test_places_seen_counts_the_kept_answer_...` |
+| 4 | Format-agnostic: the restore does not look at format | the two criterion-1 tests, parametrised over `map_identify`/`multiple_choice`/`map_click` × correct/wrong |
+| 5 | Same snapshot path. `is_review` does not branch it | `test_undoing_a_review_round_answer_restores_the_seen_list` (Texas, the demo profile's queued entity), correct and wrong |
+| 6 | `grading.apply_answer`'s `not in` guard, unchanged | `test_re_answering_after_an_undo_counts_the_place_once` |
+| 7 | Unchanged restore of every other field | `test_undo_still_restores_profile_counts_level_learned_and_review_round`. The two named pre-existing tests pass unmodified |
+| 8 | The `if "seen_entity_ids" in snapshot` guard | `test_an_answer_with_a_pre_t093_snapshot_can_still_be_undone` |
+| 9-12 | See "How to run" and "Suite state" | none. Criterion 12: the new file uses only the ASGI test client |
+
+**Criterion 8: how the "pre-change" record is made.** The test records an
+answer through the API, then rewrites that `AnswerRecord.session_before` in the
+test's DB session to drop the `seen_entity_ids` key, flushes, and undoes it
+through the API. The record is the session's most recent answer and inside the
+window. I did not build an `AnswerRecord` from scratch. The tester may want to
+do that, for independence from my reading.
+
+**Criterion 8: what the list holds afterwards.** The list is left alone, as Out
+of scope allows. A legacy undo therefore leaves the place in the list, which is
+the old behaviour.
+
+**Deliberately not done**
+
+- **`asked_question_ids` is not restored** (Out of scope). It looks right to
+  me. After an undo the question is still pending, so it has been served and
+  is correctly "asked". No queue entry proposed.
+- **`openapi.yaml` `undoAnswer` description not tightened.** It is optional,
+  and "backs out the most recent answer" is already true now.
+- **No new e2e/integration tests** (Out of scope).
+
+**How to run**
+
+```bash
+make -C backend check                                  # ruff, format-check, unit suite
+cd backend && uv run pytest tests/test_t093_undo_places_seen.py -q
+GEO_TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost/geoquiz_test \
+  uv run pytest -q tests/test_t093_undo_places_seen.py tests/test_sessions_api.py tests/test_t051_tester_criteria.py
+cd frontend && bun test ; cd question-bank && bun test
+```
+
+**Suite state, as run in this session**
+
+- **`make -C backend check`**: ruff clean, 63 files formatted, **927 passed,
+  9 skipped**.
+- **Postgres** (the local 16 cluster): the new file plus
+  `test_sessions_api.py` and `test_t051_tester_criteria.py` gave **108
+  passed**. I did not run the full suite on Postgres.
+- **`frontend` `bun test`**: **392 pass, 4 fail, 4 errors**. The cause is
+  environmental, and the result is identical with my change stashed.
+  `react-simple-maps` could not be installed (the proxy returned 403 on the
+  `d3-timer` tarball during `bun install --frozen-lockfile`), so the 4 files
+  that import it error. `git-baseline-guard.criteria.test.ts` passes.
+  (`bun install` also rewrote `frontend/README.md`. I reverted that. It is
+  not part of this change.)
+- **`question-bank` `bun test`**: **2708 pass, 5 fail**. 3 are mine (below).
+  2 were already red on this branch before my change (with my change
+  stashed: 2711 pass, 2 fail):
+  - `farm-animal-loose-ends-verify.test.ts`, `T-096 criteria 17-21: the bank and the boundaries > criterion 21: ...`: tracked-file count 288, pinned 286.
+  - `climate-cold-trade-accepted-verify.test.ts`, `T-091 criterion 22: the diff touches only the allowed files > ...`: count 292, pinned 290.
+
+  Both counts are 2 over, which matches the expander/orchestrator adding
+  `tasks/T-093-undo-places-seen.md` and `runs/T-093-undo-places-seen.md` on
+  this branch. This is my reading only, not confirmed. **Tester to confirm
+  and re-pin**, the same way as the three below.
+
+**Tests made stale** (criterion 10 forbids me to touch them, so they are left red)
+
+1. `question-bank/src/map-click-no-candidates-verify.test.ts`, `T-092 criterion 16: no other surface changes > backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-053's`.
+   It goes red because `backend/app/orm.py` changed, which the brief's
+   Constraints expect. **Modify:** re-pin the `backend/app` digest at this
+   task's commit.
+2. `question-bank/src/refresh-regenerate-reminder-verify.test.ts`, `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes > every tracked file under the three trees is as re-pinned by T-039, none added or removed`.
+   It goes red because `orm.py` changed and
+   `backend/tests/test_t093_undo_places_seen.py` was added. **Modify:**
+   re-pin the digest, and the file count +1.
+3. `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, `T-091 criterion 20: no non-test source file moves > every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's`.
+   It goes red because `orm.py` changed. **Modify:** re-pin the digest.
+
+None of the pre-existing backend tests went red. That includes `test_c20_undo_restores_profile_and_session_as_for_the_other_formats`: both drift sets lost `seenEntityIds` together, as the brief predicted.
+
+**Contradictions with the brief:** none found. One gap: criterion 10 ("every
+pre-existing test file byte-identical") and criterion 9 ("question-bank `bun
+test` passes") cannot both hold. Any `backend/app` change trips the three
+freeze-guards above. This is the same recurring re-pin the guards' own
+comments record (e.g. "re-pinned T-085a"), so it goes through the tester's
+D-14 request rather than back to the expander. **Tester to raise; human to
+approve the re-pins.**
+
 ## Verdict
 
 ## Notes
+
+- **The change was smaller than the brief allowed for.** `seen_entity_ids` was
+  simply missing from `SessionRecord.snapshot`. Nothing needed to change in the
+  router.
+- **Decided: on a legacy snapshot, leave the list alone rather than rebuild
+  it.** Rebuilding from the remaining answers would be more correct. But it
+  adds code for a 30-second window that closes for good minutes after deploy,
+  and Out of scope says neither choice is tested. Reviewer to confirm or
+  overturn.
+- **Surprise:** the review-round test relies on the demo profile having Texas
+  queued (`store.ensure_demo_profile`). If that seed changes, the test's
+  `entityId == "us-state-tx"` assertion is the one that will say so.

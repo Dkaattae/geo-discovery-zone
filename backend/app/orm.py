@@ -302,6 +302,7 @@ class SessionRecord(Base):
             "correct_streak": self.correct_streak,
             "wrong_streak": self.wrong_streak,
             "learned_entity_ids": list(self.learned_entity_ids),
+            "seen_entity_ids": list(self.seen_entity_ids),
             "review_round_remaining": self.review_round_remaining,
             "last_answer_wrong": self.last_answer_wrong,
             "review_offered": self.review_offered,
@@ -316,6 +317,10 @@ class SessionRecord(Base):
         self.correct_streak = snapshot["correct_streak"]
         self.wrong_streak = snapshot["wrong_streak"]
         self.learned_entity_ids = list(snapshot["learned_entity_ids"])
+        # Snapshots written before T-093 have no seen list; leave it alone then
+        # rather than fail the undo.
+        if "seen_entity_ids" in snapshot:
+            self.seen_entity_ids = list(snapshot["seen_entity_ids"])
         self.review_round_remaining = snapshot["review_round_remaining"]
         self.last_answer_wrong = snapshot["last_answer_wrong"]
         self.review_offered = snapshot["review_offered"]
