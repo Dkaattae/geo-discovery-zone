@@ -75,7 +75,9 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // files, two e2e files and eleven backend test files, and added two backend test files.
 // Re-pinned by T-098 (Test change request row 4): T-098 added
 // backend/tests/test_git_revision_guard.py.
-const MAIN_BOUNDARY_SHA = "1ea8c50dc0edf32de32320fb7550cdef8209ca83e8c78eadf4b7abd3937676af";
+// Re-pinned by T-093 (Test change request row 5): T-093 changed backend/app/orm.py
+// and added two backend test files.
+const MAIN_BOUNDARY_SHA = "69778f17e64fe1807c7b32e746056a6951d5f310dfdeda82aafa702f7c989bc2";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",

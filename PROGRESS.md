@@ -370,6 +370,19 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-093 — An undone answer no longer counts as a place seen** (PR #119,
+  2026-11-03). `SessionRecord.snapshot` now holds `seen_entity_ids`, so undo
+  restores the seen list, and the summary's `placesSeen`, with every other
+  field it already rolled back. `restore` skips the key when it is missing, so
+  an answer recorded before the change still undoes (and then keeps its place,
+  as before). *Where it differed from the brief:* the fix was one key in
+  `orm.py`; nothing in the router changed. As in T-098, criteria 9 and 10
+  contradicted each other: seven question-bank whole-tree pins (T-087, T-091,
+  T-092, T-096) went red from T-093's own files, and Dkaattae approved all seven
+  re-pins in an attended tester session. The brief's product choice (undo
+  removes the place, rather than "a place looked at is a place seen") was made
+  by the expander under an unattended approval stamp; the PR escalates it.
+
 - **T-098 — Backend tests may not hand `git` a revision** (PR #118, 2026-11-03).
   `backend/tests/test_git_revision_guard.py` parses every tracked and untracked
   `.py` file under `backend/tests/` and `backend/integration/` with `ast` and
@@ -1771,7 +1784,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - **Small states may be hard to tap.** `map_click` gives Rhode Island, Delaware
   and Connecticut no larger hit area than their outline (T-051). Whether a
   finger can hit them on a tablet is a person's check on PR #96, not yet done.
-- **An undone answer still counts as a place seen** in the summary (T-093).
 - **The agriculture exclusion lists are unchecked.** Since T-088, crop and
   farm-animal wrong answers skip what a state is roughly a top-10 producer of,
   or known for, using person-approved lists in `distractors.ts`. Those lists
