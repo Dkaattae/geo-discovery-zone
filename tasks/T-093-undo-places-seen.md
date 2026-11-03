@@ -1,7 +1,7 @@
 # T-093 — An undone answer still counts as a place seen
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (decide the product choice, then merge PR #119)
 **Approved:** orchestrator — 2026-11-03, unattended run. See `runs/T-093-undo-places-seen.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-03`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: spawned subagent; same remote session id as the expander, so the tester must not run under it) |
 | tester | 2026-11-03 | `cse_011oDiJeUyEjWF9EzpoTaWLp` (orchestrated: freshly spawned subagent; the shared id is the orchestrator's, not evidence of separation, see Verdict) |
 | tester (attended, resumed) | 2026-11-03 | `cse_011oDiJf5mzg8Vrg6qZyj7ii` (separate cloud session, created at the person's request and attended by Dkaattae; not in any row above) |
+| reviewer | 2026-11-03 | `cse_011oDiJf5mzg8Vrg6qZyj7ii` (orchestrated: spawned subagent in the same cloud session as the attended tester; my own context, no part in building or testing the work) |
 
 **Not on the light path.** T-093 is sized S, but it needs more than four criteria
 (`process.md`, "The light path"): the restore itself, the already-seen boundary,
@@ -498,6 +499,59 @@ T-098 row 5 also needed. Paths are relative to `question-bank/`.
 **Approved and applied.** Dkaattae approved all seven rows in the attended tester
 session `cse_011oDiJf5mzg8Vrg6qZyj7ii`. They were applied in `bdd1ca6`
 (`T-093 tester: apply approved test change request`). See the Verdict.
+
+## Review
+
+**TL;DR:** **Approved, escalated.** The code is right and small: one snapshot
+key in `orm.py`, plus a guarded restore. CI is green on all six jobs. **It is
+escalated for one product decision nobody has looked at:** the brief chose "undo
+removes the place", and its only approval is the orchestrator's unattended stamp.
+Dkaattae: confirm that choice, then merge.
+
+**Why escalated (envelope, `reviewer.md` §3):** "no product decision was settled
+along the way". The queue entry offered two rules: restore the seen list, or
+"a place looked at is a place seen". The expander picked the first, and the
+brief asked the approver to strike it if they disagreed. In this run the
+approver was `Approved: orchestrator — unattended`, which has not read the
+criteria (D-3). The attended tester session approved the test re-pins, not the
+brief. So no person has seen the choice. I think it is the right one: the code's
+own comment at `routers/sessions.py:259-260` already promised it. But it is a
+call about what a child's summary claims, and that is a person's call.
+
+**Every other envelope item holds:**
+
+- **Tester pass, CI green.** All six PR checks pass at `6c5b932`, including `backend (postgres)` and `e2e`.
+- **No dependency, no migration, no `openapi.yaml`, no plan change, no child-facing text.**
+- **Pre-existing tests changed only with a person's approval.** `Test changes: approved — Dkaattae`. The only commit touching pre-existing tests is `bdd1ca6` (tester). It touches exactly the four guard files in rows 1-7.
+- **No CI fix** (`CI fix: none` in every round).
+- **Files outside Constraints:** only those four question-bank guards. That is the approved request, not drift.
+
+**Lanes (D-7), checked per commit:**
+
+- **Expander** (`6a7e038`, `f07bf66`): only `tasks.md` and the brief.
+- **Orchestrator** (`ad2c373`, `dc836fb`, `6dbe569`, `0a35447`, `a27f8fa`): only `runs/` and the brief's `Approved:` line.
+- **Worker** (`8f16bb7`): `backend/app/orm.py`, one new test file, the brief.
+- **Tester** (`a83633e`, `ab35131`, `bdd1ca6`, `6c5b932`): a new test file, the four approved guard files, the brief. No source.
+- **Every Sessions row has a commit.** Nothing is stranded on another branch.
+
+**Quality**
+
+- **Fits the codebase.** Copying the list with `list(...)` matches `learned_entity_ids` beside it. The tester's mutation M3 shows that copy matters. The guarded restore has one comment saying why.
+- **No more than asked.** The router, `grading.py`, `openapi.yaml` and the frontend are all untouched.
+- **Docs are true.** The `sessions.py:259-260` comment ("an undo restores exactly what was there") is now true. `openapi.yaml`'s `undoAnswer` was already true. The PROGRESS.md known-gap line goes in the sweep.
+- **Honesty intact.** The worker said 3 of its 20 tests pass without the fix, and the tester's mutations say which criteria pin old behaviour. Each re-pin was shown to return the old digest once T-093's files are removed.
+
+**Flags disposed**
+
+- **Leaving a legacy snapshot's list alone (worker Notes): confirmed.** Only answers recorded in the 30 seconds before deploy can hit this path, and the result is today's behaviour. Rebuilding the list would be code for a window that closes by itself.
+- **`asked_question_ids` not restored (Out of scope): no task.** I agree with the worker. The undone question goes back to pending, so it has been served.
+- **Review-round test depends on the demo seed queuing Texas: accepted.** If the seed changes, that assertion fails loudly, which is what it should do.
+
+**Non-blocking findings:** none, so no new `tasks.md` entries. The 9-vs-10
+criteria contradiction happened again, as it did in T-098. Every backend task
+re-pins the question-bank whole-tree guards. That gap is in the loop, not in
+this task, and the T-098 review already reported it (P-17). I cannot add to
+`process-tasks.md` because T-091's pin covers that file.
 
 ## Notes
 
