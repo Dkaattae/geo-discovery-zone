@@ -1,7 +1,7 @@
 # T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 — run log
 
 **Task:** T-100 · **Branch:** `claude/ecstatic-hopper-lp3me9` · **PR:** #123
-**Started:** 2026-11-04 · **Outcome:** halted — needs human
+**Started:** 2026-11-04 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -116,3 +116,6 @@ Raised by the tester at commit `65498ff`. Header: `Status: test changes requeste
 To resume: a person starts the `tester` step for T-100 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. Then start a new run from the `Next step` it writes.
 
 Roles run: task-expander → worker → tester.
+
+## Resumed — 2026-11-04
+Dkaattae in the orchestrator's session: "ci fixed. please proceed". The branch head had moved since the halt: an attended tester pushed `64ea707` (apply approved test change request) and `0d65cec` (verdict pass). Header now reads `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-04`. Carrying on from that `Next step`.
