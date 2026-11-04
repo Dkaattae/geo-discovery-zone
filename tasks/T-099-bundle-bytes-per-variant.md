@@ -1,15 +1,15 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body
 
-**Status:** `changes requested`
-**Next step:** `tester` — in a session Dkaattae is attending, raise and apply the Test change request for the 9 stale question-bank pins (Review, finding 1)
+**Status:** `test changes requested`
+**Next step:** `human` — approve or refuse the Test change request's 10 rows in the attended tester session that raised it
 **Approved:** Dkaattae — 2026-11-04, given in the orchestrator's session ("approved"). See `runs/T-099-bundle-bytes-per-variant.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-099
 **Branch:** `claude/quirky-heisenberg-d6n4kg`
 **PR:** #122, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:**
+**Fault:** test changes waiting for approval — 10 modify rows re-pinning 9 stale question-bank whole-tree pins (CI red) plus their cascade
 
 **Sessions:**
 
@@ -19,6 +19,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent; same remote session id as the expander — the orchestrator spawns every role inside one web session) |
 | tester | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; the shared id is not evidence of separation, see Verdict) |
 | reviewer | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; did not write any of the work) |
+| tester | 2026-11-04 | `cse_011oDiJeaNBauNt9X5DyTHhB` (attended: started directly by the user, a separate session from every role above) |
 
 **Not on the light path.** T-099 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -294,6 +295,51 @@ was never the keyed size either).
 in my run.
 
 **Test change request:** none. No existing test is stale.
+
+## Test change request
+
+**TL;DR:** 10 modify rows, no deletions, nothing weakened. Rows 1-9 are the 9 red
+pins the Review's finding 1 names (CI's question-bank job). Row 10 is the cascade
+T-097 row 10, T-093 row 7 and T-053 row 33 also needed. Paths are relative to
+`question-bank/`. Raised by an attended tester (session
+`cse_011oDiJeaNBauNt9X5DyTHhB`), 2026-11-04.
+
+These go stale because of T-099's own files, all of which the Constraints allow:
+`backend/app/store.py` and `backend/app/routers/content.py`, the `openapi.yaml`
+description (criterion 7), two new test files under `backend/tests/`, and the
+task's brief and run log.
+
+- **Rows 1 and 4 follow the T-097 / T-093 precedent.** The loop records join the
+  allowed set and the counts stay the same (289, 286). `store.py` stays counted, so
+  the digest is re-pinned and still covers its new bytes. `routers/content.py` and
+  `openapi.yaml` are already allowed (T-053, T-039).
+- **Rows 2, 3 and 5-9 re-pin to digests that include T-099's files.**
+- **Row 2's count goes up by exactly T-099's two new test files** (118 → 120).
+- **Dry run, in a scratch worktree of `c4a9446`:** with all 10 rows applied,
+  `bun test` in `question-bank/` gives **2713 pass, 0 fail**, and oxlint and
+  prettier are clean. With the rows *not* applied but T-099's files backed out
+  (`store.py`, `routers/content.py`, `openapi.yaml` at `720b5ee`, the two
+  `test_t099_*` files and the brief and run log untracked), the six files'
+  **old pins pass, 245/245**. So each new digest differs from the old one by
+  T-099's files and nothing else.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester (re-pinned by T-093, T-097, P-18): no non-test file outside T-091's allowed set changes or appears | T-099's brief and run log are new tracked non-test files (291 ≠ 289), and `backend/app/store.py` (counted) moved | modify | Same name. Add `tasks/T-099-bundle-bytes-per-variant.md` and `runs/T-099-bundle-bytes-per-variant.md` to `CRITERION_22_ALLOWED`, with a comment citing T-099 row 1. `MAIN_UNTOUCHABLE_COUNT` stays **289**. `MAIN_UNTOUCHABLE_SHA` `9211c863…cf71` → `eea782856267d2808ddb88782266eaae6b0c986c1e2baa4378363aec48386c4c`, comment "Re-pinned by T-099 (Test change request row 1): backend/app/store.py moved" | pending |
+| 2 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester (re-pinned by T-097 and earlier): no test file is added, removed or modified outside named exceptions | T-099 adds `backend/tests/test_t099_bundle_bytes.py` (worker) and `backend/tests/test_t099_tester_criteria.py` (tester) (120 ≠ 118) | modify | Same name and filter. `MAIN_TESTS_COUNT` **118 → 120**. `MAIN_TESTS_SHA` `7f7c5140…1ae2` → `abdee3516d56a22fe8b38de73105a0527b4d6cd06fa91132366e0024b1fc4324`, comment "Re-pinned by T-099 (Test change request row 2): T-099 added test_t099_bundle_bytes.py and test_t099_tester_criteria.py (118 -> 120)" | pending |
+| 3 | same file › "T-091 criterion 20: no non-test source file moves" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091 tester (re-pinned by T-093, T-097): no non-test source file under the three trees moves | `backend/app/store.py` and `backend/app/routers/content.py` moved | modify | Same name and file set. `MAIN_SOURCE_TREES_SHA` `3fed2394…676a` → `1ca1b5fd8fa81f3c428ea80c1b1bb88d6f6e45b56dc71807ad9a5a8e1a949e83`, comment "Re-pinned by T-099 (Test change request row 3): backend/app/store.py and routers/content.py moved" | pending |
+| 4 | `src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester (re-pinned by T-093, T-097): no non-test file outside T-096's allowed set changes or appears | Same as row 1 (288 ≠ 286) | modify | Same name. Add the same two T-099 paths to `CRITERION_21_ALLOWED`, with a comment citing T-099 row 4. Count stays **286**. `MAIN_UNTOUCHABLE_SHA` `4452ec88…9e07` → `f0feb8d45ca4b8b57e7eff464b26135c9cec50dad238337d70fba0c2c166902e`, comment "Re-pinned by T-099 (Test change request row 4): backend/app/store.py moved" | pending |
+| 5 | `src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087 tester (re-pinned by T-039, T-045, T-053, T-098, T-093, T-097): every file under the three trees is pinned | `store.py` and `routers/content.py` changed and two backend test files were added | modify | Same name and file set. `MAIN_BOUNDARY_SHA` `0f3d3da8…be5e` → `819f3493e881dd250bf9b5fe19edbd6220d5bd384c30756068d23f5231c976d8`, comment "Re-pinned by T-099 (Test change request row 5): T-099 changed backend/app/store.py and routers/content.py and added two backend test files". The digest covers both new test files' bytes, so a later edit to them goes red | pending |
+| 6 | `src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-097's` | `cf63f66`, T-092 tester (re-pinned by T-085a, T-088, T-045, T-053, T-093, T-097): `backend/app` does not move | `store.py` and `routers/content.py` moved | modify | Renamed to `… is byte-identical to T-099's` (as T-097 renamed it). Same exception list. Digest `19de54aa…bc7c` → `5c9f446dc9ab9b44438f69f2da8e19eddffc0fe31ede47cda38980585c8f606a`. Comment above it gains "Re-pinned at T-099 (Test change request row 6), after T-099 made each bundle variant's bytes its own body length in store.py and routers/content.py" | pending |
+| 7 | same file › same describe › `openapi.yaml (except []) is byte-identical to T-097's` | `cf63f66`, T-092 tester (re-pinned by T-039, T-045, T-053, T-097): `openapi.yaml` does not move | Criterion 7 requires the `BundleSummary.bytes` description | modify | Renamed to `openapi.yaml (except []) is byte-identical to T-099's`. Digest `80cade8b…f6c` → `a7c2b839d7ad9d86dd54e8328880aa09832ba9c10cac54d2d5348efa6f16a1ab`. Comment gains "Re-pinned at T-099 (Test change request row 7), after T-099 described what BundleSummary.bytes measures" | pending |
+| 8 | `src/familiarity-drawn-apart-verify.test.ts` › "T-085a criteria 23-25: negative" › "criterion 25: openapi.yaml is unchanged since ed00235 (re-pinned T-039)" | `b061fd8`, T-085a tester (re-pinned by T-039, T-045, T-053, T-097): `openapi.yaml` does not move | Same as row 7 | modify | Same name (T-045, T-053, T-097 kept it). `BEFORE_FILE_SHA["openapi.yaml"]` `ec1b1fca…6209` → `cfca3ade116502108fd2aa26b5815d853151501d9a3b2ce63cf1ea66eeb10189` (the file's sha256 now), comment gains "Re-pinned at T-099 (Test change request row 8): T-099 describes what BundleSummary.bytes measures" | pending |
+| 9 | `src/agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25: what must not change" › "criterion 21: openapi.yaml is byte-identical to main's" | `e9d666e`, T-088 tester (re-pinned by T-039, T-045, T-053, T-097): `openapi.yaml` does not move | Same as row 7 | modify | Same name. `MAIN_FILE_SHA["openapi.yaml"]` `ec1b1fca…6209` → `cfca3ade116502108fd2aa26b5815d853151501d9a3b2ce63cf1ea66eeb10189`, comment gains "Re-pinned at T-099 (Test change request row 9): T-099 describes what BundleSummary.bytes measures" | pending |
+| 10 | `src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091 tester: the files in its request hold exactly their approved re-pins | Green today, but rows 4, 6-7, 8 and 9 change four files whose digests it pins in `APPLIED_REQUEST_FILE_SHAS` | modify (only for files whose rows are approved) | Same name. Re-pin those entries to each file's sha256 **after** its rows are applied, and extend each entry's comment with ", then by T-099 (row 10)". Dry-run values (with the comments above): agriculture `b79038d0…383e`, map-click `79701891…0d92`, farm-animal `410596b9…7f86`, familiarity `f9a3e24a…54e1`; recomputed at apply time. `MAIN_REQUEST_FILE_SHAS`, `seed-level-loose-ends-verify.test.ts` and `test_t089_tester_criteria.py` stay as they are | pending |
+
+**To approve:** answer in this attended tester session, row by row or all at
+once. The tester then applies exactly the approved rows as `T-099 tester: apply
+approved test change request`, re-runs the backend, question-bank and frontend
+suites, and writes the verdict.
 
 ## Notes
 
