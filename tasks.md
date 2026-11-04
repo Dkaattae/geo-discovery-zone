@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued._
 
 ## How this list is ordered
 
@@ -339,21 +339,6 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 · S · doing (brief awaiting approval — `tasks/T-100-unknown-bundle-304.md`)
-**Depends on:** — (T-097 landed, PR #120)
-**New 2026-11-03, from T-097's brief (Out of scope).** `get_bundle` checks
-`If-None-Match` against `store.bundle_etag` before checking the bundle exists, and
-`bundle_etag` returns a tag for any id. So `GET /bundles/zz` with
-`If-None-Match: "zz-<contentVersion>"` gets a 304 instead of a 404.
-**Since T-099 (PR #122):** `get_bundle` now builds its body through
-`_bundle_body` and returns a raw `Response` with the measured bytes; the 304
-check still runs first, before any existence check. Checking existence there
-must stay cheap (do not call `_bundle_body`, which renders the full bundle).
-While in the decorator, drop `response_model_exclude_unset=True`: it is inert
-now that the handler returns a `Response` (T-099 review, finding 2).
-**Done when:** an unknown bundle is a 404 problem document whatever
-`If-None-Match` holds, for both `includeAnswerKey` variants, and a test pins it.
-
 ### T-101 — `test_t040` c25 can fail by chance: a mixed session may serve no `map_identify` · S · todo
 **Depends on:** —
 **New 2026-11-04, found by T-099's worker.** `make -C backend check` failed once
@@ -433,6 +418,9 @@ which spawns `bun run format` (a write) around its probe files.
 edit, and the worker noted it also happens on a clean tree without
 `node_modules`. That points harder at the format-gate test's `bun run format`
 when prettier cannot be resolved.
+**Seen a fourth time 2026-11-04 in T-100's worker run** (PR #123): one
+`bun test` in `frontend/` without `node_modules` (the install was refused by the
+proxy) rewrote `frontend/README.md`. Same no-`node_modules` condition as T-089.
 
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —

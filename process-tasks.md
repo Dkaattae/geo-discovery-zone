@@ -620,6 +620,10 @@ an attended tester session for one digest. A grep for the file name across
 - **Accept it**: the worker's "Tests made stale" and the tester's request
   already catch it, at the cost of one halt.
 
+**Seen again 2026-11-04, T-100 (PR #123):** the brief said "None is expected to
+go stale", and 7 question-bank whole-tree pins over `backend/` and the
+repo's tracked-file set did. That makes four tasks in a row (T-093, T-097,
+T-099, T-100), each halted for an attended re-pin.
 **This is a process-file change** (`.claude/agents/task-expander.md`, perhaps
 `tasks/TEMPLATE.md`), so it is done by hand.
 **Done when:** a brief whose criteria change a file that a pre-existing test pins

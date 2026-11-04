@@ -74,6 +74,7 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (`includeAnswerKey=true`) is tagged `"<id>-<contentVersion>-key"`, so a cached
   copy of one variant never revalidates as the other. Each variant's `bytes` is
   that body's exact length, and `GET /bundles` lists the unkeyed one (T-099, PR #122).
+  An unknown bundle is a 404 whatever `If-None-Match` holds (T-100, PR #123).
 - **The session commits before the response is sent** (`DbSessionMiddleware`).
   It used to commit after, which FastAPI runs *after the response has reached the
   client* — so `register` could answer 201 before the row existed and the very
@@ -373,6 +374,20 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-100 — An unknown bundle is a 404 whatever `If-None-Match` holds** (PR #123,
+  2026-11-04). `get_bundle` checks `store.bundle_ids` (one `SELECT DISTINCT
+  scope`) before the conditional check, so `GET /bundles/zz` with a matching tag
+  is a 404 problem with no `ETag` or immutable `Cache-Control`, and a known
+  bundle's 304 still reads no `questions`. The inert
+  `response_model_exclude_unset=True` on that route is gone. *Where it differed
+  from the brief:* the brief expected no stale tests. 7 question-bank whole-tree
+  pins went red from T-100's own files (the worker found 3 and called 2 others
+  "already red", which they were not), and Dkaattae approved the 7-row re-pin in an
+  attended tester session. Criterion 7's "the `APIRoute` in `app.routes`" is not
+  literal on FastAPI 0.141, which nests included routes under
+  `_IncludedRouter.original_router`, so the tests walk that. `If-None-Match: *` on
+  a known bundle is still a 200, and is deliberately not queued.
 
 - **T-099 — A bundle's `bytes` is the exact length of the body it is in** (PR #122,
   2026-11-04). The router renders each `includeAnswerKey` variant itself,
@@ -1867,8 +1882,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- `GET /bundles/zz` with a matching `If-None-Match` is a 304 rather than a
-  404 (T-100).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
   still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
