@@ -68,7 +68,8 @@ const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d398
 // Re-pinned by T-093 (Test change request row 3): backend/app/orm.py moved.
 // Re-pinned by T-097 (Test change request row 3): backend/app/store.py and routers/content.py moved.
 // Re-pinned by T-099 (Test change request row 3): backend/app/store.py and routers/content.py moved.
-const MAIN_SOURCE_TREES_SHA = "1ca1b5fd8fa81f3c428ea80c1b1bb88d6f6e45b56dc71807ad9a5a8e1a949e83";
+// Re-pinned by T-100 (Test change request row 4): routers/content.py moved.
+const MAIN_SOURCE_TREES_SHA = "6b45b3a10ad5e736e6d324626d258179233f75dcb334c2d4056034edc2592f21";
 /**
  * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
  * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
@@ -106,7 +107,9 @@ const MAIN_UNTOUCHABLE_COUNT = 289;
 // test_t097_bundle_etag_variants.py and test_t097_tester_criteria.py (116 -> 118).
 // Re-pinned by T-099 (Test change request row 2): T-099 added
 // test_t099_bundle_bytes.py and test_t099_tester_criteria.py (118 -> 120).
-const MAIN_TESTS_SHA = "abdee3516d56a22fe8b38de73105a0527b4d6cd06fa91132366e0024b1fc4324";
+// Re-pinned by T-100 (Test change request row 6): T-100 added
+// test_t100_unknown_bundle_conditional.py and test_t100_tester_criteria.py (120 -> 122).
+const MAIN_TESTS_SHA = "0bcd984623a88fe415f7fec949446c6c60090c629549fa0985c917794a8b7628";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -116,7 +119,9 @@ const MAIN_TESTS_SHA = "abdee3516d56a22fe8b38de73105a0527b4d6cd06fa91132366e0024
 // backend/tests/test_git_revision_guard.py (113 -> 114).
 // Re-pinned by T-093 (Test change request row 2): T-093 added
 // test_t093_undo_places_seen.py and test_t093_tester_criteria.py (114 -> 116).
-const MAIN_TESTS_COUNT = 120;
+// Re-pinned by T-100 (Test change request row 6): T-100 added
+// test_t100_unknown_bundle_conditional.py and test_t100_tester_criteria.py (120 -> 122).
+const MAIN_TESTS_COUNT = 122;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -152,14 +157,15 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33), then by T-093 (row 7), then by T-097 (row 10), then by T-099 (row 10)
+  // then by T-053 (row 33), then by T-093 (row 7), then by T-097 (row 10), then by T-099 (row 10),
+  // then by T-100 (row 7)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "797018912673a9b656b29da009acb7aa5c445e8aa97befc69539f971ffef0d92",
+    "4e47490a44244e68d77bdac99f34dc1ae21d487edb2308fc1b84267ce554faf2",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
-  // then by T-097 (row 10), then by T-099 (row 10)
+  // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "410596b9d50cd355d48cafa8edc7fb8642f565cd3c50f2eafdc789c71eed7f86",
+    "c6cbe7b60641455e9a97d4783331231cd139be9cd5d592073ffe69fc388f2b38",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -222,6 +228,10 @@ const CRITERION_22_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
   "tasks/T-099-bundle-bytes-per-variant.md",
   "runs/T-099-bundle-bytes-per-variant.md",
+  // T-100's loop records, joined through T-100's Test change request row 5
+  // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
+  "tasks/T-100-unknown-bundle-304.md",
+  "runs/T-100-unknown-bundle-304.md",
   // The loop's own queue, exempted by hand for P-18 (approved by Dkaattae, 2026-11-03,
   // in the session that made the edit), as T-096 did for its criterion 21 (4d5f283).
   "process-tasks.md",

@@ -227,6 +227,10 @@ const CRITERION_21_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
   "tasks/T-099-bundle-bytes-per-variant.md",
   "runs/T-099-bundle-bytes-per-variant.md",
+  // T-100's loop records, joined through T-100's Test change request row 3
+  // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
+  "tasks/T-100-unknown-bundle-304.md",
+  "runs/T-100-unknown-bundle-304.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
