@@ -1,7 +1,7 @@
 # T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-04, unattended run. See `runs/T-100-unknown-bundle-304.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw |
+| worker | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw |
 
 ## Goal
 
@@ -160,6 +161,111 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR: fixed.** `get_bundle` now checks the bundle exists before it looks at
+`If-None-Match`, so an unknown id is a 404 whatever tag is sent. Backend check
+is green (1020 passed, 9 skipped). **3 question-bank boundary pins go red by
+design** (listed below, the tester re-pins them); 2 more were already red before
+this change.
+
+**What changed, file by file**
+
+- **`backend/app/routers/content.py`, `get_bundle`**: added
+  `if bundleId not in store.bundle_ids(db): raise not_found(...)` before the
+  etag and conditional check. Also dropped `response_model_exclude_unset=True`
+  from the `/bundles/{bundleId}` decorator. `response_model=Bundle` stays.
+  Nothing else changed. `list_bundles`, `_bundle_body` and `store.py` are untouched.
+- **`backend/tests/test_t100_unknown_bundle_conditional.py`** (new, 4 tests):
+  the unknown-id matrix for criteria 1-3, the known-bundle 304 for criterion 4,
+  criterion 6 via a `before_cursor_execute` listener on the `engine` fixture, and
+  criterion 7. Two of them fail with the `content.py` change stashed (the
+  unknown-id 404 and the route flag). I checked that.
+- **This brief**: Sessions row, Handoff, Notes, Status.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1-3 | `get_bundle`'s existence guard comes first. The 404 is the shared `not_found` problem, with no `ETag` or `Cache-Control` set. |
+| 4, 5 | The unchanged conditional check and 200 `Response` that follow the guard. |
+| 6 | The guard is `store.bundle_ids`: one `SELECT DISTINCT entities.scope`. `bundle_etag` reads `content_meta`. Neither reads `questions`. |
+| 7 | The `get_bundle` decorator. **See the flag below on where the route lives.** |
+| 8 | `list_bundles`, untouched. |
+| 9-11 | The diff touches only `content.py`, the new test file and this brief. |
+| 12 | The new tests use only `client`, `db_session` and `engine`. `make -C backend check` passed with all four proxy vars set to `http://127.0.0.1:1`. |
+| 13 | Backend is green. Frontend and question-bank: see below. |
+
+**Flags, each with a proposed owner**
+
+- **Criterion 7's "in `app.main.app.routes`" is not literally true on FastAPI
+  0.141.1.** Each `include_router` shows up in `app.routes` as an
+  `_IncludedRouter`. The `APIRoute` objects sit under `.original_router.routes`,
+  and their `path` there has no prefix (`/bundles/{bundleId}`). So a literal
+  scan of `app.routes` finds **zero** matching routes. My test walks
+  `original_router` and finds exactly one. I read that as what the criterion
+  means. **Tester to confirm that reading. If not, `task-expander` to reword it.**
+- **The session id matches the expander's** (`cse_011oDiJeFc5BLAbjAcwGQdfw`).
+  That is what `$CLAUDE_CODE_REMOTE_SESSION_ID` returns in this orchestrated
+  run. The tester should still check that its own id differs from the worker's.
+  **Orchestrator / human to note.**
+- **Out-of-scope items left alone**: `*` on a known bundle (still 200), weak
+  validators, `bundle_etag`'s value for unknown ids, and `list_bundles`'s
+  `exclude_unset`. I added no `tasks.md` entry for `*` on known bundles. The
+  brief already names it, so the sweep can queue it. **Reviewer to decide.**
+
+**Tests made stale** (question-bank, pinned digests that move because
+`backend/app/routers/content.py` changed and a backend test file was added. Same
+pattern as the T-097 and T-099 re-pins):
+
+1. `question-bank/src/map-click-no-candidates-verify.test.ts`, test
+   `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-099's`
+   (in `T-092 criterion 16: no other surface changes`). Reason: `routers/content.py`
+   changed. **Modify**: re-pin the `treeDigest` to this branch, and rename it "to T-100's".
+2. `question-bank/src/refresh-regenerate-reminder-verify.test.ts`,
+   `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` >
+   `every tracked file under the three trees is as re-pinned by T-039, none added or removed`.
+   Reason: `content.py` changed and `backend/tests/test_t100_unknown_bundle_conditional.py`
+   was added. **Modify**: re-pin `MAIN_BOUNDARY_SHA`.
+3. `question-bank/src/climate-cold-trade-accepted-verify.test.ts`,
+   `T-091 criterion 20: no non-test source file moves` >
+   `every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's`.
+   Reason: `content.py` changed. **Modify**: re-pin `MAIN_SOURCE_TREES_SHA`, and
+   the `routers/content.py` row if it is pinned separately (line ~203).
+
+The brief said it expected no stale tests. That holds for backend tests, but not
+for these question-bank boundary pins.
+
+**Already red before this change** (confirmed with my changes stashed; not mine):
+
+- `farm-animal-loose-ends-verify.test.ts`, `T-096 criteria 17-21` > `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added`
+- `climate-cold-trade-accepted-verify.test.ts`, `T-091 criterion 22` > `every tracked non-test file outside the allowed list is 12d242e's, and none is added`
+
+The question-bank run gave 2708 pass and 5 fail: the three above plus these two.
+
+**Frontend suite not run.** `bun install --frozen-lockfile` in `frontend/`
+fails here with `ProxyConnectFailed (403)`. The lockfile pins tarballs from
+`europe-west1-npm.pkg.dev/lovable-core-prod/...`, which this sandbox cannot
+reach. This task does not touch `frontend/`. **Tester or CI to run it.** Running
+`bun test` once without node_modules also rewrote `frontend/README.md` (a
+prettier gate). I reverted that with `git checkout`, so it is not in the diff.
+
+**How to run**
+
+```bash
+cd backend && uv run pytest -q tests/test_t100_unknown_bundle_conditional.py
+HTTPS_PROXY=http://127.0.0.1:1 HTTP_PROXY=http://127.0.0.1:1 make -C backend check
+cd question-bank && bun install --frozen-lockfile && bun test
+```
+
 ## Verdict
 
 ## Notes
+
+- **The fix is one guard.** `bundle_ids` was already the cheap existence check
+  the brief pointed at. I left `store.bundle_etag` alone (out of scope).
+- **Surprise: FastAPI 0.141 nests included routes** under `_IncludedRouter`.
+  This affects criterion 7 (see the Handoff flag) and anything else that scans
+  `app.routes`.
+- **Surprise: running `bun test` before `bun install` mutates `frontend/README.md`.**
+  Worth a `process-tasks.md` / `tasks.md` look by whoever sweeps.
+- **Commit-pinned boundary digests broke again**, as they do on every backend
+  change (E-11/E-12 territory). These three re-pins are a recurring cost.
