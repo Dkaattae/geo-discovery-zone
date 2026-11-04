@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body
 
-**Status:** `verified — pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated (touches openapi.yaml)`
+**Next step:** `human` — merge decision on PR #122
 **Approved:** Dkaattae — 2026-11-04, given in the orchestrator's session ("approved"). See `runs/T-099-bundle-bytes-per-variant.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it
 | task-expander | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent) |
 | worker | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent; same remote session id as the expander — the orchestrator spawns every role inside one web session) |
 | tester | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; the shared id is not evidence of separation, see Verdict) |
+| reviewer | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; did not write any of the work) |
 
 **Not on the light path.** T-099 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -309,3 +310,58 @@ in my run.
   is the only exact option.
 - **`_sized` imported in the worker test** is a private helper; the unit test is
   there because the digit-boundary case cannot be reached through the one bank.
+
+## Review
+
+**TL;DR: approved, escalated.** The work is good and fits the codebase; it is
+escalated only because it changes `openapi.yaml` (a description, no shape
+change), which the envelope always sends to a person. No blocking findings.
+`make -C backend check` re-run by the reviewer under CI's dead proxy: 1016
+passed, 9 skipped, lint and format clean.
+
+**Lanes and branch**
+
+- **Every role's commit is on this branch:** expander `c5f01e1`, `88590a3`
+  (`tasks/`, `tasks.md` only); worker `841d43c`; tester `5f3e363` (one new test
+  file and the brief, no source); orchestrator run-log commits touch only
+  `runs/`. No `ci-fix` round.
+- **Constraints held:** source changes only in `backend/app/routers/content.py`
+  and `backend/app/store.py`; `openapi.yaml` only in `BundleSummary.bytes`; no
+  pre-existing test touched; no dependency, `question-bank/`, `frontend/`,
+  `e2e/` or `content.json` change.
+
+**Findings — none block**
+
+1. **`response_model_exclude_unset=True` is now inert** on `get_bundle`'s
+   decorator (`backend/app/routers/content.py:286`): the handler returns a raw
+   `Response`, so FastAPI applies neither it nor `response_model` validation.
+   `response_model=Bundle` still earns its place (it drives the generated docs);
+   the `exclude_unset` flag does not. Cosmetic. **Put into T-100**, which has to
+   edit the same function anyway, rather than a new one-line task.
+2. **The worker test imports a private helper (`_sized`).** Accepted: the
+   digit-boundary case cannot be reached through the one served bank, and the
+   test says so.
+3. **`GET /bundles` now renders each full bundle up to ~3 times.** Not queued:
+   there is one bundle, and the brief already named list cost as out of scope.
+   Worth a task only if a second bundle lands and the list is seen to be slow.
+
+**Worker flags, disposed**
+
+- **"Render it ourselves and send those bytes" — confirmed.** It is exact by
+  construction; predicting FastAPI's serialiser would be exact only until that
+  path changed. Validation is not lost: the body still goes through
+  `Bundle.model_validate(...).model_dump(by_alias=True, exclude_unset=True)`.
+  No E-n entry needed.
+- **Status said `awaiting approval` while `Approved:` named Dkaattae — settled.**
+  The run log records the person's verbatim reply in the orchestrator's session;
+  the `Approved:` line is authoritative. Nothing to do.
+- **List cost — not queued** (finding 3).
+- **T-101 (flaky `test_t040` c25) — kept** in the queue as the worker wrote it;
+  it did not recur in the tester's or the reviewer's full run.
+
+**Escalation:** `openapi.yaml` changed (`BundleSummary.properties.bytes` gained
+a `description`; still `type: integer`). Under E-14 the contract follows the
+backend, so this is expected and low risk, but the envelope reserves the merge
+decision for a person. No other escalation trigger: no child-facing text, no
+migration, no plan change, no test change, no orchestrator-stamped CI fix.
+
