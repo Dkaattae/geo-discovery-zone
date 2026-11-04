@@ -296,6 +296,8 @@ criterion defect).
 
 **Test change request:** applied in full (above).
 
+**CI on `255ae36`: all 7 jobs green** (run 41883590071): backend (lint, format, test), backend (postgres), question-bank, frontend (typecheck, lint, test), integration, e2e, and the human-wait check. That covers the frontend suite this sandbox could not run.
+
 ### Earlier verdict (orchestrated tester, round 3)
 
 **TL;DR: pass.** All 13 criteria hold. `bytes` is now exact for both variants
