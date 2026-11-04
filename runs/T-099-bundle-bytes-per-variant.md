@@ -93,3 +93,37 @@ The orchestrator wrote the `Approved:` line from that reply.
 - **Same session id as the expander:** both are `cse_011oDiJbY1TotHSXRjPcSzNa`, because the orchestrator runs every role inside one web session. I noted this in the Sessions row so the tester can see it.
 
 The full Handoff and Notes are in `/home/user/geo-discovery-zone/tasks/T-099-bundle-bytes-per-variant.md`.
+
+## Round 3 — tester — 2026-11-04
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-099 tester: pass.** All 13 acceptance criteria hold. The full `make -C backend check` passed with CI's proxy variables pointing at `http://127.0.0.1:1`: 1016 passed, 9 skipped, ruff lint and format clean. Next step is the `reviewer`. The task touches `openapi.yaml`, so the reviewer should escalate rather than mark it ready on its own.
+
+**Independence:** this is an orchestrated run (`runs/T-099-bundle-bytes-per-variant.md` exists). My session id `cse_011oDiJbY1TotHSXRjPcSzNa` is the same as the expander's and the worker's, so the Sessions-table check proves nothing. My independence rests only on being a freshly spawned subagent with its own context. That is weaker than a separate session, and the Verdict says so.
+
+**What was verified**
+- **New tests:** `/home/user/geo-discovery-zone/backend/tests/test_t099_tester_criteria.py` has 13 tests, named `test_c<N>_…` for criteria 1–10.
+- **Criteria 11–13 checked by hand:**
+  - Since `5eba340`, the only test file added is the worker's `test_t099_bundle_bytes.py`, and no existing test changed.
+  - `backend/pyproject.toml` and `backend/uv.lock` are unchanged.
+  - The suite needs no network.
+- **Against the old code:** in a worktree at the pre-task commit `5eba340`, 7 of my 13 tests fail (c1, c2, c3 unkeyed size, c4, c5, c6, c7). The other 6 pin things that were already true and must stay true.
+- **Criterion 8, compared with the pre-task code:** I dumped both variants and `includeAnswerKey=false` on old and new code, using the same fixture database. Everything except `bytes` is identical: values, key order, status, `ETag`/`Cache-Control`/`Content-Type` headers, the 304 responses, and the `/bundles` list.
+  - Body lengths are unchanged too: 188882 unkeyed, 196291 keyed.
+  - `bytes` now equals those lengths; before, it was 210404 for both.
+- **Mutations:** all five went red, and all were reverted (the tree was clean afterwards).
+
+| Mutation | Tests that went red |
+|---|---|
+| List sizes the keyed variant | c3 (both tests), c6, c8 summary test |
+| Size loop off by one, never converges | 12 of 13 |
+| Size loop stops after one pass | c1, c2, c4, c6 |
+| Old `json.dumps` measure restored | c1, c2, c3, c4, c6 |
+| Keyed `ETag` loses `-key` | c8 headers test |
+
+- **Stale tests:** none, and no test change request was raised.
+- **Known flake T-101:** it did not recur in this run.
+
+**Brief:** in `/home/user/geo-discovery-zone/tasks/T-099-bundle-bytes-per-variant.md` I wrote the Verdict, set Status to `verified — pass` and Next step to `reviewer`, and added my Sessions row.
+
+**Commit:** `5f3e363` ("T-099 tester: per-criterion tests and verdict (pass)"), pushed to `claude/quirky-heisenberg-d6n4kg`. The remote head equals local HEAD, so the push landed.
