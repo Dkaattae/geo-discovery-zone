@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body — run log
 
 **Task:** T-099 · **Branch:** `claude/quirky-heisenberg-d6n4kg` · **PR:** #122
-**Started:** 2026-11-04 · **Outcome:** halted — needs human
+**Started:** 2026-11-04 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: (no brief) → on exit: `worker` — once a person replaces `pending` below
@@ -180,3 +180,9 @@ be relayed through the orchestrator (D-15). So no tester is spawned here.
 are attending, on `claude/quirky-heisenberg-d6n4kg`. It raises the Test change
 request for the 9 question-bank tests, asks you about each row, applies what you
 approve, and re-verifies. Then the reviewer runs again.
+
+## Resumed — attended tester finished — 2026-11-04
+
+The person replied in the orchestrator's session, verbatim: "ci is fixed please proceed".
+An attended tester session pushed `29cbbcc`, `431f0a4`, `255ae36`, `298b719` while the run was halted.
+Header now: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-04`.
