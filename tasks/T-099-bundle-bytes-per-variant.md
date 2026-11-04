@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated (touches openapi.yaml)`
+**Next step:** `human` — merge decision on PR #122
 **Approved:** Dkaattae — 2026-11-04, given in the orchestrator's session ("approved"). See `runs/T-099-bundle-bytes-per-variant.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-04`
 **CI fix:** `none`
@@ -20,6 +20,7 @@ draft** until the reviewer approves it
 | tester | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; the shared id is not evidence of separation, see Verdict) |
 | reviewer | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; did not write any of the work) |
 | tester | 2026-11-04 | `cse_011oDiJeaNBauNt9X5DyTHhB` (attended: started directly by the user, a separate session from every role above) |
+| reviewer | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent, round 2; did not write any of the work) |
 
 **Not on the light path.** T-099 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -416,6 +417,40 @@ suites, and writes the verdict.
   there because the digit-boundary case cannot be reached through the one bank.
 
 ## Review
+
+**TL;DR: approved and escalated, for the `openapi.yaml` change only** (a
+`description` on `BundleSummary.bytes`, no shape change). Finding 1 from round 1
+is resolved: the 9 stale pins were re-pinned under a person-approved Test change
+request, and CI was green on `255ae36`. PR #122 marked ready; Dkaattae decides
+the merge. Sweep committed in this branch.
+
+**Evidence (round 2)**
+
+- **Reviewer's own `make -C backend check`**, every proxy variable at
+  `http://127.0.0.1:1`: 1016 passed, 9 skipped, lint and format clean.
+- **CI:** all 7 jobs green on `255ae36` (run 41883590071). The commits after
+  it touch only the brief and `runs/`.
+- **The re-pin matches the rows.** `431f0a4` (tester) changes only the six
+  `question-bank/src/*-verify.test.ts` files the 10 rows name. Each hunk is that
+  row's digest, count or allowed-set change, with its comment. Nothing else is
+  touched and no assertion is weakened.
+- **Approval is a person's.** `Test changes: approved — Dkaattae, 2026-11-04`,
+  given in an attended tester session, not an orchestrator stamp. So D-14 is
+  satisfied. The rows are still copied into the PR body, because the sweep
+  deletes this brief.
+- **Round 1's reverted sweep is clean.** `1585e9b^..f12be08` nets to the brief
+  only, so `tasks.md` and `PROGRESS.md` were back to their pre-sweep state
+  before this round re-applied the sweep.
+
+**Escalation reason:** `openapi.yaml` changed (criterion 7). That is the only
+reason. No dependency was added, there is no migration, no plan change, no child-facing text,
+and no product decision. The pre-existing test changes have a person's approval.
+
+**Findings 2–4 from round 1, disposed:** 2 (inert `response_model_exclude_unset`)
+goes **into T-100** at this sweep. 3 (private `_sized` import) is accepted.
+4 (list cost) is not queued. The worker flags stay as disposed in round 1.
+
+### Earlier review (round 1)
 
 **TL;DR: sent back to the `tester`.** CI on PR #122 is red: 9 pre-existing
 question-bank whole-tree pins fail on this task's own `backend/app/` and
