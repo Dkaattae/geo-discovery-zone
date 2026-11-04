@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body — run log
 
 **Task:** T-099 · **Branch:** `claude/quirky-heisenberg-d6n4kg` · **PR:** #122
-**Started:** 2026-11-04 · **Outcome:** halted — needs human
+**Started:** 2026-11-04 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: (no brief) → on exit: `worker` — once a person replaces `pending` below
@@ -59,3 +59,8 @@ another route. Branch head at halt: `88590a3`.
 in the orchestrator's session — the orchestrator then records your words here,
 writes the `Approved:` line and spawns the worker — or replace `pending` in the
 brief header yourself and start a new run.
+
+## Resumed — brief approved in the orchestrator's session — 2026-11-04
+
+The person replied in the orchestrator's session, verbatim: "approved".
+The orchestrator wrote the `Approved:` line from that reply.
