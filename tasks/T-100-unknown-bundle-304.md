@@ -1,15 +1,15 @@
 # T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-04, unattended run. See `runs/T-100-unknown-bundle-304.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-100
 **Branch:** `claude/ecstatic-hopper-lp3me9`
 **PR:** #123, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:**
+**Fault:** test changes are waiting for approval: T-100's own files (content.py, two backend test files, its brief and run log) move 7 question-bank boundary pins, and a person must approve the re-pins in an attended tester session.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw |
 | worker | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw |
+| tester | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw (orchestrated: shared id, fresh subagent context) |
 
 ## Goal
 
@@ -257,6 +258,106 @@ cd question-bank && bun install --frozen-lockfile && bun test
 ```
 
 ## Verdict
+
+**TL;DR: every functional criterion (1-8, 10-12) holds; halted on a Test change
+request.** The fix is correct and the backend check is green (1039 passed, 9 skipped).
+Question-bank is red on **7 boundary pins that T-100's own files move** (6 red now,
+plus 1 cascade). They are listed under Test change request. **Next: a person
+approves or refuses them in an attended `tester` session.**
+
+**Independence: weaker than a separate session.** This is an orchestrated run
+(`runs/T-100-unknown-bundle-304.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is
+`cse_011oDiJeFc5BLAbjAcwGQdfw`, the same id as the expander and the worker, so the
+Sessions check proves nothing. My independence rests only on the orchestrator
+spawning me as a fresh subagent. I saw none of the worker's reasoning, only the
+committed Handoff.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `test_c1_unknown_bundle_with_its_own_{unkeyed,keyed}_tag_is_404` |
+| 2 | met | `test_c2_unknown_bundle_is_404_for_other_tags_lists_and_star[0-5]` |
+| 3 | met | `test_c3_no_unknown_bundle_404_carries_etag_or_immutable` (all 8 cases from 1 and 2) |
+| 4 | met | `test_c4_known_bundle_own_tag_alone_or_in_list_is_304[both]`, `test_c4_known_bundle_other_variant_or_old_tag_is_200[both]` |
+| 5 | met | `test_c5_known_bundle_unconditional_200_is_unchanged[both]` (headers, `etag`, `bytes == len(body)`, `assert_matches(spec, "Bundle")`) |
+| 6 | met | `test_c6_known_bundle_304_reads_no_questions[both]`. The listener is first shown to see `questions` on a 200 |
+| 7 | met, on a reading (below) | `test_c7_bundle_route_has_exclude_unset_false_and_bundle_model` |
+| 8 | met | `test_c8_bundle_list_unchanged` |
+| 9 | met, by hand | `git diff --name-status 15a3175 HEAD` shows only **A** under `backend/tests/` (`test_t100_unknown_bundle_conditional.py`, `test_t100_tester_criteria.py`). No pre-existing test is changed |
+| 10 | met, by hand | No `pyproject.toml`, `uv.lock`, `package.json` or `bun.lock` in the diff |
+| 11 | met, by hand | No `openapi.yaml`, migration, `geoquizdataplan.md` or `backend/app/data/` in the diff. Only `backend/app/routers/content.py` moved under `backend/app` |
+| 12 | met | The new tests use only `client`, `db_session` and `engine`. `make -C backend check` passed with all six proxy vars at `http://127.0.0.1:1` |
+| 13 | **not yet** | Backend green. Question-bank: 2707 pass, 6 fail, all six are stale pins in the request below. Frontend could not run here (see below) but is green on CI at `5563400` |
+
+All new tests are in `backend/tests/test_t100_tester_criteria.py` (19 tests).
+
+**Criterion 7 reading.** On FastAPI 0.141.1, `app.main.app.routes` holds
+`_IncludedRouter` wrappers. The `APIRoute`s sit under `.original_router.routes`
+with unprefixed paths, so a flat scan of `app.routes` finds no route at all. I read
+"the `APIRoute` in `app.main.app.routes` ... whatever `API_PREFIX` is" as the route
+reachable from `app.routes`, including through included routers. That is the
+worker's reading too, and my test asserts that exactly one such route exists.
+This does not block, because the intent ("the route serving the endpoint") is
+unambiguous. `task-expander` may want to word future route criteria that way.
+
+**Mutations** (each reverted. `cmp` against a backup was clean afterwards, and
+`git diff 15a3175 -- backend/app` is the worker's 5+/1- again):
+
+| Mutation in `content.py` | Went red |
+|---|---|
+| M1: whole file back to `15a3175` | c1 ×2, c2[2], c2[3], c3, c7 |
+| M2: existence guard → `if False:` | c1 ×2, c2[2], c2[3], c3 |
+| M3: `response_model_exclude_unset=True` restored | c7 |
+| M4: existence check via `_bundle_body(...)` (full render) | c6 ×2 |
+| M5: conditional match → always `True` | c4 other-variant/old ×2 |
+| M6: 404 raised with `ETag` + immutable `Cache-Control` | c3 |
+| M7: 200 body sent with one extra byte | c5 ×2, c8 |
+
+c2[0], [1], [4] and [5] stay green against `main`. That is correct: on `main` a
+non-matching tag or `*` already fell through to `_bundle_body`, and that returned 404.
+
+**Correction to the Handoff.** The worker says two question-bank failures were "already red
+before this change". They are not. At `15a3175` all four boundary files pass (160/160,
+run in a worktree). On the branch, T-096 c21 and T-091 c22 go red because T-100's brief
+and run log are two new tracked files outside those tests' allowed sets (286 → 288,
+289 → 291). The same thing happened with T-099's files, and T-099 re-pinned them. They are rows 3 and 5 below.
+The worker also missed row 6 (`MAIN_TESTS_COUNT`/`SHA`, moved by the new backend
+test files) and the row 7 cascade.
+
+**Frontend.** `bun install --frozen-lockfile` fails here with `ProxyConnectFailed (403)`,
+and `frontend/node_modules` is incomplete (`react-simple-maps` missing), so `bun test`
+fails for environmental reasons. This task does not touch `frontend/`. The GitHub check
+`frontend (typecheck, lint, test)` is **success** at `5563400`. The other checks there:
+backend ×2 and integration are success, e2e was in progress, and question-bank is failure (the stale pins).
+
+**Commands**
+
+```bash
+cd backend && uv run pytest -q tests/test_t100_tester_criteria.py     # 19 passed
+HTTP_PROXY=http://127.0.0.1:1 HTTPS_PROXY=... make -C backend check     # 1039 passed, 9 skipped
+cd question-bank && bun test                                             # 2707 pass, 6 fail (rows 1-6)
+```
+
+## Test change request
+
+**Status: requested, not applied.** Nothing below has been edited. Every row is a
+re-pin caused by T-100's own files, in the pattern T-097 and T-099 used
+(`431f0a4`). I checked the set in a throwaway worktree: rows 1-6 applied as described
+leave only row 7 red, and row 7 is a value that can only be computed once 1-6 are written.
+Digests in "Becomes" are what the branch produced at the tester's commit
+`T-100 tester: criteria tests`. Recompute them at application time if anything has moved.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › `backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-099's` | `cf63f66`, T-092 (re-pinned by T-099 row 6): no other task moves `backend/app` silently | T-100 changes `backend/app/routers/content.py` (the fix) | modify | Renamed `... is byte-identical to T-100's`. It asserts `treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])` equals `2ea194fafd70f553610fd512f2057e8f16361aa9f4ceddde38fc815b3ae03519`, with a comment citing T-100 row 1 | |
+| 2 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › `every tracked file under the three trees is as re-pinned by T-039, none added or removed` | T-087, renamed `bcb2a38` (T-039), last re-pinned by T-099 row 5: nothing under the three trees moves | T-100 changes `content.py` and adds `backend/tests/test_t100_unknown_bundle_conditional.py` and `test_t100_tester_criteria.py` | modify | `MAIN_BOUNDARY_SHA` = `b69ea73b3e0b3948e09f6cf9649c974d321f0794ca73841a6c77036b527e1ab5`, comment "Re-pinned by T-100 (row 2): routers/content.py moved, two backend test files added". Name unchanged | |
+| 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added` | `47581ea`, T-096: no untracked-for file is added or moved | T-100's loop records `tasks/T-100-unknown-bundle-304.md` and `runs/T-100-unknown-bundle-304.md` are new tracked files (count 286 → 288) | modify | Add those two paths to `CRITERION_21_ALLOWED`, with a comment citing T-100 row 3, exactly as T-099 did for its own. Count stays `toBe(286)` and `MAIN_UNTOUCHABLE_SHA` stays as it is (both verified to pass then) | |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 20: no non-test source file moves` › `every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's` | `950f334`, T-091 (last re-pinned by T-099 row 3): no source file moves | T-100 changes `backend/app/routers/content.py` | modify | `MAIN_SOURCE_TREES_SHA` = `6b45b3a10ad5e736e6d324626d258179233f75dcb334c2d4056034edc2592f21`, comment "Re-pinned by T-100 (row 4): routers/content.py moved" | |
+| 5 | same file › `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added` | `950f334`, T-091: the diff touches only allowed files | T-100's brief and run log are new tracked files (289 → 291) | modify | Add `tasks/T-100-unknown-bundle-304.md` and `runs/T-100-unknown-bundle-304.md` to `CRITERION_22_ALLOWED`, with a comment citing T-100 row 5. `MAIN_UNTOUCHABLE_COUNT` (289) and `MAIN_UNTOUCHABLE_SHA` are unchanged (both verified to pass then) | |
+| 6 | same file › same describe › `pre-existing test files are main's, except ones in an approved Test change request` | `950f334`, T-091 (last re-pinned by T-099 row 2): no test file is added or edited | T-100 adds `backend/tests/test_t100_unknown_bundle_conditional.py` and `test_t100_tester_criteria.py` (120 → 122) | modify | `MAIN_TESTS_COUNT` = 122, and `MAIN_TESTS_SHA` = `0bcd984623a88fe415f7fec949446c6c60090c629549fa0985c917794a8b7628` (the row digest with rows 1-6 applied), comment citing T-100 row 6 and the two files | |
+| 7 | same file › same describe › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091: request files change only by approved re-pins | Rows 1 and 3 edit `map-click-no-candidates-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts`, which this test pins by content | modify | In `APPLIED_REQUEST_FILE_SHAS`, set those two entries to the sha256 of each file as rows 1 and 3 leave it, and append ", then by T-100 (row 7)" to their comments. Nothing else changes, and the `!== MAIN_REQUEST_FILE_SHAS` loop stays | |
+
+To approve: start the `tester` step for T-100 in a session you are attending and
+answer it there, row by row. The orchestrator cannot approve these (D-15).
 
 ## Notes
 
