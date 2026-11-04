@@ -209,7 +209,9 @@ const MAIN_FILE_SHA: Record<string, string> = {
   // by default and rewrites the "Answer keys" text.
   // Re-pinned at T-097 (Test change request row 9): T-097 documents the
   // per-variant ETag on getBundle.
-  "openapi.yaml": "ec1b1fca3504a3a95922912f97d3c1d7eeb1c2fc3888d3067b7f0521d2a06209",
+  // Re-pinned at T-099 (Test change request row 9): T-099 describes what
+  // BundleSummary.bytes measures.
+  "openapi.yaml": "cfca3ade116502108fd2aa26b5815d853151501d9a3b2ce63cf1ea66eeb10189",
 };
 const MAIN_DEP_SHA: Record<string, string> = {
   "backend/pyproject.toml": "a7741b6f8be54ee317fc9caf308debff1959b93b00f28efc6e7e760468813724",

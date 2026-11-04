@@ -67,7 +67,8 @@ const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d398
 // routers/sessions.py moved (the includeAnswerKey defaults).
 // Re-pinned by T-093 (Test change request row 3): backend/app/orm.py moved.
 // Re-pinned by T-097 (Test change request row 3): backend/app/store.py and routers/content.py moved.
-const MAIN_SOURCE_TREES_SHA = "3fed2394767441633ee2459496f07caa373af8c723b41cae71111b76d76f676a";
+// Re-pinned by T-099 (Test change request row 3): backend/app/store.py and routers/content.py moved.
+const MAIN_SOURCE_TREES_SHA = "1ca1b5fd8fa81f3c428ea80c1b1bb88d6f6e45b56dc71807ad9a5a8e1a949e83";
 /**
  * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
  * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
@@ -85,7 +86,8 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by T-093 (Test change request row 1): backend/app/orm.py moved.
 // Re-pinned by T-097 (Test change request row 1): backend/app/store.py moved.
 // Re-pinned by hand for P-18: process-tasks.md left the counted set.
-const MAIN_UNTOUCHABLE_SHA = "9211c863bee72b2067666963609ce7baeaaa76cb76a65e9a271a359a2103cf71";
+// Re-pinned by T-099 (Test change request row 1): backend/app/store.py moved.
+const MAIN_UNTOUCHABLE_SHA = "eea782856267d2808ddb88782266eaae6b0c986c1e2baa4378363aec48386c4c";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -102,7 +104,9 @@ const MAIN_UNTOUCHABLE_COUNT = 289;
 // files, test_unimplemented_content_docs.py and test_t039_tester_criteria.py (107 -> 109).
 // Re-pinned by T-097 (Test change request row 2): T-097 added
 // test_t097_bundle_etag_variants.py and test_t097_tester_criteria.py (116 -> 118).
-const MAIN_TESTS_SHA = "7f7c51408963a166d9bd9dbf325d2847bd7a50894271d2a96351dfa58f951ae2";
+// Re-pinned by T-099 (Test change request row 2): T-099 added
+// test_t099_bundle_bytes.py and test_t099_tester_criteria.py (118 -> 120).
+const MAIN_TESTS_SHA = "abdee3516d56a22fe8b38de73105a0527b4d6cd06fa91132366e0024b1fc4324";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -112,7 +116,7 @@ const MAIN_TESTS_SHA = "7f7c51408963a166d9bd9dbf325d2847bd7a50894271d2a96351dfa5
 // backend/tests/test_git_revision_guard.py (113 -> 114).
 // Re-pinned by T-093 (Test change request row 2): T-093 added
 // test_t093_undo_places_seen.py and test_t093_tester_criteria.py (114 -> 116).
-const MAIN_TESTS_COUNT = 118;
+const MAIN_TESTS_COUNT = 120;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -142,24 +146,24 @@ const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
  */
 const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33), then by T-097 (row 10)
+  // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "4c1a470b5cbf6e41c3774104e5a6b135c8b97f1ec8cdce3a545c6d28a80ff084",
+    "b79038d01e6245f6e57be529ab03d8a5fd470da38e98d3ab253cc4e79c27383e",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33), then by T-093 (row 7), then by T-097 (row 10)
+  // then by T-053 (row 33), then by T-093 (row 7), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "c085d888e2e48ccccd43b76c39095636f0dac17b4afbc7ebb2878ecc068846c6",
+    "797018912673a9b656b29da009acb7aa5c445e8aa97befc69539f971ffef0d92",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
-  // then by T-097 (row 10)
+  // then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "f965c702fe8755b083eccdaf5d8f2f1971f8fc92bcb67105eb7914242bb90abb",
+    "410596b9d50cd355d48cafa8edc7fb8642f565cd3c50f2eafdc789c71eed7f86",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
-  // then by T-053 (row 33), then by T-097 (row 10)
+  // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
-    "b448ddf4589079dc4b2a8e885e7a83a75efc67ba0d1ef76d0a7badd87a5b718e",
+    "f9a3e24ac1bca883c60bc83a8eb4751a60688e3927b67ca583f2cd46503d54e1",
   "backend/tests/test_t089_tester_criteria.py":
     "81a845389db2cebee246542d388c9e6fcceba57b97d7611f8c3d650fc52cb7a7",
 };
@@ -214,6 +218,10 @@ const CRITERION_22_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-03, in the attended tester session that made the edit).
   "tasks/T-097-bundle-etag-answer-key.md",
   "runs/T-097-bundle-etag-answer-key.md",
+  // T-099's loop records, joined through T-099's Test change request row 1
+  // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
+  "tasks/T-099-bundle-bytes-per-variant.md",
+  "runs/T-099-bundle-bytes-per-variant.md",
   // The loop's own queue, exempted by hand for P-18 (approved by Dkaattae, 2026-11-03,
   // in the session that made the edit), as T-096 did for its criterion 21 (4d5f283).
   "process-tasks.md",
