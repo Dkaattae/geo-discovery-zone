@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-099
 **Branch:** `claude/quirky-heisenberg-d6n4kg`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #122, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
 **Fault:**
 
