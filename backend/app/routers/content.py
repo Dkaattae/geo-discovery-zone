@@ -243,7 +243,7 @@ def get_bundle(
     includeAnswerKey: bool = False,
     if_none_match: Annotated[str | None, Header(alias="If-None-Match")] = None,
 ) -> Any:
-    etag = store.bundle_etag(db, bundleId)
+    etag = store.bundle_etag(db, bundleId, include_answer_key=includeAnswerKey)
     # Bundles are immutable per contentVersion, so a matching etag is always fresh.
     if if_none_match and etag in {tag.strip() for tag in if_none_match.split(",")}:
         return Response(status_code=304, headers={"ETag": etag})
@@ -252,9 +252,11 @@ def get_bundle(
     if bundle is None:
         raise not_found("Bundle", bundleId, request.url.path)
 
-    response.headers["ETag"] = bundle["etag"]
+    response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     bundle = dict(bundle)
+    # The body's `etag` follows the variant served, so it equals the header (T-097).
+    bundle["etag"] = etag
     bundle["questions"] = [
         question_payload(q, include_answer_key=includeAnswerKey) for q in bundle["questions"]
     ]

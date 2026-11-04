@@ -70,6 +70,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   endpoints and next-question omit `correctIndex` and `answerGeometryId` unless
   `includeAnswerKey=true`; `POST /sessions` and review rounds never send them.
   Grading runs on the server from the stored question.
+- **Each bundle variant has its own `ETag`** (T-097, PR #120): the keyed body
+  (`includeAnswerKey=true`) is tagged `"<id>-<contentVersion>-key"`, so a cached
+  copy of one variant never revalidates as the other.
 - **The session commits before the response is sent** (`DbSessionMiddleware`).
   It used to commit after, which FastAPI runs *after the response has reached the
   client* — so `register` could answer 201 before the row existed and the very
@@ -369,6 +372,22 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-097 — A bundle's `ETag` differs with and without the answer key** (PR #120,
+  2026-11-03). `store.bundle_etag` takes `include_answer_key`; the keyed body's
+  tag is `"<id>-<contentVersion>-key"`, and the unkeyed tag is byte-for-byte
+  what it was, so cached default copies still revalidate. `get_bundle` uses the
+  requested variant's tag for the 304 check, the `ETag` header and the body's
+  `etag`; `GET /bundles` lists the unkeyed tag. `getBundle`'s description in
+  `openapi.yaml` says so. *Where it differed from the brief:* criterion 16 said
+  nothing would make a pre-existing test stale; CI found 9 question-bank
+  whole-tree pins (T-085a, T-087, T-088, T-091, T-092, T-096) red from T-097's
+  own files, which the worker and first tester round had missed because they
+  ran only the backend suite. Dkaattae approved the 10-row re-pin in an attended
+  tester session. The brief's two product choices (body `etag` follows its
+  variant; the list shows the unkeyed tag) were made under an unattended
+  approval stamp and confirmed by Dkaattae before review. T-099 (`bytes`) and
+  T-100 (unknown bundle 304) are queued from its Out of scope.
 
 - **T-093 — An undone answer no longer counts as a place seen** (PR #119,
   2026-11-03). `SessionRecord.snapshot` now holds `seen_entity_ids`, so undo
@@ -1831,8 +1850,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- `GET /bundles/{id}` sends the same `ETag` for the keyed and the unkeyed body,
-  so `If-None-Match` across the two variants can 304 the wrong one (T-097).
+- A bundle's `bytes` is measured over the keyed body, so it overstates the
+  default, unkeyed one (T-099); and `GET /bundles/zz` with a matching
+  `If-None-Match` is a 304 rather than a 404 (T-100).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
   still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
