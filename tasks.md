@@ -339,7 +339,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 · S · todo
+### T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 · S · doing (brief awaiting approval — `tasks/T-100-unknown-bundle-304.md`)
 **Depends on:** — (T-097 landed, PR #120)
 **New 2026-11-03, from T-097's brief (Out of scope).** `get_bundle` checks
 `If-None-Match` against `store.bundle_etag` before checking the bundle exists, and
