@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body — run log
 
 **Task:** T-099 · **Branch:** `claude/quirky-heisenberg-d6n4kg` · **PR:** #122
-**Started:** 2026-11-04 · **Outcome:** in progress
+**Started:** 2026-11-04 · **Outcome:** ready for merge (escalated: touches openapi.yaml)
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: (no brief) → on exit: `worker` — once a person replaces `pending` below
@@ -186,3 +186,42 @@ approve, and re-verifies. Then the reviewer runs again.
 The person replied in the orchestrator's session, verbatim: "ci is fixed please proceed".
 An attended tester session pushed `29cbbcc`, `431f0a4`, `255ae36`, `298b719` while the run was halted.
 Header now: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-04`.
+
+## Round 5 — reviewer — 2026-11-04
+`Next step` on entry: `reviewer` → on exit: `human` — merge decision on PR #122
+
+**TL;DR:** I approved T-099 and escalated it, because it changes `openapi.yaml`. That change is one new `description` on `BundleSummary.bytes`; the type stays `integer`. PR #122 is now ready for review (no longer draft), and the escalation is at the top of its body. I did not merge. **Next: Dkaattae decides whether to merge.** The sweep is already in this branch.
+
+**Round 1's blocking finding is fixed**
+- **The 9 failing question-bank pins were re-pinned** in `431f0a4` under the 10-row Test change request. A person approved it: the header reads `Test changes: approved — Dkaattae, 2026-11-04`, given in an attended tester session, not an orchestrator stamp.
+- **The diff matches the rows.** I checked every hunk: only the six `question-bank/src/*-verify.test.ts` files changed, and nothing was weakened.
+
+**Evidence**
+- **CI:** all 7 jobs green on `255ae36` (run 41883590071). The commits after it touch only the brief and `runs/`.
+  - CI was still running on `56c4b41` when I started, and I did not wait for it. A new run will start on the sweep head `8b11305`.
+- **Backend:** my own `make -C backend check`, with every proxy variable set to `http://127.0.0.1:1`, gave 1016 passed, 9 skipped, with lint and format clean.
+- **Question-bank:** `bun test` on the swept tree gave 2681 pass, 12 fail. All 12 failures are the T-066 lint-gate tests, which fail because this sandbox has no `node_modules` or oxlint (round 1 saw the same; CI passes them). Every pin test passes after the sweep.
+- **Every role stayed in its lane.** Round 1's sweep and its revert cancel out (`1585e9b^..f12be08` leaves only the brief changed).
+
+**Escalation reason:** the `openapi.yaml` change, nothing else. No dependency, no migration, no change to `geoquizdataplan.md`, no text children will read, and no product decision.
+
+**Non-blocking findings from round 1, disposed**
+- **Inert `response_model_exclude_unset=True` on `get_bundle`:** added to T-100, which has to edit the same function.
+- **The worker's test imports the private `_sized` helper:** accepted.
+- **`GET /bundles` renders each bundle up to ~3 times:** not queued.
+
+**Commits pushed to `claude/quirky-heisenberg-d6n4kg`** (I checked they landed: `origin` head is `8b11305`)
+- **`a6f38da`, the round-2 review in the brief:** Status `approved — escalated (touches openapi.yaml)`, Next step `human` — merge decision on PR #122, plus a reviewer Sessions row.
+- **`8b11305`, the sweep:**
+  - deleted the brief `tasks/T-099-bundle-bytes-per-variant.md`
+  - removed T-099 from `/home/user/geo-discovery-zone/tasks.md` and added the sweep note there
+  - amended T-100 with finding 2
+  - logged T-099 in `/home/user/geo-discovery-zone/PROGRESS.md`, including the round-1 send-back, and closed its known-gap line
+
+**On the PR**
+- **Body rewritten:** escalation note at the top, the 13 criteria verbatim with what verified each, the 10 Test change request rows, the review, and what was deliberately not done.
+- **Comment posted:** https://github.com/Dkaattae/geo-discovery-zone/pull/122#issuecomment-6638934050
+
+## Ended — 2026-11-04
+
+Reviewer approved, escalated and marked PR #122 ready. Run over. Merge is Dkaattae's.
