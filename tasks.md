@@ -339,7 +339,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-099 — A bundle's `bytes` overstates the unkeyed body · S · todo
+### T-099 — A bundle's `bytes` overstates the unkeyed body · S · doing (brief awaiting approval — `tasks/T-099-bundle-bytes-per-variant.md`)
 **Depends on:** — (T-097 landed, PR #120)
 **New 2026-11-03, from T-097's brief (Out of scope).** `store.bundle` computes
 `bytes` over the keyed payload, before `question_payload` strips the answer key,
