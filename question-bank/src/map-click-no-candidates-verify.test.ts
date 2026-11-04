@@ -757,9 +757,11 @@ describe("T-092 criterion 16: no other surface changes", () => {
   // bundle its own ETag in store.py and routers/content.py.
   // Re-pinned at T-099 (Test change request row 6), after T-099 made each bundle
   // variant's bytes its own body length in store.py and routers/content.py.
-  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-099\'s', () => {
+  // Re-pinned at T-100 (Test change request row 1), after T-100 made an unknown
+  // bundle a 404 whatever If-None-Match says, in routers/content.py.
+  test('backend/app (except [ "backend/app/content_build.py" ]) is byte-identical to T-100\'s', () => {
     expect(treeDigest(REPO, "backend/app", ["backend/app/content_build.py"])).toBe(
-      "5c9f446dc9ab9b44438f69f2da8e19eddffc0fe31ede47cda38980585c8f606a",
+      "2ea194fafd70f553610fd512f2057e8f16361aa9f4ceddde38fc815b3ae03519",
     );
   });
 

@@ -283,7 +283,6 @@ def _bundle_body(
 @router.get(
     "/bundles/{bundleId}",
     response_model=Bundle,
-    response_model_exclude_unset=True,
     summary="Fetch a content bundle",
 )
 def get_bundle(
@@ -293,6 +292,11 @@ def get_bundle(
     includeAnswerKey: bool = False,
     if_none_match: Annotated[str | None, Header(alias="If-None-Match")] = None,
 ) -> Any:
+    # Existence first, from the cheap distinct-scope read: `bundle_etag` mints a
+    # tag for any id, so checking the tag first told caches an unknown bundle was
+    # fresh (T-100). An unknown id is a 404 whatever `If-None-Match` says.
+    if bundleId not in store.bundle_ids(db):
+        raise not_found("Bundle", bundleId, request.url.path)
     etag = store.bundle_etag(db, bundleId, include_answer_key=includeAnswerKey)
     # Bundles are immutable per contentVersion, so a matching etag is always fresh.
     if if_none_match and etag in {tag.strip() for tag in if_none_match.split(",")}:
