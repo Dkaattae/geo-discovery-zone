@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `verified — pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-11-04, given in the orchestrator's session ("approved"). See `runs/T-099-bundle-bytes-per-variant.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent) |
 | worker | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent; same remote session id as the expander — the orchestrator spawns every role inside one web session) |
+| tester | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: freshly spawned subagent; the shared id is not evidence of separation, see Verdict) |
 
 **Not on the light path.** T-099 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -238,6 +239,60 @@ and on the full rerun; it exercises session selection (`selection.py`, unseeded
 **Owner: tester**, if it recurs during verification — it is not a T-099 failure.
 
 ## Verdict
+
+**TL;DR: pass.** All 13 criteria hold. `bytes` is now exact for both variants
+(unkeyed 188882, keyed 196291; was 210404 for both), `GET /bundles` lists the
+unkeyed size, and nothing else in the bodies moved. Full `make -C backend check`
+green under CI's dead proxy: **1016 passed, 9 skipped**, ruff lint + format clean.
+Next: reviewer (it touches `openapi.yaml`, so expect escalation).
+
+**Independence, stated plainly.** This run is orchestrated
+(`runs/T-099-bundle-bytes-per-variant.md` exists), so my session id
+`cse_011oDiJbY1TotHSXRjPcSzNa` is the same as the expander's and the worker's, and
+the Sessions-table check proves nothing. My independence rests only on being a
+freshly spawned subagent with its own context: I did not see the work happen or
+the worker's reasoning. That is weaker than a separate session, because it
+depends on the orchestrator having spawned me correctly, not on anything I can
+check myself.
+
+**Tests:** `backend/tests/test_t099_tester_criteria.py`, 13 tests named `test_c<N>_…`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | `test_c1_unkeyed_body_bytes_is_its_own_length`: integer, == `len(response.content)` |
+| 2 | pass | `test_c2_keyed_body_bytes_is_its_own_length` |
+| 3 | pass | `test_c3_bundle_list_gives_the_unkeyed_size`, `test_c3_bundle_list_is_not_the_keyed_size` |
+| 4 | pass | `test_c4_false_is_the_default_variant` |
+| 5 | pass | `test_c5_keyed_bytes_is_strictly_larger` |
+| 6 | pass | `test_c6_bytes_follows_a_longer_content_version`: version +12 chars via `db_session`, confirmed visible through `/content/version`; 1–3 re-checked; both variants' `bytes` changed |
+| 7 | pass | `test_c7_contract_describes_what_bytes_measures`: `type: integer`; the description names `GET /bundles/{bundleId}`, "length in bytes", "response body", `includeAnswerKey`, the `GET /bundles` listing, and "default (unkeyed)" |
+| 8 | pass | `test_c8_headers_and_body_etag_are_as_t097_left_them` (`"us-<v>"` / `"us-<v>-key"`, body `etag` == header, `Cache-Control`, `application/json`, `contentVersion`), `test_c8_counts_and_arrays_are_unchanged_between_variants`, `test_c8_summary_carries_no_entities_or_questions`. **Also a one-off comparison against the pre-task commit `5eba340`** (worktree, same fixture DB): for unkeyed, keyed and `=false`, the body without `bytes` (values and key order), the status, the `ETag`/`Cache-Control`/`Content-Type` headers and the 304 responses are all identical, and so is the `/bundles` list without `bytes`. Body lengths are unchanged too (188882 / 196291). The existing `test_t053_*`, `test_t097_*` and `test_content_api.py` pass unchanged |
+| 9 | pass | `test_c9_304_path_is_untouched_for_both_variants`: 304, empty body, same `ETag`, both variants |
+| 10 | pass | `test_c10_bodies_still_match_the_contract` (`assert_matches` for `Bundle` ×2 and `BundleSummary`) |
+| 11 | pass | `make -C backend check` green. Checked by hand: `git diff --name-status 5eba340..HEAD` shows only one test file added, `test_t099_bundle_bytes.py` (the worker's), and no existing test changed |
+| 12 | pass | Checked by hand: no diff in `backend/pyproject.toml` or `backend/uv.lock` (nor `question-bank/`, `frontend/`, `e2e/`, `backend/app/data/content.json`) |
+| 13 | pass | Whole suite run with `HTTP(S)_PROXY`/`ALL_PROXY` (both cases) = `http://127.0.0.1:1`; the new tests use only `client` / `db_session` |
+
+**The tests go red on the old code.** Copied into a worktree at `5eba340`, 7 of
+the 13 fail (c1, c2, c3-unkeyed, c4, c5, c6, c7). The other 6 pin things that were
+already true and must stay true (criteria 8–10, and c3-not-keyed, since 210404
+was never the keyed size either).
+
+**Mutations** to `backend/app/routers/content.py`, each reverted with
+`git checkout` (tree clean afterwards):
+
+| Mutation | Went red |
+|---|---|
+| `list_bundles` sizes the keyed variant | c3 ×2, c6, c8-summary |
+| `_sized` fixed-point test off by one (never converges, so a 500) | 12 of 13 |
+| `_sized` stops after one pass (no fixed point) | c1, c2, c4, c6 |
+| old measure restored (`json.dumps` default separators) | c1, c2, c3, c4, c6 |
+| keyed `ETag` header loses `-key` | c8-headers |
+
+**Flake T-101** (`test_c25_…` in `test_t040_tester_criteria.py`) did not come up
+in my run.
+
+**Test change request:** none. No existing test is stale.
 
 ## Notes
 
