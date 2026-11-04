@@ -40,3 +40,31 @@ Files:
 
 ## Orchestrator — 2026-11-04
 Approved stamped unattended. Note: the expander's returned result summarised the criteria; it is logged here verbatim and was not used in any spawn prompt.
+
+## Round 2 — worker — 2026-11-04
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR: T-100 is fixed and pushed.** `GET /bundles/zz` is now a 404 whatever `If-None-Match` holds, and the backend check passes. The brief is at Status `awaiting verification`, Next step `tester`. It was pushed as commit `e730259` on `claude/ecstatic-hopper-lp3me9`, and `git log origin/claude/ecstatic-hopper-lp3me9 -1` shows that commit. Three question-bank tests go red by design (they pin file contents) and are listed under **Tests made stale** for the tester.
+
+**Changes**
+- **`/home/user/geo-discovery-zone/backend/app/routers/content.py`**: `get_bundle` now raises `not_found` when `bundleId not in store.bundle_ids(db)`, before it computes the etag or checks the tag. I also removed the inert `response_model_exclude_unset=True` from the `/bundles/{bundleId}` route; `response_model=Bundle` stays. `store.py` and `list_bundles` are untouched.
+- **`/home/user/geo-discovery-zone/backend/tests/test_t100_unknown_bundle_conditional.py`** (new, 4 tests):
+  - the unknown-id 404 for every tag in criteria 1–3, with no `ETag` and no `immutable` header;
+  - the 304 for `us` still works;
+  - a 304 for `us` reads nothing from `questions`, checked with a `before_cursor_execute` listener;
+  - the route flag and response model.
+  - With the fix stashed, 2 of the 4 fail; with it, all pass.
+- **`/home/user/geo-discovery-zone/tasks/T-100-unknown-bundle-304.md`**: Sessions row, Handoff, Notes, Status and Next step.
+
+**Test results**
+- **Backend**: `make -C backend check` passes (1020 passed, 9 skipped), with the proxy variables set to `http://127.0.0.1:1`.
+- **Question-bank**: 2708 pass, 5 fail.
+  - 3 are new and stale by design. They pin file digests that move whenever backend files change, the same re-pin T-097 and T-099 needed: T-092 c16 in `map-click-no-candidates-verify.test.ts`, T-087 c15 in `refresh-regenerate-reminder-verify.test.ts`, and T-091 c20 in `climate-cold-trade-accepted-verify.test.ts`.
+  - 2 were already red with my changes stashed: T-096 c21 and T-091 c22.
+- **Frontend: not run.** `bun install --frozen-lockfile` fails with a proxy 403, because the lockfile pins tarballs from a private registry (`lovable-core-prod`) this sandbox cannot reach. This task does not touch `frontend/`. The tester or CI needs to run it.
+
+**Flags in the Handoff, each with an owner**
+- **Criterion 7's wording does not match FastAPI 0.141.1 (tester to confirm, expander to reword if needed).** The criterion says the route is in `app.main.app.routes`, but each included router shows up there as an `_IncludedRouter`, so a literal scan finds no matching route. My test looks inside `.original_router.routes` and finds exactly one.
+- **The worker and expander session ids are the same, `cse_011oDiJeFc5BLAbjAcwGQdfw` (orchestrator or human to note).** The tester's check that it runs in a different session should compare against this id.
+- **`bun test` run before `bun install` rewrote `frontend/README.md`.** I reverted it; it is not in the commit. Raised for the sweep.
+- **Out-of-scope items left alone.** These include `*` on a known bundle, which still returns 200. I did not add a `tasks.md` entry for it because the brief already names it; the reviewer can decide.
