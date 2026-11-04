@@ -1,7 +1,7 @@
 # T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — ready (inside the envelope)`
+**Next step:** `human` — merge decision on PR #123 (routine)
 **Approved:** orchestrator — 2026-11-04, unattended run. See `runs/T-100-unknown-bundle-304.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-04`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw |
 | tester | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw (orchestrated: shared id, fresh subagent context) |
 | tester (attended) | 2026-11-04 | cse_011oDiJeikxhxUaBeBJvmzEy |
+| reviewer | 2026-11-04 | cse_011oDiJeFc5BLAbjAcwGQdfw (orchestrated: freshly spawned subagent; did not write any of the work) |
 
 ## Goal
 
@@ -367,6 +368,60 @@ cd backend && uv run pytest -q tests/test_t100_tester_criteria.py     # 19 passe
 HTTP_PROXY=http://127.0.0.1:1 HTTPS_PROXY=... make -C backend check     # 1039 passed, 9 skipped
 cd question-bank && bun test                                             # 2707 pass, 6 fail (rows 1-6)
 ```
+
+## Review
+
+**TL;DR: approved, inside the envelope.** The fix is one existence guard ahead
+of the conditional check, in the router's own idiom, and both test files are
+tight. CI is green and my own backend and question-bank runs are green. PR #123
+is marked ready with no escalation note. The sweep rides in this branch.
+
+**Evidence**
+
+- **My own runs:** `make -C backend check` with the proxy variables at
+  `http://127.0.0.1:1` gave 1039 passed, 9 skipped. Question-bank gave 2713
+  pass, 0 fail, and typecheck and lint are clean.
+- **CI at `8e9f2c1`:** backend ×2, frontend, question-bank and integration are
+  success. e2e was still running when I reviewed. The PR body records what it
+  showed when I marked ready.
+- **Lanes:** the expander commits touch only `tasks/` and `tasks.md`. The worker
+  commit touches `content.py`, its test file and the brief. The tester commits
+  touch only tests and the brief, and `64ea707` changes exactly the 7 approved
+  rows (I read each hunk: digests, a count, two allowed-set entries, comments,
+  one rename). The orchestrator commits touch only `runs/` and the header stamp.
+  There are no `ci-fix` commits.
+- **Envelope:** no dependency, no `openapi.yaml`, no migration, no plan change,
+  no child-facing text, no product decision. The pre-existing test changes have
+  a person's approval (`Dkaattae`, attended tester), so D-14 is met. The rows
+  are still copied into the PR body because the sweep deletes this brief.
+  `runs/` is orchestrator bookkeeping, not drift.
+
+**Findings (none block)**
+
+1. **`content.py:306-307`, the second `not_found` after `_bundle_body`, can now
+   only be reached by a race** (the bundle disappearing between the two reads).
+   It is harmless defence and matches how the file treats `None`. Accepted, not
+   queued.
+
+**Flags, disposed**
+
+- **Criterion 7's "in `app.main.app.routes`"** is decided: the worker's and
+  tester's reading (the route reachable from `app.routes`, including through
+  `_IncludedRouter.original_router`) is what the criterion means. It is logged in
+  `PROGRESS.md` under "where it differed". There is no task, because nothing is
+  wrong in the code.
+- **Shared session id** is owned by **P-14**. Nothing new.
+- **`If-None-Match: *` on a known bundle (still 200)** is decided **not
+  queued**. Browsers and HTTP caches never send `*` on a GET (it is a write
+  precondition idiom), and a 200 for it is never wrong, only less efficient.
+  If a client ever sends it, that is the point to queue it.
+- **`bun test` before `bun install` rewrote `frontend/README.md`** is owned by
+  **T-076**. I amended it with this fourth sighting.
+- **The expander said no test would go stale, and 7 did** is owned by **P-16** /
+  **P-17**. I appended this run to P-16 as one more instance.
+- **The worker's "already red before this change" claim was wrong** (the tester
+  corrected it). That is a worker-accuracy note, and P-18 covers running the
+  whole suite. Nothing new.
 
 ## Test change request
 
