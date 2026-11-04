@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body
 
-**Status:** `awaiting approval`
-**Next step:** `worker` — once a person replaces `pending` below
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** Dkaattae — 2026-11-04, given in the orchestrator's session ("approved"). See `runs/T-099-bundle-bytes-per-variant.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent) |
+| worker | 2026-11-04 | `cse_011oDiJbY1TotHSXRjPcSzNa` (orchestrated: spawned subagent; same remote session id as the expander — the orchestrator spawns every role inside one web session) |
 
 **Not on the light path.** T-099 is sized S, but it touches `openapi.yaml` and
 needs more than four criteria (`process.md`, "The light path"), so this is a full
@@ -168,6 +169,88 @@ served bank has, and checked through the `client` fixture.
 
 ## Handoff
 
+**TL;DR:** `bytes` is now the exact length of each variant's body (unkeyed 188882,
+keyed 196291 on the served bank; it used to say 210404 for both), and `GET /bundles`
+lists the unkeyed size. The bodies are otherwise byte-for-byte what they were.
+`make -C backend check` passes (1003 passed, 9 skipped; ruff lint + format clean).
+**Tests made stale: none.** One unrelated flake seen once, queued as T-101.
+
+**Changed, file by file**
+
+- **`backend/app/store.py`** — `bundle` no longer sets `bytes` (it measured
+  `json.dumps` of the keyed dict with default separators, before `etag`). Comment
+  says why. `json` import still used elsewhere.
+- **`backend/app/routers/content.py`**
+  - `_bundle_body(db, id, include_answer_key=)` — builds the variant (body `etag`
+    per T-097, key withheld via `question_payload` per T-053), validates it through
+    the `Bundle` model and dumps it with `by_alias=True, exclude_unset=True` (what
+    FastAPI's `response_model` does), then sizes it. Returns `(dict, rendered bytes)`.
+  - `_sized(body)` — renders with `JSONResponse.render` (compact, `ensure_ascii=False`,
+    the app's default response class) and iterates `bytes` to the fixed point
+    (stops when rendered length == the value written; at most 8 passes, 2–3 in practice).
+  - `get_bundle` — returns a `Response` carrying exactly those rendered bytes, with
+    the same `ETag`/`Cache-Control` headers and `application/json`. The 304 branch
+    is untouched and still runs before any body is built. `response_model=Bundle`
+    stays on the decorator for the OpenAPI docs; FastAPI does not re-serialise a
+    returned `Response`. The unused `response: Response` parameter was removed.
+  - `list_bundles` — reads the summary keys from `_bundle_body(..., include_answer_key=False)`.
+- **`openapi.yaml`** — `BundleSummary.properties.bytes` gets a `description`; still `type: integer`.
+- **`backend/tests/test_t099_bundle_bytes.py`** (new, worker's own) — both variants
+  self-measure, `false` = default, list = unkeyed, follows `content_version`, and a
+  unit check of `_sized` across the 10/100/1000-byte digit boundaries.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 2, 4 | `_bundle_body` + `_sized`; `get_bundle` sends the measured bytes |
+| 3 | `list_bundles` via `_bundle_body(include_answer_key=False)` |
+| 5 | falls out of 1–2 (key fields add ~7.4 kB) |
+| 6 | everything is computed per request from `content_meta`; nothing cached |
+| 7 | `openapi.yaml` `BundleSummary.bytes.description` |
+| 8 | checked before/after with a throwaway dump (deleted): both variants' JSON minus `bytes` equal, same key order, same `ETag`/`Cache-Control`/`Content-Type`, and identical body lengths (188882 / 196291) — so the rendered form did not change |
+| 9 | `get_bundle` 304 branch unchanged, still ahead of `_bundle_body` |
+| 10 | unchanged models; the existing contract tests cover it |
+| 11–13 | no test files touched other than the new one; no dependency change; no network |
+
+**Deliberately not done**
+
+- T-100 (304 for `zz`), compression, `HEAD` — out of scope.
+- `GET /bundles` still builds the full bundle (now also renders it, up to ~3 times).
+  Cost on the served bank is small (the whole suite is unchanged in feel); not
+  queued, since the brief already names it as a possible follow-up. **Owner: the
+  reviewer**, if they think it deserves a `tasks.md` entry.
+
+**Contradicts the brief:** nothing. One note: the Status line still read
+`awaiting approval` while **Approved** named Dkaattae; I took the Approved line as
+authoritative and started.
+
+**How to run:** `make -C backend check`, or
+`cd backend && uv run pytest -q tests/test_t099_bundle_bytes.py`.
+
+**Tests made stale:** none.
+
+**Flake, not caused by this task:** the first full run failed
+`tests/test_t040_tester_criteria.py::test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`
+(a random 100-question mixed session served no `map_identify`). It passed alone
+and on the full rerun; it exercises session selection (`selection.py`, unseeded
+`random`), which this task does not touch. Queued as **T-101** in `tasks.md`.
+**Owner: tester**, if it recurs during verification — it is not a T-099 failure.
+
 ## Verdict
 
 ## Notes
+
+- **Surprise:** the old value (210404) overstated even the keyed body (196291) by
+  ~7%, from Python's default `", "`/`": "` separators.
+- **Decision — render it ourselves and send those bytes**, rather than predicting
+  what FastAPI's serialiser would emit. Predicting would have been exact only as
+  long as FastAPI's rendering path stayed the same; sending the measured bytes is
+  exact by construction. Cost: `get_bundle` returns a `Response`, so FastAPI does
+  not validate it against `response_model` — but the body *is* produced by
+  `Bundle.model_validate(...).model_dump(...)`, so the same validation runs.
+  **Owner: reviewer** to confirm or overturn; no E-n entry written since the brief
+  said only if the choice could reasonably go the other way, and I think this one
+  is the only exact option.
+- **`_sized` imported in the worker test** is a private helper; the unit test is
+  there because the digit-boundary case cannot be reached through the one bank.

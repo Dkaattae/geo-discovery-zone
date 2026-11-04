@@ -339,7 +339,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-099 — A bundle's `bytes` overstates the unkeyed body · S · doing (brief awaiting approval — `tasks/T-099-bundle-bytes-per-variant.md`)
+### T-099 — A bundle's `bytes` overstates the unkeyed body · S · doing (awaiting verification — `tasks/T-099-bundle-bytes-per-variant.md`)
 **Depends on:** — (T-097 landed, PR #120)
 **New 2026-11-03, from T-097's brief (Out of scope).** `store.bundle` computes
 `bytes` over the keyed payload, before `question_payload` strips the answer key,
@@ -356,6 +356,18 @@ size. A client sizing a download from it overestimates.
 `If-None-Match: "zz-<contentVersion>"` gets a 304 instead of a 404.
 **Done when:** an unknown bundle is a 404 problem document whatever
 `If-None-Match` holds, for both `includeAnswerKey` variants, and a test pins it.
+
+### T-101 — `test_t040` c25 can fail by chance: a mixed session may serve no `map_identify` · S · todo
+**Depends on:** —
+**New 2026-11-04, found by T-099's worker.** `make -C backend check` failed once
+on `backend/tests/test_t040_tester_criteria.py::test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`:
+the 100 served questions held `map_click` and `multiple_choice` but no
+`map_identify`. It passed on rerun, alone and in the full suite. `selection.py`
+draws with `random` and the test seeds nothing, so the set-equality assertion on
+formats is probabilistic. Unrelated to T-099 (which touches only bundles). Fixing
+it means changing an existing test, so it goes through the tester and a human (D-14).
+**Done when:** the c25 assertion cannot fail by chance (seeded rng, or an
+assertion the selection guarantees), and nothing else in the test weakens.
 
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —

@@ -316,8 +316,9 @@ def bundle(db: Session, bundle_id: str) -> dict[str, Any] | None:
         "questions": questions,
         "contentVersion": meta.content_version if meta else "unseeded",
     }
-    payload["bytes"] = len(json.dumps(payload, ensure_ascii=False).encode())
     payload["etag"] = bundle_etag(db, bundle_id)
+    # No `bytes` here: it is the length of a serialised response body, so it
+    # depends on which variant is served and is measured in the router (T-099).
     return payload
 
 

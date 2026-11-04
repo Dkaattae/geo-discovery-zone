@@ -1874,6 +1874,12 @@ components:
           type: integer
         bytes:
           type: integer
+          description: |
+            The length in bytes of the `GET /bundles/{bundleId}` response body,
+            uncompressed, exactly as sent. It depends on the variant:
+            `includeAnswerKey=true` carries the answer key and is larger, so each
+            variant's body states its own length. The `GET /bundles` listing takes
+            no `includeAnswerKey`, so it gives the default (unkeyed) variant's size.
         etag:
           type: string
 
