@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body — run log
 
 **Task:** T-099 · **Branch:** `claude/quirky-heisenberg-d6n4kg` · **PR:** #122
-**Started:** 2026-11-04 · **Outcome:** in progress
+**Started:** 2026-11-04 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: (no brief) → on exit: `worker` — once a person replaces `pending` below
@@ -127,3 +127,56 @@ The full Handoff and Notes are in `/home/user/geo-discovery-zone/tasks/T-099-bun
 **Brief:** in `/home/user/geo-discovery-zone/tasks/T-099-bundle-bytes-per-variant.md` I wrote the Verdict, set Status to `verified — pass` and Next step to `reviewer`, and added my Sessions row.
 
 **Commit:** `5f3e363` ("T-099 tester: per-criterion tests and verdict (pass)"), pushed to `claude/quirky-heisenberg-d6n4kg`. The remote head equals local HEAD, so the push landed.
+
+## Round 4 — reviewer — 2026-11-04
+`Next step` on entry: `reviewer` → on exit: `tester` — in a session Dkaattae is attending, raise and apply the Test change request for the 9 stale question-bank pins (Review, finding 1)
+
+**I sent T-099 back to the `tester`. PR #122 is still draft and was never marked ready.** CI is red: 9 old question-bank tests fail. Each one fingerprints `backend/app/` or `openapi.yaml`, and this task changes both, as its brief allows. They are the same 9 that T-097 broke. Fixing them means changing tests that existed before this task, which needs Dkaattae's approval (D-14, D-15). The orchestrator cannot stamp that approval.
+
+**Next step:** a `tester` session that Dkaattae is attending, not a subagent. It writes a Test change request for the 9 tests, gets his approval row by row, applies exactly those rows, and confirms every CI job is green.
+
+**State**
+- **Brief:** `Status: changes requested`, `Next step: tester`. The `## Review` section lists the findings and I added my Sessions row: `/home/user/geo-discovery-zone/tasks/T-099-bundle-bytes-per-variant.md`
+- **Pushed to `claude/quirky-heisenberg-d6n4kg`:** head is `281446c`, and `git fetch` shows the remote matches.
+- **PR comment** with the same findings: https://github.com/Dkaattae/geo-discovery-zone/pull/122#issuecomment-6636270975
+- **Branch history:** I committed the review as an approval (`1585e9b`) and then the sweep (`54b587a`) before I checked CI. When I saw it was red I reverted the sweep (`f12be08`) and rewrote the review as changes requested. The brief is back in `tasks/`, and `tasks.md` and `PROGRESS.md` are as they were before the sweep.
+
+**Blocking finding:** CI run 41868187805 fails only at the question-bank `Test` step. Backend, postgres, frontend, integration and e2e are green. The failing tests, all in `question-bank/src/`:
+- `climate-cold-trade-accepted-verify.test.ts`: T-091 criterion 20, and criterion 22 twice
+- `farm-animal-loose-ends-verify.test.ts`: T-096 criterion 21
+- `map-click-no-candidates-verify.test.ts`: T-092 criterion 16, twice
+- `refresh-regenerate-reminder-verify.test.ts`: T-087 criterion 15
+- `familiarity-drawn-apart-verify.test.ts`: T-085a criterion 25
+- `agriculture-true-wrong-answers-verify.test.ts`: T-088 criterion 21
+
+The worker and the tester missed them because criterion 11 names only `make -C backend check`. That gap is already ticket P-18, and I added this recurrence to it in `/home/user/geo-discovery-zone/process-tasks.md`.
+
+**The code is good.**
+- **Suite:** my own run of `make -C backend check`, with the proxy pointed at a dead address as CI does, gave 1016 passed, 9 skipped, lint and format clean.
+- **Scope:** every role's commit is on the branch and each role stayed in its lane. Nothing changed outside the brief's allowed files.
+
+**Non-blocking findings**, to be handled at the sweep:
+- **`content.py:286`:** `response_model_exclude_unset=True` no longer does anything, because `get_bundle` now returns a raw `Response`. I will fold the cleanup into T-100, which edits the same function.
+- **Private import:** the worker's test imports the private helper `_sized`. Accepted, because no request against the one bundle can reach that case.
+- **List cost:** `GET /bundles` renders the full bundle up to about 3 times. Not queued: there is one bundle, and list cost was out of scope.
+
+**Worker flags, decided:**
+- **Sending the rendered bytes directly:** confirmed. It is exact by construction.
+- **The Status/Approved mismatch:** settled from the run log, which records Dkaattae's reply word for word.
+- **T-101 (a flaky existing test, `test_t040` c25):** kept in the queue.
+
+**When it comes back green**, I expect to approve and escalate it, for the `openapi.yaml` change only. That change is a description, not a change to the schema's shape.
+
+**Local-only note:** `bun test` in this sandbox also fails `lint-gate.test.ts`, because oxlint is missing here. CI passes it, so it is not part of the request.
+
+## Halted — Next step requires an attended tester session — 2026-11-04
+
+Branch head at halt: `281446c`. The header's `Next step` names `tester`, but
+qualifies it: "in a session Dkaattae is attending". A tester spawned by the
+orchestrator is not that session, and approval of a test change request cannot
+be relayed through the orchestrator (D-15). So no tester is spawned here.
+
+**What a human has to do:** start the `tester` step for T-099 in a session you
+are attending, on `claude/quirky-heisenberg-d6n4kg`. It raises the Test change
+request for the 9 question-bank tests, asks you about each row, applies what you
+approve, and re-verifies. Then the reviewer runs again.
