@@ -1,7 +1,7 @@
 # T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 — run log
 
 **Task:** T-100 · **Branch:** `claude/ecstatic-hopper-lp3me9` · **PR:** #123
-**Started:** 2026-11-04 · **Outcome:** in progress
+**Started:** 2026-11-04 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -119,3 +119,56 @@ Roles run: task-expander → worker → tester.
 
 ## Resumed — 2026-11-04
 Dkaattae in the orchestrator's session: "ci fixed. please proceed". The branch head had moved since the halt: an attended tester pushed `64ea707` (apply approved test change request) and `0d65cec` (verdict pass). Header now reads `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-04`. Carrying on from that `Next step`.
+
+## Round 4 — reviewer — 2026-11-04
+`Next step` on entry: `reviewer` → on exit: `human` (merge decision on PR #123, routine)
+
+**I approved T-100. It is inside the envelope, so there is no escalation note. PR #123 is marked ready and the sweep is in it.** CI was green on all 6 jobs at `8e9f2c1`. CI for the sweep commit `71f42f8` was still running when I stopped.
+
+**Next step: human.** Dkaattae merges PR #123 when convenient. I did not merge.
+
+**Pushes** to `claude/ecstatic-hopper-lp3me9` (confirmed: local HEAD equals `origin/claude/ecstatic-hopper-lp3me9` at `71f42f8`):
+- `28e2042`, review: `## Review` section, `Status: approved — ready (inside the envelope)`, `Next step: human`, and my Sessions row in the brief.
+- `71f42f8`, sweep: brief deleted, queue and `PROGRESS.md` updated.
+
+**Review**
+- **Fit:** the fix is one guard in `backend/app/routers/content.py`. It calls `store.bundle_ids` and raises `not_found` before the `If-None-Match` check, and it drops the unused `response_model_exclude_unset` setting from that route. It uses the file's existing helpers, and nothing beyond the brief changed.
+- **Each role stayed in its lane:**
+  - expander: only `tasks/` and `tasks.md`
+  - worker: `content.py`, its own test file and the brief
+  - tester: tests and the brief only
+  - orchestrator: `runs/` and the approval stamp
+  - no `ci-fix` commits
+- **Pre-existing test changes:** 7 question-bank re-pins. Dkaattae approved them in an attended tester session, and they appear only in tester commit `64ea707`. I read each hunk against its approved row; nothing was weakened. The rows are copied into the PR body because the sweep deletes the brief.
+- **Envelope:** no dependency, `openapi.yaml`, migration, plan, child-facing text or product decision.
+- **My own runs:**
+  - `make -C backend check` with proxies pointed at `127.0.0.1:1`: 1039 passed, 9 skipped (before and after the sweep).
+  - question-bank: 2713 pass, 0 fail, typecheck and lint clean.
+  - I re-ran the four boundary test files after the sweep commit: 1228 pass, 0 fail.
+- **One finding, not blocking, accepted:** the second `not_found` after `_bundle_body` (`content.py` around line 306) can now only be reached by a race. It does no harm, so I did not queue it.
+
+**Worker's flags, each settled**
+- **Criterion 7:** accepted the worker's and tester's reading that the route counts as "in `app.routes`" when reached through an included router, which is how FastAPI 0.141 stores it. Logged in `PROGRESS.md`.
+- **Shared session id:** already covered by P-14.
+- **`If-None-Match: *` on a known bundle (still 200):** deliberately not queued. Caches don't send `*` on a GET, and a 200 there is never wrong.
+- **`bun test` rewriting `frontend/README.md` when `node_modules` is missing:** added to T-076 as a fourth sighting.
+- **The brief expected no stale tests, and 7 went stale:** added as a "seen again" note under P-16.
+
+**Sweep**
+- T-100's entry is deleted from `tasks.md`, and the queue's sweep log line is extended.
+- `PROGRESS.md`:
+  - new Completed-tasks entry at the top of "Earlier tasks, on-process"
+  - the known gap "`/bundles/zz` returns 304" removed
+  - one bundle line added to the backend section
+- No other tasks were affected.
+
+**Files**
+- /home/user/geo-discovery-zone/backend/app/routers/content.py (reviewed, not changed)
+- /home/user/geo-discovery-zone/tasks/T-100-unknown-bundle-304.md (deleted in `71f42f8`; the review is in `28e2042`)
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/123 (body updated, review comment posted)
+
+## Ended — 2026-11-04
+Reviewer approved and marked PR #123 ready. Merge is Dkaattae's. Roles run: task-expander → worker → tester (halted, test change request) → attended tester (Dkaattae, outside this session) → reviewer.
