@@ -1,7 +1,7 @@
 # T-099 — A bundle's `bytes` overstates the unkeyed body
 
-**Status:** `approved — escalated (touches openapi.yaml)`
-**Next step:** `human` — merge decision on PR #122
+**Status:** `changes requested`
+**Next step:** `tester` — in a session Dkaattae is attending, raise and apply the Test change request for the 9 stale question-bank pins (Review, finding 1)
 **Approved:** Dkaattae — 2026-11-04, given in the orchestrator's session ("approved"). See `runs/T-099-bundle-bytes-per-variant.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -313,55 +313,95 @@ in my run.
 
 ## Review
 
-**TL;DR: approved, escalated.** The work is good and fits the codebase; it is
-escalated only because it changes `openapi.yaml` (a description, no shape
-change), which the envelope always sends to a person. No blocking findings.
-`make -C backend check` re-run by the reviewer under CI's dead proxy: 1016
-passed, 9 skipped, lint and format clean.
+**TL;DR: sent back to the `tester`.** CI on PR #122 is red: 9 pre-existing
+question-bank whole-tree pins fail on this task's own `backend/app/` and
+`openapi.yaml` changes, the same set T-097 tripped. The tester's `pass` covered
+only `make -C backend check`, which is green. The code itself is good and I
+have no other blocking finding. **Needs `tester` to come back, in a session
+Dkaattae is attending, and raise and apply a Test change request for finding 1**
+(D-14, D-15; `process.md` step 4: "Red CI caused by a stale test sends the task
+to the tester, not the worker"). PR stays draft. I committed a sweep and then
+reverted it, because I checked CI only after the sweep. The brief is back.
 
-**Lanes and branch**
+**Evidence:** CI run 41868187805 (the head before review, `edb0040`): question-bank job
+red at `Test`; backend (lint, format, test), backend (postgres), frontend,
+integration and e2e green. Reviewer's own `make -C backend check` under
+the dead proxy: 1016 passed, 9 skipped, lint and format clean.
 
-- **Every role's commit is on this branch:** expander `c5f01e1`, `88590a3`
-  (`tasks/`, `tasks.md` only); worker `841d43c`; tester `5f3e363` (one new test
-  file and the brief, no source); orchestrator run-log commits touch only
-  `runs/`. No `ci-fix` round.
-- **Constraints held:** source changes only in `backend/app/routers/content.py`
-  and `backend/app/store.py`; `openapi.yaml` only in `BundleSummary.bytes`; no
-  pre-existing test touched; no dependency, `question-bank/`, `frontend/`,
-  `e2e/` or `content.json` change.
+### Blocking
 
-**Findings — none block**
+1. **9 stale pre-existing tests in `question-bank/` (CI red).** Each one hashes
+   `backend/app/` or `openapi.yaml` against an older commit, and T-099 changes
+   both, as its Constraints allow:
+   - `question-bank/src/climate-cold-trade-accepted-verify.test.ts`: T-091
+     criterion 20 ("every non-test file under question-bank/src/, backend/app/,
+     frontend/src/ is 12d242e's"), and criterion 22 ×2 ("every tracked
+     non-test file outside the allowed list is 12d242e's"; "pre-existing test
+     files are main's, except ones in an approved Test change request", which
+     fails on the two new `test_t099_*` files).
+   - `question-bank/src/farm-animal-loose-ends-verify.test.ts`: T-096
+     criterion 21.
+   - `question-bank/src/map-click-no-candidates-verify.test.ts`: T-092
+     criterion 16 ×2 (`backend/app` and `openapi.yaml` "byte-identical to
+     T-097's").
+   - `question-bank/src/refresh-regenerate-reminder-verify.test.ts`: T-087
+     criterion 15.
+   - `question-bank/src/familiarity-drawn-apart-verify.test.ts`: T-085a
+     criterion 25 (`openapi.yaml` unchanged since `ed00235`).
+   - `question-bank/src/agriculture-true-wrong-answers-verify.test.ts`: T-088
+     criterion 21 (`openapi.yaml` byte-identical to main's).
 
-1. **`response_model_exclude_unset=True` is now inert** on `get_bundle`'s
-   decorator (`backend/app/routers/content.py:286`): the handler returns a raw
-   `Response`, so FastAPI applies neither it nor `response_model` validation.
-   `response_model=Bundle` still earns its place (it drives the generated docs);
-   the `exclude_unset` flag does not. Cosmetic. **Put into T-100**, which has to
-   edit the same function anyway, rather than a new one-line task.
-2. **The worker test imports a private helper (`_sized`).** Accepted: the
+   **What would make it acceptable:** the tester raises a `## Test change
+   request` with one row per test, in the same form as T-097's 10-row re-pin
+   (PR #120), gets Dkaattae's approval in an attended session, applies exactly
+   those rows, and re-verifies with **every CI job** green, not only the backend
+   suite. Criterion 11 already treats this case as a finding ("if one goes red,
+   that is a finding"). Its "`make -C backend check`" wording is why both worker
+   and tester missed it. That is process ticket P-18, not a criterion defect, so
+   the criteria stand and the expander is not needed.
+   *Local note:* `bun test` in `question-bank/` here also fails `lint-gate.test.ts`
+   (T-066), because this sandbox's oxlint is missing. CI passes it, so it is
+   environmental and not part of the request.
+
+### Not blocking (dispose at the next review's sweep)
+
+2. **`response_model_exclude_unset=True` is now inert** on `get_bundle`'s
+   decorator (`backend/app/routers/content.py:286`). The handler returns a raw
+   `Response`, so FastAPI applies neither that flag nor `response_model`
+   validation. `response_model=Bundle` still earns its place because it drives the
+   generated docs. Cosmetic. **Goes into T-100** at the sweep, since T-100 has to
+   edit the same function. A new one-line task would only lengthen the queue.
+3. **The worker test imports a private helper (`_sized`).** Accepted. The
    digit-boundary case cannot be reached through the one served bank, and the
    test says so.
-3. **`GET /bundles` now renders each full bundle up to ~3 times.** Not queued:
-   there is one bundle, and the brief already named list cost as out of scope.
-   Worth a task only if a second bundle lands and the list is seen to be slow.
+4. **`GET /bundles` now renders each full bundle up to ~3 times.** Not queued.
+   There is one bundle, and the brief already put list cost out of scope.
 
-**Worker flags, disposed**
+### Worker flags, disposed
 
-- **"Render it ourselves and send those bytes" — confirmed.** It is exact by
-  construction; predicting FastAPI's serialiser would be exact only until that
-  path changed. Validation is not lost: the body still goes through
+- **"Render it ourselves and send those bytes": confirmed.** It is exact by
+  construction. Predicting FastAPI's serialiser would stay exact only until that
+  code path changed. Validation is not lost, because the body still goes through
   `Bundle.model_validate(...).model_dump(by_alias=True, exclude_unset=True)`.
   No E-n entry needed.
-- **Status said `awaiting approval` while `Approved:` named Dkaattae — settled.**
-  The run log records the person's verbatim reply in the orchestrator's session;
-  the `Approved:` line is authoritative. Nothing to do.
-- **List cost — not queued** (finding 3).
-- **T-101 (flaky `test_t040` c25) — kept** in the queue as the worker wrote it;
-  it did not recur in the tester's or the reviewer's full run.
+- **Status said `awaiting approval` while `Approved:` named Dkaattae: settled.**
+  The run log records the person's verbatim reply in the orchestrator's session.
+  The `Approved:` line is authoritative.
+- **List cost: not queued** (finding 4).
+- **T-101 (flaky `test_t040` c25): kept** in the queue as the worker wrote it.
+  It did not recur in the tester's run or mine.
 
-**Escalation:** `openapi.yaml` changed (`BundleSummary.properties.bytes` gained
-a `description`; still `type: integer`). Under E-14 the contract follows the
-backend, so this is expected and low risk, but the envelope reserves the merge
-decision for a person. No other escalation trigger: no child-facing text, no
-migration, no plan change, no test change, no orchestrator-stamped CI fix.
+### Lanes and branch (checked, fine)
 
+- Every role's commit is on this branch: expander `c5f01e1`, `88590a3`
+  (`tasks/` and `tasks.md` only); worker `841d43c`; tester `5f3e363` (one new
+  test file and the brief, no source). The orchestrator's run-log commits touch
+  only `runs/`. No `ci-fix` round.
+- Source changes are only in `backend/app/routers/content.py` and
+  `backend/app/store.py`. `openapi.yaml` changes only in `BundleSummary.bytes`.
+  No dependency, `question-bank/`, `frontend/`, `e2e/` or `content.json` change.
+
+**When it comes back:** once CI is green, I expect to approve and **escalate**,
+for the `openapi.yaml` change only (a description, no shape change). The
+re-pin rows will also go into the PR body. The sweep then also amends T-100
+(finding 2).
