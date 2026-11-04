@@ -162,7 +162,8 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // brief and run log (291 -> 286).
 // Re-pinned by T-093 (Test change request row 4): backend/app/orm.py moved.
 // Re-pinned by T-097 (Test change request row 4): backend/app/store.py moved.
-const MAIN_UNTOUCHABLE_SHA = "4452ec88ca61c92adf7a03de12147907e8c1cba0f193a364bd71230184c39e07";
+// Re-pinned by T-099 (Test change request row 4): backend/app/store.py moved.
+const MAIN_UNTOUCHABLE_SHA = "f0feb8d45ca4b8b57e7eff464b26135c9cec50dad238337d70fba0c2c166902e";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -222,6 +223,10 @@ const CRITERION_21_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-03, in the attended tester session that made the edit).
   "tasks/T-097-bundle-etag-answer-key.md",
   "runs/T-097-bundle-etag-answer-key.md",
+  // T-099's loop records, joined through T-099's Test change request row 4
+  // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
+  "tasks/T-099-bundle-bytes-per-variant.md",
+  "runs/T-099-bundle-bytes-per-variant.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);

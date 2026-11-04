@@ -712,6 +712,10 @@ a backend-only task is the case most likely to miss them.
   P-17 (stop creating whole-tree pins).
 
 **This is a process-file change**, so it is done by hand.
+**Recurred 2026-11-04 on T-099 (PR #122):** the same 9 pins went red on a
+backend-only task. The worker and the tester again ran only
+`make -C backend check`, and the reviewer sent the PR back to the tester for an
+attended re-pin.
 **Done when:** a task's worker and tester cannot report the existing suite green
 while another CI job is red on the same tree; or a D-n entry records why
 the reviewer's CI check is the accepted backstop.

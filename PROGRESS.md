@@ -72,7 +72,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   Grading runs on the server from the stored question.
 - **Each bundle variant has its own `ETag`** (T-097, PR #120): the keyed body
   (`includeAnswerKey=true`) is tagged `"<id>-<contentVersion>-key"`, so a cached
-  copy of one variant never revalidates as the other.
+  copy of one variant never revalidates as the other. Each variant's `bytes` is
+  that body's exact length, and `GET /bundles` lists the unkeyed one (T-099, PR #122).
 - **The session commits before the response is sent** (`DbSessionMiddleware`).
   It used to commit after, which FastAPI runs *after the response has reached the
   client* — so `register` could answer 201 before the row existed and the very
@@ -372,6 +373,22 @@ password or PIN, and nothing else identifying; a child's profile is a nickname
 and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
+
+- **T-099 — A bundle's `bytes` is the exact length of the body it is in** (PR #122,
+  2026-11-04). The router renders each `includeAnswerKey` variant itself,
+  iterates `bytes` to its fixed point (its own digits count), and sends exactly
+  those bytes; `GET /bundles` lists the unkeyed size. On the served bank that is
+  188882 unkeyed and 196291 keyed. `openapi.yaml`'s `BundleSummary.bytes` says
+  what it measures. *Where it differed from the brief:* the old value (210404)
+  overstated even the keyed body, because `json.dumps` used Python's default
+  `", "`/`": "` separators; and `get_bundle` now returns a raw `Response`, so
+  validation moved from FastAPI's `response_model` into `_bundle_body`. Escalated
+  at review for the `openapi.yaml` change only. The first review sent it back:
+  CI's question-bank job was red on 9 whole-tree pins over `backend/app/` and
+  `openapi.yaml`, which the worker and tester missed by running only the backend
+  suite (P-18 recurred). An attended tester re-pinned them through a 10-row Test
+  change request Dkaattae approved. T-101 (a flaky `test_t040` c25) was found
+  along the way.
 
 - **T-097 — A bundle's `ETag` differs with and without the answer key** (PR #120,
   2026-11-03). `store.bundle_etag` takes `include_answer_key`; the keyed body's
@@ -1850,9 +1867,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- A bundle's `bytes` is measured over the keyed body, so it overstates the
-  default, unkeyed one (T-099); and `GET /bundles/zz` with a matching
-  `If-None-Match` is a 304 rather than a 404 (T-100).
+- `GET /bundles/zz` with a matching `If-None-Match` is a 304 rather than a
+  404 (T-100).
 - `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
   still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
   is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.

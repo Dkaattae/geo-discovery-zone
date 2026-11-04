@@ -15,6 +15,7 @@ import binascii
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, Path, Query, Request, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app import store
@@ -222,11 +223,61 @@ BUNDLE_SUMMARY_KEYS = ("id", "label", "scope", "entityCount", "questionCount", "
 def list_bundles(db: Db) -> dict[str, Any]:
     summaries = []
     for bundle_id in store.bundle_ids(db):
-        bundle = store.bundle(db, bundle_id)
-        if bundle is None:
+        served = _bundle_body(db, bundle_id, include_answer_key=False)
+        if served is None:
             continue
+        bundle, _ = served
+        # The list takes no `includeAnswerKey`, so it describes the default,
+        # unkeyed variant: its `bytes` and `etag` are that body's (T-097, T-099).
         summaries.append({key: bundle[key] for key in BUNDLE_SUMMARY_KEYS if key in bundle})
     return {"data": summaries}
+
+
+def _render(body: dict[str, Any]) -> bytes:
+    return JSONResponse(content=None).render(body)
+
+
+def _sized(body: dict[str, Any]) -> bytes:
+    """Render `body` with its `bytes` field equal to the rendered length.
+
+    `bytes` sits inside the body it measures, so its own digits count. Start
+    from a guess and re-render until the length stops moving: the length only
+    changes when the digit count of `bytes` does, so this settles in two or
+    three passes.
+    """
+    size = 0
+    for _ in range(8):
+        rendered = _render({**body, "bytes": size})
+        if len(rendered) == size:
+            return rendered
+        size = len(rendered)
+    raise RuntimeError("bundle `bytes` did not converge")  # pragma: no cover
+
+
+def _bundle_body(
+    db: Session, bundle_id: str, *, include_answer_key: bool
+) -> tuple[dict[str, Any], bytes] | None:
+    """The bundle exactly as `GET /bundles/{bundleId}` serves it for one variant:
+    the body as a dict, and the rendered bytes that are sent.
+
+    Serialised through the `Bundle` response model, the same way FastAPI would,
+    then sized: `bytes` is the length of the rendered body (T-099).
+    """
+    bundle = store.bundle(db, bundle_id)
+    if bundle is None:
+        return None
+    bundle = dict(bundle)
+    # The body's `etag` follows the variant served, so it equals the header (T-097).
+    bundle["etag"] = store.bundle_etag(db, bundle_id, include_answer_key=include_answer_key)
+    bundle["questions"] = [
+        question_payload(q, include_answer_key=include_answer_key) for q in bundle["questions"]
+    ]
+    # Set before validation so `exclude_unset` keeps it in its schema position.
+    bundle["bytes"] = 0
+    body = Bundle.model_validate(bundle).model_dump(mode="json", by_alias=True, exclude_unset=True)
+    rendered = _sized(body)
+    body["bytes"] = len(rendered)
+    return body, rendered
 
 
 @router.get(
@@ -237,7 +288,6 @@ def list_bundles(db: Db) -> dict[str, Any]:
 )
 def get_bundle(
     request: Request,
-    response: Response,
     db: Db,
     bundleId: str = Path(),
     includeAnswerKey: bool = False,
@@ -248,19 +298,17 @@ def get_bundle(
     if if_none_match and etag in {tag.strip() for tag in if_none_match.split(",")}:
         return Response(status_code=304, headers={"ETag": etag})
 
-    bundle = store.bundle(db, bundleId)
-    if bundle is None:
+    served = _bundle_body(db, bundleId, include_answer_key=includeAnswerKey)
+    if served is None:
         raise not_found("Bundle", bundleId, request.url.path)
+    _, rendered = served
 
-    response.headers["ETag"] = etag
-    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    bundle = dict(bundle)
-    # The body's `etag` follows the variant served, so it equals the header (T-097).
-    bundle["etag"] = etag
-    bundle["questions"] = [
-        question_payload(q, include_answer_key=includeAnswerKey) for q in bundle["questions"]
-    ]
-    return bundle
+    # Sent as the exact bytes that were measured, so `bytes` is this body's length.
+    return Response(
+        content=rendered,
+        media_type="application/json",
+        headers={"ETag": etag, "Cache-Control": "public, max-age=31536000, immutable"},
+    )
 
 
 @router.get("/geometry/{layer}", summary="Fetch a TopoJSON geometry layer")
