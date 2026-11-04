@@ -1,7 +1,7 @@
 # T-100 — `GET /bundles/zz` with a matching `If-None-Match` returns 304 — run log
 
 **Task:** T-100 · **Branch:** `claude/ecstatic-hopper-lp3me9` · **PR:** #123
-**Started:** 2026-11-04 · **Outcome:** in progress
+**Started:** 2026-11-04 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-11-04
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -68,3 +68,51 @@ Approved stamped unattended. Note: the expander's returned result summarised the
 - **The worker and expander session ids are the same, `cse_011oDiJeFc5BLAbjAcwGQdfw` (orchestrator or human to note).** The tester's check that it runs in a different session should compare against this id.
 - **`bun test` run before `bun install` rewrote `frontend/README.md`.** I reverted it; it is not in the commit. Raised for the sweep.
 - **Out-of-scope items left alone.** These include `*` on a known bundle, which still returns 200. I did not add a `tasks.md` entry for it because the brief already names it; the reviewer can decide.
+
+## Round 3 — tester — 2026-11-04
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-100 tester: the fix meets every functional criterion, but the task is halted on a Test change request.** T-100's own files moved 7 question-bank boundary pins, and a person has to approve the re-pins in an attended `tester` session. Status is now `test changes requested`, Next step `human`, Test changes `requested`. I pushed to `claude/ecstatic-hopper-lp3me9` and it landed: the remote head is `65498ff`, matching local.
+
+**Independence is weak here.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJeFc5BLAbjAcwGQdfw`, the same id as the expander and the worker, so the Sessions check proves nothing in this orchestrated run. The only basis is that I was spawned as a fresh subagent and saw only the committed Handoff. The Verdict says so.
+
+**Criteria**
+- **Criteria 1-8: met.** Covered by 19 new tests in `/home/user/geo-discovery-zone/backend/tests/test_t100_tester_criteria.py`.
+- **Criterion 7: met on a reading, not blocked.** FastAPI 0.141 wraps included routers in `_IncludedRouter`, so a flat scan of `app.routes` finds no `APIRoute` at all. I read the criterion as "the route reachable from `app.routes`, including through included routers", which is also the worker's reading.
+- **Criteria 9-11: met, checked by hand.** Under `backend/tests/` the diff from `15a3175` only adds files. No dependency, `openapi.yaml`, migration, plan or `data/` file changed.
+- **Criterion 12: met.** `make -C backend check` passed with all six proxy variables pointed at `127.0.0.1:1`: 1039 passed, 9 skipped.
+- **Criterion 13: not yet met.**
+  - Question-bank: 2707 pass, 6 fail. All six failures are the stale pins in the request.
+  - Frontend: could not run here. `bun install` gets a proxy 403 and `node_modules` is incomplete. The GitHub check `frontend (typecheck, lint, test)` passed at `5563400`.
+
+**Mutations:** I made 7 mutations in `content.py` and each one turned the matching tests red. Every mutation was reverted, and a `cmp` against a backup was clean afterwards. They covered: the guard removed, `exclude_unset` restored, the existence check done by a full render, the tag match forced always true, a 404 sent with `ETag` and immutable `Cache-Control`, and a wrong `bytes` value.
+
+**The Handoff was wrong on one point.** It said 2 question-bank failures were "already red before". They were not. All four boundary test files pass at `15a3175`. Those two went red because T-100's brief and run log are new tracked files. The worker also missed two more stale tests: the `MAIN_TESTS_COUNT`/`MAIN_TESTS_SHA` pin, which the new backend test files move, and the `APPLIED_REQUEST_FILE_SHAS` cascade that rows 1 and 3 trigger.
+
+**The 7 rows in the Test change request** (none applied):
+1. `map-click-no-candidates-verify.test.ts`: re-pin the `backend/app` digest and rename the test to "T-100's".
+2. `refresh-regenerate-reminder-verify.test.ts`: re-pin `MAIN_BOUNDARY_SHA`.
+3. `farm-animal-loose-ends-verify.test.ts`: add T-100's brief and run log to `CRITERION_21_ALLOWED`.
+4. `climate-cold-trade-accepted-verify.test.ts`: re-pin `MAIN_SOURCE_TREES_SHA`.
+5. Same file: add T-100's brief and run log to `CRITERION_22_ALLOWED`.
+6. Same file: `MAIN_TESTS_COUNT` 120 → 122, and re-pin `MAIN_TESTS_SHA`.
+7. Same file: re-pin the cascade in `APPLIED_REQUEST_FILE_SHAS`.
+
+Every row is modify, none delete. I tried rows 1-6 in a throwaway worktree, then removed it: they leave only row 7 red, as expected. The brief gives the exact digest values.
+
+**Commits**
+- `19b7162`: T-100 tester: criteria tests.
+- `65498ff`: T-100 tester: Verdict and Test change request.
+
+**What is needed:** a person starts the `tester` step for T-100 in a session they are attending and approves or refuses each row there. The orchestrator cannot approve them (D-15).
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-100-unknown-bundle-304.md
+- /home/user/geo-discovery-zone/backend/tests/test_t100_tester_criteria.py
+
+## Halted — test change request — 2026-11-04
+Raised by the tester at commit `65498ff`. Header: `Status: test changes requested`, `Next step: human`, `Test changes: requested`. The orchestrator did not open the request and cannot approve it (D-15).
+
+To resume: a person starts the `tester` step for T-100 in a session they are attending. It asks about each row, applies what is approved, and finishes verifying. Then start a new run from the `Next step` it writes.
+
+Roles run: task-expander → worker → tester.
