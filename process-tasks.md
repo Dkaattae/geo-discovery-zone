@@ -686,3 +686,32 @@ older pins of the same kind.
 **This is a process-file change**, so it is done by hand.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.
+
+### P-18 — A brief that touches `backend/` names only the backend suite · S · todo
+**Depends on:** —
+**New 2026-11-03, from T-097's reviewer (PR #120).** T-097's criterion 16 said
+"the whole backend suite, lint and format check (`make -C backend check`) pass",
+and its Constraints said nothing in `question-bank/` may change. The worker and
+the round-1 tester each ran exactly that, reported "whole suite" green, and
+passed. CI then went red on 9 question-bank whole-tree pins (T-085a, T-087,
+T-088, T-091, T-092, T-096) that hash `backend/` and `openapi.yaml`. It took a
+reviewer round, a second orchestrated tester round and an attended tester session
+to raise, approve and apply the re-pins. T-053, T-093 and T-098 tripped the same
+pins. The question-bank suite is where most of the repo's cross-tree pins live, so
+a backend-only task is the case most likely to miss them.
+**Options to weigh, not a decision:**
+- **`tasks/TEMPLATE.md` and `task-expander.md`**: the "existing suite stands"
+  criterion always names every suite CI runs (backend, question-bank, frontend),
+  whichever tree the task touches.
+- **`tester.md`**: a `pass` needs the whole of CI green, so every job `ci.yml`
+  runs, not only the suite the brief names. The tester says which jobs it could
+  not run locally and why.
+- **`worker.md`**: "Tests made stale" is checked against every suite, not only
+  the one the task touches.
+- Any of these is cheaper alongside P-16 (the expander greps for byte pins) and
+  P-17 (stop creating whole-tree pins).
+
+**This is a process-file change**, so it is done by hand.
+**Done when:** a task's worker and tester cannot report the existing suite green
+while another CI job is red on the same tree; or a D-n entry records why
+the reviewer's CI check is the accepted backstop.
