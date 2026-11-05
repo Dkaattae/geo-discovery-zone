@@ -1,7 +1,7 @@
 # T-101 — A mixed-session format assertion can fail by chance — run log
 
 **Task:** T-101 · **Branch:** `claude/pensive-cori-y64q82` · **PR:** #124
-**Started:** 2026-11-05 · **Outcome:** in progress
+**Started:** 2026-11-05 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-11-05
 `Next step` on entry: (no brief) → on exit: `worker` · `Status` on exit: `awaiting approval`
@@ -79,3 +79,42 @@ The format check stays an exact three-format equality and the `>= 40` states che
 **Expected next:** the tester step will likely stop at `test changes requested` / `human`, as the brief warns. That is expected, not a fault.
 
 > Orchestrator note: this hand-back also carried work content to the orchestrator unprompted. Recorded here only; nothing from it goes into the tester's prompt.
+
+## Round 3 — tester — 2026-11-05
+`Next step` on entry: `tester` → on exit: `human` · `Status` on exit: `test changes requested` · `Test changes:` `requested` · head `a2da4e7`
+
+**TL;DR:** T-101 is stopped at `test changes requested` and needs a person. All three fixes change tests that already exist, and only a person can approve that, in a tester session they are attending (D-15). I applied nothing. Brief commit `a2da4e7` is pushed to `claude/pensive-cori-y64q82`, and `origin/claude/pensive-cori-y64q82` points at `a2da4e7` too.
+
+**Header:** Status `test changes requested` · Next step `human` · Test changes `requested` · Fault says the approval is waiting on a person. I added a tester row to the Sessions table.
+
+**Independence:** this is an orchestrated run. My session id `cse_011oDiJfGwhpXZVuG9dHVa98` is the same one listed for task-expander and worker, so the id check proves nothing either way. My independence rests only on being freshly spawned with my own context, which is weaker than a separate session. The Verdict says so.
+
+**Criterion 1 (showing the flake on `main`): no failing seed in 500 for any of the three tests.**
+- The branch's `backend/` is identical to `5cc0ecb`, so these runs are against `main`.
+- A throwaway pytest plugin, not committed, seeded the global `random` with each value 0–499 right before the test body.
+- I checked the harness first on a dummy test: it flagged exactly the seeds that should fail.
+- Results: (A) 500 runs, 0 failures; (B) mixed case 500 runs, 0 failures; (C) 500 runs, 0 failures.
+- So the failure T-099 saw did not reproduce. The brief allows this outcome. The cause may be rarer than 1 in 500, may come from the database's row order, or may come from random state used earlier in a full-suite run.
+
+**Test change request (rows 1–3, all pending):**
+- **Shared helper:** a new `fixed_draw` fixture in `backend/tests/conftest.py`. It replaces the router's `pick_question` with the real selection function, but feeds it the candidates sorted by id and its own `random.Random(101)`. The global `random` is never read, and the order SQLite or Postgres returns rows in no longer matters.
+- **Row 1, (A):** adds the fixture. The test body does not change.
+- **Row 2, (B):** pytest 9.1.1 will not attach a fixture to a single parametrised case (`ValueError: pytest.param cannot add pytest.mark.usefixtures`). So the `mixed` case moves into its own new test using the fixture, with the same two checks: 100 distinct ids, and exactly the three formats. The `location` and `capital` cases and the shared body stay byte-identical.
+- **Row 3, (C):** adds the fixture and plays **300 wrong answers instead of 200**. Every other check stays: exactly the three formats, at least 40 states, and every reveal check on every served question.
+
+**Criterion 5 can't be met by (C) at 200 answers.**
+- I ran a prototype test under `backend/tests/` and deleted it before committing.
+- With questions restricted to 40 states, 200 wrong answers reached only 36–37 states under every seed I tried, so the "40 states does not fail" half fails.
+- 40 of 40 states were first reached at answers 251–265 (seeds 101, 1, 2). That is why row 3 proposes 300.
+- The person approving should know that row 3 changes T-026's count of 200.
+
+**Still to verify after approval:** criteria 2–9, 12 and 13 depend on the rows being applied, so they are unchecked. Criteria 10 and 11 hold: nothing under `backend/` changed. No count-floor tests cover either file.
+
+**What a human needs to do:** start the `tester` step for T-101 in a session you are attending, and approve or refuse rows 1–3 there.
+
+Files: the brief (Verdict and Test change request); scratchpad seed harness, per-seed logs and prototype (session-local, not committed).
+
+## Halted — test change request — 2026-11-05
+Raised by the tester in commit `a2da4e7`. The rows are in the brief's `## Test change request`; per D-15 the orchestrator does not approve, stamp or relay them.
+
+**What a human has to do:** start the `tester` step for T-101 in a session you are attending. It will ask about each row, apply what you approve, and finish verifying. Then start a new run from whatever `Next step` it writes.
