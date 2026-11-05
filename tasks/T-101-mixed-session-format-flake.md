@@ -1,15 +1,15 @@
 # T-101 — A mixed-session format assertion can fail by chance
 
-**Status:** `in test`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-05, unattended run. See `runs/T-101-mixed-session-format-flake.md`.
-**Test changes:** `approved — Dkaattae, 2026-11-05`
+**Test changes:** `requested` (rows 4–8; rows 1–3 approved — Dkaattae, 2026-11-05)
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-101
 **Branch:** `claude/pensive-cori-y64q82`
 **PR:** #124, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:** none — the Test change request rows 1–3 were approved by Dkaattae in an attended tester session, 2026-11-05.
+**Fault:** Test change request rows 4–8 (question-bank boundary pins that T-101's own files turn red; CI's `question-bank` job is red on them) wait for a person's approval in this attended tester session (D-15). Owner: human.
 
 **Sessions:**
 
@@ -425,6 +425,33 @@ collected count is unchanged.
 - **Criterion 6:** SQLite and Postgres.
 - **Criteria 9, 12, 13:** module `random` restored after each test, no network,
   and `make -C backend check` passes.
+
+### Rows 4–8: question-bank boundary pins (P-18), raised 2026-11-05 by the attended tester
+
+**Why.** CI on `7749c50` ([run 42107755340](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/42107755340)):
+backend, backend (postgres), frontend, integration and e2e are green, and
+`question-bank` is red on 4 tests, with 2709 pass and 4 fail. Locally, the same 4
+fail on the branch and none fail on `main`. At `592eb41`, before rows 1–3 were
+applied, two of them (rows 4 and 5) were already red. The cause is the expander's
+brief and the orchestrator's run log, the two tracked files T-101 adds. These are
+the whole-tree pins P-18 describes. The brief's criterion 13 said "the frontend
+and question-bank suites pass unchanged", so they could not stay red. Each row is
+the same re-pin T-099 and T-100 made for their own files (`431f0a4`, `64ea707`).
+The values were **prototyped and reverted**: with rows 4–7 applied, the whole
+question-bank suite ran 2712 pass and 1 fail, and the 1 was row 8. Removing
+`conftest.py`'s edit alone also clears both untouchable digests, so `conftest.py`
+is the only non-loop-record file behind rows 6 and 7.
+
+| # | Test (file › describe › name) | Introduced | Why stale | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added` | `47581ea`, T-096 tester: nothing outside T-096's files moved | T-101 adds `tasks/T-101-…md` and `runs/T-101-…md` (count 286 → 288), and changes `backend/tests/conftest.py`, a non-test file under `isTestFile` (digest) | modify | `CRITERION_21_ALLOWED` gains `tasks/T-101-mixed-session-format-flake.md` and `runs/T-101-mixed-session-format-flake.md`, with a comment citing this row, so the count stays **286**. `MAIN_UNTOUCHABLE_SHA` is re-pinned `f0feb8d4…` → `7e8d4406…`, with a comment: "T-101 changed backend/tests/conftest.py (fixed_draw)". The same assertions remain: an exact count and an exact digest | *pending* |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added` | `950f334`, T-091 tester | Same two loop records (count 289 → 291) and `conftest.py` (digest) | modify | `CRITERION_22_ALLOWED` gains the same two paths, with a comment citing this row, so `MAIN_UNTOUCHABLE_COUNT` stays **289**. `MAIN_UNTOUCHABLE_SHA` is re-pinned `eea78285…` → `f77954ca…`, with a comment citing `conftest.py` | *pending* |
+| 6 | same file › same describe › `pre-existing test files are main's, except ones in an approved Test change request` | `950f334`, T-091 tester | Rows 1–3 changed `test_t040_tester_criteria.py` and `test_content_build.py`. No test file is added or removed | modify | `MAIN_TESTS_SHA` is re-pinned `0bcd9846…` → `8a4cf44b…`, with a comment: "T-101 rows 1–3 changed test_t040_tester_criteria.py and test_content_build.py". `MAIN_TESTS_COUNT` stays **122** | *pending* |
+| 7 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › `every tracked file under the three trees is as re-pinned by T-039, none added or removed` | `bcb2a38`, T-039 tester (re-pin form) | T-101 changed three files under `backend/tests/` | modify | `MAIN_BOUNDARY_SHA` is re-pinned `b69ea73b…` → `92bdaee8…`, with a comment naming the three files | *pending* |
+| 8 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091 tester | Cascade: row 4 edits `farm-animal-loose-ends-verify.test.ts`, whose SHA this test pins | modify | `APPLIED_REQUEST_FILE_SHAS["question-bank/src/farm-animal-loose-ends-verify.test.ts"]` is re-pinned from `c6cbe7b6…` to that file's SHA after row 4, computed at apply time because row 4's comments are part of it. The re-pin chain comment gains "then by T-101 (row 8)" | *pending* |
+
+**Count floors:** none move. Rows 4 and 5 keep their counts by allowing the two
+new files, as T-099 and T-100 did. No test is deleted.
 
 ## Notes
 
