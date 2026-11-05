@@ -720,6 +720,10 @@ a backend-only task is the case most likely to miss them.
 backend-only task. The worker and the tester again ran only
 `make -C backend check`, and the reviewer sent the PR back to the tester for an
 attended re-pin.
+**Recurred 2026-11-05 on T-101 (PR #124):** 5 pins (T-087, T-091, T-096)
+went red from the task's own brief, run log and `backend/tests/` edits. This time
+the attended tester caught it on its own CI run and raised rows 4–8 in the same
+session, so it cost no review round. It still cost a second approval round.
 **Done when:** a task's worker and tester cannot report the existing suite green
 while another CI job is red on the same tree; or a D-n entry records why
 the reviewer's CI check is the accepted backstop.

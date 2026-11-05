@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw)._
 
 ## How this list is ordered
 
@@ -339,17 +339,20 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-101 — `test_t040` c25 can fail by chance: a mixed session may serve no `map_identify` · S · doing (brief awaiting approval — `tasks/T-101-mixed-session-format-flake.md`)
+### T-102 — Other backend tests may assert on an unseeded draw · S · todo
 **Depends on:** —
-**New 2026-11-04, found by T-099's worker.** `make -C backend check` failed once
-on `backend/tests/test_t040_tester_criteria.py::test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`:
-the 100 served questions held `map_click` and `multiple_choice` but no
-`map_identify`. It passed on rerun, alone and in the full suite. `selection.py`
-draws with `random` and the test seeds nothing, so the set-equality assertion on
-formats is probabilistic. Unrelated to T-099 (which touches only bundles). Fixing
-it means changing an existing test, so it goes through the tester and a human (D-14).
-**Done when:** the c25 assertion cannot fail by chance (seeded rng, or an
-assertion the selection guarantees), and nothing else in the test weakens.
+**New 2026-11-05, from T-101's review (PR #124).** T-101 gave three tests a fixed
+draw (`backend/tests/conftest.py::fixed_draw`), and its brief kept every other
+test out of scope without looking. Any other endpoint test that plays a
+`mixed` or level-windowed session through the router and asserts what the
+serves *contain* (a format, a state count, a review) still draws from module
+`random` over database row order. T-101's tester could not reproduce T-099's
+failure in 500 module seeds per test, so the trigger may have been row order or
+random state consumed earlier in the suite, which a survey by reading will find
+faster than seeding.
+**Done when:** every such assertion in `backend/tests/` is listed in a brief, and
+each either uses `fixed_draw` (through an approved Test change request, D-14) or
+is shown to hold under any draw.
 
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
