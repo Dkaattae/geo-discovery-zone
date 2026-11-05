@@ -375,6 +375,21 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-101 — Three mixed-session tests no longer pass or fail by chance** (PR #124,
+  2026-11-05). A new `fixed_draw` fixture in `backend/tests/conftest.py` runs the
+  real `selection.pick_question` over id-sorted candidates with one
+  `random.Random(101)` per test. `test_t040`'s c25 and c22 use it, and the
+  `mixed` case of `test_content_build`'s perfect-session test moved into its own
+  function to take it. Production selection is unchanged. *Where it differed from
+  the brief:* the flake was never reproduced: 0 failures in 500 module-`random`
+  seeds for each test, so the T-099 failure may have come from row order or
+  earlier random consumption (T-102 looks for siblings). c22 had to play 300
+  wrong answers, not 200, because at 200 a pool cut to 40 states reached only
+  36–37 and the `>= 40` floor could not tell 40 states from 39. 5 question-bank
+  whole-tree pins went red from T-101's own files (P-18 again). Dkaattae
+  approved all 8 Test change request rows in an attended tester session. The
+  brief itself carried only the orchestrator's unattended stamp.
+
 - **T-100 — An unknown bundle is a 404 whatever `If-None-Match` holds** (PR #123,
   2026-11-04). `get_bundle` checks `store.bundle_ids` (one `SELECT DISTINCT
   scope`) before the conditional check, so `GET /bundles/zz` with a matching tag

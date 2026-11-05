@@ -466,6 +466,9 @@ async def test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_i
             assert "mapHighlightGeometryId" not in reveal, question["id"]
 
 
+# T-101 (Test change request row 1): a fixed draw, so the format equality
+# cannot fail by chance.
+@pytest.mark.usefixtures("fixed_draw")
 async def test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions(
     client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
@@ -476,6 +479,8 @@ async def test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions
     assert {q["format"] for q, _ in played} == {"map_identify", "map_click", "multiple_choice"}
 
 
+# T-101 (Test change request row 3): a fixed draw, and 300 answers.
+@pytest.mark.usefixtures("fixed_draw")
 async def test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state(
     client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
@@ -484,7 +489,10 @@ async def test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state(
     source = pipeline()
     # T-026: 200, not 100 -- each state now has seven served questions, so 100
     # answers reach only 32-34 states. The floor of 40 is unchanged.
-    played = await play(client, auth_headers, "mixed", 200, correct=False)
+    # T-101 (criterion 5, Test change request row 3): 300, not 200 -- with the
+    # pool cut to 40 states, all 40 were first reached at answers 251-265, so at
+    # 200 the floor could not tell 40 states from 39.
+    played = await play(client, auth_headers, "mixed", 300, correct=False)
     # T-051 (Test change request row 19): mixed serves map_click too, and a
     # map_click's answer is named by its state.
     assert {q["format"] for q, _ in played} == {"map_identify", "map_click", "multiple_choice"}

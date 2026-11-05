@@ -440,7 +440,6 @@ def test_loading_a_changed_file_replaces_the_bank(db_session: Session, tmp_path:
         # T-051 (Test change request rows 11, 12): map_click is served.
         ("location", 100, {"map_identify", "map_click"}),
         ("capital", 50, {"multiple_choice"}),
-        ("mixed", 100, {"map_identify", "map_click", "multiple_choice"}),
     ],
 )
 async def test_a_perfect_session_reaches_every_question_once(
@@ -464,6 +463,23 @@ async def test_a_perfect_session_reaches_every_question_once(
             per_entity[q["entityId"]] = per_entity.get(q["entityId"], 0) + 1
         assert len(per_entity) == 50
         assert set(per_entity.values()) == {count // 50}
+
+
+# T-101 (Test change request row 2): the `mixed` case of the test above, moved
+# out so it can take a fixed draw -- pytest cannot attach a fixture to one
+# parametrised case. Same two assertions: 100 distinct ids, all three formats.
+@pytest.mark.usefixtures("fixed_draw")
+async def test_a_perfect_mixed_session_reaches_100_distinct_questions_in_every_format(
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
+) -> None:
+    session_id = await _session(client, auth_headers, "mixed")
+    seen: list[dict[str, Any]] = []
+    for _ in range(100):
+        question = await _next(client, auth_headers, session_id)
+        seen.append(question)
+        await _answer(client, auth_headers, session_id, question, correct=True)
+    assert len({q["id"] for q in seen}) == 100
+    assert {q["format"] for q in seen} == {"map_identify", "map_click", "multiple_choice"}
 
 
 # -- the archived hand-written bank (criteria 26, 27) -----------------------------
