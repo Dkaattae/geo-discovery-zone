@@ -1,7 +1,7 @@
 # T-101 — A mixed-session format assertion can fail by chance — run log
 
 **Task:** T-101 · **Branch:** `claude/pensive-cori-y64q82` · **PR:** #124
-**Started:** 2026-11-05 · **Outcome:** in progress
+**Started:** 2026-11-05 · **Outcome:** ready for merge — escalated by the reviewer
 
 ## Round 1 — task-expander — 2026-11-05
 `Next step` on entry: (no brief) → on exit: `worker` · `Status` on exit: `awaiting approval`
@@ -121,3 +121,43 @@ Raised by the tester in commit `a2da4e7`. The rows are in the brief's `## Test c
 
 ## Resumed — 2026-11-05
 Dkaattae, in the orchestrator's session: "ci fixed. please proceed". The attended tester session had acted on the branch since the halt (head `592eb41` → `1a0fde7`, last commit `T-101 tester: verdict pass`). Header on resume: `Status: pass` · `Next step: reviewer` · `Test changes: approved — Dkaattae, 2026-11-05`. Carrying on from `Next step`.
+
+## Round 4 — reviewer — 2026-11-05
+`Next step` on entry: `reviewer` → on exit: brief deleted by sweep · `Status` before sweep: `approved — escalated` (commit `24c3097`) · head `2651d1d`
+
+**TL;DR: I approved T-101 but escalated it. PR #124 is now marked ready, and its body opens with "do not merge without a decision". I swept inside the PR and the push landed at `2651d1d`. Next: Dkaattae reads the 8 test change rows copied into the PR body, then merges. I did not merge.**
+
+**Why it is escalated:**
+- **Pre-existing tests were modified.** All 8 Test change request rows were approved by Dkaattae in an attended tester session. I copied them into the PR body because the sweep deleted the brief.
+- **Files outside the brief's Constraints changed.** Rows 4–8 re-pinned three question-bank test files (the P-18 pins).
+- **Nobody read the brief before it was built.** It ran on the orchestrator's unattended `Approved:` stamp.
+
+**What the review checked:**
+- **Every role's work is in the PR.** The expander, worker, tester and orchestrator each have commits on the branch.
+- **Each role stayed in its lane.** The expander touched only `tasks/` and `tasks.md`, and the worker only the brief. Every test change is in tester commits `7749c50` (rows 1–3) and `fde44c4` (rows 4–8). There are no `ci-fix` commits, and nothing changed under `backend/app/`, `backend/scripts/` or any manifest or lockfile.
+- **The diff matches the approved rows exactly.**
+  - A new `fixed_draw` fixture runs the real `pick_question` over candidates sorted by id, with a fixed seed of 101. It follows the same pattern as the `force` fixture in `test_t051`.
+  - (A) only gains the fixture decorator.
+  - (B)'s `mixed` case moved into its own function, and the `location` and `capital` cases are byte-identical.
+  - (C) gains the decorator and plays 300 wrong answers instead of 200.
+  - No assertion is weaker.
+- **Every flag the earlier roles raised is closed.** That covers the worker's proposed fix, the shared session id, and the tester's local frontend failures.
+
+**Findings (none blocking):**
+- **New task T-102 in `tasks.md` §E.** Other mixed-session tests may still assert on an unseeded draw. The original flake never reproduced in 500 seeds, so its cause may be database row order rather than the seed, and nothing in the queue owned this.
+- **Amended P-18 in `process-tasks.md`.** It recurred a third time. It cost no review round, but it cost a second approval round.
+
+**Sweep, in commit `2651d1d`:**
+- Deleted the brief.
+- Removed T-101 from `tasks.md`, added T-102 and appended to the sweep log.
+- Logged T-101 under "Completed tasks" in `PROGRESS.md`.
+- Amended P-18.
+
+Before deleting the brief I committed `## Review`, my Sessions row and Status `approved — escalated` to it, in its own commit (`T-101 reviewer: review, approved and escalated`), so the review stays in git history.
+
+**Checks:**
+- **CI:** the last full green run was on `fde44c4` (run 42110681369). The later commits change only `tasks/`, `runs/`, `tasks.md`, `PROGRESS.md` and `process-tasks.md`. CI for the sweep commit has not finished, and I did not wait for it.
+- **Question-bank suite, run locally with the sweep in place:** 2681 pass, 12 fail and 1 error. All 13 come from the missing `node_modules` (`oxlint` not found, `prettier` not resolvable). None is a pin test.
+
+## Ended — 2026-11-05
+PR #124 marked ready by the reviewer, escalated. The merge decision is Dkaattae's. G1 on the final diff: clean.
