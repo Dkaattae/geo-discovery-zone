@@ -24,6 +24,7 @@ first, because a database left over from a previous run is not a fixture.
 from __future__ import annotations
 
 import os
+import random
 import tempfile
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
@@ -37,7 +38,7 @@ from alembic.config import Config
 from sqlalchemy import Engine, text
 from sqlalchemy.orm import Session
 
-from app import auth, db, store
+from app import auth, db, selection, store
 from app.auth import DEMO_PASSWORD, DEMO_USERNAME
 from app.db import get_db
 from app.main import API_PREFIX, app
@@ -194,3 +195,23 @@ def assert_problem(response: httpx.Response, status: int) -> dict[str, Any]:
     assert body["status"] == status
     assert isinstance(body.get("title"), str) and body["title"]
     return body
+
+
+# T-101: a mixed session's draw comes from module `random`, which nothing seeds,
+# so a test asserting what 100 random serves contain could fail by chance.
+FIXED_DRAW_SEED = 101
+
+
+@pytest.fixture
+def fixed_draw(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Runs the real `selection.pick_question` for every serve, but over
+    candidates sorted by id (so database row order cannot matter) and with one
+    `random.Random(FIXED_DRAW_SEED)` per test (so module `random` is never read
+    or advanced). Pool, level windows and review cadence are unchanged."""
+    rng = random.Random(FIXED_DRAW_SEED)
+
+    def pick(questions: list[dict[str, Any]], **kwargs: Any) -> tuple[dict[str, Any] | None, bool]:
+        ordered = sorted(questions, key=lambda q: q["id"])
+        return selection.pick_question(ordered, **kwargs, rng=rng)
+
+    monkeypatch.setattr("app.routers.sessions.pick_question", pick)
