@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-101
 **Branch:** `claude/pensive-cori-y64q82`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #124, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
 **Fault:**
 
