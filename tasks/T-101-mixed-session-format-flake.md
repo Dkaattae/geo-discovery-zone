@@ -1,7 +1,7 @@
 # T-101 — A mixed-session format assertion can fail by chance
 
-**Status:** `in test`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-05, unattended run. See `runs/T-101-mixed-session-format-flake.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-05` (rows 1–3 and 4–8, each in this attended tester session)
 **CI fix:** `none`
@@ -351,7 +351,7 @@ the `react-simple-maps` tarball (`ProxyConnectFailed (403)`), so its tests and
 typecheck cannot resolve the package. No frontend file is in the diff. CI's
 `frontend` job is the evidence for this suite.
 
-**CI:** pending on `fde44c4` (run 42110681369) at the time of writing; recorded below when it finishes.
+**CI:** **all green on `fde44c4`** ([run 42110681369](https://github.com/Dkaattae/geo-discovery-zone/actions/runs/42110681369)): `backend`, `backend (postgres)`, `question-bank`, `frontend`, `integration (docker compose)`, `e2e (playwright)` and "Is a task waiting on a human?". The commit after it changes only this brief.
 
 **Other chance-dependent tests:** none looked for, which is out of scope.
 
