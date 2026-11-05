@@ -1,7 +1,7 @@
 # T-101 — A mixed-session format assertion can fail by chance
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision, see Review)
 **Approved:** orchestrator — 2026-11-05, unattended run. See `runs/T-101-mixed-session-format-flake.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-05` (rows 1–3 and 4–8, each in this attended tester session)
 **CI fix:** `none`
@@ -19,6 +19,7 @@ draft** until the reviewer approves it
 | worker | 2026-11-05 | cse_011oDiJfGwhpXZVuG9dHVa98 |
 | tester | 2026-11-05 | cse_011oDiJfGwhpXZVuG9dHVa98 (orchestrated: shared id, see Verdict) |
 | tester (attended) | 2026-11-05 | cse_011oDiJc4pcyGYYUotieCboC |
+| reviewer | 2026-11-05 | cse_011oDiJfGwhpXZVuG9dHVa98 (orchestrated: shared id) |
 
 > **Plan to attend the tester step.** The whole deliverable is a change to tests
 > that already exist on `main`. Only the tester may make it, through a Test change
@@ -420,6 +421,57 @@ is out of scope.
 
 **Left behind:** nothing. The prototype test file was moved out of
 `backend/tests/` before committing, and `git status` showed only this brief.
+
+## Review
+
+**TL;DR: approved, escalated.** The fix is small, fits the suite, and does what
+the brief asked: a fixed, id-sorted draw for three tests, with no assertion
+weakened. Escalated because files outside the Constraints changed (5 question-bank
+pins, approved by Dkaattae as rows 4–8), pre-existing tests were modified (all 8
+rows person-approved), and the brief was built under the orchestrator's unattended
+`Approved:` stamp. **Next:** Dkaattae reads the rows in the PR body and merges.
+
+- **Every role's work is in the PR.** expander `77ad469`, `dcf8223`; worker
+  `b8bc1d3`; tester `a2da4e7` … `1a0fde7`; orchestrator `7602e13`, `b8026d3`,
+  `592eb41`, `ec69bf6`.
+- **Lanes held.** The expander touched only `tasks/` and `tasks.md`. The worker
+  touched only the brief. Every test file change is in tester commits `7749c50`
+  (rows 1–3) and `fde44c4` (rows 4–8). Nothing under `backend/app/`,
+  `backend/scripts/`, a manifest or a lockfile.
+- **The diff matches the rows.** `conftest.py` gains `fixed_draw` and
+  `FIXED_DRAW_SEED` exactly as the request's shared-helper paragraph says. (A)
+  gains only the decorator. (B)'s `mixed` row moved out, and `location`/`capital`
+  are untouched. (C) gains the decorator and 200 → 300 with the reason. Rows 4–8
+  are the hash and allowed-set re-pins named, each with a comment.
+- **Fits the codebase.** `fixed_draw` follows `test_t051`'s `force` monkeypatch
+  pattern, and real selection still runs. It is no bigger than it needs to be.
+- **Honesty intact.** The tester recorded that the flake never reproduced
+  (0 in 500 seeds each) rather than inventing a failing seed, and the
+  mutation checks (criteria 3–5) show the assertions still bite.
+
+**Findings, none blocking:**
+
+1. **Other tests may share the defect** (out of scope here, and nobody looked).
+   Because the T-099 failure did not reproduce under module seeds, its trigger may
+   be row order or earlier random consumption, which other mixed-session tests
+   would also see. **New task T-102** in `tasks.md` §E. Nothing queued owned it.
+2. **P-18 recurred a third time** (T-097, T-099, now T-101): the tester's first
+   CI run went red on question-bank whole-tree pins from the task's own files.
+   It was caught and fixed in the tester's own round, so it cost no review cycle
+   this time. **Amended P-18** in `process-tasks.md` with the recurrence, not a
+   new ticket, because P-18 already owns it.
+
+**Flags disposed of:**
+- The worker's mechanism proposal was the tester's to decide, and it was decided
+  (rows 1–3). Closed.
+- The worker's and tester's shared session-id note is the orchestrator's known
+  property (`$CLAUDE_CODE_REMOTE_SESSION_ID` is shared). The tester of record
+  that applied and verified the change ran in a separate, attended session.
+  Closed.
+- The tester's local frontend failures came from the proxy refusing the
+  `react-simple-maps` tarball. No frontend file is in the diff, and CI's
+  `frontend` job is green on `fde44c4`. Closed.
+- "Other chance-dependent tests": T-102.
 
 ## Test change request
 
