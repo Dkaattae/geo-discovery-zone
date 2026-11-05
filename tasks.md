@@ -339,7 +339,7 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-101 — `test_t040` c25 can fail by chance: a mixed session may serve no `map_identify` · S · todo
+### T-101 — `test_t040` c25 can fail by chance: a mixed session may serve no `map_identify` · S · doing (brief awaiting approval — `tasks/T-101-mixed-session-format-flake.md`)
 **Depends on:** —
 **New 2026-11-04, found by T-099's worker.** `make -C backend check` failed once
 on `backend/tests/test_t040_tester_criteria.py::test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`:
