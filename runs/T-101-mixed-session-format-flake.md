@@ -1,7 +1,7 @@
 # T-101 — A mixed-session format assertion can fail by chance — run log
 
 **Task:** T-101 · **Branch:** `claude/pensive-cori-y64q82` · **PR:** #124
-**Started:** 2026-11-05 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-05 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-11-05
 `Next step` on entry: (no brief) → on exit: `worker` · `Status` on exit: `awaiting approval`
@@ -118,3 +118,6 @@ Files: the brief (Verdict and Test change request); scratchpad seed harness, per
 Raised by the tester in commit `a2da4e7`. The rows are in the brief's `## Test change request`; per D-15 the orchestrator does not approve, stamp or relay them.
 
 **What a human has to do:** start the `tester` step for T-101 in a session you are attending. It will ask about each row, apply what you approve, and finish verifying. Then start a new run from whatever `Next step` it writes.
+
+## Resumed — 2026-11-05
+Dkaattae, in the orchestrator's session: "ci fixed. please proceed". The attended tester session had acted on the branch since the halt (head `592eb41` → `1a0fde7`, last commit `T-101 tester: verdict pass`). Header on resume: `Status: pass` · `Next step: reviewer` · `Test changes: approved — Dkaattae, 2026-11-05`. Carrying on from `Next step`.
