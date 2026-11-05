@@ -1,15 +1,15 @@
 # T-101 — A mixed-session format assertion can fail by chance
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-05, unattended run. See `runs/T-101-mixed-session-format-flake.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-101
 **Branch:** `claude/pensive-cori-y64q82`
 **PR:** #124, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it
-**Fault:**
+**Fault:** T-101's deliverable is three changes to pre-existing tests, and they wait in the Test change request for a person's approval in an attended tester session (D-15). Owner: human.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it
 |---|---|---|
 | task-expander | 2026-11-05 | cse_011oDiJfGwhpXZVuG9dHVa98 |
 | worker | 2026-11-05 | cse_011oDiJfGwhpXZVuG9dHVa98 |
+| tester | 2026-11-05 | cse_011oDiJfGwhpXZVuG9dHVa98 (orchestrated: shared id, see Verdict) |
 
 > **Plan to attend the tester step.** The whole deliverable is a change to tests
 > that already exist on `main`. Only the tester may make it, through a Test change
@@ -300,7 +301,129 @@ shows no count pin. The tester should check again after its edit.
 
 ## Verdict
 
+**TL;DR: halted at `test changes requested`. A person is needed.** All three rows
+of the Test change request are pre-existing tests that only a person may approve.
+Criterion 1 is done: no seed made any of (A), (B) or (C) fail in 500 each. The
+proposed fix was prototyped, and it shows criterion 5 forces (C) from 200 to 300
+answers. Nothing has been applied. **Next:** a person attends a `tester` session
+for T-101 and approves or refuses rows 1–3.
+
+**Independence.** This is an orchestrated run (`runs/T-101-…md` exists).
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfGwhpXZVuG9dHVa98`, the same id
+listed for task-expander and worker. That match is evidence of nothing either
+way. My independence rests only on being a freshly spawned agent with its own
+context: I did not see the worker's reasoning beyond its committed Handoff. That
+is weaker than a separate session, because it depends on the orchestrator having
+spawned me correctly.
+
+| # | Criterion | State | Evidence |
+|---|---|---|---|
+| 1 | Defect shown on `main` | **done: none found in 500, for each of (A), (B) and (C)** | Below |
+| 2 | Passes whatever module `random` holds | not yet: rows unapplied | Mechanism argued in the request; check after approval |
+| 3–4 | Missing format still fails (A), (B) and (C) | not yet | The equality is kept in rows 1–3, so a filtered format cannot be served under any draw |
+| 5 | (C): 39 states fails, 40 does not | not yet. **At 200 answers it cannot hold** | Prototype: 36–37 of 40 reached at 200 answers. Row 3 plays 300, where 40 of 40 is reached at 251–265 |
+| 6 | SQLite and Postgres | not yet | — |
+| 7 | Nothing weakens | proposed rows keep every assertion | Rows 1–3, "Becomes" |
+| 8 | No other test changes | nothing changed yet. Row 2 leaves `location` and `capital` byte-identical | `git status` clean, no test file touched |
+| 9 | Module `random` restored | not yet. Prototype showed `getstate()` unchanged across 30 sessions | — |
+| 10 | No `backend/app/` or `backend/scripts/` change | **holds** | `git diff --stat 5cc0ecb HEAD -- backend` is empty |
+| 11 | No dependency change | **holds** | Same diff: `pyproject.toml` and `uv.lock` untouched |
+| 12–13 | No network; whole check | not yet (nothing changed). The worker's baseline is green | — |
+
+**Criterion 1, how it was run.** The branch's `backend/` tree is identical to
+`5cc0ecb`, since the diff is empty. A throwaway pytest plugin in the scratchpad
+(`-p seedloop`, not committed) runs one test item once per seed via
+`_pytest.runner.runtestprotocol`, and calls `random.seed(N)` in a `tryfirst`
+`pytest_runtest_call` hook. That is after fixture setup and immediately before
+the test body.
+- **The harness catches failures.** I checked it against a dummy
+  `assert random.random() < 0.5`. It reported FAIL for exactly seeds 0, 2 and 5,
+  which match `random.seed(s); random.random()` for s = 0–5.
+- **Seeds 0–499, in-process SQLite, each test:**
+  - **(A)** `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions`:
+    500 runs, **0 failures**.
+  - **(B)** `test_a_perfect_session_reaches_every_question_once[mixed-100-formats2]`:
+    500 runs, **0 failures**.
+  - **(C)** `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state`:
+    500 runs, **0 failures**.
+- **So the T-099 failure was not reproduced.** Criterion 1 says that does not
+  fail the task. Two explanations remain open. The failure may be rarer than
+  1 in 500. Or it may depend on something a fixed module seed does not capture:
+  the database row order (`candidate_questions` has no `ORDER BY`), or random
+  state consumed earlier in a full-suite run.
+- **(C) is the most marginal of the three.** Under the prototype's fixed draws
+  over id-sorted candidates, its `>= 40` floor was met with exactly 40 in 5 of
+  10 seeds. Under the 500 module seeds on insertion order it never failed.
+
+**Other chance-dependent tests:** I did not look beyond (A), (B) and (C), which
+is out of scope.
+
+**Left behind:** nothing. The prototype test file was moved out of
+`backend/tests/` before committing, and `git status` showed only this brief.
+
 ## Test change request
+
+Raised by the tester, 2026-11-05, in an orchestrated run with nobody to ask.
+**Nothing below has been applied.** To approve, start the `tester` step for T-101
+in a session you are attending and answer it there, row by row (D-15).
+
+**Shared helper (not a pre-existing test, so not a row; listed so the whole change
+is visible):** a new fixture `fixed_draw` in `backend/tests/conftest.py`, plus a
+constant `FIXED_DRAW_SEED = 101`. It does
+`monkeypatch.setattr("app.routers.sessions.pick_question", pick)`, where `pick`
+calls the real `app.selection.pick_question` with every argument the router
+passes, except that the candidate list is `sorted(..., key=lambda q: q["id"])` and
+`rng` is one `random.Random(FIXED_DRAW_SEED)` made per test. This is the pattern
+of `test_t051_tester_criteria.py`'s `force` fixture.
+- **Real selection still runs.** The pool, level windows, review cadence and
+  nearest-pool fallback are all unchanged. Only where the randomness comes from
+  changes.
+- **Criterion 2:** module `random` is never read, so its state cannot matter.
+- **Criterion 6:** sorting by id removes database row order, so SQLite and
+  Postgres see the same draw.
+- **Criterion 9:** module `random` is never seeded or advanced, and `monkeypatch`
+  restores the router's name afterwards. Prototyped: `random.getstate()` was
+  unchanged after each of 30 prototype sessions.
+
+**Prototype evidence.** A scratch test file was run under `backend/tests/` and
+then deleted. It was never committed, and `git status` is clean. Each case
+played sessions through the real `client` with `fixed_draw`'s mechanism:
+- **(A)-shaped**, seeds 101, 0, 1, 2 and 3: 100 distinct ids and all three
+  formats every time.
+- **(C)-shaped, 200 wrong answers:**
+  - **Full bank:** 40–43 states reached, seeds 101 and 0–8. Five of the ten hit
+    exactly 40.
+  - **Restricted to 40 states** (first 40 entity ids): **36–37 reached under
+    every seed**.
+  - **Restricted to 39 states:** 35–36 reached.
+- **(C)-shaped, 500 wrong answers, seeds 101, 1 and 2:**
+  - **40-state restriction:** all 40 reached first at answers 265, 260 and 251.
+    At 300 answers, 40 of 40 every time.
+  - **Full bank:** 46–47 states at 300 answers.
+
+So **criterion 5's 40-state half cannot hold for (C) at 200 answers under any
+draw tried**. Hence row 3's 300.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `backend/tests/test_t040_tester_criteria.py` › (module) › `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions` — (A) | `acaa4a1`, T-040 tester: a perfect mixed session serves 100 distinct questions (T-040 criterion 25). Three-format set from `7792f87`, T-051 tester, TCR row 19: mixed serves `map_click` too | Its format equality depends on module `random`, which nothing seeds. T-101 criterion 2 | modify | **Same name, same body.** It gains `@pytest.mark.usefixtures("fixed_draw")` and nothing else changes. It still plays 100 correct answers on `mixed` through `play`, asserts `len(set(ids)) == 100`, and asserts `{formats} == {"map_identify", "map_click", "multiple_choice"}` (an equality) | *pending: a person's answer in an attended tester session* |
+| 2 | `backend/tests/test_content_build.py` › (module) › `test_a_perfect_session_reaches_every_question_once[mixed-100-formats2]` — (B), `mixed` case only | `25c7847`, T-040 worker: a perfect session reaches every question once. The `mixed` row's three-format set is from `7792f87`, T-051 tester, TCR rows 11–12 | Same defect as row 1, on the `mixed` parametrisation only. pytest 9.1.1 rejects `pytest.param(..., marks=pytest.mark.usefixtures(...))`, checked: `ValueError: pytest.param cannot add pytest.mark.usefixtures`. The fixture cannot be attached to the one row without editing the shared body, so the row moves out | modify | **The `("mixed", 100, {...})` row is removed from the parametrize list.** The `location` and `capital` rows and the function body stay byte-identical, so those two test ids are unchanged (criterion 8). **New function in the same file:** `test_a_perfect_mixed_session_reaches_100_distinct_questions_in_every_format`, with `@pytest.mark.usefixtures("fixed_draw")`. It runs `_session(client, auth_headers, "mixed")`, then 100 rounds of `_next` and `_answer(..., correct=True)`. It asserts that the served ids hold 100 distinct values, and that `{formats} == {"map_identify", "map_click", "multiple_choice"}` (an equality). Its comment cites T-101 TCR row 2 | *pending* |
+| 3 | `backend/tests/test_t040_tester_criteria.py` › (module) › `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state` — (C) | `acaa4a1`, T-040 tester: every wrong answer's reveal names the answer and highlights the state (criterion 22). 200 answers from `f1b9de5`, T-026 tester. Three formats from `7792f87`, T-051 tester | Its format equality and `>= 40` states depend on module `random` (criterion 2). At 200 answers the state floor is marginal: the full bank reached exactly 40 under 5 of 10 fixed draws, and the 40-state restriction reached only 36–37. So criterion 5's "40 states does not fail" is unreachable at 200 | modify | **Same name.** It gains `@pytest.mark.usefixtures("fixed_draw")`, and **plays 300 wrong answers instead of 200**, with a comment citing T-101 criterion 5 and the 251–265 measurement above. **Unchanged:** the docstring, `>= 40` distinct `entityId`s, the format equality with the three formats, and for **every** served question `headline == f"The answer is {label}."`, `answerLabel == label` and `mapHighlightGeometryId == geometry`. Each of these holds across 300 questions now, not 200 | *pending* |
+
+**Count floors:** none. No test pins the test count of either file (`grep -rln
+"test_t040_tester_criteria\|test_content_build" backend/tests` finds nothing). Row
+2 moves one test id from a parametrisation into its own function, so the
+collected count is unchanged.
+
+**After approval, the tester must still show:**
+- **Criterion 2:** 50+ module-`random` seeds per test, including any failing seed
+  from criterion 1.
+- **Criteria 3–5:** the format and state mutations on `store.candidate_questions`.
+  Under `FIXED_DRAW_SEED = 101`, the 40-state run of (C) must reach 40 at 300
+  answers. The prototype reached it at answer 265.
+- **Criterion 6:** SQLite and Postgres.
+- **Criteria 9, 12, 13:** module `random` restored after each test, no network,
+  and `make -C backend check` passes.
 
 ## Notes
 
