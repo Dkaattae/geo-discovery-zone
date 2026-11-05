@@ -163,7 +163,8 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-093 (Test change request row 4): backend/app/orm.py moved.
 // Re-pinned by T-097 (Test change request row 4): backend/app/store.py moved.
 // Re-pinned by T-099 (Test change request row 4): backend/app/store.py moved.
-const MAIN_UNTOUCHABLE_SHA = "f0feb8d45ca4b8b57e7eff464b26135c9cec50dad238337d70fba0c2c166902e";
+// Re-pinned by T-101 (Test change request row 4): T-101 changed backend/tests/conftest.py (fixed_draw).
+const MAIN_UNTOUCHABLE_SHA = "7e8d44067a2034d9d97c130fd245b663bce4a0207b9683eba0e68e8cb5c4079c";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -231,6 +232,10 @@ const CRITERION_21_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-04, in the attended tester session that made the edit).
   "tasks/T-100-unknown-bundle-304.md",
   "runs/T-100-unknown-bundle-304.md",
+  // T-101's loop records, joined through T-101's Test change request row 4
+  // (approved by Dkaattae, 2026-11-05, in the attended tester session that made the edit).
+  "tasks/T-101-mixed-session-format-flake.md",
+  "runs/T-101-mixed-session-format-flake.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);

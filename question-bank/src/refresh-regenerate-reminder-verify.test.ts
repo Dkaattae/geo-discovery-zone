@@ -83,7 +83,9 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // and routers/content.py and added two backend test files.
 // Re-pinned by T-100 (Test change request row 2): routers/content.py moved, two
 // backend test files added (test_t100_unknown_bundle_conditional.py, test_t100_tester_criteria.py).
-const MAIN_BOUNDARY_SHA = "b69ea73b3e0b3948e09f6cf9649c974d321f0794ca73841a6c77036b527e1ab5";
+// Re-pinned by T-101 (Test change request row 7): T-101 changed backend/tests/conftest.py,
+// test_t040_tester_criteria.py and test_content_build.py.
+const MAIN_BOUNDARY_SHA = "92bdaee8868a48c4334bd5e9d13e6850a2fc6a236748d6e1969fb5fc618aa831";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",

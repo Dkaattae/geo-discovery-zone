@@ -88,7 +88,8 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by T-097 (Test change request row 1): backend/app/store.py moved.
 // Re-pinned by hand for P-18: process-tasks.md left the counted set.
 // Re-pinned by T-099 (Test change request row 1): backend/app/store.py moved.
-const MAIN_UNTOUCHABLE_SHA = "eea782856267d2808ddb88782266eaae6b0c986c1e2baa4378363aec48386c4c";
+// Re-pinned by T-101 (Test change request row 5): T-101 changed backend/tests/conftest.py (fixed_draw).
+const MAIN_UNTOUCHABLE_SHA = "f77954ca86de3eb8d7ce4282cdff970802b4e75e03258656f97f4fb35ecc03ea";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -109,7 +110,9 @@ const MAIN_UNTOUCHABLE_COUNT = 289;
 // test_t099_bundle_bytes.py and test_t099_tester_criteria.py (118 -> 120).
 // Re-pinned by T-100 (Test change request row 6): T-100 added
 // test_t100_unknown_bundle_conditional.py and test_t100_tester_criteria.py (120 -> 122).
-const MAIN_TESTS_SHA = "0bcd984623a88fe415f7fec949446c6c60090c629549fa0985c917794a8b7628";
+// Re-pinned by T-101 (Test change request row 6): T-101 rows 1-3 changed
+// test_t040_tester_criteria.py and test_content_build.py (count unchanged, 122).
+const MAIN_TESTS_SHA = "8a4cf44b139ca4ba2ab49cd0b10b18e0c94f5d6a115318044a41820c4f5ccaa6";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -163,9 +166,10 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
     "4e47490a44244e68d77bdac99f34dc1ae21d487edb2308fc1b84267ce554faf2",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
-  // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7)
+  // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),
+  // then by T-101 (row 8)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "c6cbe7b60641455e9a97d4783331231cd139be9cd5d592073ffe69fc388f2b38",
+    "40ecee6f0f4bc2af94685b7862e91706ef5bc35fc218512bca3992e7a1123c34",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -235,6 +239,10 @@ const CRITERION_22_ALLOWED = new Set([
   // The loop's own queue, exempted by hand for P-18 (approved by Dkaattae, 2026-11-03,
   // in the session that made the edit), as T-096 did for its criterion 21 (4d5f283).
   "process-tasks.md",
+  // T-101's loop records, joined through T-101's Test change request row 5
+  // (approved by Dkaattae, 2026-11-05, in the attended tester session that made the edit).
+  "tasks/T-101-mixed-session-format-flake.md",
+  "runs/T-101-mixed-session-format-flake.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);
