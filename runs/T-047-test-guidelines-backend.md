@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" — run log
 
 **Task:** T-047 · **Branch:** `task/T-047-test-guidelines-backend` · **PR:** #127
-**Started:** 2026-11-06 · **Outcome:** halted — needs attended tester (merge conflict with main, re-pin)
+**Started:** 2026-11-06 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -177,3 +177,6 @@ Brief: /home/user/geo-discovery-zone/tasks/T-047-test-guidelines-backend.md
 
 ## Halted — needs attended tester — 2026-11-06
 `Next step` names `tester` but requires it attended: the re-pin changes pre-existing tests, which a person must approve in the session making the edits (D-15). An orchestrator-spawned tester cannot take that approval, so the orchestrator did not spawn one.
+
+## Resumed — 2026-11-06
+A person told the orchestrator: "pr 127 is fixed please proceed". The branch head had moved to `a28e5ac`: an attended tester merged `origin/main` (`d88964b`, `2f95ce5`) and applied approved row 8 with a verdict (`a28e5ac`). Header on resume: `Status: pass`, `Next step: reviewer`.
