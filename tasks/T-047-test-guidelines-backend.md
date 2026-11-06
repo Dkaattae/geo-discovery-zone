@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-047
 **Branch:** `task/T-047-test-guidelines-backend`
-**PR:** opened draft at expand time, built from the branch above. It **stays
+**PR:** #127, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:**
 
