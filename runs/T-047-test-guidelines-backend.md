@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" — run log
 
 **Task:** T-047 · **Branch:** `task/T-047-test-guidelines-backend` · **PR:** #127
-**Started:** 2026-11-06 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-06 · **Outcome:** halted — needs attended tester (merge conflict with main, re-pin)
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -135,3 +135,45 @@ A person must start the `tester` step for T-047 in a session they are attending 
 
 ## Run ended — 2026-11-06
 Two tasks in a row ended halted (T-102, T-047), so the run stopped before its third task, per `orchestrator.md` "The loop you run".
+
+## Resumed — 2026-11-06
+A person asked the orchestrator: "pr 127 ci is green, what is the problem?". The branch head had moved to `bd2c8b3`: an attended tester applied the approved test change request (`04ac466`) and recorded a verdict (`bd2c8b3`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-06`.
+
+## Round 4 — reviewer — 2026-11-06
+`Next step` on entry: `reviewer` → on exit: `tester` — attended, to merge `origin/main` into this branch and re-pin under a new Test change request (see `## Review`, finding 1)
+
+**T-047 reviewer: changes requested. PR #127 stays draft and is not swept.** The document is good and I would approve it on its merits. The PR can't merge, though: PR #126 (T-102) merged to `main` first and re-pinned the same test file, so #127 is now `dirty` and CI doesn't run on it. **Next:** an attended `tester` session merges `origin/main` in and re-pins, with a person approving (D-14). Then a reviewer comes back to sweep and mark it ready.
+
+**Blocking finding (one)**
+- **Where:** `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, `APPLIED_REQUEST_FILE_SHAS`, the `farm-animal-loose-ends-verify.test.ts` entry (around line 178). This branch pins `12535777…` (T-047 row 4) and `main` pins `2a241617…` (T-102 row 3). Neither is right after a merge.
+- **Checked in a scratch worktree** (removed, nothing committed): that file is the only conflict, and `farm-animal-loose-ends-verify.test.ts` merges automatically.
+- **What the fix needs:**
+  - merge `origin/main` into the branch (a merge, not a rebase, so no force-push);
+  - keep both sides' allowed-set entries, including T-102's paths;
+  - recompute that digest and every T-047 pin (rows 1–7) on the merged tree;
+  - get the new values approved by a person and applied in a `tester` commit;
+  - CI green on the merged head.
+- **Why it goes to the tester:** these are new values in tests that existed before the task, so a person has to approve them in a tester session. The brief expected this ("whichever merges second will need its pins rebased").
+
+**Review of the work: nothing blocking**
+- **Accurate:** every claim in the new backend section checks out against `backend/tests/conftest.py`, `test_postgres.py`, `backend/Makefile` and `backend/integration/README.md`.
+- **Each role stayed in its lane.** The edits to existing tests come only from tester commit `04ac466`, they match rows 1–7, and `Test changes:` names Dkaattae.
+- **No dependency, source, workflow or `CLAUDE.md` change.**
+- **CI on `bd2c8b3` was green on all seven jobs.** That clears the local `react-simple-maps` failures as an environment problem.
+
+**Flags settled**
+- **`uv run pytest` guard:** kept as written.
+- **"`make -C backend test` does the same after installing":** accurate.
+- **`CLAUDE.md` lines 4/51:** already owned by T-046.
+- **`test_contract.py`/`conftest.py` docstrings calling `openapi.yaml` "the contract":** a new S entry in `tasks.md`, to be added when the PR is approved and swept.
+
+**State**
+- **Brief:** `Status: changes requested`, `Next step: tester` (attended), `## Review` added, reviewer row in Sessions.
+- **Pushed** as `7da84b5` to `task/T-047-test-guidelines-backend`; the remote head matches.
+- **PR comment** with the findings: https://github.com/Dkaattae/geo-discovery-zone/pull/127#issuecomment-6695901445
+- **Not done:** I didn't update the run log `/home/user/geo-discovery-zone/runs/T-047-test-guidelines-backend.md`, since it belongs to the orchestrator.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-047-test-guidelines-backend.md
+
+## Halted — needs attended tester — 2026-11-06
+`Next step` names `tester` but requires it attended: the re-pin changes pre-existing tests, which a person must approve in the session making the edits (D-15). An orchestrator-spawned tester cannot take that approval, so the orchestrator did not spawn one.

@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `changes requested`
+**Next step:** `tester` — attended, to merge `origin/main` into this branch and re-pin under a new Test change request (see `## Review`, finding 1)
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-047-test-guidelines-backend.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-06`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: freshly spawned subagent, same remote session id as every role) |
 | tester (attended, applied the request) | 2026-11-06 | cse_011oDiJda1ZpvnR6WaQMphrU |
+| reviewer | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated subagent; reviewed work it did not write) |
 
 ## Goal
 
@@ -558,6 +559,95 @@ is false.
 - **Row 4** is forced by row 1: `climate` pins the applied digest of the `farm` file.
 - **T-102 / PR #126 re-pins the same constants.** Whichever PR merges second
   rebases its values.
+
+## Review
+
+### Reviewer, 2026-11-06 — **changes requested** (one blocking finding, and it is not about the document)
+
+**TL;DR.** **The document is good and I would approve it as written.** The PR
+cannot merge: PR #126 (T-102) merged to `main` after this branch was cut, and both
+re-pinned `question-bank/src/climate-cold-trade-accepted-verify.test.ts`. GitHub
+shows #127 as `dirty` and runs no CI on it. **Next:** an **attended** `tester`
+session merges `origin/main` in, re-pins, and gets a person's approval (D-14).
+Then the reviewer comes back for the sweep and marks the PR ready.
+
+**Blocking**
+
+1. **Merge conflict with `main` in a pre-existing test, which needs a person-approved re-pin.**
+   - **Where:** `question-bank/src/climate-cold-trade-accepted-verify.test.ts`,
+     `APPLIED_REQUEST_FILE_SHAS`, the `farm-animal-loose-ends-verify.test.ts`
+     entry (around line 178). This branch pins `12535777…` (T-047 row 4).
+     `main` pins `2a241617…` (T-102 row 3). Neither value is right once the two
+     are merged.
+   - **What I checked** in a scratch worktree, since removed, with nothing
+     committed: `git merge origin/main` conflicts only in that file.
+     `farm-animal-loose-ends-verify.test.ts` auto-merges, and its
+     `CRITERION_21_ALLOWED` then carries both T-102's and T-047's paths.
+   - **What would make it acceptable:** merge `origin/main` into
+     `task/T-047-test-guidelines-backend`, not a rebase, which would need a
+     force-push. Keep both sides' comment lines and allowed-set entries, which
+     includes T-102's two `CRITERION_22_ALLOWED` paths. Then recompute the farm-animal
+     `APPLIED_REQUEST_FILE_SHAS` digest from the merged file. Re-run the
+     `question-bank` suite and recompute every T-047 pin (rows 1–7) on the merged
+     tree. Raise the changed values as new Test change request rows, have a
+     person approve them, and apply them in a `tester` commit. CI must go
+     green on the merged head. The brief anticipated this (Constraints:
+     "whichever merges second will need its pins rebased"), so this is the
+     expected cost of being second, not a defect in anyone's work.
+   - **Why the tester and not me:** these are new values in pre-existing tests,
+     and D-14 reserves that for a person's approval in a tester session. I do not
+     implement.
+
+**Review of the work (no blocking findings)**
+
+- **Accurate.** I checked every claim in the new backend section against the
+  file it names. All are true:
+  - `conftest.py`: `engine` is session-scoped and runs `alembic upgrade head`;
+    `GEO_TEST_DATABASE_URL`; `db_session` uses `create_savepoint`; `client` uses
+    `ASGITransport`, and its base URL carries `API_PREFIX`; `auth_headers`,
+    `other_auth`, `spec`, `assert_matches` and `assert_problem` do what the
+    section says.
+  - `test_postgres.py`: covers sequences, JSON columns and concurrency, and
+    skips on SQLite.
+  - `backend/Makefile`: `test`, `test-postgres` and `test-integration` each
+    depend on `install`.
+  - `backend/integration/README.md`: the integration tests are not part of
+    `make check` and need Docker.
+- **Fits the file.** It reads in the file's voice, with no T-0xx numbers in the
+  prose. A tester could write an endpoint test from the bullets alone. The E-14
+  framing says "keep `openapi.yaml` in step", and it states that
+  `assert_matches` still fails a test. The proxy block is still short, and its
+  comments mark the guard.
+- **Scope and lanes.**
+  - The expander's commits touch only `tasks/`.
+  - The worker's touch `test-guidelines.md` and the brief.
+  - The tester's touch only test files and the brief.
+  - The orchestrator's touch only `runs/` and the brief's `Approved:` line.
+  - No source file, workflow, `CLAUDE.md` or dependency changed.
+  - The pre-existing test edits match rows 1–7 and come only from `04ac466`, a
+    `tester` commit.
+  - `Test changes:` names Dkaattae.
+- **CI on `bd2c8b3`** (the content head before the run-log commit): all seven
+  jobs green, including frontend typecheck. This closes the worker's and
+  tester's local `react-simple-maps` reds as environmental.
+
+**Flags, disposed**
+
+- **Guard stays `uv run pytest`, not `uv run --frozen pytest`:** decided, keep.
+  The tester's cold run confirmed that nothing resolves over the network after
+  `uv sync --frozen`.
+- **"`make -C backend test` does the same after installing":** decided, accurate
+  enough. `install` is `uv sync`, and `test` is `install` then `uv run pytest`.
+- **`CLAUDE.md` lines 4 and 51:** already owned by T-046's entry in `tasks.md`,
+  which names the hand-written `P` ticket. No new entry.
+- **`test_contract.py` / `conftest.py` docstrings call `openapi.yaml` "the
+  contract":** not blocking. The approving reviewer's sweep adds a new S entry to `tasks.md` to align
+  the two docstrings with E-14. No existing task owns those files.
+- **The criteria file under `frontend/` cost three extra re-pins** (rows 5–7):
+  not blocking, and noted for the `PROGRESS.md` line at sweep. The tester showed
+  that `question-bank/` would have cost as many.
+
+**Not swept.** The PR was sent back, so the brief stays and the PR stays draft.
 
 ## Test change request
 
