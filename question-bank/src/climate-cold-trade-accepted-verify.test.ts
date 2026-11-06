@@ -178,7 +178,7 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
   // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),
   // then by T-101 (row 8), then by hand for D-19 (its whole-tree count and digest moved),
-  // then by T-102 (row 3), then by T-047 (row 4; recomputed when merging main after T-102)
+  // then by T-102 (row 3), then by T-047 (row 4, then row 8: recomputed on merging main after T-102)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
     "e9470a5ecb54496e624e58701aec72a9c1372fb12a9a35c55776c741a476cdd6",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),

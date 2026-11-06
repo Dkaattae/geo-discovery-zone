@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet"
 
-**Status:** `changes requested`
-**Next step:** `tester` — attended, to merge `origin/main` into this branch and re-pin under a new Test change request (see `## Review`, finding 1)
+**Status:** `pass`
+**Next step:** `reviewer` — the review's finding 1 is resolved; come back for the sweep
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-047-test-guidelines-backend.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-06`
 **CI fix:** `none`
@@ -428,7 +428,7 @@ digest, and each digest equals main's tree plus only T-047's own files.
 - **Criteria 1–17:** the document is unchanged since the orchestrated verdict
   below, so its per-criterion evidence stands.
 
-**Merged `main` (`e87e2fe`, T-102) on 2026-11-06, at Dkaattae's request.**
+**Merged `main` (`e87e2fe`, T-102) on 2026-11-06, at Dkaattae's request. This resolves review finding 1 as row 8, which Dkaattae approved in this session ("Approve").**
 - **The one conflict:** climate's `APPLIED_REQUEST_FILE_SHAS` entry for
   `farm-animal-loose-ends-verify.test.ts`. Both tasks had re-pinned it.
 - **How it was resolved:** the entry was recomputed over the merged file, which
@@ -665,6 +665,7 @@ brief and run log, and the tester's step adds a criteria test file.
 | 5 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 21: every tracked file under frontend/ is byte-identical to main's" | T-088 tester. It protected T-088's criterion 21: frontend/ unchanged | Added in the attended session; the orchestrated tester missed it. T-047's tester added `frontend/src/test-guidelines-backend.criteria.test.ts`, the only frontend/ change. Red on PR #127 CI | modify | Same name. `MAIN_FRONTEND_SHA` becomes **`4de52321996756b826c638bd9da8d2a3b8e673b1172817a9e2c1534414ce3a77`** (main's frontend/ plus that file), comment citing T-047 row 5 | approved — Dkaattae, 2026-11-06, in the attended tester session (digest re-approved after the tsc fix) |
 | 6 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › "frontend (except []) is byte-identical to 5d72ca5" | T-092 tester. It protected T-092's criterion 16 | Same as row 5 | modify | Same name. The frontend row's digest becomes **`179208d1b350009bc7251cb06a3fa33074f2388c115f7a7bc8418e51f2d422d5`**, comment citing T-047 row 6 | approved — Dkaattae, 2026-11-06, in the attended tester session (digest re-approved after the tsc fix) |
 | 7 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | T-087 tester. It protected T-087's criterion 15 | Same as row 5 | modify | Same name. `MAIN_BOUNDARY_SHA` becomes **`437329add2ccdb352732514d61ba4d78bc3183ec6d75b520f5da0ff56c61f597`**, comment citing T-047 row 7 | approved — Dkaattae, 2026-11-06, in the attended tester session (digest re-approved after the tsc fix) |
+| 8 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester | Review finding 1: after merging `main` (`e87e2fe`, T-102), neither T-102's `2a241617…` nor T-047's `12535777…` is the merged farm-animal file's digest | modify | Same name. Only the `farm-animal-loose-ends-verify.test.ts` entry changes, to **`e9470a5ecb54496e624e58701aec72a9c1372fb12a9a35c55776c741a476cdd6`**. Both tasks' comment lines are kept | approved — Dkaattae, 2026-11-06, in the attended tester session |
 
 Applied in `04ac466` (`T-047 tester: apply approved test change request`), rows 1–7 exactly.
 
