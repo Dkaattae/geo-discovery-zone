@@ -39,3 +39,38 @@ I expanded T-102 into a brief and opened draft PR #126 (https://github.com/Dkaat
 
 ## Approval — 2026-11-06
 Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criteria.
+
+## Round 2 — worker — 2026-11-06
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR.** The survey found no test that needs a pin, so I changed no code or tests. The brief is filled in and pushed as `3f17a70` to `claude/fervent-ptolemy-4py2eg`; `git log origin/claude/fervent-ptolemy-4py2eg -1` shows that commit. Status is now `awaiting verification`, Next step `tester`. **The tester step needs a human present:** two question-bank count tests are already failing on this branch and can only be fixed through a change request a person approves.
+
+**Survey result (criteria 1–4)**
+- **84 test functions** make a router serve and assert on something the draw could affect:
+  - 3 `pinned (fixed_draw)`: the three T-101 tests.
+  - 25 `pinned (force)`.
+  - 56 `holds under any draw`.
+  - **0 `needs pin`**, so no existing test file changes.
+- **Each "holds" row argues from the pool, never from pass counts.** I checked nine facts about the 415-question bank (B1–B9) and six about selection (S1–S6). For example, every question can be answered right or wrong on purpose, and the demo profile's review pool is only Texas's 9 questions.
+- **The two "keep serving until a `map_click` appears" loops are certain, not likely.** At most 50 fresh `map_identify` serves plus the review slots fit inside the limit: 58 against 59 in `test_t051_map_click`, and 64 against 99 in `test_t053` c14.
+- **Excluded tests are listed one per line:** 7 that serve but assert only things the draw cannot change, and 6 that never serve.
+
+**Tests made stale: 2, already failing before my commit**
+- **Which:**
+  - `question-bank/src/farm-animal-loose-ends-verify.test.ts`, T-096 criterion 21: expects 283, gets 285.
+  - `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, T-091 criterion 22: `MAIN_UNTOUCHABLE_COUNT` is 286, gets 288.
+- **Cause:** the expander's `runs/T-102-…` and `tasks/T-102-…` files, which these tests count. I confirmed both fail at `93b1c4a`, before my edit.
+- **Proposed fix:** re-pin both counts. The tester raises the Test change request and Dkaattae approves it.
+
+**Things I found that the tester needs**
+- **A trap in criterion 6's check.** `test_t093_tester_criteria.py` c5 and c7 call `monkeypatch.undo()` (lines 258 and 412). That removes `force`, so their review rounds use the real picker; I classed them `holds under any draw`. It also silently switches off any perturbation the check installs through the test's own `monkeypatch`. My first version did exactly that. The Handoff gives a version that uses its own `pytest.MonkeyPatch()`.
+- **Same session id as the expander.** The orchestrator ran both in `cse_011oDiJbsZTbExMiPULZMiFd`, so the tester must run in a different session.
+
+**What I ran (a cross-check only; the tester must run its own)**
+- **Criterion 6 check:** 20 of 20 runs passed, 374 tests each. I also ran 4 extra runs with `random.choice` forced to always take the first or the last member; all passed.
+- **Backend:** `make -C backend check` gave 1039 passed, 9 skipped.
+- **question-bank:** `bun test` gave 2711 pass and 2 fail, the two stale pins above.
+- **Frontend: could not run fully.** `bun install` gets a 403 on packages `bun.lock` pins to a private registry (`lovable-core-prod`), so `react-simple-maps` is missing. No frontend file differs from main.
+- **A test run edited `frontend/README.md` once.** One line came out as if `prettier --write` had run on it. I reverted it and it did not happen again. Whether to queue it is the reviewer's call.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-102-unseeded-draw-survey.md
