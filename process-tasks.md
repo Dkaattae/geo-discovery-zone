@@ -690,6 +690,11 @@ its criteria 15 (every draft's `clickDistractorsFor` result) and 17-20 (the
 bank, `content.json`, dependency files). T-096 itself paid three re-pin rows for
 older pins of the same kind.
 **This is a process-file change**, so it is done by hand.
+**Recurred 2026-11-06 on T-102 (PR #126), in its purest form.** T-102 changed no
+source and no test: its diff was its own brief and run log. Two whole-tree count pins
+(T-091's and T-096's) still went red, and a survey-only task needed an attended tester
+round and 3 Test change request rows to finish. Every task adds those two files, so
+every task pays this unless its loop records are already allowed.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.
 

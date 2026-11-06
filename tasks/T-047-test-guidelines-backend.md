@@ -427,6 +427,18 @@ digest, and each digest equals main's tree plus only T-047's own files.
 - **Criteria 1–17:** the document is unchanged since the orchestrated verdict
   below, so its per-criterion evidence stands.
 
+**Merged `main` (`e87e2fe`, T-102) on 2026-11-06, at Dkaattae's request.**
+- **The one conflict:** climate's `APPLIED_REQUEST_FILE_SHAS` entry for
+  `farm-animal-loose-ends-verify.test.ts`. Both tasks had re-pinned it.
+- **How it was resolved:** the entry was recomputed over the merged file, which
+  now holds both T-102's row 1 and T-047's row 1:
+  `e9470a5ecb54496e624e58701aec72a9c1372fb12a9a35c55776c741a476cdd6`.
+  That is row 4 as approved, applied to the merged bytes.
+- **Nothing else moved:** T-102 only added its own paths to the allowed sets, so
+  every count and digest in rows 1–7 holds unchanged.
+- **After the merge:** question-bank has 2713 pass and 0 fail, and typecheck, lint
+  and format are clean.
+
 ### Orchestrated tester (superseded on the request; criteria evidence stands)
 
 **TL;DR.** Every criterion the task can be held to is met: 1–12, 14 and 15 by
