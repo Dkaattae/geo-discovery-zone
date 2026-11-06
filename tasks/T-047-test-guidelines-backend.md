@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet"
 
-**Status:** `pass`
-**Next step:** `reviewer` — the review's finding 1 is resolved; come back for the sweep
+**Status:** `approved`
+**Next step:** `human` — PR #127 is marked ready, inside the envelope; merge when convenient
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-047-test-guidelines-backend.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-06`
 **CI fix:** `none`
@@ -19,6 +19,7 @@ draft** until the reviewer approves it.
 | tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: freshly spawned subagent, same remote session id as every role) |
 | tester (attended, applied the request) | 2026-11-06 | cse_011oDiJda1ZpvnR6WaQMphrU |
 | reviewer | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated subagent; reviewed work it did not write) |
+| reviewer (second pass, approve and sweep) | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated subagent; reviewed work it did not write) |
 
 ## Goal
 
@@ -562,7 +563,42 @@ is false.
 
 ## Review
 
-### Reviewer, 2026-11-06 — **changes requested** (one blocking finding, and it is not about the document)
+### Reviewer, second pass, 2026-11-06 — **approved, inside the envelope**
+
+**TL;DR.** **Approved.** Finding 1 (the merge conflict with T-102) is resolved:
+`main` is merged in, the one conflicting digest was recomputed as row 8, which
+Dkaattae approved, and CI on the head `f42e0dc` is green in all six jobs. The
+PR is swept and marked ready with no escalation. **Next:** Dkaattae merges.
+
+- **Finding 1, resolved.** `d88964b` merges `origin/main` (`e87e2fe`). Main's
+  side is intact: the diff against `main` adds T-047's paths and pins only, and
+  T-102's allowed-set entries survive. `a28e5ac` changes one comment line and
+  matches row 8. All pre-existing test edits come from `tester` commits
+  (`04ac466`, `d88964b`, `a28e5ac`) and match rows 1 to 8.
+- **Every role is in the PR.** expander `cac85af`/`fe1276f`, worker `35c961f`,
+  tester `c435bb8`/`04ac466`/`bd2c8b3`/`d88964b`/`a28e5ac`, orchestrator `runs/`
+  commits, and the first reviewer pass `7da84b5`.
+- **The document, re-read on the merged head.** Unchanged since the first pass
+  (`test-guidelines.md` has not moved since `35c961f`). That review holds: each
+  claim matches the file it names, it is in the file's voice, and the E-14
+  framing reads as "keep in step".
+- **Suites.** CI on `f42e0dc`: backend, backend (postgres), question-bank,
+  frontend, integration and e2e all succeed. Locally, `question-bank` `bun test`
+  gives 2713 pass and 0 fail.
+- **Envelope.** Tester passed. No file outside Constraints (the pre-existing
+  test edits are under rows 1 to 8, approved by a person: `Test changes:` names
+  Dkaattae). `CI fix: none` in every round. No dependency, no `openapi.yaml`,
+  migration or plan change, no child-facing text, no product decision.
+
+**Flags from the first pass, now carried out by this sweep**
+- **`test_contract.py` / `conftest.py` docstrings call `openapi.yaml` "the
+  contract":** queued as new **T-104** in `tasks.md` §E.
+- **`CLAUDE.md` lines 4 and 51:** stay with T-046, whose entry is amended now
+  that `test-guidelines.md` is done.
+- **The whole-tree pins cost eight rows and two attended rounds:** recorded as
+  a recurrence on P-17 in `process-tasks.md`, not a `T` task.
+
+### Reviewer, first pass, 2026-11-06 — **changes requested** (one blocking finding, and it is not about the document)
 
 **TL;DR.** **The document is good and I would approve it as written.** The PR
 cannot merge: PR #126 (T-102) merged to `main` after this branch was cut, and both
