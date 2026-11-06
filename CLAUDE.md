@@ -9,15 +9,13 @@ with no ceremony (`engineering-decisions.md` E-14).
 
 ## Docs
 
-- - `process.md` — the development loop. Read first. `.claude/agents/` defines the
+- `process.md` — the development loop. Read first. `.claude/agents/` defines the
   six roles it runs on: task-expander, worker, tester, ci-fix, reviewer, and
   `orchestrator`, which relays tasks between the other five without reading
   their work — one at a time, several per run (3 unless told otherwise), each on
   its own branch from `main`. Start a run with the `next-task` skill.
   `.claude/agents/README.md` charts how they are isolated and what the
   orchestrator does and does not close.
-- `.claude/loop/` — `run-loop.sh` drives the same loop from a local shell, with no
-  model in it. Preferred over the orchestrator agent wherever a shell can run.
 - `runs/` — what each unattended run cost and where its cycles went.
 - `tasks.md` — the work queue. `tasks/` holds the current brief.
 - `test-guidelines.md` — what to test and how.
@@ -25,7 +23,7 @@ with no ceremony (`engineering-decisions.md` E-14).
 - `PROGRESS.md` — what is done, broken, and next.
 - `conventions.md` — code conventions, commands, and repo layout detail.
 - `process-decisions.md` — why the loop is shaped this way, and what would change
-  it. Gated: the loop may not edit it (`run-loop.sh` G1).
+  it. Gated: the loop may not edit it (the orchestrator’s G1).
 - `engineering-decisions.md` — why the code is built the way it is. Not gated; a
   task may add an entry when its criteria say so.
 - `process-tasks.md` — the queue for changes to the loop itself. Done by hand,
