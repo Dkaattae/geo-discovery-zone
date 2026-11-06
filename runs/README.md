@@ -9,16 +9,15 @@ neither keeps the story of the run: which role got sent back, what it missed, ho
 many rounds it took, and which calls were made unattended that a human would
 otherwise have made.
 
-## Two writers, one format
+## Who writes here
 
-The loop has two unattended drivers and they fill these files differently:
+The [`orchestrator`](../.claude/agents/orchestrator.md) agent appends each role's
+result to `T-0xx-slug.md` **verbatim**. It has no way to measure turns, cost or
+wall clock, so those are **`—`**, and every subagent shares one session id.
 
-| | [`.claude/loop/run-loop.sh`](../.claude/loop/run-loop.sh) | the [`orchestrator`](../.claude/agents/orchestrator.md) agent |
-|---|---|---|
-| Writes | `ledger.tsv`, then **regenerates** `T-0xx-slug.md` from it | appends each role's result to `T-0xx-slug.md` **verbatim** |
-| Turns, cost, wall clock | real, from `--output-format json` | **`—`** — it has no way to measure them |
-| Sessions column | a distinct id per step, minted by the driver | one id, shared by every subagent |
-| `transcripts/` | raw JSON per invocation | nothing |
+Older logs, `ledger.tsv`, `between-tasks.md` and `transcripts/` were written by
+the shell driver `.claude/loop/run-loop.sh`, removed in D-19. They are kept as
+history. Nothing writes to them now.
 
 **Where a number is unavailable it is `—`, never an estimate.** Filling those
 columns with plausible values would make the logs nobody can check into the ones
@@ -37,16 +36,11 @@ Things go into this file; nothing comes out of it into a spawn prompt (D-3).
 
 ## The two files
 
-- **`ledger.tsv`** — append-only, one tab-separated row per step, every task in
-  one place: timestamps, task, step, round, role, session, turns, cost, wall
-  clock, exit, the `Status` and `Next step` the step left behind, and the brief's
-  `Fault:` sentence if it left one. Written only by the shell driver.
-- **`T-0xx-slug.md`** — the human-readable log. Regenerated from the ledger by the
-  driver, appended to by the orchestrator agent. **Do not hand-edit a generated
-  one**; correct the ledger and it will be rewritten.
-
-`transcripts/` holds the raw JSON result of each driver invocation, which is
-where to look when a step did something surprising.
+- **`T-0xx-slug.md`** — the human-readable log, one per task, appended to by the
+  orchestrator. A run of several tasks writes one file per task, each on that
+  task's branch.
+- **`ledger.tsv`**, **`between-tasks.md`**, **`transcripts/`** — the removed shell
+  driver's output (see above). Frozen.
 
 ## Why this is separate from `PROGRESS.md`
 
@@ -56,7 +50,7 @@ They answer different questions and have different lifetimes.
 |---|---|---|
 | Question | *what landed, and why did reality differ from the brief* | *what did it cost, and where did the cycles go* |
 | Granularity | one paragraph per task | one row per step |
-| Written by | the `reviewer`, in prose, at sweep | a driver, mechanically, every step |
+| Written by | the `reviewer`, in prose, at sweep | the orchestrator, verbatim, every step |
 | Survives the sweep | yes | yes |
 
 The completed-task entry in `PROGRESS.md` carries a `*Run:*` line —
@@ -75,8 +69,7 @@ verified three times, not that it failed three times. The line that matters more
 is **sent back**: how many of those trips ended `fail` (the code was wrong, on
 to the `ci-fix`) versus `blocked` (the criteria were wrong, back to the expander).
 Those two have completely different causes and completely different fixes, which
-is why the round bound counts them separately — see `.claude/loop/README.md`,
-"The round bound".
+is why the round bound counts them separately — see `orchestrator.md`, G3.
 
 Cross-task questions are one `awk` away — that is the reason for a single ledger
 rather than a file per task:

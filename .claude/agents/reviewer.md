@@ -229,7 +229,7 @@ the plan is what says which.
 
 ### If the harness refuses the sweep
 
-Under an orchestrator or `run-loop.sh` nobody has told your session to delete
+Under the orchestrator nobody has told your session to delete
 the brief or rewrite `tasks.md` and `PROGRESS.md`, and the auto-mode permission
 classifier may refuse those edits as unauthorised. T-075 hit exactly this. Do not
 look for another route to the same edits. Instead (D-16):

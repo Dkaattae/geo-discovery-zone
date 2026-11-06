@@ -8,9 +8,9 @@ from [`tasks.md`](tasks.md) on purpose; see `process-decisions.md` D-12.
 `worker`/`tester`/`reviewer`, no gates. It is done by hand in an ordinary session
 — a person, or an agent a person is sitting with — as an ordinary PR that
 Dkaattae reviews and merges. When the choice could reasonably have gone the other
-way, it records a `D-n` entry in `process-decisions.md`. `run-loop.sh` G1 is what
-makes this a rule rather than a convention: a diff that touches any of those
-paths stops the driver before it spawns anything.
+way, it records a `D-n` entry in `process-decisions.md`. The orchestrator's G1
+is what makes this a rule rather than a convention: a diff that touches any of
+those paths stops the task before anything is spawned for it.
 
 **Who writes here.** Anyone. The `reviewer` adds an entry when a task uncovers a
 gap in the loop; a role that halts on one says so in its `Fault:` line and the
@@ -147,6 +147,7 @@ state it pushed, and the instruction lives with the commit-and-push sequence
 rather than in a paragraph about honesty.
 
 ### P-5 — The loop cannot run its only independent step in this environment · M · todo
+**2026-11-06, D-19:** `run-loop.sh` is removed. What remains of this ticket is the orchestrator half: the top-level session relays via `Agent`, which is what `next-task` already does. Its `run-loop.sh` options below are moot.
 **Depends on:** —
 **New 2026-09-19, carried over by T-061's reviewer (PR #52).** T-061 shipped
 without an independent `tester` verdict, and not because anyone skipped a step.
@@ -375,6 +376,7 @@ person is notified through what already exists.
 - the permission side has been put to Dkaattae rather than settled in the repo.
 
 ### P-11 — Gate a worker commit that deletes or modifies a pre-existing test · S · todo
+**2026-11-06, D-19:** `run-loop.sh` and `test-gates.sh` are removed, so the gate below can only be a check the orchestrator runs after every `worker` step.
 **Depends on:** P-10
 **New 2026-09-28, asked for by the human while reviewing P-10:** *"worker should
 not delete/change tests, and should be gated. that is a later task."* P-10 made

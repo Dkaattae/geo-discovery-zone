@@ -164,7 +164,8 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-097 (Test change request row 4): backend/app/store.py moved.
 // Re-pinned by T-099 (Test change request row 4): backend/app/store.py moved.
 // Re-pinned by T-101 (Test change request row 4): T-101 changed backend/tests/conftest.py (fixed_draw).
-const MAIN_UNTOUCHABLE_SHA = "7e8d44067a2034d9d97c130fd245b663bce4a0207b9683eba0e68e8cb5c4079c";
+// Re-pinned by hand for D-19: .claude/loop/ deleted; process.md, process-decisions.md, CLAUDE.md, .claude/agents/ and .claude/skills/next-task changed.
+const MAIN_UNTOUCHABLE_SHA = "353529aa8e1592ce27433940f110dde40b94b1140e00fb748a3fdcfa31117289";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -598,7 +599,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(286); // T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297))
+    expect(rest.length).toBe(283); // D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297))
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });

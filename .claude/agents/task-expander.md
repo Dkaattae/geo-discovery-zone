@@ -42,6 +42,26 @@ and would trip G1 the moment a worker touched them —
 when the task touches the contract, `PROGRESS.md` for what is already true,
 `conventions.md`, `test-guidelines.md`, and the source itself.
 
+## Picking, when the run is several tasks long
+
+The orchestrator may run several tasks in a row (D-19). Nothing merges inside
+a run, so `tasks.md` on `main` still lists every task an earlier step of the run
+already took. Pick as `process.md` step 1 says, with three extra skips:
+
+- **Any task ID in the spawn prompt's `In flight:` line.** The orchestrator lists
+  every task it has started this run. Those IDs come from brief headers, not from
+  the queue.
+- **Any task that already has an open PR**, from any run. Its brief is on that
+  PR's branch, not on `main`.
+- **Any task whose dependency is in flight or open but not yet merged.** "Done"
+  means merged to `main`. A task built on another task's unmerged branch is the
+  failure this loop is built to avoid ("Why one task" in D-1, D-19).
+
+**If nothing in the queue survives those skips, start nothing.** Create no
+branch, open no PR, write no brief. Return a result whose first line is exactly
+`NO TASK AVAILABLE`, and say in one line per skipped task why it was skipped.
+The orchestrator ends the run on that line.
+
 Read enough of the code to be concrete. Vague criteria damage this loop more
 than any other failure — they are what sends the verifier into the blocked path
 and what lets a task be declared done twice with different meanings. Name the
@@ -105,7 +125,8 @@ list will not.
 ## Where you stop
 
 You produce the brief and stop. You do not implement, and you do not invoke
-another agent — the next step is a separate session a human starts.
+another agent — the next step is a separate session a human starts, or the
+orchestrator spawns.
 
 Before stopping, in this order:
 
@@ -115,6 +136,13 @@ Before stopping, in this order:
    **If the environment assigned this session a branch** and forbids pushing
    anywhere else — Claude Code on the web does — use the branch you were given
    instead of creating one. Do not fight it, and do not skip the push.
+
+   **If the spawn prompt says `Branch: new`**, this is a later task in a
+   several-task run and the session's assigned branch already carries an earlier
+   task's PR. Create `task/T-0xx-slug` from `origin/main` (`git fetch origin main
+   && git checkout -b task/T-0xx-slug origin/main`), push it, and write it into
+   the `Branch:` header. `CLAUDE.md` "Branches" covers pushing there, because the
+   header names it.
 
    **Unless the brief already exists.** Coming back to amend criteria after a
    `blocked` verdict, the task already has a branch and an open PR, and its
@@ -164,9 +192,8 @@ Stop and ask rather than guessing when:
   decide. A vague criterion is worse than a halt: it sends the verifier down the
   blocked path two roles later, after the code is built.
 
-**When nobody is there to ask.** Under `run-loop.sh` you are a `claude -p`
-invocation and under the `orchestrator` you are a spawned subagent; either way
-you cannot reach a person mid-run, and the orchestrator is forbidden to answer on
+**When nobody is there to ask.** Under the `orchestrator` you are a spawned
+subagent: you cannot reach a person mid-run, and the orchestrator is forbidden to answer on
 their behalf. So "ask" becomes "halt where the question will be found":
 
 1. **Open the branch and the draft PR first, even though the brief is

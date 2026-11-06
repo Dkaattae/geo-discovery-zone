@@ -89,14 +89,16 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by hand for P-18: process-tasks.md left the counted set.
 // Re-pinned by T-099 (Test change request row 1): backend/app/store.py moved.
 // Re-pinned by T-101 (Test change request row 5): T-101 changed backend/tests/conftest.py (fixed_draw).
-const MAIN_UNTOUCHABLE_SHA = "f77954ca86de3eb8d7ce4282cdff970802b4e75e03258656f97f4fb35ecc03ea";
+// Re-pinned by hand for D-19: .claude/loop/ deleted; process.md, process-decisions.md, CLAUDE.md, .claude/agents/ and .claude/skills/next-task changed.
+const MAIN_UNTOUCHABLE_SHA = "01eae9b379069986f04da03f57c8080b5ebf6b94a94adf9461951e8efe37d0bb";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
 // and map-click.spec.ts, which main counted, join the allowed set with T-053's
 // brief and run log (295 -> 290).
 // Re-pinned by hand for P-18: process-tasks.md joins the allowed set (290 -> 289).
-const MAIN_UNTOUCHABLE_COUNT = 289;
+// Re-pinned by hand for D-19: .claude/loop/'s three files were deleted (289 -> 286).
+const MAIN_UNTOUCHABLE_COUNT = 286;
 /**
  * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
  * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
@@ -167,9 +169,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
   // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),
-  // then by T-101 (row 8)
+  // then by T-101 (row 8), then by hand for D-19 (its whole-tree count and digest moved)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "40ecee6f0f4bc2af94685b7862e91706ef5bc35fc218512bca3992e7a1123c34",
+    "f199d2306f17800a627dfd8b631a974a7979638032e694ba1cc2f41c8b25dfa7",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
