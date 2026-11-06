@@ -41,7 +41,7 @@ function backendSection(text: string): { heading: string; body: string } {
   if (start < 0) throw new Error("no ### heading introducing the pytest suite");
   let end = lines.findIndex((l, i) => i > start && l.startsWith("## "));
   if (end < 0) end = lines.length;
-  return { heading: lines[start], body: lines.slice(start, end).join("\n") };
+  return { heading: lines[start]!, body: lines.slice(start, end).join("\n") };
 }
 
 /** The "No network in tests, ever" paragraph and the first fenced block after it. */
@@ -215,8 +215,8 @@ describe("T-047 test-guidelines.md backend section", () => {
     const installIdx = nnLines.findIndex((l) => /^\s*uv sync( --frozen)?(\s|$)/.test(l));
     expect(installIdx).toBeGreaterThanOrEqual(0);
     expect(guardIdx).toBeGreaterThan(installIdx);
-    expect(setsProxy(nnLines[installIdx])).toBe(false);
-    for (const v of PROXY_VARS) expect(nnLines[installIdx].includes(v), v).toBe(false);
+    expect(setsProxy(nnLines[installIdx]!)).toBe(false);
+    for (const v of PROXY_VARS) expect(nnLines[installIdx]!.includes(v), v).toBe(false);
     const cdBackend = nnLines.slice(0, installIdx).some((l) => /^\s*cd backend\/?(\s|$|#)/.test(l));
     const startsInBackend = /from `?backend\/`?/.test(nn.prose);
     expect(cdBackend || startsInBackend).toBe(true);
@@ -224,7 +224,7 @@ describe("T-047 test-guidelines.md backend section", () => {
 
   test("criterion 11: the guarded test command sets all six proxy variables to http://127.0.0.1:1", () => {
     expect(guardIdx).toBeGreaterThanOrEqual(0);
-    const guard = nnLines[guardIdx];
+    const guard = nnLines[guardIdx]!;
     for (const v of PROXY_VARS) {
       expect(
         new RegExp(`(?<![A-Za-z_])${v}=${DEAD_PROXY.replace(/[.:/]/g, "\\$&")}(\\s|$)`).test(guard),
