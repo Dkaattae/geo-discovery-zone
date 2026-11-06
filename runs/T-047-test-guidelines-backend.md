@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" — run log
 
 **Task:** T-047 · **Branch:** `task/T-047-test-guidelines-backend` · **PR:** #127
-**Started:** 2026-11-06 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-06 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -135,3 +135,6 @@ A person must start the `tester` step for T-047 in a session they are attending 
 
 ## Run ended — 2026-11-06
 Two tasks in a row ended halted (T-102, T-047), so the run stopped before its third task, per `orchestrator.md` "The loop you run".
+
+## Resumed — 2026-11-06
+A person asked the orchestrator: "pr 127 ci is green, what is the problem?". The branch head had moved to `bd2c8b3`: an attended tester applied the approved test change request (`04ac466`) and recorded a verdict (`bd2c8b3`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-06`.
