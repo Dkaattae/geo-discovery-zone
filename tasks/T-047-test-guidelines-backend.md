@@ -1,15 +1,15 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-047-test-guidelines-backend.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-047
 **Branch:** `task/T-047-test-guidelines-backend`
 **PR:** #127, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:**
+**Fault:** test changes are waiting for approval: four rows re-pin two whole-tree pins (`climate-cold-trade-accepted-verify.test.ts`, `farm-animal-loose-ends-verify.test.ts`) that T-047's own files turned red by design. Owner: a person, in an attended tester session.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
+| tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: freshly spawned subagent, same remote session id as every role) |
 
 ## Goal
 
@@ -361,6 +362,141 @@ mismatch on top of that.
   approved.
 
 ## Verdict
+
+**TL;DR.** Every criterion the task can be held to is met: 1–12, 14 and 15 by
+new tests (all green), 13 by a cold run (exit 0), 16 and 17 by observation.
+**Not a pass yet:** the two whole-tree pins are red by design, three tests in
+two files, and one more row follows from re-pinning them. They need the Test
+change request below, approved by a person in an attended tester session.
+**Next:** a person starts a `tester` session for T-047 and answers the four rows.
+
+**Independence.** This run is orchestrated (`runs/T-047-test-guidelines-backend.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJbsZTbExMiPULZMiFd`,
+the same id as the expander and worker rows, so the session-id check proves
+nothing either way. My independence rests only on being a freshly spawned
+subagent with its own context: I did not see the work done or the worker's
+reasoning. That depends on the orchestrator spawning me correctly, which I
+cannot check myself, so it is weaker evidence than a separate session.
+
+### Criteria
+
+New test file: `frontend/src/test-guidelines-backend.criteria.test.ts`, one test
+per criterion. The expected values come from the criteria's wording.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `criterion 1: …` green |
+| 2 | met | `criterion 2: …` green (`` `api/` ``, `cd api`, `/#\s+api\b/` absent) |
+| 3 | met | `criterion 3: …` green (heading names `backend/`; `cd backend && uv run pytest`) |
+| 4 | met | `criterion 4: …` green (SQLite + default in one sentence; Postgres + `GEO_TEST_DATABASE_URL`; no "not/never/avoid SQLite" anywhere) |
+| 5 | met | `criterion 5: …` green (one bullet: transaction, rolled back, commits joined to a savepoint *in prose*, "nothing is left behind"; `db_session`) |
+| 6 | met | `criterion 6: …` green (`httpx.AsyncClient` + `httpx.ASGITransport` in one bullet, "no server", "no socket"; `client`) |
+| 7 | met | `criterion 7: …` green ("`openapi.yaml` follows the backend", `engineering-decisions.md` E-14, `test_contract.py` "both directions", `assert_matches` required key / undeclared key) |
+| 8 | met | `criterion 8: …` green (both strings absent; no sentence pairs `openapi.yaml` with "is a bug/is wrong/is broken/must match"; "update `openapi.yaml`" present) |
+| 9 | met | `criterion 9: …` green |
+| 10 | met | `criterion 10: …` green (`cd backend`, then `uv sync --frozen` with none of the six names on its line, then the guarded command) |
+| 11 | met | `criterion 11: …` green (each of the six `=http://127.0.0.1:1` on the logical guard line, with `uv run pytest`) |
+| 12 | met | `criterion 12: …` green (the block offers neither bun package) |
+| 13 | met | Cold run, below |
+| 14 | met | `criterion 14: …` green (`# backend/`) |
+| 15 | met | `criterion 15: …` green: sha256 of the file with the three allowed regions cut out equals the same cut of `test-guidelines.md` at `a7945cf` (`d028b32d…`, computed from `git show` of that commit in a scratch script; embedded because tests may not resolve revisions) |
+| 16 | met, observed | `git diff origin/main --stat`: `test-guidelines.md`, this brief, `runs/T-047-…`, plus this tester's own new test file. No source, workflow, `CLAUDE.md` or dependency change |
+| 17 | **not yet** | Red only on the pins in the Test change request, and on frontend reds this environment causes (below). The five guards it names are green, unedited |
+
+**Accuracy spot-check (Constraints, "Accurate, not aspirational").** I checked
+the section's claims against `backend/tests/conftest.py` (`create_savepoint`,
+`ASGITransport`, a base URL that carries `API_PREFIX`, `auth_headers`,
+`other_auth`, `spec`, `assert_matches`, `assert_problem`), `backend/pyproject.toml`
+(`testpaths`), `backend/Makefile` (`test`/`test-postgres`/`test-integration` all
+depend on `install`), `test_postgres.py` (skips on SQLite) and
+`backend/integration/README.md` (Docker, not in `make check`). Nothing I found
+is false.
+
+### Mutations (each reverted; `cmp` against a saved copy confirmed the file restored)
+
+| Mutation to `test-guidelines.md` | Went red |
+|---|---|
+| Whole file swapped for `a7945cf`'s | criteria 1–10, 12, 14 (11 and 15 stay green, correctly: the old guard had all six variables, and the remainder is identical) |
+| `HTTPS_PROXY=…` prefixed onto the `uv sync` line | 10 (and 11, because that line now becomes the first proxy-setting line) |
+| `uv sync` moved after the guarded command | 10 |
+| `all_proxy` dropped from the guard | 11 |
+| One-letter typo in "Three patterns worth copying" | 15 |
+| `# backend/` relabelled `# api` | 2, 14 |
+| Comment offers "bun test from frontend/" | 12 |
+| "and no socket" removed | 6 |
+| "joined to a savepoint" → "joined to an outer scope" | 5. **This one survived my first draft**, because `create_savepoint` in the code span still matched. I tightened the test to require the savepoint in prose, and it now goes red |
+| "SQLite by default" bullet replaced with "Use a real Postgres, not SQLite." | 4 |
+| E-14 citation removed | 7 |
+
+### Criterion 13: cold run
+
+- **How I got the cold state:** `git worktree add --detach <scratch>/wt HEAD`
+  (at `a3ba3e3`). `backend/.venv` was absent (`ls` failed).
+- **What I ran:** the block extracted verbatim with
+  `awk '/^```sh$/{f=1;next} /^```$/{if(f){exit}} f' test-guidelines.md`,
+  then `sh` from the worktree root, which is where the prose says to start.
+- **Result:** `uv sync --frozen` created `.venv` through this environment's agent
+  proxy (the package index). The guarded `uv run pytest` reported
+  `1039 passed, 9 skipped`. **Exit 0.** I removed the worktree afterwards.
+- This also confirms the worker's open Note: `uv run pytest` (without `--frozen`)
+  under the dead proxy resolves nothing over the network after `uv sync --frozen`.
+
+### Suites (criterion 17)
+
+- **`backend/`:** `uv run pytest` green (the cold run). `ruff check` clean,
+  `ruff format --check` clean.
+- **`question-bank/`:** `bun test`, everything passes except **three tests**,
+  all in the request below. Typecheck and lint are clean.
+  - `farm-animal-loose-ends-verify.test.ts` › criterion 21: received 285, expected 283.
+  - `climate-cold-trade-accepted-verify.test.ts` › criterion 22 non-test pin: received 288, expected 286.
+  - `climate-cold-trade-accepted-verify.test.ts` › criterion 22 pre-existing
+    test files: received 123, expected 122. This one comes from **my** new
+    test file. The worker could not see it, because it did not exist at their step.
+- **`frontend/`:** `bun test` gives 406 pass and 4 fail. **All four are
+  module-load errors caused by this environment:** "Cannot find package
+  'react-simple-maps'" in `t026-setup.criteria`, `t051-map-click`,
+  `t051-tester.criteria` and `screens.criteria`. The package is declared in
+  `frontend/package.json` but is missing from `node_modules`, and
+  `bun install --frozen-lockfile` gets a 403 from the proxy on the `d3-*`
+  tarballs. A Markdown edit plus a test that only reads files cannot cause that.
+  For the same reason `bun run typecheck` fails, only on `UsMap.tsx` and the two
+  t051 tests. `bun run lint` and `format:check` are clean. **CI on PR #127,
+  which installs from scratch, is the authority for these.**
+  - On my first full run, `lint-gate` and `format-gate` were red because my
+    new file was not prettier-formatted yet. After formatting they are green.
+- **Guards criterion 17 names**, unedited and green:
+  `stale-suite-counts.criteria`, `stale-suite-counts-guard.criteria`,
+  `level-window-claim.criteria`, `lint-gate`, `purge-sample-data-verify`.
+
+### For the person approving
+
+- **Rows 1 and 2** follow the T-045 precedent: the task's files join each allowed set.
+  Re-run on `a7945cf` with the same three files exempted, my scratch script gives
+  exactly the proposed count and digest. So the only thing they exempt
+  is T-047's own three files. On `a7945cf` without the exemption, the same script reproduces
+  today's pins (286 / `01eae9b3…`, 283 / `353529aa…`), so the script is faithful.
+- **Row 3** re-pins over this tester's new test file, like T-039/T-045/T-053
+  did for theirs. Its digest moves if that file changes again.
+- **Row 4** is forced by row 1: `climate` pins the applied digest of the `farm` file.
+- **T-102 / PR #126 re-pins the same constants.** Whichever PR merges second
+  rebases its values.
+
+## Test change request
+
+Raised by the tester on 2026-11-06, in an orchestrated run with nobody attending.
+None of these tests has been changed. All four rows are stale because of
+criterion 16: it allows this task to change `test-guidelines.md` and to add its
+brief and run log, and the tester's step adds a criteria test file.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It protected T-096's criterion 21: no tracked non-test file outside T-096's set differs from main | Criterion 16: `test-guidelines.md` changes, and `tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md` are new. Received 285, expected 283 | modify | Same name. `CRITERION_21_ALLOWED` gains `test-guidelines.md`, `tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md` with a comment citing T-047 row 1. `rest.length` is pinned to **282** (was 283; comment "T-047 row 1: was 283"), and `MAIN_UNTOUCHABLE_SHA` to **`fda851f3e82936035bd784f2d32b252a7b2788d93cb56b308c0f0b6d7380422d`**. `a7945cf` gives the same count and digest with the same exemption | |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. It protected T-091's criterion 22: the diff touches only the allowed files | The same as row 1. Received 288, expected 286 | modify | Same name. `CRITERION_22_ALLOWED` gains the same three paths with a comment citing T-047 row 2. `MAIN_UNTOUCHABLE_COUNT` becomes **285** (was 286; re-pin comment), and `MAIN_UNTOUCHABLE_SHA` becomes **`0b3efcae2b47ff11f705117ef9fdea0f17e2a118629a9b07914ea233972027b5`**. `a7945cf` gives the same count and digest with the same exemption | |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester. It protected the test files: none added or changed outside an approved request | The T-047 tester added `frontend/src/test-guidelines-backend.criteria.test.ts`. Received 123, expected 122 | modify | Same name. `MAIN_TESTS_COUNT` becomes **123** (was 122), and `MAIN_TESTS_SHA` becomes **`c920b17c497a02c1bcbd4df06a7f75adc741e457b13da407b00863355bbacd38`**, the digest with that file at blob `d872014`. Its comment reads "Re-pinned by T-047 (Test change request row 3): T-047's tester added test-guidelines-backend.criteria.test.ts (122 -> 123)". If the file changes before applying, recompute both | |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester. It protected the request files: each one changed only by its approved re-pin | It turns red once row 1 is applied, because it pins the `farm-animal-loose-ends-verify.test.ts` digest (`f199d230…`) | modify | Same name. Only the `farm-animal-loose-ends-verify.test.ts` entry of `APPLIED_REQUEST_FILE_SHAS` changes, to the sha256 of that file after row 1 is applied, with a comment citing T-047 row 4. No other entry changes, and the `MAIN_REQUEST_FILE_SHAS` check still requires it to differ from main | |
+
+To approve: start the `tester` step for T-047 in a session you are attending,
+and answer each row there.
 
 ## Notes
 
