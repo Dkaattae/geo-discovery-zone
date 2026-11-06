@@ -169,9 +169,10 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
   // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),
-  // then by T-101 (row 8), then by hand for D-19 (its whole-tree count and digest moved)
+  // then by T-101 (row 8), then by hand for D-19 (its whole-tree count and digest moved),
+  // then by T-102 (row 3)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "f199d2306f17800a627dfd8b631a974a7979638032e694ba1cc2f41c8b25dfa7",
+    "2a241617d82dc58bdbe459e7de219a568d5e438c8b4515df2848b5f39cd1cbe3",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -245,6 +246,10 @@ const CRITERION_22_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-05, in the attended tester session that made the edit).
   "tasks/T-101-mixed-session-format-flake.md",
   "runs/T-101-mixed-session-format-flake.md",
+  // T-102's loop records, joined through T-102's Test change request row 2
+  // (approved by Dkaattae, 2026-11-06, in the attended tester session that made the edit).
+  "tasks/T-102-unseeded-draw-survey.md",
+  "runs/T-102-unseeded-draw-survey.md",
 ]);
 /** New test files this task adds. */
 const T091_TEST_FILES = new Set(["question-bank/src/climate-cold-trade-accepted-verify.test.ts"]);

@@ -237,6 +237,10 @@ const CRITERION_21_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-05, in the attended tester session that made the edit).
   "tasks/T-101-mixed-session-format-flake.md",
   "runs/T-101-mixed-session-format-flake.md",
+  // T-102's loop records, joined through T-102's Test change request row 1
+  // (approved by Dkaattae, 2026-11-06, in the attended tester session that made the edit).
+  "tasks/T-102-unseeded-draw-survey.md",
+  "runs/T-102-unseeded-draw-survey.md",
 ]);
 const isTestFile = (f: string): boolean =>
   /\.test\.tsx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
