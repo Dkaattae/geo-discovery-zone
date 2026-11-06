@@ -1,15 +1,14 @@
 # T-102 — Other backend tests may assert on an unseeded draw
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-102-unseeded-draw-survey.md`.
-**Test changes:** `requested`
+**Test changes:** approved — Dkaattae, 2026-11-06
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-102
 **Branch:** `claude/fervent-ptolemy-4py2eg`
 **PR:** #126, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** test changes are waiting for approval. Three question-bank whole-tree pins (Test change request rows 1-3) need a person's approval in an attended tester session. Every other criterion is verified (see Verdict).
 
 **Sessions:**
 
@@ -18,6 +17,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared id, freshly spawned subagent) |
+| tester | 2026-11-06 | cse_011oDiJc1uVevWo55WsSei6F (attended: applied the approved Test change request) |
 
 ## Goal
 
@@ -394,15 +394,35 @@ Raised by the tester, 2026-11-06, in an orchestrated (unattended) run. **No test
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added` | `47581ea`, T-096 tester. It guards that no tracked non-test file outside T-096's allowed set changes or is added. | This task adds two new tracked files, its own loop records `tasks/T-102-unseeded-draw-survey.md` and `runs/T-102-unseeded-draw-survey.md`. So `rest.length` is 285, not 283. | modify | Same test, same name, same assertions: `rest.length` is still **283** and `fileRowsSha(rest)` is still `MAIN_UNTOUCHABLE_SHA` (unchanged). The only change: `CRITERION_21_ALLOWED` gains `"tasks/T-102-unseeded-draw-survey.md"` and `"runs/T-102-unseeded-draw-survey.md"`, after the T-101 entries, with a comment `// T-102's loop records, joined through T-102's Test change request row 1 (approved by <name>, <date>, in the attended tester session that made the edit).` | |
-| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added` | `950f334`, T-091 tester. The same whole-tree guard, for T-091's allowed set. | The same two new files. `rest.length` is 288, not `MAIN_UNTOUCHABLE_COUNT` = 286. | modify | Same test, same assertions. `MAIN_UNTOUCHABLE_COUNT` stays **286** and `MAIN_UNTOUCHABLE_SHA` is unchanged. `CRITERION_22_ALLOWED` gains the same two paths after the T-101 entries, with the same comment, naming row 2. | |
-| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091 tester (review finding 1). It pins the exact bytes of each test file an approved request changed, so nothing besides an approved row edits them. | Row 1 changes the bytes of `farm-animal-loose-ends-verify.test.ts`, so its entry in `APPLIED_REQUEST_FILE_SHAS` no longer matches. This is a cascade of row 1, as T-101 row 8 was. | modify | Same test, same assertion: `now` deep-equals `APPLIED_REQUEST_FILE_SHAS`. Only the `farm-animal-loose-ends-verify.test.ts` value changes, from `f199d230…25dfa7` to the sha256 of that file **exactly as row 1 leaves it**. The value depends on the name and date written into row 1's comment, so compute it at apply time, after row 1. The comment chain gains `, then by T-102 (row 3)`. Every other entry is unchanged. | |
+| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added` | `47581ea`, T-096 tester. It guards that no tracked non-test file outside T-096's allowed set changes or is added. | This task adds two new tracked files, its own loop records `tasks/T-102-unseeded-draw-survey.md` and `runs/T-102-unseeded-draw-survey.md`. So `rest.length` is 285, not 283. | modify | Same test, same name, same assertions: `rest.length` is still **283** and `fileRowsSha(rest)` is still `MAIN_UNTOUCHABLE_SHA` (unchanged). The only change: `CRITERION_21_ALLOWED` gains `"tasks/T-102-unseeded-draw-survey.md"` and `"runs/T-102-unseeded-draw-survey.md"`, after the T-101 entries, with a comment `// T-102's loop records, joined through T-102's Test change request row 1 (approved by <name>, <date>, in the attended tester session that made the edit).` | approved — Dkaattae, 2026-11-06 |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added` | `950f334`, T-091 tester. The same whole-tree guard, for T-091's allowed set. | The same two new files. `rest.length` is 288, not `MAIN_UNTOUCHABLE_COUNT` = 286. | modify | Same test, same assertions. `MAIN_UNTOUCHABLE_COUNT` stays **286** and `MAIN_UNTOUCHABLE_SHA` is unchanged. `CRITERION_22_ALLOWED` gains the same two paths after the T-101 entries, with the same comment, naming row 2. | approved — Dkaattae, 2026-11-06 |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091 tester (review finding 1). It pins the exact bytes of each test file an approved request changed, so nothing besides an approved row edits them. | Row 1 changes the bytes of `farm-animal-loose-ends-verify.test.ts`, so its entry in `APPLIED_REQUEST_FILE_SHAS` no longer matches. This is a cascade of row 1, as T-101 row 8 was. | modify | Same test, same assertion: `now` deep-equals `APPLIED_REQUEST_FILE_SHAS`. Only the `farm-animal-loose-ends-verify.test.ts` value changes, from `f199d230…25dfa7` to the sha256 of that file **exactly as row 1 leaves it**. The value depends on the name and date written into row 1's comment, so compute it at apply time, after row 1. The comment chain gains `, then by T-102 (row 3)`. Every other entry is unchanged. | approved — Dkaattae, 2026-11-06 |
 
 No count floor is involved: nothing is deleted.
 
 To approve: start the `tester` step for T-102 in a session you are attending, and answer row by row there.
 
 ## Verdict
+
+**Pass.** Dkaattae approved Test change request rows 1-3 in an attended tester session. I applied them in `ee83a62`, and all of criterion 10 now holds: backend and question-bank are green here, and frontend relies on CI as before.
+
+**Approval.** `Test changes: approved — Dkaattae, 2026-11-06`. Each row was put to Dkaattae in this session, and they answered "Approve" to row 1, "Approve" to row 2 and "Approve" to row 3. They gave the name "Dkaattae" for the record.
+
+**Tests modified (no deletions, no floor involved):**
+- **Row 1**, `farm-animal-loose-ends-verify.test.ts` › criterion 21: `CRITERION_21_ALLOWED` gains `tasks/T-102-unseeded-draw-survey.md` and `runs/T-102-unseeded-draw-survey.md`. Count 283 and `MAIN_UNTOUCHABLE_SHA` are unchanged.
+- **Row 2**, `climate-cold-trade-accepted-verify.test.ts` › T-091 criterion 22, allowed-files test: `CRITERION_22_ALLOWED` gains the same two paths. `MAIN_UNTOUCHABLE_COUNT` 286 and the sha are unchanged.
+- **Row 3**, the same file › applied-request shas test: the farm-animal entry is re-pinned from `f199d230…25dfa7` to `2a241617…cd1cbe3`, the file exactly as row 1 left it. No other entry changed.
+
+| # | Criterion | Result | Evidence |
+|---|---|---|---|
+| 1-9 | as in the round-3 verdict below | met | Unchanged by `ee83a62`, which touches only the two question-bank test files. |
+| 10 | Three suites pass | **met** | Backend: `make -C backend check` gave **1039 passed, 9 skipped** (lint and format clean). Question-bank: `bun test` gave **2713 pass, 0 fail**. Frontend: see below. |
+
+**Frontend, as before, could not run fully here.** `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)` on the d3 / `react-simple-maps` tarballs, so 4 files error on import. No frontend file differs from main, and CI `frontend` was green on `1c4995e`. CI on this push is the evidence for that suite.
+
+**Environment note.** Question-bank first ran with `node_modules` missing (12 lint-gate failures, "oxlint: command not found"). `bun install --frozen-lockfile` fixed that, and it changed no tracked file.
+
+### Round 3 (orchestrated, before approval)
 
 **Not yet a verdict: halted at `test changes requested` / `human`.** I verified every criterion that does not depend on the stale pins: 1-9 hold, my own survey matches the worker's 84 rows, and the perturbation probe passed 20 of 20 runs. Criterion 10 is blocked on the question-bank suite. Its only 2 failures are the stale whole-tree pins in the Test change request above, which need Dkaattae's approval in an attended tester session.
 
