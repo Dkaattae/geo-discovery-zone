@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw)._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw). Swept again 2026-11-06, after T-102 surveyed every backend test that asserts on a router draw and found none that needs a pin (PR #126): T-102 deleted; T-103 new from its review (the survey's certainty arguments rest on unguarded bank facts); T-076 amended (a fifth `frontend/README.md` sighting)._
 
 ## How this list is ordered
 
@@ -339,20 +339,24 @@ green, or (c) is chosen and recorded as the next unused `E-n`.
 The API is built and serves all 29 operations (see `PROGRESS.md`). What is left
 is what it deliberately does not do.
 
-### T-102 — Other backend tests may assert on an unseeded draw · S · todo
+### T-103 — The backend draw survey's "holds under any draw" arguments rest on unguarded bank facts · S · todo
 **Depends on:** —
-**New 2026-11-05, from T-101's review (PR #124).** T-101 gave three tests a fixed
-draw (`backend/tests/conftest.py::fixed_draw`), and its brief kept every other
-test out of scope without looking. Any other endpoint test that plays a
-`mixed` or level-windowed session through the router and asserts what the
-serves *contain* (a format, a state count, a review) still draws from module
-`random` over database row order. T-101's tester could not reproduce T-099's
-failure in 500 module seeds per test, so the trigger may have been row order or
-random state consumed earlier in the suite, which a survey by reading will find
-faster than seeding.
-**Done when:** every such assertion in `backend/tests/` is listed in a brief, and
-each either uses `fixed_draw` (through an approved Test change request, D-14) or
-is shown to hold under any draw.
+**New 2026-11-06, from T-102's review (PR #126).** T-102 showed that 56 router-serving
+tests in `backend/tests/` pass whatever is drawn. That conclusion rests on facts about
+`backend/app/data/content.json` as it is today. Among them: location has exactly 50
+`map_identify` and 50 `map_click` (the "a `map_click` arrives within 60 / 100 serves"
+bounds in `test_t051_map_click.py` and `test_t053_tester_criteria.py` c14), no question
+has a `shortExplanation`, no prompt contains "review", and every highlight falls back to
+the entity's geometry. The full list is B1–B9 in PR #126's body. If a bank change breaks
+one of these for only some questions, those tests become flaky again, and nothing
+points at why.
+**Options, not a decision:** a backend test that asserts the facts the survey relies on,
+each naming the tests that depend on it, so a bank change fails on the fact and not
+randomly; or make T-102's criterion-6 probe (seeds × reversed order) a CI step. The
+probe is evidence, not proof, so the first is the stronger option. Mind P-17: assert
+properties (`≤ 51 map_identify`), not digests.
+**Done when:** changing the bank so that one of T-102's certainty arguments fails turns a
+named test red, whatever the draw.
 
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
@@ -424,6 +428,9 @@ when prettier cannot be resolved.
 **Seen a fourth time 2026-11-04 in T-100's worker run** (PR #123): one
 `bun test` in `frontend/` without `node_modules` (the install was refused by the
 proxy) rewrote `frontend/README.md`. Same no-`node_modules` condition as T-089.
+**Seen a fifth time 2026-11-06 in T-102's worker run** (PR #126): the same
+`2 * gradeOf` → `2 \* gradeOf` edit after the first frontend `bun test`, run
+before `node_modules` was installed. Reverted with `git checkout`, and it did not recur.
 
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —

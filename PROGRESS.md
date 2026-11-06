@@ -375,6 +375,21 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-102 — No other backend test passes or fails by chance on the draw** (PR #126,
+  2026-11-06). A survey by reading covered every `backend/tests/` test that makes a
+  router serve and asserts something the draw could change: 84 tests, 3 pinned by
+  `fixed_draw`, 25 by a `force` picker, 56 shown to hold under any draw, **none
+  needing a pin**. The tester confirmed this independently with an instrumented run,
+  and all 14 `/sessions` files passed 20 runs (seeds 0–9 × store order and reversed
+  order). No backend file changed. *Where it differed from the brief:* the brief
+  expected some tests might need pinning, and the result was a survey with no code
+  change. So the T-099 failure has no unpinned sibling: it was c25 itself, which T-101
+  pinned. Still, 2 question-bank whole-tree count pins went red
+  just from the task's own brief and run log (P-17). Dkaattae approved 3 Test change
+  request rows in an attended tester session, which added those two files to the
+  allowed sets rather than re-pinning the counts. The "holds" arguments rest on facts
+  about today's bank, which T-103 now owns.
+
 - **T-101 — Three mixed-session tests no longer pass or fail by chance** (PR #124,
   2026-11-05). A new `fixed_draw` fixture in `backend/tests/conftest.py` runs the
   real `selection.pick_question` over id-sorted candidates with one
