@@ -41,3 +41,45 @@
 
 ## Approval — 2026-11-06
 Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criteria.
+
+## Round 2 — worker — 2026-11-06
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR**
+- **Done and pushed.** Only `test-guidelines.md` changed. Its backend section now describes `backend/tests/` as it actually is. The dead-proxy block now runs the install before the guarded command, and the block passes from a cold checkout.
+- **Brief updated:** Status `awaiting verification`, Next step `tester`.
+- **Needed next:** a tester run in a different session, attended by a person. Two whole-tree pin tests are red and need an approved Test change request to fix.
+- **Landed:** commit `35c961f` is the tip of `origin/task/T-047-test-guidelines-backend` (checked with `git log origin/<branch> -1`). That is the brief's `Branch:` header, and the branch I was on.
+
+**What changed in `/home/user/geo-discovery-zone/test-guidelines.md`**
+- **"No network in tests, ever":** the block now runs `cd backend`, then `uv sync --frozen` with no proxy variables, then the guarded `uv run pytest` with all six variables set as before. It no longer mentions bun (criterion 12 allows offering neither package).
+- **Backend section:** the heading is now `` `backend/` — pytest ``. It covers:
+  - **Run commands:** `cd backend && uv run pytest` and `make -C backend test-postgres`.
+  - **Scope:** `uv run pytest` runs `backend/tests/` only; `backend/integration/` runs with `make -C backend test-integration`.
+  - **Endpoint tests:** the `client` fixture, `httpx.AsyncClient` over `ASGITransport`, no server and no socket.
+  - **Database:** SQLite by default, Postgres through `GEO_TEST_DATABASE_URL`.
+  - **Isolation:** `db_session` rolls back each test, with the app's commits joined to a savepoint.
+  - **Contract:** `openapi.yaml` follows the backend (E-14), kept in step by `test_contract.py` and `assert_matches`.
+  - **Errors:** `assert_problem`.
+- **"Before you say it passes":** the label `# api` is now `# backend/`.
+- **Brief:** `/home/user/geo-discovery-zone/tasks/T-047-test-guidelines-backend.md` has my Sessions row, a Handoff with a criterion-by-criterion table, and Notes.
+
+**Test results**
+- **Cold run (criterion 13):** fresh `git worktree` with no `backend/.venv`, block copied out and run with `sh`. pytest reported every test passed (some skipped, no failures); the guarded pytest is the block's last command, so the script exits 0.
+- **Backend suite:** green. The guards criterion 17 names all pass.
+- **Two pins are red:**
+  - `question-bank/src/farm-animal-loose-ends-verify.test.ts`, T-096 criterion 21
+  - `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, T-091 criterion 22
+
+  Both were already red before my edit, because the expander's new brief and run log added two tracked files. The fix is to add `test-guidelines.md` and both T-047 files (`tasks/` and `runs/`) to their allowed sets. That needs a Test change request a person approves (D-14). Both are listed under Tests made stale in the brief.
+- **Four frontend reds come from this environment, not the change:**
+  - **Cause:** `react-simple-maps` is missing from `frontend/node_modules`.
+  - **Not repaired:** `bun install --frozen-lockfile` failed, because the proxy returned 403 when downloading packages.
+  - **Flaky lint test:** separately, the lint-gate test timed out in one run out of three.
+
+  The tester should recheck these in a fresh environment.
+
+**Flags, with owners**
+- **Same session for expander and worker:** the orchestrator ran both under `cse_011oDiJbsZTbExMiPULZMiFd`, so the tester must use a different session. Owner: orchestrator.
+- **Old contract wording in the backend tests:** the docstrings of `test_contract.py` and `conftest.py` still describe `openapi.yaml` as "the contract". That is out of scope here. Owner: reviewer, to queue it.
+- **`CLAUDE.md` lines 4 and 51 still say `api/`:** that file is gated, so it needs a `P` ticket done by hand. Owner: human.
