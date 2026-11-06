@@ -164,8 +164,8 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-097 (Test change request row 4): backend/app/store.py moved.
 // Re-pinned by T-099 (Test change request row 4): backend/app/store.py moved.
 // Re-pinned by T-101 (Test change request row 4): T-101 changed backend/tests/conftest.py (fixed_draw).
-// Re-pinned by hand for D-19: .claude/loop/ deleted; process.md, process-decisions.md, .claude/agents/ and .claude/skills/next-task changed.
-const MAIN_UNTOUCHABLE_SHA = "24a1212e427f55d61cb778297a263ddb307ad56024a4b9ed019073627579e33b";
+// Re-pinned by hand for D-19: .claude/loop/ deleted; process.md, process-decisions.md, CLAUDE.md, .claude/agents/ and .claude/skills/next-task changed.
+const MAIN_UNTOUCHABLE_SHA = "353529aa8e1592ce27433940f110dde40b94b1140e00fb748a3fdcfa31117289";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
