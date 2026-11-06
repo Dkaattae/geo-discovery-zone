@@ -1,15 +1,15 @@
 # T-102 — Other backend tests may assert on an unseeded draw
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-102-unseeded-draw-survey.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-102
 **Branch:** `claude/fervent-ptolemy-4py2eg`
 **PR:** #126, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:**
+**Fault:** test changes are waiting for approval. Three question-bank whole-tree pins (Test change request rows 1-3) need a person's approval in an attended tester session. Every other criterion is verified (see Verdict).
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
+| tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared id, freshly spawned subagent) |
 
 ## Goal
 
@@ -385,7 +386,84 @@ These were not made stale by this worker. I checked by stashing my brief edit an
 
 **Owner:** the tester raises the Test change request, and Dkaattae approves it in an attended session (D-14). The run should not count on an unattended tester passing.
 
+## Test change request
+
+Raised by the tester, 2026-11-06, in an orchestrated (unattended) run. **No test below has been changed.** The rows follow the precedent T-091 row 5 set and every task since has followed, through T-101 rows 4, 5 and 8: a task's own loop records join the allowed set. I checked them in a throwaway worktree, not committed. With rows 1-3 applied, `cd question-bank && bun test` gave **2713 pass, 0 fail**. Without them it gives 2711 pass and 2 fail.
+
+**Why this differs from the worker's proposal.** The worker proposed re-pinning the counts to 285 and 288. That would pass on this branch but go red as soon as the sweep deletes the brief, and again on main. Adding the two loop records to the allowed set keeps the count (283, 286) and the digest pinned exactly as before. Both files are new, so nothing that was counted before leaves the counted set.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added` | `47581ea`, T-096 tester. It guards that no tracked non-test file outside T-096's allowed set changes or is added. | This task adds two new tracked files, its own loop records `tasks/T-102-unseeded-draw-survey.md` and `runs/T-102-unseeded-draw-survey.md`. So `rest.length` is 285, not 283. | modify | Same test, same name, same assertions: `rest.length` is still **283** and `fileRowsSha(rest)` is still `MAIN_UNTOUCHABLE_SHA` (unchanged). The only change: `CRITERION_21_ALLOWED` gains `"tasks/T-102-unseeded-draw-survey.md"` and `"runs/T-102-unseeded-draw-survey.md"`, after the T-101 entries, with a comment `// T-102's loop records, joined through T-102's Test change request row 1 (approved by <name>, <date>, in the attended tester session that made the edit).` | |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added` | `950f334`, T-091 tester. The same whole-tree guard, for T-091's allowed set. | The same two new files. `rest.length` is 288, not `MAIN_UNTOUCHABLE_COUNT` = 286. | modify | Same test, same assertions. `MAIN_UNTOUCHABLE_COUNT` stays **286** and `MAIN_UNTOUCHABLE_SHA` is unchanged. `CRITERION_22_ALLOWED` gains the same two paths after the T-101 entries, with the same comment, naming row 2. | |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only` | `bac230d`, T-091 tester (review finding 1). It pins the exact bytes of each test file an approved request changed, so nothing besides an approved row edits them. | Row 1 changes the bytes of `farm-animal-loose-ends-verify.test.ts`, so its entry in `APPLIED_REQUEST_FILE_SHAS` no longer matches. This is a cascade of row 1, as T-101 row 8 was. | modify | Same test, same assertion: `now` deep-equals `APPLIED_REQUEST_FILE_SHAS`. Only the `farm-animal-loose-ends-verify.test.ts` value changes, from `f199d230…25dfa7` to the sha256 of that file **exactly as row 1 leaves it**. The value depends on the name and date written into row 1's comment, so compute it at apply time, after row 1. The comment chain gains `, then by T-102 (row 3)`. Every other entry is unchanged. | |
+
+No count floor is involved: nothing is deleted.
+
+To approve: start the `tester` step for T-102 in a session you are attending, and answer row by row there.
+
 ## Verdict
+
+**Not yet a verdict: halted at `test changes requested` / `human`.** I verified every criterion that does not depend on the stale pins: 1-9 hold, my own survey matches the worker's 84 rows, and the perturbation probe passed 20 of 20 runs. Criterion 10 is blocked on the question-bank suite. Its only 2 failures are the stale whole-tree pins in the Test change request above, which need Dkaattae's approval in an attended tester session.
+
+**Independence.** This was an orchestrated run, so my session id (`cse_011oDiJbsZTbExMiPULZMiFd`) is the same as the expander's and the worker's. That is not evidence of separation either way. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's session or its reasoning, only what is committed. That is weaker than a separate session, because it rests on the orchestrator having spawned me correctly.
+
+| # | Criterion | Result | Evidence |
+|---|---|---|---|
+| 1 | Survey exists | met | Handoff table, 84 rows, each with file::test, assertions and one class. |
+| 2 | Survey complete | met | My own instrumented survey, below. |
+| 3 | "Holds" reasons are certainty arguments | met | I re-derived every "holds" row from `selection.py`, `grading.py`, the router and the bank. None rests on a pass count. |
+| 4 | No `needs pin` left | met | My survey found none, and no pre-existing test file changes. |
+| 5 | Pinning keeps assertions | n/a | Nothing was pinned. |
+| 6 | 20 perturbed runs pass | met | 20/20, 374 passed each, 0 failed, 0 errors. |
+| 7 | `backend/app/` unchanged | met | `git diff origin/main...HEAD -- backend/app/` is empty. |
+| 8 | T-101 pin unchanged | met | `FIXED_DRAW_SEED = 101` (conftest.py:202). `backend/tests/` diff is empty. |
+| 9 | No new dependency | met | The `pyproject.toml` and `uv.lock` diff is empty. |
+| 10 | Three suites pass | **blocked on rows 1-3** | Backend green. Question-bank has 2 fails, both stale pins. Frontend is green in CI; it could not be run fully here. |
+
+**Criterion 2, my own survey.** I did not rely on reading alone. A throwaway pytest plugin (not committed) wrapped `store.candidate_questions` and the router's original `pick_question` binding. It counted, per test, how many picks happened and how many went through the unpinned picker. I ran it over **all** of `backend/tests/` (1039 passed, 9 skipped).
+- **93 test functions call `candidate_questions`.** All are in the 14 `/sessions` files, and no other file makes a router serve.
+- **2 of the 93 are not router serves.** `test_t051_tester_criteria.py::test_c13_location_and_mixed_pools_hold_every_map_click` and `::test_c13_no_other_topic_pool_holds_a_map_click` call `store.candidate_questions` directly, so they are rightly absent.
+- **The other 91 match the Handoff exactly:** the 84 table rows plus the 7 listed exclusions. I read each of the 7 exclusions and agree they are draw-independent (404s, levels set before the pick, `remaining = min(5,1)-1`, 409 on an ended session).
+- **Every `pinned (force)` and `pinned (fixed_draw)` row made 0 unpinned picks.** The rows with unpinned picks are exactly the 56 "holds" rows.
+- **The two mixed rows are confirmed as "holds".** `test_t093_tester_criteria.py` c5 and c7 (rows 71, 75) and `test_t093_undo_places_seen.py` row 81 make unpinned picks, and those are the review-round serves.
+
+**Criterion 3, the facts the arguments rest on.** I checked the bank myself over `backend/app/data/content.json`, which the test DB loads:
+- **Sizes:** 415 questions and 50 entities. Topic sizes are as B8.
+- **Choice formats:** every one has 4 distinct choices and a `correctIndex` in range (B2).
+- **`map_click`:** every one has a 2-digit key, with no choices, index or highlight (B3).
+- **Explanations, prompts, highlights, reveals:** no `short`/`detailExplanation` (B4), no prompt containing "review" (B7), highlight fallback = entity geometry for all (B5), reveal by topic as B6.
+- **Texas:** 9 questions (B9), key `48`.
+- **Wrong-answer keys:** the taps `13`, `28`, `01`, `02` occur as keys only where the tests already branch around them.
+
+From the code:
+- **Pools and review cadence:** S1-S3 hold (`selection.py:51-91`).
+- **Re-serve:** S4 holds (`sessions.py:100-110`). The review round clears `pending` first (`sessions.py:376`).
+- **Grading:** S5 holds (`grading.py:166-246`: level by streak, milestone by count, `offerReview` false on a wrong answer).
+- **Demo profile:** S6 holds (`store.py:512-513`).
+
+**The map_click bounds are certain.**
+- **`_session_at_a_map_click`:** its 60 iterations see indices 0..59. At most 50 can be fresh `map_identify` and at most 8 are review slots (6, 13, …, 55), so 58 < 60.
+- **t053 c14:** at most 50 + 14 = 64 < 100.
+
+**Criterion 6, how I perturbed the draw.** My own plugin, `-p tprobe`, not committed:
+- **Seed:** `random.seed(s)` in a `tryfirst` `pytest_runtest_call` hook, so it runs at the start of every test body.
+- **Reversal:** `store.candidate_questions` is replaced at `pytest_configure` by a plain module attribute that returns `list(reversed(...))`. No test's `monkeypatch.undo()` can remove it, which covers the t093 c5/c7 trap.
+- **`pick_question` is never replaced.** The plugin reported, per run, the number of reversed calls (about 1200) and of seeded tests (374).
+
+| order | s=0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| store order | 374 pass | 374 | 374 | 374 | 374 | 374 | 374 | 374 | 374 | 374 |
+| reversed | 374 pass | 374 | 374 | 374 | 374 | 374 | 374 | 374 | 374 | 374 |
+
+All 20 runs had 0 failed and 0 errors. Extra, not required: I replaced `app.selection`'s module `random` with adversarial choosers. One always took the first member, one the last, and one avoided `map_click` whenever it could, to attack the map_click bounds. All three gave 374 passed.
+
+**Criterion 10, the suites as run:**
+- **Backend:** `make -C backend check` (ruff lint, format check, pytest) gave **1039 passed, 9 skipped**. CI on `1c4995e` is green for `backend (lint, format, test)`, for `backend (postgres)` (real row-order variation) and for integration and e2e.
+- **question-bank:** `bun test` gave **2711 pass, 2 fail**. The 2 are Test change request rows 1 and 2. With rows 1-3 trial-applied it gave 2713 pass, 0 fail. CI `question-bank` is red on `1c4995e` for the same reason.
+- **Frontend:** `bun test` here gave 387 pass and 9 fail. `react-simple-maps` is missing from `node_modules`, so 3 files error on import, and the lint-gate tests time out at 5 s. No frontend file differs from main. CI `frontend (typecheck, lint, test)` is **green** on `1c4995e`, and I take that as the frontend evidence. `git status` was clean after the run, so the `frontend/README.md` rewrite the worker saw did not recur.
+
+**To resume:** start the `tester` step for T-102 in a session you are attending. It confirms the request with you row by row and applies the approved rows as `T-102 tester: apply approved test change request`. It then re-runs all three suites and writes the final verdict. On approval of all three rows, I expect `pass`.
 
 ## Notes
 
