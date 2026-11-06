@@ -167,9 +167,8 @@ What happens next depends on whether anyone is there to ask, the same split the
 ### When a person is in your session: ask, then carry on
 
 You are attended when a person started you directly and can answer you, and you
-are not running under `run-loop.sh` (`claude -p`) or as a subagent the
-orchestrator spawned. A spawn prompt that says "This run is orchestrated" or
-"This run is driven" means you are not attended.
+are not running as a subagent the orchestrator spawned. A spawn prompt that
+says "This run is orchestrated" means you are not attended.
 
 1. **Ask in the session.** After the push, put the request to the person: one
    line per row with the test, the action, why, and for a modify what it
@@ -190,11 +189,11 @@ picks it up from there.
 
 ### When nobody is there to ask: halt
 
-Under `run-loop.sh` or the orchestrator you cannot reach a person, and nobody may
-answer for them. Stop after the push. The request waits in the brief.
+Under the orchestrator you cannot reach a person, and nobody may answer for
+them. Stop after the push. The request waits in the brief.
 
 **What resumes it is a tester in a session a person is attending**, not a
-subagent and not a driven step. The person starts one, for example a new session
+subagent and not an orchestrated step. The person starts one, for example a new session
 told to run the `tester` step for this task. That tester finds the header
 reading `requested` and the rows already written. It checks the rows still hold
 on the current branch, fixing any that drifted and adding any that are missing,

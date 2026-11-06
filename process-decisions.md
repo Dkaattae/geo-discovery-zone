@@ -4,7 +4,7 @@ Choices about how the **development loop** is shaped — the roles, the gates, t
 brief, the branch rules, who merges — why they went the way they did, and what
 would make them worth revisiting. Numbered `D-n`.
 
-**This file is gated.** `run-loop.sh` G1 refuses to run any task whose diff
+**This file is gated.** The orchestrator's G1 refuses to run any task whose diff
 touches it, so an entry here is always written by hand and reviewed by a person.
 That is the point: the loop may not rewrite its own rules, and this file is where
 the rules are justified. Decisions about the *code* — schema, tests, lint, CI —
@@ -19,6 +19,8 @@ decision with no trigger for revisiting is a habit, not a decision.
 ## D-1 — An orchestrator, and it is a relay rather than a manager
 
 **Superseded 2026-08-24.** This entry used to read "No orchestrator agent".
+
+**Amended 2026-11-06 by D-19:** the orchestrator now runs several tasks per run, and the shell driver this entry keeps (`run-loop.sh`) has been removed. Read the parts below about both in that light.
 
 **Decided:** a fifth agent, `orchestrator`, relays a single task between the
 other four. It reads the brief's header, spawns the role that `Next step` names,
@@ -1049,3 +1051,56 @@ and T-075. If it refuses a test edit, the `ci-fix` records the refusal and stops
 this worth revisiting:** a stamped test row that is refused, which argues for
 dropping the stamp for test rows only, or a stamped test row the reviewer's
 escalation shows was a weakening.
+
+## D-19 — The orchestrator runs several tasks per run, and the shell driver is gone
+
+**2026-11-06.** Done by hand, as a process change, at the person's request
+(katechen150621@gmail.com): *"adjust my agents settings which I think it says run
+one task at a time. and the loop.sh does not really working well. maybe you can
+get rid of that?"*
+
+**Decided:**
+
+- **A run takes several tasks, one at a time.** The orchestrator relays a task
+  to its end (PR ready, halted, or gated), then spawns the next expander. The
+  limit is what the person says, **3** by default, and never more than **10**.
+- **Every task starts from `origin/main`** on its own branch and PR. The first
+  uses the session's branch; later ones get `Branch: new` and the expander
+  creates `task/T-0xx-slug`. No task is built on another task's unmerged work.
+- **The expander still picks**, with three extra skips: task IDs the
+  orchestrator passes as `In flight:`, tasks with an open PR, and tasks whose
+  dependency has not merged. With nothing left it returns `NO TASK AVAILABLE`
+  and the run ends. The `In flight:` line carries IDs only, so D-3's blindness
+  holds.
+- **A halt ends the task, not the run.** Two halted tasks in a row end the run.
+- **The one-hour waits (D-16, D-17) run in the background.** The orchestrator
+  moves on and revisits waiting tasks at the end of the run, scheduling a
+  `send_later` check-in only if an hour has not yet passed.
+- **G4 now checks the branch out.** Subagents share the orchestrator's
+  checkout, so with several branches in one run, standing on the header's
+  branch is what makes a role's commits land on it.
+- **`.claude/loop/` is deleted** — `run-loop.sh`, `test-gates.sh` and their
+  README. The orchestrator's G1 is now the gate that keeps process files out of
+  the loop.
+
+**Why the driver went.** D-1 preferred it for two properties the agent lacks:
+gates in `bash` and a distinct session per step. In this environment neither
+ever paid out. Its `claude -p` children could not run commands (P-5, D-13), so
+T-061 shipped without an independent tester, and every completed unattended run
+since went through the agent. Two implementations of one set of gates also had
+to be kept in step by hand, which D-1 itself named as the drift risk.
+
+**What is given up.** The gates are now only instructions the orchestrator
+applies to itself, with no per-step spend cap and no evidence of tester
+independence beyond attestation. Those were the driver's advantages on paper.
+
+**Why "Why one task" (D-1) still mostly holds.** Its fear was nine tasks built
+on a misread of the first. Here none is built on another, nothing merges inside
+a run, and each PR waits for a person. What remains is spending up to the limit
+on tasks that each go wrong in their own way. The limit and the two-halts rule
+bound that.
+
+**Revisit when** a run's PRs conflict with each other on merge (the expander's
+dependency skip is not enough), or a run spends its whole limit on halts that
+the two-in-a-row rule missed. If a shell driver is wanted again, it starts from
+P-5: a child process that cannot run commands cannot drive anything.

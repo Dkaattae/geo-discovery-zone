@@ -36,8 +36,7 @@ person in its own session. When a task's change makes an
 existing test stale, the worker leaves it red and lists it in its Handoff. The
 tester raises a `## Test change request` in the brief and pushes, which notifies
 you. If you are in its session, it asks you there, applies what you approve, and
-carries on, the way the expander asks. If it is a spawned subagent or a driven
-step, it halts. **You resume it by starting a tester in a session you are
+carries on, the way the expander asks. If it is a spawned subagent, it halts. **You resume it by starting a tester in a session you are
 attending**, never by answering in the brief for a subagent to act on. The
 orchestrator never approves one, even with you in its session: on T-071 the
 harness refused every edit made on an approval that reached the tester as text
@@ -219,26 +218,23 @@ Nesting is **one level deep** in this harness, which decides the whole question:
 The same limit is what stops a worker calling a tester — it arrives from the
 harness rather than from our rules, which is convenient and not ours to rely on.
 
-Untested: whether a Claude Code **web** session can be started as the orchestrator
-at all. If it cannot, the agent is unusable in the environment it was written for
-and [`run-loop.sh`](../loop/run-loop.sh) is the only unattended path, not merely
-the preferred one.
+**In practice that means the session you are talking to becomes the
+orchestrator** — the `next-task` skill does exactly this — and spawns each role
+one level down. That is how every orchestrated run in `runs/` was driven,
+including on Claude Code on the web.
 
-## Three ways to run the same loop
+## Two ways to run the same loop
 
-| | Manual | **Driven** — [`run-loop.sh`](../loop/) | Relayed — `orchestrator` |
-|---|---|---|---|
-| Who advances a step | you | `bash` | the agent |
-| Isolation between roles | separate sessions | separate **processes** | separate contexts |
-| Session id per role | distinct | **distinct** | one, shared |
-| Tester's independence | evidence | **evidence** | attestation |
-| Spend cap per step | — | **CLI-enforced** | none |
-| Gates | you, reading | `case` statements | instructions it applies to itself |
-| Runs on | anywhere | a local shell | anywhere a session runs |
+| | Manual | Relayed — `orchestrator` |
+|---|---|---|
+| Who advances a step | you | the agent |
+| Isolation between roles | separate sessions | separate contexts |
+| Session id per role | distinct | one, shared |
+| Tester's independence | evidence | attestation |
+| Gates | you, reading | instructions it applies to itself |
+| Tasks per run | one per session you start | **several in a row**, each on its own branch (D-19) |
+| Runs on | anywhere | anywhere a session runs |
 
-**Prefer the driver wherever a shell can run.** It is the same six gates, but
-enforced by something that cannot be reasoned out of one — and it restores the
-independence check to evidence. The agent exists for the environment with no
-shell to leave running.
-
-Neither has yet driven a task end to end.
+There used to be a third, a shell driver (`.claude/loop/run-loop.sh`). It was
+removed in D-19: in this environment its `claude -p` children could not run
+commands (P-5), and every completed unattended run went through the agent.

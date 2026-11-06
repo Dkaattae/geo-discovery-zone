@@ -17,7 +17,7 @@ prunes stops being read.
 **Work on the loop itself does not go here.** Changes to `process.md`,
 `process-decisions.md`, `CLAUDE.md`, `.claude/` or the workflows are `P-n`
 tickets in [`process-tasks.md`](process-tasks.md), done by hand and never
-expanded into a brief. `run-loop.sh` G1 refuses to run them. A `T` task may still
+expanded into a brief. The orchestrator's G1 refuses to run them. A `T` task may still
 add to `engineering-decisions.md` when its criteria say so — and since T-057
 (PR #53) that is actually possible: the assertions in
 `question-bank/src/region-vocabulary.test.ts` that pinned `E-9` as the highest

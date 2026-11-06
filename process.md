@@ -46,7 +46,9 @@ each and are deliberately unable to do the others' jobs; the sixth drives them.
   manager**. Reads the brief's `Next step`, spawns that role with a fixed
   prompt, copies what it returned into `runs/T-0xx-slug.md` verbatim, repeats.
   It judges nothing and **reads no work** — not the diff, not the Handoff, not
-  the criteria. Runs one task and never picks the next. See `process-decisions.md` D-1.
+  the criteria. Runs tasks one after another — each on its own branch from
+  `main`, 3 per run unless told otherwise — and never picks one itself: the
+  expander does. See `process-decisions.md` D-1 and D-19.
 
 The separation is not ceremony. Each agent is prevented from doing the thing that
 would let it grade its own work: the expander has no stake in how hard the
@@ -112,34 +114,24 @@ ran, where the sweep cannot ride inside the merge and needs its own small PR.
 
 ### Spawning, and the isolation it must not cost
 
-**Three ways to run the loop, and the brief is the shared state in all of them.**
-[`.claude/agents/README.md`](.claude/agents/README.md) charts all three side by
-side, along with what a subagent does and does not isolate.
+**Two ways to run the loop, and the brief is the shared state in both.**
+[`.claude/agents/README.md`](.claude/agents/README.md) charts them side by side,
+along with what a subagent does and does not isolate.
 
 **Manually** — each step is its own top-level session, started by a human,
 running one agent. None of the five step roles has the `Agent` tool, so a worker
 cannot call a tester. This is the default, and the only way that keeps a person
 at the step-2 gate.
 
-**Driven** — [`.claude/loop/run-loop.sh`](.claude/loop/run-loop.sh) invokes
-`claude -p --agent <role>` once per step, on a local machine. **There is no model
-in the driver**, so there is nothing in it to drift, and it mints a fresh
-`--session-id` per step.
+**Relayed** — one `orchestrator` session spawns the five in order with the
+`Agent` tool. It is the only role that has it. Start it with the `next-task`
+skill; it runs several tasks back to back, each on its own branch from `main`.
 
-**Relayed** — one `orchestrator` session spawns the five in order with the Task
-tool. It is the only role that has it, and the only option where no shell is
-available to leave running — Claude Code on the web.
-
-**Prefer the driver where you have the choice.** Same six gates, but enforced by
-`bash` rather than by an agent's willingness to enforce them against itself, and
-two things the agent cannot offer: a per-step spend cap the CLI enforces, and the
-independence check below working on evidence rather than on a claim. See
-[`.claude/loop/README.md`](.claude/loop/README.md), "Which one to use".
+A third way, a shell driver at `.claude/loop/run-loop.sh`, was removed in D-19.
 
 What has to survive is the **tester's independence**, and it survives differently
-in each. Run manually or under the driver, the tester is a separate session and
-can inherit nothing — and under the driver the session ids differ, so the
-Sessions-table check still *proves* it. Spawned by the orchestrator, it gets a
+in each. Run manually, the tester is a separate session and can inherit nothing,
+and the session ids differ, so the Sessions-table check *proves* it. Spawned by the orchestrator, it gets a
 **fresh context window** — it never sees the worker's transcript — so it inherits
 exactly and only the text of its prompt, but every subagent shares one session id
 and the check degrades to attestation.
@@ -239,7 +231,7 @@ worker and still left the work invisible to everyone downstream.
 | `ci-fix` — pass 2 | approved rows applied, CI fix written, `Status: awaiting verification` | `tester` — a **fresh** session |
 | `reviewer` — approve | PR marked ready, sweep committed, flagged if outside the envelope | a person merges |
 | `reviewer` — changes needed | PR left draft, findings commented, `Status: changes requested` and `Next step:` naming the agent | that agent, on the same branch |
-| `orchestrator` | run log committed, whichever of the above it last relayed | nothing — it stops. The next task is a new run |
+| `orchestrator` | run log committed, whichever of the above it last relayed | the next task's expander, on a new branch from `main`, until the run's limit |
 
 **Under the orchestrator, "you start" in the table above means it spawns that
 role** — every one of them fresh, with the brief path and the branch and nothing
@@ -345,7 +337,8 @@ tasks.md
    the brief carries the state · every agent ends the same way:
    commit, push, update Status, stop
    run manually, one agent per session — or relayed by the orchestrator,
-   which reads Next step, spawns that role blind, and runs ONE task
+   which reads Next step, spawns that role blind, and runs tasks ONE AT
+   A TIME, several per run, each branched from main
 ```
 
 ---
@@ -361,6 +354,9 @@ about the loop itself, and they do not run through it — see "Tasks this loop d
 not fit" below.
 
 One task at a time. Two half-finished tasks are worth less than one finished one.
+An orchestrated run may take several tasks in a row, but never two at once, and
+never one that depends on a task that has not merged — see "One task at a
+time" below.
 
 ### 2. Expand
 
@@ -529,7 +525,7 @@ modify it (so may the `ci-fix`, as a row of its plan; see 4a). It asks the way t
    asks you directly, row by row. It records your answer in each row's
    Decision and the header's `Test changes: approved — <name>, <date>`, applies
    exactly the approved rows in that same session, and finishes verifying.
-3. **Halt, if you are not.** Under `run-loop.sh` or the orchestrator it stops
+3. **Halt, if you are not.** Under the orchestrator it stops
    after the push. **To resume, start a tester in a session you are attending**,
    not a subagent and not a run. It picks up the request already in the brief,
    asks you to approve or confirm it, and carries on from step 2.
@@ -569,8 +565,7 @@ It runs in two passes, and **the approval works the way the expander's does**:
    you** — in its session, on the PR, or in the brief. If nobody answers, it
    writes `CI fix: approved — orchestrator, <date>, auto-approved after a
    <N>-minute timeout` and spawns a fresh `ci-fix`. It never reads the plan to
-   do it, as it never reads the criteria to stamp `Approved:`. Under
-   `run-loop.sh`, which cannot wake itself, the halt waits for you.
+   do it, as it never reads the criteria to stamp `Approved:`.
 3. **Apply.** Exactly the approved rows, nothing more. It runs the whole suite,
    writes `## CI fix` as its handoff, sets `CI fix: applied — …`, `Status:
    awaiting verification` and `Next step: tester`. **The tester always comes
@@ -744,7 +739,7 @@ next thing you hear is that a PR is ready for you.
 ### When a run stops for you
 
 **Nothing is left running, and that is the thing to understand.** A subagent that
-returns has ended and its context is gone; a driver that halts has exited. There
+returns has ended and its context is gone. There
 is no process waiting on your answer, no timer counting how long you took, and
 nothing that will nudge you on its own.
 
@@ -781,19 +776,24 @@ step`.
 
 ## One task at a time
 
-**The `orchestrator` runs exactly one task and stops** — it never picks the next
-one, however obvious the queue looks. Unattended, the loop has no human
-checkpoint anywhere in it, and nothing here is built to catch what that gets
-wrong on the ninth task.
+**The `orchestrator` runs tasks in sequence, never in parallel** — one task's
+relay finishes before the next task's expander is spawned. A run takes 3 tasks
+unless the person starting it names another number, and never more than 10
+(D-19).
 
-The loop is serial by default. Some tasks have no choice — T-012, T-013 and
-T-014 all edit `question-bank/src/curated/us-states.ts`, so running them together
-just produces conflicts.
+Three rules keep a long run from compounding one mistake:
 
-Others genuinely could overlap: T-010 and T-030 touch nothing in common. If
-throughput starts to matter, the rule is **parallel only when the briefs'
-Constraints sections name disjoint files** — which is another reason to fill that
-section in properly.
+- **Every task starts from `main`**, on its own branch and PR. Nothing in a run
+  builds on another task's unmerged work, so each PR stands or falls alone.
+- **The expander skips a task whose dependency has not merged**, and any task
+  already in flight or with an open PR. If nothing is left, the run ends.
+- **Two halted tasks in a row end the run.** That is more likely the
+  environment or the queue than the tasks.
+
+Nothing merges inside a run. Every task ends with a PR marked ready (or halted)
+for a person. Tasks that edit the same files should be chained through
+`Depends on:` in `tasks.md` — otherwise two PRs from one run conflict on merge,
+the way T-012, T-013 and T-014 would have on `question-bank/src/curated/us-states.ts`.
 
 ## The light path, for S-sized tasks
 
@@ -861,7 +861,7 @@ and they are done **by hand**: no brief, no roles, no gates, an ordinary PR that
 Dkaattae reviews, and a `D-n` entry in `process-decisions.md` when the choice
 could have gone the other way.
 
-The reason is the one `run-loop.sh` G1 gives — *the loop may never change its
+The reason is the one the orchestrator's G1 gives — *the loop may never change its
 own rules* — and it is structural, not cautious. Every role that could review a
 change to the loop is defined by the files being changed: a worker that edits
 `tester.md` has weakened the tester that runs next, and the reviewer that

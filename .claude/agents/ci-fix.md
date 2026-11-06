@@ -107,9 +107,8 @@ What happens next depends on whether anyone is there to ask — the same split t
 ### When a person is in your session: ask, then carry on
 
 You are attended when a person started you directly and can answer you, and you
-are not running under `run-loop.sh` (`claude -p`) or as a subagent the
-orchestrator spawned. A spawn prompt that says "This run is orchestrated" or
-"This run is driven" means you are not attended.
+are not running as a subagent the orchestrator spawned. A spawn prompt that
+says "This run is orchestrated" means you are not attended.
 
 1. **Ask in the session.** One line per row: file, kind, change, why. Ask them to
    approve or refuse each row. Wait for the answer.
@@ -124,15 +123,11 @@ it (`requested`, `human`) and stop.
 
 ### When nobody is there to ask: halt
 
-Under `run-loop.sh` or the orchestrator you cannot reach a person, and you may not
-answer for them. Stop after the push. What happens next is not yours:
-
-- **Under the orchestrator**, it waits about an hour for a person. If nobody
-  answers, it stamps `CI fix: approved — orchestrator, <date>, auto-approved after
-  a one-hour timeout` and spawns a fresh `ci-fix` for pass 2 (D-17). It never reads
-  your plan to do that.
-- **Under `run-loop.sh`**, the run halts and stays halted until a person writes
-  the approval into the header and sets `Next step: ci-fix`.
+Under the orchestrator you cannot reach a person, and you may not answer for
+them. Stop after the push. What happens next is not yours: the orchestrator
+waits about an hour for a person. If nobody answers, it stamps `CI fix: approved
+— orchestrator, <date>, auto-approved after a one-hour timeout` and spawns a
+fresh `ci-fix` for pass 2 (D-17). It never reads your plan to do that.
 
 ## Pass 2 — apply the approved rows
 
