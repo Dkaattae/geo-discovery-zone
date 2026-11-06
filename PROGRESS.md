@@ -29,8 +29,8 @@ docker-compose.yml  the same image plus a Postgres
 ```
 
 The service is in `backend/`, and `conventions.md` has said so since T-007.
-`CLAUDE.md` (lines 4 and 51) and `test-guidelines.md` still say `api/` — the
-first is loop-gated and needs a hand-written `P` ticket, the second is T-047.
+`CLAUDE.md` (lines 4 and 51) still says `api/`; it is loop-gated and needs a
+hand-written `P` ticket. `test-guidelines.md` says `backend/` since T-047.
 Which name wins is still T-046.
 
 Docs: [`geoquizdataplan.md`](geoquizdataplan.md) is the plan (§5 is the tech
@@ -375,6 +375,19 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-047 — `test-guidelines.md` describes the real `backend/` suite** (PR #127,
+  2026-11-06). The backend section now names `backend/` and gives its run commands.
+  It covers SQLite by default with Postgres through `GEO_TEST_DATABASE_URL`,
+  per-test savepoint rollback (`db_session`), endpoint tests over
+  `httpx.ASGITransport` (`client`), `openapi.yaml` following the backend (E-14) with
+  `test_contract.py` and `assert_matches` keeping them in step, and `assert_problem`.
+  The dead-proxy block now runs `uv sync --frozen` outside the guard, so it works
+  from a cold checkout. *Where it differed from the brief:* the bun half of that
+  block was dropped rather than given its own install lines. A doc-only task still
+  needed 8 Test change request rows over two attended tester rounds. Rows 1–4 were
+  the expected whole-tree pins. Rows 5–7 were three `frontend/` tree pins, which went
+  red because the criteria test lives under `frontend/`. Row 8 came from merging
+  second after T-102, which had re-pinned the same constant (P-17).
 - **T-102 — No other backend test passes or fails by chance on the draw** (PR #126,
   2026-11-06). A survey by reading covered every `backend/tests/` test that makes a
   router serve and asserts something the draw could change: 84 tests, 3 pinned by
@@ -1912,11 +1925,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 **Verification and process.**
 
-- `test-guidelines.md` still says `api/` does not exist (T-047), and `CLAUDE.md`
-  still calls the backend "not built yet" in `api/` (lines 4 and 51). `CLAUDE.md`
-  is loop-gated, so correcting it is a hand-written `P` ticket, not a `T` task.
-  `conventions.md` was the third of these and is fixed (T-007, PR #33), as is
-  `README.md` (T-058, PR #35) — both now fail a test rather than drift.
+- `CLAUDE.md` still calls the backend "not built yet" in `api/` (lines 4 and
+  51). It is loop-gated, so correcting it is a hand-written `P` ticket, not a `T`
+  task. `conventions.md` (T-007, PR #33), `README.md` (T-058, PR #35) and
+  `test-guidelines.md` (T-047, PR #127) are fixed and now fail a test rather
+  than drift.
 - **No test fails on `main` in a full clone any more, and none passes because
   `git` failed.** All four known expired git baselines are gone: `question-bank`'s
   two with T-072 (PR #55, `E-11`) and `frontend`'s one with T-073 (PR #56,
