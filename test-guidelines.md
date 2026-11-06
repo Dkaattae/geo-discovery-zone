@@ -76,12 +76,18 @@ enforces this rather than assuming it: the `Test` step of the `frontend`,
 `backend-postgres`, run with `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and their
 lowercase forms pointed at `http://127.0.0.1:1` — loopback, on a port nothing
 binds — so any outbound request fails closed instead of reaching the network
-(`.github/workflows/ci.yml`). Reproduce it locally for one suite:
+(`.github/workflows/ci.yml`). Reproduce it locally for the backend suite, from
+the repository root. Install first, outside the guard, as CI does: on a checkout
+with no `backend/.venv`, `uv run` would otherwise try to fetch dependencies
+through the dead proxy and fail for a reason that has nothing to do with the
+tests.
 
 ```sh
+cd backend
+uv sync --frozen    # install: needs the network, so no proxy variables here
 HTTP_PROXY=http://127.0.0.1:1 HTTPS_PROXY=http://127.0.0.1:1 ALL_PROXY=http://127.0.0.1:1 \
   http_proxy=http://127.0.0.1:1 https_proxy=http://127.0.0.1:1 all_proxy=http://127.0.0.1:1 \
-  uv run pytest    # from backend/ — bun test from frontend/ or question-bank/ works the same way
+  uv run pytest     # the guard: every outbound request fails closed
 ```
 
 The suite should not notice.
@@ -220,30 +226,65 @@ typecheck` reads `*.test.ts` like any other source file (`engineering-decisions.
 CI also **requires** them: neither `bun test` step passes a package with no test
 files (E-3).
 
-### `api/` — pytest
-
-> **Forward-looking.** `api/` does not exist yet (plan §5, tasks T-030 onward).
-> Nothing below has been exercised; treat it as the intended shape and correct it
-> against the first real endpoint tests.
+### `backend/` — pytest
 
 ```bash
-cd api && uv run pytest
+cd backend && uv run pytest     # SQLite, the default; `make -C backend test` does the same after installing
+make -C backend test-postgres   # the same suite against Postgres, via GEO_TEST_DATABASE_URL
 ```
 
-- Endpoint tests go through the app with `httpx.AsyncClient`, not by calling the
-  handler function — routing, validation and serialisation are part of the
-  behaviour the contract promises.
-- **Assert against `openapi.yaml`.** It is the contract; a response that does not
-  match it is a bug even when the test author expected it.
-- Database tests run in a transaction that rolls back per test. A test that
-  leaves rows behind makes the next one flaky.
-- Use a real Postgres, not SQLite. The point is to test what runs in production.
+Everything below comes from `backend/tests/conftest.py`; its fixtures are what a
+new test asks for.
+
+- **`uv run pytest` runs `backend/tests/` only** (`testpaths` in
+  `backend/pyproject.toml`). The tests that need a real stack — the image, the
+  compose file, a running container — live in `backend/integration/` and run
+  with `make -C backend test-integration`. They need a Docker daemon and are not
+  part of `make check`; `backend/integration/README.md` says what each file holds.
+- **Endpoint tests go through the app**, not by calling the handler function —
+  routing, validation and serialisation are part of the behaviour. Request the
+  `client` fixture: an `httpx.AsyncClient` over `httpx.ASGITransport(app=app)`,
+  with no server and no socket, whose base URL already carries the API prefix
+  (`await client.get("/profiles")`). `auth_headers` gives the seeded demo
+  account's bearer header; `other_auth` registers a second account, for
+  cross-account isolation.
+- **The database is real, and SQLite by default.** The session-scoped `engine`
+  builds one database per run with the same Alembic migrations production runs
+  (`alembic upgrade head`): a temporary SQLite file, or whatever
+  `GEO_TEST_DATABASE_URL` names. Set it to a Postgres URL, or run
+  `make -C backend test-postgres`, and the same suite runs against Postgres; CI
+  does both (the `backend` and `backend-postgres` jobs). Behaviour that only a
+  real server can show — sequences, JSON columns, concurrency — goes in
+  `backend/tests/test_postgres.py`, which skips on SQLite.
+- **Each test runs inside a transaction that is rolled back when it ends.** The
+  `db_session` fixture opens it on a connection, and the app's own commits
+  during a request are joined to a savepoint
+  (`join_transaction_mode="create_savepoint"`), so the real commit path runs and
+  nothing is left behind. `client` depends on `db_session`, so every endpoint
+  test gets this without asking. No test cleans up, and none can see another's
+  rows.
+- **`openapi.yaml` follows the backend** (`engineering-decisions.md` E-14): the
+  backend is the source of truth, and when the two differ the fix is to update
+  `openapi.yaml`. The checks that keep them in step still fail a test, so a
+  difference cannot go unnoticed:
+  - `backend/tests/test_contract.py` compares the app's own `app.openapi()`
+    operations with `openapi.yaml`'s, in both directions — a route with no
+    operation in the file, and an operation with no route.
+  - `assert_matches(spec, "SchemaName", payload)` checks a response body against
+    the named schema: every required key present, no undeclared key. The `spec`
+    fixture is `openapi.yaml`, parsed once per run.
+
+  When one fails, decide which side moved. If the backend now serves what it
+  should, update `openapi.yaml` in the same change.
+- **Errors are problem documents.** `assert_problem(response, status)` checks the
+  status code, the `application/problem+json` content type and the body's
+  `status` and `title`, and returns the body for anything more specific.
 
 ## Before you say it passes
 
 ```bash
 bun test && bun run typecheck     # per TS package
-uv run pytest && uv run ruff check # api
+uv run pytest && uv run ruff check # backend/
 ```
 
 The **whole** suite, not just the new tests. A change that fixes its own task and

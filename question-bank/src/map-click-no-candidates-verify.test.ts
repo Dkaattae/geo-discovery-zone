@@ -738,7 +738,9 @@ describe("T-092 criterion 15: no new dependency, no manifest or lockfile change"
 
 describe("T-092 criterion 16: no other surface changes", () => {
   test.each([
-    ["frontend", [], "67777de7b9ecb67e73d957a60d76126e1dae7e906b4d8281783fb7b7c11bc720"],
+    // Re-pinned by T-047 (Test change request row 6): T-047's tester added
+    // frontend/src/test-guidelines-backend.criteria.test.ts.
+    ["frontend", [], "179208d1b350009bc7251cb06a3fa33074f2388c115f7a7bc8418e51f2d422d5"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);

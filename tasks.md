@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw). Swept again 2026-11-06, after T-102 surveyed every backend test that asserts on a router draw and found none that needs a pin (PR #126): T-102 deleted; T-103 new from its review (the survey's certainty arguments rest on unguarded bank facts); T-076 amended (a fifth `frontend/README.md` sighting)._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw). Swept again 2026-11-06, after T-102 surveyed every backend test that asserts on a router draw and found none that needs a pin (PR #126): T-102 deleted; T-103 new from its review (the survey's certainty arguments rest on unguarded bank facts); T-076 amended (a fifth `frontend/README.md` sighting). Swept again 2026-11-06, after T-047 made `test-guidelines.md` describe the real `backend/` suite and made its dead-proxy block install first (PR #127): T-047 deleted; T-046 amended (only `CLAUDE.md` still says `api/`); T-104 new from its review (two backend test docstrings still call `openapi.yaml` the contract)._
 
 ## How this list is ordered
 
@@ -358,15 +358,27 @@ properties (`≤ 51 map_identify`), not digests.
 **Done when:** changing the bank so that one of T-102's certainty arguments fails turns a
 named test red, whatever the draw.
 
+### T-104 — Two backend test docstrings still call `openapi.yaml` "the contract" · S · todo
+**Depends on:** —
+**New 2026-11-06, from T-047's review (PR #127).** `test-guidelines.md` now says
+`openapi.yaml` follows the backend (E-14), but `backend/tests/test_contract.py`'s
+module docstring calls it "the contract between this backend and `frontend/`", and
+`backend/tests/conftest.py`'s says routing, validation and serialisation are "part of
+what the contract promises". Softer than E-14 rather than false, and the first thing a
+tester reads after the guidelines. Docstrings only; no assertion changes. Mind P-17:
+`backend/` is under whole-tree pins, so expect re-pin rows.
+**Done when:** neither docstring presents `openapi.yaml` as a promise the backend
+defends, and both say it is kept in step with the backend (E-14).
+
 ### T-046 — Decide: `backend/` or `api/` · S · todo
 **Depends on:** —
 **New 2026-08-24. Smaller since T-007 (PR #33).** The service was built in
 `backend/` and the docs used to say `api/`. `conventions.md` now says `backend/`
-and `PROGRESS.md` never did, so **the doc half is done except for two files**:
+and `PROGRESS.md` never did, and `test-guidelines.md` has said so since T-047
+(PR #127), so **the doc half is done except for one file**:
 `CLAUDE.md` line 4 (``` `api/` FastAPI + Postgres (uv, not built yet)```) and
 line 51 (`uv add` / `uv run` in `api/`), which are loop-gated and belong to a
-hand-written `P` ticket rather than to this task; and `test-guidelines.md`,
-which is T-047.
+hand-written `P` ticket rather than to this task.
 
 What is left here is the decision itself, not the doc sweep: rename `backend/`
 to `api/`, or keep `backend/` and retire the name `api/` for the directory.
@@ -376,26 +388,6 @@ not optional — an undecided name is how the docs drifted from the tree in the
 first place.
 **Done when:** one name is used everywhere, and `engineering-decisions.md` says which and why
 if the answer was a rename.
-
-### T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" · S · todo
-**Depends on:** —
-**New 2026-08-24.** Line 205: "**Forward-looking.** `api/` does not exist yet
-(plan §5, tasks T-030 onward)." `backend/tests/` is now the largest suite in the
-repo, and it invented patterns worth writing down — savepoint-joined session rollback for
-per-test isolation, `httpx.ASGITransport` for endpoint tests with no socket,
-contract tests that walk `openapi.yaml` in both directions, and mutation testing
-used to check the tests rather than the code. This is the same job T-002 did for
-`question-bank`: correct the guidance against the tests that actually got written.
-**Smaller since T-065 (PR #57):** the frontend and question-bank count comments
-are gone from the command block, and a guard stops them coming back.
-**Also, found by T-005's reviewer (PR #26):** the "No network in tests, ever"
-paragraph now ships a copy-pasteable block for reproducing CI's dead-proxy guard
-locally, and it omits `uv sync` — on a cold checkout the reader's first `uv run
-pytest` fails for a reason that has nothing to do with the guard. One line, and
-it belongs here rather than in T-005 because T-047 already owns correcting this
-file.
-**Done when:** the section describes the real suite, the marker is gone, and the
-dead-proxy reproduction block runs from a cold checkout.
 
 ---
 

@@ -188,7 +188,9 @@ const MAIN_AGRI_NO_CHOICES_SHA = "326c489481b064c8c7e325c1b1f1d4d9f2bf83db413116
 /** sha256 of JSON.stringify([[file, sha(bytes)], ...]) over question-bank/data/us-states/, sorted, at a42b71b. */
 const MAIN_ENTITY_DIR_SHA = "2eb39d22d0f7b8074671ac63d0c54b44b546534f4de266437fbaa2d7f664b81a";
 /** Same shape over every tracked file under frontend/, at a42b71b. */
-const MAIN_FRONTEND_SHA = "ca9fdb5fc806c9d17f7b844f79c78c426070620e35a71499fc70bb86f6bf56bc";
+// Re-pinned by T-047 (Test change request row 5): T-047's tester added
+// frontend/src/test-guidelines-backend.criteria.test.ts.
+const MAIN_FRONTEND_SHA = "4de52321996756b826c638bd9da8d2a3b8e673b1172817a9e2c1534414ce3a77";
 /** sha256 of canon(LEVEL_SEED_WEIGHTS), at a42b71b. */
 const MAIN_LEVEL_SEED_WEIGHTS_SHA =
   "ba1a081d54a8a09ef2c6a802e3e7870e7f6d33ea93545bad80121356610e60b8";

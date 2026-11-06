@@ -695,6 +695,11 @@ source and no test: its diff was its own brief and run log. Two whole-tree count
 (T-091's and T-096's) still went red, and a survey-only task needed an attended tester
 round and 3 Test change request rows to finish. Every task adds those two files, so
 every task pays this unless its loop records are already allowed.
+**Recurred 2026-11-06 on T-047 (PR #127), with a merge-order twist.** A doc-only
+task paid 8 rows over two attended tester rounds. Four were the whole-tree pins, and
+three were `frontend/` tree digests its own criteria test tripped. The eighth existed
+only because T-102 merged first and had re-pinned the same `APPLIED_REQUEST_FILE_SHAS`
+entry, so two PRs in flight together each owe the other a re-pin.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.
 
