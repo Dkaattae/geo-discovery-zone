@@ -1,7 +1,7 @@
 # T-102 — Other backend tests may assert on an unseeded draw
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-102-unseeded-draw-survey.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
+| worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 
 ## Goal
 
@@ -185,6 +186,205 @@ Required reading for the worker and the tester:
 
 ## Handoff
 
+**TL;DR.** I found nothing to pin. 84 test functions in `backend/tests/` make a router serve and assert on something the draw could affect. 3 are `pinned (fixed_draw)`, 25 are `pinned (force)`, 56 `holds under any draw`, and **0 `needs pin`**. No file changed except this brief. Next is the tester. It still needs a human: the 2 whole-tree count pins under "Tests made stale" are red on this branch, so the tester session must be attended.
+
+- **Files changed:** nothing outside this brief. Nothing under `backend/` was touched, so criteria 7, 8 and 9 hold trivially (`git diff origin/main...HEAD -- backend/` is empty).
+- **Criterion 4:** the survey found no `needs pin` row, so no pre-existing test file changes.
+- **Tests made stale: 2 question-bank whole-tree count pins, red before my commit.** The task's own `runs/` and `tasks/` files, added by the expander and orchestrator commits, turned them red. My change did not (P-18 again). They are listed in the section below. **They need an attended tester session**, for a Test change request that Dkaattae approves.
+- **One trap for criterion 6's probe** (see "Running criterion 6" below): `test_t093_tester_criteria.py` c5 and c7 call `monkeypatch.undo()`. A probe that applies its perturbation through the test's own `monkeypatch` fixture gets silently switched off in those two tests.
+
+### What the arguments rest on
+
+All 415 bank questions were checked once with a throwaway script over `backend/app/data/content.json`. Each "holds" row below leans on one or more of these facts (cited as **B1**–**B9**):
+
+- **B1.** Every question's `entityId` is one of the 50 entities, and every entity has a `name`, a `geometryId` and a reviewed `funFact`.
+- **B2.** Every choice-format question (`map_identify`, `multiple_choice`) has exactly 4 distinct choices and a `correctIndex` in range. So `(correctIndex + 1) % 4` (or `% len(choices)`) is always a wrong answer.
+- **B3.** Every `map_click` question has a two-digit `answerGeometryId`, no `choices`, no `correctIndex` and no `highlightGeometryId`. The wrong taps the tests use are `"02"`/`"01"` (always different from the key), `"11"` (DC, not a state code), `"13"` and `"28"` (never the key of the question they are sent to).
+- **B4.** No question has `shortExplanation` or `detailExplanation`.
+- **B5.** For every question, `highlightGeometryId or answerGeometryId or entity.geometryId` equals the entity's `geometryId`.
+- **B6.** `reveal` is `map_highlight` for every `location` and `superlative` question, and `none` for every other topic.
+- **B7.** No prompt contains "review".
+- **B8.** Topic sizes: location 100 (50 `map_identify` + 50 `map_click`, one of each per state), capital 50, superlative 47, wildlife 50, landmark 44, climate 50, agriculture 74.
+- **B9.** Texas (`us-state-tx`) has 9 questions, one in each of the 7 topics except agriculture, which has 2.
+
+The facts about selection come from reading `app/selection.py` and `app/routers/sessions.py`:
+
+- **S1.** `store.candidate_questions` narrows by topic in SQL. So for a non-`mixed` session every candidate, review serves included, is in that topic.
+- **S2.** A non-review serve draws from the questions not yet asked, whenever any are left. The three windows and the nearest-level fallback all draw only from those. Repeats come only from the `recycled` branch, and only once a topic is exhausted.
+- **S3.** A review serve happens only at index ≡ 6 (mod 7), or when forced. Its pool is the questions about queued entities that are not among the last 6 asked.
+- **S4.** A re-serve of a pending question does not call `pick_question` at all. This covers `next-question` before answering, and after an undo.
+- **S5.** Grading reads only the question and the answer body. Level moves depend only on the correct/wrong streak, never on which question was asked. Undo restores snapshots.
+- **S6.** A new `/profiles` profile has an empty review queue. The demo profile `p-demo-maya` starts at level 6.0 with Texas queued, and Colorado's mastery is 0.8 (already mastered).
+
+### The survey (criterion 1)
+
+| # | File :: test | Draw-dependent assertion(s) | Class | Reason (for "holds") |
+|---|---|---|---|---|
+| 1 | `test_sessions_api.py` :: `test_starting_a_session_serves_the_first_question` | L110–115: `assert_matches` on Session/ServedQuestion, `index == 0`, `askedQuestionIds == [served id]` | holds under any draw | The served payload has the keys {question, isReview, index, phase, entity} for every bank question (B1). The index and asked list are read back from the same draw. |
+| 2 | `test_sessions_api.py` :: `test_the_first_question_carries_its_entity_for_the_map` | L122 `entity.id == question.entityId` | holds under any draw | The entity is looked up by the question's own `entityId`, and it exists for every question (B1). |
+| 3 | `test_sessions_api.py` :: `test_a_topic_filters_every_question_served` | L153 `topic == "capital"` ×6; `answer` helper's 200 | holds under any draw | Capital pool. Every candidate, fresh or review, is capital (S1), and every capital question is gradable (B2). |
+| 4 | `test_sessions_api.py` :: `test_serving_advances_the_index_and_records_what_was_asked` | L167–168 `index == 1`, second id ≠ first | holds under any draw | Index 1 is not a review slot (S3). The fresh pool excludes the asked first id, and 414 fresh questions are left (S2). |
+| 5 | `test_sessions_api.py` :: `test_asking_again_before_answering_re_serves_the_same_question` | L177–178 same id, `index == 0` | holds under any draw | A re-serve of the pending question, with no pick (S4). |
+| 6 | `test_sessions_api.py` :: `test_a_question_can_be_served_without_its_answer_key` | L187–188 no `correctIndex`, no `answerGeometryId`; `answer` 200 | holds under any draw | Withholding drops both key fields whatever the format. The first answer is gradable (B2, B3). |
+| 7 | `test_sessions_api.py` :: `test_a_correct_answer_returns_the_reward_and_the_key` | L199–218: correct, reward tone, a format branch, counts | holds under any draw | The answer is built from the drawn question's own key, so it is correct (B2, B3). A `map_click`'s `correctAnswer` is its entity name, because it has no choices (B3). Counts come from one correct answer (S5). |
+| 8 | `test_sessions_api.py` :: `test_a_wrong_answer_returns_the_reason_and_queues_the_entity` | L226–229 correct False, reason tone, delay > 0, entity queued | holds under any draw | The wrong answer is wrong for every question (B2, B3). The queued entity is read from the served question. |
+| 9 | `test_sessions_api.py` :: `test_the_profile_comes_back_advanced` | L237–239 Profile shape, answered 13, `mastery[entity] > 0` | holds under any draw | One correct answer adds 0.25 to any entity's mastery (S5). |
+| 10 | `test_sessions_api.py` :: `test_answering_the_same_question_twice_is_refused` | `answer` 200; L252 409 | holds under any draw | The first answer is gradable (B2, B3). After it nothing is pending, so 409 follows for any question. |
+| 11 | `test_sessions_api.py` :: `test_answering_a_question_never_served_is_refused` | L260–266 `other` ≠ served → 409 | holds under any draw | `other` is chosen to differ from the served id, and both candidate ids exist in the bank. |
+| 12 | `test_sessions_api.py` :: `test_an_answer_with_no_choice_cannot_be_graded` | L290 422 | holds under any draw | With no answer field, every served format is refused. A choice format raises at `/choiceIndex`, and a `map_click` at `/tappedGeometryId` (B2, B3). |
+| 13 | `test_sessions_api.py` :: `test_four_correct_in_a_row_raises_the_level_quietly` | L301–303 +0.5, level 6.5 | holds under any draw | Four answers built from each question's key are all correct. Level moves depend only on the streak (S5, S6). |
+| 14 | `test_sessions_api.py` :: `test_three_wrong_in_a_row_drops_the_level_without_a_message` | L311–314 −0.5, 5.5, dropped quietly, no offer | holds under any draw | Three wrong answers for any questions (B2, B3). The streak rule depends on nothing else (S5). |
+| 15 | `test_sessions_api.py` :: `test_a_level_change_is_absent_when_nothing_moved` | L322 no `levelChange` | holds under any draw | One correct answer, so no streak threshold is reached (S5). |
+| 16 | `test_sessions_api.py` :: `test_a_milestone_offers_a_stopping_point` | L330 milestone 5 | holds under any draw | The milestone is `answered ∈ {5,10,20}`, and does not depend on which question (S5). |
+| 17 | `test_sessions_api.py` :: `test_undo_backs_out_the_answer_and_its_profile_effects` | L346–353 204, profile restored, counts 0 | holds under any draw | Undo restores the snapshot for any question (S5). |
+| 18 | `test_sessions_api.py` :: `test_the_question_returns_to_presenting_after_an_undo` | L366–368 same id, PRESENTING, index 0 | holds under any draw | The restored pending question is re-served, with no pick (S4). |
+| 19 | `test_sessions_api.py` :: `test_the_same_answer_cannot_be_undone_twice` | `answer` 200; L377–378 | holds under any draw | Gradable for any question (B2, B3). The undo results depend only on the answer id. |
+| 20 | `test_sessions_api.py` :: `test_only_the_most_recent_answer_can_be_undone` | `answer` 200 ×2; L389 409 | holds under any draw | Both answers are gradable (B2, B3). The 409 depends only on order. |
+| 21 | `test_sessions_api.py` :: `test_a_review_round_serves_from_the_queue` | L418–421 shape, `entityId == us-state-tx`, `isReview` | holds under any draw | Review pool. The queue holds only Texas (S6), nothing has been asked yet, so the pool is Texas's 9 questions (B9). Every member is Texas and is served as review. |
+| 22 | `test_sessions_api.py` :: `test_a_review_question_is_not_labelled_to_the_kid` | L469 "review" not in prompt | holds under any draw | No prompt in the bank contains "review" (B7). |
+| 23 | `test_sessions_api.py` :: `test_ending_writes_the_end_level_and_reports_places_learned` | L482–488 shape, answered 2, endLevel 8, no "%" | holds under any draw | Two correct answers move no level (S5). The headline never contains "%". |
+| 24 | `test_sessions_api.py` :: `test_the_summary_counts_places_learned_this_session` | L501–506 placesSeen, learned ⊆ seen, mastery > 0.7, CO not learned | holds under any draw | Location pool, and every answer is correct. `learned` is filled only when an answered entity crosses 0.7, so learned ⊆ seen, and with no wrong answers mastery never falls back under the line. Colorado starts at 0.8, so it can never cross (S6). |
+| 25 | `test_sessions_api.py` :: `test_ending_twice_returns_the_same_summary` | `answer` 200; L536 equal | holds under any draw | Gradable (B2, B3). The second `end` returns stored state. |
+| 26 | `test_content_build.py` :: `test_reveals` [location, capital] | L374–389 headline == funFact; highlight present/absent; wrong headline/label/highlight | holds under any draw | Topic pool (S1). Every entity has a reviewed `funFact` (B1). Location reveals `map_highlight` and capital reveals `none` (B6), and every highlight is the entity's geometry (B5). The wrong headline is "The answer is {label}." because no question has a `shortExplanation` (B4). |
+| 27 | `test_content_build.py` :: `test_a_perfect_session_reaches_every_question_once` [location, capital] | L462–468 distinct == count, formats, 50 entities × count/50 | holds under any draw | New profile, so the queue is empty (S6). All answers are correct, so there are no review serves. `count` equals the topic size (B8), so S2 forces every serve to be a fresh, distinct question until the topic is exhausted. The set reached is the whole topic in any order. |
+| 28 | `test_content_build.py` :: `test_a_perfect_mixed_session_reaches_100_distinct_questions_in_every_format` | L484–485 | pinned (fixed_draw) | — (T-101) |
+| 29 | `test_t026_tester_criteria.py` :: `test_c46_a_new_topic_session_serves_only_that_topic_outside_review` [5 topics] | L133/143 200s, L146 topic, L147 `non_review >= 10` | holds under any draw | Topic pool: every candidate is in the topic (S1), and all are multiple choice with 4 choices (B2). Of 16 serves only indices 6 and 13 can be review (S3), so `non_review ≥ 14`. |
+| 30 | `test_t026_topics.py` :: `test_a_correct_superlative_answer_highlights_the_answer_state` | L109–120 topic, 200, highlight == entity geometry | holds under any draw | Superlative pool (S1). Every question reveals `map_highlight` (B6), and its highlight is the entity geometry (B5). |
+| 31 | `test_t040_tester_criteria.py` :: `test_c20_c21_c25_a_perfect_topic_session_covers_each_state_once_with_its_reveal` [location, capital] | L453–465 distinct, per-state counts, format, headline, highlight | holds under any draw | The same argument as row 27 (whole topic reached), plus B1, B5 and B6. |
+| 32 | `test_t040_tester_criteria.py` :: `test_c25_a_perfect_mixed_session_reaches_100_distinct_served_questions` | L476–479 | pinned (fixed_draw) | — (T-101) |
+| 33 | `test_t040_tester_criteria.py` :: `test_c22_every_wrong_answer_names_the_answer_and_highlights_the_state` | L498–509 | pinned (fixed_draw) | — (T-101) |
+| 34 | `test_t045_tester_criteria.py` :: `test_c1_and_c8_drag_order_is_refused_at_order` [5] | `_pending` 200s; `_assert_refused_unchanged` 422 at `/order` ×2, state unchanged | holds under any draw | Whatever is drawn, `_pending` replaces that row's payload with `payload`, keeping only `id` and `entityId`. Grading then sees only `payload` (S5), and `"<own>"` is refused like any other order. |
+| 35 | `test_t045_tester_criteria.py` :: `test_c2_and_c8_click_profile_is_refused_at_question_id` [2] | as row 34, `/questionId` | holds under any draw | As row 34. |
+| 36 | `test_t045_tester_criteria.py` :: `test_c3_nearest_centroid_pin_is_graded` [10] | L202–205 200, correct, distanceKm | holds under any draw | As row 34. The distance is measured from the fixed `CENTROID`, never from the drawn entity. |
+| 37 | `test_t045_tester_criteria.py` :: `test_c4_and_c8_geometry_strategy_is_refused_at_pin` [4] | as row 34, `/pin` | holds under any draw | As row 34. |
+| 38 | `test_t045_tester_criteria.py` :: `test_c5_and_c8_pin_question_without_usable_target_is_refused_at_pin` [6] | as row 34, `/pin` | holds under any draw | As row 34. |
+| 39 | `test_t045_tester_criteria.py` :: `test_c6_and_c8_pin_answer_without_pin_is_refused_at_pin` [4] | as row 34, `/pin` | holds under any draw | As row 34. |
+| 40 | `test_t045_tester_criteria.py` :: `test_c7_multiple_choice_without_choice_index_is_422_at_choice_index` | L275 `/choiceIndex` | holds under any draw | As row 34. |
+| 41 | `test_t045_tester_criteria.py` :: `test_c7_map_click_without_tapped_geometry_is_422_at_tapped_geometry_id` | L283 `/tappedGeometryId` | holds under any draw | As row 34. |
+| 42 | `test_t045_ungradable.py` :: `test_a_refusal_names_its_path_and_changes_nothing` [12] | L198–211 422 at path ×2, state unchanged | holds under any draw | `_pending_as` overwrites the drawn row in the same way, so the reasoning of row 34 applies. |
+| 43 | `test_t045_ungradable.py` :: `test_a_centroid_pin_is_still_graded_at_the_endpoint` | L227–230 200, wrong, ≈350 km | holds under any draw | As row 42. The distance is from the fixed `CENTROID`. |
+| 44 | `test_t051_map_click.py` :: `test_a_right_tap_is_correct_and_names_the_state` | `_session_at_a_map_click` reaches a map_click in ≤ 60 serves; L202–216 | holds under any draw | Location pool on the demo profile, all answers correct. Non-`map_click` serves are either fresh `map_identify` questions (at most 50, distinct by S2) or review serves, which only happen at indices 6, 13, …, 55 (8 slots in the first 59, S3). So at most 58 serves are not `map_click`, and one must arrive by the 59th. The fresh pool is never empty, because `map_click` questions remain in it. The assertions after that hold for any `map_click` (B1, B3, B5). |
+| 45 | `test_t051_map_click.py` :: `test_a_wrong_tap_queues_the_state_and_can_be_undone` | as row 44, plus L235–254 | holds under any draw | As row 44. `"11"` is DC and never a key (B3), and undo restores the snapshot (S5). |
+| 46 | `test_t051_tester_criteria.py` :: `test_c12_a_session_serves_map_click_without_the_key_when_asked` | L325–347 | pinned (force) | — |
+| 47 | `test_t051_tester_criteria.py` :: `test_c14_c16_c17_tapping_the_answer_is_correct` | L358–369 | pinned (force) | — |
+| 48 | `test_t051_tester_criteria.py` :: `test_c15_c16_c17_every_other_state_code_and_dc_are_wrong` | L377–389 | pinned (force) | — |
+| 49 | `test_t051_tester_criteria.py` :: `test_c16_the_key_from_the_served_question_is_what_grades` | L403–426 | pinned (force) | — |
+| 50 | `test_t051_tester_criteria.py` :: `test_c18_no_tapped_geometry_id_is_422_and_the_question_stays_in_play` [3] | L439–448 | pinned (force) | — |
+| 51 | `test_t051_tester_criteria.py` :: `test_c19_a_map_click_answer_moves_state_as_a_map_identify_answer_does` [2] | L482–503 | pinned (force) | — |
+| 52 | `test_t051_tester_criteria.py` :: `test_c20_undo_restores_profile_and_session_as_for_the_other_formats` | L516–545 | pinned (force) | — |
+| 53 | `test_t051_tester_criteria.py` :: `test_c20_after_an_undo_the_map_click_can_be_answered_again` | L555–562 | pinned (force) | — |
+| 54 | `test_t051_tester_criteria.py` :: `test_c21_choice_formats_grade_by_choice_index_alone` [4] | L583–584 | pinned (force) | — |
+| 55 | `test_t053_answer_key_default.py` :: `test_session_serves_withhold_unless_asked` | L69–101 withheld/carried by format, same id, correct | holds under any draw | Re-serves of the pending question (S4). Withhold and carry go by the question's own format (B2, B3), and the answer is built from its own key. |
+| 56 | `test_t053_tester_criteria.py` :: `test_c8_next_question_without_flag_is_withheld` [2] | L171 withheld | holds under any draw | Every format drops both key fields when withheld. |
+| 57 | `test_t053_tester_criteria.py` :: `test_c8_force_review_without_flag_is_withheld` | L180–181 `isReview`, withheld | holds under any draw | Review pool: Texas's 9 questions, none of them asked (S3, S6, B9). Every member is served as review. |
+| 58 | `test_t053_tester_criteria.py` :: `test_c9_next_question_with_true_is_carried` | L189 carried | holds under any draw | `is_carried` checks the key field that matches the drawn question's format (B2, B3). |
+| 59 | `test_t053_tester_criteria.py` :: `test_c10_start_session_default_serves_first_question_withheld` | L196–197 | holds under any draw | As row 56. |
+| 60 | `test_t053_tester_criteria.py` :: `test_c11_review_round_serves_withheld` | L207–208 200, withheld | holds under any draw | Review pool of Texas, non-empty (B9). Withholding works the same for every format. |
+| 61 | `test_t053_tester_criteria.py` :: `test_c12_a_re_serve_follows_the_request_not_the_first_serve` [3] | L222–232 same id, withheld/carried | holds under any draw | Re-serves (S4), and rows 56/58 apply to whichever question was drawn. |
+| 62 | `test_t053_tester_criteria.py` :: `test_c12_re_serve_of_the_start_sessions_first_question_can_opt_in` | L242–244 | holds under any draw | As row 61. |
+| 63 | `test_t053_tester_criteria.py` :: `test_c13_served_question_and_entity_match_with_and_without_the_key` | L278–286 | holds under any draw | The second call re-serves the first (S4). Withheld equals carried minus the key fields for every question. |
+| 64 | `test_t053_tester_criteria.py` :: `test_c14_a_withheld_choice_question_grades_against_the_stored_key` [2] | L299–308 not `map_click`, correct, `correctIndex` | holds under any draw | Capital pool: every member is multiple choice with a key (S1, B2), and the answer is built from that key. |
+| 65 | `test_t053_tester_criteria.py` :: `test_c14_a_withheld_map_click_question_grades_against_the_stored_key` [2] | L317–339 `map_click` within 100 serves, graded | holds under any draw | The argument of row 44, with 100 serves. At most 50 fresh `map_identify` serves plus 14 review slots (indices 6–97) come before a `map_click` must arrive. |
+| 66 | `test_t093_tester_criteria.py` :: `test_c1_c4_undoing_a_first_answer_on_an_empty_list_leaves_it_empty` [6] | L157–168 | pinned (force) | — |
+| 67 | `test_t093_tester_criteria.py` :: `test_c1_c4_undoing_a_first_answer_keeps_the_places_already_seen` [6] | L177–190 | pinned (force) | — |
+| 68 | `test_t093_tester_criteria.py` :: `test_c2_undo_does_not_remove_a_place_an_earlier_kept_answer_saw` [2] | L201–210 | pinned (force) | — |
+| 69 | `test_t093_tester_criteria.py` :: `test_c3_places_seen_is_zero_when_the_only_answer_was_undone` | L222–225 | pinned (force) | — |
+| 70 | `test_t093_tester_criteria.py` :: `test_c3_places_seen_is_one_with_a_kept_answer_on_another_place` | L233–240 | pinned (force) | — |
+| 71 | `test_t093_tester_criteria.py` :: `test_c5_undoing_a_review_round_answer_restores_the_seen_list` [4] | L263–276 `isReview`, `entityId == TX`, seen lists | holds under any draw | The first serve is forced. **`monkeypatch.undo()` at L258 then removes `force`, so the review round draws with the real picker.** Review pool: the queue is only Texas, because the forced CO_CAPITAL was answered correctly and AL identify was left unanswered. Texas's 9 questions are not among the asked (B9), so every member is a Texas review. `_body` grades as asked for any format (B2, B3; tap `"13"` is never Texas's `"48"`). |
+| 72 | `test_t093_tester_criteria.py` :: `test_c6_re_answering_after_an_undo_counts_the_place_once` [6] | L286–296 | pinned (force) | — |
+| 73 | `test_t093_tester_criteria.py` :: `test_c7_undo_still_restores_the_profile_and_the_session_fields` [6] | L309–323 | pinned (force) | — |
+| 74 | `test_t093_tester_criteria.py` :: `test_c8_an_answer_with_a_pre_t093_snapshot_can_still_be_undone` | L339–399 | pinned (force) | — |
+| 75 | `test_t093_tester_criteria.py` :: `test_c7_undo_of_a_review_round_answer_restores_review_round_remaining` [2] | L417–429 remaining > 0, changes, restored | holds under any draw | The first serve is forced, then `monkeypatch.undo()` at L412 leaves the review round unpinned. The pool is Texas, as in row 71. `remaining` is `min(1, len(queue)) = 1` before the answer and is decremented by any answer. Restoring it is S5. |
+| 76 | `test_t093_undo_places_seen.py` :: `test_undoing_the_first_answer_leaves_an_empty_seen_list` [6] | | pinned (force) | — |
+| 77 | `test_t093_undo_places_seen.py` :: `test_undoing_a_new_place_keeps_the_places_already_seen` [6] | | pinned (force) | — |
+| 78 | `test_t093_undo_places_seen.py` :: `test_undo_keeps_a_place_an_earlier_kept_answer_saw` | | pinned (force) | — |
+| 79 | `test_t093_undo_places_seen.py` :: `test_places_seen_is_zero_after_the_only_answer_is_undone` | | pinned (force) | — |
+| 80 | `test_t093_undo_places_seen.py` :: `test_places_seen_counts_the_kept_answer_and_not_the_undone_one` | | pinned (force) | — |
+| 81 | `test_t093_undo_places_seen.py` :: `test_undoing_a_review_round_answer_restores_the_seen_list` [2] | L220–230 `isReview`, `entityId == us-state-tx`, seen lists | holds under any draw | This test does **not** request `force`. Nothing has been served (`serveFirstQuestion: False`) and the queue is only Texas (S6), so the review pool is Texas's 9 questions. `_body` grades as asked for any format (B2, B3). |
+| 82 | `test_t093_undo_places_seen.py` :: `test_re_answering_after_an_undo_counts_the_place_once` | | pinned (force) | — |
+| 83 | `test_t093_undo_places_seen.py` :: `test_undo_still_restores_profile_counts_level_learned_and_review_round` | | pinned (force) | — |
+| 84 | `test_t093_undo_places_seen.py` :: `test_an_answer_with_a_pre_t093_snapshot_can_still_be_undone` | | pinned (force) | — |
+
+Rows 76–84 leave the assertion column blank: every serve in those tests is forced (`force["id"]` is set before each `_start`/`_next`), so the assertions cannot depend on the draw.
+
+**Totals:** 84 rows: 3 `pinned (fixed_draw)` (rows 28, 32, 33), 25 `pinned (force)`, 56 `holds under any draw`, **0 `needs pin`**.
+
+### Left out on purpose (criterion 2)
+
+These make a router serve, or try to, but assert only on things the draw cannot affect:
+
+- `test_sessions_api.py` :: `test_another_account_cannot_read_a_session`. It serves, but the assertion is a 404 for another account.
+- `test_sessions_api.py` :: `test_the_level_defaults_to_where_the_last_session_ended`. It serves, but checks only the session level and its label, which are set before the pick.
+- `test_sessions_api.py` :: `test_an_explicit_level_wins`. It serves, but checks only the session level.
+- `test_sessions_api.py` :: `test_answering_an_unknown_question_is_a_404`. It serves, then answers `q-nope` and gets a 404.
+- `test_sessions_api.py` :: `test_undoing_an_unknown_answer_is_a_404`. It serves, then undoes `a-nope` and gets a 404.
+- `test_sessions_api.py` :: `test_a_review_round_is_capped_by_the_queue`. It serves, but `remaining` is `min(5, 1) - 1 = 0` whatever is drawn.
+- `test_sessions_api.py` :: `test_an_ended_session_serves_nothing_more`. The 409s come from the session not being active.
+
+These request `/sessions` but make no router serve at all: `test_session_endpoints_need_a_token` (401), `test_a_session_cannot_be_started_for_another_accounts_profile` (404 before serving), `test_a_session_can_start_without_serving`, `test_a_review_round_needs_something_to_review` (409 before serving), `test_a_review_round_is_never_longer_than_five` (422 validation), and `test_an_unknown_session_is_a_404`, all in `test_sessions_api.py`. `test_t039_tester_criteria.py` mentions `/sessions` only as spec path strings and makes no request to it.
+
+**Files with no router serve:** I grepped every `backend/tests/*.py` for `next-question`, `review-round`, `/sessions` and `routers.sessions`. Only the 14 files the brief lists contain the string `/sessions`. `test_t089_tester_criteria.py` matches only on a spec description, and `test_profiles_api.py` mentions sessions only through `lastSessionEndLevel`.
+
+### Where each criterion stands
+
+| # | Status after the worker | Where |
+|---|---|---|
+| 1 | Survey table above | this Handoff |
+| 2 | Table plus the exclusion list | this Handoff. The tester re-surveys independently. |
+| 3 | Every "holds" row cites a pool and the B/S facts. None rests on a pass count. | table |
+| 4 | No `needs pin` row, so no pre-existing test file changes | — |
+| 5 | Not applicable: nothing was pinned | — |
+| 6 | Ran by the worker as a cross-check, 20/20 pass (results below). The tester must run its own. | Notes |
+| 7 | `backend/app/` untouched | `git diff origin/main...HEAD -- backend/app/` |
+| 8 | `conftest.py` untouched | — |
+| 9 | `pyproject.toml` and `uv.lock` untouched | — |
+| 10 | All three suites run, results below | Notes |
+
+### Running criterion 6
+
+The probe I used is a throwaway plugin, not committed. A minimal version:
+
+```python
+# drawprobe.py — put its directory on PYTHONPATH and pass `-p drawprobe`
+import os, random, pytest
+SEED = int(os.environ["PROBE_SEED"]); REVERSE = os.environ.get("PROBE_REVERSE") == "1"
+
+@pytest.fixture(autouse=True)
+def _probe():
+    import app.store as store
+    mp = pytest.MonkeyPatch()            # its own instance, NOT the test's `monkeypatch`
+    if REVERSE:
+        orig = store.candidate_questions
+        mp.setattr(store, "candidate_questions", lambda db, t: list(reversed(orig(db, t))))
+    random.seed(SEED)
+    yield
+    mp.undo()
+```
+
+```bash
+cd backend
+FILES=$(grep -l "/sessions" tests/*.py)
+PYTHONPATH=<probe dir> PROBE_SEED=$s PROBE_REVERSE=$r uv run pytest -q -p drawprobe $FILES
+```
+
+**The trap: use a private `MonkeyPatch`.** `test_t093_tester_criteria.py` c5 and c7 call `monkeypatch.undo()`. If the probe patched `candidate_questions` through the test's `monkeypatch` fixture, that call would silently remove the reversal before the review round, which is the one unpinned serve in those tests. I hit this in my first version of the probe and replaced it.
+
+Patching `app.store.candidate_questions` works because the router calls it as `store.candidate_questions(...)`. `fixed_draw` sorts candidates by id, so the reversal has no effect on its three tests, which is intended.
+
+- **Deliberately not done:** I committed no probe and added no CI step, both out of scope.
+- **Not done either:** no Postgres run. The brief does not require one.
+
+### Tests made stale
+
+These were not made stale by this worker. I checked by stashing my brief edit and re-running: both are red at `93b1c4a`, the branch as the expander and orchestrator left it. They go red because `git diff --name-status origin/main...HEAD` adds two files, `runs/T-102-unseeded-draw-survey.md` and `tasks/T-102-unseeded-draw-survey.md`, and each of these tests counts tracked non-test files outside its allowed list.
+
+| File | Test (describe › test) | Why red | Proposed |
+|---|---|---|---|
+| `question-bank/src/farm-animal-loose-ends-verify.test.ts` | `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added` | Line 602 expects `283` and gets `285`: the two T-102 files above. | Modify. Re-pin the count to the value CI sees on this branch at merge: **285** while both files are tracked, **284** if the sweep removes the brief first. Follow whatever T-101's re-pin rows did for the same pin. |
+| `question-bank/src/climate-cold-trade-accepted-verify.test.ts` | `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added` | `MAIN_UNTOUCHABLE_COUNT` (line 101) is `286`, and the branch gives `288`, for the same two files. | Modify. `MAIN_UNTOUCHABLE_COUNT` becomes **288** (or **287**, as above). |
+
+**Owner:** the tester raises the Test change request, and Dkaattae approves it in an attended session (D-14). The run should not count on an unattended tester passing.
+
 ## Verdict
 
 ## Notes
@@ -199,3 +399,24 @@ Required reading for the worker and the tester:
   `test_sessions_api.py`, `test_t026_*`, `test_t040_*`, `test_t053_*` and
   `test_content_build.py` tests it turns up. I did not run anything (D-7), so I
   make no claim about which of them fail.
+
+**Worker, 2026-11-06:**
+- **Survey by reading found no `needs pin`.** I read the 14 files that request `/sessions`, together with `selection.py`, the sessions router, `grading.py` and the committed bank. Every unpinned draw-dependent assertion holds for one of three reasons:
+  - **The topic pool forces it** (S1), or the topic is played to exhaustion, so the set reached does not depend on order (S2).
+  - **The review pool is only Texas** on the demo profile (S6, B9).
+  - **The answer is built from the drawn question's own key,** and every bank question is gradable both ways (B2, B3).
+
+  The two "within N serves a `map_click` arrives" loops (`test_t051_map_click`, `test_t053` c14) are certain, not merely likely. At most 50 fresh `map_identify` serves plus the review slots fit inside N (58 ≤ 59, and 64 ≤ 99).
+- **Unpinned review rounds in tests that also use `force`.** `test_t093_tester_criteria.py` c5 and c7 request `force`, then call `monkeypatch.undo()`, so their review-round serve uses the real picker. I classed them `holds under any draw` (rows 71 and 75), not `pinned (force)`. Reason: the review pool is all Texas. **Tester to confirm or overturn.**
+- **The criterion 6 probe could be silently disabled.** The same `monkeypatch.undo()` removes any perturbation the probe installed through the test's `monkeypatch` fixture. My first probe did exactly that, so the probe described in the Handoff uses a private `pytest.MonkeyPatch()`. **Tester to use a probe of that shape, or to explain why theirs is unaffected.**
+- **Probe results (worker's cross-check, not the tester's evidence):** the 14 files, 374 tests per run.
+  - **20 of 20 runs passed:** seeds 0–9 × {store order, reversed}, 0 failed and 0 errors in each. Rev=1 seeds 0–3 were re-run after the private-`MonkeyPatch` fix, and passed again.
+  - **Extra adversarial runs, also all passed:** `random.choice` forced to always take the first member, then the last, each with both candidate orders (4 runs).
+- **Suites at `93b1c4a` plus this brief:**
+  - **Backend:** `make -C backend check` (ruff lint, format check, pytest) gave 1039 passed, 9 skipped.
+  - **question-bank:** `bun test` gave 2711 pass, 2 fail. Both failures are the count pins under "Tests made stale", and both are already red without my edit. Lint is clean.
+  - **Frontend:** `bun test` could not be run fully here. `bun install --frozen-lockfile` fails with `ProxyConnectFailed (403)` on tarballs that `bun.lock` pins to `europe-west1-npm.pkg.dev/lovable-core-prod/...` (for example d3-timer@2.0.0 and d3-dispatch@2.0.0). So `react-simple-maps` is missing and its importers error, along with the lint-gate tests that need the full tree. This is environmental: no frontend file differs from main. CI is the check for the frontend.
+- **A test run modified a tracked file once.** After my first, pre-install run of the frontend and question-bank suites, `frontend/README.md` had one line changed, `2 * gradeOf` escaped to `2 \* gradeOf`. That looks like a `prettier --write` reaching it, probably the frontend format-gate test running while dependencies were missing. I reverted it with `git checkout`, and later runs did not reproduce it. Not queued. **Reviewer to decide whether it deserves a `tasks.md` entry.**
+- **Same session id as the expander.** The orchestrator ran the expander and this worker in session `cse_011oDiJbsZTbExMiPULZMiFd`, so my Sessions row repeats the expander's id. The tester must run in a different session.
+- **No production change is proposed.** The unordered pool and unseeded `random` are fine for the app. The tests that care are pinned or certain.
+
