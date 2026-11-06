@@ -1,7 +1,7 @@
 # T-102 — Other backend tests may assert on an unseeded draw
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge; PR marked ready, no escalation)
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-102-unseeded-draw-survey.md`.
 **Test changes:** approved — Dkaattae, 2026-11-06
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared id, freshly spawned subagent) |
 | tester | 2026-11-06 | cse_011oDiJc1uVevWo55WsSei6F (attended: applied the approved Test change request) |
+| reviewer | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared id, freshly spawned subagent) |
 
 ## Goal
 
@@ -484,6 +485,33 @@ All 20 runs had 0 failed and 0 errors. Extra, not required: I replaced `app.sele
 - **Frontend:** `bun test` here gave 387 pass and 9 fail. `react-simple-maps` is missing from `node_modules`, so 3 files error on import, and the lint-gate tests time out at 5 s. No frontend file differs from main. CI `frontend (typecheck, lint, test)` is **green** on `1c4995e`, and I take that as the frontend evidence. `git status` was clean after the run, so the `frontend/README.md` rewrite the worker saw did not recur.
 
 **To resume:** start the `tester` step for T-102 in a session you are attending. It confirms the request with you row by row and applies the approved rows as `T-102 tester: apply approved test change request`. It then re-runs all three suites and writes the final verdict. On approval of all three rows, I expect `pass`.
+
+## Review
+
+**Approve, inside the envelope: mark ready, no escalation.** The survey is careful, and the tester checked it independently by instrumenting the suite rather than re-reading it. The only code change is three Test change request rows that Dkaattae approved, applied in exactly the T-101 shape. Nothing blocks.
+
+**PR completeness.** Every Sessions row has a commit on this branch: expander `2efe856`/`f2414e0`, worker `3f17a70`, tester `e447605`, attended tester `ee83a62`/`e52b7d7`, orchestrator logs.
+
+**Lanes.**
+- **Expander:** touched only `tasks/`. The orchestrator touched only `runs/` and the brief's `Approved:` line.
+- **Worker:** touched only the brief.
+- **Tester:** `ee83a62` changes only the two question-bank test files named by rows 1-3. Each edit matches its row: two paths added to each allowed set, count and digest unchanged, and the farm-animal sha re-pinned to `2a241617…cd1cbe3`, which I checked is the sha256 of the file as committed.
+- **ci-fix:** none ran.
+
+**Fit and scope.**
+- **No source, no dependency, no backend test changed.** `git diff origin/main...HEAD -- backend/` is empty, so criteria 7-9 hold trivially.
+- **The tester's allowed-set route beats the worker's re-pin.** Re-pinning the counts to 285/288 would have gone red again the moment the sweep deletes the brief. It follows T-091 row 5 and T-101 rows 4, 5 and 8.
+- **Spot-check:** I re-counted the bank facts the map_click bounds rest on: 50 `map_identify` and 50 `map_click` in location, Texas with 9 questions, and no prompt containing "review". All as the Handoff says.
+
+**Findings (none blocking):**
+1. **The "holds under any draw" rows rest on bank facts nothing guards.** 56 rows lean on B1-B9, a snapshot of `backend/app/data/content.json`. If the bank changes (a refresh, a new topic, a first `shortExplanation`), some of those certainty arguments can quietly become probability arguments, and nothing would say so. No task owns this, so I queued **T-103** in `tasks.md` §E, sized S.
+2. **A survey-only task still needed an attended tester round.** It changed no source, but its own brief and run log turned 2 whole-tree count pins red. That is P-17's pattern in its purest form, so I added it as a recurrence note on **P-17** in `process-tasks.md` rather than opening a new P ticket. (P-18 does not fit: this brief named all three suites, and the worker caught the pins.)
+
+**Flags disposed:**
+- **Worker, rows 71/75 (t093 c5/c7 classed as "holds", not "pinned"):** the tester confirmed it by instrumentation. **Decided:** "holds" is correct.
+- **Worker, the probe's `monkeypatch.undo()` trap:** the tester's probe patches at `pytest_configure`, so the trap does not apply. **Closed.**
+- **Worker, `frontend/README.md` rewritten by a test run:** this is T-076's open question, and its fifth sighting. **Deferred to T-076**, amended with this sighting.
+- **Tester, frontend suite not runnable locally (proxy 403):** CI is the evidence. I checked CI before marking ready.
 
 ## Notes
 
