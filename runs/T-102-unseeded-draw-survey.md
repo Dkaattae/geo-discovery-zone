@@ -1,7 +1,7 @@
 # T-102 — Other backend tests may assert on an unseeded draw — run log
 
 **Task:** T-102 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #126
-**Started:** 2026-11-06 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-06 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -103,3 +103,6 @@ Brief: /home/user/geo-discovery-zone/tasks/T-102-unseeded-draw-survey.md
 ## Halted — test change request — 2026-11-06
 Raised at commit `e447605`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
 A person must start the `tester` step for T-102 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
+
+## Resumed — 2026-11-06
+A person told the orchestrator: "pr 126 ci is fixed please proceed". The branch head had moved to `e52b7d7`: an attended tester applied the approved test change request (`ee83a62`) and recorded a verdict (`e52b7d7`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-06`.
