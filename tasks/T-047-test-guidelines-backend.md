@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet"
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-047-test-guidelines-backend.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
+| worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 
 ## Goal
 
@@ -240,6 +241,144 @@ A person reading the rewritten section checks:
 
 ## Handoff
 
+**TL;DR.** `test-guidelines.md` is the only file changed: the backend section
+now describes `backend/tests/` as it is, and the dead-proxy block installs first.
+The backend block runs cold (fresh worktree, exit 0). Two whole-tree pins are red,
+and they were already red before my edit. A Test change request is needed at the
+tester step.
+
+**Same session id as the expander.** The orchestrator ran both roles under one
+remote session (`cse_011oDiJbsZTbExMiPULZMiFd`). The tester must run in a
+different one.
+
+### What changed
+
+- **`test-guidelines.md`**, three places, nothing else:
+  - **"No network in tests, ever"**: the sentence before the block, and the
+    block. It now starts from the repository root, runs `cd backend` and
+    `uv sync --frozen` with no proxy variables, and then the guarded
+    `uv run pytest` with all six variables, unchanged. The bun half is no longer
+    offered (criterion 12, the "offers neither" branch).
+  - **Backend section**: the heading is now `` ### `backend/` — pytest ``. It
+    gives the run commands and bullets for the scope of `backend/tests/` vs
+    `backend/integration/`, `client`, the database, `db_session`, E-14 and
+    `assert_matches` / `test_contract.py`, and `assert_problem`.
+  - **"Before you say it passes"**: `# api` is now `# backend/`.
+- **This brief**: Status, Next step, Sessions row, Handoff, Notes.
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1, 2, 8 | The strings are gone from the file. `grep -nE 'Forward-looking\|does not exist yet\|Nothing below has been exercised\|`api/`\|cd api\|#\s+api\b\|It is the contract\|a bug even when' test-guidelines.md` prints nothing |
+| 3 | The heading `` ### `backend/` — pytest `` and `cd backend && uv run pytest` |
+| 4 | Bullet "The database is real, and SQLite by default", plus the `make -C backend test-postgres` line in the code block |
+| 5 | Bullet "Each test runs inside a transaction…" (`db_session`, `create_savepoint`) |
+| 6 | Bullet "Endpoint tests go through the app" (`client`, `httpx.ASGITransport`, no server, no socket) |
+| 7 | Bullet "`openapi.yaml` follows the backend" (E-14, `test_contract.py` both directions, `assert_matches` required/undeclared) |
+| 9 | First bullet ("`uv run pytest` runs `backend/tests/` only", `make -C backend test-integration`) |
+| 10, 11 | The `sh` block: `uv sync --frozen` on its own line before the guarded command, with all six variables on the guarded command |
+| 12 | Neither `frontend/` nor `question-bank/` is offered in the block or its comments |
+| 13 | See "How to run" below |
+| 14 | `uv run pytest && uv run ruff check # backend/` |
+| 15 | `git diff origin/main -- test-guidelines.md` touches only the three regions above |
+| 16 | `git diff origin/main --stat`: `test-guidelines.md`, this brief, `runs/T-047-…` |
+| 17 | See "Suites" below |
+
+### How to run what I touched
+
+- **Criterion 13 (my own run; the tester records theirs).** I ran
+  `git worktree add <scratch>/wt HEAD` and copied in the edited
+  `test-guidelines.md`. `backend/.venv` was absent. I extracted the block with
+  `awk '/^```sh$/{f=1;next} /^```$/{if(f){exit}} f' test-guidelines.md`, ran
+  `sh` on it from the worktree root, and got the pytest summary "passed, …
+  skipped" with no failures. The guarded command is the last line, so `sh`
+  exits with pytest's status, 0. I removed the worktree afterwards. The package
+  index went through this environment's agent proxy.
+- **Suites, run in this checkout:**
+  - **`backend/`** `uv run pytest`: green (the cold run above, same tree).
+  - **`question-bank/`** `bun test`: everything passes except the two pins
+    under Tests made stale.
+  - **`frontend/`** `bun test`: four reds, and they come from the environment,
+    not this change. `react-simple-maps` is missing from `frontend/node_modules`
+    ("Cannot find package 'react-simple-maps'" from `UsMap.tsx`,
+    `t051-map-click.test.tsx`, `t051-tester.criteria.test.tsx`).
+    `bun install --frozen-lockfile` could not repair it here: the proxy
+    returned 403 on tarballs (`d3-color@2.0.0`, `d3-timer@2.0.0`). A doc edit
+    cannot cause a module-resolution error. In one of three runs, `criterion 1
+    — the gate is clean … bun run lint exits 0` also failed, on a timeout
+    (5445 ms); it passed in the other two, and `bun run lint` on its own is
+    clean.
+  - **The guards criterion 17 names** pass:
+    `stale-suite-counts.criteria`, `stale-suite-counts-guard.criteria`,
+    `level-window-claim.criteria` (frontend, 90 pass) and `lint-gate`,
+    `purge-sample-data-verify` (question-bank, 39 pass).
+- **No typecheck or lint change is possible.** No source file was touched.
+
+### Tests made stale
+
+Both pins were **already red on this branch before my edit**. `git stash` of
+`test-guidelines.md` still shows both failing. The cause is the expander's new
+`tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md`
+(the tracked-file count is +2). My edit to `test-guidelines.md` adds a content
+mismatch on top of that.
+
+- **`question-bank/src/farm-animal-loose-ends-verify.test.ts`**, test
+  `T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside
+  the allowed files and test files, every tracked file is main's, and none is
+  added`. Received 285 against an expected 283.
+  - **Stale because of:** criterion 16, which allows `test-guidelines.md`, this
+    brief and the run log.
+  - **Proposed fix:** modify the test. Add `test-guidelines.md`,
+    `tasks/T-047-test-guidelines-backend.md` and
+    `runs/T-047-test-guidelines-backend.md` to its allowed set, the way earlier
+    re-pins did.
+- **`question-bank/src/climate-cold-trade-accepted-verify.test.ts`**, test
+  `T-091 criterion 22: the diff touches only the allowed files > every tracked
+  non-test file outside the allowed list is 12d242e's, and none is added`.
+  Received 288 against an expected 286.
+  - **Stale because of:** the same criterion 16.
+  - **Proposed fix:** the same three paths added to its allowed list. See the
+    re-pin comments at lines 94–101.
+- **Who acts:** the tester, through a Test change request a person approves
+  (D-14). T-102 / PR #126 re-pins the same files, so whichever merges second
+  rebases its pins.
+
+### What I deliberately did not do
+
+- **`CLAUDE.md`, `conftest.py`, `test_contract.py`, `ci.yml`, Makefile**: not
+  touched. Out of scope or gated.
+- **"Randomness and time" / `fixed_draw`**: not mentioned in the backend
+  section, and the section itself is left byte-identical. T-102 owns it.
+- **The bun half of the proxy block**: dropped, not rewritten. Criterion 12
+  allows either, and the review checklist asks for a block short enough to
+  paste.
+
+### Contradictions with the brief
+
+- **None in the criteria.** The brief's Status line read `awaiting approval`
+  next to a valid orchestrator `Approved:` stamp, so I treated the brief as
+  approved.
+
 ## Verdict
 
 ## Notes
+
+- **Decided: the guarded command stays `uv run pytest`, not `uv run --frozen
+  pytest`.** It is the command CI runs, and after `uv sync --frozen` it
+  resolved nothing over the network in the cold run. **Tester to confirm**
+  through criterion 13.
+- **Decided: `make -C backend test` is mentioned as an equivalent.** It is the
+  same command after `uv sync` (`install` target). Note that it runs
+  `uv sync`, not `uv sync --frozen`. **Reviewer to confirm** that the wording
+  "does the same after installing" is accurate enough.
+- **For the reviewer to queue (out of scope here):**
+  - `backend/tests/test_contract.py`'s module docstring still calls
+    `openapi.yaml` "the contract between this backend and `frontend/`", and
+    `conftest.py`'s docstring says "what the contract promises". That is softer
+    than E-14 but not false.
+  - **`CLAUDE.md` lines 4 and 51** (`api/` … "not built yet", `uv add` in
+    `api/`) need a `P` ticket by hand (G1). **Owner: human.**
+- **The frontend `react-simple-maps` reds come from this environment's
+  node_modules.** They are worth one look from the tester in a fresh
+  environment. **Owner: tester.**
