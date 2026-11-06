@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" — run log
 
 **Task:** T-047 · **Branch:** `task/T-047-test-guidelines-backend` · **PR:** #127
-**Started:** 2026-11-06 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-11-06 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -180,3 +180,45 @@ Brief: /home/user/geo-discovery-zone/tasks/T-047-test-guidelines-backend.md
 
 ## Resumed — 2026-11-06
 A person told the orchestrator: "pr 127 is fixed please proceed". The branch head had moved to `a28e5ac`: an attended tester merged `origin/main` (`d88964b`, `2f95ce5`) and applied approved row 8 with a verdict (`a28e5ac`). Header on resume: `Status: pass`, `Next step: reviewer`.
+
+## Round 5 — reviewer — 2026-11-06
+`Next step` on entry: `reviewer` → on exit: `human` — PR #127 is marked ready, inside the envelope; merge when convenient
+
+**I approved T-047 with no escalation. PR #127 now carries its own sweep and is marked ready, not merged.** CI passed all six jobs on the reviewed head `f42e0dc`. Next: Dkaattae merges when convenient.
+
+- **Branch:** `task/T-047-test-guidelines-backend`. The push landed: the remote head is `d70a15c`, the same as local.
+- **CI on `d70a15c`:** it was starting when I stopped and I did not wait for the result. That commit only changes Markdown (`tasks.md`, `PROGRESS.md`, `process-tasks.md` and the deleted brief). I ran the question-bank suite locally after the sweep: 2713 pass, 0 fail.
+
+**Commits**
+- `7c6714d`: my second review pass, written into the brief. It adds the Review section and my Sessions row, and sets Status `approved`, Next step `human`.
+- `d70a15c`: the sweep.
+  - **Brief:** deleted.
+  - **`tasks.md`:** T-047 deleted. T-046 amended, because only `CLAUDE.md` lines 4 and 51 still say `api/`. New **T-104** for the `test_contract.py` and `conftest.py` docstrings that still call `openapi.yaml` "the contract". The sweep log line is added.
+  - **`PROGRESS.md`:** T-047 logged under Completed tasks, and two outdated lines saying `test-guidelines.md` still uses `api/` corrected.
+  - **`process-tasks.md`:** P-17 gets a note that this happened again: 8 re-pin rows, one of them only because T-102 merged first.
+
+**Why it was approved**
+- **The first pass's blocking finding is fixed.** It was the merge conflict with T-102.
+  - `d88964b` merged `main` in, and `main`'s side is intact.
+  - `a28e5ac` applies row 8, which Dkaattae approved.
+  - All eight pre-existing test edits come only from tester commits and match rows 1–8.
+- **Every role's commits are in the PR.**
+- **Inside the envelope:**
+  - The tester passed, and the `Test changes:` header names Dkaattae.
+  - No CI fix was applied in any round.
+  - No dependency, `openapi.yaml`, migration, plan or child-facing text changed.
+  - No file changed outside Constraints.
+- **The document holds up.** `test-guidelines.md` has not changed since the first pass, whose accuracy check of every claim in it still applies.
+
+**PR #127**
+- **Body rewritten:** a TL;DR, the acceptance criteria copied word for word, a table of what verified each, and where each review finding went.
+- **Ready flag:** set through the REST route, and I confirmed `draft: false` afterwards.
+
+**Local frontend suite:** 5 failures. Three are `react-simple-maps` missing from `node_modules` here; the earlier roles saw the same thing (this proxy returns 403 on install). The other is the lint-gate test timing out. CI's frontend job is green.
+
+**Files:**
+- /home/user/geo-discovery-zone/test-guidelines.md
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/frontend/src/test-guidelines-backend.criteria.test.ts
