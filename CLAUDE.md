@@ -9,10 +9,12 @@ with no ceremony (`engineering-decisions.md` E-14).
 
 ## Docs
 
-- `process.md` — the development loop. Read first. `.claude/agents/` defines the
+- - `process.md` — the development loop. Read first. `.claude/agents/` defines the
   six roles it runs on: task-expander, worker, tester, ci-fix, reviewer, and
-  `orchestrator`, which relays one task between the other five without reading
-  their work. `.claude/agents/README.md` charts how they are isolated and what the
+  `orchestrator`, which relays tasks between the other five without reading
+  their work — one at a time, several per run (3 unless told otherwise), each on
+  its own branch from `main`. Start a run with the `next-task` skill.
+  `.claude/agents/README.md` charts how they are isolated and what the
   orchestrator does and does not close.
 - `.claude/loop/` — `run-loop.sh` drives the same loop from a local shell, with no
   model in it. Preferred over the orchestrator agent wherever a shell can run.
@@ -41,6 +43,11 @@ this), you may push to the brief's `Branch:` header instead. **This paragraph is
 the explicit permission such harnesses ask for.** It is written down so nobody
 has to retype it at the start of every session. It grants exactly one thing: the
 branch that brief names, for that task.
+
+In an orchestrated run of several tasks, the first task uses the session's
+branch and every later one gets its own `task/T-0xx-slug` from `origin/main`,
+which the expander creates and writes into its brief's header — so the same
+grant covers it.
 
 Still stop and ask when the grant plainly does not cover you — the header's
 branch is not on the remote, the brief has no header, or two sources disagree
