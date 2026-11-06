@@ -1,7 +1,7 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet" — run log
 
 **Task:** T-047 · **Branch:** `task/T-047-test-guidelines-backend` · **PR:** #127
-**Started:** 2026-11-06 · **Outcome:** in progress
+**Started:** 2026-11-06 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -83,3 +83,55 @@ Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criter
 - **Same session for expander and worker:** the orchestrator ran both under `cse_011oDiJbsZTbExMiPULZMiFd`, so the tester must use a different session. Owner: orchestrator.
 - **Old contract wording in the backend tests:** the docstrings of `test_contract.py` and `conftest.py` still describe `openapi.yaml` as "the contract". That is out of scope here. Owner: reviewer, to queue it.
 - **`CLAUDE.md` lines 4 and 51 still say `api/`:** that file is gated, so it needs a `P` ticket done by hand. Owner: human.
+
+## Round 3 — tester — 2026-11-06
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-047 tester: halted at `test changes requested`. A person must answer the four rows in an attended tester session.** Every criterion holds: 1–12, 14 and 15 by new tests (all green), 13 by a cold run (exit 0), 16 by the diff. Criterion 17 (every suite green) is still red, on whole-tree pins that this task's own files turn red by design. My commit `c435bb8` is on `origin/task/T-047-test-guidelines-backend`, and I confirmed the remote head matches it.
+
+- **Brief header:** Status `test changes requested`, Next step `human`, Test changes `requested`. Fault is set, and my Sessions row is added.
+- **Independence:** this run is orchestrated, and my session id `cse_011oDiJbsZTbExMiPULZMiFd` is the same one listed for the expander and worker, so the id check proves nothing. My independence rests only on being a freshly spawned subagent that never saw the work or the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+**What I added**
+- **New test file:** `/home/user/geo-discovery-zone/frontend/src/test-guidelines-backend.criteria.test.ts`, one test per criterion for 1–12, 14 and 15. All 14 pass, and the file passes prettier and eslint.
+- **Criterion 15:** the test checks a sha256 of `test-guidelines.md` with the three regions it may change cut out. The pinned value is taken from `a7945cf`, and today's file gives the same digest.
+
+**Mutations, all reverted (the file matches a saved copy byte for byte)**
+- **Swapping in the old file** turned 12 of the 14 tests red. Criteria 11 and 15 stayed green, which is correct: the old guard already set all six variables, and nothing outside the regions changed.
+- **Ten targeted edits each turned the matching test red:** a proxy variable on the `uv sync` line, `uv sync` moved after the guard, `all_proxy` dropped, a typo in an unchanged section, the label changed back to `# api`, a bun package offered, "no socket" removed, the savepoint removed, the old SQLite rule restored, and the E-14 citation removed.
+- **One test was too weak at first:** removing the savepoint did not turn criterion 5 red, because `create_savepoint` in a code span still matched. I tightened the test, and that edit now goes red.
+
+**Criterion 13, the cold run**
+- **Cold state:** a fresh `git worktree add --detach` at HEAD, with no `backend/.venv`.
+- **What I ran:** the block copied out verbatim and run with `sh` from the worktree root.
+- **Result:** `uv sync --frozen` installed through the agent proxy, then the guarded run gave 1039 passed, 9 skipped, exit 0. I removed the worktree afterwards.
+
+**Suites**
+- **backend:** pytest green (the cold run). `ruff check` and `ruff format --check` are clean.
+- **question-bank:** 2711 pass and 3 fail, all three covered by the request. Typecheck and lint are clean.
+- **frontend:** 406 pass and 4 fail, plus typecheck errors in `UsMap.tsx` and the two t051 tests. All of these are "Cannot find package 'react-simple-maps'": it is missing from `node_modules` here, and `bun install` gets a 403 from the proxy. A doc edit can't cause that, but I couldn't confirm it here. **CI on PR #127 is the authority for these.** Lint and format checks are clean.
+- **The five guards criterion 17 names** pass without edits.
+- **Spot check:** the section's claims match `conftest.py`, the Makefile, `pyproject.toml`, `test_postgres.py` and `backend/integration/README.md`.
+
+**Test change request** (in the brief, none applied)
+1. **farm-animal criterion 21:** add the three T-047 files to the allowed set. The count goes 283 → 282, with digest `fda851f3…`.
+2. **climate criterion 22, non-test files:** the same three files. The count goes 286 → 285, with digest `0b3efcae…`.
+3. **climate criterion 22, pre-existing test files:** the count goes 122 → 123, with digest `c920b17c…`, because of the new tester file (blob `d872014`).
+4. **climate's applied-request digests:** the entry for the farm-animal file is recomputed after row 1 is applied.
+
+The proposed counts and digests for rows 1 and 2 are what `a7945cf` gives with the same three files exempted, so those rows exempt only T-047's own files. Run on `a7945cf` without the exemption, the same script gives today's pinned values.
+
+**Watch out**
+- T-102's PR #126 re-pins the same constants, so whichever PR merges second has to rebase its pin values.
+- The row 3 digest changes if the new test file changes before the rows are applied.
+
+**Needed next:** a person starts a `tester` session for T-047 that they are attending, and approves or refuses each row there.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-047-test-guidelines-backend.md`
+
+## Halted — test change request — 2026-11-06
+Raised at commit `c435bb8`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
+A person must start the `tester` step for T-047 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
+
+## Run ended — 2026-11-06
+Two tasks in a row ended halted (T-102, T-047), so the run stopped before its third task, per `orchestrator.md` "The loop you run".
