@@ -1,7 +1,7 @@
 # T-102 — Other backend tests may assert on an unseeded draw — run log
 
 **Task:** T-102 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #126
-**Started:** 2026-11-06 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-11-06 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -106,3 +106,48 @@ A person must start the `tester` step for T-102 in a session they are attending 
 
 ## Resumed — 2026-11-06
 A person told the orchestrator: "pr 126 ci is fixed please proceed". The branch head had moved to `e52b7d7`: an attended tester applied the approved test change request (`ee83a62`) and recorded a verdict (`e52b7d7`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-06`.
+
+## Round 4 — reviewer — 2026-11-06
+`Next step` on entry: `reviewer` → on exit: `human` (merge; PR marked ready, no escalation)
+
+**T-102 is approved and inside the envelope. PR #126 is marked ready with no escalation, so it is routine for Dkaattae to merge.** The sweep is in the PR's branch `claude/fervent-ptolemy-4py2eg` at head `36df6bd`, the push landed (local HEAD = origin), and all 6 CI jobs are green on that head. I did not merge.
+
+**What I checked**
+- **Every role's work is in the PR:** all Sessions rows have commits on the branch: expander, worker, both tester sessions, and the orchestrator's logs.
+- **Each role stayed in its lane:**
+  - The expander touched only `tasks/`.
+  - The worker touched only the brief.
+  - The tester's `ee83a62` changed only the 2 question-bank test files named in Test change request rows 1-3, and each edit matches its row.
+  - No ci-fix ran.
+- **Row 3's re-pinned sha is right:** I checked it is the sha256 of the committed file.
+- **Envelope:**
+  - The tester passed.
+  - No `backend/` change, and no dependency added.
+  - Nothing touches `openapi.yaml`, a migration or the plan, and there is no text a child will read.
+  - The pre-existing test changes were approved by a person (`Test changes: approved — Dkaattae`), not under an orchestrator stamp.
+- **Spot-check:** I re-counted the bank facts the map_click bounds rest on (50 `map_identify` / 50 `map_click` in location, Texas has 9 questions, no prompt contains "review"). All match the Handoff.
+- **Question-bank after the sweep:** 2713 pass, 0 fail.
+
+**Findings (none blocking)**
+1. **The 56 "holds under any draw" arguments rest on bank facts (B1–B9) that nothing guards.** No queued task owned this, so I queued **T-103** in `tasks.md` §E, sized S. I also copied B1–B9 into the PR body, because the brief that listed them is now deleted.
+2. **A survey-only task still turned 2 whole-tree count pins red, just from its own brief and run log.** I added this as a recurrence note on **P-17** in `process-tasks.md`, not as a new ticket.
+
+**Worker flags, each settled**
+- **t093 c5/c7 classed as "holds":** confirmed by the tester's instrumented run. Decided.
+- **The probe's `monkeypatch.undo()` trap:** the tester's probe does not have it. Closed.
+- **`frontend/README.md` rewritten by a test run:** deferred to T-076, which owns it. I added this as its fifth sighting.
+
+**Commits**
+- `d865519`: my review written into the brief.
+- `36df6bd`: the sweep.
+
+**Records**
+- The brief was deleted in the sweep. Its review section survives in `d865519` and in the PR body. Status was set to `approved`, Next step `human` (merge), with a reviewer row added to Sessions.
+- The PR body now holds the criteria verbatim with what verified each, the approved test-change rows, B1–B9 and the review.
+- There is one summary comment on the PR.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks.md (T-102 removed, T-103 added, T-076 amended, sweep line)
+- /home/user/geo-discovery-zone/PROGRESS.md (T-102 completed entry)
+- /home/user/geo-discovery-zone/process-tasks.md (P-17 recurrence note)
+- /home/user/geo-discovery-zone/tasks/T-102-unseeded-draw-survey.md (deleted)
