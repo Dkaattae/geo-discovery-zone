@@ -1,15 +1,14 @@
 # T-047 — `test-guidelines.md`'s `api/` section is still marked "does not exist yet"
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-06, unattended run. See `runs/T-047-test-guidelines-backend.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-06`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-047
 **Branch:** `task/T-047-test-guidelines-backend`
 **PR:** #127, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** test changes are waiting for approval: four rows re-pin two whole-tree pins (`climate-cold-trade-accepted-verify.test.ts`, `farm-animal-loose-ends-verify.test.ts`) that T-047's own files turned red by design. Owner: a person, in an attended tester session.
 
 **Sessions:**
 
@@ -18,6 +17,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-06 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: freshly spawned subagent, same remote session id as every role) |
+| tester (attended, applied the request) | 2026-11-06 | cse_011oDiJda1ZpvnR6WaQMphrU |
 
 ## Goal
 
@@ -363,6 +363,72 @@ mismatch on top of that.
 
 ## Verdict
 
+### Attended tester, 2026-11-06 — **pass**
+
+**TL;DR.** **Pass.** All seven test change rows were approved by Dkaattae in this
+attended session and applied in `04ac466`. Both red CI jobs on PR #127 are fixed:
+question-bank goes from 6 failures to 0 and frontend typecheck is clean.
+**Next:** reviewer.
+
+**Independence.** My session `cse_011oDiJda1ZpvnR6WaQMphrU` differs from the
+expander/worker session `cse_011oDiJbsZTbExMiPULZMiFd`, so this is a separate
+session.
+
+**What CI on PR #127 showed (run 42270416729)**
+- **question-bank:** 6 fails. These were rows 1–3 plus **three pins the orchestrated
+  tester missed**. They are frontend/ tree digests in T-088, T-092 and T-087's guards,
+  and they went red because that tester put its criteria file under `frontend/`.
+  These became rows 5–7.
+- **frontend:** tests 456/0, but **typecheck failed**. The criteria file
+  `frontend/src/test-guidelines-backend.criteria.test.ts` indexed arrays without
+  checks under `noUncheckedIndexedAccess` (lines 44, 218, 219, 230). It is this
+  task's tester file, so I fixed it with four `!` assertions. Each sits after an
+  existing guard (a `throw`, or an `expect(idx) >= 0`). No assertion changed and
+  the file is still 14/14.
+- **backend, postgres, integration, e2e:** green. Nothing under them changed
+  since.
+- **Considered and rejected:** moving the criteria file to `question-bank/src/`.
+  It trips three dead-loopback-literal guards (T-014, T-015), so it does not
+  reduce the number of re-pins.
+
+**Approval (the person's words, via the session's question prompt)**
+- Rows 1–4 as written: "Approve" ×4.
+- New rows 5–7 and the extension of row 4 to the agriculture and map-click
+  entries: "Approve" ×4.
+- Recomputed digests for rows 3–7 after the tsc fix: "Approve".
+- Header line: `Test changes: approved — Dkaattae, 2026-11-06`.
+
+**Tests modified (all modify, none deleted)**
+
+| Row | File | Change |
+|---|---|---|
+| 1 | `farm-animal-loose-ends-verify.test.ts` | 3 paths allowed; count 283 → 282; digest `fda851f3…` |
+| 2 | `climate-cold-trade-accepted-verify.test.ts` | 3 paths allowed; count 286 → 285; digest `0b3efcae…` |
+| 3 | `climate-cold-trade-accepted-verify.test.ts` | tests count 122 → 123; digest `830fac35…` |
+| 4 | `climate-cold-trade-accepted-verify.test.ts` | applied-request digests for farm-animal, agriculture and map-click |
+| 5 | `agriculture-true-wrong-answers-verify.test.ts` | `MAIN_FRONTEND_SHA` → `4de52321…` |
+| 6 | `map-click-no-candidates-verify.test.ts` | frontend digest → `179208d1…` |
+| 7 | `refresh-regenerate-reminder-verify.test.ts` | `MAIN_BOUNDARY_SHA` → `437329ad…` |
+
+None of these asserts less than before. Every one still pins an exact count or
+digest, and each digest equals main's tree plus only T-047's own files.
+
+**Suites in this session**
+- **question-bank:** 2713 pass, 0 fail. Typecheck, lint and format are clean.
+- **frontend:**
+  - The criteria file passes 14/14, and typecheck shows no errors in it.
+  - The rest of the suite has 5 local reds and 3 typecheck errors. All of them
+    trace to `react-simple-maps` and `us-atlas`, which are missing because
+    `bun install` gets a 403 from this proxy (`d3-timer`).
+  - Before the fix, CI ran the same suite on the same tree at 456/0.
+  - **CI is the authority** for the frontend suite.
+- **backend:** not re-run here. `test-guidelines.md` and `backend/` are unchanged
+  since `c435bb8` (empty `git diff`), and CI was green on them.
+- **Criteria 1–17:** the document is unchanged since the orchestrated verdict
+  below, so its per-criterion evidence stands.
+
+### Orchestrated tester (superseded on the request; criteria evidence stands)
+
 **TL;DR.** Every criterion the task can be held to is met: 1–12, 14 and 15 by
 new tests (all green), 13 by a cold run (exit 0), 16 and 17 by observation.
 **Not a pass yet:** the two whole-tree pins are red by design, three tests in
@@ -490,13 +556,15 @@ brief and run log, and the tester's step adds a criteria test file.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It protected T-096's criterion 21: no tracked non-test file outside T-096's set differs from main | Criterion 16: `test-guidelines.md` changes, and `tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md` are new. Received 285, expected 283 | modify | Same name. `CRITERION_21_ALLOWED` gains `test-guidelines.md`, `tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md` with a comment citing T-047 row 1. `rest.length` is pinned to **282** (was 283; comment "T-047 row 1: was 283"), and `MAIN_UNTOUCHABLE_SHA` to **`fda851f3e82936035bd784f2d32b252a7b2788d93cb56b308c0f0b6d7380422d`**. `a7945cf` gives the same count and digest with the same exemption | |
-| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. It protected T-091's criterion 22: the diff touches only the allowed files | The same as row 1. Received 288, expected 286 | modify | Same name. `CRITERION_22_ALLOWED` gains the same three paths with a comment citing T-047 row 2. `MAIN_UNTOUCHABLE_COUNT` becomes **285** (was 286; re-pin comment), and `MAIN_UNTOUCHABLE_SHA` becomes **`0b3efcae2b47ff11f705117ef9fdea0f17e2a118629a9b07914ea233972027b5`**. `a7945cf` gives the same count and digest with the same exemption | |
-| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester. It protected the test files: none added or changed outside an approved request | The T-047 tester added `frontend/src/test-guidelines-backend.criteria.test.ts`. Received 123, expected 122 | modify | Same name. `MAIN_TESTS_COUNT` becomes **123** (was 122), and `MAIN_TESTS_SHA` becomes **`c920b17c497a02c1bcbd4df06a7f75adc741e457b13da407b00863355bbacd38`**, the digest with that file at blob `d872014`. Its comment reads "Re-pinned by T-047 (Test change request row 3): T-047's tester added test-guidelines-backend.criteria.test.ts (122 -> 123)". If the file changes before applying, recompute both | |
-| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester. It protected the request files: each one changed only by its approved re-pin | It turns red once row 1 is applied, because it pins the `farm-animal-loose-ends-verify.test.ts` digest (`f199d230…`) | modify | Same name. Only the `farm-animal-loose-ends-verify.test.ts` entry of `APPLIED_REQUEST_FILE_SHAS` changes, to the sha256 of that file after row 1 is applied, with a comment citing T-047 row 4. No other entry changes, and the `MAIN_REQUEST_FILE_SHAS` check still requires it to differ from main | |
+| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It protected T-096's criterion 21: no tracked non-test file outside T-096's set differs from main | Criterion 16: `test-guidelines.md` changes, and `tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md` are new. Received 285, expected 283 | modify | Same name. `CRITERION_21_ALLOWED` gains `test-guidelines.md`, `tasks/T-047-test-guidelines-backend.md` and `runs/T-047-test-guidelines-backend.md` with a comment citing T-047 row 1. `rest.length` is pinned to **282** (was 283; comment "T-047 row 1: was 283"), and `MAIN_UNTOUCHABLE_SHA` to **`fda851f3e82936035bd784f2d32b252a7b2788d93cb56b308c0f0b6d7380422d`**. `a7945cf` gives the same count and digest with the same exemption | approved — Dkaattae, 2026-11-06, in the attended tester session |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. It protected T-091's criterion 22: the diff touches only the allowed files | The same as row 1. Received 288, expected 286 | modify | Same name. `CRITERION_22_ALLOWED` gains the same three paths with a comment citing T-047 row 2. `MAIN_UNTOUCHABLE_COUNT` becomes **285** (was 286; re-pin comment), and `MAIN_UNTOUCHABLE_SHA` becomes **`0b3efcae2b47ff11f705117ef9fdea0f17e2a118629a9b07914ea233972027b5`**. `a7945cf` gives the same count and digest with the same exemption | approved — Dkaattae, 2026-11-06, in the attended tester session |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester. It protected the test files: none added or changed outside an approved request | The T-047 tester added `frontend/src/test-guidelines-backend.criteria.test.ts`. Received 123, expected 122 | modify | Same name. `MAIN_TESTS_COUNT` becomes **123** (was 122), and `MAIN_TESTS_SHA` becomes **`c920b17c497a02c1bcbd4df06a7f75adc741e457b13da407b00863355bbacd38`**, the digest with that file at blob `d872014`. Its comment reads "Re-pinned by T-047 (Test change request row 3): T-047's tester added test-guidelines-backend.criteria.test.ts (122 -> 123)". If the file changes before applying, recompute both | approved — Dkaattae, 2026-11-06, in the attended tester session; digest recomputed to `830fac35ae68cb672741c234f4402b001d46c503210d77d12bdc45c1d577ef2b` after the tsc fix to the criteria file, as the row allows (re-approved) |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091 tester. It protected the request files: each one changed only by its approved re-pin | It turns red once row 1 is applied, because it pins the `farm-animal-loose-ends-verify.test.ts` digest (`f199d230…`) | modify | Same name. Only the `farm-animal-loose-ends-verify.test.ts` entry of `APPLIED_REQUEST_FILE_SHAS` changes, to the sha256 of that file after row 1 is applied, with a comment citing T-047 row 4. No other entry changes, and the `MAIN_REQUEST_FILE_SHAS` check still requires it to differ from main | approved — Dkaattae, 2026-11-06, in the attended tester session; extended (approved) to the agriculture and map-click entries, which rows 5 and 6 change: `771b1850…` and `9650c28a…` |
+| 5 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 21: every tracked file under frontend/ is byte-identical to main's" | T-088 tester. It protected T-088's criterion 21: frontend/ unchanged | Added in the attended session; the orchestrated tester missed it. T-047's tester added `frontend/src/test-guidelines-backend.criteria.test.ts`, the only frontend/ change. Red on PR #127 CI | modify | Same name. `MAIN_FRONTEND_SHA` becomes **`4de52321996756b826c638bd9da8d2a3b8e673b1172817a9e2c1534414ce3a77`** (main's frontend/ plus that file), comment citing T-047 row 5 | approved — Dkaattae, 2026-11-06, in the attended tester session (digest re-approved after the tsc fix) |
+| 6 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › "frontend (except []) is byte-identical to 5d72ca5" | T-092 tester. It protected T-092's criterion 16 | Same as row 5 | modify | Same name. The frontend row's digest becomes **`179208d1b350009bc7251cb06a3fa33074f2388c115f7a7bc8418e51f2d422d5`**, comment citing T-047 row 6 | approved — Dkaattae, 2026-11-06, in the attended tester session (digest re-approved after the tsc fix) |
+| 7 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | T-087 tester. It protected T-087's criterion 15 | Same as row 5 | modify | Same name. `MAIN_BOUNDARY_SHA` becomes **`437329add2ccdb352732514d61ba4d78bc3183ec6d75b520f5da0ff56c61f597`**, comment citing T-047 row 7 | approved — Dkaattae, 2026-11-06, in the attended tester session (digest re-approved after the tsc fix) |
 
-To approve: start the `tester` step for T-047 in a session you are attending,
-and answer each row there.
+Applied in `04ac466` (`T-047 tester: apply approved test change request`), rows 1–7 exactly.
 
 ## Notes
 
