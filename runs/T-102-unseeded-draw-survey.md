@@ -1,7 +1,7 @@
 # T-102 — Other backend tests may assert on an unseeded draw — run log
 
 **Task:** T-102 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #126
-**Started:** 2026-11-06 · **Outcome:** in progress
+**Started:** 2026-11-06 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-11-06
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -74,3 +74,32 @@ Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criter
 - **A test run edited `frontend/README.md` once.** One line came out as if `prettier --write` had run on it. I reverted it and it did not happen again. Whether to queue it is the reviewer's call.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-102-unseeded-draw-survey.md
+
+## Round 3 — tester — 2026-11-06
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-102 tester: stopped at `test changes requested` / `human`. Three stale question-bank pins need a person's approval before I can give a verdict.** Criteria 1–9 are verified and pass. Criterion 10 is held up only by the 3 pins named in the brief's Test change request. Nothing was approved and no test was changed. Pushed as `e447605` to `claude/fervent-ptolemy-4py2eg`, and `origin` matches.
+
+**Independence:** this run was orchestrated, so my session id (`cse_011oDiJbsZTbExMiPULZMiFd`) is the same as the expander's and the worker's. My only independence is being a freshly spawned subagent that never saw the worker's context. That is weaker than running in a separate session, and the Verdict says so.
+
+| # | Result | Evidence |
+|---|---|---|
+| 1–4 | met | My own survey, run with a throwaway plugin on the full backend suite, found 91 test functions that make router serves. That matches the worker's 84 table rows plus 7 exclusions exactly. 2 other tests (the t051 `c13` pair) call `candidate_questions` directly and are rightly left out. Every `pinned` row made 0 unpinned picks. I re-derived every "holds under any draw" argument from the code and the bank, so none rests on a pass count, and none needs a pin. |
+| 5 | n/a | Nothing was pinned. |
+| 6 | met | 20 of 20 runs passed (seeds 0–9, store order and reversed), 374 tests each, 0 failures, 0 errors. My probe sets `random.seed` at the start of each test body and swaps in the reversed order as a plain module attribute, so `monkeypatch.undo()` cannot remove it. `pick_question` is never replaced. Three extra adversarial runs (always first, always last, avoid `map_click`) also passed. |
+| 7–9 | met | `backend/` diff against `origin/main` is empty, `FIXED_DRAW_SEED = 101` is unchanged, and no dependencies changed. |
+| 10 | waiting on approval | **Backend:** `make -C backend check` gives 1039 passed, 9 skipped. **question-bank:** 2711 pass, 2 fail, both stale pins. **Frontend:** here, 9 tests fail because `react-simple-maps` is missing locally, but CI is green on `1c4995e`. |
+
+**The Test change request (3 modify rows):**
+- **Rows 1–2:** add `tasks/T-102-…` and `runs/T-102-…` to the allowed sets in T-096 criterion 21 and T-091 criterion 22. The counts (283, 286) and digests stay as they are, which is the precedent from T-091 row 5 through T-101.
+- **Row 3:** re-pin the farm-animal file's entry in `APPLIED_REQUEST_FILE_SHAS`, which row 1 breaks.
+- **Why not the worker's fix:** re-pinning the counts to 285 and 288 would go red again once the sweep deletes the brief.
+- **Trial:** I applied rows 1–3 in a throwaway worktree, since removed. The question-bank suite gave 2713 pass, 0 fail.
+
+**What a human needs to do:** start the `tester` step for T-102 in a session you are attending and approve or refuse each row there. That tester applies the approved rows, re-runs all three suites and writes the final verdict. If all three rows are approved, I expect a `pass`.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-102-unseeded-draw-survey.md
+
+## Halted — test change request — 2026-11-06
+Raised at commit `e447605`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
+A person must start the `tester` step for T-102 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
