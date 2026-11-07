@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-104
 **Branch:** `task/T-104-contract-docstrings`
-**PR:** opened draft at expand time (see the PR list for this branch); stays draft until the reviewer approves it
+**PR:** #129, opened draft at expand time; stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
