@@ -1,15 +1,15 @@
 # T-103 — Guard the bank facts the backend draw survey rests on
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-103-bank-facts-guard.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-103
 **Branch:** `claude/fervent-ptolemy-4py2eg`
 **PR:** #128, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:**
+**Fault:** test changes are waiting for a person's approval: 4 question-bank whole-tree pins (rows 1-4 of the Test change request) went red because this task added files. Every criterion of T-103 itself is met. Start a `tester` session you are attending to approve and apply them.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
+| tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: same id as every spawned role, see Verdict) |
 
 ## Goal
 
@@ -431,7 +432,92 @@ red from the expander's commit, before any worker code.
 Count floors: none of the backend's own pins went red.
 `tests/test_git_revision_guard.py` passes, because the new files run no `git`.
 
+## Test change request
+
+Raised by the tester, 2026-11-07, in an orchestrated run. **Nobody was there to
+ask, so no row has been approved and none of these tests has been touched.**
+Each row is red only because T-103 added files (two worker test files, one
+tester test file, this brief and its run log). No behaviour changed. Every
+"Becomes" value was checked: scratch copies of the three files with all four
+rows applied give **84 pass, 0 fail** against this branch at the tester's
+commit. A pin only covers trees and test files, so later edits to this brief
+leave the values as they are. A new file under `backend/` or a new test file
+would change rows 1 and 4 again.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087: pinned every tracked file under `backend/`, `frontend/` and `e2e/` so a question-bank task could not touch them; re-pinned by each backend task since | T-103 adds `backend/tests/test_t103_bank_facts.py`, `test_t103_bank_fact_edges.py` and `test_t103_tester_criteria.py`, so the tree hash changes (received `7f53b203…`) | modify | Same name, same assertion (`fileRowsSha(gitLsFiles("backend","frontend","e2e"))` equals the pin). `MAIN_BOUNDARY_SHA` becomes `"7f53b203b5728a892bb1e7023d885f9e32c53b420d0498fcc8e9a0730fb43936"`, with a comment `// Re-pinned by T-103 (Test change request row 1): T-103 added three backend test files.` | |
+| 2 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: no non-test file outside T-096's allowed set may differ from main or be added | `tasks/T-103-bank-facts-guard.md` and `runs/T-103-bank-facts-guard.md` are new tracked files (count 284, pin 282) | modify | Same name and assertions (count 282, `MAIN_UNTOUCHABLE_SHA` unchanged). `CRITERION_21_ALLOWED` gains `"tasks/T-103-bank-facts-guard.md"` and `"runs/T-103-bank-facts-guard.md"`, under a comment `// T-103's loop files, joined through T-103's Test change request row 2 (approved by <name>, <date>).` | |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: no non-test file outside T-091's allowed set may differ from its base or be added | The same two loop files (count 287, pin 285) | modify | Same name and assertions (`MAIN_UNTOUCHABLE_COUNT` stays 285, `MAIN_UNTOUCHABLE_SHA` unchanged). `CRITERION_22_ALLOWED` gains the same two paths, under a comment like row 2's citing row 3 | |
+| 4 | Same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: every pre-existing test file stays byte-identical; re-pinned by each task that adds a test file | T-103 adds three backend test files (count 126, pin 123) | modify | Same name and assertions. `MAIN_TESTS_COUNT` 123 → 126 and `MAIN_TESTS_SHA` → `"c0ec8c11a8a29ccf1137f4951d46f8af069f0c0b7ed19242c5477d37e980122a"`, with comments `// Re-pinned by T-103 (Test change request row 4): T-103 added test_t103_bank_facts.py, test_t103_bank_fact_edges.py and test_t103_tester_criteria.py (123 -> 126).` above each | |
+
+None of the four is a count floor protecting tests against deletion, and no
+test is deleted. Each re-pin pins the new tree exactly as hard as the old pin
+pinned the old one.
+
 ## Verdict
+
+**TL;DR. Every criterion is met: 1-19 by tests, 20-22 by `git diff`, 23 by
+running the suites. The verdict is not `pass` yet.** Four question-bank
+whole-tree pins are red, as the brief predicted, because T-103 added files.
+They need a person to approve the Test change request above. Status: `test
+changes requested`, Next step: `human`.
+
+**Independence.** This was an orchestrated run (`runs/T-103-bank-facts-guard.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJbsZTbExMiPULZMiFd`, the
+same id the expander and the worker recorded, so the Sessions check proves
+nothing either way. My independence rests only on being a freshly spawned agent
+with its own context. I did not see the work being done or the worker's
+reasoning. That depends on the orchestrator having spawned me correctly, which I
+cannot check myself, so it is weaker evidence than a separate session.
+
+**What I added:** `backend/tests/test_t103_tester_criteria.py`, 96 tests.
+Expected values come from the criteria. The dependents table is copied by hand
+from this brief, not imported from the worker's `DEPENDENTS`. Each edge case
+writes an edited bank to a temp file, points `store.CONTENT_FILE` at it, and
+runs the real check `test_bank_fact(label)`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `test_c1_the_committed_bank_passes[B1..B9]`, 14 cases |
+| 2 | met | `test_c2_each_fact_has_its_own_node_id_carrying_its_label`: `pytest --collect-only`, so exactly one node per label and 14 distinct nodes |
+| 3 | met | `test_c3_a_failing_fact_check_names_every_dependent[local\|ci]`: a real `pytest` subprocess against a bank with all 14 facts broken (B9 in a second run), with and without `CI` set (pytest truncates long explanations off CI). Each failure section contains the file and function of every row in the brief's table. `test_c3_the_table_has_fourteen_rows_and_every_named_test_exists` |
+| 4 | met | `test_c4_no_fact_check_draws_serves_or_requests`: `random.*`, `Random.*`, `selection.pick_question`, `store.candidate_questions` and `httpx` `send` all patched to raise, and all 14 checks still run. `test_c4_same_result_under_any_seed[0,1,7,12345]`. `test_c4_no_router_or_draw_is_referenced_by_the_fact_module` |
+| 5-18 | met | `test_c5_to_c18_one_edit_turns_its_fact_red_or_leaves_it_green[c<N>-<label>-<edit>]`: every red and green bullet. B8d's cases run for all five topics. B8c's "independent of B8a" is checked both ways (51 non-click with B8a red, and B8a red from a removed click). Also `test_c9_georgia_is_keyed_13_and_b3c_is_green`, `test_c9_a_non_texas_question_keyed_13_by_edit_stays_green`, `test_c11_committed_has_a_multiple_choice_question_with_neither_field` |
+| 19 | met | `test_c19_an_edit_breaking_no_dependent_leaves_every_check_green[reword-capital, reverse-questions, add-landmark, change-source]`. `test_c19_no_hash_or_stored_copy_in_the_fact_module`: no hashing import or call, and the fact functions' integer literals are all in {0-4, 15, 16, 50, 51} |
+| 20 | met | `git diff --name-status $(git merge-base origin/main HEAD) HEAD -- backend/tests/` shows only `A` lines: the two worker files plus mine. No existing file changes, so every dependent and the three B4/B6 tests are byte-identical to main |
+| 21 | met | The same diff over `backend/app/ question-bank/data/` is empty |
+| 22 | met | The same diff over `backend/pyproject.toml backend/uv.lock` is empty |
+| 23 | **not yet** | backend `make -C backend check` (ruff, format, pytest): **1209 passed, 9 skipped**. question-bank `bun test`: **2709 pass, 4 fail**, the four stale pins in the Test change request. frontend `bun test`: 406 pass, 4 fail, 4 errors, every one `Cannot find package 'react-simple-maps'`. `bun install --frozen-lockfile` fails here with `ProxyConnectFailed (403)`, and T-103 changes nothing under `frontend/` (criterion 21's diff), so this comes from the environment. CI must confirm the frontend |
+
+Criteria 20-22 are checked by command and not by a committed test, because
+`tests/test_git_revision_guard.py` refuses `git diff` and `merge-base` in
+backend tests (T-098).
+
+**Mutation testing.** Each mutation was made to `test_t103_bank_facts.py`, my
+suite was run, and the file was restored. `git status` was clean afterwards.
+
+- **Caught (19):** dropping `funFact` from B1; B2 range 0-4; B2 distinctness
+  off; B3a unknown-geometry branch off; B3b without `highlightGeometryId`; B3c
+  keyed "14"; B4 without `detailExplanation`; B5 checking only the highlight;
+  B6 without superlative; B7 case-sensitive; B8a `<1` instead of `!=1`; B8b
+  `<1`; B8c bound 52; B8c without its no-click check; B8d floor 15; B8d
+  accepting `map_click`; B9 always green; one B9 dependent dropped from
+  `DEPENDENTS`; `failure_message` listing only the first 3 dependents.
+- **Survived (2), both equivalent:**
+  - **B2 count `!= 4` → `< 3`:** the distinctness branch (`len(set) != 4`)
+    still turns 3 and 5 choices red, so the fact's behaviour does not change.
+  - **B3a entity-"11" check removed:** criterion 7's edit also keys the
+    `map_click` to "11", and that is still red through the key branch.
+  - Neither is a gap a criterion names.
+
+**Readings the worker flagged:** I accept all of them. None conflicts with a
+criterion. Each red/green bullet behaves as the criterion says when it runs
+through the real check.
+
+**To finish (a person):** start a `tester` session you are attending for T-103,
+then approve or refuse rows 1-4. That tester applies the approved rows, re-runs
+all three suites, and sets `pass` / `reviewer` if they are green.
 
 ## Notes
 
