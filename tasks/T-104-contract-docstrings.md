@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-104
