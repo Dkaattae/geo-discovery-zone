@@ -34,3 +34,37 @@
 
 ## Approval — 2026-11-07
 Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criteria.
+
+## Round 2 — worker — 2026-11-07
+`Next step` on entry: `worker` → on exit: `tester`
+
+**T-103 is built and handed to the tester.** There are 14 bank fact checks, each naming the tests that depend on it, plus edge tests on edited copies of the bank. The backend check passes. Four question-bank whole-tree pins are red, as the brief predicted; they are listed under "Tests made stale" for the tester's Test change request. Status is `awaiting verification`, Next step `tester`. The push landed: `origin/claude/fervent-ptolemy-4py2eg` is at `551315a`.
+
+**Files added** (no other code or data changed):
+- `/home/user/geo-discovery-zone/backend/tests/test_t103_bank_facts.py`
+  - One pure function per fact, plus the dependents table with full test names, `failure_message` and `assert_fact`.
+  - The checks run as `test_bank_fact[B1]` … `[B9]`, 14 cases.
+  - `test_every_named_dependent_is_a_real_test` confirms each named dependent exists in its file.
+- `/home/user/geo-discovery-zone/backend/tests/test_t103_bank_fact_edges.py`
+  - Every red and green case in criteria 5–18, run on an edited copy of the bank. Each red case also asserts its failure message names every dependent.
+  - Criterion 19's four edits, each confirmed to leave every fact green.
+- `/home/user/geo-discovery-zone/tasks/T-103-bank-facts-guard.md`: Handoff, Notes, Sessions row, Status.
+
+**Test results:**
+- **Backend:** `make -C backend check` gives 1113 passed, 9 skipped, ruff clean. The 74 new tests are among them.
+- **Question-bank:** 2709 pass, 4 fail, all of them the stale pins below.
+- **Frontend:** 406 pass, 4 fail, 4 errors, all from this sandbox. `react-simple-maps` is not installed, and `bun install --frozen-lockfile` was refused by the proxy (403 on `d3-ease`). This task changes nothing under `frontend/`.
+
+**Stale pins (all in `question-bank/src/`):**
+- **`refresh-regenerate-reminder-verify.test.ts`**, T-087 criterion 15: the backend tree hash `MAIN_BOUNDARY_SHA` changed because of the two new test files. It needs re-pinning to the hash of the final branch.
+- **`farm-animal-loose-ends-verify.test.ts`**, T-096 criterion 21: expected 282 files, got 284. The extra two are this task's brief and run log in `tasks/` and `runs/`.
+- **`climate-cold-trade-accepted-verify.test.ts`**, T-091 criterion 22, non-test files: expected 285, got 287. Same cause as the previous one.
+- **Same file, T-091 criterion 22, pre-existing test files:** expected 123, got 125, because of the two new backend test files.
+
+Two of these, the T-096 and T-091 non-test counts, were already red from the expander's commit before I wrote any code. The Handoff gives a proposed fix for each, following how earlier tasks re-pinned them.
+
+**Flags:**
+- **Session id:** this session reports the same `CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_011oDiJbsZTbExMiPULZMiFd`) the expander recorded. The tester's check that it runs in a different session from the worker cannot rely on that id. Owner: the orchestrator, or a `process-tasks.md` entry.
+- **Readings of the criteria:** where a criterion could be read more than one way, the choice I made is listed in the Handoff, for example that B3b fails on a key that is present even with a `null` value. The tester should confirm them, or send any wrong one back to `task-expander`.
+- **Helper module folded in:** I first wrote a separate helper, `backend/tests/bank_facts.py`. I folded it into the `test_*.py` file because a non-test file under `backend/` would add another red to two of the pins above.
+- **S1–S6:** not surveyed. Nothing unguarded turned up while I worked.
