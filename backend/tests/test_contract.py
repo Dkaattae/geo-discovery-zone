@@ -1,9 +1,10 @@
 """The app and `openapi.yaml` describe the same API.
 
-`openapi.yaml` is the contract between this backend and `frontend/`. These
-tests fail when one side drifts: a route with no operation in the spec, an
-operation with no route, or a protected group that forgot to say it is
-protected.
+`openapi.yaml` follows the backend: the backend is the source of truth, and
+when the two differ the spec is updated to match (`engineering-decisions.md`
+E-14). These tests catch the drift so the spec gets that update: a route with
+no operation in the spec, an operation with no route, or a protected group
+that forgot to say it is protected.
 """
 
 from __future__ import annotations

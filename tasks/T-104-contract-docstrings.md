@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract"
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
+| worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-104 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -61,6 +62,69 @@ module.
 
 ## Handoff
 
+**TL;DR:** Both module docstrings rewritten; nothing else in either file changed (AST check below). Backend suite green. Four question-bank digest/count pins are red: two were already red at the branch head before any worker edit (the brief and run log the expander/orchestrator committed), two are turned red by this edit. Tester raises one Test change request for all four.
+
+**Session note for the tester:** the worker session id is `cse_011oDiJbsZTbExMiPULZMiFd`, the same id the expander recorded. The orchestrator ran both roles under one remote session id. Check your own id against this table as usual. If it is the same id, that is the orchestrator's call to make, not mine.
+
+**Files changed (worker commit):**
+
+- `backend/tests/test_contract.py`: module docstring only. It now says `openapi.yaml` follows the backend and is updated to match it (`engineering-decisions.md` E-14). It keeps all three things the tests catch: a route with no operation, an operation with no route, and a protected group that forgot to say so.
+- `backend/tests/conftest.py`: module docstring, first paragraph only. The `httpx.AsyncClient` reason is now "routing, validation and serialisation are part of the behaviour a client sees, so a test that skips them is not testing the endpoint", followed by "`openapi.yaml` follows the backend and is kept in step with it … (E-14)". The other paragraphs are byte-identical.
+- `tasks/T-104-contract-docstrings.md`: this brief (header, Sessions row, Handoff, Notes).
+
+**Where each criterion lives:**
+
+| # | Where | Worker's own check |
+|---|---|---|
+| 1 | `backend/tests/test_contract.py` lines 1-8 | no `contract between`; has `E-14` and "follows the backend"; all three drift kinds present |
+| 2 | `backend/tests/conftest.py` lines 1-23 | no `contract promises` or `what the contract`; has `E-14` and "follows the backend and is kept in step with it"; other paragraphs unchanged |
+| 3 | both files | for each file, `ast.dump` with the module docstring removed equals `dca80da`'s: **True** for both |
+| 4 | `git diff --stat dca80da..HEAD` | expected: the two backend files, this brief, and `runs/T-104-contract-docstrings.md` (orchestrator's commit, not the worker's) |
+
+**Deliberately not done:**
+
+- **`assert_matches` docstring, `# -- contract assertions` comment and `test_*_contract*` names:** left alone. Criterion 3 freezes them.
+- **No new committed test:** the checks above were throwaway scripts. Writing the criterion tests is the tester's job.
+- **No re-pins:** existing tests are not the worker's to change (D-14).
+
+**Contradictions with the brief:** none in the criteria. One thing the Notes missed: two of the stale reds below come from the brief and run log themselves, not from the docstring edit.
+
+**How to run:**
+
+```bash
+make -C backend check                       # ruff, format check, pytest: 1039 passed, 9 skipped
+cd question-bank && bun test && bun run typecheck && bun run lint
+cd frontend && bun test && bun run typecheck && bun run lint
+```
+
+**Suite results at hand-off:**
+
+- **backend:** `make -C backend check` green (1039 passed, 9 skipped). `uv run mypy .` stops with a module-path error in `tests/conftest.py`. That is not part of `make check` and is unrelated to the docstring.
+- **question-bank:** 2709 pass, 4 fail (all four listed below). Typecheck and lint are clean.
+- **frontend:** 406 pass, 4 fail. All four failures are "Cannot find package 'react-simple-maps'": `bun install --frozen-lockfile` gets a proxy 403 because the lockfile's tarball host is `europe-west1-npm.pkg.dev`. The same 406/4 shows with my edit stashed, so this is environmental and not caused by this change. Typecheck shows the same missing-module errors. Lint shows the same. The tester should run the frontend where `node_modules` installs.
+
+### Tests made stale
+
+All four pins were last set by `04ac466` ("T-047 tester: apply approved test change request").
+
+1. **`question-bank/src/refresh-regenerate-reminder-verify.test.ts`**, `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes > every tracked file under the three trees is as re-pinned by T-039, none added or removed`
+   - **Why stale:** criteria 1-2 edit two files under `backend/`.
+   - **Proposal:** modify `MAIN_BOUNDARY_SHA` (line 90) from `437329ad…f597` to `9092278337f1572f35f6199f6396e183dd53b7666bdc34a52083299158973539`, the value observed with this branch's edit.
+2. **`question-bank/src/climate-cold-trade-accepted-verify.test.ts`**, `T-091 criterion 22: the diff touches only the allowed files > pre-existing test files are main's, except ones in an approved Test change request`
+   - **Why stale:** `backend/tests/conftest.py` and `test_contract.py` count as test files.
+   - **Proposal:** modify `MAIN_TESTS_SHA` (line 122) from `830fac35…ef2b` to `2f2ca0e2d8cb03e950693e4fdaff6c6a5502c9256b4e567066cc1e44b3dd3a78`. `MAIN_TESTS_COUNT` (123) is unchanged.
+3. **`question-bank/src/climate-cold-trade-accepted-verify.test.ts`**, `T-091 criterion 22: the diff touches only the allowed files > every tracked non-test file outside the allowed list is 12d242e's, and none is added`
+   - **Already red before the worker touched anything.** It fails on the expander's and orchestrator's commits: `tasks/T-104-contract-docstrings.md` and `runs/T-104-contract-docstrings.md` add two tracked files.
+   - **Proposal:** modify `MAIN_UNTOUCHABLE_COUNT` (line 104) from 285 to 287, and re-pin `MAIN_UNTOUCHABLE_SHA` (line 95) to the value observed after that. The sha is not shown yet because the count assertion fails first.
+4. **`question-bank/src/farm-animal-loose-ends-verify.test.ts`**, `T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added`
+   - **Already red before the worker, same cause as 3.**
+   - **Proposal:** modify the count literal on line 613 from 282 to 284 and add the usual "was 282" trail. Re-pin `MAIN_UNTOUCHABLE_SHA` (line 170) to the observed value.
+
+**Flags, each with an owner:**
+
+- **Stale reds 3 and 4 come from the brief and run log, not from this change.** I listed them anyway so they are not read as bugs. They will recur on every task that adds a brief and a run log. **Owner:** the tester includes them in this task's Test change request. Whether these pins should exempt `tasks/` and `runs/` is a `process-tasks.md` question for Dkaattae.
+- **T-103 (PR #128) re-pins the same digests.** Whichever PR merges second needs one more re-pin round. **Owner:** the reviewer of the second PR, as the brief's Notes already say.
+
 ## Verdict
 
 ## Notes
@@ -101,3 +165,8 @@ second should expect one more re-pin round. This task does not depend on T-103.
 **Rules that bite.** No new dependency. No network in tests. Any test the
 tester adds for criteria 1–3 asserts properties of the docstrings and the AST
 comparison, not a sha256 of either file (P-17).
+
+**Worker (2026-11-07).**
+
+- **Kept "contract" out of the new conftest sentence.** The first paragraph now gives its own reason: the client sees routing, validation and serialisation. The E-14 sentence follows it. That way the reason does not depend on the spec at all.
+- **Did not guess at sha values the run did not show.** For the two count pins I could only observe the counts, so the tester has to read the sha after re-pinning the count.
