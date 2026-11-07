@@ -1,7 +1,7 @@
 # T-103 — Guard the bank facts the backend draw survey rests on — run log
 
 **Task:** T-103 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #128
-**Started:** 2026-11-07 · **Outcome:** in progress
+**Started:** 2026-11-07 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-11-07
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -68,3 +68,57 @@ Two of these, the T-096 and T-091 non-test counts, were already red from the exp
 - **Readings of the criteria:** where a criterion could be read more than one way, the choice I made is listed in the Handoff, for example that B3b fails on a key that is present even with a `null` value. The tester should confirm them, or send any wrong one back to `task-expander`.
 - **Helper module folded in:** I first wrote a separate helper, `backend/tests/bank_facts.py`. I folded it into the `test_*.py` file because a non-test file under `backend/` would add another red to two of the pins above.
 - **S1–S6:** not surveyed. Nothing unguarded turned up while I worked.
+
+## Round 3 — tester — 2026-11-07
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-103 has stopped for a person.** All of the task's own criteria (1-22) are met. Criterion 23 is still red: 4 question-bank whole-tree pins failed because T-103 added files, as the brief predicted. I raised a Test change request for them, and only a person can approve it.
+
+- **Status:** `test changes requested`
+- **Next step:** `human`
+- **Test changes:** `requested`
+- **Push:** landed on `claude/fervent-ptolemy-4py2eg` at `645b89c` (local HEAD matches the remote).
+
+**What a person needs to do:** start a `tester` session they are attending for T-103 and approve or refuse rows 1-4 of the request. That tester applies the approved rows, re-runs all three suites, and sets `pass` / `reviewer` if they are green.
+
+**Independence:** weaker than a separate session. This run is orchestrated (`runs/T-103-bank-facts-guard.md` exists), and `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJbsZTbExMiPULZMiFd`, the same id the expander and worker recorded. So the Sessions check proves nothing either way. My independence rests only on being a freshly spawned agent with its own context. The Verdict says this, and my Sessions row is added with the same note.
+
+**Criteria**
+
+| # | Result | Evidence |
+|---|---|---|
+| 1 | met | `test_c1_the_committed_bank_passes[B1..B9]`, 14 cases |
+| 2 | met | `--collect-only` finds exactly one node per label, 14 distinct nodes |
+| 3 | met | a real `pytest` run in a subprocess, on a bank with every fact broken, with and without `CI` set. Each failure names the file and function of every test in the brief's dependents table, which I copied by hand rather than importing the worker's list |
+| 4 | met | the checks still run with random, `pick_question`, `candidate_questions` and httpx `send` all made to raise; same results under 4 seeds |
+| 5-18 | met | every red and green bullet runs through the real `test_bank_fact(label)` on an edited temp bank; B8d is checked for all five topics |
+| 19 | met | the four harmless edits leave all 14 checks green; no hashing; the integer constants are within the criteria's bounds |
+| 20-22 | met | checked with `git diff` against the merge-base: `backend/tests/` only gains files (2 worker, 1 tester); `backend/app/`, `question-bank/data/`, `pyproject.toml` and `uv.lock` are unchanged. This is a command, not a committed test, because `test_git_revision_guard.py` refuses `git diff` in backend tests |
+| 23 | not yet | details below |
+
+**Suites (criterion 23)**
+
+- **Backend:** `make -C backend check` gives 1209 passed, 9 skipped.
+- **Question-bank:** 2709 pass, 4 fail. The 4 are the stale pins.
+- **Frontend:** 406 pass, 4 fail, 4 errors. Every one is `Cannot find package 'react-simple-maps'`, because `bun install` gets a proxy 403 in this sandbox. T-103 changes nothing under `frontend/`, so CI has to confirm this suite.
+
+**Mutation testing.** I made 21 mutations to the worker's `test_t103_bank_facts.py`, one at a time, and restored the file after each (`git status` was clean afterwards). 19 turned my tests red. The 2 that survived change nothing a criterion pins:
+- **B2, count check `!= 4` → `< 3`:** the distinctness check still turns 3 and 5 choices red.
+- **B3a, entity-"11" check removed:** criterion 7's edit is still caught through the `map_click` key branch.
+
+**Test change request rows** (all are modify; nothing is deleted; each is red only because files were added):
+
+1. **`refresh-regenerate-reminder-verify.test.ts`, T-087 c15:** `MAIN_BOUNDARY_SHA` → `7f53b203b5728a892bb1e7023d885f9e32c53b420d0498fcc8e9a0730fb43936`.
+2. **`farm-animal-loose-ends-verify.test.ts`, T-096 c21:** add the T-103 brief and run log to `CRITERION_21_ALLOWED`.
+3. **`climate-cold-trade-accepted-verify.test.ts`, T-091 c22 (non-test files):** add the same two paths to `CRITERION_22_ALLOWED`.
+4. **Same file, T-091 c22 (pre-existing test files):** `MAIN_TESTS_COUNT` 123 → 126, and `MAIN_TESTS_SHA` → `c0ec8c11a8a29ccf1137f4951d46f8af069f0c0b7ed19242c5477d37e980122a`.
+
+I checked all four on scratch copies of the three test files, outside the repo: 84 pass, 0 fail. The real test files are untouched.
+
+**Files**
+- `/home/user/geo-discovery-zone/backend/tests/test_t103_tester_criteria.py` (new, 96 tests)
+- `/home/user/geo-discovery-zone/tasks/T-103-bank-facts-guard.md` (Verdict, Test change request, header, Sessions row)
+
+## Halted — test change request — 2026-11-07
+Raised at commit `645b89c`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
+A person must start the `tester` step for T-103 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
