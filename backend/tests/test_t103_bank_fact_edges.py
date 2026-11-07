@@ -1,7 +1,7 @@
 """T-103 worker: both sides of each bank fact's edge, on edited copies of the bank.
 
 Each case makes one edit to a deep copy of the committed bank and runs one
-fact from `tests/bank_facts.py` on it, expecting red (the fact reports a
+fact from `tests/test_t103_bank_facts.py` on it, expecting red (the fact reports a
 problem) or green. The edits are the ones the brief's criteria 5-19 name. A red
 case also checks that the failure message names every dependent of the fact.
 """
@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from tests.bank_facts import DEPENDENTS, FACTS, TEXAS, Bank, failure_message, load_bank
+from tests.test_t103_bank_facts import DEPENDENTS, FACTS, TEXAS, Bank, failure_message, load_bank
 
 _COMMITTED = load_bank()
 
