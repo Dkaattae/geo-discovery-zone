@@ -1,7 +1,7 @@
 # T-103 — Guard the bank facts the backend draw survey rests on
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-103-bank-facts-guard.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
+| worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 
 ## Goal
 
@@ -297,6 +298,139 @@ the full function name in the failure output.
 
 ## Handoff
 
+**TL;DR.** Built: two new backend test files, 14 fact checks plus edge tests,
+74 new tests, all green. `make -C backend check` is green. There are 4
+question-bank whole-tree pin reds. All are expected, and all are listed under
+**Tests made stale** for the tester's Test change request. Frontend reds come
+from this environment (a package could not be installed), not from this
+change. **Note:** the `CLAUDE_CODE_REMOTE_SESSION_ID` this worker read is the
+same one the expander recorded, so a tester must not assume a different id
+means a different session (see Notes).
+
+**Files changed** (only new files under `backend/tests/`, nothing else apart
+from this brief):
+
+- `backend/tests/test_t103_bank_facts.py`: the facts as pure functions
+  `bank -> list[str]` (an empty list means the fact holds), `FACTS` (label to
+  check), `DEPENDENTS` (the dependents table with full names), and
+  `failure_message` / `assert_fact`. The pytest checks are
+  `test_bank_fact[<label>]` (14 cases) and
+  `test_every_named_dependent_is_a_real_test`, which uses `ast` to confirm that
+  each named dependent function exists in its file.
+- `backend/tests/test_t103_bank_fact_edges.py`: each red/green edge from
+  criteria 5-18, run on a deep-copied, edited bank. For red cases it also
+  asserts that the message names every dependent. It also covers criterion
+  19's four "still green" edits, and two guards (Georgia really is keyed `"13"`,
+  and a `multiple_choice` question with neither geometry field exists) so the
+  "green on committed" cases mean something.
+
+**Criterion → where it lives**
+
+| # | Where |
+|---|---|
+| 1 | `test_bank_fact[B1]` … `[B9]`, green on the committed bank |
+| 2 | node IDs `tests/test_t103_bank_facts.py::test_bank_fact[B1]`, `[B2]`, `[B3a]`, `[B3b]`, `[B3c]`, `[B4]`, `[B5]`, `[B6]`, `[B7]`, `[B8a]`, `[B8b]`, `[B8c]`, `[B8d]`, `[B9]` |
+| 3 | `failure_message` lists `tests/<file>::<function>` for every entry in `DEPENDENTS[label]`, before the problems. I checked a forced B2 failure under plain `pytest -q`: all 18 dependents were printed, with no truncation |
+| 4 | the checks only read `store.CONTENT_FILE` and do dict work. No client fixture, no `random`, no `selection`/`store.candidate_questions` |
+| 5-18 | one function per fact, `b1_…` through `b9_…`. Each red/green bullet is a case in `test_one_edit_turns_one_fact_red_or_leaves_it_green`, id `<label>-<red|green>-<edit>` |
+| 19 | `test_an_edit_that_breaks_no_dependent_leaves_every_fact_green` (4 cases). The only constants are 51, 16, `"11"`, `"13"`, `us-state-tx` and the topic and format names. No count of 50, no digest |
+| 20-22 | `git diff origin/main...HEAD --stat` adds 2 files under `backend/tests/` plus this brief and the expander's run log. Nothing under `backend/app/`, `question-bank/data/` or `pyproject.toml`/`uv.lock` changes |
+| 23 | backend: 1113 passed, 9 skipped. question-bank: 2709 pass, 4 fail (all stale pins, below). frontend: see "Environment" |
+
+**How to run**
+
+- `make -C backend check`, or only these:
+  `cd backend && uv run pytest tests/test_t103_bank_facts.py tests/test_t103_bank_fact_edges.py`
+- To run one fact against an edited bank:
+  `from tests.test_t103_bank_facts import assert_fact, load_bank`, edit
+  `load_bank()`, then call `assert_fact("B8c", bank)`. It raises the same
+  `AssertionError` the pytest case raises.
+
+**Choices made in reading the criteria** (tester to confirm, or send back to
+`task-expander` if a reading is wrong):
+
+- **B1** treats a non-string `name`/`geometryId`/`funFact` as missing.
+- **B2**: `correctIndex` must be an `int` that is not a `bool`, in 0-3.
+  Choices are distinct by JSON value.
+- **B3a** fails if any entity has geometry `"11"`, whatever that entity's
+  question says, and if any `map_click` key is `"11"`, is not two ASCII
+  digits, or is no entity's geometry.
+- **B3b** fails on whether a key is present, even when its value is `null`.
+- **B5** treats a field as "present" when it is not missing and not `null`. It
+  skips questions whose entity does not exist, because B1 already fails on
+  those.
+- **B8a/B8b** count questions per entity id. A question with an unknown
+  `entityId` does not count against B8a/B8b (B1 catches it).
+- **B8c** depends only on the location topic's format counts, never on B8a.
+  The edge test for 51 leaves B8a red and B8c green.
+
+**Deliberately not done**
+
+- No change to any existing test, the bank, `app/` or the pipeline (criteria
+  20-21, and Out of scope).
+- **S1–S6 (selection and seed facts):** not surveyed. Nothing turned up while
+  I worked that looked unguarded. Follow-up, if anyone wants it: `task-expander`.
+- **No standalone helper module.** I first wrote `backend/tests/bank_facts.py`,
+  then folded it into the `test_*.py` file. A non-`test_` file under
+  `backend/` is one more red for the question-bank "non-test files" pins
+  (T-096 c21, T-091 c22), and keeping it inside the test file avoided that.
+
+**Environment (not caused by this change)**
+
+- **Frontend:** `cd frontend && bun test` gives 406 pass, 4 fail, 4 errors.
+  Every one is `Cannot find package 'react-simple-maps'` (`UsMap.tsx`,
+  `t051-map-click.test.tsx`, `t051-tester.criteria.test.tsx`). `bun install
+  --frozen-lockfile` failed with `ProxyConnectFailed (403)` downloading
+  `d3-ease`, so `node_modules` is incomplete in this sandbox. This task
+  changes nothing under `frontend/`. The tester should re-run in a sandbox
+  where the install works, or rely on CI.
+
+### Tests made stale
+
+All four are question-bank whole-tree pins. Each one is red because files were
+added, not because any behaviour changed. This is the P-17 pattern the brief
+predicted. Two of them (the T-096 c21 and T-091 non-test counts) were already
+red from the expander's commit, before any worker code.
+
+1. **`question-bank/src/refresh-regenerate-reminder-verify.test.ts`**, test
+   `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes >
+   every tracked file under the three trees is as re-pinned by T-039, none
+   added or removed`.
+   - **Why stale:** the two new `backend/tests/test_t103_*.py` files change
+     the tree hash.
+   - **Proposed fix:** re-pin `MAIN_BOUNDARY_SHA` to the hash of the final
+     branch. At my last commit it was
+     `042be705a75b529f1855f5202413d04954977172339068d778db269e04cb5f5d`.
+     Recompute it after any tester file lands under `backend/`.
+2. **`question-bank/src/farm-animal-loose-ends-verify.test.ts`**, test
+   `T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside
+   the allowed files and test files, every tracked file is main's, and none is
+   added`.
+   - **Count:** expected 282, got 284.
+   - **Why stale:** `tasks/T-103-bank-facts-guard.md` and
+     `runs/T-103-bank-facts-guard.md` are new tracked files.
+   - **Proposed fix:** add both to `CRITERION_21_ALLOWED`, as T-091 and T-047
+     did.
+3. **`question-bank/src/climate-cold-trade-accepted-verify.test.ts`**, test
+   `T-091 criterion 22: the diff touches only the allowed files > every
+   tracked non-test file outside the allowed list is 12d242e's, and none is
+   added`.
+   - **Count:** expected 285, got 287.
+   - **Why stale:** the same two loop files.
+   - **Proposed fix:** add them to `CRITERION_22_ALLOWED`. If the sha pin
+     changes too, re-pin `MAIN_UNTOUCHABLE_SHA`.
+4. **Same file**, test `T-091 criterion 22: the diff touches only the allowed
+   files > pre-existing test files are main's, except ones in an approved Test
+   change request`.
+   - **Count:** expected 123, got 125.
+   - **Why stale:** the two new backend test files.
+   - **Proposed fix:** re-pin `MAIN_TESTS_COUNT` 123 -> 125 and
+     `MAIN_TESTS_SHA`, with a "Re-pinned by T-103" comment, as T-093, T-097,
+     T-099 and T-100 did.
+
+Count floors: none of the backend's own pins went red.
+`tests/test_git_revision_guard.py` passes, because the new files run no `git`.
+
 ## Verdict
 
 ## Notes
@@ -311,3 +445,16 @@ the full function name in the failure output.
   (B3c) is test-specific, but it is the one tap value T-102 relied on that
   nothing else covers. "28" was cited in B3 as well, but no unpinned test uses
   it, so it is left out.
+- **Worker, 2026-11-07.** I ran this on Opus because the task is about data
+  correctness and several criteria could be read more than one way.
+  - **Session ids:** `echo $CLAUDE_CODE_REMOTE_SESSION_ID` returned
+    `cse_011oDiJbsZTbExMiPULZMiFd`, the same id the expander recorded. In an
+    orchestrated run, sub-agents seem to share the parent's remote session
+    id. The tester should not take a different id as proof of a different
+    session, or this id as proof of the same one. Owner: the orchestrator, or
+    `process-tasks.md` if the Sessions-table check needs another key.
+  - **Survey:** none of B1-B9 was already guarded as a separate check. The
+    partial B4/B6 assertions the brief names are still there and unchanged.
+  - **Brief vs reality:** there were no contradictions. The bank matched the
+    Context figures exactly: 50 entities, 415 questions, Georgia keyed `"13"`,
+    and only location `map_identify` questions carry `highlightGeometryId`.
