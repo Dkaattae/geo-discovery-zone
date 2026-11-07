@@ -1,14 +1,14 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `test changes requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-104
 **Branch:** `task/T-104-contract-docstrings`
 **PR:** #129, opened draft at expand time; stays draft until the reviewer approves it
-**Fault:**
+**Fault:** tester: test changes are waiting for approval. Five re-pin rows in `## Test change request` (four question-bank pins this task's own change turned red, plus one cascade). All four criteria are met; nothing else is red. Needs a tester in a session a person is attending (D-15).
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
+| tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared session id, freshly spawned context; see Verdict) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-104 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -126,6 +127,94 @@ All four pins were last set by `04ac466` ("T-047 tester: apply approved test cha
 - **T-103 (PR #128) re-pins the same digests.** Whichever PR merges second needs one more re-pin round. **Owner:** the reviewer of the second PR, as the brief's Notes already say.
 
 ## Verdict
+
+**TL;DR: all four criteria met; halted on a Test change request, not a fail.**
+Five re-pin rows below need a person's approval in an attended tester session.
+Until then question-bank stays red (4 tests now, all stale pins). Everything else is green.
+
+**Independence.** This run is orchestrated (`runs/T-104-contract-docstrings.md`
+exists), so every role shares session id `cse_011oDiJbsZTbExMiPULZMiFd` and the
+Sessions-table check proves nothing. The tester is a freshly spawned subagent
+with its own context window. It did not see the work happen or the worker's
+reasoning. That is real independence, but weaker than a separate session: it
+rests on the orchestrator having spawned it correctly, not on anything the
+tester can verify itself.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | **met** | `backend/tests/test_t104_tester_criteria.py`, five `test_criterion_1_*` tests: no `contract between`; "`openapi.yaml` follows … the backend" and `E-14`; all three drift kinds (route with no operation, operation with no route, protected group that does not say so). |
+| 2 | **met** | Seven `test_criterion_2_*` tests: no `contract promises` / `what the contract`; follows-the-backend statement and `E-14`; a reason after "not by calling the handler"; database choice, both `uv run pytest` lines, Alembic + rollback, Postgres clean schema all present. Also checked by procedure: paragraphs 3-6 of the docstring are byte-identical to `dca80da`'s, and so is the title line. |
+| 3 | **met** (executed procedure, P-17) | For each file, `ast.dump` of the module with its docstring removed equals `dca80da`'s: **True** for both. The source text after the docstring is line-identical to `dca80da`'s for both, which also covers comments (`# -- contract assertions`). |
+| 4 | **met** (executed procedure, P-17) | `git diff --stat dca80da..846a9d1` (before the tester's commits) is below. The worker's commit `36872b5` touches only `backend/tests/conftest.py`, `backend/tests/test_contract.py` and this brief. No re-pin was made; the stale pins wait for the request below. |
+
+```
+$ git diff --stat dca80da..846a9d1
+ backend/tests/conftest.py          |   6 +-
+ backend/tests/test_contract.py     |   9 +-
+ runs/T-104-contract-docstrings.md  |  76 ++++++++++++++++
+ tasks/T-104-contract-docstrings.md | 172 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 257 insertions(+), 6 deletions(-)
+```
+
+**Criterion 3 procedure** (scratch script, run from the repo root):
+strip `tree.body[0]` (asserted to be a string constant) from
+`ast.parse(git show dca80da:<f>)` and `ast.parse(<f>)`, then compare
+`ast.dump(..., include_attributes=False)`. Both files print `True`.
+
+**Do the tests bite?** The new tests were run against `dca80da`'s two files:
+the four "no longer says / now says" tests go red, and the eight "still says"
+tests stay green, as they should. Eight mutations of the branch's docstrings,
+each reverted:
+
+| Mutation | Test that went red (only that one) |
+|---|---|
+| drop "protected group … forgot to say it is protected" | `keeps_unmarked_protected_group` |
+| "an operation with" → "a thing with" | `keeps_operation_with_no_route` |
+| "a route with" → "a path with" | `keeps_route_with_no_operation` |
+| drop the reason after "not by calling the handler" | `still_gives_a_reason_for_async_client` |
+| drop the Postgres clean-schema paragraph | `keeps_postgres_clean_schema_paragraph` |
+| drop the `# Postgres` pytest line | `keeps_both_uv_run_pytest_lines` |
+| "rolled back afterwards" → "kept" | `keeps_alembic_and_rollback_paragraph` |
+| drop `E-14` from conftest | `conftest_docstring_says_spec_follows_backend_and_cites_e14` |
+
+**Suites, on `6196ee9` (with the tester's test):**
+
+- **backend:** `make -C backend check`: ruff, format check, pytest **1051 passed, 9 skipped**.
+- **question-bank:** **2709 pass, 4 fail**, typecheck and lint clean. The four reds are rows 1-4 below. Once rows 1-4 are applied, row 5's cascade test also goes red until row 5 is applied (seen in a dry run, reverted).
+- **frontend:** locally 406 pass, 4 fail, all "Cannot find package 'react-simple-maps'" / `us-atlas`: `bun install --frozen-lockfile` gets a proxy 403 on tarballs. No frontend file changed. CI on `846a9d1` has **frontend green**, as are backend, backend (postgres), e2e and integration; only question-bank is red there, from these stale pins.
+
+**One correction to the worker's Tests made stale list.** The worker said the
+two `MAIN_UNTOUCHABLE_*` reds come only from the new brief and run log. Not
+quite: `backend/tests/conftest.py` is not a `test_*` file, so both pins count it
+as a non-test file and its docstring edit moves both digests too (as T-101's
+conftest edit did). The established fix is also different from the worker's
+proposal: earlier tasks add their brief and run log to the allowed set (count
+unchanged) rather than raising the count. Rows 3 and 4 follow that pattern. The
+tester's own new test file also moves rows 1 and 2.
+
+**No existing test was deleted or modified.**
+
+## Test change request
+
+All values below were observed on `6196ee9` in a dry run that applied rows 1-4
+and was then reverted. Row 1, 2's sha and row 5 depend on the exact tree, so
+**re-read each observed value when applying**, and recompute row 5 last, after
+rows 3-4's comments are written.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `bcb2a38`, T-039 (from T-087): whole-tree digest of `backend/`, `frontend/`, `e2e/`. Last re-pinned by `04ac466`, T-047. | Criteria 1-2 edit `backend/tests/conftest.py` and `test_contract.py`; the tester adds `backend/tests/test_t104_tester_criteria.py`. | modify | Same name and assertion. `MAIN_BOUNDARY_SHA` (line 90) `437329ad…f597` → `75e724453de9d426d89b38cdd4e34e73ab079d14ed7adca4fdaa0bd137fdd3af`, with a "Re-pinned by T-104 (row 1)" comment naming the three files. | |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by `04ac466`, T-047. | `test_contract.py` changes (criterion 1); the tester adds one backend test file. | modify | Same name and assertions. `MAIN_TESTS_COUNT` (line 136) 123 → **124**; `MAIN_TESTS_SHA` (line 122) `830fac35…ef2b` → `e91fe4e63fbbdb42461c6a8afa979aaa5e9a9ac0ce244760c046c0842e60224f`. "Re-pinned by T-104 (row 2)" comments on both. | |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of every tracked non-test file outside the allowed list. Last re-pinned by `04ac466`, T-047. | The task adds `tasks/T-104-contract-docstrings.md` and `runs/T-104-contract-docstrings.md`, and edits `backend/tests/conftest.py`, which this pin counts as a non-test file. | modify | Same name and assertions. Add `"tasks/T-104-contract-docstrings.md"` and `"runs/T-104-contract-docstrings.md"` to `CRITERION_22_ALLOWED`, with a T-104 row 3 comment. `MAIN_UNTOUCHABLE_COUNT` stays **285**. `MAIN_UNTOUCHABLE_SHA` (line 95) `0b3efcae…027b5` → `eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf9e0fc213863193` (conftest.py moved). | |
+| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside its allowed set and the test files. Last re-pinned by `04ac466`, T-047. | Same as row 3. | modify | Same name and assertions. Add the T-104 brief and run log to `CRITERION_21_ALLOWED`, with a T-104 row 4 comment. The count literal (line 613) stays **282**. `MAIN_UNTOUCHABLE_SHA` (line 170) `fda851f3…422d` → `d29be0bf166cb42d1bdf6c9cfe5077b76cc9b0c1b5393ccb37fcb0509f5c7aaf`. | |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091: per-file sha of the test files in T-091's request, including `farm-animal-loose-ends-verify.test.ts`. | Row 4 edits `farm-animal-loose-ends-verify.test.ts`, so its pinned sha moves (as for T-047 rows 4 and 8). | modify | Same name and assertion. The `APPLIED_REQUEST_FILE_SHAS` entry for `question-bank/src/farm-animal-loose-ends-verify.test.ts` (line 183) `e9470a5e…cdd6` → the file's sha256 **after row 4 is applied, comments included**. The dry run without comments gave `831f84c4…0302`; the real value will differ. Add "then by T-104 (row 5, for its row 4)" to its comment trail. | |
+
+**Merge order with T-103 (PR #128).** Rows 1-5 are the same digests T-103
+re-pins. Whichever PR merges second needs one more re-pin round on top of main.
+
+**Process note, for Dkaattae (`process-tasks.md`, P-17 territory, not for this
+task):** rows 3 and 4 recur on every task, because each adds a brief and a run
+log. Exempting `tasks/` and `runs/` from these two pins would end that.
 
 ## Notes
 
