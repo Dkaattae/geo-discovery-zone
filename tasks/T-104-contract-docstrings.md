@@ -1,9 +1,9 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract"
 
-**Status:** `changes requested`
-**Next step:** `tester` — attended, to merge `origin/main` (T-103, PR #128) into this branch and re-pin under a new Test change request (see `## Review`, finding 1); then `reviewer` again for the sweep
+**Status:** `test changes requested`
+**Next step:** `human` — approve rows 6-9 in `## Test change request` (attended tester), then `reviewer`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
-**Test changes:** `approved — Dkaattae, 2026-11-09`
+**Test changes:** `requested` (rows 6-9, after merging main; rows 1-5 approved — Dkaattae, 2026-11-09)
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-104
 **Branch:** `task/T-104-contract-docstrings`
@@ -23,6 +23,22 @@
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
 > child reads, and fits in four criteria. Goal, Out of scope, Constraints and
 > Context are dropped; the few rules that bite are in **Notes** below.
+
+
+### Rows 6-9: after merging `origin/main` (T-103, PR #128) — 2026-11-09, attended tester
+
+Merge commit `3196135` kept both tasks' comment trails and allowed-set entries, and **main's**
+values, so no unapproved number is committed. On the merged tree question-bank is
+**2710 pass, 3 fail**. Both `MAIN_UNTOUCHABLE_SHA` pins (climate-cold, farm-animal) **pass** with
+T-104's row 3/4 values: T-103's files are tests or in the allowed sets, so they need no row.
+Values below were observed on `3196135`; row 8 in a dry run with row 7 applied, then reverted.
+
+| # | Test (file › describe › name) | Introduced | Why stale | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 6 | `refresh-regenerate-reminder-verify.test.ts` › T-087 criterion 15 › "every tracked file under the three trees…" | `bcb2a38`, T-039; last T-103 row 1 | Merged tree holds T-103's three backend tests and T-104's docstring edits and tester file | modify | `MAIN_BOUNDARY_SHA` `7f53b203…3936` → `f5da43056929f00c7e042f7d8a4cb06c86a12114887d3b1a6a3e24820bbbd71c`; T-104 comment says "row 6, recomputed on merging main after T-103" | |
+| 7 | `climate-cold-trade-accepted-verify.test.ts` › T-091 crit 22 › "pre-existing test files are main's…" (count) | `950f334`, T-091; last T-103 row 4 | T-103's 3 files plus T-104's `test_t104_tester_criteria.py` | modify | `MAIN_TESTS_COUNT` 126 → **127**; T-104 comment corrected to "(126 -> 127, row 7)" | |
+| 8 | same test (digest) | same | same; `test_contract.py` changed too | modify | `MAIN_TESTS_SHA` `c0ec8c11…122a` → `592eaba9cfe95d85444262c6f230f25c84aa642b2a314ac33b3c465b352b02df`; T-104 comment updated likewise | |
+| 9 | `climate-cold-trade-accepted-verify.test.ts` › T-091 crit 22 › "each test in the approved Test change request is 8108a42's…" | `bac230d`, T-091 | The merge combined T-103 and T-104 edits in `farm-animal-loose-ends-verify.test.ts`; rows 6-8 do not touch that file, so this value is final | modify | `APPLIED_REQUEST_FILE_SHAS` farm-animal entry `cc8f4936…9691` → `25451e3486f036f0bb5d32356f8d7d0f601f7f1e4a84b882b80c514386bdd898`; trail gains "then by T-104 (row 9, on merging main after T-103)" | |
 
 ## Acceptance criteria
 
