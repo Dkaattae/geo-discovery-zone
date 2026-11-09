@@ -1,15 +1,15 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `task-expander`
 **Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-076-frontend-readme-fences.md`.
-**Test changes:** `none`
+**Test changes:** `requested`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-076
 **Branch:** `task/T-076-frontend-readme-fences`
 **PR:** #131, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:**
+**Fault:** Criterion 6 cannot be met as worded, because its `main` side keeps the pre-existing ` ```sh ` block that its task side strips (owner: task-expander). Separately, seven question-bank whole-tree pins are stale and wait on an attended Test change request (owner: a person).
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
 | worker | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
+| tester | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
 
 ## Goal
 
@@ -338,6 +339,131 @@ its "Others may go red too" anticipated. I changed no test.
 `format-gate.criteria.test.ts` (out of scope, and it is a pre-existing test). I
 did not change the README's other unfenced blocks (JSX, reveal table,
 checklist). I made no `tasks.md` entry, because that belongs to the sweep.
+
+## Verdict
+
+**Blocked.** The README work is right: criteria 1–5, 7, 8, 9 and 11 hold.
+**Criterion 6 cannot be met as written by any correct README**, so it goes back
+to `task-expander` for a rewording and a fresh approval. **Seven question-bank
+whole-tree pins are stale** because of this task. The Test change request below
+needs a person to approve it in an attended tester session.
+
+**How independent this is.** This run is orchestrated (`runs/T-076-frontend-readme-fences.md`
+exists), so every role shares session id `cse_011oDiJbsZTbExMiPULZMiFd`. The id
+check proves nothing here. My independence rests only on being a freshly spawned
+agent with its own context. I did not see the worker's conversation or reasoning.
+That is weaker than a separate session, because it depends on the orchestrator
+having spawned me correctly.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `readme-fences.criteria.test.ts` › criterion 1: one fenced block's content has sha256 `95f8a9dd…`, and it sits between `4. Data shapes` and `Ship ~15 entities` |
+| 2 | met | Same file › criterion 2: sha256 `c56ca1a1…` and placement. A separate test checks the bare `*`, `bandOf  =` and the blank line |
+| 3 | met | Same file › criterion 3: sha256 `115d2f0a…` and placement |
+| 4 | met | Same file › criterion 4: sha256 `0b698c6d…` and placement |
+| 5 | met | Same file › criterion 5: no line outside a fence equals any of the 42 flattened-and-changed lines, which I copied by hand from `0b78dec` (lines 104–141, 149–152, 164–166, 264–277). The brief's four examples have their own test |
+| 6 | **blocked** | Cannot be met as worded. See below |
+| 7 | met | Same file › criterion 7 (installed prettier is 3.9.6; `bun run format:check` exits 0). T-075's criterion 5 test is green too. CI `frontend` passed on `cd8af2b` with a full install |
+| 8 | met | Same file › criterion 8: README bytes are equal before and after `bun run format`, and all four digests still match afterwards |
+| 9 | met (by hand) | `git diff --quiet 0b78dec -- frontend/.prettierrc frontend/.prettierignore frontend/package.json frontend/bun.lock` exits 0, and so do question-bank's and backend's manifests and lockfiles. `git grep prettier-ignore -- frontend` finds nothing. T-075's criterion 9 test is green |
+| 10 | met, partly evidenced | After a full frontend `bun test`, `git status --porcelain -- frontend/README.md` is empty. **But the install is partial:** `bun install --frozen-lockfile` gets 403 `ProxyConnectFailed` on tarballs (`d3-*`, `@types/d3-zoom`), so `react-simple-maps` is missing. CI's frontend job passed with a full install, but CI does not run the `git status` check |
+| 11 | met (by hand) | Before my commit, `git diff --name-only 0b78dec` showed `frontend/README.md`, the brief and the run log. My commit adds only `frontend/src/readme-fences.criteria.test.ts` |
+
+**Criterion 6, why it is blocked.** The criterion says:
+
+- **Task side:** remove every fence line, every fenced block's content and every blank line.
+- **`main` side:** remove only the four flattened ranges and every blank line.
+
+`main`'s `frontend/README.md` already contains one fenced block: lines 325–330,
+` ```sh ` / `git clone <this-repository-url>` / `cd <repository-name>` / `npm i` /
+`npm run dev` / ` ``` `. The `main` side keeps those six lines. The task side
+strips them.
+
+My script showed the sequences differ by exactly those six lines: 146 lines on the
+task side, 152 on `main`. Any README that keeps that block fails the criterion. Removing
+the block would be a prose change the brief puts out of scope. Even then, a
+` ```sh ` line on the `main` side can never equal a line that survives the task
+side's stripping.
+
+If `main`'s pre-existing fenced blocks are stripped the same way, the sequences
+are identical, so no prose moved. But choosing that reading is a criterion
+change, and that is not mine to make. **For the expander:** apply the fence
+stripping to both sides, for example "remove every fence line and every fenced
+block's content from both files." The worker raised the same point under Flags.
+
+**Tests added.** `frontend/src/readme-fences.criteria.test.ts` has 14 tests, all
+passing. Criteria 6, 9 (byte-identity), 10 and 11 are checked by hand above, not
+asserted, because asserting them would mean resolving a git revision (T-073).
+
+**Mutations.** Each was made to `frontend/README.md` and reverted. `cmp` against
+the saved copy confirms the README is back to its pushed bytes.
+
+| Mutation | Tests that went red |
+|---|---|
+| M1: drop one space of B1's `//` alignment | c1 sha, c1 placement, c8 |
+| M2: `bandOf  =` → `bandOf =` | c2 sha, c2 placement, c2 `*`/blank, c8 |
+| M3: `2 * gradeOf` → `2 \* gradeOf` (the sighting) | c2 sha, c2 placement, c2 `*`/blank, c8 |
+| M4: B3's fence lines removed | c3 sha, c3 placement, c7, c8 |
+| M5: B4's `├─` shifted one column | c4 sha, c4 placement, c8 |
+| M6: B1's info string `text` → `ts` | c7, c8 (prettier reformats the block) |
+| M7: B3 moved below `Committing an answer` | c3 placement, c7, c8 |
+| M8: a flattened `PRESENTING → …` line added under `States` | both c5 tests |
+| M9: B3's fenced block duplicated | c3 sha (count 2), c8 |
+
+**Whole suites**, run on this branch with my test committed:
+
+- **frontend:** `bun test` gives 420 pass, 4 fail. All 4 failures are "Cannot find package
+  'react-simple-maps'", from the partial install. `lint` is clean. `typecheck` has 9
+  errors, all in `UsMap.tsx` and the two `t051-*` test files, all from the same
+  missing package. `format:check` passes.
+- **question-bank:** `bun test` gives 2707 pass, 6 fail. All 6 are whole-tree pins, listed
+  in the Test change request. `typecheck` is clean.
+- **backend:** `uv run pytest -q` gives 1221 passed, 9 skipped. `ruff check` is clean.
+
+**The worker's Tests made stale list**, checked:
+
+- **All 5 confirmed.** A sixth goes red once my test file is tracked: T-091's
+  pre-existing-test-files count goes from 127 to 128.
+- **A seventh follows from the fix itself.** Re-pinning three of the files in
+  `TEST_CHANGE_REQUEST_FILES` moves their digests in T-091's
+  `APPLIED_REQUEST_FILE_SHAS`.
+- **The dry run cleared all seven.** I applied rows 1–6 without comments: `bun test`
+  gave 2712 pass, 1 fail, and the one failure was row 7, which depends on the final
+  comment text. Then I reverted with `git checkout -- question-bank/src`.
+
+**Note for whoever resumes:**
+
+- **Re-check every value.** All the values below were observed on this branch at the
+  tester commit.
+- **What can change them:** an expander edit to the brief or run log does not, once
+  those files are in the allowed sets. A T-105 (PR #130) merge first changes all of
+  them.
+
+## Test change request
+
+These values were observed in a dry run at the tester commit. The run applied
+rows 1–6 without comments and was then reverted. **Re-read every value when
+applying:**
+
+- **Rows 4–6 move if T-105 merges first,** and so does any value tied to a tracked
+  file's bytes.
+- **Row 7 depends on the comments rows 1, 2 and 4 add.** Compute it last.
+
+"README" means `frontend/README.md`. "The tester's file" means
+`frontend/src/readme-fences.criteria.test.ts`.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 21: every tracked file under frontend/ is byte-identical to main's" | `e9d666e`, T-088: digest of every tracked file under `frontend/`. Last re-pinned by T-047 | The task changes the README (criteria 1–4), and the tester adds a test file under `frontend/` | modify | Same name and assertion. `MAIN_FRONTEND_SHA` (line 193) `4de52321…3a77` → `706eae346cd45a5b9457e0942db94b31eec7cfdd1ceb8e045830603806a2a638`, with a "Re-pinned by T-076 (Test change request row 1)" comment naming both files | |
+| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › "frontend (except []) is byte-identical to 5d72ca5" | `cf63f66`, T-092: tree digest of `frontend/`. Last re-pinned by T-047 | Same as row 1 | modify | Same name and assertion. The `"frontend"` row's digest (line 743) `179208d1…22d5` → `d271c4e53ee0c08b66a0a866686553cd45d6512b02622650a1779a54165b56ef`, with a T-076 row 2 comment | |
+| 3 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087: whole-tree digest of `backend/`, `frontend/`, `e2e/`. Last re-pinned by T-104 | Same as row 1 | modify | Same name and assertion. `MAIN_BOUNDARY_SHA` (line 94) `f5da4305…bd71c` → `5fea1cb359bed066c1feb28f2bca2d7ae2e87f04bcb785eceb974d1403247837`, with a T-076 row 3 comment | |
+| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside `CRITERION_21_ALLOWED` and the test files. Last re-pinned by T-104 | The task adds its brief and run log, which are new tracked files, and changes the README, which this pin counts (criterion 11 allows all three) | modify | Same name and assertions. Add `"frontend/README.md"`, `"tasks/T-076-frontend-readme-fences.md"` and `"runs/T-076-frontend-readme-fences.md"` to `CRITERION_21_ALLOWED`, with a T-076 row 4 comment. The count literal (line 623) goes from 282 to **281**, because the README leaves the counted set. That is the same move as T-047 row 1, and its comment trail gets "T-076 row 4: was 282". `MAIN_UNTOUCHABLE_SHA` (line 172) `d29be0bf…aaf` → `83c08bed16a6ed0b6741bcad55c12644b7d4d0b4f471bcdac750fb7db100aca6` | |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of tracked non-test files outside `CRITERION_22_ALLOWED`. Last re-pinned by T-104 | Same as row 4 | modify | Same name and assertions. Add the same three paths to `CRITERION_22_ALLOWED`, with a T-076 row 5 comment. `MAIN_UNTOUCHABLE_COUNT` (line 106) goes from 285 to **284**, because the README leaves the counted set. `MAIN_UNTOUCHABLE_SHA` (line 97) `eba70070…3193` → `7ca071d2c6b7617ce21d4f32cc006b8c93d8af6fc88a0b3de19b7e700cc6c3e6` | |
+| 6 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by T-104 | The tester adds `frontend/src/readme-fences.criteria.test.ts` | modify | Same name and assertions. `MAIN_TESTS_COUNT` (line 144) goes from 127 to **128**. `MAIN_TESTS_SHA` (line 127) `592eaba9…02df` → `ea5a5b91c0faa472f601432d08168b257c807cf4a82aa76afa1cd9b0a65802a9`. Both get a "Re-pinned by T-076 (row 6)" comment | |
+| 7 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091: the per-file sha of each file in `TEST_CHANGE_REQUEST_FILES` | Rows 1, 2 and 4 edit `agriculture-true-wrong-answers-verify.test.ts`, `map-click-no-candidates-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts`, so their pinned shas move. This is the same move as T-104 row 5 | modify | Same name and assertion. In `APPLIED_REQUEST_FILE_SHAS`, the entries for those three files take each file's sha256 **after rows 1, 2 and 4 are applied, comments included**. Without comments, the dry run gave `206f3cb4…c730`, `4d42fa24…f4ee` and `7bcf7b21…5323`. The real values will differ. Append "then by T-076 (row 7, for its row N)" to each comment trail | |
+
+**Merge order with T-105 (PR #130).** Both PRs re-pin the same digests.
+Whichever merges second needs another re-pin round on top of `main`.
 
 ## Notes
 
