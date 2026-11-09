@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — PR #129 is marked ready, inside the envelope; merge when convenient (mind the merge order with T-103, PR #128)
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-09`
 **CI fix:** `none`
@@ -17,6 +17,7 @@
 | worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared session id, freshly spawned context; see Verdict) |
 | tester | 2026-11-09 | session_011oDiJetGTLJwZt9qsn2Bn6 (attended, Dkaattae; applied the approved Test change request) |
+| reviewer | 2026-11-09 | session_011oDiJbsZTbExMiPULZMiFd (orchestrated subagent; reviewed work it did not write) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-104 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -252,6 +253,60 @@ re-pins. Whichever PR merges second needs one more re-pin round on top of main.
 **Process note, for Dkaattae (`process-tasks.md`, P-17 territory, not for this
 task):** rows 3 and 4 recur on every task, because each adds a brief and a run
 log. Exempting `tasks/` and `runs/` from these two pins would end that.
+
+## Review
+
+### Reviewer, 2026-11-09 — **approved, inside the envelope**
+
+**TL;DR.** **Approved.** Both docstrings now say `openapi.yaml` follows the backend
+(E-14), nothing else in either file moved, and CI on the head `83cdd7a` is green in
+all six jobs. Swept and marked ready with no escalation. **Next:** Dkaattae merges,
+and whichever of #128 / #129 merges second owes one re-pin round.
+
+- **Every role is in the PR.** expander `70166f3`/`205fdbf`, worker `36872b5`,
+  tester `6196ee9`/`dd4b994`/`63c7e84`/`0d81fd2`, orchestrator `runs/` commits.
+- **Lanes.** Expander touched only the brief; worker only the two docstrings and
+  the brief; tester touched no source. Every pre-existing test edit is in tester
+  commit `63c7e84` and matches rows 1-5, which Dkaattae approved (`Test changes:`
+  names a person, not the orchestrator).
+- **The wording.** Both docstrings read in the voice of the file and carry E-14's
+  meaning ("updated to match", "not the other way round"). The conftest reason no
+  longer leans on the spec at all, which is the better fix. `assert_matches`,
+  the `# -- contract assertions` comment and the test names are untouched, as
+  criterion 3 requires.
+- **Suites.** CI on `83cdd7a`: backend, backend (postgres), question-bank,
+  frontend, integration, e2e all succeed. Locally: `make -C backend check` 1051
+  passed, 9 skipped; question-bank 2713 pass, 0 fail, typecheck and lint clean.
+- **Envelope.** Tester passed; no dependency; no `openapi.yaml`, migration or
+  plan change; no child-facing text; `CI fix: none`; no product decision; diff
+  small. Light brief, so no Constraints section: criterion 4 is the boundary and
+  the diff keeps to it.
+
+**Findings (none blocking)**
+
+1. **`conventions.md:16` still says `openapi.yaml` is "the contract between
+   frontend and backend; follows the backend once both are built".** Same drift
+   one file over, and "once both are built" is stale. Pinned by
+   `question-bank/src/climate-koppen.criteria.test.ts:302`, so fixing it costs a
+   Test change request. **Queued as new T-105** in `tasks.md` §E; no existing
+   task owns `conventions.md`.
+2. **`test_t104_tester_criteria.py` quotes the kept conftest paragraphs
+   verbatim** (criterion 2's "present with its meaning unchanged"). A later task
+   that rewords those paragraphs will turn it red. It asserts properties, not a
+   digest, so it is the milder P-17 shape; recorded as a recurrence on P-17,
+   not a task.
+
+**Flags disposed of**
+
+- **Rows 3-4 recur on every task because each adds a brief and a run log**
+  (worker and tester): recorded on P-17 in `process-tasks.md`, which already
+  owns the "exempt the loop's own records" option. Process-file change, by hand.
+- **Merge order with T-103 (PR #128)** (expander, worker, tester): stays with
+  the reviewer of whichever PR is second. Noted in the PR body and in T-103's
+  queue entry so it is not lost when this brief is deleted.
+- **`uv run mypy .` stops on a module-path error in `tests/conftest.py`**
+  (worker): pre-existing, not part of `make check`, unrelated to the docstring.
+  Not queued; mypy is not a gate in this repo.
 
 ## Notes
 
