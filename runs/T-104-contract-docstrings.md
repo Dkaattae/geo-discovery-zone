@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract" — run log
 
 **Task:** T-104 · **Branch:** `task/T-104-contract-docstrings` · **PR:** #129
-**Started:** 2026-11-07 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-11-07 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-07
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -181,3 +181,52 @@ A person told the orchestrator: "pr 129 is fixed please proceed". The branch hea
 
 ## Resumed — 2026-11-09
 A person told the orchestrator: "pr 129 is fixed please proceed". The branch head had moved to `148b1cd`: an attended tester merged `origin/main` (`3196135`), raised rows 6-9 (`4b499ad`), applied them (`605c476`) and recorded a verdict (`148b1cd`). Header on resume: `Status: pass`, `Next step: reviewer`.
+
+## Round 5 — reviewer — 2026-11-09
+`Next step` on entry: `reviewer` → on exit: `human` — merge PR #129 (ready, inside the envelope)
+
+**I approved T-104 and swept it inside the PR. PR #129 is now marked ready, with no escalation note.** It is not merged; merging is Dkaattae's. Draft is false, GitHub reports `mergeable_state: clean`, and all 6 CI jobs pass on head `b6477e5`.
+
+**What I checked**
+- **Last time's blocker (merge conflict with T-103, PR #128) is fixed.**
+  - The merge commit `3196135` combines both tasks' comment trails and allowed-set entries and keeps main's values. It adds no numbers of its own (checked with `git show --cc`).
+  - Commit `605c476` applies exactly rows 6-9: `MAIN_BOUNDARY_SHA`, `MAIN_TESTS_COUNT` 126 → 127, `MAIN_TESTS_SHA`, and the farm-animal `APPLIED_REQUEST_FILE_SHAS` entry.
+- **The work itself.**
+  - The diff against main changes only the two module docstrings in `backend/tests/test_contract.py` and `backend/tests/conftest.py`.
+  - Every edit to a pre-existing test is in a tester commit and matches an approved row (rows 1-9). No test was deleted.
+  - Each role kept to its own files.
+- **Suites, run locally on the head.** question-bank 2713 pass, 0 fail, with typecheck, lint and format clean. Backend `make check` 1221 passed, 9 skipped. Frontend ran in CI only and passed there; no frontend file changed.
+- **Envelope: every condition holds.**
+  - The test changes were approved by Dkaattae.
+  - `CI fix: none` in every round of the brief's history.
+  - No dependency was added.
+  - No change to `openapi.yaml`, a migration or the plan.
+  - No text a child reads.
+  - No product decision.
+  - The diff is small.
+
+  The `Approved: orchestrator` stamp on the criteria is not one of the envelope's conditions.
+
+**One gap in the record, not blocking**
+- **Row 8's Decision cell in the brief was blank.** The brief's header, the tester's Verdict and Dkaattae's quoted words ("approve rows 6–9") all cover it. The PR body now carries the full row 1-9 table, so the approval survives the brief being deleted.
+
+**Commits pushed to `task/T-104-contract-docstrings`** (the remote now matches local `b6477e5`)
+- **`d6f3643`:** a second-pass `## Review` section, Status `approved`, Next step `human`, and a reviewer row in the Sessions table.
+- **`b6477e5`:** the sweep.
+  - `tasks/T-104-contract-docstrings.md` deleted.
+  - In `tasks.md`, the T-104 entry is removed, a sweep line is added, and T-105 is new.
+  - `PROGRESS.md` logs T-104.
+  - `process-tasks.md` gets a P-17 recurrence note: 9 test-change rows over two attended tester rounds, 4 of them only because T-103 merged first.
+
+  The earlier sweep's amendment to T-103 was dropped, because T-103 is merged and its entry is already gone.
+
+**Non-blocking findings, queued:**
+- **New task T-105:** `conventions.md:16` still calls `openapi.yaml` "the contract between frontend and backend … once both are built". `question-bank/src/climate-koppen.criteria.test.ts:302` pins that wording, so T-105 will need a test change row.
+
+**Files touched:**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/tasks/T-104-contract-docstrings.md (deleted)
+
+**Next step:** Dkaattae merges PR #129.
