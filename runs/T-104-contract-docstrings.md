@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract" — run log
 
 **Task:** T-104 · **Branch:** `task/T-104-contract-docstrings` · **PR:** #129
-**Started:** 2026-11-07 · **Outcome:** halted — needs attended tester (merge conflict with main, re-pin)
+**Started:** 2026-11-07 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-07
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -178,3 +178,6 @@ A person told the orchestrator: "pr 129 is fixed please proceed". The branch hea
 
 ## Halted — needs attended tester — 2026-11-09
 `Next step` names `tester` but requires it attended: the merge and re-pin change pre-existing tests, which a person must approve in the session making the edits (D-15). The orchestrator did not spawn one.
+
+## Resumed — 2026-11-09
+A person told the orchestrator: "pr 129 is fixed please proceed". The branch head had moved to `148b1cd`: an attended tester merged `origin/main` (`3196135`), raised rows 6-9 (`4b499ad`), applied them (`605c476`) and recorded a verdict (`148b1cd`). Header on resume: `Status: pass`, `Next step: reviewer`.
