@@ -1,7 +1,7 @@
 # T-105 — `conventions.md` still calls `openapi.yaml` "the contract"
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-105-conventions-openapi-row.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
+| worker | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-105 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -55,6 +56,78 @@ matching `/^openapi\.yaml\s/` inside the `## Layout` code block (today line 16).
 
 ## Handoff
 
+**TL;DR:** one line of `conventions.md` rewritten; nothing else touched. Five
+reds on the final tree: three are stale tests by design (listed below, for an
+attended Test change request), the rest are frontend tests/typecheck that cannot
+load `react-simple-maps` because this sandbox's `node_modules` is incomplete and
+the registry is blocked — not caused by this change.
+
+**Session note for the tester:** the worker's session id equals the expander's
+(`cse_011oDiJbsZTbExMiPULZMiFd`) — the orchestrated run reports one remote
+session id for all its subagents. Each role still ran as a separate subagent;
+record your own row and judge independence from that.
+
+**Changed, file by file:**
+
+- `conventions.md:16` — the `openapi.yaml` Layout row now reads
+  `openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)`
+- `tasks/T-105-conventions-openapi-row.md` — this Handoff, Status, Next step,
+  Sessions row, a Notes line.
+
+**Criteria → where it lives:**
+
+| # | Where | Worker's own check |
+|---|---|---|
+| 1 | `conventions.md:16` | one line matches `/^openapi\.yaml\s/`; no `contract`, no `once both are built`; has `follows the backend` and `E-14` |
+| 2 | `conventions.md` | `diff <(git show 0b78dec:conventions.md) conventions.md` shows only line 16; 133 lines both sides; description starts at column 18 (padding unchanged); `backend/` row untouched |
+| 3 | worker commits `011459b` + the brief commit | `011459b` touches only `conventions.md`; the follow-up only this brief. `git diff --stat 0b78dec..HEAD` also lists `runs/T-105-…` (orchestrator) and this brief (expander) |
+| 4 | suites | not green yet — see "Suite on the final tree" |
+
+**Tests made stale** (left failing, not edited):
+
+- `question-bank/src/climate-koppen.criteria.test.ts` › "T-067 criterion 17 —
+  conventions.md's openapi.yaml layout line points at E-14" › "the layout line
+  describing openapi.yaml mentions E-14". Stale by criterion 1. **Modify:** drop
+  `toContain("the contract between frontend and backend")`; keep
+  `toHaveLength(1)` and `toMatch(/\bE-14\b/)` (criterion 4 requires both);
+  optionally add `toContain("follows the backend")`.
+- `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria
+  17-21: the bank and the boundaries" › "criterion 21: outside the allowed files
+  and test files, every tracked file is main's, and none is added". Count floor
+  `282` → now `284`; `MAIN_UNTOUCHABLE_SHA` (line 172) will move too. Cause: the
+  two new tracked files `tasks/T-105-conventions-openapi-row.md` and
+  `runs/T-105-conventions-openapi-row.md` — not the `conventions.md` edit
+  (already in the allowed set). **Modify:** count 284 plus new sha, or add the
+  two T-105 paths to the allowed set; tester to choose, as in T-104.
+- `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091
+  criterion 22: the diff touches only the allowed files" › "every tracked
+  non-test file outside the allowed list is 12d242e's, and none is added".
+  `MAIN_UNTOUCHABLE_COUNT` (line 106) `285` → now `287`; `MAIN_UNTOUCHABLE_SHA`
+  (line 97) will move too. Same cause and fix.
+- `refresh-regenerate-reminder-verify.test.ts` stayed **green**; the expander's
+  "possibly" did not happen.
+
+**Suite on the final tree (worker run, 2026-11-09):**
+
+- `make -C backend check`: 1221 passed, 9 skipped.
+- `question-bank/`: `bun test` 2710 pass / 3 fail (the three above);
+  `typecheck` exit 0; `lint` exit 0.
+- `frontend/`: `bun test` 406 pass / 4 fail; `typecheck` exit 2; `lint` exit 0.
+  Every error is `Cannot find package 'react-simple-maps'` / `us-atlas` from
+  `src/components/UsMap.tsx`, `t051-map-click.test.tsx`,
+  `t051-tester.criteria.test.tsx`. `bun install --frozen-lockfile` failed: the
+  proxy answers 403 to `europe-west1-npm.pkg.dev` (policy denial; not retried).
+  No frontend file is touched on this branch, so this is environmental.
+  **Tester:** re-run where `bun install` succeeds, or take CI's frontend job as
+  the evidence.
+
+**Deliberately not done:** `README.md:32`/`:215`, `geoquizdataplan.md:648`,
+`conventions.md:9` — out of scope per the expander's Notes; reviewer to queue.
+
+**How to run:** `cd question-bank && bun test src/climate-koppen.criteria.test.ts
+src/farm-animal-loose-ends-verify.test.ts src/climate-cold-trade-accepted-verify.test.ts`
+for the stale three; criterion 4 lists the full commands.
+
 ## Verdict
 
 ## Notes
@@ -94,6 +167,8 @@ matching `/^openapi\.yaml\s/` inside the `## Layout` code block (today line 16).
   backend, which is the source of truth (engineering-decisions.md E-14)" meets
   criterion 1. The word `contract` is banned outright so no rewording can keep
   the old meaning.
+
+**Worker (2026-11-09):** wording follows the expander's suggestion so it mirrors `CLAUDE.md` ("the backend is the source of truth"). Only surprise: the frontend install is blocked in this sandbox (see Handoff).
 
 **Out of scope, for the reviewer to queue if worth it (not this branch):**
 
