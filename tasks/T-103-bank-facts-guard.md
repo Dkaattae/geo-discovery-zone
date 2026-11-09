@@ -1,7 +1,7 @@
 # T-103 — Guard the bank facts the backend draw survey rests on
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #128)
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-103-bank-facts-guard.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-09`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: same id as every spawned role, see Verdict) |
 | tester (attended) | 2026-11-09 | cse_011oDiJbVBJppsLkbSyUKGCw |
+| reviewer | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: same id as the other spawned roles, P-14) |
 
 ## Goal
 
@@ -551,6 +552,74 @@ through the real check.
 **To finish (a person):** start a `tester` session you are attending for T-103,
 then approve or refuse rows 1-4. That tester applies the approved rows, re-runs
 all three suites, and sets `pass` / `reviewer` if they are green.
+
+## Review
+
+**TL;DR. Approved, inside the envelope.** Two clear, idiomatic test modules
+plus the tester's suite; every role stayed in its lane; the only pre-existing
+test edits are the five Test change request rows Dkaattae approved. CI is green
+on `cb69690`. Swept in the next commit; PR #128 marked ready. Nothing blocks.
+
+**Checks**
+
+- **PR open, draft, every role present.** Expander `392bf90`/`3ba1344`
+  (brief only), worker `0aa3c35`/`6e4620d`/`551315a` (`backend/tests/` + brief),
+  tester `ebffd62`/`645b89c`/`2b87fea`/`e02de51` (its own test file, brief,
+  and the three question-bank pins), orchestrator `runs/` + `Approved:` line.
+- **Lanes.** Expander touched only `tasks/`. Tester touched no source. No
+  `ci-fix` ran.
+- **Constraints.** Outside `backend/tests/` (3 new files), the brief and
+  `runs/`, the only changed files are the three question-bank pins, and each
+  edit matches Test change request rows 1-5 exactly (`MAIN_BOUNDARY_SHA`;
+  two `*_ALLOWED` sets; `MAIN_TESTS_COUNT`/`MAIN_TESTS_SHA`; one
+  `APPLIED_REQUEST_FILE_SHAS` digest). Approved by a person (`Test changes:
+  approved — Dkaattae, 2026-11-09`), applied in a `tester` commit. No test
+  deleted.
+- **Suites, re-run here.** backend `make -C backend check`: 1209 passed, 9
+  skipped. question-bank `bun test`: 2713 pass, 0 fail. frontend locally: 405
+  pass, 5 fail, 4 errors, all `Cannot find package 'react-simple-maps'`
+  (`bun install` gets `ProxyConnectFailed (403)` here). CI's
+  `frontend (typecheck, lint, test)` is **success** on `cb69690`, as are the
+  other five jobs.
+- **Envelope.** No dependency, no `openapi.yaml`, migration or plan change, no
+  child-facing text, no product decision, no CI fix. The `Approved:
+  orchestrator` stamp on the brief is the normal unattended moment-1 cost, not
+  an escalation trigger.
+
+**Quality**
+
+- **Fits the codebase.** Pure `bank -> list[str]` functions, read from
+  `store.CONTENT_FILE`, no fixtures, no network: the shape `CLAUDE.md` "Tests"
+  asks for. Names follow the fact labels; bounds are named constants with the
+  argument that justifies them.
+- **Not more than needed.** `assert_fact`/`failure_message` and the `ast`
+  dependent-exists check are small and each earns its place: the latter stops a
+  renamed dependent from making a failure message point nowhere.
+- **Honesty.** No fixture edited, no bound loosened to today's counts, no
+  pre-existing test touched beyond the approved re-pins.
+
+**Findings (none block)**
+
+1. **Edge cases are written twice.** `test_t103_bank_fact_edges.py` (worker)
+   and `test_t103_tester_criteria.py` (tester) both run every red/green edge
+   of criteria 5-19. That is how the loop is meant to work (the tester writes
+   its own tests from the criteria) and the cost is test time only, so not
+   queued.
+2. **The dependents table is kept by hand in `DEPENDENTS`.** A renamed
+   dependent is caught; a *new* draw-dependent test is not. Accepted: the
+   brief puts re-surveying out of scope, and T-102's survey is the record.
+   Not queued.
+
+**Flags disposed**
+
+- **Worker's readings of B1, B2, B3a, B3b, B5, B8a/B8b, B8c:** accepted, as
+  the tester did. Each is the stricter or the B1-owned reading, and none
+  conflicts with a criterion.
+- **Session ids identical across spawned roles:** owned by `process-tasks.md`
+  P-14, which already describes exactly this. Nothing new to add.
+- **S1-S6 follow-up:** the worker found nothing unguarded; no task created.
+- **Tester's two surviving mutants (B2 `< 3`, B3a entity-"11"):** equivalent
+  under the criteria, as the tester argued. Decided: no change.
 
 ## Notes
 
