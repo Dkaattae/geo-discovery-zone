@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-076-frontend-readme-fences.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
+| worker | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
 
 ## Goal
 
@@ -202,3 +203,149 @@ checks:
 - [ ] The worker's Handoff reports the uninstalled `bun test` observation (see
       Constraints). If the README was rewritten there, the sweep adds a
       `tasks.md` entry that names the test.
+
+## Handoff
+
+**TL;DR:** the four blocks are restored byte-for-byte from `c2c4781` inside
+` ```text ` fences, and prettier 3.9.6 leaves them alone (`format:check` exits 0,
+`format` is a no-op on the README). **Five question-bank whole-tree pins are red**:
+two were already red from the expander's commits, and three go red because of
+the README. All five are listed under Tests made stale. **Criterion 6 cannot pass
+read literally** because of a ` ```sh ` block that was already on `main`. Its
+intended reading passes. See Flags.
+
+**Changed:**
+
+- `frontend/README.md`: the four flattened ranges on `main` (104–141, 149–152,
+  164–166, 264–277) were each replaced by a ` ```text ` line, the original lines
+  from `c2c4781` (104–141, 150–153, 166–168, 268–281) and a closing ` ``` `.
+  Nothing else in the file changed.
+- This brief: Status, Next step, Sessions row, Handoff, Notes.
+
+**Where each criterion stands (worker's own check; the tester verifies):**
+
+| # | Where / evidence |
+|---|---|
+| 1–4 | The fenced blocks in `frontend/README.md`. The content sha256s match the table exactly: `95f8a9dd…`, `c56ca1a1…`, `115d2f0a…`, `0b698c6d…`. Each sits between the anchors the criteria name. The fifth fenced block is the existing ` ```sh ` one. |
+| 5 | Checked by script: no line outside a fence equals a flattened line that differs from its original. |
+| 6 | **Fails literally** and passes as intended. See Flags. |
+| 7 | `bun run format:check` exits 0 ("All matched files use Prettier code style!"), with `node_modules/prettier` 3.9.6. |
+| 8 | `bun run format` leaves the README sha256 unchanged at `fd47a239fe8df2faccb8e0db72c7b060f703cf912b3e43e914f60c9581981dbe`. |
+| 9 | No ignore directive was added. `.prettierrc`, `.prettierignore`, `package.json` and `bun.lock` are untouched. T-075 criterion 9 is green. |
+| 10 | After a full `bun test` in `frontend/`, the README sha256 is unchanged. But see "Environment": the install here is partial. |
+| 11 | `git diff --name-only 0b78dec` lists `frontend/README.md`, this brief and `runs/T-076-frontend-readme-fences.md`. Nothing else. |
+
+**Info string.** I used `text`. Prettier has no formatter for it, so it leaves
+the content verbatim, and GitHub renders it in monospace with no highlighting. A
+bare ` ``` ` would also have worked. `ts` would not, for the reason the
+Constraints give.
+
+**Uninstalled `bun test` observation (Constraints):**
+
+- **On this task's tree, no rewrite happened.** I moved `frontend/node_modules`
+  aside and ran a full `bun test`. `git status`/sha256 showed the README
+  unchanged at `fd47a239…`. The 9 failures were all missing packages:
+  `lint-gate.test.ts` couldn't find `@eslint/js`, and 4 component test files
+  couldn't find `react/jsx-runtime`.
+- **On `main`'s README, it does rewrite, and I identified the test.** With
+  `node_modules` absent, `bun run format` resolves to a **global
+  `/opt/node22/bin/prettier` at 3.8.1**, not the pinned 3.9.6. I put `main`'s
+  README in place and ran `bun test src/format-gate.criteria.test.ts` alone. Line
+  150 became `2 \* gradeOf`, exactly the sighting. The writer is `T-075 tester,
+  criterion 7 — the writer and the check cover the same files` (`run("format")`
+  at line 178). Its criterion 5 test then failed: `bun run format:check exits 0`.
+  `prettier 3.8.1 --stdin-filepath README.md` on `main`'s README gives the same
+  one-line diff. On the fenced README it gives no diff.
+- After the test I restored the task README and moved `node_modules` back.
+  Because of the fence, the uninstalled case no longer touches this file. The
+  underlying hazard is still there for any other file where 3.8.1 and 3.9.6
+  disagree: the test runs a writer that can resolve to an unpinned global
+  prettier. **The sweep should add a `tasks.md` entry** that names
+  `format-gate.criteria.test.ts` criterion 7 (Review checklist item 2).
+
+**Environment, read before re-running anything:**
+
+- **`bun install --frozen-lockfile` cannot complete here.** The egress proxy
+  refuses with a policy denial: `ProxyConnectFailed (403) downloading tarball
+  topojson-client@3.1.0`. `node_modules` is partial. Prettier 3.9.6, eslint and
+  most other packages are present, but `react-simple-maps`, `us-atlas` and
+  `topojson-client` are missing.
+- As a result, **the "installed" frontend `bun test` shows 406 pass, 4 fail**.
+  All 4 are "Cannot find package 'react-simple-maps'" in the 4 component test
+  files. `typecheck` fails on the same missing modules. These are environmental
+  and unrelated to a Markdown file. `format-gate` and `git-baseline-guard` show
+  48/48 pass. `lint` is clean. A tester in an environment with registry access
+  should get a full install. Criterion 10 is strictly about a complete install,
+  so it is only partly evidenced here.
+- **backend:** `uv run pytest -q` reports 1221 passed, 9 skipped.
+- **question-bank:** `bun test` reports 2708 pass, 5 fail. All 5 are listed below.
+
+**How to run:**
+
+```sh
+cd frontend && bun install --frozen-lockfile && bun run format:check && bun run format && git status --porcelain -- README.md && bun test
+cd question-bank && bun test
+cd backend && uv run pytest -q
+```
+
+**Tests made stale** (all are whole-tree digest pins; all should be **modified to
+re-pin** to this task's tree, under an approved Test change request, D-14/D-15).
+This task's `frontend/README.md` sha256 is
+`fd47a239fe8df2faccb8e0db72c7b060f703cf912b3e43e914f60c9581981dbe`.
+
+- `question-bank/src/farm-animal-loose-ends-verify.test.ts` → `T-096 criteria 17-21:
+  the bank and the boundaries > criterion 21: outside the allowed files and test
+  files, every tracked file is main's, and none is added`. **Already red before
+  my change**, from the expander's brief and run log. Add those files and
+  `frontend/README.md` to `CRITERION_21_ALLOWED`.
+- `question-bank/src/climate-cold-trade-accepted-verify.test.ts` → `T-091 criterion
+  22: the diff touches only the allowed files > every tracked non-test file
+  outside the allowed list is 12d242e's, and none is added`. **Already red before
+  my change**, for the same reason. Re-pin `MAIN_UNTOUCHABLE_SHA`/`_COUNT` or
+  extend `CRITERION_22_ALLOWED`.
+- `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` → `T-088
+  criteria 20-25: what must not change > criterion 21: every tracked file under
+  frontend/ is byte-identical to main's`. Red because of the README. Re-pin the
+  frontend digest.
+- `question-bank/src/map-click-no-candidates-verify.test.ts` → `T-092 criterion 16:
+  no other surface changes > frontend (except []) is byte-identical to 5d72ca5`.
+  Red because of the README. Re-pin the frontend digest.
+- `question-bank/src/refresh-regenerate-reminder-verify.test.ts` → `T-087
+  criterion 15: nothing under backend/, frontend/ or e2e/ changes > every tracked
+  file under the three trees is as re-pinned by T-039, none added or removed`.
+  Red because of the README. Re-pin.
+
+The brief named only the first two. The other three are of the same family, as
+its "Others may go red too" anticipated. I changed no test.
+
+**Flags (decision, why, owner):**
+
+- **Criterion 6 is unsatisfiable as literally worded.** The task side removes
+  *every* fenced block's content. The `main` side removes only the four flattened
+  ranges. So the content and fence lines of the pre-existing ` ```sh ` block
+  (`git clone …` / `npm run dev`) appear only on the `main` side. The resulting
+  diff is exactly those 6 lines. If `main`'s pre-existing fences are also
+  stripped, the two sequences are identical, so no prose moved. I did not touch
+  the `sh` block to game the wording. **Owner:** the tester judges it on intent
+  and records that in the Verdict. If the tester won't, it goes back to
+  `task-expander` to amend the criterion and needs a fresh approval.
+- **The worker and expander Sessions rows share one session id**
+  (`cse_011oDiJbsZTbExMiPULZMiFd`). This run is orchestrated from one remote
+  session, and the env var is all I can report. **Owner:** the tester confirms
+  its own id differs. The orchestrator notes it in the run log.
+
+**Deliberately not done:** I did not fix the global-prettier fallback in
+`format-gate.criteria.test.ts` (out of scope, and it is a pre-existing test). I
+did not change the README's other unfenced blocks (JSX, reveal table,
+checklist). I made no `tasks.md` entry, because that belongs to the sweep.
+
+## Notes
+
+- **The survey confirmed nothing was done.** `main` has only the one ` ```sh `
+  fence. All four sha256s in the Definitions table reproduce from `c2c4781`.
+- **The sightings now have an explanation.** It is not "prettier unresolved". A
+  global prettier 3.8.1 on `PATH` is used when `node_modules` is missing, and
+  3.8.1 escapes a bare `*` in Markdown text where 3.9.6 doesn't. The fence
+  removes this README from that disagreement.
+- **The brief understated which pins go red:** 5 rather than 2, and 2 of those
+  were already red from the expander's own commits.
