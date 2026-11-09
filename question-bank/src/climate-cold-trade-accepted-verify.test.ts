@@ -92,7 +92,9 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by hand for D-19: .claude/loop/ deleted; process.md, process-decisions.md, CLAUDE.md, .claude/agents/ and .claude/skills/next-task changed.
 // Re-pinned by T-047 (Test change request row 2): test-guidelines.md, which main
 // counted, joins the allowed set with T-047's brief and run log.
-const MAIN_UNTOUCHABLE_SHA = "0b3efcae2b47ff11f705117ef9fdea0f17e2a118629a9b07914ea233972027b5";
+// Re-pinned by T-104 (Test change request row 3): backend/tests/conftest.py moved;
+// T-104's brief and run log join the allowed set (count unchanged, 285).
+const MAIN_UNTOUCHABLE_SHA = "eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf9e0fc213863193";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -120,7 +122,9 @@ const MAIN_UNTOUCHABLE_COUNT = 285;
 // Re-pinned by T-047 (Test change request row 3): T-047's tester added
 // test-guidelines-backend.criteria.test.ts (122 -> 123).
 // Re-pinned by T-103 (Test change request row 4): T-103 added test_t103_bank_facts.py, test_t103_bank_fact_edges.py and test_t103_tester_criteria.py (123 -> 126).
-const MAIN_TESTS_SHA = "c0ec8c11a8a29ccf1137f4951d46f8af069f0c0b7ed19242c5477d37e980122a";
+// Re-pinned by T-104 (Test change request rows 2 and 8): T-104 changed test_contract.py
+// and its tester added test_t104_tester_criteria.py; recomputed on merging main after T-103.
+const MAIN_TESTS_SHA = "592eaba9cfe95d85444262c6f230f25c84aa642b2a314ac33b3c465b352b02df";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -135,7 +139,9 @@ const MAIN_TESTS_SHA = "c0ec8c11a8a29ccf1137f4951d46f8af069f0c0b7ed19242c5477d37
 // Re-pinned by T-047 (Test change request row 3): T-047's tester added
 // test-guidelines-backend.criteria.test.ts (122 -> 123).
 // Re-pinned by T-103 (Test change request row 4): T-103 added test_t103_bank_facts.py, test_t103_bank_fact_edges.py and test_t103_tester_criteria.py (123 -> 126).
-const MAIN_TESTS_COUNT = 126;
+// Re-pinned by T-104 (Test change request rows 2 and 7): T-104's tester added
+// test_t104_tester_criteria.py (126 -> 127, on merging main after T-103).
+const MAIN_TESTS_COUNT = 127;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -182,8 +188,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-101 (row 8), then by hand for D-19 (its whole-tree count and digest moved),
   // then by T-102 (row 3), then by T-047 (row 4, then row 8: recomputed on merging main after T-102),
   // then by T-103 (row 5, for its row 2)
+  // then by T-104 (row 5, for its row 4), then by T-104 (row 9, on merging main after T-103)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "cc8f4936863efd14616f5f2017192c23bba1f8997c6aa27015c4553bb3d69691",
+    "25451e3486f036f0bb5d32356f8d7d0f601f7f1e4a84b882b80c514386bdd898",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -202,6 +209,10 @@ const CRITERION_22_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
   "tasks/T-103-bank-facts-guard.md",
   "runs/T-103-bank-facts-guard.md",
+  // T-104's loop records, joined through T-104's Test change request row 3
+  // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
+  "tasks/T-104-contract-docstrings.md",
+  "runs/T-104-contract-docstrings.md",
   // T-047's file set, joined through T-047's Test change request row 2
   // (approved by Dkaattae, 2026-11-06, in the attended tester session that made the edit).
   "test-guidelines.md",

@@ -1,8 +1,10 @@
 """Shared fixtures.
 
 Endpoint tests go through the app with `httpx.AsyncClient`, not by calling the
-handler — routing, validation and serialisation are part of what the contract
-promises.
+handler — routing, validation and serialisation are part of the behaviour a
+client sees, so a test that skips them is not testing the endpoint.
+`openapi.yaml` follows the backend and is kept in step with it, not the other
+way round (`engineering-decisions.md` E-14).
 
 The database is real, and which one is a choice: by default a temporary SQLite
 file, or any URL in `GEO_TEST_DATABASE_URL`. Both are supported backends, so
