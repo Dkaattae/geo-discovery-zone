@@ -700,6 +700,12 @@ task paid 8 rows over two attended tester rounds. Four were the whole-tree pins,
 three were `frontend/` tree digests its own criteria test tripped. The eighth existed
 only because T-102 merged first and had re-pinned the same `APPLIED_REQUEST_FILE_SHAS`
 entry, so two PRs in flight together each owe the other a re-pin.
+**Recurred 2026-11-09 on T-104 (PR #129).** Two module docstrings in `backend/tests/`
+cost 5 rows and an attended tester round. Two of them (T-091 c22 and T-096 c21) were
+red before the worker touched anything, from the brief and run log alone; that part
+recurs on every task until `tasks/` and `runs/` are exempt from those pins. The
+tester's own criteria test also quotes the unchanged `conftest.py` paragraphs
+verbatim, the milder property-not-digest shape: a later task that rewords them pays a row.
 **Done when:** a brief's "nothing else moved" criterion no longer leaves a
 permanent pin behind, or a D-n entry records why it should.
 
