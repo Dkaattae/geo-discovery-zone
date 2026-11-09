@@ -375,16 +375,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
-- **T-104 — Two backend test docstrings say `openapi.yaml` follows the backend**
-  (PR #129, 2026-11-09). `backend/tests/test_contract.py` and `conftest.py` no longer
-  call `openapi.yaml` "the contract"; both cite E-14, and the conftest reason for
-  going through `httpx.AsyncClient` now rests on what a client sees, not on the spec.
-  Nothing else in either file moved (AST-checked against `dca80da`). *Where it
-  differed from the brief:* a docstring-only change still needed 5 Test change
-  request rows in an attended tester round, one more than the worker listed:
-  `conftest.py` is not a `test_*` file, so it also moved both `MAIN_UNTOUCHABLE_SHA`
-  pins, and row 4's edit cascaded into an `APPLIED_REQUEST_FILE_SHAS` entry (P-17).
-  The same phrasing survives in `conventions.md` line 16, now T-105.
 - **T-047 — `test-guidelines.md` describes the real `backend/` suite** (PR #127,
   2026-11-06). The backend section now names `backend/` and gives its run commands.
   It covers SQLite by default with Postgres through `GEO_TEST_DATABASE_URL`,
