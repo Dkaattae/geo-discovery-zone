@@ -1,7 +1,7 @@
 # T-105 — `conventions.md` still calls `openapi.yaml` "the contract" — run log
 
 **Task:** T-105 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #130
-**Started:** 2026-11-09 · **Outcome:** in progress
+**Started:** 2026-11-09 · **Outcome:** halted — needs human (test change request)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -80,3 +80,43 @@ Status is `awaiting verification` and Next step is `tester`.
 - **Mistake, fixed:** my first attempt to update the brief failed on a script error, so the brief went in a separate second commit. Nothing was lost.
 
 Brief: `/home/user/geo-discovery-zone/tasks/T-105-conventions-openapi-row.md`
+
+## Round 3 — tester — 2026-11-09
+`Next step` on entry: `tester` → on exit: `human`
+
+**T-105 is halted for a person.** The `conventions.md` change meets criteria 1–3, but criterion 4 can't pass until someone approves changes to six existing test pins that this task's own change made stale. Status is `test changes requested`, Next step is `human`, and the push landed (`origin/claude/fervent-ptolemy-4py2eg` = `c90cba3`).
+
+**Needed from a person:** start an attended `tester` session for T-105 and approve or refuse rows 1–6 of the brief's Test change request. Under D-15 the orchestrator can't approve them.
+
+**Independence:** this run is orchestrated, so the session-id check proves nothing and did not pass. All three Sessions rows (expander, worker, tester) show `cse_011oDiJbsZTbExMiPULZMiFd`. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+| Criterion | Verdict | Evidence |
+|---|---|---|
+| 1 | met | 5 tests in the new test file, all green |
+| 2 | met | 5 tests in the same file. Base `0b78dec`'s other lines are held as a sha256, because CI checks out shallow |
+| 3 | met | `git diff --stat 0b78dec..HEAD` and per-commit stats are in the Verdict. The worker touched only `conventions.md` (`011459b`) and the brief (`bf7b318`) |
+| 4 | not yet | Pre-existing pins are red; rows 1–6 below |
+
+**Mutations:** I made six temporary edits to `conventions.md`, and each turned at least one of my new tests red. They were: restoring base's row, editing the `backend/` row, shifting the padding, `E-140`, inserting "Contract", and adding an extra line. All were reverted.
+
+**Suites:**
+- **Backend:** 1221 passed, 9 skipped.
+- **question-bank:** 2720 pass, 3 fail (rows 1–3). Typecheck and lint are clean.
+- **Frontend:** fails locally only because `react-simple-maps` / `us-atlas` aren't installed in this sandbox. CI's frontend job passed on `9cc7751`, and no frontend file changed.
+
+**Test change request:**
+- **Row 1:** T-067's criterion-17 test in `climate-koppen.criteria.test.ts` still expects the old "contract" wording. It changes to assert "follows the backend" and no "contract", keeping the exactly-once and E-14 checks.
+- **Rows 2–3:** add the T-105 brief and run log to the allowed sets in two whole-tree pins. Counts and digests stay the same.
+- **Row 4:** `MAIN_TESTS_COUNT` goes from 127 to 128 because of my new test file, and `MAIN_TESTS_SHA` is recomputed.
+- **Row 5:** the farm-animal `APPLIED_REQUEST_FILE_SHAS` entry is recomputed.
+- **Row 6:** the digest in `hand-check-levels-verify.test.ts` is recomputed.
+
+The worker listed rows 1–3. Rows 4–6 are ones it missed. A dry run applying all six took question-bank to 0 fail with backend still green; I reverted all six, and only my new test file is committed. Rows 2, 3 and 5 recur on every task, so the Verdict repeats T-104's P-17 note for Dkaattae.
+
+Files:
+- /home/user/geo-discovery-zone/question-bank/src/conventions-openapi-row-verify.test.ts (new, committed)
+- /home/user/geo-discovery-zone/tasks/T-105-conventions-openapi-row.md (Verdict, Test change request, header, Sessions row)
+
+## Halted — test change request — 2026-11-09
+Raised at commit `c90cba3`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
+A person must start the `tester` step for T-105 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
