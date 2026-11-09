@@ -87,7 +87,9 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // test_t040_tester_criteria.py and test_content_build.py.
 // Re-pinned by T-047 (Test change request row 7): T-047's tester added
 // frontend/src/test-guidelines-backend.criteria.test.ts.
-const MAIN_BOUNDARY_SHA = "437329add2ccdb352732514d61ba4d78bc3183ec6d75b520f5da0ff56c61f597";
+// Re-pinned by T-104 (Test change request row 1): T-104 changed backend/tests/conftest.py
+// and test_contract.py, and its tester added test_t104_tester_criteria.py.
+const MAIN_BOUNDARY_SHA = "75e724453de9d426d89b38cdd4e34e73ab079d14ed7adca4fdaa0bd137fdd3af";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",
