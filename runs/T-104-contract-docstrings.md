@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract" — run log
 
 **Task:** T-104 · **Branch:** `task/T-104-contract-docstrings` · **PR:** #129
-**Started:** 2026-11-07 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-07 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-07
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -126,3 +126,6 @@ A person must start the `tester` step for T-104 in a session they are attending 
 
 ## Run ended — 2026-11-07
 Task limit (2) reached; both tasks ended halted on test change requests.
+
+## Resumed — 2026-11-09
+A person told the orchestrator: "pr 129 is fixed please proceed". The branch head had moved to `0d81fd2`: an attended tester applied the approved test change request (`63c7e84`) and recorded a verdict (`0d81fd2`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-09`.
