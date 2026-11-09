@@ -375,6 +375,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-104 — Two backend test docstrings say `openapi.yaml` follows the backend**
+  (PR #129, 2026-11-09). `backend/tests/test_contract.py` and `conftest.py` no longer
+  call `openapi.yaml` "the contract"; both cite E-14, and the conftest reason for
+  going through `httpx.AsyncClient` now rests on what a client sees, not on the spec.
+  Nothing else in either file moved (AST-checked against `dca80da`). *Where it
+  differed from the brief:* a docstring-only change cost 9 Test change request rows
+  over two attended tester rounds. Rows 1-5 were one more than the worker listed:
+  `conftest.py` is not a `test_*` file, so it also moved both `MAIN_UNTOUCHABLE_SHA`
+  pins, and row 4 cascaded into an `APPLIED_REQUEST_FILE_SHAS` entry. Rows 6-9 came
+  from T-103 (PR #128) merging first with the same pins (P-17). The same phrasing
+  survives in `conventions.md` line 16, now T-105.
 - **T-103 — The bank facts T-102's draw survey rests on are guarded** (PR #128,
   2026-11-09). `backend/tests/test_t103_bank_facts.py` holds one pure check per
   fact (B1, B2, B3a-c, B4-B7, B8a-d, B9) run against the committed
