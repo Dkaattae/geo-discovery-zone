@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier — run log
 
 **Task:** T-076 · **Branch:** `task/T-076-frontend-readme-fences` · **PR:** #131
-**Started:** 2026-11-09 · **Outcome:** in progress
+**Started:** 2026-11-09 · **Outcome:** halted — needs human (Status: blocked; criterion 6 amendment + test change request)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -97,3 +97,57 @@ The tester needs to deal with three things:
 Files:
 - /home/user/geo-discovery-zone/frontend/README.md
 - /home/user/geo-discovery-zone/tasks/T-076-frontend-readme-fences.md
+
+## Round 3 — tester — 2026-11-09
+`Next step` on entry: `tester` → on exit: `task-expander` (Status: `blocked`, Test changes: `requested`)
+
+**TL;DR: T-076 is blocked, and nothing is wrong with the README.** The worker's fences hold: criteria 1–5, 7, 8, 9 and 11 are met, and 10 is met with partial evidence. Two things stop a pass. **Criterion 6 cannot be met as worded**, so it goes back to the `task-expander`. **Seven question-bank whole-tree pins are stale**, and their Test change request needs a person in an attended tester session.
+
+- **Pushed:** `eb455a6` is on `origin/task/T-076-frontend-readme-fences`. The local and remote heads match and the tree is clean.
+- **Brief header:** Status `blocked`, Next step `task-expander`, Test changes `requested`, Fault filled in.
+- **Sessions row:** my row is added. Every role in this orchestrated run shares session id `cse_011oDiJbsZTbExMiPULZMiFd`. My independence rests only on being a freshly spawned context, which is weaker than a separate session. The Verdict says so.
+
+**Criterion 6, why it is blocked:**
+- **The two sides are stripped differently.** The task side removes every fenced block. The `main` side removes only the four flattened ranges, so it keeps the README's existing six-line `sh` block (lines 325–330 on `main`).
+- **The sequences differ by exactly those six lines:** 146 lines on the task side, 152 on `main`. Any README that keeps that block fails.
+- **Stripping fences on both sides makes them identical**, but choosing that reading is a criterion change, not mine to make.
+- **Suggested fix for the expander:** apply the fence stripping to both files. The worker flagged the same thing.
+
+**Tests added:** `/home/user/geo-discovery-zone/frontend/src/readme-fences.criteria.test.ts`, 14 tests, all passing.
+- **Covered:** criteria 1–4 (digests and placement), 5 (42 flattened lines copied by hand from `main`), 7 and 8.
+- **Checked by hand instead:** criteria 6, 9 (files unchanged from `main`), 10 and 11. Asserting them in a test would mean resolving a git revision, which the repo's guard forbids.
+- **Mutations:** I made nine to the README. Each one turned the tests for its criterion red, and each was reverted; `cmp` confirms the README is back to its pushed bytes.
+
+**Whole suites:**
+
+| Suite | Result | Cause of failures |
+|---|---|---|
+| frontend | 420 pass, 4 fail | All "Cannot find package 'react-simple-maps'" |
+| question-bank | 2707 pass, 6 fail | All whole-tree pins |
+| backend | 1221 passed, 9 skipped; ruff clean | none |
+
+- **Frontend extras:** lint is clean and format:check passes. Typecheck has 9 errors, all from the same missing package.
+- **Why the package is missing:** `bun install --frozen-lockfile` gets a 403 from the proxy on some tarballs, so the install is partial.
+- **CI on the worker's commit `cd8af2b`:** the frontend job passed with a full install. The question-bank job failed.
+
+**The Test change request has 7 rows.**
+- **What they change:**
+  - **Rows 1–3** re-pin the frontend tree digests in the agriculture, map-click and refresh tests.
+  - **Rows 4–5** add the README, the brief and the run log to the allowed sets in the farm-animal and climate-cold tests (counts 282 → 281 and 285 → 284).
+  - **Row 6** raises the climate-cold count of existing test files from 127 to 128, because my test file now counts.
+  - **Row 7** updates the stored file digests in the climate-cold test.
+- **Beyond the worker's list:** the worker's 5 are confirmed. Row 6 appears once my test file is tracked, and row 7 follows from applying rows 1, 2 and 4.
+- **Dry run:** applying rows 1–6 left only row 7 red. I reverted it with `git checkout -- question-bank/src`. The values are recorded in the rows, but they move if T-105 (PR #130) merges first.
+
+**Order for the next steps:**
+1. The `task-expander` amends criterion 6 and gets it re-approved.
+2. A tester in a session a person is attending asks the person to approve the 7 rows, applies them, and finishes verifying.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-076-frontend-readme-fences.md` (Verdict and Test change request sections).
+
+## Halted — Status: blocked, with a test change request — 2026-11-09
+Raised at commit `eb455a6`. Header: `Status: blocked`, `Next step: task-expander`, `Test changes: requested`.
+`Status: blocked` is an orchestrator halt condition, so the orchestrator did not spawn the expander. The test change request also needs an attended tester (D-15). A person decides how to resume: spawn the `task-expander` to amend criterion 6 and approve the amendment, then attend the `tester` step for the 7 rows.
+
+## Run ended — 2026-11-09
+Task limit (2) reached; both tasks ended halted (T-105 on a test change request, T-076 blocked).
