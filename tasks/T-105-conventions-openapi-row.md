@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-105
 **Branch:** `claude/fervent-ptolemy-4py2eg`
-**PR:** opened draft at expand time (number recorded by the orchestrator's run log); stays draft until the reviewer approves it
+**PR:** #130, opened draft at expand time; stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
