@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract"
 
-**Status:** `pass`
-**Next step:** `reviewer` — conflict with main resolved (`## Review` finding 1); redo the sweep and mark ready
+**Status:** `approved`
+**Next step:** `human` — merge PR #129 (ready, inside the envelope)
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-09` (rows 1-5; rows 6-9 the same day, after merging main)
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared session id, freshly spawned context; see Verdict) |
 | tester | 2026-11-09 | session_011oDiJetGTLJwZt9qsn2Bn6 (attended, Dkaattae; applied the approved Test change request) |
 | reviewer | 2026-11-09 | session_011oDiJbsZTbExMiPULZMiFd (orchestrated subagent; reviewed work it did not write) |
+| reviewer | 2026-11-09 | session_011oDiJbsZTbExMiPULZMiFd (orchestrated subagent, second pass after the merge with main; approved and swept) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-104 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -293,6 +294,47 @@ task):** rows 3 and 4 recur on every task, because each adds a brief and a run
 log. Exempting `tasks/` and `runs/` from these two pins would end that.
 
 ## Review
+
+### Reviewer, 2026-11-09, second pass — **approved, inside the envelope**
+
+**TL;DR.** Finding 1 below is resolved: `origin/main` (T-103) is merged in, rows 6-9 are
+approved and applied, and the head (`99f0969`) holds all of main. **Approved; marked ready
+with no escalation note.** Swept in this branch.
+
+- **Merge `3196135` checked with `git show --cc`.** On the three pin files it only combines
+  both tasks' comment trails and allowed-set entries and takes main's values. It adds no
+  number of its own.
+- **Rows 6-9 (`605c476`) match the table exactly.** They change `MAIN_BOUNDARY_SHA`, `MAIN_TESTS_COUNT` 126 → 127,
+  `MAIN_TESTS_SHA` and the farm-animal `APPLIED_REQUEST_FILE_SHAS` entry, and nothing else.
+  Every pre-existing test edit in `git diff origin/main...HEAD` comes from a tester commit and maps
+  to an approved row.
+- **Suites on `99f0969`, run locally:**
+  - question-bank: 2713 pass, 0 fail; typecheck and lint clean.
+  - backend: `make -C backend check` gives 1221 passed, 9 skipped.
+  - frontend: no frontend file changed. CI decides it.
+- **Envelope.** Every condition holds:
+  - person-approved Test changes;
+  - `CI fix: none` in every round of the header's history;
+  - no dependency;
+  - no `openapi.yaml`, migration or plan change;
+  - no child-facing text;
+  - no product decision;
+  - a small diff.
+
+  The `Approved: orchestrator` stamp on the criteria is not an envelope condition (D-4,
+  `process-decisions.md` on the unattended trade). I read the criteria and they ask for
+  what the queue entry asked.
+- **Bookkeeping gap, not blocking.** Row 8's Decision cell is blank. Rows 6, 7 and 9 carry
+  Dkaattae's words, the header says "rows 6-9", and the Verdict quotes "approve rows 6–9,
+  Dkaattae", so row 8 was approved. It is copied into the PR body so the record survives the
+  sweep.
+- **Sweep, redone against the merged `tasks.md`.**
+  - **T-104:** deleted.
+  - **T-105:** new. `conventions.md:16` is non-blocking finding 1 below.
+  - **P-17:** gains the recurrence note (non-blocking finding 2), now with the second
+    merge-order round.
+  - **T-103:** `b7e040b` amended it, but it merged first and its entry is already gone, so
+    that amendment is dropped.
 
 ### Reviewer, 2026-11-09 — **changes requested** (one blocking finding, and it is not about the work)
 
