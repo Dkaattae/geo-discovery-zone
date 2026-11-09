@@ -13,7 +13,7 @@ e2e/             Playwright end-to-end suite, run against a real docker compose 
 fixtures/        data shared across languages and suites — see "Shared fixtures" below
 tasks/           brief for the task in flight; empty when nothing is
 archive/         the retired hand-written question bank (archive/hand-written-bank/), never served; kept until the owner purges it
-openapi.yaml     the contract between frontend and backend; follows the backend once both are built (engineering-decisions.md E-14)
+openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)
 ```
 
 ### Shared fixtures
