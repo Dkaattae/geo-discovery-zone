@@ -38,3 +38,45 @@ T-105 has no dependency. No remote branch exists for it, and the In flight list 
 
 ## Approval — 2026-11-09
 Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criteria.
+
+## Round 2 — worker — 2026-11-09
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR:** T-105 is implemented and pushed to `claude/fervent-ptolemy-4py2eg`. The only content change is line 16 of `conventions.md`. The suite is not fully green, for two reasons:
+- Three question-bank tests are stale by design and need an attended Test change request.
+- The frontend tests and typecheck fail because this sandbox can't install `react-simple-maps`; the package registry is blocked. No frontend file was touched.
+
+Status is `awaiting verification` and Next step is `tester`.
+
+**The push landed:** `git log origin/claude/fervent-ptolemy-4py2eg` shows my two commits on top.
+- `011459b T-105 worker: openapi.yaml layout row follows the backend, not a contract` changes only `conventions.md`.
+- `bf7b318 T-105 worker: handoff, status awaiting verification` changes only the brief.
+
+**The change:**
+- `conventions.md:16` now reads `openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)`.
+- A diff against base `0b78dec` shows only that line changed. Both versions have 133 lines, and the description still starts in column 18.
+
+**Tests made stale** (left failing; details and suggested fixes are in the Handoff):
+- **`question-bank/src/climate-koppen.criteria.test.ts` › "T-067 criterion 17 …"**: it asserts the old wording ("the contract between frontend and backend"). Criterion 1 makes it red. It should drop that line and keep the exactly-once and `E-14` checks.
+- **`question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21 …" › "criterion 21 …"**: it pins 282 non-test files; there are now 284, and the hash on line 172 moves too.
+- **`question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22 …"**: it pins 285 files; there are now 287, and the hash on line 97 moves too.
+- **Cause of the two count failures:** the new brief and `runs/` file, not the `conventions.md` edit.
+- `refresh-regenerate-reminder-verify.test.ts` stayed green.
+
+**Suite results:**
+
+| Suite | Result |
+|---|---|
+| `make -C backend check` | 1221 passed, 9 skipped |
+| `question-bank/` | 2710 pass, 3 fail (the three above); typecheck and lint pass |
+| `frontend/` | 406 pass, 4 fail; typecheck exit 2; lint passes |
+
+- **Frontend failures:** every one is a missing `react-simple-maps` or `us-atlas` module. `bun install --frozen-lockfile` was refused by the proxy (403 for `europe-west1-npm.pkg.dev`), and I did not retry it.
+- **Tester** should re-run the frontend checks where the install works, or use CI's frontend result.
+
+**Flags:**
+- **Sessions table:** my worker row has the same session id as the expander's (`cse_011oDiJbsZTbExMiPULZMiFd`), because the orchestrated run reports one remote session id for all its subagents. I said this in the Handoff; the tester should judge independence from it.
+- **Out of scope, reviewer to queue:** `README.md:32` and `:215`, `geoquizdataplan.md:648`, and `conventions.md:9` still have the same stale wording, as the brief's Notes say.
+- **Mistake, fixed:** my first attempt to update the brief failed on a script error, so the brief went in a separate second commit. Nothing was lost.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-105-conventions-openapi-row.md`
