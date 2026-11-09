@@ -1,7 +1,7 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract" — run log
 
 **Task:** T-104 · **Branch:** `task/T-104-contract-docstrings` · **PR:** #129
-**Started:** 2026-11-07 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-11-07 · **Outcome:** halted — needs attended tester (merge conflict with main, re-pin)
 
 ## Round 1 — task-expander — 2026-11-07
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -129,3 +129,52 @@ Task limit (2) reached; both tasks ended halted on test change requests.
 
 ## Resumed — 2026-11-09
 A person told the orchestrator: "pr 129 is fixed please proceed". The branch head had moved to `0d81fd2`: an attended tester applied the approved test change request (`63c7e84`) and recorded a verdict (`0d81fd2`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-09`.
+
+## Round 4 — reviewer — 2026-11-09
+`Next step` on entry: `reviewer` → on exit: `tester` — attended, to merge `origin/main` (T-103, PR #128) into this branch and re-pin under a new Test change request (see `## Review`, finding 1); then `reviewer` again for the sweep
+
+**I sent T-104 back with changes requested. The work is good, but the branch now conflicts with `main`.** PR #129 is draft again and the brief is live (`Status: changes requested`, `Next step: tester`, which has to be an attended session). The push landed: the remote head is `b6b0bde`, the same as my local head.
+
+**Why it went back**
+- **#128 (T-103) merged first.** It merged into `main` as `902284b` at 17:58Z, just before this review started, and it re-pinned the same three question-bank test files T-104 re-pinned. GitHub shows #129 as `dirty`.
+- **A trial merge (in a scratch worktree, since removed) conflicts in these places:**
+  - `refresh-regenerate-reminder-verify.test.ts`: `MAIN_BOUNDARY_SHA`.
+  - `climate-cold-trade-accepted-verify.test.ts`: `MAIN_TESTS_SHA` and `MAIN_TESTS_COUNT` (124 here, 126 on `main`; 127 once merged), the farm-animal entry in `APPLIED_REQUEST_FILE_SHAS`, and `CRITERION_22_ALLOWED`.
+  - `farm-animal-loose-ends-verify.test.ts`: `CRITERION_21_ALLOWED`.
+- **Two values merge cleanly but will be wrong:** both `MAIN_UNTOUCHABLE_SHA` constants.
+- **The fix needs a person:**
+  1. An attended tester merges `origin/main` in (no rebase, no force-push).
+  2. They keep both PRs' entries and recompute every T-104 value on the merged tree.
+  3. A person approves the new rows (D-14), which are applied in a `tester` commit.
+  4. CI goes green on the merged head.
+  5. The reviewer comes back to sweep and mark the PR ready.
+
+  T-047 hit the same situation (`7da84b5`).
+
+**I made a mistake on the way.** I approved, swept (`b7e040b`) and marked the PR ready before I noticed `main` had moved, because my fetch at the start ran before the merge. When the PR came back `dirty`, I put it back to draft and reverted the sweep with a normal commit (`b6b0bde`, no history rewrite). The brief's `## Review` and the PR comment both say this. The PR was marked ready for about a minute and nothing was merged.
+
+**My review of the work itself: nothing blocks it**
+- **Every role's commits are in the PR**, and each role touched only its own files.
+- **Every change to an existing test** is in tester commit `63c7e84` and matches rows 1-5, which Dkaattae approved.
+- **The docstring wording is good.** I re-ran the criterion 3 AST check myself and it matches `dca80da`.
+- **Suites on `83cdd7a`, before the conflict:**
+  - **CI:** all six jobs green.
+  - **Locally:** backend 1051 passed, 9 skipped; question-bank 2713 pass, 0 fail. Frontend fails 4 tests only on `react-simple-maps`, which cannot install here (proxy 403); CI has it green.
+- **Envelope:** apart from the conflict, it is inside it. The next reviewer pass can approve without escalating once the re-pins are approved and CI is green.
+
+**Findings that do not block (the approving reviewer's sweep queues them; a ready-made version is in `b7e040b`)**
+- **`conventions.md:16` still calls `openapi.yaml` "the contract between frontend and backend … once both are built".** A test pins that line (`climate-koppen.criteria.test.ts:302`). It should become a new S task, T-105.
+- **The tester's criteria test quotes the unchanged conftest paragraphs word for word**, so a later rewording will need a test change. This is another case of P-17.
+- **The flags are settled:**
+  - The brief and run-log pins that recur on every task go on P-17.
+  - The merge-order flag with T-103 is now finding 1.
+  - The mypy error is not queued: it was there before this task and mypy is not a gate.
+
+**Records**
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/129 (draft, body rewritten)
+- Review comment: https://github.com/Dkaattae/geo-discovery-zone/pull/129#issuecomment-6747887036
+- Brief: /home/user/geo-discovery-zone/tasks/T-104-contract-docstrings.md (`## Review`, header, my Sessions row)
+- Commits on `task/T-104-contract-docstrings`: `b8e3f5a` (review written as approved), `b7e040b` (sweep), `b6b0bde` (sweep reverted, changes requested)
+
+## Halted — needs attended tester — 2026-11-09
+`Next step` names `tester` but requires it attended: the merge and re-pin change pre-existing tests, which a person must approve in the session making the edits (D-15). The orchestrator did not spawn one.
