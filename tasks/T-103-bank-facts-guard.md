@@ -1,15 +1,14 @@
 # T-103 — Guard the bank facts the backend draw survey rests on
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-103-bank-facts-guard.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-09`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-103
 **Branch:** `claude/fervent-ptolemy-4py2eg`
 **PR:** #128, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** test changes are waiting for a person's approval: 4 question-bank whole-tree pins (rows 1-4 of the Test change request) went red because this task added files. Every criterion of T-103 itself is met. Start a `tester` session you are attending to approve and apply them.
 
 **Sessions:**
 
@@ -18,6 +17,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: same id as every spawned role, see Verdict) |
+| tester (attended) | 2026-11-09 | cse_011oDiJbVBJppsLkbSyUKGCw |
 
 ## Goal
 
@@ -446,16 +446,49 @@ would change rows 1 and 4 again.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087: pinned every tracked file under `backend/`, `frontend/` and `e2e/` so a question-bank task could not touch them; re-pinned by each backend task since | T-103 adds `backend/tests/test_t103_bank_facts.py`, `test_t103_bank_fact_edges.py` and `test_t103_tester_criteria.py`, so the tree hash changes (received `7f53b203…`) | modify | Same name, same assertion (`fileRowsSha(gitLsFiles("backend","frontend","e2e"))` equals the pin). `MAIN_BOUNDARY_SHA` becomes `"7f53b203b5728a892bb1e7023d885f9e32c53b420d0498fcc8e9a0730fb43936"`, with a comment `// Re-pinned by T-103 (Test change request row 1): T-103 added three backend test files.` | |
-| 2 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: no non-test file outside T-096's allowed set may differ from main or be added | `tasks/T-103-bank-facts-guard.md` and `runs/T-103-bank-facts-guard.md` are new tracked files (count 284, pin 282) | modify | Same name and assertions (count 282, `MAIN_UNTOUCHABLE_SHA` unchanged). `CRITERION_21_ALLOWED` gains `"tasks/T-103-bank-facts-guard.md"` and `"runs/T-103-bank-facts-guard.md"`, under a comment `// T-103's loop files, joined through T-103's Test change request row 2 (approved by <name>, <date>).` | |
-| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: no non-test file outside T-091's allowed set may differ from its base or be added | The same two loop files (count 287, pin 285) | modify | Same name and assertions (`MAIN_UNTOUCHABLE_COUNT` stays 285, `MAIN_UNTOUCHABLE_SHA` unchanged). `CRITERION_22_ALLOWED` gains the same two paths, under a comment like row 2's citing row 3 | |
-| 4 | Same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: every pre-existing test file stays byte-identical; re-pinned by each task that adds a test file | T-103 adds three backend test files (count 126, pin 123) | modify | Same name and assertions. `MAIN_TESTS_COUNT` 123 → 126 and `MAIN_TESTS_SHA` → `"c0ec8c11a8a29ccf1137f4951d46f8af069f0c0b7ed19242c5477d37e980122a"`, with comments `// Re-pinned by T-103 (Test change request row 4): T-103 added test_t103_bank_facts.py, test_t103_bank_fact_edges.py and test_t103_tester_criteria.py (123 -> 126).` above each | |
+| 1 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087: pinned every tracked file under `backend/`, `frontend/` and `e2e/` so a question-bank task could not touch them; re-pinned by each backend task since | T-103 adds `backend/tests/test_t103_bank_facts.py`, `test_t103_bank_fact_edges.py` and `test_t103_tester_criteria.py`, so the tree hash changes (received `7f53b203…`) | modify | Same name, same assertion (`fileRowsSha(gitLsFiles("backend","frontend","e2e"))` equals the pin). `MAIN_BOUNDARY_SHA` becomes `"7f53b203b5728a892bb1e7023d885f9e32c53b420d0498fcc8e9a0730fb43936"`, with a comment `// Re-pinned by T-103 (Test change request row 1): T-103 added three backend test files.` | approved — Dkaattae, 2026-11-09 |
+| 2 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: no non-test file outside T-096's allowed set may differ from main or be added | `tasks/T-103-bank-facts-guard.md` and `runs/T-103-bank-facts-guard.md` are new tracked files (count 284, pin 282) | modify | Same name and assertions (count 282, `MAIN_UNTOUCHABLE_SHA` unchanged). `CRITERION_21_ALLOWED` gains `"tasks/T-103-bank-facts-guard.md"` and `"runs/T-103-bank-facts-guard.md"`, under a comment `// T-103's loop files, joined through T-103's Test change request row 2 (approved by <name>, <date>).` | approved — Dkaattae, 2026-11-09 |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: no non-test file outside T-091's allowed set may differ from its base or be added | The same two loop files (count 287, pin 285) | modify | Same name and assertions (`MAIN_UNTOUCHABLE_COUNT` stays 285, `MAIN_UNTOUCHABLE_SHA` unchanged). `CRITERION_22_ALLOWED` gains the same two paths, under a comment like row 2's citing row 3 | approved — Dkaattae, 2026-11-09 |
+| 4 | Same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: every pre-existing test file stays byte-identical; re-pinned by each task that adds a test file | T-103 adds three backend test files (count 126, pin 123) | modify | Same name and assertions. `MAIN_TESTS_COUNT` 123 → 126 and `MAIN_TESTS_SHA` → `"c0ec8c11a8a29ccf1137f4951d46f8af069f0c0b7ed19242c5477d37e980122a"`, with comments `// Re-pinned by T-103 (Test change request row 4): T-103 added test_t103_bank_facts.py, test_t103_bank_fact_edges.py and test_t103_tester_criteria.py (123 -> 126).` above each | approved — Dkaattae, 2026-11-09 |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091: each file a Test change request re-pinned differs from main only by its re-pin; re-pinned by each task that edits one | Found while applying row 2, which edits `farm-animal-loose-ends-verify.test.ts`, so that file's digest in `APPLIED_REQUEST_FILE_SHAS` moves. The 2026-11-07 request missed it (its "84 pass" check did not cover this test) | modify | Same name and assertions (still required to differ from main's digest). The `farm-animal-loose-ends-verify.test.ts` entry becomes `"cc8f4936863efd14616f5f2017192c23bba1f8997c6aa27015c4553bb3d69691"`, its comment gaining `then by T-103 (row 5, for its row 2)` | approved — Dkaattae, 2026-11-09 |
 
 None of the four is a count floor protecting tests against deletion, and no
 test is deleted. Each re-pin pins the new tree exactly as hard as the old pin
 pinned the old one.
 
 ## Verdict
+
+**TL;DR. `pass`.** Dkaattae approved Test change request rows 1-5 in an attended
+tester session. They were applied in `2b87fea`. backend and question-bank are
+fully green, and the frontend shows only the same environment failures as
+before (`react-simple-maps` cannot be installed here). Next step: `reviewer`.
+
+**Attended pass, 2026-11-09** (session `cse_011oDiJbVBJppsLkbSyUKGCw`, which differs
+from every earlier row, so the Sessions check means something this time).
+
+- **Approval, in the person's words:** rows 1-4: "Approve all 4, as Dkaattae".
+  Row 5: "Approve row 5, as Dkaattae".
+- **Row 5 was new.** Applying row 2 turned a fifth pin red. That pin is the
+  `APPLIED_REQUEST_FILE_SHAS` digest of `farm-animal-loose-ends-verify.test.ts` in
+  `climate-cold-trade-accepted-verify.test.ts`. The digest went from
+  `e9470a5e…` to `cc8f4936…`. I raised it as row 5, asked, and got it approved
+  before editing.
+- **Tests modified (none deleted):**
+  - `refresh-regenerate-reminder-verify.test.ts`: `MAIN_BOUNDARY_SHA` re-pinned (row 1).
+  - `farm-animal-loose-ends-verify.test.ts`: two T-103 loop files joined `CRITERION_21_ALLOWED` (row 2).
+  - `climate-cold-trade-accepted-verify.test.ts`: the same two joined `CRITERION_22_ALLOWED` (row 3), `MAIN_TESTS_COUNT` 123 → 126 and `MAIN_TESTS_SHA` re-pinned (row 4), and the farm-animal digest re-pinned (row 5).
+- **Criteria 1-22:** unchanged since the 2026-11-07 verdict below. No source
+  or T-103 test file changed after it.
+
+| Suite | Result after `2b87fea` |
+|---|---|
+| backend `make -C backend check` | **1209 passed, 9 skipped** |
+| question-bank `bun test` | **2713 pass, 0 fail** |
+| frontend `bun test` | 406 pass, 4 fail, 4 errors, all from `react-simple-maps` missing. `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)` here. T-103 touches nothing under `frontend/`, so CI must confirm it |
+
+Criterion 23 is now **met**, subject to CI on the frontend.
+
+### Orchestrated verdict, 2026-11-07
 
 **TL;DR. Every criterion is met: 1-19 by tests, 20-22 by `git diff`, 23 by
 running the suites. The verdict is not `pass` yet.** Four question-bank
