@@ -1,14 +1,13 @@
 # T-104 — Two backend test docstrings still call `openapi.yaml` "the contract"
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-07, unattended run. See `runs/T-104-contract-docstrings.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-09`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-104
 **Branch:** `task/T-104-contract-docstrings`
 **PR:** #129, opened draft at expand time; stays draft until the reviewer approves it
-**Fault:** tester: test changes are waiting for approval. Five re-pin rows in `## Test change request` (four question-bank pins this task's own change turned red, plus one cascade). All four criteria are met; nothing else is red. Needs a tester in a session a person is attending (D-15).
 
 **Sessions:**
 
@@ -17,6 +16,7 @@
 | task-expander | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-07 | cse_011oDiJbsZTbExMiPULZMiFd (orchestrated: shared session id, freshly spawned context; see Verdict) |
+| tester | 2026-11-09 | session_011oDiJetGTLJwZt9qsn2Bn6 (attended, Dkaattae; applied the approved Test change request) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-104 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -128,6 +128,43 @@ All four pins were last set by `04ac466` ("T-047 tester: apply approved test cha
 
 ## Verdict
 
+**TL;DR: pass.** All four criteria met. Dkaattae approved all five Test change request
+rows in an attended tester session, they are applied in `63c7e84`, and question-bank
+is green again (**2713 pass, 0 fail**). Next: reviewer.
+
+**Approval.** Header: `Test changes: approved — Dkaattae, 2026-11-09`. Dkaattae's
+words in the session: "approve rows 1–5, Dkaattae".
+
+**Independence (2026-11-09 tester).** This is a separate session (`session_011oDiJetGTLJwZt9qsn2Bn6`),
+started directly by a person. It is not in the Sessions table as worker, ci-fix or expander.
+
+**Tests modified (no test deleted), all in `63c7e84`:**
+
+| Row | Test | Change | Why |
+|---|---|---|---|
+| 1 | `refresh-regenerate-reminder-verify.test.ts` › T-087 criterion 15 | `MAIN_BOUNDARY_SHA` → `75e72445…d3af` | T-104 edits `conftest.py` and `test_contract.py`, and its tester adds `test_t104_tester_criteria.py` |
+| 2 | `climate-cold-trade-accepted-verify.test.ts` › T-091 crit 22 "pre-existing test files" | `MAIN_TESTS_COUNT` 123 → 124; `MAIN_TESTS_SHA` → `e91fe4e6…224f` | `test_contract.py` edited; one backend test file added |
+| 3 | same file › T-091 crit 22 "every tracked non-test file" | T-104 brief and run log added to `CRITERION_22_ALLOWED` (count stays 285); `MAIN_UNTOUCHABLE_SHA` → `eba70070…3193` | `conftest.py` counts as a non-test file |
+| 4 | `farm-animal-loose-ends-verify.test.ts` › T-096 criterion 21 | T-104 brief and run log added to `CRITERION_21_ALLOWED` (count stays 282); `MAIN_UNTOUCHABLE_SHA` → `d29be0bf…7aaf` | same as row 3 |
+| 5 | `climate-cold-trade-accepted-verify.test.ts` › T-091 "each test in the approved Test change request" | `APPLIED_REQUEST_FILE_SHAS` for `farm-animal-loose-ends-verify.test.ts` → `797e631f…d3b2` | row 4 changed that file |
+
+Every value in rows 1–4 equals the one the earlier tester's dry run observed. Row 5 was computed
+last, after row 4's comments and the prettier pass. No assertion was loosened: each test still
+checks the same count and digest over the same set.
+
+**Suites on `63c7e84`:**
+
+- **question-bank:** **2713 pass, 0 fail**; typecheck, lint, format:check clean.
+- **backend:** `make -C backend check`: **1051 passed, 9 skipped**.
+- **frontend:** locally 406 pass, 4 fail. All four are "Cannot find package 'react-simple-maps'",
+  because `bun install --frozen-lockfile` gets a proxy 403 on that tarball here. No frontend file
+  changed, and CI on `846a9d1` had frontend green.
+
+**Merge order with T-103 (PR #128).** It re-pins the same digests. Whichever PR merges second
+needs one more re-pin round on top of main.
+
+### Earlier verdict (orchestrated tester, 2026-11-07)
+
 **TL;DR: all four criteria met; halted on a Test change request, not a fail.**
 Five re-pin rows below need a person's approval in an attended tester session.
 Until then question-bank stays red (4 tests now, all stale pins). Everything else is green.
@@ -203,11 +240,11 @@ rows 3-4's comments are written.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `bcb2a38`, T-039 (from T-087): whole-tree digest of `backend/`, `frontend/`, `e2e/`. Last re-pinned by `04ac466`, T-047. | Criteria 1-2 edit `backend/tests/conftest.py` and `test_contract.py`; the tester adds `backend/tests/test_t104_tester_criteria.py`. | modify | Same name and assertion. `MAIN_BOUNDARY_SHA` (line 90) `437329ad…f597` → `75e724453de9d426d89b38cdd4e34e73ab079d14ed7adca4fdaa0bd137fdd3af`, with a "Re-pinned by T-104 (row 1)" comment naming the three files. | |
-| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by `04ac466`, T-047. | `test_contract.py` changes (criterion 1); the tester adds one backend test file. | modify | Same name and assertions. `MAIN_TESTS_COUNT` (line 136) 123 → **124**; `MAIN_TESTS_SHA` (line 122) `830fac35…ef2b` → `e91fe4e63fbbdb42461c6a8afa979aaa5e9a9ac0ce244760c046c0842e60224f`. "Re-pinned by T-104 (row 2)" comments on both. | |
-| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of every tracked non-test file outside the allowed list. Last re-pinned by `04ac466`, T-047. | The task adds `tasks/T-104-contract-docstrings.md` and `runs/T-104-contract-docstrings.md`, and edits `backend/tests/conftest.py`, which this pin counts as a non-test file. | modify | Same name and assertions. Add `"tasks/T-104-contract-docstrings.md"` and `"runs/T-104-contract-docstrings.md"` to `CRITERION_22_ALLOWED`, with a T-104 row 3 comment. `MAIN_UNTOUCHABLE_COUNT` stays **285**. `MAIN_UNTOUCHABLE_SHA` (line 95) `0b3efcae…027b5` → `eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf9e0fc213863193` (conftest.py moved). | |
-| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside its allowed set and the test files. Last re-pinned by `04ac466`, T-047. | Same as row 3. | modify | Same name and assertions. Add the T-104 brief and run log to `CRITERION_21_ALLOWED`, with a T-104 row 4 comment. The count literal (line 613) stays **282**. `MAIN_UNTOUCHABLE_SHA` (line 170) `fda851f3…422d` → `d29be0bf166cb42d1bdf6c9cfe5077b76cc9b0c1b5393ccb37fcb0509f5c7aaf`. | |
-| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091: per-file sha of the test files in T-091's request, including `farm-animal-loose-ends-verify.test.ts`. | Row 4 edits `farm-animal-loose-ends-verify.test.ts`, so its pinned sha moves (as for T-047 rows 4 and 8). | modify | Same name and assertion. The `APPLIED_REQUEST_FILE_SHAS` entry for `question-bank/src/farm-animal-loose-ends-verify.test.ts` (line 183) `e9470a5e…cdd6` → the file's sha256 **after row 4 is applied, comments included**. The dry run without comments gave `831f84c4…0302`; the real value will differ. Add "then by T-104 (row 5, for its row 4)" to its comment trail. | |
+| 1 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `bcb2a38`, T-039 (from T-087): whole-tree digest of `backend/`, `frontend/`, `e2e/`. Last re-pinned by `04ac466`, T-047. | Criteria 1-2 edit `backend/tests/conftest.py` and `test_contract.py`; the tester adds `backend/tests/test_t104_tester_criteria.py`. | modify | Same name and assertion. `MAIN_BOUNDARY_SHA` (line 90) `437329ad…f597` → `75e724453de9d426d89b38cdd4e34e73ab079d14ed7adca4fdaa0bd137fdd3af`, with a "Re-pinned by T-104 (row 1)" comment naming the three files. | approved — Dkaattae, 2026-11-09 ("approve rows 1–5, Dkaattae") |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by `04ac466`, T-047. | `test_contract.py` changes (criterion 1); the tester adds one backend test file. | modify | Same name and assertions. `MAIN_TESTS_COUNT` (line 136) 123 → **124**; `MAIN_TESTS_SHA` (line 122) `830fac35…ef2b` → `e91fe4e63fbbdb42461c6a8afa979aaa5e9a9ac0ce244760c046c0842e60224f`. "Re-pinned by T-104 (row 2)" comments on both. | approved — Dkaattae, 2026-11-09 ("approve rows 1–5, Dkaattae") |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of every tracked non-test file outside the allowed list. Last re-pinned by `04ac466`, T-047. | The task adds `tasks/T-104-contract-docstrings.md` and `runs/T-104-contract-docstrings.md`, and edits `backend/tests/conftest.py`, which this pin counts as a non-test file. | modify | Same name and assertions. Add `"tasks/T-104-contract-docstrings.md"` and `"runs/T-104-contract-docstrings.md"` to `CRITERION_22_ALLOWED`, with a T-104 row 3 comment. `MAIN_UNTOUCHABLE_COUNT` stays **285**. `MAIN_UNTOUCHABLE_SHA` (line 95) `0b3efcae…027b5` → `eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf9e0fc213863193` (conftest.py moved). | approved — Dkaattae, 2026-11-09 ("approve rows 1–5, Dkaattae") |
+| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside its allowed set and the test files. Last re-pinned by `04ac466`, T-047. | Same as row 3. | modify | Same name and assertions. Add the T-104 brief and run log to `CRITERION_21_ALLOWED`, with a T-104 row 4 comment. The count literal (line 613) stays **282**. `MAIN_UNTOUCHABLE_SHA` (line 170) `fda851f3…422d` → `d29be0bf166cb42d1bdf6c9cfe5077b76cc9b0c1b5393ccb37fcb0509f5c7aaf`. | approved — Dkaattae, 2026-11-09 ("approve rows 1–5, Dkaattae") |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091: per-file sha of the test files in T-091's request, including `farm-animal-loose-ends-verify.test.ts`. | Row 4 edits `farm-animal-loose-ends-verify.test.ts`, so its pinned sha moves (as for T-047 rows 4 and 8). | modify | Same name and assertion. The `APPLIED_REQUEST_FILE_SHAS` entry for `question-bank/src/farm-animal-loose-ends-verify.test.ts` (line 183) `e9470a5e…cdd6` → the file's sha256 **after row 4 is applied, comments included**. The dry run without comments gave `831f84c4…0302`; the real value will differ. Add "then by T-104 (row 5, for its row 4)" to its comment trail. | approved — Dkaattae, 2026-11-09 ("approve rows 1–5, Dkaattae") |
 
 **Merge order with T-103 (PR #128).** Rows 1-5 are the same digests T-103
 re-pins. Whichever PR merges second needs one more re-pin round on top of main.
