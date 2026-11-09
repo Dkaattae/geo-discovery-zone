@@ -375,6 +375,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-103 — The bank facts T-102's draw survey rests on are guarded** (PR #128,
+  2026-11-09). `backend/tests/test_t103_bank_facts.py` holds one pure check per
+  fact (B1, B2, B3a-c, B4-B7, B8a-d, B9) run against the committed
+  `backend/app/data/content.json` as `test_bank_fact[<label>]`. Each failure
+  lists every test whose "holds under any draw" argument needs that fact. The
+  checks assert the bounds the dependents need (at most 51 non-`map_click`
+  location questions, at least 16 per newer topic), not today's counts, and a
+  second check confirms every named dependent still exists. *Where it differed
+  from the brief:* the worker folded its planned `bank_facts.py` helper into the
+  test module, because a non-`test_` file under `backend/` would have been one
+  more whole-tree pin red. The Test change request grew from the predicted 4 rows
+  to 5: applying row 2 moved a digest another pin keeps of that file (P-17).
 - **T-047 — `test-guidelines.md` describes the real `backend/` suite** (PR #127,
   2026-11-06). The backend section now names `backend/` and gives its run commands.
   It covers SQLite by default with Postgres through `GEO_TEST_DATABASE_URL`,

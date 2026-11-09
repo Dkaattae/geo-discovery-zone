@@ -180,6 +180,10 @@ const MAIN_UNTOUCHABLE_SHA = "d29be0bf166cb42d1bdf6c9cfe5077b76cc9b0c1b5393ccb37
  * records are new tracked files, and the brief changes at every commit.
  */
 const CRITERION_21_ALLOWED = new Set([
+  // T-103's loop files, joined through T-103's Test change request row 2
+  // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
+  "tasks/T-103-bank-facts-guard.md",
+  "runs/T-103-bank-facts-guard.md",
   // T-104's loop records, joined through T-104's Test change request row 4
   // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
   "tasks/T-104-contract-docstrings.md",
