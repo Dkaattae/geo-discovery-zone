@@ -41,3 +41,59 @@
 
 ## Approval — 2026-11-09
 Orchestrator wrote the unattended-run `Approved:` stamp. No human saw the criteria.
+
+## Round 2 — worker — 2026-11-09
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR:** I fenced the four flattened blocks in `frontend/README.md`, restored byte-for-byte from `c2c4781`. Prettier 3.9.6 leaves them alone: `format:check` exits 0 and `format` doesn't change the file. The commit is pushed and landed: `origin/task/T-076-frontend-readme-fences` is at `d701d25 T-076 worker: fence the four flattened blocks in frontend/README.md`. The brief is now at Status `awaiting verification`, Next step `tester`, and has my Sessions row, a Handoff and Notes.
+
+The tester needs to deal with three things:
+- **Five question-bank tests are red.** All are whole-tree digest pins, and none is a bug. Two were already red from the expander's own commits; three went red because of the README edit. Clearing them needs a Test change request approved in an attended session.
+- **Criterion 6 can't pass as literally worded.** It passes on its intended meaning, but the tester has to judge that in the Verdict or send it back to `task-expander`.
+- **The full frontend install can't complete here, so the frontend can't be fully verified in this session.**
+
+**The change**
+- **Only `frontend/README.md` changed**, apart from the brief. Each of the four flattened ranges is now a ` ```text ` fence holding the original lines.
+- **All four blocks match exactly.** Each fenced block's sha256 equals the one in the brief's table.
+- **Criteria 1–5, 7, 8, 9 and 11 hold** by my own checks.
+- **No dependency or config change**, and no test was edited.
+
+**Criterion 6.** The task side removes every fenced block's content, but the main side removes only the four flattened ranges. So a ` ```sh ` block that was already in the README on main shows up only on main's side, and that is the whole 6-line difference. If main's existing fences are stripped too, the two sequences of lines are identical. I did not touch that `sh` block to make the wording pass.
+
+**Tests made stale** (the Handoff names each test, the cause, and how to re-pin it):
+- **Already red before my change:**
+  - `question-bank/src/farm-animal-loose-ends-verify.test.ts` (T-096 criterion 21)
+  - `question-bank/src/climate-cold-trade-accepted-verify.test.ts` (T-091 criterion 22)
+- **Red because of the README change:**
+  - `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` (T-088 criterion 21)
+  - `question-bank/src/map-click-no-candidates-verify.test.ts` (T-092 criterion 16)
+  - `question-bank/src/refresh-regenerate-reminder-verify.test.ts` (T-087 criterion 15)
+- The new README sha256 for re-pinning is `fd47a239fe8df2faccb8e0db72c7b060f703cf912b3e43e914f60c9581981dbe`.
+
+**What I ran**
+
+| Suite | Result |
+|---|---|
+| backend (`uv run pytest -q`) | 1221 passed, 9 skipped |
+| question-bank (`bun test`) | 2708 pass, 5 fail (the stale pins above) |
+| frontend `format-gate` and `git-baseline-guard` tests | 48/48 pass |
+| frontend lint | clean |
+| frontend `bun test` | 406 pass, 4 fail |
+| frontend typecheck | fails |
+
+- **Why the frontend fails:** the egress proxy refused one package download (`ProxyConnectFailed (403) downloading tarball topojson-client@3.1.0`), so `bun install --frozen-lockfile` stopped partway. `react-simple-maps`, `us-atlas` and `topojson-client` are missing, and those missing modules cause the 4 test failures and the typecheck errors.
+- **Criterion 10 is only partly shown:** a full `bun test` left the README unchanged, but on this partial install rather than a complete one.
+
+**Test run without `node_modules`** (the extra observation the brief's Constraints ask for):
+- **This task's README was not rewritten.**
+- **Main's README is rewritten.** Without `node_modules`, `bun run format` falls back to a global prettier 3.8.1 at `/opt/node22/bin/prettier` instead of the pinned 3.9.6. That version turns `2 * gradeOf` into `2 \* gradeOf`.
+- **The test that does it** is `frontend/src/format-gate.criteria.test.ts`, criterion 7 (its writer runs `run("format")`, line 178). Its criterion 5 check then fails.
+- **The sweep should add a `tasks.md` entry** naming that test, because the same fallback can still rewrite any other file where the two prettier versions disagree.
+
+**Flags with owners**
+- **Criterion 6 wording:** the tester decides on intent in the Verdict, or sends it back to `task-expander` for an amendment and fresh approval.
+- **Same session id for expander and worker** (`cse_011oDiJbsZTbExMiPULZMiFd`): that is all the session variable gives in this orchestrated run. The tester should confirm its own id differs, and the orchestrator should note it in the run log.
+
+Files:
+- /home/user/geo-discovery-zone/frontend/README.md
+- /home/user/geo-discovery-zone/tasks/T-076-frontend-readme-fences.md
