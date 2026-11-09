@@ -1,7 +1,7 @@
 # T-103 — Guard the bank facts the backend draw survey rests on — run log
 
 **Task:** T-103 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #128
-**Started:** 2026-11-07 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-07 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-07
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -122,3 +122,6 @@ I checked all four on scratch copies of the three test files, outside the repo: 
 ## Halted — test change request — 2026-11-07
 Raised at commit `645b89c`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
 A person must start the `tester` step for T-103 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
+
+## Resumed — 2026-11-09
+A person told the orchestrator: "pr 128 is fixed please proceed". The branch head had moved to `e02de51`: an attended tester applied the approved test change request (`2b87fea`) and recorded a verdict (`e02de51`). Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-09`.
