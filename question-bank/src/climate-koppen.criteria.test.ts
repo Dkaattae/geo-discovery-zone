@@ -299,7 +299,9 @@ describe("T-067 criterion 17 — conventions.md's openapi.yaml layout line point
       .split("\n")
       .filter((line) => /^openapi\.yaml\s/.test(line));
     expect(lines).toHaveLength(1);
-    expect(lines[0]).toContain("the contract between frontend and backend");
+    // Modified by T-105 (Test change request row 1): the row no longer calls openapi.yaml a contract; it follows the backend (E-14).
+    expect(lines[0]).toContain("follows the backend");
+    expect(lines[0]).not.toMatch(/contract/i);
     expect(lines[0]).toMatch(/\bE-14\b/);
   });
 });

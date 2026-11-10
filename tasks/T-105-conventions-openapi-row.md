@@ -1,14 +1,14 @@
 # T-105 — `conventions.md` still calls `openapi.yaml` "the contract"
 
-**Status:** `test changes requested`
-**Next step:** `human`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-105-conventions-openapi-row.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-10`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-105
 **Branch:** `claude/fervent-ptolemy-4py2eg`
 **PR:** #130, opened draft at expand time; stays draft until the reviewer approves it
-**Fault:** test changes are waiting for approval: six pre-existing test pins (Test change request rows 1-6) are stale by this task's own change and need a person's approval in an attended `tester` session (D-15). Criteria 1-3 are met.
+**Fault:** none. Test change request rows 1-6 approved and applied in an attended tester session (2026-11-10).
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
 | worker | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
+| tester (attended) | 2026-11-10 | cse_011oDiJfno4gTBHqZvc1UQtb |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-105 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -131,6 +132,38 @@ for the stale three; criterion 4 lists the full commands.
 
 ## Verdict
 
+### Tester (attended), 2026-11-10 — **pass**
+
+**TL;DR:** Dkaattae approved Test change request rows 1-6 in this attended session. I applied exactly those six, and the question-bank suite went from 4 red to 0. All four criteria are met. Backend is green. Frontend is red locally for the same environmental reason as before, so this pass relies on CI's frontend job on the pushed head. **Next:** reviewer.
+
+- **Independence.** `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfno4gTBHqZvc1UQtb`. That differs from the expander, worker and earlier tester (`cse_011oDiJbsZTbExMiPULZMiFd`), so this is a separate session, not only a separate subagent.
+- **Approval.** The header now reads `approved — Dkaattae, 2026-11-10`. The person's words in this session were "Approve rows 1-6 (Recommended)", given in answer to a question that named each row's change.
+- **Rows re-checked on the branch before applying.** On `a91e5da`, `bun test` in `question-bank/` failed exactly rows 1-4 (2719 pass, 4 fail). Rows 5 and 6 went red once rows 1 and 2 were applied, as the request predicted.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | **met** | `conventions-openapi-row-verify.test.ts` › criterion 1, green. Re-modified `T-067 criterion 17` asserts `follows the backend`, no `contract`, length 1, `\bE-14\b`, green |
+| 2 | **met** | same file › criterion 2, green |
+| 3 | **met** | recorded in the 2026-11-09 verdict below. Since then only test files and this brief changed (`git diff --stat a91e5da..HEAD`) |
+| 4 | **met** | suites below. Every pre-existing test change is an approved row |
+
+**Tests modified (all by approved rows, none deleted):**
+
+- **Row 1**, `climate-koppen.criteria.test.ts` › "T-067 criterion 17 …". The `contract` assertion becomes `toContain("follows the backend")` plus `not.toMatch(/contract/i)`. `toHaveLength(1)` and `toMatch(/\bE-14\b/)` are kept. Reason: criterion 1 bans `contract`.
+- **Row 2**, `farm-animal-loose-ends-verify.test.ts`. The T-105 brief and run log join `CRITERION_21_ALLOWED`. Count 282 and sha `d29be0bf…7aaf` are unchanged. Reason: the task adds two tracked loop files.
+- **Row 3**, `climate-cold-trade-accepted-verify.test.ts`. The same two paths join `CRITERION_22_ALLOWED`. Count 285 and sha `eba70070…3193` are unchanged. Same reason.
+- **Row 4**, same file. `MAIN_TESTS_COUNT` 127 → 128. `MAIN_TESTS_SHA` → `0080f35d…ba53`, the value observed after rows 1, 2, 3, 5 and 6. Reason: the earlier tester's new file, plus rows 1 and 6.
+- **Row 5**, same file. The `APPLIED_REQUEST_FILE_SHAS` entry for `farm-animal-loose-ends-verify.test.ts` → `cf676a9c…0e11`, that file's sha256 after row 2. Reason: row 2.
+- **Row 6**, `hand-check-levels-verify.test.ts` › criterion 17 digest → `4defd29f…9024`, observed after row 1. Reason: row 1.
+
+Each observed value differs from the dry-run value in the request, as the request said it would, because the row comments are now included.
+
+**Suites on the final tree:**
+
+- **`make -C backend check`:** 1221 passed, 9 skipped.
+- **`question-bank/`:** `bun test` 2723 pass, 0 fail. `typecheck` exit 0. `lint` exit 0. `prettier --check` on `src/*.test.ts` clean.
+- **`frontend/`:** locally `bun test` 406 pass, 4 fail, and `typecheck` exit 2. `lint` exit 0. This is the same environmental failure the worker and the first tester saw: `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)` on `@types/react-simple-maps`, so `react-simple-maps` and `us-atlas` are missing. No frontend file changes on this branch. **Evidence for the frontend: CI's `frontend (typecheck, lint, test)` job on the pushed head.**
+
 ### Tester, 2026-11-09 — **test changes requested** (criteria 1-3 met; 4 waits on approval)
 
 **TL;DR:** the `conventions.md` change meets criteria 1-3, and every mutation I tried turned the new tests red. Criterion 4 cannot pass yet: six pre-existing pins are red, or will be once my tests are committed, because of this task's own change. The Test change request below lists them. **Needed:** a person approves rows 1-6 in an attended `tester` session.
@@ -188,12 +221,12 @@ Observed on `9cc7751` with `conventions-openapi-row-verify.test.ts` tracked. Row
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/climate-koppen.criteria.test.ts` › `T-067 criterion 17 — conventions.md's openapi.yaml layout line points at E-14` › "the layout line describing openapi.yaml mentions E-14" | T-067, merged in `9d1efe0` (PR #66): the `openapi.yaml` Layout row exists once, carries T-067's wording, and names E-14 | Criterion 1 bans `contract` from the row, so `toContain("the contract between frontend and backend")` is red by design | modify | Same describe and name. Still asserts `toHaveLength(1)` and `toMatch(/\bE-14\b/)`. Replaces the `contract` assertion with `toContain("follows the backend")` and `not.toMatch(/contract/i)`, under the comment `// Modified by T-105 (Test change request row 1): the row no longer calls openapi.yaml a contract; it follows the backend (E-14).` | |
-| 2 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside its allowed set and the test files. Last re-pinned by T-104 | The task adds `tasks/T-105-conventions-openapi-row.md` and `runs/T-105-conventions-openapi-row.md` (count 282 → 284) | modify | Same name and assertions. Add those two paths to `CRITERION_21_ALLOWED`, after the T-104 entries, with a `// T-105 (Test change request row 2)` comment. Count literal stays **282**, and `MAIN_UNTOUCHABLE_SHA` stays `d29be0bf…7aaf` (dry run green). Add `// Re-pinned by T-105 (Test change request row 2): T-105's brief and run log join the allowed set (count and digest unchanged, 282).` to the comment trail | |
-| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of tracked non-test files outside `CRITERION_22_ALLOWED`. Last re-pinned by T-104 | Same two new files (count 285 → 287) | modify | Same name and assertions. Add the two paths to `CRITERION_22_ALLOWED`, after the T-104 entries, with a T-105 row 3 comment. `MAIN_UNTOUCHABLE_COUNT` stays **285**, and `MAIN_UNTOUCHABLE_SHA` stays `eba70070…3193` (dry run green). Add a "Re-pinned by T-105 (Test change request row 3) … (count and digest unchanged, 285)" line to its comment trail | |
-| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by T-104 (rows 2, 7, 8) | This tester adds `question-bank/src/conventions-openapi-row-verify.test.ts` (127 → 128). Row 1 changes `climate-koppen.criteria.test.ts` and row 6 changes `hand-check-levels-verify.test.ts`, and the digest counts both | modify | Same name and assertions. `MAIN_TESTS_COUNT` 127 → **128**. `MAIN_TESTS_SHA` `592eaba9…02df` → the value observed after rows 1, 2, 3 and 6 are applied (dry run without comments: `f35e1dadcc00ff985b98dc28d46425a86b8e49c8d7eb565625b0c3dec5ae1b71`). "Re-pinned by T-105 (Test change request row 4)" comments on both | |
-| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091: per-file sha of T-091's request files, including `farm-animal-loose-ends-verify.test.ts` | Row 2 edits `farm-animal-loose-ends-verify.test.ts`, so its pinned sha moves, as in T-104 row 5 | modify | Same name and assertion. The `APPLIED_REQUEST_FILE_SHAS` entry for `question-bank/src/farm-animal-loose-ends-verify.test.ts`, `25451e34…d898` → that file's sha256 after row 2, comments included (dry run without comments: `36cd41ac…21e5`). Append "then by T-105 (row 5, for its row 2)" to its comment trail | |
-| 6 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › "criterion 17: every question-bank test file at aa88101 is present and unmodified" | T-025's tester: a digest of the 48 question-bank test files present at `aa88101`, `climate-koppen.criteria.test.ts` among them. Last re-pinned by `8bf0959`, T-087 row 14 | Row 1 modifies `climate-koppen.criteria.test.ts` | modify | Same name and assertions. The digest literal `2e90dd58…aa6` → the value observed after row 1 (dry run with the row 1 comment above: `41f74f5074106d5619fc73714a2899c91154823ae7fab75ac7e32c140c5be317`). Add `// Re-pinned by T-105's approved Test change request row 1 (this is row 6).` | |
+| 1 | `question-bank/src/climate-koppen.criteria.test.ts` › `T-067 criterion 17 — conventions.md's openapi.yaml layout line points at E-14` › "the layout line describing openapi.yaml mentions E-14" | T-067, merged in `9d1efe0` (PR #66): the `openapi.yaml` Layout row exists once, carries T-067's wording, and names E-14 | Criterion 1 bans `contract` from the row, so `toContain("the contract between frontend and backend")` is red by design | modify | Same describe and name. Still asserts `toHaveLength(1)` and `toMatch(/\bE-14\b/)`. Replaces the `contract` assertion with `toContain("follows the backend")` and `not.toMatch(/contract/i)`, under the comment `// Modified by T-105 (Test change request row 1): the row no longer calls openapi.yaml a contract; it follows the backend (E-14).` || approved — Dkaattae, 2026-11-10 |
+| 2 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside its allowed set and the test files. Last re-pinned by T-104 | The task adds `tasks/T-105-conventions-openapi-row.md` and `runs/T-105-conventions-openapi-row.md` (count 282 → 284) | modify | Same name and assertions. Add those two paths to `CRITERION_21_ALLOWED`, after the T-104 entries, with a `// T-105 (Test change request row 2)` comment. Count literal stays **282**, and `MAIN_UNTOUCHABLE_SHA` stays `d29be0bf…7aaf` (dry run green). Add `// Re-pinned by T-105 (Test change request row 2): T-105's brief and run log join the allowed set (count and digest unchanged, 282).` to the comment trail || approved — Dkaattae, 2026-11-10 |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of tracked non-test files outside `CRITERION_22_ALLOWED`. Last re-pinned by T-104 | Same two new files (count 285 → 287) | modify | Same name and assertions. Add the two paths to `CRITERION_22_ALLOWED`, after the T-104 entries, with a T-105 row 3 comment. `MAIN_UNTOUCHABLE_COUNT` stays **285**, and `MAIN_UNTOUCHABLE_SHA` stays `eba70070…3193` (dry run green). Add a "Re-pinned by T-105 (Test change request row 3) … (count and digest unchanged, 285)" line to its comment trail || approved — Dkaattae, 2026-11-10 |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by T-104 (rows 2, 7, 8) | This tester adds `question-bank/src/conventions-openapi-row-verify.test.ts` (127 → 128). Row 1 changes `climate-koppen.criteria.test.ts` and row 6 changes `hand-check-levels-verify.test.ts`, and the digest counts both | modify | Same name and assertions. `MAIN_TESTS_COUNT` 127 → **128**. `MAIN_TESTS_SHA` `592eaba9…02df` → the value observed after rows 1, 2, 3 and 6 are applied (dry run without comments: `f35e1dadcc00ff985b98dc28d46425a86b8e49c8d7eb565625b0c3dec5ae1b71`). "Re-pinned by T-105 (Test change request row 4)" comments on both || approved — Dkaattae, 2026-11-10 |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091: per-file sha of T-091's request files, including `farm-animal-loose-ends-verify.test.ts` | Row 2 edits `farm-animal-loose-ends-verify.test.ts`, so its pinned sha moves, as in T-104 row 5 | modify | Same name and assertion. The `APPLIED_REQUEST_FILE_SHAS` entry for `question-bank/src/farm-animal-loose-ends-verify.test.ts`, `25451e34…d898` → that file's sha256 after row 2, comments included (dry run without comments: `36cd41ac…21e5`). Append "then by T-105 (row 5, for its row 2)" to its comment trail || approved — Dkaattae, 2026-11-10 |
+| 6 | `question-bank/src/hand-check-levels-verify.test.ts` › `T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmodified` › "criterion 17: every question-bank test file at aa88101 is present and unmodified" | T-025's tester: a digest of the 48 question-bank test files present at `aa88101`, `climate-koppen.criteria.test.ts` among them. Last re-pinned by `8bf0959`, T-087 row 14 | Row 1 modifies `climate-koppen.criteria.test.ts` | modify | Same name and assertions. The digest literal `2e90dd58…aa6` → the value observed after row 1 (dry run with the row 1 comment above: `41f74f5074106d5619fc73714a2899c91154823ae7fab75ac7e32c140c5be317`). Add `// Re-pinned by T-105's approved Test change request row 1 (this is row 6).` || approved — Dkaattae, 2026-11-10 |
 
 **Process note, for Dkaattae (P-17, not this task):** rows 2, 3 and 5 recur on every task, because each task adds a brief and a run log. T-104's request raised the same point.
 

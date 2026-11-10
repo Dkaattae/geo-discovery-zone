@@ -922,6 +922,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // Re-pinned at T-070's branch head after its approved rows W1–W57 (this is W39).
     // Re-pinned by T-085a's approved Test change request rows 1, 15 and 29 (this is row 30).
     // Re-pinned by T-087's approved rows 1-13 (this is row 14).
-    expect(digest).toBe("2e90dd588c59da26eb5326f68dd127cef6bdc157a90133d484e468c9c90f6aa6");
+    // Re-pinned by T-105's approved Test change request row 1 (this is row 6).
+    expect(digest).toBe("4defd29f7bf195fd490be2499ce76aabcd44a8fcc61609c8afa75e17afde9024");
   });
 });
