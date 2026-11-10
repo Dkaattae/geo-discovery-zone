@@ -1,7 +1,7 @@
 # T-105 — `conventions.md` still calls `openapi.yaml` "the contract"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #130; routine, no escalation)
 **Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-105-conventions-openapi-row.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-10`
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | worker | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester | 2026-11-09 | cse_011oDiJbsZTbExMiPULZMiFd |
 | tester (attended) | 2026-11-10 | cse_011oDiJfno4gTBHqZvc1UQtb |
+| reviewer | 2026-11-10 | cse_011oDiJbsZTbExMiPULZMiFd |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). T-105 is
 > `S`, touches neither `openapi.yaml` nor a migration, the plan, nor any text a
@@ -214,6 +215,26 @@ Per commit: worker `011459b` changed `conventions.md` only, and worker `bf7b318`
 - **Row 6:** row 1 edits `climate-koppen.criteria.test.ts`, which `hand-check-levels-verify.test.ts` digests.
 
 The worker was right that `refresh-regenerate-reminder-verify.test.ts` stays green.
+
+## Review
+
+### Reviewer, 2026-11-10 — **approved**, inside the envelope (no escalation)
+
+**TL;DR:** one Layout row rewritten, in the file's own voice, citing E-14; every role's commit is on this branch and in its lane; the six pre-existing test edits are exactly Dkaattae's approved rows 1-6, all in the attended tester's commit. CI on `6909e1f` is green on all six jobs. PR #130 marked ready; sweep rides in it. **Next:** Dkaattae merges.
+
+- **Every role's work is in the PR.** expander `3a23593`, `43a7444`; worker `011459b`, `bf7b318`; tester `c90cba3`; attended tester `1d4a830`; orchestrator run-log commits. Base `0b78dec` is still `origin/main`.
+- **Lanes.** Expander commits touch only the brief. Worker: `conventions.md` + brief. Testers: `question-bank/src/*.test.ts` + brief, no source. Orchestrator: `runs/` + the Approved stamp.
+- **Fit.** New row keeps column 18 and the `(engineering-decisions.md E-n)` citation form the other rows use; wording mirrors `CLAUDE.md`. Nothing more than needed.
+- **Honesty.** Row 1 keeps `toHaveLength(1)` and `\bE-14\b` as criterion 4 demands, and adds a `not.toMatch(/contract/i)`, so the old test got stricter, not looser. Rows 2-6 are re-pins whose new values the tester observed, each with a T-105 comment.
+- **Test changes approved by a person** (`Dkaattae`, not `orchestrator`); no CI fix.
+- **CI on `6909e1f`:** backend, backend (postgres), frontend, question-bank, integration, e2e — all success. This closes the frontend gap the testers could not run locally.
+
+**Flags disposed:**
+
+- **Worker's wording choice** — accepted.
+- **`README.md:32` / `:215`, `conventions.md:9` ("once built"), and `PROGRESS.md:26`** — same stale "contract"/"once built" wording. Queued together as new **T-106** (nothing in the queue owns README/doc wording on this point; T-046 is about `api/` vs `backend/`, a different question).
+- **`geoquizdataplan.md:648`** — not queued. The plan is the original reasoning; E-14 already records why the contract became a description, and the plan changes only when its reasoning is wrong (`process.md` 6.5).
+- **Tester's P-17 recurrence note** — P-17 is already open in `process-tasks.md`; T-105 is one more instance (rows 2, 3, 5), no new ticket.
 
 ## Test change request
 
