@@ -1,7 +1,7 @@
 # T-105 — `conventions.md` still calls `openapi.yaml` "the contract" — run log
 
 **Task:** T-105 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #130
-**Started:** 2026-11-09 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-11-09 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -123,3 +123,37 @@ A person must start the `tester` step for T-105 in a session they are attending 
 
 ## Resumed — 2026-11-10
 A person told the orchestrator: "pr 130 is fixed please proceed". The branch head had moved to `1d4a830`: an attended tester applied approved rows 1-6 and recorded a verdict. Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-10`.
+
+## Round 4 — reviewer — 2026-11-10
+`Next step` on entry: `reviewer` → on exit: `human` (merge PR #130; routine, no escalation)
+
+**I approved T-105 as a routine change with no escalation. PR #130 is now marked ready, it is still open, and I did not merge it.** CI is green on the sweep head `e0f8a78`, and the sweep is inside the PR. **Next:** Dkaattae merges when convenient.
+
+- **Push:** two commits are on `claude/fervent-ptolemy-4py2eg`, and `git log origin/claude/fervent-ptolemy-4py2eg` shows both, so the push landed.
+  - `82c1729` (review): adds `## Review` to the brief, sets Status to `approved` and Next step to `human`, and adds my Sessions row.
+  - `e0f8a78` (sweep).
+- **Every role's work is in the PR, and each stayed in its lane:**
+  - Expander: changed only the brief.
+  - Worker: `conventions.md` and the brief.
+  - Both testers: only `*.test.ts` files and the brief.
+  - Orchestrator: only `runs/`.
+- **Pre-existing test changes:** six were modified and none deleted. They are exactly rows 1-6, which Dkaattae approved in person, and all six are in the attended tester's commit `1d4a830`. Row 1 made the old test stricter, not looser.
+- **Envelope:** every condition holds. There is no new dependency, no change to `openapi.yaml`, a migration or the plan, no text a child reads, and no CI fix.
+- **CI:** every job passed on both `6909e1f` and `e0f8a78` (backend, backend (postgres), frontend, question-bank, integration, e2e).
+- **Local suites after the sweep:**
+  - question-bank: 2723 pass, 0 fail.
+  - backend: 1221 passed.
+  - frontend: 4 tests fail because `react-simple-maps` is missing from this sandbox. That is the same environment problem the testers hit, so CI is the frontend evidence.
+
+**Sweep (in the PR):**
+- Brief `tasks/T-105-conventions-openapi-row.md` deleted.
+- T-105 removed from `/home/user/geo-discovery-zone/tasks.md`, and a sweep line added to its log.
+- **New T-106:** the same stale "contract" wording is still in `README.md:32`, `README.md:215` and `PROGRESS.md:26`, and `conventions.md:9` still says "once built".
+- T-105 logged under "Completed tasks" in `/home/user/geo-discovery-zone/PROGRESS.md`.
+
+**Worker and tester flags, all settled:**
+- **Worker's wording:** accepted.
+- **`geoquizdataplan.md:648`:** deliberately not queued. E-14 already records why it changed, and the plan is only edited when its reasoning is wrong.
+- **Tester's P-17 note:** it is another case of the already-open P-17, so no new ticket.
+
+The PR body now has the criteria verbatim with the evidence for each, plus the review and what was not done. I also left a short summary comment on the PR.
