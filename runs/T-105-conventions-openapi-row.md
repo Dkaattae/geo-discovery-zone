@@ -1,7 +1,7 @@
 # T-105 — `conventions.md` still calls `openapi.yaml` "the contract" — run log
 
 **Task:** T-105 · **Branch:** `claude/fervent-ptolemy-4py2eg` · **PR:** #130
-**Started:** 2026-11-09 · **Outcome:** halted — needs human (test change request)
+**Started:** 2026-11-09 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -120,3 +120,6 @@ Files:
 ## Halted — test change request — 2026-11-09
 Raised at commit `c90cba3`. Header: `Test changes: requested`, `Status: test changes requested`, `Next step: human`.
 A person must start the `tester` step for T-105 in a session they are attending and approve or refuse each row there. The orchestrator cannot take the approval (D-15).
+
+## Resumed — 2026-11-10
+A person told the orchestrator: "pr 130 is fixed please proceed". The branch head had moved to `1d4a830`: an attended tester applied approved rows 1-6 and recorded a verdict. Header on resume: `Status: pass`, `Next step: reviewer`, `Test changes: approved — Dkaattae, 2026-11-10`.
