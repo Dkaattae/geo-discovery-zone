@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier — run log
 
 **Task:** T-076 · **Branch:** `task/T-076-frontend-readme-fences` · **PR:** #131
-**Started:** 2026-11-09 · **Outcome:** halted — needs human (Status: blocked; criterion 6 amendment + test change request)
+**Started:** 2026-11-09 · **Outcome:** in progress (resumed on person's instruction)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -151,3 +151,6 @@ Raised at commit `eb455a6`. Header: `Status: blocked`, `Next step: task-expander
 
 ## Run ended — 2026-11-09
 Task limit (2) reached; both tasks ended halted (T-105 on a test change request, T-076 blocked).
+
+## Resumed — 2026-11-11
+A person told the orchestrator: "proceed with t-076 criterion 6". The branch head had moved to `edf2831`: an attended tester applied the approved test change request (`687ba8a`) and recorded it (`edf2831`). Header on resume: `Status: blocked`, `Next step: task-expander`, `Test changes: approved — Dkaattae, 2026-11-11`. The person's instruction is the authority for leaving the `blocked` halt; the orchestrator spawns the `task-expander` that `Next step` names.
