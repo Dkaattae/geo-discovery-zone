@@ -475,6 +475,23 @@ only the `task-expander` can reword. **Next step:** `task-expander`.
     the environment: `bun install --frozen-lockfile` got a 403
     `ProxyConnectFailed` on `@types/react-simple-maps@3.0.6`. After the run,
     `git status --porcelain -- frontend/README.md` is empty.
+- **Rebased onto `main` after T-105 (PR #130) merged, on Dkaattae's instruction
+  in this session ("rebase, and then repin tests").**
+  - **Conflicts:** two, in `climate-cold-trade-accepted-verify.test.ts` and
+    `farm-animal-loose-ends-verify.test.ts`. Both sides' comment trails are kept,
+    and T-076's values were taken.
+  - **Values recomputed on the rebased tree:**
+    - **Row 6:** `MAIN_TESTS_COUNT` 128 → 129, because T-105 had already taken
+      the count to 128. `MAIN_TESTS_SHA` → `52d8814a…5527`.
+    - **Row 7:** farm-animal → `869b9dbf…872c`, because the merged comment
+      trail changed that file's bytes.
+    - **Unchanged:** every other row's value still holds, because T-105 touched
+      none of the trees those pins cover.
+  - **Suites after the rebase:**
+    - **question-bank:** 2723 pass, 0 fail. `typecheck` is clean.
+    - **backend:** 1221 passed, 9 skipped.
+    - **frontend:** 420 pass, 4 fail, the same environmental `react-simple-maps`
+      failures. `format:check` and `lint` are clean, and the README is unchanged.
 - **Still open:** criterion 6, as in the Verdict above. Once the expander rewords
   it and gets a fresh approval, a tester re-verifies criterion 6 and the reviewer
   takes over.

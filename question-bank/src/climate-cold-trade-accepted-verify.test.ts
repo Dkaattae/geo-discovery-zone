@@ -132,8 +132,8 @@ const MAIN_UNTOUCHABLE_COUNT = 284;
 // conventions-openapi-row-verify.test.ts, and rows 1 and 6 changed climate-koppen.criteria.test.ts
 // and hand-check-levels-verify.test.ts.
 // Re-pinned by T-076 (row 6): T-076's tester added
-// frontend/src/readme-fences.criteria.test.ts.
-const MAIN_TESTS_SHA = "ea5a5b91c0faa472f601432d08168b257c807cf4a82aa76afa1cd9b0a65802a9";
+// frontend/src/readme-fences.criteria.test.ts; recomputed on rebasing onto main after T-105.
+const MAIN_TESTS_SHA = "52d8814a2dee3a3528bfe2be04e841e881942f4d0ee2a446994e3a9f18345527";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -205,9 +205,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-103 (row 5, for its row 2)
   // then by T-104 (row 5, for its row 4), then by T-104 (row 9, on merging main after T-103),
   // then by T-105 (row 5, for its row 2)
-  // then by T-076 (row 7, for its row 4)
+  // then by T-076 (row 7, for its row 4, recomputed on rebasing onto main after T-105)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "e2f473bcefed09eede9d79f9e27faf8c1bb4bf30a03026d7c831c13eb6d7493c",
+    "869b9dbfc28e44e68707ae0c2bf0f1b31e1fa0b4b90211e2f2fffcd79245872c",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
