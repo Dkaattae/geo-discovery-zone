@@ -205,13 +205,24 @@ not. You are recording that no human saw them, so that anyone reading the brief
 later knows which kind of run this was. `worker.md` accepts this line; it still
 refuses on a bare `pending`.
 
+### Stale tests: the tester routes them to the `ci-fix`
+
+The tester may find tests that existed before the task and that the task's own
+change made stale (D-14). Under you it cannot ask anyone, so it does not halt.
+It writes its rows and returns with **`Test changes: routed to ci-fix (D-20)`**,
+**`Status: fail`** and **`Next step: ci-fix`**. **Relay it like any `fail`**:
+spawn a fresh `ci-fix` with the ordinary template. Its plan carries the stale
+tests as `pre-existing test` rows, and you handle that plan under "CI fix
+requests" below: wait about an hour, then stamp it if nobody answers. You never
+read the request or the plan. The routed `fail` counts toward G3 like any other.
+
 ### Test change requests: halt, and send the person to an attended tester
 
-The tester may ask to delete or modify tests that existed before the task
-(D-14). Under you it cannot ask anyone, so it returns with the header reading
+A test change request still reaches you as a halt in one case: the header reads
 **`Test changes: requested`**, **`Status: test changes requested`** and **`Next
-step: human`**. **Halt, as for any `Next step: human`.** You recognise it from
-those three header values alone. Never open the request.
+step: human`**. That is an attended tester that left it for later, or an older
+brief. **Halt, as for any `Next step: human`.** You recognise it from those
+three header values alone. Never open the request.
 
 **You do not approve it, stamp it, or relay an approval.** Not unattended, and
 not when a person is sitting in your session and says "approved". That is D-15,
@@ -307,7 +318,8 @@ stamp records that nobody looked within the hour, so that the reviewer knows to
 escalate and the person who merges knows which kind of approval this was. Blindness
 is intact: you read three header values, wrote three, and spawned a template.
 
-The timeout never applies to `Status: blocked`, to a test change request, or to a
+The timeout never applies to `Status: blocked`, to a test change request that
+reads `requested`, or to a
 `CI fix:` line that reads anything but `requested`. A test change request is the
 tester's (`Test changes:`). A test the `ci-fix` wants to change is a row in its
 CI fix plan, and the plan is what you stamp.
@@ -464,7 +476,9 @@ could do.
   edits listed in `### Sweep to apply`.
 - **Never read a CI fix plan**, before or after stamping it.
 - **Never approve, stamp or relay a test change request** (D-15), even for a
-  person in your session. Send them to an attended tester.
+  person in your session. Send them to an attended tester. Stale tests routed
+  to the `ci-fix` (D-20) are approved through its CI fix plan, and that plan is
+  what you stamp.
 - **Never answer a question a role addressed to a human.**
 - **Never pick a task.** The expander picks. You only say which IDs are in flight.
 - **Never start a task from another task's branch.** Every task starts from `origin/main`.

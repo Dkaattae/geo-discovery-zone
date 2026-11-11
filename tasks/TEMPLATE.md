@@ -7,7 +7,7 @@
 **Next step:** which agent runs next — `task-expander`, `worker`, `tester`,
 `ci-fix`, `reviewer` — or `human`
 **Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
-**Test changes:** `none` — the tester sets `requested` when it raises a Test change request; the tester replaces it with `approved — <name>, <date>` once that person has approved it in the tester's own session. The orchestrator never writes it (D-14, D-15)
+**Test changes:** `none` — an orchestrated tester sets `routed to ci-fix (D-20)` and the `ci-fix` later sets `applied through CI fix plan (D-20)`; an attended tester sets `requested` when it raises a Test change request; the tester replaces it with `approved — <name>, <date>` once that person has approved it in the tester's own session. The orchestrator never writes it (D-14, D-15)
 **CI fix:** `none` — the `ci-fix` sets `requested` when it writes a CI fix plan; a person replaces it with `approved — <name>, <date>`, or after an hour with no answer the orchestrator stamps `approved — orchestrator, <date>, auto-approved after a <N>-minute timeout`; the `ci-fix` sets `applied — <that approval>` once it has applied the rows (D-17)
 **From:** [`tasks.md`](../tasks.md) T-0xx
 **Branch:** `task/T-0xx-slug` — **replace this with the branch actually used.**
@@ -138,7 +138,11 @@ Written by `tester` **only**, and only for tests the task's own change has made
 stale or wrong (`.claude/agents/tester.md`, D-14). The worker lists candidates
 under **Tests made stale** in its Handoff; it never fills this in. Raising it
 sets `Status: test changes requested`, `Next step: human` and the header's
-`Test changes: requested`. **No test here changes until a person approves it in
+`Test changes: requested` when a person is in the tester's session. **Under the
+orchestrator**, the tester instead sets `Test changes: routed to ci-fix (D-20)`,
+`Status: fail` and `Next step: ci-fix`. The rows below, Decision blank, become
+`pre-existing test` rows of the `ci-fix`'s plan, and that plan is what gets
+approved. **Otherwise no test here changes until a person approves it in
 the session making the change.** If they are in the tester's session, it asks
 them there. Otherwise the request waits here, and a tester started in a session
 a person is attending picks it up and asks. The orchestrator never approves it
@@ -160,7 +164,8 @@ tester`.
 
 ## CI fix plan
 
-Delete this section until the tester returns `fail`. Written by `ci-fix` **only**,
+Delete this section until the tester returns `fail` (including a `fail` that
+routes stale tests here, D-20). Written by `ci-fix` **only**,
 in its first pass, before it changes anything (`.claude/agents/ci-fix.md`, D-17).
 Raising it sets `Status: ci fix requested`, `Next step: human` and the header's
 `CI fix: requested`. **Nothing here is applied until it is approved** — by a person

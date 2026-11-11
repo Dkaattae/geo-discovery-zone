@@ -36,9 +36,12 @@ person in its own session. When a task's change makes an
 existing test stale, the worker leaves it red and lists it in its Handoff. The
 tester raises a `## Test change request` in the brief and pushes, which notifies
 you. If you are in its session, it asks you there, applies what you approve, and
-carries on, the way the expander asks. If it is a spawned subagent, it halts. **You resume it by starting a tester in a session you are
-attending**, never by answering in the brief for a subagent to act on. The
-orchestrator never approves one, even with you in its session: on T-071 the
+carries on, the way the expander asks. If it is a spawned subagent, it does
+not halt: it routes the rows to the `ci-fix` (D-20), whose plan you approve, or
+the orchestrator stamps after an hour. A request left as `requested` is resumed
+only by a tester in a session you are attending, never by answering in the
+brief for a subagent to act on. The orchestrator never approves that one, even
+with you in its session: on T-071 the
 harness refused every edit made on an approval that reached the tester as text
 in a file. The worker never deletes a test, even when the brief asks. So the role
 that built the change is never the one that decides which checks on it can go.

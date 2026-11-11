@@ -165,7 +165,9 @@ telling them. **Ready** means *this is routine, merge it when you get to it*.
   Whoever approved them, check that the diff's deleted and modified pre-existing
   tests match the request's rows and come only from `tester` commits — or from
   `ci-fix` commits applying an approved `pre-existing test` row of the CI fix
-  plan;
+  plan. When `Test changes:` reads `routed to ci-fix` or `applied through CI fix
+  plan` (D-20), the CI fix plan is the approval, and the next bullet decides
+  whether to escalate;
 - no CI fix was applied on the orchestrator's timeout stamp: if the header's
   `CI fix:` line names `orchestrator` — now, or in any earlier round
   (`git log -p -- <brief> | grep 'CI fix:'`) — escalate and copy the `## CI fix plan` table into

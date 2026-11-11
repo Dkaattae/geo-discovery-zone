@@ -322,9 +322,19 @@ jobs:
 
       - name: Install Chromium
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        # Only the one engine the suite uses; --with-deps because a bare runner
-        # has none of the shared libraries Chromium needs.
-        run: bunx playwright install --with-deps chromium
+        # Only the one engine the suite uses. The browser alone, from
+        # Playwright's CDN: no apt, so an Ubuntu mirror outage cannot stop it.
+        run: bunx playwright install chromium
+
+      - name: Install Chromium's system libraries
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        # Non-fatal on purpose. GitHub's Ubuntu image already ships Chrome and
+        # its shared libraries, so this is a top-up. On 2026-11-11 the apt
+        # mirrors would not resolve and this step alone failed every e2e run.
+        # A library that is really missing still fails the suite loudly, at
+        # browser launch.
+        continue-on-error: true
+        run: bunx playwright install-deps chromium
 
       - name: Run against docker compose
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}

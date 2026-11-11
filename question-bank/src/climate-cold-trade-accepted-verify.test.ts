@@ -97,7 +97,9 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by T-105 (Test change request row 3): T-105's brief and run log join the allowed set (count and digest unchanged, 285).
 // Re-pinned by T-076 (Test change request row 5): frontend/README.md, which main
 // counted, joins the allowed set with T-076's brief and run log.
-const MAIN_UNTOUCHABLE_SHA = "7ca071d2c6b7617ce21d4f32cc006b8c93d8af6fc88a0b3de19b7e700cc6c3e6";
+// Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md, .claude/agents/ and .github/workflows/ci.yml (e2e browser install) changed (count unchanged).
+// Recomputed by T-076 (row 5) on merging main after D-20.
+const MAIN_UNTOUCHABLE_SHA = "fbdf20110b88935e34a9aa600bc98af187c79685cf062e76352e87cab3a7a03a";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -204,10 +206,10 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-102 (row 3), then by T-047 (row 4, then row 8: recomputed on merging main after T-102),
   // then by T-103 (row 5, for its row 2)
   // then by T-104 (row 5, for its row 4), then by T-104 (row 9, on merging main after T-103),
-  // then by T-105 (row 5, for its row 2)
-  // then by T-076 (row 7, for its row 4, recomputed on rebasing onto main after T-105)
+  // then by T-105 (row 5, for its row 2), then by hand for D-20 (its whole-tree digest moved)
+  // then by T-076 (row 7, for its row 4, recomputed on merging main after D-20)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "869b9dbfc28e44e68707ae0c2bf0f1b31e1fa0b4b90211e2f2fffcd79245872c",
+    "37f6d79d1866b2dd2ee23cb89538d73e39e5578c2f8186863df61601eb4958f7",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":

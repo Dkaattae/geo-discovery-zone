@@ -172,7 +172,9 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-105 (Test change request row 2): T-105's brief and run log join the allowed set (count and digest unchanged, 282).
 // Re-pinned by T-076 (Test change request row 4): frontend/README.md, which main
 // counted, joins the allowed set with T-076's brief and run log (282 -> 281).
-const MAIN_UNTOUCHABLE_SHA = "83c08bed16a6ed0b6741bcad55c12644b7d4d0b4f471bcdac750fb7db100aca6";
+// Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md, .claude/agents/ and .github/workflows/ci.yml (e2e browser install) changed (count unchanged).
+// Recomputed by T-076 (row 4) on merging main after D-20.
+const MAIN_UNTOUCHABLE_SHA = "746bb89c15bacd2418330ff68fd9b4863ae1e19ef51aa4948bd57b4f77c855fe";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
