@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier
 
-**Status:** `awaiting approval`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** Dkaattae — 2026-11-11, amended criterion 6, given in the orchestrator's session ("approved criterion 6"). The other criteria carry the orchestrator — 2026-11-09 unattended-run stamp. See `runs/T-076-frontend-readme-fences.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-11`
 **CI fix:** `none`
@@ -9,7 +9,7 @@
 **Branch:** `task/T-076-frontend-readme-fences`
 **PR:** #131, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** none open in the brief. Criterion 6 was amended on 2026-11-11 so that fence stripping applies to both files. **Separate from that: T-105 has merged (`35eefd3`), and this branch now conflicts with `main`** in two pinned whole-tree tests. See Notes.
+**Fault:**
 
 **Sessions:**
 
@@ -462,11 +462,37 @@ the saved copy confirms the README is back to its pushed bytes.
   those files are in the allowed sets. A T-105 (PR #130) merge first changes all of
   them.
 
+### Verdict — attended tester, 2026-11-11: **pass**
+
+**TL;DR: all 11 criteria are met on the branch rebased onto `main` (`35eefd3`).**
+Criterion 6 was amended and approved by Dkaattae, and now holds. The 7 whole-tree
+pins are re-pinned under the approved Test change request, and question-bank and
+backend are green. **Next step:** `reviewer`.
+
+| # | Verdict | Evidence (this session, after the rebase) |
+|---|---|---|
+| 1–5, 7, 8 | met | `readme-fences.criteria.test.ts` and `format-gate.criteria.test.ts`: 47 pass, 0 fail. `format:check` exits 0 |
+| 6 | met (by hand) | Under the amended wording, both stripped sequences are 146 lines and identical. `main`'s README is byte-identical at `0b78dec` and `35eefd3` |
+| 9 | met (by hand) | `git diff --quiet origin/main` over `.prettierrc`, `.prettierignore`, `package.json` and `bun.lock` exits 0. `git grep prettier-ignore -- frontend` finds nothing |
+| 10 | met, install partial | After a full frontend `bun test`, `git status --porcelain -- frontend/README.md` is empty. The install is partial (see below) |
+| 11 | met (by hand) | `git diff --name-only origin/main` lists: the README, the brief, the run log, the tester's `readme-fences` test, and the 5 test files changed only through approved rows 1–7 |
+
+**Independence.** This session (`cse_011oDiJeQkUtXwz9KRDcx43S`) is a separate
+session from the expander, worker and earlier tester (`cse_011oDiJbsZTbExMiPULZMiFd`),
+and a person attended it.
+
+**Branch-history note.** My force-push after the rebase briefly overwrote four
+commits that the orchestrator's session had pushed (`fbe3324`, `946c74a`,
+`2ac8f36`, `6a83651`: the criterion 6 amendment and its approval). I restored
+them by cherry-picking them unchanged on top of my commits. Compared with
+`6a83651`, the branch now differs only by `main`'s T-105 commits and this
+tester's re-pins and records.
+
 ### Verdict addendum — attended tester, 2026-11-11
 
 **TL;DR: the Test change request is approved and applied, and question-bank is
-green (2713 pass, 0 fail).** The task stays **blocked** on criterion 6, which
-only the `task-expander` can reword. **Next step:** `task-expander`.
+green (2713 pass, 0 fail).** *(Superseded by the pass Verdict above, after
+criterion 6 was amended and the branch was rebased.)*
 
 - **Approval.** Asked in this session row by row (test, action, new value), Dkaattae
   answered: "Approve all 7 rows". The header now reads
@@ -514,9 +540,7 @@ only the `task-expander` can reword. **Next step:** `task-expander`.
     - **backend:** 1221 passed, 9 skipped.
     - **frontend:** 420 pass, 4 fail, the same environmental `react-simple-maps`
       failures. `format:check` and `lint` are clean, and the README is unchanged.
-- **Still open:** criterion 6, as in the Verdict above. Once the expander rewords
-  it and gets a fresh approval, a tester re-verifies criterion 6 and the reviewer
-  takes over.
+- **Criterion 6:** amended and approved since then, and met. See the pass Verdict above.
 
 ## Test change request
 
