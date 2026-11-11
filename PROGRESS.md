@@ -375,6 +375,15 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-105 — `conventions.md`'s `openapi.yaml` row says it follows the backend**
+  (PR #130, 2026-11-10). Line 16 of the Layout block now reads "describes the API;
+  follows the backend, which is the source of truth (engineering-decisions.md E-14)";
+  every other line of `conventions.md` is unchanged (pinned by
+  `conventions-openapi-row-verify.test.ts`). *Where it differed from the brief:* a
+  one-line doc edit again cost six attended Test change request rows, three more than
+  the worker listed (a new-test count, and two digests cascading from row 1 and row 2)
+  — P-17 once more. The same stale wording in `README.md`, `PROGRESS.md:26` and
+  `conventions.md:9`'s "once built" is now T-106.
 - **T-104 — Two backend test docstrings say `openapi.yaml` follows the backend**
   (PR #129, 2026-11-09). `backend/tests/test_contract.py` and `conftest.py` no longer
   call `openapi.yaml` "the contract"; both cite E-14, and the conftest reason for

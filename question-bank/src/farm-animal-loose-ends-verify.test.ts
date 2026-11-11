@@ -169,6 +169,7 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // counted, joins the allowed set with T-047's brief and run log (283 -> 282).
 // Re-pinned by T-104 (Test change request row 4): backend/tests/conftest.py moved;
 // T-104's brief and run log join the allowed set (count unchanged, 282).
+// Re-pinned by T-105 (Test change request row 2): T-105's brief and run log join the allowed set (count and digest unchanged, 282).
 const MAIN_UNTOUCHABLE_SHA = "d29be0bf166cb42d1bdf6c9cfe5077b76cc9b0c1b5393ccb37fcb0509f5c7aaf";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
@@ -188,6 +189,10 @@ const CRITERION_21_ALLOWED = new Set([
   // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
   "tasks/T-104-contract-docstrings.md",
   "runs/T-104-contract-docstrings.md",
+  // T-105's loop records, joined through T-105's Test change request row 2
+  // (approved by Dkaattae, 2026-11-10, in the attended tester session that made the edit).
+  "tasks/T-105-conventions-openapi-row.md",
+  "runs/T-105-conventions-openapi-row.md",
   // T-047's file set, joined through T-047's Test change request row 1
   // (approved by Dkaattae, 2026-11-06, in the attended tester session that made the edit).
   "test-guidelines.md",
