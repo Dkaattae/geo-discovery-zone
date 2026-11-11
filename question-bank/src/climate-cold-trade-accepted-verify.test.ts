@@ -95,7 +95,9 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by T-104 (Test change request row 3): backend/tests/conftest.py moved;
 // T-104's brief and run log join the allowed set (count unchanged, 285).
 // Re-pinned by T-105 (Test change request row 3): T-105's brief and run log join the allowed set (count and digest unchanged, 285).
-const MAIN_UNTOUCHABLE_SHA = "eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf9e0fc213863193";
+// Re-pinned by T-076 (Test change request row 5): frontend/README.md, which main
+// counted, joins the allowed set with T-076's brief and run log.
+const MAIN_UNTOUCHABLE_SHA = "7ca071d2c6b7617ce21d4f32cc006b8c93d8af6fc88a0b3de19b7e700cc6c3e6";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -104,7 +106,8 @@ const MAIN_UNTOUCHABLE_SHA = "eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf
 // Re-pinned by hand for P-18: process-tasks.md joins the allowed set (290 -> 289).
 // Re-pinned by hand for D-19: .claude/loop/'s three files were deleted (289 -> 286).
 // Re-pinned by T-047 (Test change request row 2): test-guidelines.md leaves the counted set (286 -> 285).
-const MAIN_UNTOUCHABLE_COUNT = 285;
+// Re-pinned by T-076 (Test change request row 5): frontend/README.md leaves the counted set (285 -> 284).
+const MAIN_UNTOUCHABLE_COUNT = 284;
 /**
  * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
  * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
@@ -128,7 +131,9 @@ const MAIN_UNTOUCHABLE_COUNT = 285;
 // Re-pinned by T-105 (Test change request row 4): T-105's tester added
 // conventions-openapi-row-verify.test.ts, and rows 1 and 6 changed climate-koppen.criteria.test.ts
 // and hand-check-levels-verify.test.ts.
-const MAIN_TESTS_SHA = "0080f35dc004c263cff534f89a0cf7fcb99a3bab9aded6731ea83ae1b997ba53";
+// Re-pinned by T-076 (row 6): T-076's tester added
+// frontend/src/readme-fences.criteria.test.ts.
+const MAIN_TESTS_SHA = "ea5a5b91c0faa472f601432d08168b257c807cf4a82aa76afa1cd9b0a65802a9";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -147,7 +152,9 @@ const MAIN_TESTS_SHA = "0080f35dc004c263cff534f89a0cf7fcb99a3bab9aded6731ea83ae1
 // test_t104_tester_criteria.py (126 -> 127, on merging main after T-103).
 // Re-pinned by T-105 (Test change request row 4): T-105's tester added
 // conventions-openapi-row-verify.test.ts (127 -> 128).
-const MAIN_TESTS_COUNT = 128;
+// Re-pinned by T-076 (row 6): T-076's tester added
+// readme-fences.criteria.test.ts (128 -> 129, on rebasing onto main after T-105).
+const MAIN_TESTS_COUNT = 129;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -179,15 +186,17 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10),
   // then by T-047 (row 4, for its row 5)
+  // then by T-076 (row 7, for its row 1)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "771b1850ac75d843f1c04275a6e6e0d3e593ccf0a291e1b3e4c680b7cc61176e",
+    "665128dcb52d4fff0cb954023d7787f5acaf8c9a4380891bbf11ad8d02b09176",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-093 (row 7), then by T-097 (row 10), then by T-099 (row 10),
   // then by T-100 (row 7), then by T-047 (row 4, for its row 6)
+  // then by T-076 (row 7, for its row 2)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "9650c28a2828c64ca16b29cfbe06486d6e2ff57ba2b465bda0a43275b640c815",
+    "172257ddfc2adc2ef29d7233007071290547eac17a7af1824df04aa0a669d58a",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
   // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),
@@ -196,8 +205,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-103 (row 5, for its row 2)
   // then by T-104 (row 5, for its row 4), then by T-104 (row 9, on merging main after T-103),
   // then by T-105 (row 5, for its row 2)
+  // then by T-076 (row 7, for its row 4)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "cf676a9c224efb4c794850513ab348be250ff84fd5474933ff3d294eca6c0e11",
+    "e2f473bcefed09eede9d79f9e27faf8c1bb4bf30a03026d7c831c13eb6d7493c",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -212,6 +222,11 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
  * heading, the loop's own record (same reading as T-096's tester).
  */
 const CRITERION_22_ALLOWED = new Set([
+  // T-076's file set, joined through T-076's Test change request row 5
+  // (approved by Dkaattae, 2026-11-11, in the attended tester session that made the edit).
+  "frontend/README.md",
+  "tasks/T-076-frontend-readme-fences.md",
+  "runs/T-076-frontend-readme-fences.md",
   // T-103's loop files, joined through T-103's Test change request row 3
   // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
   "tasks/T-103-bank-facts-guard.md",
