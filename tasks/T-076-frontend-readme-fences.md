@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `tester`
-**Approved:** `pending` (criterion 6 amended 2026-11-11, needs a fresh approval. The earlier stamp, orchestrator — 2026-11-09, unattended run, covered the unamended criteria)
+**Approved:** Dkaattae — 2026-11-11, amended criterion 6, given in the orchestrator's session ("approved criterion 6"). The other criteria carry the orchestrator — 2026-11-09 unattended-run stamp. See `runs/T-076-frontend-readme-fences.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-11`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-076

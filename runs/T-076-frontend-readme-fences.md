@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier — run log
 
 **Task:** T-076 · **Branch:** `task/T-076-frontend-readme-fences` · **PR:** #131
-**Started:** 2026-11-09 · **Outcome:** halted — needs human (approve amended criterion 6; attended tester to merge main and re-pin)
+**Started:** 2026-11-09 · **Outcome:** halted — needs attended tester (merge main and re-pin; re-check criterion 6)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -182,3 +182,6 @@ Brief: /home/user/geo-discovery-zone/tasks/T-076-frontend-readme-fences.md
 
 ## Halted — amended criterion awaiting approval — 2026-11-11
 The orchestrator did not stamp `Approved:`. The person was told the amended criterion would come back to them for approval, so it is theirs to give. The next tester also has to merge `main` and re-pin under a new test change request, which needs an attended session (D-15).
+
+## Approval — amended criterion 6 — 2026-11-11
+The person said in the orchestrator's session: "approved criterion 6". The orchestrator wrote it into the brief's `Approved:` line. `Next step` stays `tester`; that step must be attended, because it merges `main` and re-pins pre-existing tests (D-15).
