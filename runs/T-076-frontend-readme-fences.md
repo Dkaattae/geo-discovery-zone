@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier — run log
 
 **Task:** T-076 · **Branch:** `task/T-076-frontend-readme-fences` · **PR:** #131
-**Started:** 2026-11-09 · **Outcome:** in progress (resumed after attended tester)
+**Started:** 2026-11-09 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -188,3 +188,50 @@ The person said in the orchestrator's session: "approved criterion 6". The orche
 
 ## Resumed — 2026-11-11
 A person told the orchestrator: "pr 131 is fixed please proceed". The branch head had moved to `2503756`. The attended tester rebased the branch onto `main` (`35eefd3`) rather than merging, so earlier commits on this branch have new hashes (for example the approval stamp is now `1fb9363`, was `6a83651`). It re-pinned rows 6 and 7 (`1c68640`) and recorded a verdict (`2503756`). Header on resume: `Status: pass`, `Next step: reviewer`.
+
+## Round 5 — reviewer — 2026-11-11
+`Next step` on entry: `reviewer` → on exit: `human` (merge PR #131)
+
+**T-076 is approved. PR #131 is now ready for review and not merged.** It is inside the envelope, so it carries no escalation note. The sweep is part of the PR, and the push landed: local and `origin/task/T-076-frontend-readme-fences` are both at `5d4ee8d`.
+
+**Next step: a person merges PR #131.** Before merging, they should look at the rendered README and check that the B1 comment columns and the B4 diagram line up (item 1 of the brief's Review checklist).
+
+**CI on the new head (`5d4ee8d`) was still running when I handed back.** That is why GitHub shows the PR as `mergeable_state: unstable`. On the previous head (`4a182a6`), four jobs were green: frontend with a full install, question-bank, backend and integration. e2e and backend-postgres had not finished. So I approved on a green tester pass and those four jobs, not all six.
+
+**What I checked:**
+- **Every role's work is in the PR.** Each row in the Sessions table has a commit on the branch.
+- **Each role stayed in its lane.** The expander changed only the brief. The tester changed only tests and the brief, never source. The orchestrator changed only `runs/` and the `Approved:` line. No `ci-fix` ran.
+- **The four blocks are correct.** I recomputed all four sha256s from `c2c4781` and they match. I also re-ran criterion 6 (as amended) with my own script: both stripped sequences are 146 lines and identical.
+- **The changes to existing tests match the request.** The diff in the 5 question-bank files matches rows 1–7 exactly. Dkaattae approved those rows in an attended session, and they come only from tester commits `ef617b1` and `1c68640`. Each test keeps its name and its assertion.
+- **Envelope:**
+  - no new dependency;
+  - nothing touches `openapi.yaml`, a migration or `geoquizdataplan.md`;
+  - no text a child will read;
+  - `CI fix: none`, and the test changes were approved by a person.
+  - Criteria other than 6 still rest on the orchestrator's unattended approval stamp. D-1 accepts that, and it is not an escalation trigger.
+
+**Suites run here after the sweep:**
+- **question-bank:** 2723 pass, 0 fail.
+- **frontend:** 420 pass, 4 fail. All 4 are `Cannot find package 'react-simple-maps'`, because the proxy refuses part of the install. CI's full install passes.
+  - My first frontend run also hit a 5 s timeout in the lint-gate test while the machine was loaded. It did not recur on the second run.
+  - `frontend/README.md` was unchanged after both runs.
+
+**One non-blocking finding, queued as new task T-107.** `frontend/src/format-gate.criteria.test.ts:178` and the new `frontend/src/readme-fences.criteria.test.ts:288` both run `bun run format`, which writes files. When `node_modules` is missing, that command picks up a global prettier 3.8.1 instead of the pinned 3.9.6 and rewrites tracked files. That caused all five earlier README rewrites. I made it a new entry because no queued task covers frontend test hygiene.
+
+**Worker and tester flags, all settled:**
+- **Criterion 6 could not be met as worded.** It was amended and re-approved by Dkaattae, and it now holds.
+- **Shared session ids.** Accepted under the orchestrated model. The tester that passed the work ran in its own attended session.
+- **README rewrite when `node_modules` is missing.** Now T-107.
+- **The tester's force-push and cherry-pick restore.** Checked: the criterion 6 amendment and its approval are both on the branch.
+
+**Commits:**
+- `e9b3e90`: my `## Review` section, Status `approved`, Next step `human`, and a reviewer row in Sessions.
+- `5d4ee8d`: the sweep. It deletes the brief, removes T-076 from `tasks.md`, adds T-107 to §F with a note in the sweep log, and adds a T-076 line to `PROGRESS.md` under Completed tasks.
+
+I also rewrote the PR body: a TL;DR, all 11 criteria verbatim with what verified each, the Test change request rows, the review and the sweep.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-076-frontend-readme-fences.md (deleted in `5d4ee8d`; the review is in `e9b3e90`)
+- PR: https://github.com/Dkaattae/geo-discovery-zone/pull/131
