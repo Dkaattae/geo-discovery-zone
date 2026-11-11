@@ -1,15 +1,15 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier
 
-**Status:** `blocked`
-**Next step:** `task-expander`
-**Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-076-frontend-readme-fences.md`.
+**Status:** `awaiting approval`
+**Next step:** `tester`
+**Approved:** `pending` (criterion 6 amended 2026-11-11, needs a fresh approval. The earlier stamp, orchestrator — 2026-11-09, unattended run, covered the unamended criteria)
 **Test changes:** `approved — Dkaattae, 2026-11-11`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-076
 **Branch:** `task/T-076-frontend-readme-fences`
 **PR:** #131, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** Criterion 6 cannot be met as worded, because its `main` side keeps the pre-existing ` ```sh ` block that its task side strips (owner: task-expander). The seven stale whole-tree pins are cleared: the Test change request was approved and applied in `687ba8a`.
+**Fault:** none open in the brief. Criterion 6 was amended on 2026-11-11 so that fence stripping applies to both files. **Separate from that: T-105 has merged (`35eefd3`), and this branch now conflicts with `main`** in two pinned whole-tree tests. See Notes.
 
 **Sessions:**
 
@@ -19,6 +19,7 @@ draft** until the reviewer approves it.
 | worker | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
 | tester | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
 | tester (attended, Test change request) | 2026-11-11 | `cse_011oDiJeQkUtXwz9KRDcx43S` |
+| task-expander (criterion 6 amendment) | 2026-11-11 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
 
 ## Goal
 
@@ -76,10 +77,16 @@ for a fresh approval.
    in the table above) that differs from its B1–B4 original. Examples are
    `id: string; // "us-state-co"`, `↓ ↓`, `PRESENTING → question rendered, input
    live` and `├─ [Keep playing] ← default, larger`. Each block appears once, fenced.
-6. **No prose moved.** Take the task's `frontend/README.md` and remove every
-   fence line, every fenced block's content and every blank line. Take `main`'s
-   `frontend/README.md` (at `0b78dec`) and remove the four flattened ranges and
-   every blank line. The two sequences of lines are identical, in the same order.
+6. **No prose moved.** *(Amended 2026-11-11. See Notes.)* Take two files: the
+   task's `frontend/README.md`, and `main`'s `frontend/README.md` at `0b78dec`.
+   That file is byte-identical at `35eefd3`. From `main`'s copy, first remove
+   the four flattened ranges (the right-hand column of the table above). Then,
+   from **both** copies, remove every fence line, every fenced block's content
+   and every blank line. The two remaining sequences of lines are identical, in
+   the same order. A fenced block that was already on `main`, such as the
+   ` ```sh ` block under the setup instructions, is therefore stripped on both
+   sides. It must not be removed, moved or edited, because criterion 11 and Out
+   of scope ("Rewording, restructuring…") still forbid that.
 7. **The check passes.** In `frontend/`, after `bun install --frozen-lockfile`,
    `bun run format:check` exits 0.
 8. **The writer agrees with the check.** In `frontend/`, after `bun install
@@ -109,6 +116,21 @@ for a fresh approval.
 - **Already true, and must stay true:** `bun run format:check` passes on `main`
   today (T-075). Criteria 7 and 8 guard against a fence that prettier would
   reformat. They do not ask for a fix to a failing check.
+
+**Amendment, 2026-11-11 (criterion 6 only).**
+
+- **What changed.** The original wording stripped fences only on the task side.
+  `main`'s pre-existing ` ```sh ` block (lines 325–330 at `0b78dec`) therefore
+  survived on the `main` side only. No correct README could satisfy that.
+  Worker and tester both flagged it. Fence stripping now applies to both files,
+  which is what "no prose moved" was meant to measure.
+- **What did not change.** All other criteria, Out of scope and Constraints
+  are unchanged, and so are their numbers. The README needs no further edit to
+  meet this wording. The next role is the tester, re-verifying criterion 6 by
+  hand, not the worker.
+- **What still holds.** The amendment does not loosen anything else. Criterion
+  11 still bans any change outside the listed files. The prose rule still bans
+  touching the ` ```sh ` block.
 
 ## Out of scope
 
@@ -532,3 +554,14 @@ Whichever merges second needs another re-pin round on top of `main`.
   removes this README from that disagreement.
 - **The brief understated which pins go red:** 5 rather than 2, and 2 of those
   were already red from the expander's own commits.
+- **T-105 merged first (expander, 2026-11-11).** `origin/main` is now `35eefd3`
+  (PR #130). `git merge-tree origin/main HEAD` reports content conflicts in
+  `question-bank/src/climate-cold-trade-accepted-verify.test.ts` and
+  `question-bank/src/farm-animal-loose-ends-verify.test.ts`, the pins both PRs
+  moved. The Test change request warned about this ("Whichever merges second
+  needs another re-pin round on top of `main`"). `frontend/README.md` is
+  unchanged between `0b78dec` and `35eefd3`, so criteria 1–6 are unaffected.
+  Bringing `main` into this branch and re-pinning those tests changes
+  pre-existing tests. That needs a new Test change request approved by a person
+  in an attended tester session (D-14, D-15). The expander may not touch tests.
+  **Owner:** tester or reviewer, with a person.
