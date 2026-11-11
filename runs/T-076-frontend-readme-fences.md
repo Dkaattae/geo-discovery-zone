@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier — run log
 
 **Task:** T-076 · **Branch:** `task/T-076-frontend-readme-fences` · **PR:** #131
-**Started:** 2026-11-09 · **Outcome:** in progress (resumed on person's instruction)
+**Started:** 2026-11-09 · **Outcome:** halted — needs human (approve amended criterion 6; attended tester to merge main and re-pin)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -154,3 +154,31 @@ Task limit (2) reached; both tasks ended halted (T-105 on a test change request,
 
 ## Resumed — 2026-11-11
 A person told the orchestrator: "proceed with t-076 criterion 6". The branch head had moved to `edf2831`: an attended tester applied the approved test change request (`687ba8a`) and recorded it (`edf2831`). Header on resume: `Status: blocked`, `Next step: task-expander`, `Test changes: approved — Dkaattae, 2026-11-11`. The person's instruction is the authority for leaving the `blocked` halt; the orchestrator spawns the `task-expander` that `Next step` names.
+
+## Round 4 — task-expander — 2026-11-11
+`Next step` on entry: `task-expander` → on exit: `tester` (Status: `awaiting approval`, Approved: `pending`)
+
+I reworded T-076's criterion 6 so it can be met, and pushed it. The brief now needs a fresh approval before the tester re-checks criterion 6. Separately, T-105 has merged to `main`, and this branch now has merge conflicts in two pinned question-bank tests. Fixing those needs a person.
+
+- **Header:** `Status: awaiting approval`, `Next step: tester`, `Approved: pending`. I reset `Approved` because the 2026-11-09 orchestrator stamp covered the old wording.
+- **Pushed:** commit `946c74a` on `task/T-076-frontend-readme-fences`. I fetched afterwards and the remote branch is at the same commit.
+- **PR #131:** its body now carries the new criterion 6, marked as amended and awaiting fresh approval. It is still a draft.
+
+**What changed in criterion 6**
+- **Old wording:** fence lines and fenced content were stripped from the task's README only. So `main`'s existing ` ```sh ` setup block was kept on the `main` side alone, and no correct README could pass. The worker and the tester both flagged this.
+- **New wording:** remove the four flattened ranges from `main`'s README (at `0b78dec`; the file is the same at `35eefd3`). Then strip fence lines, fenced content and blank lines from both files. The two results must be identical. The ` ```sh ` block must still not be removed, moved or edited.
+- **Nothing else changed:** the other criteria and their numbers, Out of scope and Constraints are as they were. I added an amendment note under the criteria.
+- **No further README edit should be needed:** the tester's Verdict says the two files match once both sides are stripped the same way. So the next role is the tester re-checking criterion 6 by hand, not the worker.
+
+**Needs a person: conflicts with `main`**
+- **Cause:** T-105 (PR #130) merged to `main` as `35eefd3` and moved the same whole-tree pins this branch re-pinned.
+- **Conflicting files:** `git merge-tree` reports content conflicts in `question-bank/src/climate-cold-trade-accepted-verify.test.ts` and `question-bank/src/farm-animal-loose-ends-verify.test.ts`.
+- **What it takes:** bringing `main` in and re-pinning changes existing tests. That needs a new Test change request, approved by a person in an attended tester session (D-14, D-15). My role may not touch tests. This is written into the brief's Fault line and Notes.
+- **Criteria 1–6 are not affected:** `frontend/README.md` is identical at `0b78dec` and `35eefd3`.
+
+The commit touches only the brief, and I did not run any build or test suite.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-076-frontend-readme-fences.md
+
+## Halted — amended criterion awaiting approval — 2026-11-11
+The orchestrator did not stamp `Approved:`. The person was told the amended criterion would come back to them for approval, so it is theirs to give. The next tester also has to merge `main` and re-pin under a new test change request, which needs an attended session (D-15).
