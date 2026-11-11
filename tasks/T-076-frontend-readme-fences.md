@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #131)
 **Approved:** Dkaattae — 2026-11-11, amended criterion 6, given in the orchestrator's session ("approved criterion 6"). The other criteria carry the orchestrator — 2026-11-09 unattended-run stamp. See `runs/T-076-frontend-readme-fences.md`.
 **Test changes:** `approved — Dkaattae, 2026-11-11`
 **CI fix:** `none`
@@ -20,6 +20,7 @@ draft** until the reviewer approves it.
 | tester | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
 | tester (attended, Test change request) | 2026-11-11 | `cse_011oDiJeQkUtXwz9KRDcx43S` |
 | task-expander (criterion 6 amendment) | 2026-11-11 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
+| reviewer | 2026-11-11 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
 
 ## Goal
 
@@ -589,3 +590,62 @@ Whichever merges second needs another re-pin round on top of `main`.
   pre-existing tests. That needs a new Test change request approved by a person
   in an attended tester session (D-14, D-15). The expander may not touch tests.
   **Owner:** tester or reviewer, with a person.
+
+## Review
+
+**Approved, inside the envelope.** The four blocks are restored byte for byte in
+` ```text ` fences, nothing else in the README moved, and the 7 re-pins are exactly
+the person-approved rows. No blocking finding; one non-blocking finding goes into
+`tasks.md` as T-107. The PR is marked ready with no escalation note.
+
+**Checks made in this session:**
+
+- **Every role's work is in the PR.** Each Sessions row has a commit on this branch.
+- **Lanes held.** The expander's commits touch only the brief. The tester's commits
+  touch only tests and the brief, never source. The orchestrator's touch only `runs/`
+  and the `Approved:` line. No `ci-fix` ran.
+- **Blocks re-derived from `c2c4781`.** All four sha256s reproduce. Criterion 6,
+  re-run with an independent script: both stripped sequences are 146 lines and identical.
+- **Pre-existing test changes match the Test change request.** Rows 1-7 match the
+  diff in all 5 question-bank files, the rows were approved by a person (Dkaattae,
+  attended session), and they come only from `tester` commits (`ef617b1`, `1c68640`).
+  Every test keeps its name and assertion; only pinned values and allowed-set
+  members moved.
+- **CI on `4a182a6`:** frontend (full install), question-bank, backend and
+  integration green. That closes the tester's "install partial" caveat on the
+  frontend suite.
+- **Envelope:** no dependency; nothing in `openapi.yaml`, a migration or
+  `geoquizdataplan.md`; no text a child reads (the README is the design brief, and
+  its prose is untouched); `Test changes:` names a person; `CI fix: none`.
+  Criteria other than 6 carry the orchestrator's unattended stamp, which D-1 accepts.
+
+**Findings:**
+
+1. **Non-blocking: two frontend tests run prettier's writer and may get an unpinned
+   global prettier.** `frontend/src/format-gate.criteria.test.ts:178` (T-075
+   criterion 7) and the new `frontend/src/readme-fences.criteria.test.ts:288`
+   (criterion 8) both call `bun run format`, which runs `prettier --write .`. When
+   `node_modules` is missing, it resolves to `/opt/node22/bin/prettier` 3.8.1 (the
+   worker's finding) and rewrites tracked files. The README is now immune to that,
+   but any other file where 3.8.1 and 3.9.6 differ is not. The new test does assert
+   that 3.9.6 is installed, but in a separate test, so the writer still runs when
+   that check fails. Fixing either test changes a test, which is out of scope here.
+   **Queued as T-107**, a new entry: no queued task owns `frontend/` test hygiene.
+
+**Flags disposed:**
+
+- **Worker: criterion 6 unsatisfiable as worded.** Settled by the expander's
+  amendment and Dkaattae's approval; it now holds (re-checked above).
+- **Worker: shared session ids.** Accepted under the orchestrated model. The
+  attended tester session (`cse_011oDiJeQkUtXwz9KRDcx43S`) is genuinely separate,
+  and the pass verdict is that tester's. This review also shares the id; it rests on
+  being a freshly spawned context that wrote none of this work.
+- **Worker: the uninstalled `bun test` rewrite.** The sweep adds the `tasks.md`
+  entry the Review checklist asks for (T-107).
+- **Tester: force-push overwrote four orchestrator commits, restored by cherry-pick.**
+  Checked: the amendment (`714c398`) and the approval stamp (`1fb9363`) are on the
+  branch, and the brief's criterion 6 text is the amended wording.
+
+**For the person merging (the Review checklist):** item 1 asks you to look at the
+rendered README on GitHub, to check that B1's comment columns and B4's diagram line up.
+Item 2 is done (T-107).
