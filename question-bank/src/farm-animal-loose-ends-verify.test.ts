@@ -170,7 +170,8 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-104 (Test change request row 4): backend/tests/conftest.py moved;
 // T-104's brief and run log join the allowed set (count unchanged, 282).
 // Re-pinned by T-105 (Test change request row 2): T-105's brief and run log join the allowed set (count and digest unchanged, 282).
-const MAIN_UNTOUCHABLE_SHA = "d29be0bf166cb42d1bdf6c9cfe5077b76cc9b0c1b5393ccb37fcb0509f5c7aaf";
+// Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md and .claude/agents/ changed (count unchanged).
+const MAIN_UNTOUCHABLE_SHA = "f61fa5b166220c9d802f75afd4aa7027b74f946f698fca1bf04caa04bc164049";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its

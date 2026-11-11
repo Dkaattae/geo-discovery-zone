@@ -798,6 +798,10 @@ step.
 
 ## D-15 — A test change request is approved in the tester's own session
 
+> **Amended by D-20 (2026-11-11).** An unattended tester no longer halts on stale
+> tests. It routes them to the `ci-fix`, whose plan the orchestrator may stamp.
+> What follows still holds for an attended tester's request.
+
 **2026-09-28.** P-12. D-14 had the tester always halt on a test change request,
 even with a person in its session. The approval was then written into the brief
 header, by the person or by the orchestrator's stamp, and a **fresh** tester was
@@ -1104,3 +1108,55 @@ bound that.
 dependency skip is not enough), or a run spends its whole limit on halts that
 the two-in-a-row rule missed. If a shell driver is wanted again, it starts from
 P-5: a child process that cannot run commands cannot drive anything.
+
+## D-20 — An orchestrated tester routes stale tests to the `ci-fix`
+
+**2026-11-11.** Done by hand, as a process change, at the person's request
+(katechen150621@gmail.com). T-105 (PR #130) halted on a test change request for
+six pins its own one-line change made stale. Nothing could move until the person
+started a tester session by hand, though D-17 and D-18 had already given the
+`ci-fix` an hour-then-stamp route that covers pre-existing tests. The run logs
+show no `ci-fix` has ever run: the stamp route was only reachable through a
+`fail`, and stale tests never produce one. The person's words: *"I do not want to
+start a new tester session myself. is there a way that orchestrator can start a
+new session and start fix ci role? ... it should ask for human approval. but if
+for like some time, there are no response, just decide and with orchestrator
+stamp."*
+
+**Decided:**
+
+- **An orchestrated tester does not halt on stale tests.** It writes its
+  `## Test change request` rows as before, Decision blank, and sets
+  `Test changes: routed to ci-fix (D-20)`, `Status: fail`, `Next step: ci-fix`.
+- **The `ci-fix` takes the rows as its starting list.** It re-checks each one and
+  carries it into its CI fix plan as a `pre-existing test` row. Once applied, it
+  sets `Test changes: applied through CI fix plan (D-20)`.
+- **Approval is D-17's, unchanged.** The person approves the plan, or after about
+  an hour with nobody answering the orchestrator stamps it without reading it.
+  A fresh tester re-verifies. The reviewer escalates any test row the stamp
+  approved and copies the plan into the PR body.
+- **The routed `fail` counts toward G3** like any other.
+- **An attended tester is unchanged.** It asks the person in its session and
+  applies the rows itself (D-15). A request left as `requested` still resumes
+  only through an attended tester, and the orchestrator still never stamps a
+  test change request itself.
+
+**Why not let the orchestrator stamp the tester's request (D-15's option (b)).**
+It would give a second approval surface for test changes with the same file-based
+authority as the `ci-fix` stamp. Routing to the `ci-fix` keeps one surface, the
+CI fix plan, with one stamp, one escalation rule and one role that applies stamped
+test edits.
+
+**The known risk, D-15's and D-17's.** A spawned `ci-fix` editing pre-existing
+tests on the orchestrator's stamp is acting on file-based authority. The harness
+refused exactly that pattern on T-071. This is the first route that will actually
+exercise D-18's stamped test rows. If it is refused, the `ci-fix` records the
+refusal and stops `blocked` / `human`, and the person applies the rows by hand
+or starts an attended tester. So the worst case is the old halt, one round later.
+
+**What would make this worth revisiting.** The first stamped `pre-existing test`
+row. If the harness refuses it, drop this route and go back to D-15's halt (the
+extra round buys nothing). If it goes through, record the task here. Also revisit
+if stamped re-pins merge with a reviewer escalation nobody reads: then the stamp
+has only moved the wait, not removed it, and P-17 (stop creating whole-tree pins)
+is the real fix.

@@ -95,7 +95,8 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by T-104 (Test change request row 3): backend/tests/conftest.py moved;
 // T-104's brief and run log join the allowed set (count unchanged, 285).
 // Re-pinned by T-105 (Test change request row 3): T-105's brief and run log join the allowed set (count and digest unchanged, 285).
-const MAIN_UNTOUCHABLE_SHA = "eba70070b3ab2d5e22e90e49bd5e7ee7ba8d924478c0040ccf9e0fc213863193";
+// Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md and .claude/agents/ changed (count unchanged).
+const MAIN_UNTOUCHABLE_SHA = "ecbc322fb22bd2dc908de45a8f219d1d46c299455924f2a2e00cbedcac822af9";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -195,9 +196,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-102 (row 3), then by T-047 (row 4, then row 8: recomputed on merging main after T-102),
   // then by T-103 (row 5, for its row 2)
   // then by T-104 (row 5, for its row 4), then by T-104 (row 9, on merging main after T-103),
-  // then by T-105 (row 5, for its row 2)
+  // then by T-105 (row 5, for its row 2), then by hand for D-20 (its whole-tree digest moved)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "cf676a9c224efb4c794850513ab348be250ff84fd5474933ff3d294eca6c0e11",
+    "e312f637f2b7f69ca877fd76397f3ff89006619c2a078b6194045c0b98e06a9a",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
