@@ -3,13 +3,13 @@
 **Status:** `blocked`
 **Next step:** `task-expander`
 **Approved:** orchestrator — 2026-11-09, unattended run. See `runs/T-076-frontend-readme-fences.md`.
-**Test changes:** `requested`
+**Test changes:** `approved — Dkaattae, 2026-11-11`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-076
 **Branch:** `task/T-076-frontend-readme-fences`
 **PR:** #131, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** Criterion 6 cannot be met as worded, because its `main` side keeps the pre-existing ` ```sh ` block that its task side strips (owner: task-expander). Separately, seven question-bank whole-tree pins are stale and wait on an attended Test change request (owner: a person).
+**Fault:** Criterion 6 cannot be met as worded, because its `main` side keeps the pre-existing ` ```sh ` block that its task side strips (owner: task-expander). The seven stale whole-tree pins are cleared: the Test change request was approved and applied in `687ba8a`.
 
 **Sessions:**
 
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
 | worker | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` |
 | tester | 2026-11-09 | `cse_011oDiJbsZTbExMiPULZMiFd` (orchestrated: shared id; a freshly spawned context) |
+| tester (attended, Test change request) | 2026-11-11 | `cse_011oDiJeQkUtXwz9KRDcx43S` |
 
 ## Goal
 
@@ -439,6 +440,45 @@ the saved copy confirms the README is back to its pushed bytes.
   those files are in the allowed sets. A T-105 (PR #130) merge first changes all of
   them.
 
+### Verdict addendum — attended tester, 2026-11-11
+
+**TL;DR: the Test change request is approved and applied, and question-bank is
+green (2713 pass, 0 fail).** The task stays **blocked** on criterion 6, which
+only the `task-expander` can reword. **Next step:** `task-expander`.
+
+- **Approval.** Asked in this session row by row (test, action, new value), Dkaattae
+  answered: "Approve all 7 rows". The header now reads
+  `Test changes: approved — Dkaattae, 2026-11-11`.
+- **Rows rechecked before applying.** `main` is still `0b78dec`, and T-105 has
+  not merged. The same 6 tests were red, and rows 1–3's received digests were
+  exactly the ones in the rows.
+- **Applied in `687ba8a`, exactly the 7 rows, nothing else:**
+  - **Row 1:** `MAIN_FRONTEND_SHA` → `706eae34…a638`.
+  - **Row 2:** the `"frontend"` digest → `d271c4e5…56ef`.
+  - **Row 3:** `MAIN_BOUNDARY_SHA` → `5fea1cb3…7837`.
+  - **Row 4:** 3 paths added to `CRITERION_21_ALLOWED`, count 282 → 281,
+    `MAIN_UNTOUCHABLE_SHA` → `83c08bed…aca6`.
+  - **Row 5:** the same 3 paths added to `CRITERION_22_ALLOWED`, count 285 → 284,
+    `MAIN_UNTOUCHABLE_SHA` → `7ca071d2…c3e6`.
+  - **Row 6:** `MAIN_TESTS_COUNT` 127 → 128, `MAIN_TESTS_SHA` → `ea5a5b91…02a9`.
+  - **Row 7:** the agriculture digest → `665128dc…9176`, map-click → `172257dd…d58a`,
+    farm-animal → `e2f473bc…493c`. Each comment trail gets "then by T-076
+    (row 7, for its row N)".
+- **No test asserts less than before.** Each one keeps its name and assertion.
+  Only the pinned values moved, and the two counts moved by exactly the README
+  leaving the counted set (rows 4 and 5) and the one new test file (row 6).
+- **Whole suites after the commit:**
+  - **question-bank:** `bun test` 2713 pass, 0 fail. `typecheck` is clean.
+  - **backend:** `uv run pytest -q` 1221 passed, 9 skipped. `ruff check` is clean.
+  - **frontend:** `format:check` and `lint` are clean. `bun test` gives 420 pass,
+    4 fail, all 4 "Cannot find package 'react-simple-maps'". The cause is still
+    the environment: `bun install --frozen-lockfile` got a 403
+    `ProxyConnectFailed` on `@types/react-simple-maps@3.0.6`. After the run,
+    `git status --porcelain -- frontend/README.md` is empty.
+- **Still open:** criterion 6, as in the Verdict above. Once the expander rewords
+  it and gets a fresh approval, a tester re-verifies criterion 6 and the reviewer
+  takes over.
+
 ## Test change request
 
 These values were observed in a dry run at the tester commit. The run applied
@@ -454,13 +494,13 @@ applying:**
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
-| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 21: every tracked file under frontend/ is byte-identical to main's" | `e9d666e`, T-088: digest of every tracked file under `frontend/`. Last re-pinned by T-047 | The task changes the README (criteria 1–4), and the tester adds a test file under `frontend/` | modify | Same name and assertion. `MAIN_FRONTEND_SHA` (line 193) `4de52321…3a77` → `706eae346cd45a5b9457e0942db94b31eec7cfdd1ceb8e045830603806a2a638`, with a "Re-pinned by T-076 (Test change request row 1)" comment naming both files | |
-| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › "frontend (except []) is byte-identical to 5d72ca5" | `cf63f66`, T-092: tree digest of `frontend/`. Last re-pinned by T-047 | Same as row 1 | modify | Same name and assertion. The `"frontend"` row's digest (line 743) `179208d1…22d5` → `d271c4e53ee0c08b66a0a866686553cd45d6512b02622650a1779a54165b56ef`, with a T-076 row 2 comment | |
-| 3 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087: whole-tree digest of `backend/`, `frontend/`, `e2e/`. Last re-pinned by T-104 | Same as row 1 | modify | Same name and assertion. `MAIN_BOUNDARY_SHA` (line 94) `f5da4305…bd71c` → `5fea1cb359bed066c1feb28f2bca2d7ae2e87f04bcb785eceb974d1403247837`, with a T-076 row 3 comment | |
-| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside `CRITERION_21_ALLOWED` and the test files. Last re-pinned by T-104 | The task adds its brief and run log, which are new tracked files, and changes the README, which this pin counts (criterion 11 allows all three) | modify | Same name and assertions. Add `"frontend/README.md"`, `"tasks/T-076-frontend-readme-fences.md"` and `"runs/T-076-frontend-readme-fences.md"` to `CRITERION_21_ALLOWED`, with a T-076 row 4 comment. The count literal (line 623) goes from 282 to **281**, because the README leaves the counted set. That is the same move as T-047 row 1, and its comment trail gets "T-076 row 4: was 282". `MAIN_UNTOUCHABLE_SHA` (line 172) `d29be0bf…aaf` → `83c08bed16a6ed0b6741bcad55c12644b7d4d0b4f471bcdac750fb7db100aca6` | |
-| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of tracked non-test files outside `CRITERION_22_ALLOWED`. Last re-pinned by T-104 | Same as row 4 | modify | Same name and assertions. Add the same three paths to `CRITERION_22_ALLOWED`, with a T-076 row 5 comment. `MAIN_UNTOUCHABLE_COUNT` (line 106) goes from 285 to **284**, because the README leaves the counted set. `MAIN_UNTOUCHABLE_SHA` (line 97) `eba70070…3193` → `7ca071d2c6b7617ce21d4f32cc006b8c93d8af6fc88a0b3de19b7e700cc6c3e6` | |
-| 6 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by T-104 | The tester adds `frontend/src/readme-fences.criteria.test.ts` | modify | Same name and assertions. `MAIN_TESTS_COUNT` (line 144) goes from 127 to **128**. `MAIN_TESTS_SHA` (line 127) `592eaba9…02df` → `ea5a5b91c0faa472f601432d08168b257c807cf4a82aa76afa1cd9b0a65802a9`. Both get a "Re-pinned by T-076 (row 6)" comment | |
-| 7 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091: the per-file sha of each file in `TEST_CHANGE_REQUEST_FILES` | Rows 1, 2 and 4 edit `agriculture-true-wrong-answers-verify.test.ts`, `map-click-no-candidates-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts`, so their pinned shas move. This is the same move as T-104 row 5 | modify | Same name and assertion. In `APPLIED_REQUEST_FILE_SHAS`, the entries for those three files take each file's sha256 **after rows 1, 2 and 4 are applied, comments included**. Without comments, the dry run gave `206f3cb4…c730`, `4d42fa24…f4ee` and `7bcf7b21…5323`. The real values will differ. Append "then by T-076 (row 7, for its row N)" to each comment trail | |
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `T-088 criteria 20-25: what must not change` › "criterion 21: every tracked file under frontend/ is byte-identical to main's" | `e9d666e`, T-088: digest of every tracked file under `frontend/`. Last re-pinned by T-047 | The task changes the README (criteria 1–4), and the tester adds a test file under `frontend/` | modify | Same name and assertion. `MAIN_FRONTEND_SHA` (line 193) `4de52321…3a77` → `706eae346cd45a5b9457e0942db94b31eec7cfdd1ceb8e045830603806a2a638`, with a "Re-pinned by T-076 (Test change request row 1)" comment naming both files | approved — Dkaattae, 2026-11-11 |
+| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › `T-092 criterion 16: no other surface changes` › "frontend (except []) is byte-identical to 5d72ca5" | `cf63f66`, T-092: tree digest of `frontend/`. Last re-pinned by T-047 | Same as row 1 | modify | Same name and assertion. The `"frontend"` row's digest (line 743) `179208d1…22d5` → `d271c4e53ee0c08b66a0a866686553cd45d6512b02622650a1779a54165b56ef`, with a T-076 row 2 comment | approved — Dkaattae, 2026-11-11 |
+| 3 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › `T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes` › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" | `40f6c54`, T-087: whole-tree digest of `backend/`, `frontend/`, `e2e/`. Last re-pinned by T-104 | Same as row 1 | modify | Same name and assertion. `MAIN_BOUNDARY_SHA` (line 94) `f5da4305…bd71c` → `5fea1cb359bed066c1feb28f2bca2d7ae2e87f04bcb785eceb974d1403247837`, with a T-076 row 3 comment | approved — Dkaattae, 2026-11-11 |
+| 4 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096: count and digest of every tracked file outside `CRITERION_21_ALLOWED` and the test files. Last re-pinned by T-104 | The task adds its brief and run log, which are new tracked files, and changes the README, which this pin counts (criterion 11 allows all three) | modify | Same name and assertions. Add `"frontend/README.md"`, `"tasks/T-076-frontend-readme-fences.md"` and `"runs/T-076-frontend-readme-fences.md"` to `CRITERION_21_ALLOWED`, with a T-076 row 4 comment. The count literal (line 623) goes from 282 to **281**, because the README leaves the counted set. That is the same move as T-047 row 1, and its comment trail gets "T-076 row 4: was 282". `MAIN_UNTOUCHABLE_SHA` (line 172) `d29be0bf…aaf` → `83c08bed16a6ed0b6741bcad55c12644b7d4d0b4f471bcdac750fb7db100aca6` | approved — Dkaattae, 2026-11-11 |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091: count and digest of tracked non-test files outside `CRITERION_22_ALLOWED`. Last re-pinned by T-104 | Same as row 4 | modify | Same name and assertions. Add the same three paths to `CRITERION_22_ALLOWED`, with a T-076 row 5 comment. `MAIN_UNTOUCHABLE_COUNT` (line 106) goes from 285 to **284**, because the README leaves the counted set. `MAIN_UNTOUCHABLE_SHA` (line 97) `eba70070…3193` → `7ca071d2c6b7617ce21d4f32cc006b8c93d8af6fc88a0b3de19b7e700cc6c3e6` | approved — Dkaattae, 2026-11-11 |
+| 6 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091: count and digest of every pre-existing test file. Last re-pinned by T-104 | The tester adds `frontend/src/readme-fences.criteria.test.ts` | modify | Same name and assertions. `MAIN_TESTS_COUNT` (line 144) goes from 127 to **128**. `MAIN_TESTS_SHA` (line 127) `592eaba9…02df` → `ea5a5b91c0faa472f601432d08168b257c807cf4a82aa76afa1cd9b0a65802a9`. Both get a "Re-pinned by T-076 (row 6)" comment | approved — Dkaattae, 2026-11-11 |
+| 7 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: …` › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `950f334`, T-091: the per-file sha of each file in `TEST_CHANGE_REQUEST_FILES` | Rows 1, 2 and 4 edit `agriculture-true-wrong-answers-verify.test.ts`, `map-click-no-candidates-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts`, so their pinned shas move. This is the same move as T-104 row 5 | modify | Same name and assertion. In `APPLIED_REQUEST_FILE_SHAS`, the entries for those three files take each file's sha256 **after rows 1, 2 and 4 are applied, comments included**. Without comments, the dry run gave `206f3cb4…c730`, `4d42fa24…f4ee` and `7bcf7b21…5323`. The real values will differ. Append "then by T-076 (row 7, for its row N)" to each comment trail | approved — Dkaattae, 2026-11-11 |
 
 **Merge order with T-105 (PR #130).** Both PRs re-pin the same digests.
 Whichever merges second needs another re-pin round on top of `main`.
