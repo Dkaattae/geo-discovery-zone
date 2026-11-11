@@ -1,7 +1,7 @@
 # T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier — run log
 
 **Task:** T-076 · **Branch:** `task/T-076-frontend-readme-fences` · **PR:** #131
-**Started:** 2026-11-09 · **Outcome:** halted — needs attended tester (merge main and re-pin; re-check criterion 6)
+**Started:** 2026-11-09 · **Outcome:** in progress (resumed after attended tester)
 
 ## Round 1 — task-expander — 2026-11-09
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -185,3 +185,6 @@ The orchestrator did not stamp `Approved:`. The person was told the amended crit
 
 ## Approval — amended criterion 6 — 2026-11-11
 The person said in the orchestrator's session: "approved criterion 6". The orchestrator wrote it into the brief's `Approved:` line. `Next step` stays `tester`; that step must be attended, because it merges `main` and re-pins pre-existing tests (D-15).
+
+## Resumed — 2026-11-11
+A person told the orchestrator: "pr 131 is fixed please proceed". The branch head had moved to `2503756`. The attended tester rebased the branch onto `main` (`35eefd3`) rather than merging, so earlier commits on this branch have new hashes (for example the approval stamp is now `1fb9363`, was `6a83651`). It re-pinned rows 6 and 7 (`1c68640`) and recorded a verdict (`2503756`). Header on resume: `Status: pass`, `Next step: reviewer`.
