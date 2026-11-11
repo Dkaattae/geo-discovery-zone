@@ -29,8 +29,9 @@ each and are deliberately unable to do the others' jobs; the sixth drives them.
 - **`tester`** (opus) — verifies against the criteria in a fresh session. Cannot
   edit source to make a test pass, and cannot edit the criteria either. The only
   role that may delete or modify an existing test the task has made stale, and
-  only once a human has approved each one (D-14). The `ci-fix` may too, through
-  its approved plan (D-18).
+  only once a human in its session has approved each one (D-14). Under the
+  orchestrator it routes them to the `ci-fix` instead (D-20), which may change
+  them through its approved plan (D-18).
 - **`ci-fix`** (opus) — comes in on a `fail`, in a fresh session. Writes a CI fix
   plan, gets it approved — by a person, or after an hour with nobody answering,
   by the orchestrator's stamp — then applies exactly the approved rows, source
@@ -525,13 +526,18 @@ modify it (so may the `ci-fix`, as a row of its plan; see 4a). It asks the way t
    asks you directly, row by row. It records your answer in each row's
    Decision and the header's `Test changes: approved — <name>, <date>`, applies
    exactly the approved rows in that same session, and finishes verifying.
-3. **Halt, if you are not.** Under the orchestrator it stops
-   after the push. **To resume, start a tester in a session you are attending**,
-   not a subagent and not a run. It picks up the request already in the brief,
-   asks you to approve or confirm it, and carries on from step 2.
+3. **Route to the `ci-fix`, if you are not (D-20).** Under the orchestrator the
+   tester does not halt. It keeps its rows with Decision blank and sets
+   `Test changes: routed to ci-fix (D-20)`, `Status: fail` and `Next step:
+   ci-fix`. The `ci-fix` turns the rows into `pre-existing test` rows of its CI
+   fix plan, and that plan is approved as in 4a: by you, or after about an hour
+   with nobody answering, by the orchestrator's stamp. The reviewer escalates
+   any test row the stamp approved, so you see it before the merge.
 
-Nobody approves on your behalf. The orchestrator does not stamp or relay a test
-change approval, even when you are in its session. T-071 showed that the harness
+A request already written as `Test changes: requested` (an attended tester that
+left it for later) still resumes only through a tester in a session you are
+attending. The orchestrator does not stamp or relay that kind of approval, even
+when you are in its session. T-071 showed that the harness
 refuses edits made on an approval that reached the tester only as text in the
 brief. The same edits went through when you gave the instruction in the session
 making them. If the harness still refuses, the tester halts and you make the
@@ -540,7 +546,7 @@ approved edits by hand from the rows.
 A modified test must pin the new behaviour as hard as the old one pinned the old.
 A count floor drops by exactly the number of approved deletions from its file,
 as its own row. Red CI caused by a stale test sends the task to the tester, not
-the worker. The rest is in `.claude/agents/tester.md`, D-14 and D-15.
+the worker. The rest is in `.claude/agents/tester.md`, D-14, D-15 and D-20.
 
 ### 4a. Fix — in a fresh session, after approval
 
@@ -578,8 +584,9 @@ timeout never applies to `blocked`. **Any test may change, the task's own or a
 pre-existing one, as an approved row**: a modify quotes the criterion it is
 measured against and never asserts less; a delete names the brief's line that
 removes what the test pinned. The person's approval and the orchestrator's stamp
-both cover test rows (D-18). The tester's Test change request still exists for
-stale tests a tester finds itself, and the orchestrator still never stamps that
+both cover test rows (D-18). An orchestrated tester's stale tests reach the
+`ci-fix` this way too (D-20). The tester's Test change request still exists for
+stale tests an attended tester finds itself, and the orchestrator still never stamps that
 one. The reviewer escalates any PR where a CI fix ran on the orchestrator's
 stamp, and copies the plan into the PR body. The rest is in
 `.claude/agents/ci-fix.md` and D-17.
@@ -717,10 +724,11 @@ which since D-4's amendment is none: **every run ends at a PR waiting for you.**
    envelope, or from the tester after two failed verify rounds.
 5. **A test change request.** The tester wants to delete or modify a test that
    existed before the task (step 4, D-14). If you are in its session it asks you
-   there and carries on once you answer, as the expander does. Unattended, the
-   run halts and **you resume it by starting a tester in a session you are
-   attending**, which asks you and applies what you approve. Unlike moment 1,
-   the orchestrator never approves this one for you (D-15).
+   there and carries on once you answer, as the expander does. Unattended, it
+   does not halt: it routes the stale tests to the `ci-fix`, and they reach you
+   as moment 7, a CI fix plan the orchestrator stamps after an hour if you do
+   not answer (D-20). Only a request already left as `requested` still needs a
+   tester in a session you are attending (D-15).
 6. **A refused sweep.** The reviewer approved, but the harness refused its sweep
    (T-075). It wrote the sweep out and set `sweep refused`. Apply it yourself, or
    tell the orchestrator to, and mark the PR ready. If you do not answer in about
@@ -767,7 +775,9 @@ A **fresh** agent reads the brief including your answer. It never saw the sessio
 that asked, which is exactly the property that makes the tester's verdict worth
 something — see [`.claude/agents/README.md`](.claude/agents/README.md).
 
-**One exception: a test change request.** Do not answer it in the brief and
+**One exception: a test change request left as `requested`.** (An orchestrated
+tester routes its stale tests to the `ci-fix` instead, and that plan is answered
+like any CI fix plan, D-20.) Do not answer it in the brief and
 start a run. Start the `tester` step in a session you are attending, and answer
 it there. The harness does not trust an approval that reaches a spawned role only
 as text in a file (T-071, D-15). The attended tester asks you, applies what you
