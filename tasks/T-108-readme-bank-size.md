@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-108
 **Branch:** `task/T-108-readme-bank-size`
-**PR:** opened draft at expand time, built from the branch above; stays draft until the reviewer approves it
+**PR:** #135, opened draft at expand time, built from the branch above; stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
