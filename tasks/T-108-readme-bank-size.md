@@ -1,14 +1,14 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-108-readme-bank-size.md`.
-**Test changes:** `none`
+**Test changes:** `routed to ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-108
 **Branch:** `task/T-108-readme-bank-size`
 **PR:** #135, opened draft at expand time, built from the branch above; stays draft until the reviewer approves it
-**Fault:**
+**Fault:** All 14 criteria are met, but 3 pre-existing whole-tree pins in `question-bank` are stale by the task's own change (its brief, run log and tester test file are new tracked files). They are routed to the `ci-fix` for a plan (D-20). No criterion failed.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; roles spawned as subagents share this id) |
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; subagent, shares the run's id) |
+| tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 
 > **Full brief, not light.** T-108 is `S`, but its criteria run past four, so
 > the light path does not apply (`process.md`, "The light path, for S-sized
@@ -278,6 +279,57 @@ is the usual whole-tree pin pattern from T-104 to T-106.
 `bun run test`, because `frontend` has no `test` script.
 
 ## Verdict
+
+**TL;DR: `fail`, for stale pins only.** All 14 criteria are met. The README edit is correct, and my 26 new tests went red on the base README. The `question-bank` suite has 3 red pre-existing whole-tree pins. They are stale by the task's own new tracked files, not by wrong code, and are routed to the `ci-fix` as the Test change request below (D-20). **Next: `ci-fix`.**
+
+**Independence:** this is an orchestrated run (`runs/T-108-readme-bank-size.md` exists), so the session-id check cannot work: my id `cse_011oDiJdbpiNRtapJtyKBeQB` is the worker's too. My independence rests only on being a freshly spawned subagent with its own context. I did not see the worker's session or reasoning. That is weaker than a separate session, because it depends on the orchestrator spawning me correctly.
+
+**Tests added:** `question-bank/src/readme-bank-size-verify.test.ts`, 26 tests, commit `3568b51`. The helper tests pin the scanners: number words, sentence splitting, and "number before the word" with the base paragraph as input.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `criterion 1` tests: no `15\s+states` and no `26\s+questions` on any line |
+| 2 | met | `criterion 2`: no number among the 5 words before `question(s)` in any sentence. Hyphenated compounds such as `question-bank` count too, so the scan errs strict. "at 5, 10 and 20" is still present |
+| 3 | met | `criterion 3`: the only number before `state(s)` is `50` |
+| 4 | met | `criterion 4`: no `explanation` and no `human-written` in the Tech stack section |
+| 5 | met | `criterion 5` |
+| 6 | met | `criterion 6`: the sentence "Only a US-states bank ships today, covering all 50 states." |
+| 7 | met | `criterion 7`: one blank line, then a 2-line paragraph, then one blank line, then `## Run it locally with Docker`. The section has exactly 2 prose paragraphs, as at base |
+| 8 | met | `criterion 8`: one row. It has `engineering-decisions.md`, `\bE-14\b` and `follows the backend`, and no `contract` |
+| 9 | met | `criterion 9`: one line, same checks as 8. Its description starts at column 21 |
+| 10 | met | `criterion 10` |
+| 11 | met | `git diff 8092372 -- README.md`: three hunks. Line 32 becomes one line, lines 37-38 become two lines, line 215 becomes one line. Nothing else changes |
+| 12 | met | `git show --stat` per commit. Worker `8d1dc8f`: `README.md` and this brief only. Expander `cc13a2b` and `57f7db9`: brief only. Orchestrator `edbf4d2` and `a620111`: run log and brief only. `git diff --stat 8092372 HEAD` over openapi.yaml, engineering-decisions.md, geoquizdataplan.md, PROGRESS.md, conventions.md, CLAUDE.md, `.claude/`, `backend/app/` and `question-bank/src/curated/`: empty |
+| 13 | met | The same empty `git diff --stat` over every `package.json`, `bun.lock`, `pyproject.toml` and `uv.lock` |
+| 14 | **not yet**, stale pins only | See the suite below. The README guards are green. 3 whole-tree pins are red because of this task's new tracked files |
+
+**Mutations.** Each was applied to `README.md`, run, and reverted from a saved copy. `git status` was clean afterwards.
+
+- **Base README restored** (`git show 8092372:README.md`): 9 red tests, covering criteria 1, 2, 3, 4 (both), 5, 8 and 9.
+- **"forty states" plus "415 quiz questions", Layout column moved to 20, an extra paragraph added:** criteria 2, 3, 7 (both tests) and 9 (column) went red.
+- **`Only` removed, `contract` added to the row:** criteria 6, 8 (no-contract) and 10 went red.
+
+**Suite on the final tree (`3568b51`)**
+
+- `make -C backend check`: ruff passes, **1221 passed, 9 skipped**.
+- `question-bank`: `bun test` **2764 pass, 3 fail**. All 3 are the stale pins below. `typecheck`, `lint` and `format:check` pass. The README guards (`openapi-contract-wording-verify`, `purge-sample-data-verify`, `lint-gate`) are green.
+- `frontend`, locally: `lint` and `format:check` pass. `bun test` gives 420 pass and 4 fail, and `typecheck` fails, all from `Cannot find package 'react-simple-maps'`. `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)`: the proxy refuses `europe-west1-npm.pkg.dev` by policy, so this is the environment. **CI on `a620111` (REST check-runs) is green** for `frontend (typecheck, lint, test)`, and also for e2e, integration, backend and backend (postgres). The only red job is `question-bank`, from the stale pins. `README.md` is the only frontend-relevant change since then, and the README guards (`conventions-doc`, `readme-test-count.criteria`, `readme-suite-counts.criteria`) are in that green job. I have not seen CI on my own push yet.
+
+**Red tests, all stale by this task's change (rows below):**
+
+- `farm-animal-loose-ends-verify.test.ts` criterion 21: counts 282, pinned at 280.
+- `climate-cold-trade-accepted-verify.test.ts`, the non-test-files pin: counts 285, pinned at 283.
+- `climate-cold-trade-accepted-verify.test.ts`, the pre-existing-test-files pin: counts 131, pinned at 130, caused by my new test file.
+
+## Test change request
+
+Routed to the `ci-fix` (D-20). Decision is blank: these rows are the ci-fix plan's input, not an approval. `README.md` is already in both allowed sets (T-106), so the count and digest should be back at main's values once T-108's files join.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It protects against any non-test tracked file being changed or added outside the allowed set | T-108 adds two new tracked non-test files, `tasks/T-108-readme-bank-size.md` and `runs/T-108-readme-bank-size.md`, so the count is 282 against 280 | modify | The same name and the same two assertions, count `toBe(280)` and `MAIN_UNTOUCHABLE_SHA` unchanged. Only the two T-108 files join `CRITERION_21_ALLOWED`, with a comment citing T-108's ci-fix plan row. If the digest does not match after that, re-pin it and record the reason | |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. Same protection, against T-091's base | Same two new files: 285 against `MAIN_UNTOUCHABLE_COUNT` 283 | modify | The same name and assertions, `MAIN_UNTOUCHABLE_COUNT` 283 and `MAIN_UNTOUCHABLE_SHA` unchanged. Only the two T-108 files join `CRITERION_22_ALLOWED`, with a comment citing the row. If the digest still differs, re-pin it and record the reason | |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester. It protects against tracked test files being added or changed outside approved requests | T-108's tester added `question-bank/src/readme-bank-size-verify.test.ts` (a new test file), so the count is 131 against `MAIN_TESTS_COUNT` 130 | modify | The same name and assertions. `MAIN_TESTS_COUNT` goes 130 -> 131 and `MAIN_TESTS_SHA` is recomputed over the new tree, with a re-pin comment naming T-108's tester file, as T-106 row 5 did. No other test file may change the digest | |
 
 ## Notes
 
