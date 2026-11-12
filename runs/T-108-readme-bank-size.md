@@ -1,7 +1,7 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id — run log
 
 **Task:** T-108 · **Branch:** `task/T-108-readme-bank-size` · **PR:** #135
-**Started:** 2026-11-12 · **Outcome:** in progress
+**Started:** 2026-11-12 · **Outcome:** ready for merge — escalated (CI fix approved by orchestrator stamp, D-18)
 
 Run: orchestrated, task 3 of 3. In flight at start: T-106, T-107.
 
@@ -210,3 +210,41 @@ Stamped the three header lines per D-17. The plan was not read. Every row is app
 - A round-2 Verdict sits above the round-1 Verdict, which is kept as history.
 
 I added no new test files.
+
+## Round 7 — reviewer — 2026-11-12T20:21Z
+`Next step` on entry: `reviewer` → on exit: `human` (approved, escalated); brief swept (deleted); PR #135 marked ready
+
+**TL;DR: T-108 is approved and escalated. PR #135 is marked ready, and its body opens with "ESCALATED. Do not merge without reading the CI fix plan below."** The only reason is that the four test rows the ci-fix applied were approved by your one-hour timeout stamp, not by a person (D-17, D-18, D-20). Everything else is inside the envelope. The sweep is in the PR, and CI is green on all 7 jobs at the final head `8ceb928`. **Next: human (Dkaattae) decides whether to merge.**
+
+**Status for the run log:**
+- **Header I set:** `Status: blocked` (approved, escalated) and `Next step: human`, in review commit `ad352ae`. The sweep then deleted the brief.
+- **Push landed:** `origin/task/T-108-readme-bank-size` = `8ceb92882923cf5d8c67e78893c06d387ac691c0`, same as local HEAD.
+- **PR #135:** `draft: false`, open, body rewritten.
+- **Tools:** `gh pr ready` / `gh pr edit` failed with a GraphQL 403. The REST `PATCH .../pulls/135` and the CCR route `POST .../pulls/135/ccr/ready_for_review` worked.
+- **Brief header line used for the escalation:** `CI fix: applied — approved — orchestrator, 2026-11-12, auto-approved after a 63-minute timeout; no human answered`.
+
+**What the review found:**
+- **Every role's work is in the PR.** Each role in the Sessions table has a commit on the branch.
+- **Lanes held (D-7).**
+  - The expander touched only the brief.
+  - The worker touched only `README.md` and the brief.
+  - The tester added only `question-bank/src/readme-bank-size-verify.test.ts`.
+  - ci-fix commit `0f1fa82` changes exactly plan rows 1-4 in the two pin files, and nothing else.
+- **The new README claims are true.** `content.json` has 50 entities and 415 questions, none of the questions has an explanation key, and every entity has a `funFact`. `build_reveal` in `backend/app/grading.py` matches "a wrong one names the right answer".
+- **The worker's two flags are settled.**
+  - "covering all 50 states" is confirmed.
+  - "a wrong one names the right answer" goes stale once explanations ship. That is deferred to T-109.
+- **No blocking findings.**
+
+**Sweep, in the PR (commit `8ceb928`):**
+- **Brief deleted:** `tasks/T-108-readme-bank-size.md`.
+- **`/home/user/geo-discovery-zone/tasks.md`:** T-108 removed, a "Swept again" line added, and two new entries:
+  - **T-109:** the README pitch (lines 5 and 13) promises an explanation on a miss, and none ships. It needs a wording decision from Dkaattae before it is expanded.
+  - **T-110:** two comments in `question-bank/src/curated/us-states.ts` (lines 69 and 80) still say "the 15 states shipping today".
+- **`/home/user/geo-discovery-zone/PROGRESS.md`:** a T-108 entry under Completed tasks, noting that the CI fix ran on the stamp.
+- **Checks after the sweep:** locally, `question-bank` `bun test` gives 2767 pass, 0 fail, and the frontend README guards pass (135 tests). CI at `8ceb928`: backend, backend (postgres), frontend, question-bank, integration, e2e and the blocked-run notice are all success.
+
+**Unverified:** the frontend suite could not run locally because the proxy blocks `bun install`. The frontend evidence is CI only.
+
+## Ended — ready for merge, escalated — 2026-11-12T20:21Z
+PR #135 marked ready by the reviewer with an escalation: the CI fix plan's test rows were approved by the orchestrator's timeout stamp, not a person. A person reads the plan and decides whether to merge.
