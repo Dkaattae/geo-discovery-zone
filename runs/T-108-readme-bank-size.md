@@ -131,3 +131,7 @@ Files:
 ## Halted — CI fix requested — 2026-11-12T18:43Z
 Header: `Status: ci fix requested`, `Next step: human`, `CI fix: requested`. Branch head at halt: `43698ef` (the orchestrator's own log commit follows it and does not count as a person answering).
 The plan was not read by the orchestrator. A person may approve or refuse it in the orchestrator's session, on PR #135, or in the brief. If nobody answers by about 2026-11-12T19:45Z, the orchestrator stamps it (D-17) and spawns a fresh ci-fix.
+
+## CI fix auto-approved — orchestrator — 2026-11-12T19:46Z
+Waited 63 minutes (halt 18:43Z → 19:46Z). Checked for a person's answer: none in the orchestrator's session; branch head unchanged at `c633c14` (the orchestrator's own log commit); PR #135 has no reviews and one comment, from `github-actions[bot]` (`blocked-run-notice.yml`); header still `CI fix: requested`.
+Stamped the three header lines per D-17. The plan was not read. Every row is approved as written; since the stamp, not a person, approved these test changes, the reviewer must escalate (D-18).

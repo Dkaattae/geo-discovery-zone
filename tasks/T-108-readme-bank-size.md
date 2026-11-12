@@ -1,10 +1,10 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id
 
-**Status:** `ci fix requested`
-**Next step:** `human`
+**Status:** `ci fix approved`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-108-readme-bank-size.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `requested`
+**CI fix:** `approved — orchestrator, 2026-11-12, auto-approved after a 63-minute timeout; no human answered. See runs/T-108-readme-bank-size.md`
 **From:** [`tasks.md`](../tasks.md) T-108
 **Branch:** `task/T-108-readme-bank-size`
 **PR:** #135, opened draft at expand time, built from the branch above; stays draft until the reviewer approves it
