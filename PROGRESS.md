@@ -117,6 +117,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - **Formatted by prettier pinned exact** (T-075, E-17): `bun run format:check`
   over the whole package, locally and as CI's Format step, at the same version
   as `question-bank/`. `.ts`/`.tsx` were already held by `eslint-plugin-prettier`.
+  The tests that run the writer refuse to start it unless the pinned prettier is
+  installed (T-107); `bun run format` by hand does not check yet (T-109).
 
 ### Question bank — the pipeline
 
@@ -375,6 +377,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-107 — The two frontend writer tests refuse an unpinned prettier**
+  (PR #134, 2026-11-12). `format-gate`'s seven T-075 criterion 7 tests and `readme-fences`'
+  T-076 criterion 8 now call `requirePinnedPrettier()` first, so with `node_modules/prettier`
+  missing, at the wrong version, or without its `.bin` link, they fail naming the pinned
+  version and what they found, before `bun run format` can start a global prettier
+  (`prettier-writer-guard.criteria.test.ts`). *Where it differed from the brief:* criteria 1
+  and 11 were unmeetable as written (the out-of-scope `format:check` tests start prettier
+  11 times), so they were amended to the writer tests and to write starts. The whole fix
+  sat in pre-existing tests, so the worker built nothing and it went through two CI fix
+  plans (15 rows, 14 of them test changes, mostly P-17 pins), the second after CI's Bun 1.3.11 broke the task's own
+  output parser. The frontend CI job went from about 82 s to 153 s. The scripts themselves
+  are now T-109.
 - **T-106 — `README.md` and `PROGRESS.md` no longer call `openapi.yaml` the contract**
   (PR #133, 2026-11-12). `README.md`'s Tech stack row and Layout line, and this file's
   Layout line, now say it describes the API and follows the backend (E-14); `README.md`
