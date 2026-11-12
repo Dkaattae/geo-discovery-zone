@@ -422,3 +422,7 @@ Brief: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md (the h
 ## Halted — CI fix requested (plan 2) — 2026-11-12T20:06Z
 Header: `Status: ci fix requested`, `Next step: human`, `CI fix: requested (round 2 …)`. Branch head at halt: `241a598` (the orchestrator's own log commit follows it and does not count as a person answering).
 The plan was not read by the orchestrator. A person may approve or refuse it in the orchestrator's session, on PR #134, or in the brief. If nobody answers by about 2026-11-12T21:07Z, the orchestrator stamps it (D-17) and spawns a fresh ci-fix.
+
+## CI fix plan 2 approved — by a person, in the orchestrator's session — 2026-11-12T20:48Z
+The user's words, verbatim: "approve the T-107 CI fix plan"
+Given after plan 2 was pushed (`241a598`). Header set: `Status: ci fix approved`, `Next step: ci-fix`, `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session` (round 2). The scheduled 21:07Z auto-approval check is no longer needed and is cancelled.
