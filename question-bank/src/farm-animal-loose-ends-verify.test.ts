@@ -176,6 +176,7 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Recomputed by T-076 (row 4) on merging main after D-20.
 // Re-pinned by T-106 (CI fix plan row 3): README.md, which main counted, joins
 // the allowed set with T-106's brief and run log (281 -> 280).
+// Re-pinned by T-108 (CI fix plan row 1): T-108's brief and run log join the allowed set (count and digest unchanged, 280).
 const MAIN_UNTOUCHABLE_SHA = "c274a19eb00773d8057d349e3117271ef72c2c54aa79415d543cfab999be3fbf";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
@@ -191,6 +192,10 @@ const CRITERION_21_ALLOWED = new Set([
   // user, 2026-11-12, given in the orchestrator's session).
   "tasks/T-107-prettier-writer-guard.md",
   "runs/T-107-prettier-writer-guard.md",
+  // T-108's loop records, joined through T-108's CI fix plan row 1 (approved by the
+  // orchestrator's one-hour timeout stamp, 2026-11-12; no human answered).
+  "tasks/T-108-readme-bank-size.md",
+  "runs/T-108-readme-bank-size.md",
   // T-106's file set, joined through T-106's CI fix plan row 3 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "README.md",

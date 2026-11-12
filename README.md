@@ -29,13 +29,13 @@ back later from a different angle.
 | `backend/` | FastAPI, SQLAlchemy 2, Alembic, Python 3.11+. Package manager: **uv** |
 | Database | SQLite by default, Postgres supported. One URL chooses; both run the same migrations and the same test suite |
 | `question-bank/` | Wikidata → JSON pipeline (TypeScript, bun) that generates the question bank |
-| `openapi.yaml` | Describes the API. It follows the backend, which is the source of truth (E-14) |
+| `openapi.yaml` | Describes the API. It follows the backend, which is the source of truth (`engineering-decisions.md` E-14) |
 
 The backend serves the API *and* the built frontend, so in production there is
 one origin, one port, and no CORS.
 
-Only a US-states bank ships today: **15 states, 26 questions**, with
-human-written and reviewed explanations.
+Only a US-states bank ships today, covering all 50 states. A right answer
+shows a human-reviewed fun fact; a wrong one names the right answer.
 
 ## Run it locally with Docker
 
@@ -212,7 +212,7 @@ Details in [`backend/integration/README.md`](backend/integration/README.md).
 frontend/           the app (React, bun)
 backend/            the API and the server that serves the app (FastAPI, uv)
 question-bank/      Wikidata → JSON pipeline that generates questions (bun)
-openapi.yaml        describes the API; follows the backend (E-14)
+openapi.yaml        describes the API; follows the backend (engineering-decisions.md E-14)
 Dockerfile          Node build stage → Python runtime, one image
 docker-compose.yml  the same image plus a Postgres, for the Postgres path
 ```

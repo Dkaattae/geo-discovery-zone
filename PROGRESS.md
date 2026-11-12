@@ -377,6 +377,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-108 — `README.md` states the bank's real size and names `engineering-decisions.md` with E-14**
+  (PR #135, 2026-11-12). The Tech stack paragraph now reads "Only a US-states bank ships
+  today, covering all 50 states. A right answer shows a human-reviewed fun fact; a wrong
+  one names the right answer." It gives no question count, because nothing guards that
+  figure. The `openapi.yaml` row and Layout line both cite "engineering-decisions.md E-14".
+  *Where it differed from the brief:* the old line also claimed "human-written and
+  reviewed explanations", and no served question has any. Three whole-tree pins went red
+  as expected, plus a fourth digest that follows row 1. The four-row CI fix plan was
+  approved by the orchestrator's one-hour timeout stamp, not by a person, so the PR is
+  escalated with the plan in its body. The pitch's explanation promise is now T-110, and
+  the stale `us-states.ts` comments are T-111.
 - **T-107 — The two frontend writer tests refuse an unpinned prettier**
   (PR #134, 2026-11-12). `format-gate`'s seven T-075 criterion 7 tests and `readme-fences`'
   T-076 criterion 8 now call `requirePinnedPrettier()` first, so with `node_modules/prettier`
