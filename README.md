@@ -29,7 +29,7 @@ back later from a different angle.
 | `backend/` | FastAPI, SQLAlchemy 2, Alembic, Python 3.11+. Package manager: **uv** |
 | Database | SQLite by default, Postgres supported. One URL chooses; both run the same migrations and the same test suite |
 | `question-bank/` | Wikidata → JSON pipeline (TypeScript, bun) that generates the question bank |
-| `openapi.yaml` | The contract between the frontend and the backend. Both sides are tested against it |
+| `openapi.yaml` | Describes the API. It follows the backend, which is the source of truth (E-14) |
 
 The backend serves the API *and* the built frontend, so in production there is
 one origin, one port, and no CORS.
@@ -212,7 +212,7 @@ Details in [`backend/integration/README.md`](backend/integration/README.md).
 frontend/           the app (React, bun)
 backend/            the API and the server that serves the app (FastAPI, uv)
 question-bank/      Wikidata → JSON pipeline that generates questions (bun)
-openapi.yaml        the contract between frontend and backend
+openapi.yaml        describes the API; follows the backend (E-14)
 Dockerfile          Node build stage → Python runtime, one image
 docker-compose.yml  the same image plus a Postgres, for the Postgres path
 ```
