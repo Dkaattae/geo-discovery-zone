@@ -375,6 +375,15 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-106 — `README.md` and `PROGRESS.md` no longer call `openapi.yaml` the contract**
+  (PR #133, 2026-11-12). `README.md`'s Tech stack row and Layout line, and this file's
+  Layout line, now say it describes the API and follows the backend (E-14); `README.md`
+  has no "contract" left, and `conventions.md`'s `backend/` row drops "once built".
+  *Where it differed from the brief:* five pre-existing pins went red, not the four the
+  tester listed (its own new test file entered the T-091 test-file count only once
+  committed), plus a sixth digest that follows row 3, so the CI fix plan had six rows,
+  approved by the user in the orchestrator's session. README's bank size ("15 states,
+  26 questions") and its bare E-14 id are now T-108.
 - **T-076 — `frontend/README.md`'s four flattened blocks are fenced again**
   (PR #131, 2026-11-11). The interfaces, the level formula, the loop states and the
   "9. Screens" diagram are back, byte for byte from `c2c4781`, inside ` ```text `
