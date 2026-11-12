@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-107
 **Branch:** `task/T-107-prettier-writer-guard`
-**PR:** opened draft at expand time, built from the branch above. It **stays
+**PR:** #134, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:**
 
