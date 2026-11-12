@@ -43,3 +43,35 @@ Run: orchestrated, task 1 of 3. Started from the `next-task` skill.
 
 ## Approval — orchestrator — 2026-11-12T15:29Z
 Stamped `Approved:` as an unattended run. The criteria were not read.
+
+## Round 2 — worker — 2026-11-12T15:46Z
+`Next step` on entry: `worker` → on exit: `tester`
+
+TL;DR: I reworded the four lines in three files and changed nothing else. The commit is `406241f` on `claude/youthful-galileo-hn6hh1`, and `git log origin/claude/youthful-galileo-hn6hh1 -1` shows it. The brief is now Status `awaiting verification`, Next step `tester`. Backend and question-bank are green apart from the reds expected by design. The frontend could not be fully checked here: the proxy refused part of `bun install`.
+
+**What changed** (against base `5f6f811`; line counts are unchanged at 236, 2042 and 133)
+- **`README.md:32`** (Tech stack row): now says "Describes the API. It follows the backend, which is the source of truth (E-14)".
+- **`README.md:215`** (Layout block): now "describes the API; follows the backend (E-14)". Description starts at column 21. `README.md` no longer contains "contract" anywhere.
+- **`PROGRESS.md:26`** (Layout block): now "describes the API served by backend/; follows the backend (E-14)". Column 17.
+- **`conventions.md:10`**: "once built" is removed. The line still has `/api/v1` and "the frontend on the same origin", at column 18.
+- **`/home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md`**: Status, Sessions row, Handoff and Notes filled in.
+- **The commit touches only those four files**, per `git show --stat`.
+
+**Suite on the final tree**
+- **`make -C backend check`:** 1221 passed, 9 skipped.
+- **question-bank:** `bun test` gives 2719 pass, 4 fail. Typecheck, lint and format:check pass.
+- **The 4 question-bank fails, all listed under Tests made stale in the Handoff:**
+  - Two T-105 tests in `conventions-openapi-row-verify.test.ts`, red by design under criterion 5. I proposed modifying them, but did not touch them.
+  - Two whole-tree pins, T-096 criterion 21 and T-091 criterion 22. These were already red at `c5fc48f`, before my commit, because the new brief and run log are tracked files.
+- **frontend, not fully runnable:** `bun install --frozen-lockfile` could not fetch 23 lockfile packages (d3-*, `react-simple-maps`, `us-atlas`) because the proxy returns 403 for `europe-west1-npm.pkg.dev`. I did not try to route around it.
+  - As a result, typecheck fails with TS2307 on the missing packages.
+  - `bun test` gives 419 pass, 5 fail: "Cannot find package 'react-simple-maps'" errors, plus `lint-gate.test.ts` timing out at 5 s on a cold run. That file passes 8/8 with `--timeout 30000`.
+  - Lint and format:check pass.
+  - The README and PROGRESS scanner tests pass 215/215.
+  - The tester should re-run the frontend checks where that registry is reachable, or rely on CI for PR #133.
+
+**Flags, each with an owner**
+- **Session id:** my id is the same as the expander's (`cse_011oDiJdbpiNRtapJtyKBeQB`), because the orchestrator runs every role under one remote session. The tester should note this. If the loop needs a per-agent id, that is a `process-tasks.md` item for the human.
+- **New wording:** modelled on T-105's `conventions.md:16` row. The reviewer can confirm or reword it, as long as criteria 1–4 still hold.
+
+No contradictions with the brief, no criteria problems, and no new dependencies.
