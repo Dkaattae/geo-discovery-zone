@@ -426,3 +426,43 @@ The plan was not read by the orchestrator. A person may approve or refuse it in 
 ## CI fix plan 2 approved — by a person, in the orchestrator's session — 2026-11-12T20:48Z
 The user's words, verbatim: "approve the T-107 CI fix plan"
 Given after plan 2 was pushed (`241a598`). Header set: `Status: ci fix approved`, `Next step: ci-fix`, `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session` (round 2). The scheduled 21:07Z auto-approval check is no longer needed and is cancelled.
+
+## Round 10 — ci-fix (round 2, pass 2, apply) — 2026-11-12T21:04Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**I applied all 5 rows of CI fix plan 2 and changed nothing else. question-bank now passes 2741 / 0. The task goes back to a fresh tester.** Pushed as `efaa8a0` to `task/T-107-prettier-writer-guard`. The remote head matches local.
+
+- **Approval:** the header read `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session`. The run log quotes the user's words, "approve the T-107 CI fix plan", given after the plan was pushed at `241a598`. I took that as approving the whole plan and wrote it into all 5 Decision cells, the same way round 1 did.
+- **Plan still held:** since `241a598` the branch only gained orchestrator commits to the brief and run log, and `origin/main` is still `8092372`. Every row applied as written.
+
+**What changed** (all `pre-existing test` re-pins in `question-bank/src`; no source or frontend file touched):
+
+| Row | File | Change |
+|---|---|---|
+| 1 | `agriculture-true-wrong-answers-verify.test.ts` | `MAIN_FRONTEND_SHA` → `ab8f396e…` |
+| 2 | `map-click-no-candidates-verify.test.ts` | `frontend` digest → `8fcdc634…` |
+| 3 | `refresh-regenerate-reminder-verify.test.ts` | `MAIN_BOUNDARY_SHA` → `8d01f832…` |
+| 4 | `climate-cold-trade-accepted-verify.test.ts` | `MAIN_TESTS_SHA` → `d397b7d6…`; count stays 131 |
+| 5 | `climate-cold-trade-accepted-verify.test.ts` | Two `APPLIED_REQUEST_FILE_SHAS` entries re-pinned: agriculture → `87a2820d…`, map-click → `cc6f4ded…` |
+
+Each row also got the comment lines the plan specified. After rows 1-4, row 5's test went red with exactly the two values the plan predicted, and it passed once they were re-pinned.
+
+**Suites, as run in the web sandbox:**
+- **question-bank:** `bun test` 2741 pass, 0 fail. Typecheck, lint and format:check are clean.
+- **frontend `bun test`:** 434 pass, 4 fail. All 4 are `Cannot find package 'react-simple-maps'`: the sandbox cannot install that package, and the same 4 failed in every earlier round.
+  - One run made straight after the backend suite also had 2 `lint-gate.test.ts` tests time out at 5 s. The next whole-suite run had none.
+- **frontend typecheck:** 9 errors, all from `react-simple-maps` / `us-atlas` not being installed. Lint exits 0 and format:check is clean.
+- **backend:** 1221 passed, 9 skipped.
+
+**Brief updates:**
+- **Header:** `Status: awaiting verification`, `Next step: tester`, `CI fix: applied — approved — the user, 2026-11-12, given in the orchestrator's session`, `Test changes: applied through CI fix plan (D-20)`, `Fault: none`.
+- **Sessions row:** added `ci-fix (round 2, pass 2)`.
+- **`## CI fix`:** new "Round 2, pass 2" section.
+
+**Independence:** this is an orchestrated run, and every role shares session id `cse_011oDiJdbpiNRtapJtyKBeQB`, so the session check proves nothing. My only independence is being a freshly spawned agent that did not write the code, the plan or the verdict.
+
+**For the reviewer and tester:**
+- Every row is a test change, so per D-18 the plan belongs in the PR body.
+- Criterion 12 needs the whole frontend suite green, and only CI can show that.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
