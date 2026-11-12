@@ -1,7 +1,7 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier — run log
 
 **Task:** T-107 · **Branch:** `task/T-107-prettier-writer-guard` · **PR:** #134
-**Started:** 2026-11-12 · **Outcome:** in progress
+**Started:** 2026-11-12 · **Outcome:** halted — needs human (G3: two `fail` verdicts)
 
 Run: orchestrated, task 2 of 3. In flight at start: T-106.
 
@@ -343,3 +343,53 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/src/refresh-regenerate-reminder-verify.test.ts
 - /home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts
 - /home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts
+
+## Round 8 — tester (round 3) — 2026-11-12T18:14Z
+`Next step` on entry: `tester` → on exit: `ci-fix` · G3 count: fail 2, blocked 1
+
+**Verdict for T-107 (tester, round 3): `fail`, next step `ci-fix`.** The guard works, and every criterion's behaviour holds both locally and under Bun 1.3.11 with `GITHUB_ACTIONS=true`, the version and mode CI uses. CI on `11ece2c` was red because of a bug in this task's own test file. I fixed that bug, and the fix moved 4 pre-existing whole-tree pins (P-17). I wrote those up as 5 Test change request rows for the `ci-fix` (D-20) and did not touch them myself. Pushed as `f9901a4` to `task/T-107-prettier-writer-guard`; the remote head matches.
+
+**Independence:** this is an orchestrated run, and my session id matches every row in the Sessions table, so the id check proves nothing here. My independence rests only on being a freshly spawned agent that did not see the work happen. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+**What CI showed and why**
+- **CI on `11ece2c`, frontend job:** 482 pass, 2 fail. The two failures were the criterion 3 and criterion 6 "each failure names …" tests in `frontend/src/prettier-writer-guard.criteria.test.ts`. Every other job was green.
+- **Cause, in that file's output parser:** on Bun 1.3.11 the JUnit `<failure>` element carries no message. Under GitHub Actions, Bun also repeats every `(fail)` line in an end-of-run summary with nothing before it. The parser used `consoleOutput.set`, so that empty repeat replaced the real error text.
+- **Reproduced:** with the Bun 1.3.11 release binary run as `env -i … GITHUB_ACTIONS=true CI=true`. Bun 1.4.4 does not reproduce it.
+- **Fix, in my own file:** each test's output is now appended rather than replaced. The assertions are unchanged.
+- **Results after the fix:** the file passes 14/14 on Bun 1.4.4 and 14/14 on 1.3.11 in GitHub Actions mode.
+- **The fix is not vacuous:** I removed the version numbers from the guard's messages in readme-fences. Criteria 3 and 6 then went red on both Bun versions. I reverted that mutation.
+
+**Criteria**
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1–8, 10, 11 | pass | Tests, plus my own runs against a sentinel in a copy of the repo: zero sentinel starts for the writer tests; the guard messages name `3.9.6` and either "missing" or `3.8.1`. In the whole-suite run with no `node_modules`: 0 write starts (only 11 × `--check .`) and no tracked file changed |
+| 9 | pass | Changing a `frontend/README.md` heading to `#   ` turned readme-fences criterion 8 red; reverted |
+| 12 | **fail** | CI red on `11ece2c`. On my commit, question-bank shows 4 red pins (rows 1–4 below) |
+| 13–16 | pass | The guard only reads files. `git diff origin/main HEAD` shows no change to the package, lockfile, prettier config or `ci.yml` files. In the two writer files the only change is CI fix plan rows 1–2. No network |
+
+**Other mutations (all reverted):** removing the guard call from readme-fences turned criteria 1, 4 and 6 red.
+
+**Suites (sandbox, Bun 1.4.4)**
+- **frontend `bun test`:** 434 pass, 4 fail, 4 errors. All of them are `Cannot find package 'react-simple-maps'`: the sandbox cannot install it, CI can.
+- **frontend lint and format:check:** clean. **typecheck:** 9 errors, all from the same missing packages.
+- **question-bank:** 2737 pass, 4 fail. All 4 are rows 1–4 below; on `11ece2c` it was 2741/2741. Its typecheck, lint and format:check are clean.
+- **backend:** 1221 passed, 9 skipped.
+
+**For the `ci-fix` (round-3 rows in `## Test change request`, Decision left blank)**
+- **Rows 1–4:** re-pin to each test's observed `Received` value:
+  - `MAIN_FRONTEND_SHA` → `ab8f396e…`
+  - map-click's `frontend` digest → `8fcdc634…`
+  - `MAIN_BOUNDARY_SHA` → `8d01f832…`
+  - `MAIN_TESTS_SHA` → `d397b7d6…` (the count stays 131)
+- **Row 5:** only after rows 1 and 2, recompute two entries of `APPLIED_REQUEST_FILE_SHAS`: agriculture and map-click.
+
+**Loop count:** this is the task's second `fail`. If the next round does not pass, it goes to a human.
+
+**Files**
+- `/home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md`: header, Sessions row, round-3 Test change request, Verdict.
+- `/home/user/geo-discovery-zone/frontend/src/prettier-writer-guard.criteria.test.ts`: the parser fix.
+
+## Halted — G3 round bound (two `fail` verdicts) — 2026-11-12T18:14Z
+The tester's `Next step` was `ci-fix`, but this is T-107's second `fail` verdict (rounds 5 and 8; plus one `blocked`, round 3). G3 halts the task after two `fail` verdicts, so the orchestrator did not spawn the ci-fix. Header `Next step` set to `human`; Status left as the tester wrote it (`fail`). Branch head at halt: `f9901a4`.
+**What a person has to decide:** whether to let T-107 take a third fix round. If yes, the round-3 test change rows go to a ci-fix as before (its plan will need approval); start the `ci-fix` step for this task in a new run or attended session.
