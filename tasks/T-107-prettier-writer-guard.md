@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `tester`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
 **Test changes:** `pending — 8 rows written below, Decision blank, not yet routed: the brief is blocked first. Once the expander amends criteria 1 and 11, the next tester routes them to the ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-107
