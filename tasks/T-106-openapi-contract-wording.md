@@ -1,10 +1,10 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract"
 
-**Status:** `ci fix requested`
-**Next step:** `human`
+**Status:** `ci fix approved`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-106-openapi-contract-wording.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `requested`
+**CI fix:** `approved — the user, 2026-11-12, given in the orchestrator's session`
 **From:** [`tasks.md`](../tasks.md) T-106
 **Branch:** `claude/youthful-galileo-hn6hh1`
 **PR:** #133, opened draft at expand time; stays draft until the reviewer approves it

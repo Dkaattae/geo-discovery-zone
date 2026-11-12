@@ -156,3 +156,7 @@ Pushed to `claude/youthful-galileo-hn6hh1` as `7135ac2`. The local HEAD and the 
 ## Halted — CI fix requested — 2026-11-12T16:05Z
 Header: `Status: ci fix requested`, `Next step: human`, `CI fix: requested`. Branch head at halt: `3f5d25a`.
 The plan was not read by the orchestrator. A person may approve or refuse it in the orchestrator's session, on PR #133, or in the brief. If nobody answers by about 2026-11-12T17:05Z, the orchestrator stamps it (D-17) and spawns a fresh ci-fix.
+
+## CI fix approved — by a person, in the orchestrator's session — 2026-11-12T16:22Z
+The user's words, verbatim: "approve the T-106 CI fix plan"
+Header set: `Status: ci fix approved`, `Next step: ci-fix`, `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session`. A fresh ci-fix (pass 2) is spawned once the checkout is free (T-107's worker is running in it).
