@@ -91,7 +91,7 @@ T-084 unblocked and its skip log folded; T-087 and T-095 amended. Swept again 20
 labels after `en` (PR #105): T-084 deleted; T-095 absorbs its re-record and
 live Juneau check. Swept again 2026-10-29, after T-085a lowered Hawaii and
 Alaska by 2 on the map and climate questions (PR #107): T-085 deleted, its
-accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw). Swept again 2026-11-06, after T-102 surveyed every backend test that asserts on a router draw and found none that needs a pin (PR #126): T-102 deleted; T-103 new from its review (the survey's certainty arguments rest on unguarded bank facts); T-076 amended (a fifth `frontend/README.md` sighting). Swept again 2026-11-06, after T-047 made `test-guidelines.md` describe the real `backend/` suite and made its dead-proxy block install first (PR #127): T-047 deleted; T-046 amended (only `CLAUDE.md` still says `api/`); T-104 new from its review (two backend test docstrings still call `openapi.yaml` the contract). Swept again 2026-11-09, after T-103 gave each bank fact T-102's draw survey rests on its own deterministic check naming its dependents (PR #128): T-103 deleted; nothing else in the queue moved. Swept again 2026-11-09, after T-104 made those two backend test docstrings say `openapi.yaml` follows the backend (PR #129): T-104 deleted; T-105 new from its review (`conventions.md` line 16 still says "the contract"). Swept again 2026-11-10, after T-105 made `conventions.md`'s `openapi.yaml` row say it follows the backend (PR #130): T-105 deleted; T-106 new from its review (`README.md`, `PROGRESS.md` and `conventions.md:9` still carry the stale wording)._
+accepted Rhode Island risk moved into T-085b; T-085b and T-095 amended. Swept again 2026-10-30, after T-088 excluded the crops and farm animals a state also grows or raises (PR #109): T-088 deleted; T-096 new from its review; T-095 amended. Swept again 2026-10-30, after T-096 corrected "six farm animals" to eleven and made `clickDistractorsFor` throw on a fixed-pool pick (PR #110): T-096 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-091 recorded Dkaattae's acceptance of the climate "only cold phrase" trade in E-25 and E-27 (b) (PR #111): T-091 deleted; nothing else in the queue moved. Swept again 2026-10-30, after T-087 made a changed refresh print the two regenerate commands and added `bun run questions` (PR #112): T-087 deleted; T-095 amended (it now owns T-070's four relaxed `extractedAt` tests if it chains the regeneration); §B's intro reworded. Swept again 2026-11-02, after T-045 marked the four ungradable formats and two pin strategies "Not implemented in v1" and gave each refusal its own 422 path (PR #115): T-045 deleted; §H's pin line rewritten; T-056's and T-093's `grading.py` line references refreshed. Swept again 2026-11-02, after T-053 withheld the answer key by default on every serving surface (PR #117): T-053 deleted; T-097 (bundle `ETag`) and T-098 (backend git-revision guard) new from its review. Swept again 2026-11-03, after T-098 added a backend guard against tests that hand `git` a revision (PR #118): T-098 deleted; §A's closing line rewritten; nothing else in the queue moved Swept again 2026-11-03, after T-093 made undo restore the session's seen list (PR #119): T-093 deleted; nothing else in the queue moved. Swept again 2026-11-03, after T-097 gave the keyed bundle its own `ETag` (PR #120): T-097 deleted; T-099 and T-100 (queued by its worker from the brief's Out of scope) no longer wait on it. Swept again 2026-11-04, after T-099 made a bundle's `bytes` the exact length of each variant's body (PR #122): T-099 deleted; T-100 amended (its fix sits in the reshaped `get_bundle`, and it now drops the inert `response_model_exclude_unset`); T-101 new from its worker. Swept again 2026-11-04, after T-100 made an unknown bundle a 404 whatever `If-None-Match` holds (PR #123): T-100 deleted; T-076 amended (a fourth `frontend/README.md` sighting); `*` on a known bundle deliberately not queued. Swept again 2026-11-05, after T-101 gave three mixed-session tests a fixed, id-sorted draw (PR #124): T-101 deleted; T-102 new from its review (other tests may still assert on an unseeded draw). Swept again 2026-11-06, after T-102 surveyed every backend test that asserts on a router draw and found none that needs a pin (PR #126): T-102 deleted; T-103 new from its review (the survey's certainty arguments rest on unguarded bank facts); T-076 amended (a fifth `frontend/README.md` sighting). Swept again 2026-11-06, after T-047 made `test-guidelines.md` describe the real `backend/` suite and made its dead-proxy block install first (PR #127): T-047 deleted; T-046 amended (only `CLAUDE.md` still says `api/`); T-104 new from its review (two backend test docstrings still call `openapi.yaml` the contract). Swept again 2026-11-09, after T-103 gave each bank fact T-102's draw survey rests on its own deterministic check naming its dependents (PR #128): T-103 deleted; nothing else in the queue moved. Swept again 2026-11-09, after T-104 made those two backend test docstrings say `openapi.yaml` follows the backend (PR #129): T-104 deleted; T-105 new from its review (`conventions.md` line 16 still says "the contract"). Swept again 2026-11-10, after T-105 made `conventions.md`'s `openapi.yaml` row say it follows the backend (PR #130): T-105 deleted; T-106 new from its review (`README.md`, `PROGRESS.md` and `conventions.md:9` still carry the stale wording). Swept again 2026-11-11, after T-076 fenced `frontend/README.md`'s four flattened blocks with their original content (PR #131): T-076 deleted; T-107 new from its review (two frontend tests run prettier's writer, which can resolve to an unpinned global prettier)._
 
 ## How this list is ordered
 
@@ -376,36 +376,21 @@ if the answer was a rename.
 
 ## F. Frontend follow-ons
 
-### T-076 — `frontend/README.md`'s diagram and interfaces lost their layout to prettier · S · todo
+### T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier · S · todo
 **Depends on:** —
-**New 2026-09-29, from T-075's reviewer (PR #66).** `frontend/README.md` is the
-design brief the app is built to. Its TypeScript interfaces, formula, states list
-and the "9. Screens" diagram are not in code fences, so T-075's formatting commit
-(`6d1b5df`) stripped their indentation and scrambled the diagram's columns in
-source. The rendered page was already flat; the source is what got worse.
-**Done when:** each of those blocks is fenced with its pre-`6d1b5df` content
-(from `6d1b5df^`), and `bun run format:check` in `frontend/` exits 0.
-**Amended 2026-10-20 by T-064's reviewer (PR #89): check nothing in the suite
-writes this file.** During T-064's worker run, one `bun test` in `frontend/`
-left `frontend/README.md` rewritten (a `*` escaped to `\*`, a prettier-style
-edit). It did not recur in two more worker runs or the tester's, and nobody
-found the cause. While fencing these blocks, run the frontend suite and confirm
-`git status` stays clean for this file. If something does write it, find the
-test and say so here.
-**Seen again 2026-10-23 in T-050's worker run** (PR #92): the same `2 * gradeOf`
-→ `2 \* gradeOf` edit after one frontend `bun test`, not on the next run. Two
-sightings now. First suspect: `frontend/src/format-gate.criteria.test.ts`,
-which spawns `bun run format` (a write) around its probe files.
-**Seen a third time 2026-10-23 in T-089's worker run** (PR #94), the same
-edit, and the worker noted it also happens on a clean tree without
-`node_modules`. That points harder at the format-gate test's `bun run format`
-when prettier cannot be resolved.
-**Seen a fourth time 2026-11-04 in T-100's worker run** (PR #123): one
-`bun test` in `frontend/` without `node_modules` (the install was refused by the
-proxy) rewrote `frontend/README.md`. Same no-`node_modules` condition as T-089.
-**Seen a fifth time 2026-11-06 in T-102's worker run** (PR #126): the same
-`2 * gradeOf` → `2 \* gradeOf` edit after the first frontend `bun test`, run
-before `node_modules` was installed. Reverted with `git checkout`, and it did not recur.
+**New 2026-11-11, from T-076's review (PR #131).** `frontend/src/format-gate.criteria.test.ts`
+(T-075 criterion 7, `run("format")` at line 178) and `frontend/src/readme-fences.criteria.test.ts`
+(T-076 criterion 8, line 288) both spawn `bun run format`, which runs `prettier --write .` over
+the whole package. With `frontend/node_modules` missing, that resolves to a global
+`/opt/node22/bin/prettier` 3.8.1 instead of the pinned 3.9.6, and rewrites tracked files. This
+was the cause of all five `2 * gradeOf` → `2 \* gradeOf` README sightings (T-076 worker,
+reproduced). The fenced README is now immune, but any other file where 3.8.1 and 3.9.6 differ
+is not. T-076's test checks the installed version in a separate test, so the writer still runs
+when that check fails. Fixing it changes pre-existing tests, so expect a Test change request
+and the usual whole-tree pins (P-17).
+**Done when:** neither test can run a prettier other than `node_modules/prettier` at the pinned
+version (each skips or fails before writing), and a frontend `bun test` without `node_modules`
+leaves `git status --porcelain -- frontend/` empty.
 
 ### T-043 — Shaded-relief basemap · S · todo
 **Depends on:** —

@@ -190,7 +190,9 @@ const MAIN_ENTITY_DIR_SHA = "2eb39d22d0f7b8074671ac63d0c54b44b546534f4de266437fb
 /** Same shape over every tracked file under frontend/, at a42b71b. */
 // Re-pinned by T-047 (Test change request row 5): T-047's tester added
 // frontend/src/test-guidelines-backend.criteria.test.ts.
-const MAIN_FRONTEND_SHA = "4de52321996756b826c638bd9da8d2a3b8e673b1172817a9e2c1534414ce3a77";
+// Re-pinned by T-076 (Test change request row 1): T-076 fenced four blocks in
+// frontend/README.md, and its tester added frontend/src/readme-fences.criteria.test.ts.
+const MAIN_FRONTEND_SHA = "706eae346cd45a5b9457e0942db94b31eec7cfdd1ceb8e045830603806a2a638";
 /** sha256 of canon(LEVEL_SEED_WEIGHTS), at a42b71b. */
 const MAIN_LEVEL_SEED_WEIGHTS_SHA =
   "ba1a081d54a8a09ef2c6a802e3e7870e7f6d33ea93545bad80121356610e60b8";

@@ -740,7 +740,9 @@ describe("T-092 criterion 16: no other surface changes", () => {
   test.each([
     // Re-pinned by T-047 (Test change request row 6): T-047's tester added
     // frontend/src/test-guidelines-backend.criteria.test.ts.
-    ["frontend", [], "179208d1b350009bc7251cb06a3fa33074f2388c115f7a7bc8418e51f2d422d5"],
+    // Re-pinned by T-076 (Test change request row 2): T-076 fenced four blocks in
+    // frontend/README.md, and its tester added frontend/src/readme-fences.criteria.test.ts.
+    ["frontend", [], "d271c4e53ee0c08b66a0a866686553cd45d6512b02622650a1779a54165b56ef"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);

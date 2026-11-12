@@ -170,8 +170,11 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-104 (Test change request row 4): backend/tests/conftest.py moved;
 // T-104's brief and run log join the allowed set (count unchanged, 282).
 // Re-pinned by T-105 (Test change request row 2): T-105's brief and run log join the allowed set (count and digest unchanged, 282).
+// Re-pinned by T-076 (Test change request row 4): frontend/README.md, which main
+// counted, joins the allowed set with T-076's brief and run log (282 -> 281).
 // Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md, .claude/agents/ and .github/workflows/ci.yml (e2e browser install) changed (count unchanged).
-const MAIN_UNTOUCHABLE_SHA = "7e47331e0ab17ba7c842787c1431e39e8d07ee1f402217b839f39d1daf58aa78";
+// Recomputed by T-076 (row 4) on merging main after D-20.
+const MAIN_UNTOUCHABLE_SHA = "746bb89c15bacd2418330ff68fd9b4863ae1e19ef51aa4948bd57b4f77c855fe";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -182,6 +185,11 @@ const MAIN_UNTOUCHABLE_SHA = "7e47331e0ab17ba7c842787c1431e39e8d07ee1f402217b839
  * records are new tracked files, and the brief changes at every commit.
  */
 const CRITERION_21_ALLOWED = new Set([
+  // T-076's file set, joined through T-076's Test change request row 4
+  // (approved by Dkaattae, 2026-11-11, in the attended tester session that made the edit).
+  "frontend/README.md",
+  "tasks/T-076-frontend-readme-fences.md",
+  "runs/T-076-frontend-readme-fences.md",
   // T-103's loop files, joined through T-103's Test change request row 2
   // (approved by Dkaattae, 2026-11-09, in the attended tester session that made the edit).
   "tasks/T-103-bank-facts-guard.md",
@@ -626,7 +634,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(282); // T-047 row 1: was 283 (D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297)))
+    expect(rest.length).toBe(281); // T-076 row 4: was 282 (T-047 row 1: was 283 (D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297))))
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });

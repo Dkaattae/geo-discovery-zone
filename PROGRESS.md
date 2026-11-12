@@ -375,6 +375,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-076 — `frontend/README.md`'s four flattened blocks are fenced again**
+  (PR #131, 2026-11-11). The interfaces, the level formula, the loop states and the
+  "9. Screens" diagram are back, byte for byte from `c2c4781`, inside ` ```text `
+  fences that prettier 3.9.6 leaves alone; no other line of the README moved
+  (`readme-fences.criteria.test.ts`). *Where it differed from the brief:* criterion 6
+  could not be met as worded (it stripped fences on one side only), so it was amended
+  and re-approved by Dkaattae. Five whole-tree pins went red, not the two the brief
+  named, and seven Test change request rows were needed. T-105 merged first, so the
+  branch was rebased and two rows re-pinned. The README sightings' cause was found:
+  with no `node_modules`, `bun run format` resolves to a global prettier 3.8.1, which
+  escapes the `*`. That writer hazard is now T-107.
 - **T-105 — `conventions.md`'s `openapi.yaml` row says it follows the backend**
   (PR #130, 2026-11-10). Line 16 of the Layout block now reads "describes the API;
   follows the backend, which is the source of truth (engineering-decisions.md E-14)";
