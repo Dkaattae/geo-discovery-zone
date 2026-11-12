@@ -1,7 +1,7 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract"
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-106-openapi-contract-wording.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB |
+| worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same value `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the expander: the orchestrator spawns roles as subagents under one remote session; see Notes) |
 
 > **Full brief, not light.** T-106 is `S`, but its criteria run past four (three
 > files, four lines, plus the boundaries), so the light path does not apply
@@ -145,6 +146,70 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR: four doc lines reworded, nothing else.** README's two `openapi.yaml`
+lines and PROGRESS.md's Layout line now say it describes the API and follows the
+backend (E-14); `conventions.md`'s `backend/` row drops "once built". Two T-105
+tests are red by design (listed below), plus two whole-tree pins that were
+already red before this commit.
+
+**What changed, file by file** (all against base `5f6f811`; line counts unchanged)
+
+- `README.md:32` (Tech stack row) → `` | `openapi.yaml` | Describes the API. It follows the backend, which is the source of truth (E-14) | ``
+- `README.md:215` (Layout block) → `openapi.yaml        describes the API; follows the backend (E-14)` (description at column 21)
+- `PROGRESS.md:26` (Layout block) → `openapi.yaml    describes the API served by backend/; follows the backend (E-14)` (column 17)
+- `conventions.md:10` (Layout block) → `... (Python, uv), serving /api/v1 and the frontend on the same origin` (column 18)
+- this brief: Status, Sessions, Handoff, Notes
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1 | `README.md:32`. No "contract", no "Both sides"; has "follows the backend" and "E-14" |
+| 2 | `README.md:215`. Only `^openapi\.yaml\s` line in the block; column 21 |
+| 3 | `grep -ic contract README.md` → 0 |
+| 4 | `PROGRESS.md:26`. Column 17. Other `contract` mentions in PROGRESS.md left alone |
+| 5 | `conventions.md:10`. Still has `/api/v1` and `the frontend on the same origin`; column 18 |
+| 6 | `git diff 5f6f811 -- README.md PROGRESS.md conventions.md`: 4 insertions, 4 deletions, same line counts (236 / 2042 / 133) |
+| 7 | Single worker commit; `git show --stat` should list only the three docs and this brief |
+| 8 | See "Suite" below |
+
+**Deliberately not done**
+
+- No test edited, including the two T-105 tests this task makes stale. Not mine to change (D-14).
+- None of the out-of-scope items touched (`README.md:37` counts, `docker-compose.yml` alignment, `geoquizdataplan.md`, `CLAUDE.md`, `openapi.yaml`).
+
+**Contradictions with the brief:** none found. The criteria can all be checked
+as written.
+
+**Tests made stale**
+
+- `question-bank/src/conventions-openapi-row-verify.test.ts` › "T-105 criterion 2 — nothing else in conventions.md changes" › "every other line is byte-identical to base 0b78dec, in the same order". Made stale by criterion 5 (the `backend/` line changes). Proposal: **modify** it to exempt the `backend/` line as well (or compare against `5f6f811` with that line exempted), while still pinning the `openapi.yaml` row to T-105's wording.
+- same file › "T-105 criterion 2 — nothing else in conventions.md changes" › "the backend/ row keeps 'once built, the frontend on the same origin'". Made stale by criterion 5. Proposal: **modify** it to assert `the frontend on the same origin` is present and `once built` is absent, or **delete** it (T-106's tester tests cover it).
+- `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added". Whole-tree pin. **Already red at `c5fc48f`, before my commit** (the new brief and run log), and my three docs widen it. Proposal: same treatment as in T-104/T-105.
+- `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added". Same situation as the previous item.
+- No count floors affected: no test file was touched.
+
+**Suite on the final tree (this session)**
+
+- `make -C backend check`: **1221 passed, 9 skipped**.
+- `question-bank/`: `bun test` **2719 pass, 4 fail**. The 4 fails are exactly the four stale tests above. `typecheck`, `lint`, `format:check` all pass.
+- `frontend/`: **not fully runnable here, because of the environment, not the change.** `bun install --frozen-lockfile` could not finish: the lockfile resolves some packages (d3-*, `react-simple-maps`, `us-atlas` and their kin, 23 entries) from `europe-west1-npm.pkg.dev`, and the session proxy answers 403 to that host. So `typecheck` fails with TS2307 on `react-simple-maps` / `us-atlas`, and `bun test` gives 419 pass / 5 fail: unhandled "Cannot find package 'react-simple-maps'" errors in the map tests, plus `lint-gate.test.ts` timing out at 5 s on a cold run. `lint-gate.test.ts` alone with `--timeout 30000`: 8/8 pass. `lint` and `format:check` pass. The README/PROGRESS scanners (`conventions-doc`, `readme-test-count`, `readme-suite-counts`, `stale-suite-counts*`): 215/215 pass.
+- **Tester:** run the frontend jobs where that registry can be reached (or rely on CI for #133). None of the frontend failures involve a file this task touched.
+
+**How to run**
+
+```bash
+git diff 5f6f811 -- README.md PROGRESS.md conventions.md
+make -C backend check
+(cd question-bank && bun install --frozen-lockfile && bun test && bun run typecheck && bun run lint && bun run format:check)
+(cd frontend && bun install --frozen-lockfile && bun test && bun run typecheck && bun run lint && bun run format:check)
+```
+
 ## Verdict
 
 ## Notes
+
+- **Wording.** I modelled the new lines on T-105's `conventions.md:16` row ("describes the API; follows the backend, which is the source of truth"). The README Layout line is shorter so it reads like its neighbours. Each line names E-14 as a bare id, the way `PROGRESS.md:26` already did. Reviewer to confirm or reword. Any rewording must keep satisfying criteria 1–4.
+- **PROGRESS.md:26 used to say "follows backend/".** Criterion 4 requires the exact phrase "follows the backend", so the line now says "served by backend/; follows the backend".
+- **Session id matches the expander's.** `$CLAUDE_CODE_REMOTE_SESSION_ID` returned the same value for this worker subagent as it did for the expander, because the orchestrator runs every role under one remote session. The roles were still separate agent contexts. The tester should not read the match as "same agent". Owner: tester to note it; if the Sessions check needs a per-subagent id, that is a `process-tasks.md` item for the human.
+- **Frontend registry 403** (see Handoff). This is environmental and was not routed around. Owner: the tester, to re-run the frontend checks where the registry is reachable, or to accept CI's frontend job on #133 as the evidence.

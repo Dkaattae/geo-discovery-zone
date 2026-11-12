@@ -23,7 +23,7 @@ marked and any state can be tapped (E-29).
 frontend/       the TanStack Start app (question loop, map, profiles)
 backend/        the FastAPI API, and the server that serves the built app
 question-bank/  build-time data pipeline (Wikidata → entity JSON)
-openapi.yaml    the contract, implemented by backend/ and consumed by frontend/; follows backend/ (E-14)
+openapi.yaml    describes the API served by backend/; follows the backend (E-14)
 Dockerfile      Node build stage → Python runtime, one image
 docker-compose.yml  the same image plus a Postgres
 ```
