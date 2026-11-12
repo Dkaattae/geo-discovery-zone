@@ -211,12 +211,18 @@ function runTests(copy: Copy, args: string[]): Run {
   );
   const raw = `${proc.stdout ?? ""}${proc.stderr ?? ""}`;
   // Bun prints a failing test's error output, then its "(fail) describe > name" line.
+  // Under GitHub Actions, Bun then repeats every "(fail)" line in an end-of-run
+  // summary with nothing before it, so a name's output is appended, never
+  // replaced: the summary's empty repeat must not erase the real error (T-107
+  // tester, round 3; CI on 11ece2c, Bun 1.3.11, whose JUnit <failure> carries
+  // no message).
   const consoleOutput = new Map<string, string>();
   let pending: string[] = [];
   for (const line of raw.split("\n")) {
     const match = line.match(/^\((?:pass|fail|skip|todo)\) (.*?)(?: \[[\d.]+m?s\])?$/);
     if (match) {
-      consoleOutput.set(match[1]!, pending.join("\n"));
+      const name = match[1]!;
+      consoleOutput.set(name, `${consoleOutput.get(name) ?? ""}${pending.join("\n")}\n`);
       pending = [];
     } else {
       pending.push(line);
