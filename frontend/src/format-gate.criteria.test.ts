@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -169,11 +169,37 @@ describe("T-075 tester, criterion 6 — each unformatted probe fails the gate an
   }
 });
 
+/** Refuse the writer unless the pinned prettier is what `bun run format` will run (T-107). */
+function requirePinnedPrettier(): void {
+  const pkg = JSON.parse(readFileSync(join(FRONTEND_ROOT, "package.json"), "utf8")) as {
+    devDependencies?: Record<string, string>;
+  };
+  const pinned = pkg.devDependencies?.["prettier"];
+  const manifest = join(FRONTEND_ROOT, "node_modules/prettier/package.json");
+  if (!existsSync(manifest)) {
+    throw new Error(
+      `refusing to run the prettier writer: pinned prettier ${pinned} is required, but node_modules/prettier is missing`,
+    );
+  }
+  const found = (JSON.parse(readFileSync(manifest, "utf8")) as { version: string }).version;
+  if (found !== pinned) {
+    throw new Error(
+      `refusing to run the prettier writer: pinned prettier ${pinned} is required, found ${found} in node_modules/prettier`,
+    );
+  }
+  if (!existsSync(join(FRONTEND_ROOT, "node_modules/.bin/prettier"))) {
+    throw new Error(
+      `refusing to run the prettier writer: prettier ${found} is installed but node_modules/.bin/prettier is missing, so bun run would fall back to PATH`,
+    );
+  }
+}
+
 describe("T-075 tester, criterion 7 — the writer and the check cover the same files", () => {
   for (const probe of PROBES) {
     test(
       `${probe.path}: after bun run format, bun run format:check exits 0`,
       () => {
+        requirePinnedPrettier();
         writeProbe(probe.path, probe.content);
         expect(run("format").exitCode).toBe(0);
         const result = run("format:check");

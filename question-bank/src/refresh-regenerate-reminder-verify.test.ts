@@ -93,7 +93,11 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // Re-pinned by T-104 (Test change request row 6): recomputed on merging main after T-103.
 // Re-pinned by T-076 (Test change request row 3): T-076 fenced four blocks in
 // frontend/README.md, and its tester added frontend/src/readme-fences.criteria.test.ts.
-const MAIN_BOUNDARY_SHA = "5fea1cb359bed066c1feb28f2bca2d7ae2e87f04bcb785eceb974d1403247837";
+// Re-pinned by T-107 (CI fix plan row 5): T-107 guarded the prettier writer in
+// format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
+// Re-pinned again by T-107 (CI fix plan 2 row 3; round-3 Test change request row 3): T-107's
+// tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
+const MAIN_BOUNDARY_SHA = "8d01f8325faab96480be4722ab74bbb34cfb5af8c549a308d544d2dd1a144ca6";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",

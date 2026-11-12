@@ -140,7 +140,12 @@ const MAIN_UNTOUCHABLE_COUNT = 283;
 // frontend/src/readme-fences.criteria.test.ts; recomputed on rebasing onto main after T-105.
 // Re-pinned by T-106 (CI fix plan row 5): T-106's tester added
 // openapi-contract-wording-verify.test.ts, and rows 1-2 changed conventions-openapi-row-verify.test.ts.
-const MAIN_TESTS_SHA = "e232903b8af97bfe5a8cd3c55baa8c867f79a480b29222febd648be4e00e54e3";
+// Re-pinned by T-107 (CI fix plan row 6): T-107's tester added
+// prettier-writer-guard.criteria.test.ts, and rows 1-2 changed format-gate.criteria.test.ts
+// and readme-fences.criteria.test.ts.
+// Re-pinned again by T-107 (CI fix plan 2 row 4; round-3 Test change request row 4): T-107's
+// tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
+const MAIN_TESTS_SHA = "d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04bfe4544ac";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -163,7 +168,9 @@ const MAIN_TESTS_SHA = "e232903b8af97bfe5a8cd3c55baa8c867f79a480b29222febd648be4
 // readme-fences.criteria.test.ts (128 -> 129, on rebasing onto main after T-105).
 // Re-pinned by T-106 (CI fix plan row 5): T-106's tester added
 // openapi-contract-wording-verify.test.ts (129 -> 130).
-const MAIN_TESTS_COUNT = 130;
+// Re-pinned by T-107 (CI fix plan row 6): T-107's tester added
+// prettier-writer-guard.criteria.test.ts (130 -> 131).
+const MAIN_TESTS_COUNT = 131;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -196,16 +203,20 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10),
   // then by T-047 (row 4, for its row 5)
   // then by T-076 (row 7, for its row 1)
+  // then by T-107 (CI fix plan row 9, for its row 3)
+  // then again by T-107 (CI fix plan 2 row 5, for its row 1)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "665128dcb52d4fff0cb954023d7787f5acaf8c9a4380891bbf11ad8d02b09176",
+    "87a2820de3b0bcbb2109f4629b4a1c88c5406daad25f485f1c3e737228aaa748",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-093 (row 7), then by T-097 (row 10), then by T-099 (row 10),
   // then by T-100 (row 7), then by T-047 (row 4, for its row 6)
   // then by T-076 (row 7, for its row 2)
+  // then by T-107 (CI fix plan row 9, for its row 4)
+  // then again by T-107 (CI fix plan 2 row 5, for its row 2)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "172257ddfc2adc2ef29d7233007071290547eac17a7af1824df04aa0a669d58a",
+    "cc6f4ded984fe6c65272c0023244f841915fce7cd2e4702aafd75cb0f44fbe9c",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
   // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),
@@ -216,8 +227,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-105 (row 5, for its row 2), then by hand for D-20 (its whole-tree digest moved)
   // then by T-076 (row 7, for its row 4, recomputed on merging main after D-20)
   // then by T-106 (CI fix plan row 6, for its row 3)
+  // then by T-107 (CI fix plan row 9, for its row 7)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "015526d26fe90866c3788b04fd92ad981c7cd5fa51bdbe3083099fd7fb1d15a4",
+    "a9908e164c0d1f661d088dee8e046d8bbaccba5f46af881890a96ad9acaf18e8",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -232,6 +244,10 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
  * heading, the loop's own record (same reading as T-096's tester).
  */
 const CRITERION_22_ALLOWED = new Set([
+  // T-107's loop files, joined through T-107's CI fix plan row 8 (approved by the
+  // user, 2026-11-12, given in the orchestrator's session).
+  "tasks/T-107-prettier-writer-guard.md",
+  "runs/T-107-prettier-writer-guard.md",
   // T-106's file set, joined through T-106's CI fix plan row 4 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "README.md",
