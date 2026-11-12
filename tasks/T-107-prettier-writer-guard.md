@@ -1,7 +1,7 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
 **Test changes:** `applied through CI fix plan (D-20)` (round 3's 5 rows through CI fix plan 2; round 1's 9 rows through CI fix plan 1)
 **CI fix:** `applied — approved — the user, 2026-11-12, given in the orchestrator's session` (round 2: plan 2, 5 rows, below). Round 1 was `applied — approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`
@@ -25,6 +25,7 @@ draft** until the reviewer approves it.
 | tester (round 3) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent) |
 | ci-fix (round 2, pass 1) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 1 — plan 2) |
 | ci-fix (round 2, pass 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 2 — apply plan 2) |
+| tester (round 4) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -485,6 +486,43 @@ The digests in rows 3-6 match the pass-1 trial values. The frontend tree is the 
 - **The guard is duplicated in the two files.** This was left as the plan's "Not doing" says. The reviewer may queue a shared helper.
 
 ## Verdict
+
+### Round 4 (tester, after CI fix plan 2): `pass`
+
+**TL;DR: `pass`, next is the `reviewer`. Every criterion holds on `238af21`, and CI on that commit is green in all six jobs, which settles criterion 12.** Locally the only reds are environmental (`react-simple-maps` cannot be installed here) plus two `lint-gate` timeouts under load that pass when the file is rerun alone. **For the reviewer:** every pre-existing test change came through CI fix plans 1 and 2, and those were approved by the user in the orchestrator's session, not after reading each row. Put them in the PR body (D-18).
+
+- **Independence:** orchestrated run (`runs/T-107-prettier-writer-guard.md` exists). My session id matches every row, and under the orchestrator that proves nothing. My independence rests only on being a freshly spawned agent that did not see the work happen. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+- **Loop count:** this pass follows two `fail`s. The user allowed the third fix round (`384342d`).
+- **No new tests from me.** The round-1 to round-3 testers' `prettier-writer-guard.criteria.test.ts` already maps each of criteria 1-11. I re-read it against the criteria, not the code, and checked it with fresh mutations (below).
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | pass | Test `criterion 1`: writer tests only, no `node_modules`, sentinel logs nothing. Mutation M1 turns it red |
+| 2 | pass | Test `criterion 2` |
+| 3 | pass | Tests `criterion 3` ×2. Mutation M1 turns both red. CI (Bun 1.3.11, GitHub Actions mode) green on them |
+| 4 | pass | Test `criterion 4`: neither the sentinel nor the fake 3.8.1 package's `.bin` is started. M1 and M2 each turn it red |
+| 5 | pass | Test `criterion 5` |
+| 6 | pass | Tests `criterion 6` ×2. M1 and M2 each turn them red |
+| 7 | pass | Test `criterion 7` |
+| 8 | pass | Test `criterion 8`. Real tree, pinned 3.9.6: the two files plus the task's file pass 61/61 |
+| 9 | pass | Committed tests (`format` script made `true` gives 7 fails; README heading reformatted gives a fail) are green, so both mutations were seen to go red. M3 is my own run in the real tree |
+| 10 | pass | Test `criterion 10`. `git status --porcelain` was empty after every local run |
+| 11 | pass | Test `criterion 11`. M1 turns it red (write starts logged) |
+| 12 | pass | **CI run 43306721526 on `238af21`:** frontend, question-bank, backend ×2, integration and e2e all `success`. Locally: question-bank 2741/0, typecheck, lint and format:check clean. Backend 1221 passed, 9 skipped. Frontend lint exit 0, format:check clean. Frontend `bun test` gave 432 pass / 6 fail: 4 are `Cannot find package 'react-simple-maps'` (environmental) and 2 are `lint-gate.test.ts` 5 s timeouts, which passed 8/8 when the file was rerun alone. Frontend typecheck gave 9 errors, all `react-simple-maps` / `us-atlas` / `UsMap` (environmental) |
+| 13 | pass | The diff of the two files against `origin/main` adds only a read-only guard. The task's file writes only under `os.tmpdir()` and copies the real prettier, which it only reads |
+| 14 | pass | `git diff --quiet origin/main HEAD --` on `frontend/package.json`, `frontend/bun.lock`, `frontend/.prettierrc`, `frontend/.prettierignore`, `.github/workflows/ci.yml`, `question-bank/package.json`, `question-bank/bun.lock`, `backend/pyproject.toml` and `backend/uv.lock` exited 0 |
+| 15 | pass | `git diff origin/main HEAD` on the two files: `existsSync` added to the import, `requirePinnedPrettier()` defined, and one call as the first statement of the 7 + 1 writer tests. Nothing else. `test(` occurrences are 23 and 8 on both main and the branch head |
+| 16 | pass | No `fetch` and no URL apart from the dead proxy `http://127.0.0.1:1`, which every child process runs under |
+
+**Pre-existing tests changed since the last verdict (CI fix plan 2):** `git diff f9901a4 HEAD -- question-bank/` shows exactly plan 2's rows. Row 1 is `MAIN_FRONTEND_SHA`, row 2 the `frontend` digest in map-click, row 3 `MAIN_BOUNDARY_SHA`, row 4 `MAIN_TESTS_SHA` (count stays 131), and row 5 the two `APPLIED_REQUEST_FILE_SHAS` entries. Each carries the planned comment. Nothing else changed. Plan 1's rows were checked by the round-3 verdict and have not changed since.
+
+**Mutations (each reverted with `git checkout`, and `git status --porcelain` was empty afterwards):**
+- **M1. Guard call commented out** in the first `format-gate` writer test. 7 of the task's 14 tests went red: criteria 1, 3 ×2, 4, 6 ×2 and 11.
+- **M2. Version comparison disabled** in `readme-fences`' guard (`found !== pinned` became `found === "never"`). Criteria 4 and 6 ×2 went red.
+- **M3. The first `# ` heading of `frontend/README.md` changed to `#   `** in the real tree. readme-fences criterion 8 went red (`Expected: true / Received: false`). After the revert it passed.
+- **Not mutated:** the guard's `.bin/prettier` check. The criteria do not require it, and no test pins it.
+
+### Round 3 (tester): `fail`, kept for the record
 
 **TL;DR: `fail`, next is the `ci-fix`. The guard is right: every criterion's behaviour holds, here and in a CI-equivalent Bun 1.3.11 run.** CI on `11ece2c` was red in this task's own test file because its output parser broke under GitHub Actions. I fixed that in my own file. The fix moves 4 pre-existing whole-tree digest pins (P-17), and I may not re-pin those unattended, so they are routed as round-3 Test change request rows 1-5 (D-20).
 
