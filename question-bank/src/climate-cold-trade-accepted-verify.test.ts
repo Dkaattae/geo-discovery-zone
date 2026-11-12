@@ -101,6 +101,7 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Recomputed by T-076 (row 5) on merging main after D-20.
 // Re-pinned by T-106 (CI fix plan row 4): README.md, which main counted, joins
 // the allowed set with T-106's brief and run log.
+// Re-pinned by T-108 (CI fix plan row 2): T-108's brief and run log join the allowed set (count and digest unchanged, 283).
 const MAIN_UNTOUCHABLE_SHA = "53524b09033aec046377bc5530f6cc5bd351eb5a262f2eda877d8cb54263aac0";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
@@ -145,6 +146,8 @@ const MAIN_UNTOUCHABLE_COUNT = 283;
 // and readme-fences.criteria.test.ts.
 // Re-pinned again by T-107 (CI fix plan 2 row 4; round-3 Test change request row 4): T-107's
 // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
+// Re-pinned by T-108 (CI fix plan row 3): T-108's tester added
+// readme-bank-size-verify.test.ts.
 const MAIN_TESTS_SHA = "d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04bfe4544ac";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
@@ -170,7 +173,9 @@ const MAIN_TESTS_SHA = "d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04b
 // openapi-contract-wording-verify.test.ts (129 -> 130).
 // Re-pinned by T-107 (CI fix plan row 6): T-107's tester added
 // prettier-writer-guard.criteria.test.ts (130 -> 131).
-const MAIN_TESTS_COUNT = 131;
+// Re-pinned by T-108 (CI fix plan row 3): T-108's tester added
+// readme-bank-size-verify.test.ts (131 -> 132, on rebasing onto main after T-107).
+const MAIN_TESTS_COUNT = 132;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -228,6 +233,7 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-076 (row 7, for its row 4, recomputed on merging main after D-20)
   // then by T-106 (CI fix plan row 6, for its row 3)
   // then by T-107 (CI fix plan row 9, for its row 7)
+  // then by T-108 (CI fix plan row 4, for its row 1)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
     "a9908e164c0d1f661d088dee8e046d8bbaccba5f46af881890a96ad9acaf18e8",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
@@ -248,6 +254,10 @@ const CRITERION_22_ALLOWED = new Set([
   // user, 2026-11-12, given in the orchestrator's session).
   "tasks/T-107-prettier-writer-guard.md",
   "runs/T-107-prettier-writer-guard.md",
+  // T-108's loop records, joined through T-108's CI fix plan row 2 (approved by the
+  // orchestrator's one-hour timeout stamp, 2026-11-12; no human answered).
+  "tasks/T-108-readme-bank-size.md",
+  "runs/T-108-readme-bank-size.md",
   // T-106's file set, joined through T-106's CI fix plan row 4 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "README.md",
