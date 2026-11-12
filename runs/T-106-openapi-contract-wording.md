@@ -196,3 +196,31 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/src/conventions-openapi-row-verify.test.ts
 - /home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts
 - /home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts
+
+## Person's word on the CI fix digests — in the orchestrator's session — 2026-11-12T16:33Z
+The user's words, verbatim: "the digest values are fine, approved as recorded"
+(Said while the round-6 tester was running; recorded here once it returned, so as not to race its push. Not written into the brief.)
+
+## Round 6 — tester (re-verify) — 2026-11-12T16:37Z
+`Next step` on entry: `tester` → on exit: `reviewer` · G3 count: fail 1, blocked 0
+
+**T-106 passes round 2, after the ci-fix.** All 8 criteria are met on `d0afc9e`. The verdict is committed as `5fa0bc1` and pushed to `claude/youthful-galileo-hn6hh1`; local HEAD and the remote match. Status is `pass` and Next step is `reviewer`.
+
+**Independence.** This run is orchestrated, so the session id check proves nothing: `cse_011oDiJdbpiNRtapJtyKBeQB` is the id every role recorded. My independence rests only on being a freshly spawned subagent that read the committed brief and diffs, not anyone's reasoning. That depends on the orchestrator having spawned me correctly, so it is weaker than a separate session. I added my own tester row to the Sessions table.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1-5 | met | The tests in `question-bank/src/openapi-contract-wording-verify.test.ts` all pass on the four changed lines. Five mutations, each reverted, turned the expected tests red |
+| 6 | met | `git diff 5f6f811` against the three docs shows exactly 4 one-line hunks. Line counts are unchanged: 236, 2042, 133 |
+| 7 | met | The only worker commit is `406241f`, and it touches the three docs and the brief. `openapi.yaml`, `geoquizdataplan.md`, `CLAUDE.md`, `engineering-decisions.md` and `.claude/` are byte-identical to base |
+| 8 | met | The whole suite is green (below). Every changed pre-existing test matches one of CI fix plan rows 1-6 |
+
+- **The ci-fix diff matches the plan.** `90c7c2a` changes only the three test files named in rows 1-6. I recomputed the row 1 digest `f13eb52a…` myself over `conventions.md`, at base and at HEAD, and both match. The pinned T-105 row text equals line 16 at base, byte for byte.
+- **Suite run here:**
+  - **Backend:** 1221 passed, 9 skipped.
+  - **Question-bank:** 2741 pass, 0 fail; typecheck, lint and format:check are clean.
+  - **Frontend locally:** 4 test failures and 9 typecheck errors. They are because the proxy returns 403 on a package download, so `react-simple-maps` is never installed. lint and format:check pass.
+- **CI on PR #133 at `d0afc9e`:** all six jobs succeeded, including frontend. That is the frontend evidence.
+- **For the reviewer:** the person's approval of the CI fix plan ("approve the T-106 CI fix plan") reached the ci-fix through the orchestrator, not first-hand. Rows 5 and 6 landed with different digests from the plan's trial values (`e232903b…` and `015526d2…`). The plan said the values would be re-observed, and the green suite confirms the ones that landed. The reviewer should confirm the approval covers them (D-18).
+
+File: /home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md (the Verdict now has a "Round 2" section above the round-1 one).
