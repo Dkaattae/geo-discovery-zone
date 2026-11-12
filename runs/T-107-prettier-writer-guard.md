@@ -1,7 +1,7 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier — run log
 
 **Task:** T-107 · **Branch:** `task/T-107-prettier-writer-guard` · **PR:** #134
-**Started:** 2026-11-12 · **Outcome:** halted — needs human (G3: two `fail` verdicts)
+**Started:** 2026-11-12 · **Outcome:** in progress (third fix round allowed by the user)
 
 Run: orchestrated, task 2 of 3. In flight at start: T-106.
 
@@ -393,3 +393,7 @@ Files:
 ## Halted — G3 round bound (two `fail` verdicts) — 2026-11-12T18:14Z
 The tester's `Next step` was `ci-fix`, but this is T-107's second `fail` verdict (rounds 5 and 8; plus one `blocked`, round 3). G3 halts the task after two `fail` verdicts, so the orchestrator did not spawn the ci-fix. Header `Next step` set to `human`; Status left as the tester wrote it (`fail`). Branch head at halt: `f9901a4`.
 **What a person has to decide:** whether to let T-107 take a third fix round. If yes, the round-3 test change rows go to a ci-fix as before (its plan will need approval); start the `ci-fix` step for this task in a new run or attended session.
+
+## G3 lifted by a person — in the orchestrator's session — 2026-11-12T19:55Z
+The user's words, verbatim: "give T-107 a third fix round"
+Header `Next step` set back from `human` to `ci-fix` (what the round-8 tester wrote). G3 for T-107 is extended by one `fail` round on this instruction; a further `fail` halts again. The ci-fix is spawned once the shared checkout is free (T-108's ci-fix is running in it). Its plan will need approval like any other.

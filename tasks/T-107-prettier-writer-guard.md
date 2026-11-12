@@ -1,7 +1,7 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
 **Status:** `fail`
-**Next step:** `human`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
 **Test changes:** `routed to ci-fix (D-20)` (round 3: 5 rows, below; round 1's 9 rows were applied through CI fix plan 1)
 **CI fix:** round 1 `applied — approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`
