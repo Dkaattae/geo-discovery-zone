@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-106
 **Branch:** `claude/youthful-galileo-hn6hh1`
-**PR:** #NN, opened draft at expand time; stays draft until the reviewer approves it
+**PR:** #133, opened draft at expand time; stays draft until the reviewer approves it
 **Fault:**
 
 **Sessions:**
