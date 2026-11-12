@@ -1,7 +1,7 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract" — run log
 
 **Task:** T-106 · **Branch:** `claude/youthful-galileo-hn6hh1` · **PR:** #133
-**Started:** 2026-11-12 · **Outcome:** in progress
+**Started:** 2026-11-12 · **Outcome:** ready for merge
 
 Run: orchestrated, task 1 of 3. Started from the `next-task` skill.
 
@@ -224,3 +224,62 @@ The user's words, verbatim: "the digest values are fine, approved as recorded"
 - **For the reviewer:** the person's approval of the CI fix plan ("approve the T-106 CI fix plan") reached the ci-fix through the orchestrator, not first-hand. Rows 5 and 6 landed with different digests from the plan's trial values (`e232903b…` and `015526d2…`). The plan said the values would be re-observed, and the green suite confirms the ones that landed. The reviewer should confirm the approval covers them (D-18).
 
 File: /home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md (the Verdict now has a "Round 2" section above the round-1 one).
+
+## Round 7 — reviewer — 2026-11-12T16:43Z
+`Next step` on entry: `reviewer` → on exit: brief swept (deleted); PR #133 marked ready
+
+**I approved T-106 and marked PR #133 ready for review, with no escalation note. It is routine: a person merges it.** The sweep is in the PR and pushed (`c22489c` on `claude/youthful-galileo-hn6hh1`; local and origin match). I did not merge.
+
+**Next step: a human merges #133.** CI is re-running on the sweep commit. The `mergeable_state: unstable` is jobs still in progress: they were running at the previous head, and the sweep push started a new run. The last head CI finished on, `d0afc9e`, had all six jobs green.
+
+**PR state on entry:** open, draft, not merged. Every row in the brief's Sessions table has a commit in the PR, and the merge base is `5f6f811`, the brief's base.
+
+**Review: no blocking findings.**
+- **The four doc lines are right:** `README.md:32` and `:215`, `PROGRESS.md:26`, `conventions.md:10`.
+- **The ci-fix stayed within its plan:** its diff changes exactly CI fix plan rows 1-6. The T-105 `openapi.yaml` row is now pinned byte for byte, which is tighter than before.
+- **Every role committed only to its own files:** I checked `git show --stat` for each commit.
+
+**Envelope:**
+
+| Condition | Holds |
+|---|---|
+| Tester `pass`, suite green | yes |
+| Nothing outside Constraints | yes |
+| No dependency added | yes |
+| No `openapi.yaml`, migration or plan change (`git diff --quiet 5f6f811 HEAD -- openapi.yaml geoquizdataplan.md backend/ frontend/` exits 0) | yes |
+| No text a child will read | yes |
+| Pre-existing test changes approved by a person | yes |
+
+- **Who approved the test changes:** the `CI fix:` line names the user in every round, never the orchestrator (checked with `git log -p`).
+- **The two digests that differ from the trial values** (rows 5 and 6) are covered by the user's "the digest values are fine, approved as recorded". That is in the run log at 16:33Z; I did not hear it first-hand.
+
+**Two non-blocking findings, both put into a new task, T-108.** No queued task touches `README.md`, so I created one rather than amending another.
+1. `README.md` cites a bare "(E-14)" but never names `engineering-decisions.md`, so a README reader cannot look the id up.
+2. `README.md:37` still says "15 states, 26 questions". The brief's Out of scope asked the reviewer to queue this.
+
+**Flags disposed of:**
+- **Wording of the four lines:** accepted.
+- **Shared session id across roles:** already tracked in `process-tasks.md`.
+- **Frontend could not install locally (proxy 403):** CI's frontend job is the evidence.
+- **Digests that differ from the trial:** covered by the user's approval above.
+
+**Sweep, in the PR:**
+- **Brief:** deleted. The review was committed into it first (`0b80740`), so it stays in git history, and it is copied into the PR body.
+- **`tasks.md`:** T-106 removed, T-108 added in §E, and a "Swept again" line added.
+- **`PROGRESS.md`:** a Completed-tasks entry for T-106.
+
+**Suite on the swept tree, this session:**
+- **question-bank:** 2741 pass, 0 fail; lint and format clean.
+- **Backend:** 1221 passed, 9 skipped.
+- **Frontend doc scanners** (stale-suite-counts, readme and conventions tests, git-baseline-guard and similar): 254 of 254 pass.
+
+**PR body:** now has the acceptance criteria verbatim, what verified each, the CI fix rows as applied, the review, and what I chose not to do.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md (deleted)
+- https://github.com/Dkaattae/geo-discovery-zone/pull/133
+
+## Ended — ready for merge — 2026-11-12T16:43Z
+PR #133 marked ready by the reviewer. Merging is a person's.
