@@ -147,8 +147,8 @@ const MAIN_UNTOUCHABLE_COUNT = 283;
 // Re-pinned again by T-107 (CI fix plan 2 row 4; round-3 Test change request row 4): T-107's
 // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
 // Re-pinned by T-108 (CI fix plan row 3): T-108's tester added
-// readme-bank-size-verify.test.ts.
-const MAIN_TESTS_SHA = "d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04bfe4544ac";
+// readme-bank-size-verify.test.ts; recomputed on rebasing onto main after T-107.
+const MAIN_TESTS_SHA = "c39ee7996b83201809b7e31cf6ba88d025ea339a82e0d27a4074ab41719881d7";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -233,9 +233,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-076 (row 7, for its row 4, recomputed on merging main after D-20)
   // then by T-106 (CI fix plan row 6, for its row 3)
   // then by T-107 (CI fix plan row 9, for its row 7)
-  // then by T-108 (CI fix plan row 4, for its row 1)
+  // then by T-108 (CI fix plan row 4, for its row 1), recomputed on rebasing onto main after T-107
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "a9908e164c0d1f661d088dee8e046d8bbaccba5f46af881890a96ad9acaf18e8",
+    "a1316c61db87a9d98614b17f4c64c39fb0a33472969d585c041ac505b37d287d",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
