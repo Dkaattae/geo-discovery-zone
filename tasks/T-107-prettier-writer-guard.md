@@ -1,7 +1,7 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-107-prettier-writer-guard.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB |
+| worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same id as the expander: this orchestrated run reports one remote session id for every subagent; the tester should not read a match with this row as proof it shares the worker's context) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -196,6 +197,92 @@ the two files. `lint-gate.test.ts` runs `bun run lint`, which does not write.
 
 ## Handoff
 
+**TL;DR: nothing built. The whole fix lives in the two pre-existing test files, which the worker may not change (D-14).** Both are listed under **Tests made stale** with the exact guard proposed. The tester routes it through a Test change request (or the `ci-fix` plan), then writes the criteria 1-11 tests.
+
+- **Changed:** nothing outside this brief. Only this file (Status, Next step, Sessions row, Handoff, Notes).
+- **Dependencies:** none added.
+- **Do not mistake these for bugs:** two `question-bank` count pins and the frontend suite were already red before this task. See "Suite state" below.
+
+### Where each criterion lives (once the proposed change lands)
+
+| Criteria | Where |
+|---|---|
+| 1-6 (missing or wrong-version prettier: the writer is refused, the test fails and names the versions) | The proposed `requirePinnedPrettier()` guard. It is the **first statement** of each of the eight writer tests, before `writeProbe` and before `bun run format`. |
+| 7 (sentinel never runs when the pin is installed) | Already true with no change. `bun run` puts `frontend/node_modules/.bin` ahead of `PATH`. I checked this: a sentinel `prettier` first on `PATH` plus `bun run format:check` ran the package's prettier, and the sentinel log stayed empty. The guard's `.bin` check (below) covers the case where the package exists but its `.bin` link does not. |
+| 8-10 | The existing test bodies, unchanged below the guard. The `afterEach` probe cleanup in `format-gate` is unchanged. |
+| 11-16 | The tester's new test file and the manual Verdict checks. Nothing for the worker to do. |
+
+### Tests made stale
+
+These tests are not stale in the "now asserts the wrong thing" sense. **They are the defect**: each runs the writer without first checking that the pinned prettier is the one that will run. Both are changes to pre-existing tests, so they belong to the tester under D-14 and D-20.
+
+1. **`frontend/src/format-gate.criteria.test.ts`** › `T-075 tester, criterion 7 — the writer and the check cover the same files` › all seven `${probe.path}: after bun run format, bun run format:check exits 0`.
+   - **Why:** criteria 1-6 (the writer must be refused before it starts).
+   - **Proposal: modify.** Add `requirePinnedPrettier()` (below) to the file and call it as the first line of the test body, before `writeProbe(...)`. Add `existsSync` to the `node:fs` import. Keep the names and the rest of the body as they are.
+2. **`frontend/src/readme-fences.criteria.test.ts`** › `T-076 criteria 7-8: prettier 3.9.6 leaves the fenced README alone` › `criterion 8: bun run format leaves frontend/README.md byte-identical`.
+   - **Why:** same as above. Today the version check is a separate test (`the installed prettier is 3.9.6`), so the writer still runs when that check fails. The brief's Constraints name this as the defect.
+   - **Proposal: modify.** Call the same guard as the first line, before `readFileSync(README)`. Add `existsSync` to the import. Leave `the installed prettier is 3.9.6` and `installedPrettierVersion()` as they are (Out of scope; criterion 15).
+
+Proposed guard, the same in both files (`FRONTEND_ROOT` is already defined in each):
+
+```ts
+/** Refuse the writer unless the pinned prettier is what `bun run format` will run (T-107). */
+function requirePinnedPrettier(): void {
+  const pkg = JSON.parse(readFileSync(join(FRONTEND_ROOT, "package.json"), "utf8")) as {
+    devDependencies?: Record<string, string>;
+  };
+  const pinned = pkg.devDependencies?.["prettier"];
+  const manifest = join(FRONTEND_ROOT, "node_modules/prettier/package.json");
+  if (!existsSync(manifest)) {
+    throw new Error(
+      `refusing to run the prettier writer: pinned prettier ${pinned} is required, but node_modules/prettier is missing`,
+    );
+  }
+  const found = (JSON.parse(readFileSync(manifest, "utf8")) as { version: string }).version;
+  if (found !== pinned) {
+    throw new Error(
+      `refusing to run the prettier writer: pinned prettier ${pinned} is required, found ${found} in node_modules/prettier`,
+    );
+  }
+  if (!existsSync(join(FRONTEND_ROOT, "node_modules/.bin/prettier"))) {
+    throw new Error(
+      `refusing to run the prettier writer: prettier ${found} is installed but node_modules/.bin/prettier is missing, so bun run would fall back to PATH`,
+    );
+  }
+}
+```
+
+**Design notes for the tester (judgment calls):**
+
+- **I threw an error instead of using `expect`.** Criteria 3 and 6 need a failure whose output names both versions, and a thrown `Error` with that message does that whatever matcher output Bun prints. **Tester to confirm or overturn.** An `expect(found, message)` would do the same job.
+- **I added the `.bin` check, which the brief does not ask for.** Without it, a package that is present but has no `.bin` link would pass the version check, and `bun run` would still fall back to the global prettier. **Tester to keep or drop**, since criterion 7 is the one it protects.
+- **Keep the writer as `bun run format`. Do not call `node_modules/prettier/bin/prettier.cjs` directly.** Criterion 9 says the tests "still run the writer", and the script is the thing under test. **Tester to decide.**
+- **The two files repeat the guard.** A shared non-test module would avoid that, but the brief's "Files expected to change" lists only the two files and the tester's new file. **Tester to decide, or leave the shared helper to the reviewer.**
+
+**Whole-tree pins** (P-17) that will go red once the two files change are in the brief's Constraints. They are Test change request rows, not worker work.
+
+### Suite state on the branch head (`3ba7069`), before any change
+
+Run in the web sandbox, where `frontend/node_modules` exists but is incomplete.
+
+- **frontend `bun test`:** 420 pass, 4 fail, 4 errors. Every failure is `Cannot find package 'react-simple-maps'` (from `UsMap.tsx`, `t051-map-click.test.tsx` and `t051-tester.criteria.test.tsx`). The package is in the lockfile but not installed. `bun install --frozen-lockfile` failed with `ProxyConnectFailed (403) downloading tarball d3-ease@2.0.0`, so this is the environment, not the branch. `node_modules/prettier` is 3.9.6, so the eight writer tests passed.
+- **frontend `typecheck`:** exit 2, for the same missing `react-simple-maps` / `us-atlas` types. **`lint`:** exit 0. **`format:check`:** clean.
+- **`question-bank` `bun test`:** 2721 pass, 2 fail. Both are tracked-file count pins, off by +2 because the expander and orchestrator added this brief and `runs/T-107-prettier-writer-guard.md`:
+  - `farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › `criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added`: expected 281, got 283.
+  - `climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › `every tracked non-test file outside the allowed list is 12d242e's, and none is added`: expected 284, got 286.
+  - These are not caused by any worker change. They are P-17 whole-tree pins, for the tester's Test change request rows (or they may resolve as other branches merge).
+- **`make -C backend test`:** 1221 passed, 9 skipped.
+- **Working tree:** clean after all runs (`git status --porcelain` empty).
+
+### How to run
+
+- `cd frontend && bun test src/format-gate.criteria.test.ts src/readme-fences.criteria.test.ts`
+- Sentinel I used: `printf '#!/bin/sh\necho ran >> $DIR/log\nexit 0\n' > $DIR/prettier && chmod +x $DIR/prettier`, then `PATH=$DIR:$PATH`, with `$DIR` outside the repo.
+
 ## Verdict
 
 ## Notes
+
+- **Worker, survey:** the brief predicted this outcome, and it held. Nothing in production code or `package.json` is in scope (criterion 14 forbids it), so the whole fix is the guard in two pre-existing tests.
+- **Worker, surprise:** this sandbox's `frontend/node_modules` is missing `react-simple-maps`, and the proxy refuses the install. A whole-suite pass for criterion 12 needs a full install, which means CI or a sandbox that can reach the registry. **Tester to note this in the Verdict. CI is the authority for criterion 12.**
+- **Worker, surprise:** the two `question-bank` count pins were already red on the branch head, from this task's own brief and run log. Owner: the tester, as P-17 Test change request rows alongside the pins the brief lists.
