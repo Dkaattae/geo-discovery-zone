@@ -192,7 +192,9 @@ const MAIN_ENTITY_DIR_SHA = "2eb39d22d0f7b8074671ac63d0c54b44b546534f4de266437fb
 // frontend/src/test-guidelines-backend.criteria.test.ts.
 // Re-pinned by T-076 (Test change request row 1): T-076 fenced four blocks in
 // frontend/README.md, and its tester added frontend/src/readme-fences.criteria.test.ts.
-const MAIN_FRONTEND_SHA = "706eae346cd45a5b9457e0942db94b31eec7cfdd1ceb8e045830603806a2a638";
+// Re-pinned by T-107 (CI fix plan row 3): T-107 guarded the prettier writer in
+// format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
+const MAIN_FRONTEND_SHA = "6d99c370e4348ffba5d4ff73dee1d5eb176cbf20bb519921292ab51744a93f31";
 /** sha256 of canon(LEVEL_SEED_WEIGHTS), at a42b71b. */
 const MAIN_LEVEL_SEED_WEIGHTS_SHA =
   "ba1a081d54a8a09ef2c6a802e3e7870e7f6d33ea93545bad80121356610e60b8";

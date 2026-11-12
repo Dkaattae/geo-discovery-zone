@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -274,6 +274,31 @@ const installedPrettierVersion = () =>
     }
   ).version;
 
+/** Refuse the writer unless the pinned prettier is what `bun run format` will run (T-107). */
+function requirePinnedPrettier(): void {
+  const pkg = JSON.parse(readFileSync(join(FRONTEND_ROOT, "package.json"), "utf8")) as {
+    devDependencies?: Record<string, string>;
+  };
+  const pinned = pkg.devDependencies?.["prettier"];
+  const manifest = join(FRONTEND_ROOT, "node_modules/prettier/package.json");
+  if (!existsSync(manifest)) {
+    throw new Error(
+      `refusing to run the prettier writer: pinned prettier ${pinned} is required, but node_modules/prettier is missing`,
+    );
+  }
+  const found = (JSON.parse(readFileSync(manifest, "utf8")) as { version: string }).version;
+  if (found !== pinned) {
+    throw new Error(
+      `refusing to run the prettier writer: pinned prettier ${pinned} is required, found ${found} in node_modules/prettier`,
+    );
+  }
+  if (!existsSync(join(FRONTEND_ROOT, "node_modules/.bin/prettier"))) {
+    throw new Error(
+      `refusing to run the prettier writer: prettier ${found} is installed but node_modules/.bin/prettier is missing, so bun run would fall back to PATH`,
+    );
+  }
+}
+
 describe("T-076 criteria 7-8: prettier 3.9.6 leaves the fenced README alone", () => {
   test("the installed prettier is 3.9.6", () => {
     expect(installedPrettierVersion()).toBe("3.9.6");
@@ -286,6 +311,7 @@ describe("T-076 criteria 7-8: prettier 3.9.6 leaves the fenced README alone", ()
   });
 
   test("criterion 8: bun run format leaves frontend/README.md byte-identical", () => {
+    requirePinnedPrettier();
     const before = readFileSync(README);
     const result = runScript("format");
     const after = readFileSync(README);

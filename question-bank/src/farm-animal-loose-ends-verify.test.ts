@@ -187,6 +187,10 @@ const MAIN_UNTOUCHABLE_SHA = "c274a19eb00773d8057d349e3117271ef72c2c54aa79415d54
  * records are new tracked files, and the brief changes at every commit.
  */
 const CRITERION_21_ALLOWED = new Set([
+  // T-107's loop files, joined through T-107's CI fix plan row 7 (approved by the
+  // user, 2026-11-12, given in the orchestrator's session).
+  "tasks/T-107-prettier-writer-guard.md",
+  "runs/T-107-prettier-writer-guard.md",
   // T-106's file set, joined through T-106's CI fix plan row 3 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "README.md",
