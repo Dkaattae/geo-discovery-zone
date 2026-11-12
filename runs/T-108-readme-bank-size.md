@@ -108,3 +108,26 @@ Files:
 3. The same file's pre-existing-test-files pin counts 131 against 130, because of my new test file. Fix: raise `MAIN_TESTS_COUNT` to 131 and recompute `MAIN_TESTS_SHA`.
 
 **Brief header now reads:** Status `fail`, Next step `ci-fix`, Test changes `routed to ci-fix (D-20)`. The Fault line, my Sessions row, the Verdict and the Test change request are all filled in.
+
+## Round 4 — ci-fix (pass 1, plan) — 2026-11-12T18:43Z
+`Next step` on entry: `ci-fix` → on exit: `human`
+
+**T-108 ci-fix, pass 1: the plan is pushed and waiting for approval. Nothing was applied.** No criterion failed. Four older `question-bank` pins are stale because of this task's own new tracked files, and the plan has one row for each. The brief now reads `CI fix: requested`, Status `ci fix requested`, Next step `human`. Pushed as `43698ef` to `task/T-108-readme-bank-size`; my HEAD and the remote branch match, and the working tree is clean.
+
+**Reproduced first:** at `4509165`, `bun test` on the two pin files gave 48 pass and 3 fail: 282 vs 280, 285 vs 283, and 131 vs 130. I applied rows 1-3 in a throwaway worktree to see the real values, then removed it. No source or test file on the branch was changed.
+
+**Plan rows** (all `pre-existing test`, all modify, in `/home/user/geo-discovery-zone/tasks/T-108-readme-bank-size.md` under `## CI fix plan`):
+1. **`question-bank/src/farm-animal-loose-ends-verify.test.ts`, criterion 21 (tester's row 1).** Add T-108's brief and run log to `CRITERION_21_ALLOWED`. In the trial, the count (280) and digest (`c274a19e…`) came back equal to main's, so neither pin changes.
+2. **`question-bank/src/climate-cold-trade-accepted-verify.test.ts`, the non-test-files pin (tester's row 2).** Add the same two files to `CRITERION_22_ALLOWED`. The count (283) and digest (`53524b09…`) also came back unchanged.
+3. **The same file's test-files pin (tester's row 3).** Raise `MAIN_TESTS_COUNT` from 130 to 131 and change `MAIN_TESTS_SHA` to `dceadbd5fcba43e9ac32e29d58639ca29327420c489eca08cc07fab4092c8160`. The only thing that moves it is the tester's new `readme-bank-size-verify.test.ts`; I confirmed rows 1 and 2 do not affect it.
+4. **One the tester missed:** the farm file's digest in the same file's `APPLIED_REQUEST_FILE_SHAS`. Row 1 edits the farm file, which turns this check red. In the trial, "each test in the approved Test change request is 8108a42's" failed on exactly this one entry. The new digest has to be taken after row 1 is applied, so the row says to apply it after row 1. T-106 needed the same row (its row 6).
+
+**Root cause:** the T-096 and T-091 whole-tree pins count every tracked file outside a hand-kept allowed list, and every task adds its own brief and run log. This is the same P-17 pattern T-104 to T-106 hit. The plan's "Not doing" list covers the alternatives I rejected: switching the pins to globs (a loop change), re-pinning to the new tree (weakens the pin), and the frontend failures seen locally (environmental, the CI job is green).
+
+**Independence:** this is an orchestrated run, so the session-id check proves nothing; my id `cse_011oDiJdbpiNRtapJtyKBeQB` is also the worker's and the tester's. My only independence is being a freshly spawned subagent, as the brief records.
+
+**Next:** a person approves the plan, or after about an hour you stamp `CI fix: approved — orchestrator, …`. Then a fresh `ci-fix` runs pass 2. In pass 2, set `Test changes:` to `applied through CI fix plan (D-20)`.
+
+## Halted — CI fix requested — 2026-11-12T18:43Z
+Header: `Status: ci fix requested`, `Next step: human`, `CI fix: requested`. Branch head at halt: `43698ef` (the orchestrator's own log commit follows it and does not count as a person answering).
+The plan was not read by the orchestrator. A person may approve or refuse it in the orchestrator's session, on PR #135, or in the brief. If nobody answers by about 2026-11-12T19:45Z, the orchestrator stamps it (D-17) and spawns a fresh ci-fix.
