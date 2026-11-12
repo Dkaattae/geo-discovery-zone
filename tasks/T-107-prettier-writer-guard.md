@@ -1,15 +1,15 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `blocked`
-**Next step:** `task-expander`
-**Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-107-prettier-writer-guard.md`.
+**Status:** `awaiting approval`
+**Next step:** `tester`
+**Approved:** `pending`
 **Test changes:** `pending — 8 rows written below, Decision blank, not yet routed: the brief is blocked first. Once the expander amends criteria 1 and 11, the next tester routes them to the ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-107
 **Branch:** `task/T-107-prettier-writer-guard`
 **PR:** #134, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** tester: criteria 1 and 11 contradict the brief's Out of scope (the read-only `format:check` tests run the sentinel under a missing prettier, and the brief declines to guard them), so no fix can meet them as written. Criteria 3, 4 and 6 also fail today (the guard is not applied yet; it lives in two pre-existing tests, 8 Test change request rows written).
+**Fault:** resolved by amendment (task-expander, 2026-11-12): criteria 1 and 11 now cover only the writer tests and `--write` starts, matching Out of scope. Original fault, tester: criteria 1 and 11 contradict the brief's Out of scope (the read-only `format:check` tests run the sentinel under a missing prettier, and the brief declines to guard them), so no fix can meet them as written. Criteria 3, 4 and 6 also fail today (the guard is not applied yet; it lives in two pre-existing tests, 8 Test change request rows written).
 
 **Sessions:**
 
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB |
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same id as the expander: this orchestrated run reports one remote session id for every subagent; the tester should not read a match with this row as proof it shares the worker's context) |
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated: same id as every subagent; independence rests on a freshly spawned context, not a separate session) |
+| task-expander (amendment) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; amended criteria 1 and 11 only) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -51,9 +52,12 @@ the repo it is checking.
 - **Pinned prettier installed**: `frontend/node_modules/prettier/package.json`
   exists and its `version` equals the pinned version.
 - **A sentinel prettier**: an executable named `prettier`, placed in a directory
-  that comes first on `PATH`, which records each time it runs (for example, by
-  appending a line to a file outside `frontend/`) and exits 0 without touching
-  any other file. It stands in for an unpinned global prettier.
+  that comes first on `PATH`, which records each time it runs **together with
+  the arguments it was given** (for example, by appending `ran $*` to a file
+  outside `frontend/`) and exits 0 without touching any other file. It stands in
+  for an unpinned global prettier.
+- **A write start**: a recorded sentinel start whose arguments include `--write`
+  or `-w`. A start with `--check` and neither of those is a **check start**.
 - **No tracked file changes**: `git status --porcelain -- frontend/` prints
   nothing after the run, counting only tracked paths (`--untracked-files=no`).
 
@@ -62,7 +66,10 @@ the repo it is checking.
 **Not installed.** Criteria 1 to 3 hold with `frontend/node_modules/prettier/`
 absent and a sentinel prettier first on `PATH`.
 
-1. Running the two files executes the sentinel **zero** times.
+1. Running only the eight writer tests (for example with
+   `--test-name-pattern`) executes the sentinel **zero** times. *(Amended
+   2026-11-12. Check starts from the other tests in the two files are out of
+   scope; see Out of scope, first bullet.)*
 2. Running the two files leaves no tracked file changed under `frontend/`.
 3. Each of the two writer tests (all eight) is reported **failed**, not passed
    and not skipped. Its failure output names the pinned version and says what it
@@ -98,13 +105,26 @@ installed (the normal CI state).
 
 11. A frontend `bun test` (the whole suite, not just the two files), run in a
     copy of `frontend/` with no `node_modules` and a sentinel prettier first on
-    `PATH`, leaves no tracked file changed in that copy and executes the sentinel
-    zero times. Other tests may fail there (some need installed packages). This
-    criterion checks only that nothing is written and the sentinel never runs.
+    `PATH`, leaves no tracked file changed in that copy and records **zero write
+    starts** of the sentinel. Check starts are allowed and not counted (Out of
+    scope, first bullet). Other tests may fail there (some need installed
+    packages). This criterion checks only that nothing is written and the
+    sentinel is never started as a writer. *(Amended 2026-11-12.)*
 12. With `node_modules` installed, the full suites pass on the branch head:
     frontend `bun test`, `question-bank` `bun test`, `make -C backend test`, and
     frontend `typecheck`, `lint` and `format:check`. A whole-tree pin that went
     red is fixed only through an approved Test change request or CI fix plan row.
+
+**Amendment, 2026-11-12 (task-expander, after the tester's `blocked`
+verdict).** As first written, criteria 1 and 11 required the sentinel to run
+zero times across the whole of the two files and the whole suite. The read-only
+`format:check` tests (format-gate criteria 5, 6 and 10, readme-fences criterion
+7) also start it, 11 times, and Out of scope declines to guard them, so no fix
+could meet both. Of the tester's two options this takes (a): criterion 1 now
+covers only the eight writer tests, the way criterion 4 already did, and
+criterion 11 counts only write starts. Out of scope is unchanged. Nothing else
+changed: every other criterion, its number, Constraints and Context are as they
+were. Needs a fresh approval before the tester resumes.
 
 **What must not change.**
 
@@ -349,3 +369,4 @@ Tests are in `frontend/src/prettier-writer-guard.criteria.test.ts` (14 tests). E
 - **Worker, survey:** the brief predicted this outcome, and it held. Nothing in production code or `package.json` is in scope (criterion 14 forbids it), so the whole fix is the guard in two pre-existing tests.
 - **Worker, surprise:** this sandbox's `frontend/node_modules` is missing `react-simple-maps`, and the proxy refuses the install. A whole-suite pass for criterion 12 needs a full install, which means CI or a sandbox that can reach the registry. **Tester to note this in the Verdict. CI is the authority for criterion 12.**
 - **Worker, surprise:** the two `question-bank` count pins were already red on the branch head, from this task's own brief and run log. Owner: the tester, as P-17 Test change request rows alongside the pins the brief lists.
+- **Expander, amendment (2026-11-12):** `Approved:` reset to `pending`. The earlier orchestrator stamp covered the old wording of criteria 1 and 11. Next step is the `tester`, not the worker: the worker's Handoff already says there is nothing to build outside the two pre-existing files, and the amendment does not change that. The next tester (a) updates this task's own `frontend/src/prettier-writer-guard.criteria.test.ts` to the amended criteria 1 and 11 (the sentinel must log its arguments; see Definitions), and (b) re-checks Test change request rows 1-8 after merging `origin/main` (T-106 merged as `8092372` and re-pinned some of the same constants), then routes them to the `ci-fix` (D-20).
