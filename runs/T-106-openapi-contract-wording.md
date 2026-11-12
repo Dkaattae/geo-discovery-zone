@@ -160,3 +160,39 @@ The plan was not read by the orchestrator. A person may approve or refuse it in 
 ## CI fix approved — by a person, in the orchestrator's session — 2026-11-12T16:22Z
 The user's words, verbatim: "approve the T-106 CI fix plan"
 Header set: `Status: ci fix approved`, `Next step: ci-fix`, `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session`. A fresh ci-fix (pass 2) is spawned once the checkout is free (T-107's worker is running in it).
+
+## Round 5 — ci-fix (pass 2, apply) — 2026-11-12T16:30Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**I applied all six approved rows of the T-106 CI fix plan and refused none. question-bank now passes 2741 of 2741 tests.** Only three pre-existing test files changed; no source or doc file did. The fix is pushed as `90c7c2a` to `claude/youthful-galileo-hn6hh1`, and local HEAD matches origin. The brief now reads Status `awaiting verification`, Next step `tester`, so a fresh tester is next.
+
+**Approval I acted on**
+- The header read `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session`.
+- The run log quotes the person: "approve the T-106 CI fix plan". I recorded that in every row's Decision cell, noting that it reached me through the orchestrator (commit `2601932`) rather than being given in my session.
+- The plan still held: since it was written (`3f5d25a`), only the run log and the brief header had changed.
+
+**Rows applied**
+- **Rows 1-2, `question-bank/src/conventions-openapi-row-verify.test.ts`:**
+  - The digest now leaves out both the `openapi.yaml` and `backend/` lines. Its value, `f13eb52a…`, matches both at `5f6f811` and at HEAD.
+  - The `openapi.yaml` row is now pinned word for word to T-105's wording.
+  - The `backend/` test now checks the row still contains `serving /api/v1 and the frontend on the same origin` and no longer contains "once built".
+- **Row 3, `question-bank/src/farm-animal-loose-ends-verify.test.ts`:** `README.md` and T-106's brief and run log are added to the allowed list. The count goes from 281 to 280, and the new digest `c274a19e…` matches the plan's trial value.
+- **Row 4, `question-bank/src/climate-cold-trade-accepted-verify.test.ts`:** the same three files are added to its allowed list. The count goes from 284 to 283, and the digest `53524b09…` matches the trial value.
+- **Row 5, same file:** the test-file count goes from 129 to 130 and the digest becomes `e232903b…`. **This differs from the trial value `f9eae92d…`.**
+- **Row 6, same file:** the farm file's digest becomes `015526d2…`. **This also differs from the trial value `066f1da5…`.**
+- **Why rows 5 and 6 differ:** these digests hash the edited test files byte for byte, and my code comments are worded differently from the pass-1 trial run. The plan said pass 2 would record whatever value it saw. Each one was read after the rows it depends on were applied and prettier had run.
+
+**Checks run**
+- **Backend:** `make -C backend check` gave 1221 passed, 9 skipped.
+- **question-bank:** `bun test` gave 2741 pass, 0 fail, and typecheck, lint and format:check are all clean.
+- **Frontend, locally:** could not be fully checked, for the same environment reason the worker and tester hit. `bun install` gets 403 from the proxy, so `bun test` gives 420 pass and 4 fail, and typecheck gives 9 errors. All of these are in the map files that need the missing `react-simple-maps` package; I touched no frontend file. Lint and format:check pass, and the README scanners pass 149 of 149. CI's frontend job on PR #133 remains the evidence there.
+
+**Independence:** this is an orchestrated run, and every role shares the session id `cse_011oDiJdbpiNRtapJtyKBeQB`, so the session check proves nothing. My only independence is being a newly spawned subagent that read only the committed sections of the brief.
+
+**For the reviewer:** all six rows change pre-existing tests, the approval came to me secondhand, and two of the digests that landed are not the trial values the person saw. The reviewer should confirm the approval covers the values as recorded. This is written in the brief's `## CI fix` section.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md
+- /home/user/geo-discovery-zone/question-bank/src/conventions-openapi-row-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts
