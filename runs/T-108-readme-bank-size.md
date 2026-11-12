@@ -81,3 +81,30 @@ In `tasks/T-108-readme-bank-size.md` I added my Sessions row and wrote the Hando
 Files:
 - /home/user/geo-discovery-zone/README.md
 - /home/user/geo-discovery-zone/tasks/T-108-readme-bank-size.md
+
+## Round 3 — tester — 2026-11-12T18:41Z
+`Next step` on entry: `tester` → on exit: `ci-fix` · G3 count: fail 1, blocked 0
+
+**T-108 tester verdict: `fail`, caused only by stale pins. Next step: `ci-fix`.** The README meets all 14 criteria. Three older whole-tree pins in `question-bank` are red because this task added new tracked files. I wrote them up as Test change request rows with Decision left blank, for the `ci-fix` to plan (D-20). Pushed as `80acd1f` to `task/T-108-readme-bank-size`; local HEAD and the remote branch match.
+
+**Independence:** this is an orchestrated run, so the session-id check proves nothing. My id `cse_011oDiJdbpiNRtapJtyKBeQB` is the same as the worker's. My only independence is being a freshly spawned subagent that never saw the worker's session. That is weaker than a separate session, and the Verdict says so.
+
+**What I did**
+- **New test file:** `/home/user/geo-discovery-zone/question-bank/src/readme-bank-size-verify.test.ts`, 26 tests covering criteria 1-10 plus checks of the scanning helpers. Committed as `3568b51`. All 26 pass.
+- **Mutations:** every one was reverted and the working tree is clean.
+  - Restoring the base README turned 9 tests red, covering criteria 1, 2, 3, 4, 5, 8 and 9.
+  - A wrong state count, a question count, a column shift and an extra paragraph turned criteria 2, 3, 7 and 9 red.
+  - Removing "Only" and adding "contract" turned criteria 6, 8 and 10 red.
+- **Criteria 11-13, checked by diff:** `git diff 8092372 -- README.md` shows only the three allowed hunks (line 32, lines 37-38, line 215). `git show --stat` shows each commit touched only its allowed files. The protected files and every package/lock file are unchanged from base.
+
+**Suite on the final tree**
+- **Backend:** `make -C backend check` passes, 1221 passed and 9 skipped.
+- **question-bank:** `bun test` gives 2764 pass and 3 fail; all 3 are the stale pins. typecheck, lint and format:check pass.
+- **frontend, locally:** lint and format:check pass. 4 tests fail and typecheck fails because `react-simple-maps` is not installed, and the proxy refuses `europe-west1-npm.pkg.dev` with a 403, so I could not install it. CI on `a620111`, read through REST check-runs, has the frontend job green; the only red CI job there is question-bank. I did not see CI results for my own push.
+
+**Test change request rows** (written in `/home/user/geo-discovery-zone/tasks/T-108-readme-bank-size.md`)
+1. `farm-animal-loose-ends-verify.test.ts` criterion 21 counts 282 files against a pin of 280. Fix: add T-108's brief and run log to its allowed list.
+2. `climate-cold-trade-accepted-verify.test.ts`, the non-test-files pin, counts 285 against a pin of 283. Fix: add the same two files to its allowed list.
+3. The same file's pre-existing-test-files pin counts 131 against 130, because of my new test file. Fix: raise `MAIN_TESTS_COUNT` to 131 and recompute `MAIN_TESTS_SHA`.
+
+**Brief header now reads:** Status `fail`, Next step `ci-fix`, Test changes `routed to ci-fix (D-20)`. The Fault line, my Sessions row, the Verdict and the Test change request are all filled in.
