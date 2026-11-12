@@ -1,7 +1,7 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #133; routine, inside the envelope)
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-106-openapi-contract-wording.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — the user, 2026-11-12, given in the orchestrator's session`
@@ -19,6 +19,7 @@
 | ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned ci-fix subagent, pass 1; see CI fix plan) |
 | ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, a second freshly spawned ci-fix subagent, pass 2; see CI fix) |
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, a second freshly spawned tester subagent, round 2 re-verification; see Verdict, "Round 2") |
+| reviewer | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned reviewer subagent; I wrote none of this work) |
 
 > **Full brief, not light.** T-106 is `S`, but its criteria run past four (three
 > files, four lines, plus the boundaries), so the light path does not apply
@@ -459,6 +460,77 @@ the tester's or the pass-1 ci-fix's reasoning.
 **Noticed, not changed**
 
 - **Not observed by a person.** All six rows change pre-existing tests, and the approval was relayed. The digests the person approved were trial values, and two of them differ from what landed (rows 5 and 6, both explained above). Reviewer: confirm the approval covers the observed values, as the plan said it would (D-18).
+
+## Review
+
+**TL;DR: approve, inside the envelope.** The four doc lines are right and read
+well; the ci-fix diff is exactly the six approved rows; every role stayed in its
+lane. Marked ready with no escalation note. Two non-blocking findings go to a new
+task, T-108. Swept in this PR.
+
+**PR state.** #133 was open and draft, not merged. Every Sessions row has a commit
+in the PR (`eb19df9`/`9eac5da` expander, `406241f` worker, `7135ac2`/`5fa0bc1`
+tester, `3f5d25a`/`90c7c2a` ci-fix). Merge base with `origin/main` is `5f6f811`,
+which is the brief's base.
+
+**Lanes** (`git show --stat` per commit)
+
+- **Expander:** brief only.
+- **Worker:** the three docs and the brief, four one-line hunks.
+- **Tester:** its new test file and the brief; no source or doc.
+- **ci-fix:** pass 1 the brief only; pass 2 the three test files of rows 1-6 and
+  the brief. I read the diff against each row: allowed-set additions are exactly
+  `README.md` and T-106's brief and run log, counts move by the planned one, and
+  the T-105 `openapi.yaml` row is now pinned byte for byte (tighter than before).
+- **Orchestrator:** run log and header lines only.
+
+**Envelope**
+
+| Condition | Holds | Why |
+|---|---|---|
+| Tester pass, suite green | yes | Round 2 `pass`; all six CI jobs green at `d0afc9e` (later commits are brief/run-log only) |
+| Nothing outside Constraints | yes | Docs, brief, run log, tester's test file, approved ci-fix test rows |
+| No dependency | yes | No lockfile or manifest touched |
+| No `openapi.yaml`, migration, plan | yes | `git diff --quiet 5f6f811 HEAD -- openapi.yaml geoquizdataplan.md backend/ frontend/` exits 0 |
+| No child-facing text | yes | Developer docs only |
+| Pre-existing tests only by a person's approval | yes | `CI fix:` names the user in every round (never `orchestrator`; checked with `git log -p`); "approve the T-106 CI fix plan" |
+| No product decision | yes | |
+| Small, unsurprising | yes | |
+
+**Findings (none blocking)**
+
+1. **`README.md:32` and `README.md:215` cite a bare "(E-14)"**, and `README.md`
+   never names `engineering-decisions.md`, so a README reader cannot resolve the
+   id. `conventions.md:16` writes "engineering-decisions.md E-14", which is the
+   better model. Still meets criteria 1-2 either way. Queued as part of T-108.
+2. **`README.md:37` still says "15 states, 26 questions"** (brief's Out of scope
+   asked the reviewer to queue it). The app serves 50 states and 415 generated
+   questions. New task T-108, together with finding 1, since both are README
+   lines a reader is told something stale or opaque by.
+
+Not a finding: the README row no longer says the backend is tested against
+`openapi.yaml` (`backend/tests/test_contract.py` does that). Dropping "Both sides"
+was the criterion; the row says nothing untrue.
+
+**Flags disposed of**
+
+- **Worker, wording of the four lines:** accepted as written. Bare id in
+  `PROGRESS.md:26` matches its previous style; README's bare id goes to T-108.
+- **Worker, `PROGRESS.md:26` "served by backend/; follows the backend":**
+  accepted; criterion 4 forces the phrase and the line still reads cleanly.
+- **Worker/tester/ci-fix, shared session id:** already a `process-tasks.md` item
+  (the orchestrator's spawned roles all record one `$CLAUDE_CODE_REMOTE_SESSION_ID`);
+  nothing new to file.
+- **Frontend 403 locally:** disposed. CI's `frontend` job is green at `d0afc9e`
+  and no frontend file changed.
+- **ci-fix/tester, rows 5-6 landed with digests other than the trial values:**
+  covered. The plan said pass 2 would record observed values, and the person
+  said in the orchestrator's session, 2026-11-12T16:33Z, "the digest values are
+  fine, approved as recorded" (run log). That word reached me through the run
+  log, not first-hand.
+
+**Sweep:** this brief deleted, T-106 removed from `tasks.md` and T-108 added in
+its place (§E), a Completed-tasks entry in `PROGRESS.md`. In the next commit.
 
 ## Notes
 
