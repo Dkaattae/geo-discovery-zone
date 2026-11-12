@@ -1,14 +1,14 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract"
 
-**Status:** `fail`
-**Next step:** `ci-fix`
+**Status:** `ci fix requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-106-openapi-contract-wording.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `none`
+**CI fix:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-106
 **Branch:** `claude/youthful-galileo-hn6hh1`
 **PR:** #133, opened draft at expand time; stays draft until the reviewer approves it
-**Fault:** criteria 1-7 are met; criterion 8 is not, because 4 pre-existing tests are stale by the task's own change (2 T-105 conventions.md pins, 2 whole-tree pins) and were routed to the `ci-fix` for a plan (D-20).
+**Fault:** criteria 1-7 are met; criterion 8 is not, because 5 pre-existing tests are stale by the task's own change (the tester's 4, plus a test-file pin its own committed test file trips), and a CI fix plan of 6 test rows is waiting for approval.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB |
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same value `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the expander: the orchestrator spawns roles as subagents under one remote session; see Notes) |
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned tester subagent; see Verdict, "Independence") |
+| ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned ci-fix subagent, pass 1; see CI fix plan) |
 
 > **Full brief, not light.** T-106 is `S`, but its criteria run past four (three
 > files, four lines, plus the boundaries), so the light path does not apply
@@ -284,6 +285,59 @@ blank on purpose. These rows are the `ci-fix`'s input, not an approval.
 | 2 | same file › same describe › "the backend/ row keeps 'once built, the frontend on the same origin'" | `c90cba3`, T-105 tester. It pinned that T-105 left the `backend/` row alone | T-106 criterion 5 removes `once built` from that row | modify | Name: "the backend/ row serves /api/v1 and the frontend on the same origin, without 'once built' (T-106)". It asserts exactly one line starting `backend/ `. That line contains `serving /api/v1 and the frontend on the same origin` and does not match `/once built/i` | |
 | 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It pinned that no tracked non-test file outside T-096's allowed set changes or is added | T-106 changes root `README.md`, which main counted and which is not in `CRITERION_21_ALLOWED`. It also adds `tasks/T-106-openapi-contract-wording.md` and `runs/T-106-openapi-contract-wording.md` | modify | `"README.md"`, `"tasks/T-106-openapi-contract-wording.md"` and `"runs/T-106-openapi-contract-wording.md"` join `CRITERION_21_ALLOWED`, under a comment citing T-106 row 3. The count goes 281 → 280 (README.md leaves the counted set; the two new files were never in it). `MAIN_UNTOUCHABLE_SHA` is recomputed over the remaining set, with a `// Re-pinned by T-106 (Test change request row 3)` line. Nothing else is loosened | |
 | 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. Same protection, for T-091's allowed set | Same as row 3: root `README.md` is not in `CRITERION_22_ALLOWED`, and the brief and run log are new | modify | The same three paths join `CRITERION_22_ALLOWED`, under a comment citing T-106 row 4. `MAIN_UNTOUCHABLE_COUNT` goes 284 → 283, and `MAIN_UNTOUCHABLE_SHA` is recomputed, with a `// Re-pinned by T-106 (Test change request row 4)` line. Nothing else is loosened | |
+
+## CI fix plan
+
+**TL;DR: 6 test rows, no source rows.** The four doc lines are right. Five
+pre-existing pins are red because of the task's own change: the tester's four
+rows, plus one it could not see (its own test file only entered `git ls-files`
+when it was committed). Row 6 keeps a sixth pin green once row 3 lands. I tried
+all 6 rows in a throwaway worktree, not on the branch, and got question-bank
+**2741 pass / 0 fail**, with `typecheck`, `lint` and `format:check` clean.
+
+**Independence.** This run is orchestrated (`runs/T-106-openapi-contract-wording.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdbpiNRtapJtyKBeQB`, the
+same id the expander, worker and tester recorded, so the session check proves
+nothing. My independence rests only on being a freshly spawned subagent: I did
+not see the worker's or the tester's reasoning, only their committed sections.
+
+**Reproduced** on `6cb54e0` with `cd question-bank && bun test`: **2736 pass, 5 fail**.
+
+- `conventions-openapi-row-verify` › "every other line is byte-identical to base 0b78dec…": the digest is `48a587b8…`, the pin is `61792261…`.
+- same file › "the backend/ row keeps 'once built…'": `once built` is gone.
+- `farm-animal-loose-ends-verify` › "criterion 21…": the count is 283, the pin is 281.
+- `climate-cold-trade-accepted-verify` › "every tracked non-test file outside the allowed list…": the count is 286, the pin is 284.
+- `climate-cold-trade-accepted-verify` › "pre-existing test files are main's, except ones in an approved Test change request": the count is **130**, the pin is 129. **The tester did not list this one.** It ran the suite before committing `openapi-contract-wording-verify.test.ts`, so `git ls-files` did not see the file yet. That is the same pattern as T-105 row 4 (127 → 128).
+
+`make -C backend check`: 1221 passed, 9 skipped. Neither frontend nor backend has
+a pin on these files, and none goes red.
+
+| # | File (and function or test) | Kind | Change | Why — failing test or CI line, root cause, criterion quoted for a test row | Decision |
+|---|---|---|---|---|---|
+| 1 | `question-bank/src/conventions-openapi-row-verify.test.ts` › "T-105 criterion 2 — nothing else in conventions.md changes" › "every other line is byte-identical to base 0b78dec, in the same order" | pre-existing test (modify). Test change request row 1. Introduced `c90cba3`, T-105 tester; it protected T-105 criterion 2 (T-105 changed only the `openapi.yaml` row) | Rename it to "every line other than the openapi.yaml and backend/ rows is byte-identical to base, in the same order; the openapi.yaml row is T-105's wording". (a) Filter out both `/^openapi\.yaml\s/` and `startsWith("backend/ ")`, then compare `sha256(JSON.stringify(lines))` to a new constant recorded at `5f6f811` (E-30, the comment names the commit). In the trial this was `f13eb52a2bc793a3118fba5c2d6e8d682fd48749ce6b1334ea3d5b1268c82e2b`, the same at `5f6f811` and at HEAD. It replaces `BASE_OTHER_LINES_SHA`, which would otherwise be unused and fail lint. (b) Add `expect(openapiRows()[0]).toBe(...)` on the exact row text at `5f6f811`: `openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)`. Also update the file's header comment so it describes the new digest's coverage | Red: the digest moves because T-106 criterion 5 rewrites `conventions.md:10`. **Criterion measured against:** T-106 criterion 8, "A modified version of either still pins that `conventions.md`'s `openapi.yaml` row is unchanged from T-105's wording (it does not loosen T-105 criterion 1)". Part (b) pins that row byte for byte, which is stronger than before (the old digest left that row out). Every other line stays pinned as hard as before, and the `backend/` row is now pinned by row 2 and by T-106 criterion 5's own tests | |
+| 2 | same file › same describe › "the backend/ row keeps 'once built, the frontend on the same origin'" | pre-existing test (modify). Test change request row 2. Introduced `c90cba3`, T-105 tester; it protected that T-105 left the `backend/` row alone | Rename it to "the backend/ row serves /api/v1 and the frontend on the same origin, without 'once built' (T-106)". It asserts exactly one line starting `backend/ `, that the line contains `serving /api/v1 and the frontend on the same origin`, and that it does not match `/once built/i` | Red: the assertion `toContain("once built, …")` fails. **Criterion:** T-106 criterion 5, "That line does not contain `once built` (case-insensitive). It still contains `/api/v1` and `the frontend on the same origin`". The new version asserts all three. The brief's line that removes what the old test pinned is criterion 5 itself | |
+| 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | pre-existing test (modify). Test change request row 3. Introduced `47581ea`, T-096 tester; it protected that no tracked non-test file outside T-096's allowed set changes or is added | Add `"README.md"`, `"tasks/T-106-openapi-contract-wording.md"` and `"runs/T-106-openapi-contract-wording.md"` to `CRITERION_21_ALLOWED`, under a comment citing T-106 CI fix plan row 3. Change the count from 281 to 280, extending the inline history comment. Recompute `MAIN_UNTOUCHABLE_SHA` and add a `// Re-pinned by T-106 (CI fix plan row 3)` line. Trial value: `c274a19eb00773d8057d349e3117271ef72c2c54aa79415d543cfab999be3fbf`. **Checked:** with the same exemption, base `5f6f811` gives the same count and digest, so the re-pin hides no other moved file | Red: 283 ≠ 281. Root `README.md` changes by T-106 criteria 1-2, and the brief and run log are new loop records, as in T-104 and T-105. **Criterion:** T-106 criterion 7, "The worker's commits touch only `README.md`, `PROGRESS.md`, `conventions.md` and this brief". The pin still asserts that every other non-test file is base's, and no new file is exempt beyond those the brief names | |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | pre-existing test (modify). Test change request row 4. Introduced `950f334`, T-091 tester; same protection, for T-091's allowed set | Add the same three paths to `CRITERION_22_ALLOWED`, under a comment citing T-106 CI fix plan row 4. Change `MAIN_UNTOUCHABLE_COUNT` from 284 to 283 and recompute `MAIN_UNTOUCHABLE_SHA`, adding `// Re-pinned by T-106 (CI fix plan row 4)` lines. Trial value: `53524b09033aec046377bc5530f6cc5bd351eb5a262f2eda877d8cb54263aac0`. Also checked against base `5f6f811`: equal | Red: 286 ≠ 284. The cause and criterion are the same as row 3 | |
+| 5 | same file › same describe › "pre-existing test files are main's, except ones in an approved Test change request" | pre-existing test (modify). **Not in the Test change request; added here.** Introduced `950f334`, T-091 tester; it protected that no test file changes unless an approved request names it | Change `MAIN_TESTS_COUNT` from 129 to 130 and recompute `MAIN_TESTS_SHA`, each with a `// Re-pinned by T-106 (CI fix plan row 5)` comment naming the new tester file and rows 1-2. **Apply rows 1-2 first and run prettier**: the digest covers `conventions-openapi-row-verify.test.ts` byte for byte, so the pinned value is the one observed after them. Trial value: `f9eae92dfddf5447efe7cf2a7d1756973917385390ec492b1e0ae8ba7b664ca2` | Red: 130 ≠ 129. The tester committed `question-bank/src/openapi-contract-wording-verify.test.ts`, and rows 1-2 change a counted file, so the digest moves too. **Criterion:** T-106 criterion 8, "Every pre-existing test deleted or modified on this branch is changed only by an approved Test change request row or an approved CI fix plan row". The only test files that move are the new one and rows 1-2's | |
+| 6 | same file › same describe › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" (`APPLIED_REQUEST_FILE_SHAS["question-bank/src/farm-animal-loose-ends-verify.test.ts"]`) | pre-existing test (modify). Introduced `bac230d`, T-091 tester (review finding 1); it protected that each named request file holds only its approved re-pins | Recompute the farm file's entry and extend its history comment with `then by T-106 (CI fix plan row 6, for its row 3)`. **Apply row 3 first**: the value is the one observed after it. Trial value: `066f1da50645542889e257adabc6d28eb0914900f9ea9fa11d41bde1f32a180d` | Green now. Applying row 3 turns it red, because the farm file's bytes change. This is the same chain as T-105 row 5 and T-076 row 7. **Criterion:** T-106 criterion 8, quoted under row 5. The pin still holds that file to exactly its approved re-pins | |
+
+**Root cause:** this is not a code fault. T-106 does what its criteria say:
+criterion 5 rewrites `conventions.md:10`, and criteria 1-2 change root
+`README.md`. The tester then committed one new test file. Five pre-existing pins
+hash exactly those bytes or count exactly those files: two T-105 pins on
+`conventions.md`, and three whole-tree pins (T-096's non-test set, and T-091's
+non-test and test-file sets). They go red by design, as criterion 8 anticipates
+for the first two. The sixth pin is one that holds the farm file's digest. It
+follows once row 3 edits that file. The tester listed four of the five because
+it ran its suite before its own test file was tracked.
+
+**Not doing:**
+
+- **No source or doc row.** The four lines meet criteria 1-5, as the tester's 18 tests confirm. Reverting any of them to keep a pin green would break a criterion.
+- **No deletion of row 2's test.** T-106's tester covers `once built` too, but deleting the test drops T-105's "exactly one `backend/ ` row" check from that file. A modify keeps it.
+- **No exemption for the tester's new test file**, such as a `T106_TEST_FILES` set in the climate file. Earlier tasks re-pinned the count instead (T-105 row 4, T-076 row 6), and that keeps the file under the digest.
+- **Trial digests are not final.** The SHA values above were observed in a throwaway worktree. Pass 2 records whatever value it observes after applying the rows in order (1, 2, 3, 4, then 5 and 6) and running prettier. If any value differs from the trial, `## CI fix` says so and why.
+- **Frontend 403.** The registry is unreachable locally (Handoff, Verdict). This is environmental and not this task's. CI's `frontend` job on #133 passed at `25519fc`.
 
 ## Notes
 
