@@ -42,3 +42,42 @@ I did not touch `tasks.md` or `PROGRESS.md`. `tasks/` had no leftover brief, and
 
 ## Approval — orchestrator — 2026-11-12T18:19Z
 Stamped `Approved:` as an unattended run. The criteria were not read.
+
+## Round 2 — worker — 2026-11-12T18:27Z
+`Next step` on entry: `worker` → on exit: `tester`
+
+**T-108 is built and handed to the tester.** I changed three lines in `README.md`, plus the brief. The backend suite and every README guard pass. The rest of the suite has two kinds of red, neither from my edit: two `question-bank` count pins that were already failing at the branch head, and four frontend test files plus the frontend typecheck, which fail because a package is missing from this environment. The commit is `8d1dc8f` on `task/T-108-readme-bank-size`, and `git log origin/task/T-108-readme-bank-size -1` shows it.
+
+**Changes to `README.md`:**
+- **Line 32, the Tech stack row:** now ends ``(`engineering-decisions.md` E-14) |``.
+- **Lines 37-38, the bank paragraph:** now reads "Only a US-states bank ships today, covering all 50 states. A right answer / shows a human-reviewed fun fact; a wrong one names the right answer."
+- **Line 215, the Layout line:** now reads `openapi.yaml        describes the API; follows the backend (engineering-decisions.md E-14)`. The description still starts at column 21.
+
+In `tasks/T-108-readme-bank-size.md` I added my Sessions row and wrote the Handoff (a criterion → location table and the suite results) and Notes. Status is now `awaiting verification` and Next step is `tester`.
+
+**Suite results:**
+
+| Check | Result |
+|---|---|
+| `make -C backend check` | 1221 passed, 9 skipped |
+| `question-bank` `bun test` | 2739 pass, 2 fail (the count pins below) |
+| `question-bank` typecheck, lint, format:check | pass |
+| `frontend` `bun test` | 420 pass, 4 fail |
+| `frontend` typecheck | fails |
+| `frontend` lint, format:check | pass |
+| README guard tests (`conventions-doc`, `readme-test-count`, `readme-suite-counts`, `openapi-contract-wording-verify`, `purge-sample-data-verify`, `lint-gate`) | 192 pass, 0 fail |
+
+**Why the reds are there:**
+- **Frontend tests and typecheck:** every failure is `Cannot find package 'react-simple-maps'` or `us-atlas`. `bun install --frozen-lockfile` was refused by the proxy with a 403 on the d3 tarballs, so the tester needs to rerun the frontend checks somewhere the package registry is reachable.
+- **Tests made stale** (both listed in the Handoff, both already red at `edbf4d2` before my edit — I stashed the change and reran to confirm):
+  - `farm-animal-loose-ends-verify.test.ts`, the T-096 criterion 21 pin: counts 282 files against a pin of 280.
+  - `climate-cold-trade-accepted-verify.test.ts`, the T-091 criterion 22 pin: counts 285 against 283.
+  - The cause is the two new files (this brief and `runs/T-108-readme-bank-size.md`); the README edit also touches a file these pins check. I proposed the tester file a Test change request to allow those files, as T-104 to T-106 did.
+
+**Judgment calls recorded in the Notes:**
+- **"50 states" is stated rather than left out.** It is a fixed number, so it won't go stale the way the question count did. The reviewer should confirm or overturn this.
+- **"a wrong one names the right answer"** is true today because no served question has an explanation. If a future task adds explanations, the line would understate what ships rather than overclaim, and that task should own updating it.
+
+Files:
+- /home/user/geo-discovery-zone/README.md
+- /home/user/geo-discovery-zone/tasks/T-108-readme-bank-size.md
