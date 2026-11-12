@@ -1,14 +1,14 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id
 
-**Status:** `fail`
-**Next step:** `ci-fix`
+**Status:** `ci fix requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-108-readme-bank-size.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `none`
+**CI fix:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-108
 **Branch:** `task/T-108-readme-bank-size`
 **PR:** #135, opened draft at expand time, built from the branch above; stays draft until the reviewer approves it
-**Fault:** All 14 criteria are met, but 3 pre-existing whole-tree pins in `question-bank` are stale by the task's own change (its brief, run log and tester test file are new tracked files). They are routed to the `ci-fix` for a plan (D-20). No criterion failed.
+**Fault:** No criterion failed. Four pre-existing `question-bank` pins are stale by this task's own new tracked files (its brief, run log and tester test file), and a CI fix plan of four `pre-existing test` rows is waiting for approval.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; roles spawned as subagents share this id) |
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; subagent, shares the run's id) |
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
+| ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 
 > **Full brief, not light.** T-108 is `S`, but its criteria run past four, so
 > the light path does not apply (`process.md`, "The light path, for S-sized
@@ -330,6 +331,32 @@ Routed to the `ci-fix` (D-20). Decision is blank: these rows are the ci-fix plan
 | 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `T-096 criteria 17-21: the bank and the boundaries` › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It protects against any non-test tracked file being changed or added outside the allowed set | T-108 adds two new tracked non-test files, `tasks/T-108-readme-bank-size.md` and `runs/T-108-readme-bank-size.md`, so the count is 282 against 280 | modify | The same name and the same two assertions, count `toBe(280)` and `MAIN_UNTOUCHABLE_SHA` unchanged. Only the two T-108 files join `CRITERION_21_ALLOWED`, with a comment citing T-108's ci-fix plan row. If the digest does not match after that, re-pin it and record the reason | |
 | 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. Same protection, against T-091's base | Same two new files: 285 against `MAIN_UNTOUCHABLE_COUNT` 283 | modify | The same name and assertions, `MAIN_UNTOUCHABLE_COUNT` 283 and `MAIN_UNTOUCHABLE_SHA` unchanged. Only the two T-108 files join `CRITERION_22_ALLOWED`, with a comment citing the row. If the digest still differs, re-pin it and record the reason | |
 | 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `T-091 criterion 22: the diff touches only the allowed files` › "pre-existing test files are main's, except ones in an approved Test change request" | `950f334`, T-091 tester. It protects against tracked test files being added or changed outside approved requests | T-108's tester added `question-bank/src/readme-bank-size-verify.test.ts` (a new test file), so the count is 131 against `MAIN_TESTS_COUNT` 130 | modify | The same name and assertions. `MAIN_TESTS_COUNT` goes 130 -> 131 and `MAIN_TESTS_SHA` is recomputed over the new tree, with a re-pin comment naming T-108's tester file, as T-106 row 5 did. No other test file may change the digest | |
+
+
+## CI fix plan
+
+Pass 1, written by the `ci-fix` (orchestrated, so nobody to ask in-session). All four rows are `pre-existing test` rows carried from the tester's Test change request (D-20), plus one it missed. **Nothing here is applied yet.**
+
+**Independence:** orchestrated run (`runs/T-108-readme-bank-size.md` exists), so the session-id check proves nothing. My id `cse_011oDiJdbpiNRtapJtyKBeQB` is the worker's and the tester's too. My independence is only that I am a freshly spawned subagent that saw neither of their sessions.
+
+Reproduced red at `4509165` (`bun test src/farm-animal-loose-ends-verify.test.ts src/climate-cold-trade-accepted-verify.test.ts` in `question-bank/`): 48 pass, 3 fail — 282 vs 280, 285 vs 283, 131 vs 130. All values below were observed by applying rows 1-3 in a throwaway worktree (since removed). The working tree is unchanged.
+
+| # | File (and function or test) | Kind | Change | Why — failing test or CI line, root cause, criterion quoted for a test row | Decision |
+|---|---|---|---|---|---|
+| 1 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `CRITERION_21_ALLOWED`, used by "T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | pre-existing test (request row 1) | **Modify.** Add `tasks/T-108-readme-bank-size.md` and `runs/T-108-readme-bank-size.md` to `CRITERION_21_ALLOWED`, with a comment naming T-108's CI fix plan row 1 and its approval. Add a re-pin comment line above `MAIN_UNTOUCHABLE_SHA`. `toBe(280)` and `MAIN_UNTOUCHABLE_SHA` do **not** change: observed 280 files and digest `c274a19e…` after the edit, which is main's. `README.md` is already in the set (T-106) | Fails 282 vs 280. **Cause:** T-108 adds two new tracked non-test files, its brief and its run log. Introduced `47581ea` (T-096 tester), protecting against any non-test tracked file being changed or added outside the allowed set. **Criterion 12:** "The worker's commits touch only `README.md` and this brief." The brief and run log are the loop's own records, which the set already admits for T-091, T-096 and T-103 to T-106. The pin stays as strong: every other file is still held to main's count and digest |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `CRITERION_22_ALLOWED`, used by "T-091 criterion 22: the diff touches only the allowed files > every tracked non-test file outside the allowed list is 12d242e's, and none is added" | pre-existing test (request row 2) | **Modify.** Add the same two T-108 files to `CRITERION_22_ALLOWED`, with a comment naming this row and its approval, plus a re-pin comment line above `MAIN_UNTOUCHABLE_SHA`. `MAIN_UNTOUCHABLE_COUNT` (283) and `MAIN_UNTOUCHABLE_SHA` (`53524b09…`) do **not** change: observed equal after the edit | Fails 285 vs 283. Same cause as row 1. Introduced `950f334` (T-091 tester), protecting the same thing against T-091's base. Same criterion 12 reading. The pin keeps the same strength |
+| 3 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `MAIN_TESTS_COUNT`, `MAIN_TESTS_SHA`, used by "… > pre-existing test files are main's, except ones in an approved Test change request" | pre-existing test (request row 3) | **Modify (re-pin).** `MAIN_TESTS_COUNT` 130 → 131. `MAIN_TESTS_SHA` `e232903b8af97bfe5a8cd3c55baa8c867f79a480b29222febd648be4e00e54e3` → `dceadbd5fcba43e9ac32e29d58639ca29327420c489eca08cc07fab4092c8160`. Add re-pin comment lines naming T-108's tester file and this row. The digest was observed with rows 1-2 applied. It is unaffected by them, because this file and the farm file are both excluded from this set (`T091_TEST_FILES`, `TEST_CHANGE_REQUEST_FILES`). I confirmed it is the same value with row 1 reverted | Fails 131 vs 130. **Cause:** T-108's tester added `question-bank/src/readme-bank-size-verify.test.ts` (commit `3568b51`), which is the only tracked test file that differs. Introduced `950f334` (T-091 tester), protecting against test files being added or changed outside an approved request. **Criterion 14:** "Every pre-existing test deleted or modified on this branch is changed only by an approved … CI fix plan row". The new file is the task's own test, not a pre-existing one, so admitting it pins the other 130 as hard as before. Same shape as T-106's row 5 |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `APPLIED_REQUEST_FILE_SHAS["question-bank/src/farm-animal-loose-ends-verify.test.ts"]`, used by "… > each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | pre-existing test (**not in the tester's request**; added by the ci-fix) | **Modify (re-pin).** Replace the farm file's digest `015526d2…` with the sha256 of the farm file **as it stands after row 1 is applied**, observed in pass 2. Append `// then by T-108 (CI fix plan row 4, for its row 1)` to that entry's re-pin comment chain. **Apply after row 1.** No other entry changes | Not red now. It **goes red the moment row 1 lands**: in the trial, "each test in the approved Test change request is 8108a42's" failed with one digest differing, the farm file's. **Cause:** row 1 edits a file this map pins by digest. Introduced `bac230d` (T-091 tester, review finding 1), protecting against any request file changing beyond its approved re-pins. **Criterion 14**, as in row 3. The new digest admits exactly row 1's approved edit and nothing more. T-106 needed the same row (its CI fix plan row 6) |
+
+**Root cause:** No code is wrong. All 14 criteria are met (Verdict). Two whole-tree "nothing else moved" pins, from T-096 and T-091, count every tracked file outside a hand-kept allowed set. Every task adds its own brief and run log as new tracked files, so each task has to add them to both sets. T-108's tester also added a new test file, which the T-091 test-files pin counts. Changing the farm pin in turn moves its digest in T-091's request-file map. This is the recurring P-17 pattern, the same one T-104 to T-106 hit.
+
+**Not doing:**
+- **Rewriting the pins to read the allowed set from `tasks/`/`runs/` globs.** That would stop this recurring, but it changes what the pins protect. It is a loop change (P-17), not this task's, and it was not approved.
+- **Re-pinning `MAIN_UNTOUCHABLE_SHA` / counts to the new tree** instead of extending the allowed sets. That would bake T-108's brief into "main's" digest and weaken the pin. Extending the sets keeps both values at main's.
+- **Adding `README.md` anywhere.** It is already in both sets (T-106), and its change is checked by criterion 11's diff.
+- **Frontend `react-simple-maps` red locally.** That is environmental (proxy 403 on install), the frontend CI job is green on `a620111`, and nothing in this plan touches it.
+
+To approve by hand: fill in Decision, set the header's `CI fix:` to `approved — <name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
 
 ## Notes
 
