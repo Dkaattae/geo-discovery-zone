@@ -290,3 +290,56 @@ Files:
 The user's words, verbatim: "approve the T-107 CI fix plan"
 Given at about 17:30Z, while the pass-1 ci-fix was still writing the plan (before `351a12d` landed). The orchestrator told the user the plan did not exist yet and that it would apply the approval when the header read `CI fix: requested` unless told otherwise; the user did not object. The reviewer should weigh that the approval was given in advance of the plan.
 Header set: `Status: ci fix approved`, `Next step: ci-fix`, `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`.
+
+## Round 7 — ci-fix (pass 2, apply) — 2026-11-12T17:51Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**I applied all 10 rows of the T-107 CI fix plan and nothing else. The fix is pushed and goes to a fresh tester next.** One thing for the reviewer to weigh: the user approved the plan before it had been written, so nobody approved these rows after reading them.
+
+- **Pushed:** the branch is a merge commit of `origin/main` (row 0), then `52a6409 T-107 ci-fix: apply approved fix`, on `task/T-107-prettier-writer-guard`. After a fetch, `origin` points at `52a6409`.
+- **Header now reads:** `Status: awaiting verification`, `Next step: tester`, `CI fix: applied — approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`, `Test changes: applied through CI fix plan (D-20)`, `Fault: none`. I added a Sessions row for `ci-fix (pass 2)` and wrote a `## CI fix` section into the brief.
+
+**The approval:**
+- **What it was:** the run log quotes the user: "approve the T-107 CI fix plan". They said it at about 17:30Z, before the plan commit `351a12d` landed.
+- **Why I accepted it:** it is a person approving the whole plan, through the channel `process.md` allows ("approve it … in the orchestrator's session"). T-106 used the same channel.
+- **What I wrote down:** I copied the approval into every row's Decision as "approved (whole plan, per the header's `CI fix:` line)".
+- **Plan still current:** `origin/main` was still `8092372`, the commit the plan was written against.
+- **For the reviewer:** every row changes a test, so the plan should go in front of a person before merge.
+
+**Rows applied (none refused):**
+
+| Row | File | Change |
+|---|---|---|
+| 0 | the branch | merged `origin/main` (`8092372`), no conflicts |
+| 1 | `format-gate.criteria.test.ts` | the worker's `requirePinnedPrettier()` guard, copied exactly, called first in the seven writer tests |
+| 2 | `readme-fences.criteria.test.ts` | the same guard, called first in the criterion 8 test |
+| 3-5 | three question-bank files | frontend-tree digests re-pinned |
+| 6 | `climate-cold-trade-accepted-verify.test.ts` | `MAIN_TESTS_COUNT` 130 → 131; `MAIN_TESTS_SHA` re-pinned |
+| 7-8 | two question-bank files | the T-107 brief and run log added to `CRITERION_21_ALLOWED` and `CRITERION_22_ALLOWED` |
+| 9 | `climate-cold-trade-accepted-verify.test.ts` | three `APPLIED_REQUEST_FILE_SHAS` entries re-pinned |
+
+Every new digest came from the failing test's own `Received` value on this tree. The harness did not refuse any edit.
+
+**Results, run in this sandbox:**
+- **The two writer files plus `prettier-writer-guard.criteria.test.ts`:** 61 pass, 0 fail.
+- **question-bank:** 2741 pass, 0 fail; typecheck, lint and format:check clean.
+- **Backend:** 1221 passed, 9 skipped.
+- **frontend whole suite, run alone:** 434 pass, 4 fail. All 4 are `Cannot find package 'react-simple-maps'`: the sandbox cannot install it, and these failed before this task too.
+- **frontend lint and format:check:** clean.
+- **frontend typecheck:** 9 errors, all from the same missing `react-simple-maps` / `us-atlas` packages.
+- **lint-gate timeouts:** a first frontend run, alongside the other two suites, had 5 `lint-gate` tests time out at 5 s. Rerun alone, they passed 8/8.
+- **Working tree:** clean after every run.
+
+**Still open:**
+- **Criterion 12** (every suite green) needs CI, because of the missing package.
+- **The guard is written out twice**, once in each file. A shared helper is for the reviewer to queue; I did not change it.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
+- /home/user/geo-discovery-zone/frontend/src/format-gate.criteria.test.ts
+- /home/user/geo-discovery-zone/frontend/src/readme-fences.criteria.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/agriculture-true-wrong-answers-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/map-click-no-candidates-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/refresh-regenerate-reminder-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts
+- /home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts
