@@ -120,3 +120,39 @@ Pushed to `claude/youthful-galileo-hn6hh1` as `7135ac2`. The local HEAD and the 
   - Next step: `ci-fix`
   - Test changes: `routed to ci-fix (D-20)`
   - Fault: filled in
+
+## Round 4 — ci-fix (pass 1, plan) — 2026-11-12T16:05Z
+`Next step` on entry: `ci-fix` → on exit: `human`
+
+**T-106 CI fix plan is pushed and waiting for approval. Pass 1 only: I changed no source and no test.** The plan has 6 rows, all pre-existing tests and none in source. Five tests are red on the committed tree, not the four the tester reported.
+
+**Header:** `Status: ci fix requested`, `Next step: human`, `CI fix: requested`, `Fault:` updated. Pushed as `3f5d25a` to `claude/youthful-galileo-hn6hh1`; local HEAD and origin match.
+
+**Reproduced on `6cb54e0`**
+- **question-bank:** `bun test` gave 2736 pass, 5 fail.
+- **backend:** `make -C backend check` gave 1221 passed, 9 skipped.
+- **The fifth red test:** `climate-cold-trade-accepted-verify` › "pre-existing test files are main's, except ones in an approved Test change request" (130 ≠ 129). The tester ran its suite before committing its own test file, so `git ls-files` did not see that file yet.
+
+**Plan rows** (all in `/home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md`, `## CI fix plan`)
+
+| # | Test | Change |
+|---|---|---|
+| 1 | T-105 "every other line is byte-identical" (request row 1) | Leave both the `openapi.yaml` and `backend/` rows out of the digest, re-pinned at `5f6f811`. Also pin the `openapi.yaml` row to T-105's exact wording, which criterion 8 asks for |
+| 2 | T-105 "backend/ row keeps 'once built'" (request row 2) | Assert `serving /api/v1 and the frontend on the same origin` is present and `/once built/i` is absent (criterion 5) |
+| 3 | T-096 criterion 21, whole-tree pin (request row 3) | Add `README.md` and T-106's brief and run log to the allowed set; count 281 → 280; digest re-pinned |
+| 4 | T-091 criterion 22, non-test pin (request row 4) | Same three paths; count 284 → 283; digest re-pinned |
+| 5 | T-091 criterion 22, test-file pin (added by me) | Count 129 → 130; digest re-pinned after rows 1-2 |
+| 6 | T-091 `APPLIED_REQUEST_FILE_SHAS` entry for the farm file (added by me) | Green now, but row 3 would turn it red. Re-pinned after row 3, as T-105 row 5 did |
+
+**Trial run**
+- **Result:** I applied all 6 rows in a throwaway git worktree, not on the branch, and got question-bank 2741 pass, 0 fail, with `typecheck`, `lint` and `format:check` clean. The worktree has been removed.
+- **Rows 3-4 hide nothing:** the new count and digest pins give the same result on base `5f6f811`, so no other file moved.
+- **Digests may shift:** the trial digest values are in the plan, but pass 2 must record the values it actually sees after applying the rows in order and running prettier.
+
+**Independence:** the run is orchestrated, and the session id `cse_011oDiJdbpiNRtapJtyKBeQB` is shared with the expander, worker and tester. My only independence is being a freshly spawned subagent. I added my Sessions row.
+
+**Next:** the orchestrator waits about an hour for a person, then (D-17) stamps `CI fix: approved — orchestrator, …` and spawns a fresh ci-fix for pass 2. Every row changes a test, so the reviewer must escalate if the stamp approves them (D-18). Frontend can't be checked locally because the registry returns 403; CI's frontend job passed at `25519fc`.
+
+## Halted — CI fix requested — 2026-11-12T16:05Z
+Header: `Status: ci fix requested`, `Next step: human`, `CI fix: requested`. Branch head at halt: `3f5d25a`.
+The plan was not read by the orchestrator. A person may approve or refuse it in the orchestrator's session, on PR #133, or in the brief. If nobody answers by about 2026-11-12T17:05Z, the orchestrator stamps it (D-17) and spawns a fresh ci-fix.
