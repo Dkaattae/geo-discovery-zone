@@ -87,3 +87,69 @@ Stamped `Approved:` as an unattended run. The criteria were not read.
 **Session id:** my Sessions row has the same id as the expander's (`cse_011oDiJdbpiNRtapJtyKBeQB`), because the run reports one id for every subagent. The row says so, so the tester does not take a match as proof it shares my context.
 
 File: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
+
+## Round 3 — tester — 2026-11-12T17:06Z
+`Next step` on entry: `tester` → on exit: `task-expander` · G3 count: fail 0, blocked 1
+Relayed per process.md step table (tester `blocked` → `task-expander`); Next step names one role, so G0 passes.
+
+**T-107 tester verdict: `blocked`. Next step: `task-expander`.** Criteria 1 and 11 cannot be met as written, so the task goes back to the expander before any fix. Separately, criteria 3, 4 and 6 fail because the guard has not been applied yet. The guard has to go into two tests that existed before this task, so I wrote 8 Test change request rows. Every Decision is blank and none of them has been routed yet.
+
+Pushed: `b73fdc6` on `task/T-107-prettier-writer-guard`. Local HEAD and the remote branch match, and the working tree is clean.
+
+**Independence:** this is an orchestrated run, so my session id is the same as the worker's row and that match proves nothing. My independence rests only on being a freshly spawned agent that did not see the work, which is weaker than a separate session. The Verdict says this.
+
+**Why it is blocked**
+- **What the criteria require:** criteria 1 and 11 say the sentinel `prettier` must run zero times across the whole of the two files, and across the whole frontend suite.
+- **What actually runs it:** the read-only `format:check` tests start it too. I applied the worker's proposed guard temporarily (since reverted) and ran in a copy with no `node_modules`. The sentinel log read `11 ran --check .` and nothing else.
+- **Why no fix helps:** those 11 runs come from format-gate criteria 5, 6 and 10 and readme-fences criterion 7. The brief's Out of scope says this task does not guard those tests, so no change limited to the eight writer tests can satisfy criterion 1 or 11.
+- **The expander's choice:**
+  - (a) Restrict criteria 1 and 11 to the writer tests, the way criterion 4 already reads.
+  - (b) Bring the `format:check` tests into scope.
+
+**Criteria on the branch head**
+
+| Result | Criteria |
+|---|---|
+| Met | 2, 5, 7, 8, 9, 10, 13, 14, 16 |
+| Met for now | 15: the two files have not been touched yet, so it needs rechecking once the guard is applied |
+| Fail | 3 and 6: all 8 writer tests pass when they should fail. 4: the fake 3.8.1 package ran 15 times when it should run 0 |
+| Blocked | 1 and 11 |
+| Not met | 12, see suites below |
+
+With the trial guard applied, criteria 3, 4, 6 and 10 passed (10 only after the guard was prettier-formatted). Only 1 and 11 stayed red.
+
+**Tests added:** `/home/user/geo-discovery-zone/frontend/src/prettier-writer-guard.criteria.test.ts`, 14 tests.
+- Each scenario copies the repo's tracked files into the OS temp directory and puts a sentinel `prettier` first on `PATH`. The scenarios are: prettier missing, a fake wrong version, and the real pinned package copied in.
+- Pass or fail is read from a JUnit report, and file changes are found by hashing every tracked `frontend/` file before and after.
+- Every child test run uses a dead proxy, and the real `node_modules` and `package.json` are only read.
+- Criterion 9's two mutations are committed as tests. Making the `format` script a no-op turns all 7 format-gate writer tests red. Changing a README heading so the pinned prettier rewrites it turns readme-fences criterion 8 red.
+
+**Mutations, all reverted** (the two pre-existing files are byte-identical to HEAD)
+- Turning off the guard's version check turned criteria 4 and 6 red.
+- Turning off its missing-package check turned criteria 1 and 3 red.
+
+**Suites** (web sandbox)
+- **frontend `bun test`:** 427 pass, 11 fail, 4 errors.
+  - 7 of the fails are my tests, catching the missing guard and the two blocked criteria.
+  - The other 4 fails and the 4 errors are `react-simple-maps` not being installed. That was already broken before this task, and the install is refused by the proxy.
+- **frontend lint and format:check:** clean.
+- **frontend typecheck:** 9 errors, all from the same missing packages, none in the new file.
+- **question-bank `bun test`:** 2717 pass, 6 fail, all checks that pin the whole file tree.
+  - Rows 3-6 went red because of my new test file.
+  - Rows 7-8 were already red from the brief and the run log.
+- **backend:** 1221 passed, 9 skipped.
+- **Criterion 12:** CI is the authority, since this sandbox cannot install the missing frontend packages.
+
+**Test change request rows**
+- **Rows 1-2:** add the guard as the first statement of the 8 writer tests. The guard must be prettier-formatted, or `bun run format` rewrites it and criterion 10 fails.
+- **Rows 3-8:** re-pin the whole-tree checks in the question-bank verify tests.
+- **Merge `origin/main` first:** it has moved to `8092372`, where T-106 already re-pinned some of the same values. Every digest and count has to be recomputed after that merge.
+
+**Brief header now reads:**
+- **Status:** `blocked`
+- **Next step:** `task-expander`
+- **Test changes:** a non-standard `pending — …` value, because the rows are not routed until the brief is amended. The orchestrator should key on Status and Next step, not on this line.
+- **Fault:** filled in.
+- **Sessions:** my tester row is added.
+
+Brief: `/home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md`
