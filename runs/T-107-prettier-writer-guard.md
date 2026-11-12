@@ -466,3 +466,38 @@ Each row also got the comment lines the plan specified. After rows 1-4, row 5's 
 - Criterion 12 needs the whole frontend suite green, and only CI can show that.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
+
+## Round 11 — tester (round 4) — 2026-11-12T21:30Z
+`Next step` on entry: `tester` → on exit: `reviewer` · G3 count: fail 2 (bound lifted by one round by the user), blocked 1
+
+**T-107 tester, round 4: the verdict is `pass` and the next step is the `reviewer`.** All 16 criteria hold on `238af21`. CI run 43306721526 on that commit passed all six jobs, which settles criterion 12.
+
+The verdict is pushed as `ae4133a` to `task/T-107-prettier-writer-guard`, and the remote head matches. In `/home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md` I set Status to `pass`, Next step to `reviewer`, added my Sessions row, and put the round-4 Verdict above the round-3 one, which is kept for the record.
+
+- **Independence:** this is an orchestrated run, so every role shares the same session id and the id check proves nothing. My independence rests only on being a freshly spawned agent that did not see the work happen. That is weaker than a separate session, and the Verdict says so.
+- **Plan 2 was applied as written:** `git diff f9901a4 HEAD -- question-bank/` shows exactly its 5 re-pins with their planned comments, and nothing else. The two writer files differ from `origin/main` only by the planned guard (criterion 15).
+- **I wrote no new tests.** The task's existing `frontend/src/prettier-writer-guard.criteria.test.ts` already has a test for each of criteria 1-11. I checked it against the criteria and with fresh mutations.
+
+**Suites run locally:**
+
+| Suite | Result |
+|---|---|
+| The two writer files plus the task's test file | 61 pass, 0 fail |
+| question-bank `bun test` | 2741 pass, 0 fail |
+| question-bank typecheck, lint, format:check | all clean |
+| backend | 1221 passed, 9 skipped |
+| frontend lint | exit 0 |
+| frontend format:check | clean |
+| frontend `bun test` | 432 pass, 6 fail |
+| frontend typecheck | 9 errors |
+
+- **The 6 frontend test failures:** 4 are `Cannot find package 'react-simple-maps'`, because the sandbox cannot install it. The other 2 are `lint-gate.test.ts` hitting its 5 s timeout under load; that file passed 8/8 when rerun alone.
+- **The 9 typecheck errors** all come from the missing `react-simple-maps` / `us-atlas` packages.
+
+**Mutations (each reverted, and `git status` was clean afterwards):**
+- **Guard call removed from one `format-gate` writer test:** 7 tests went red (criteria 1, 3 ×2, 4, 6 ×2 and 11).
+- **Version check disabled in the `readme-fences` guard:** criteria 4 and 6 ×2 went red.
+- **First heading of `frontend/README.md` changed from `# ` to `#   `:** readme-fences criterion 8 went red, then passed again after the revert (criterion 9).
+- **Not mutated:** the guard's extra `.bin/prettier` check. The criteria don't require it and no test pins it.
+
+**For the reviewer:** every change to a pre-existing test came through CI fix plans 1 and 2. The user approved both as a whole in the orchestrator's session, not row by row, and plan 1's approval came before that plan was pushed. Those rows belong in the PR body (D-18).
