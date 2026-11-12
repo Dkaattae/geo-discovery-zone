@@ -177,3 +177,36 @@ Stamped the three header lines per D-17. The plan was not read. Every row is app
 - **Sessions:** added a `ci-fix (pass 2)` row.
 - **CI fix plan:** each row's Decision is filled in as approved by the timeout stamp.
 - **New `## CI fix` section:** the handoff for the tester.
+
+## Round 6 — tester (re-verify) — 2026-11-12T20:13Z
+`Next step` on entry: `tester` → on exit: `reviewer` · G3 count: fail 1, blocked 0
+
+**TL;DR: T-108 passes. I re-checked all 14 criteria after the ci-fix and every one is met.** The CI fix plan's four test rows were approved only by the orchestrator's timeout stamp, not by a person, so the reviewer must escalate them (D-18). The verdict is pushed to `task/T-108-readme-bank-size` as `66b0237`, and the remote head matches. **Next: `reviewer`.**
+
+**Independence:** this is an orchestrated run, and my session id (`cse_011oDiJdbpiNRtapJtyKBeQB`) is also listed against the worker, the earlier tester and the ci-fix. So the session-id check proves nothing. My independence rests only on being a freshly spawned subagent, which depends on the orchestrator having spawned me correctly. The Verdict says this.
+
+**Suites on `66973e6`**
+
+| Suite | Result |
+|---|---|
+| CI, all six jobs | Green (frontend, question-bank, backend, backend postgres, integration, e2e) |
+| `question-bank`, local | 2767 pass, 0 fail; typecheck, lint and format:check pass |
+| `make -C backend check`, local | 1221 passed, 9 skipped |
+| `frontend`, local | lint and format:check pass; `bun test` 420 pass, 4 fail; typecheck fails |
+
+- **The local frontend failures are an environment gap.** Every one is `react-simple-maps` / `us-atlas` missing, because `bun install` gets a 403 from the proxy. The same frontend job passes on CI.
+
+**What I checked**
+
+- **Criteria 1-10:** the round-1 tester's `readme-bank-size-verify.test.ts` covers them. My own throwaway scanner (not committed) agrees: it flags the base README and finds only `50` before `states` on the final one.
+- **The tests catch breakage:** I made 7 deliberate breaks to `README.md`, one each for criteria 2, 3, 4, 6, 7, 8 and 9. Each turned its test red, and I reverted all of them; the tree is clean.
+- **Criteria 11-13:** checked by `git diff 8092372 -- README.md` (only lines 32, 37-38 and 215 change) and `git show --name-only` per commit. There is no change to protected files or dependency files.
+- **The ci-fix diff (`0f1fa82`) matches CI fix plan rows 1-4 exactly.** The farm file's sha256 equals its new pin.
+- **The re-pinned whole-tree pins still catch changes:** an edit to `geoquizdataplan.md` turned both red. My first try, `openapi.yaml`, stayed green, but only because that file is already in both allowed sets from earlier tasks.
+
+**Changes to the brief** (`/home/user/geo-discovery-zone/tasks/T-108-readme-bank-size.md`):
+- Status is `pass` and Next step is `reviewer`.
+- My Sessions row is added.
+- A round-2 Verdict sits above the round-1 Verdict, which is kept as history.
+
+I added no new test files.
