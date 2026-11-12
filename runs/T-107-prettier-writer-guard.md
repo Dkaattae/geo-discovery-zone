@@ -240,3 +240,53 @@ Commit `ae78cf3` is pushed to `task/T-107-prettier-writer-guard`, and `origin` s
 Files:
 - /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
 - /home/user/geo-discovery-zone/frontend/src/prettier-writer-guard.criteria.test.ts
+
+## Round 6 — ci-fix (pass 1, plan) — 2026-11-12T17:38Z
+`Next step` on entry: `ci-fix` → on exit: `human`
+
+**T-107 ci-fix, pass 1: the plan is pushed and nothing has been applied. The task now waits for someone to approve the plan.** The commit is `351a12d T-107 ci-fix: plan` on `task/T-107-prettier-writer-guard`, and the push is confirmed: `origin/task/T-107-prettier-writer-guard` points at `351a12d`.
+
+**Header now reads:** `Status: ci fix requested`, `Next step: human`, `CI fix: requested`. The Fault line is rewritten for the ci-fix, and the Sessions table has a ci-fix row.
+
+**Independence:** this was an orchestrated run (`runs/T-107-prettier-writer-guard.md` exists). My session id `cse_011oDiJdbpiNRtapJtyKBeQB` matches every earlier role's, so the session-id check proves nothing. My only independence is being a freshly spawned agent.
+
+**Reproduced on the branch head `3300b59` before writing any row:**
+- **T-107's own test file:** 7 pass, 7 fail. The fails are criteria 1, 3 (×2), 4, 6 (×2) and 11.
+- **question-bank:** 2717 pass, 6 fail. The fails are exactly Test change request rows 3-8.
+
+**Root cause:** the defect is in two tests that existed before this task, not in the source. The seven `format-gate` criterion 7 tests and the `readme-fences` criterion 8 test spawn `bun run format` without first checking that the pinned prettier is installed. The guard that fixes this was never applied: the worker may not change those tests, and the unattended tester routed them here (D-20).
+
+**Plan, in `## CI fix plan` of the brief (10 rows, all test changes, no source):**
+
+| Row | What |
+|---|---|
+| 0 | Merge `origin/main` (`8092372`); it merged cleanly in the trial |
+| 1-2 | The worker's `requirePinnedPrettier()` guard, as the first statement of all eight writer tests |
+| 3, 4, 5 | Frontend-tree digests recomputed |
+| 6 | `MAIN_TESTS_COUNT` 130 → 131, and `MAIN_TESTS_SHA` recomputed |
+| 7, 8 | T-107's brief and run log added to the allowed-file lists (`CRITERION_21_ALLOWED` / `CRITERION_22_ALLOWED`), as T-106 did |
+| 9 | Three entries of `APPLIED_REQUEST_FILE_SHAS` recomputed |
+
+**Trial:** I applied all 10 rows in a scratch worktree, then removed it; nothing from the trial is committed.
+- **T-107 file plus the two writer-test files:** 61 of 61 pass.
+- **question-bank:** 2741 pass, 0 fail.
+- **frontend whole suite:** 434 pass, 4 fail, 4 errors. Every one is `Cannot find package 'react-simple-maps'`: the proxy blocks the install, and these failures were already there before this task.
+- **frontend lint:** clean.
+
+**Corrections and notes for whoever picks it up:**
+- **Row 9's origin:** the tester gave `950f334`. The test's current name and its `8108a42` pinning actually come from `bac230d` (a T-091 review fix).
+- **No missed tests:** I found no stale test the tester's request left out.
+- **Final digests will differ:** the trial digests are given only to show the re-pins close. Pass 2 must recompute each value after the rows it depends on, in the order 0, 1-2, 3-5 and 7-8, then 6, then 9.
+
+**Next:** the orchestrator waits about an hour for a person. With no answer, it stamps the approval (D-17) and spawns a fresh ci-fix for pass 2. Because every row changes a test, the reviewer has to escalate the PR to a person if the stamp is what approves it (D-18).
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
+- /home/user/geo-discovery-zone/frontend/src/format-gate.criteria.test.ts
+- /home/user/geo-discovery-zone/frontend/src/readme-fences.criteria.test.ts
+- /home/user/geo-discovery-zone/frontend/src/prettier-writer-guard.criteria.test.ts
+
+## CI fix approved — by a person, in the orchestrator's session — 2026-11-12T17:38Z
+The user's words, verbatim: "approve the T-107 CI fix plan"
+Given at about 17:30Z, while the pass-1 ci-fix was still writing the plan (before `351a12d` landed). The orchestrator told the user the plan did not exist yet and that it would apply the approval when the header read `CI fix: requested` unless told otherwise; the user did not object. The reviewer should weigh that the approval was given in advance of the plan.
+Header set: `Status: ci fix approved`, `Next step: ci-fix`, `CI fix: approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`.

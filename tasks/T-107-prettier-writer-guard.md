@@ -1,10 +1,10 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `ci fix requested`
-**Next step:** `human`
+**Status:** `ci fix approved`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `requested`
+**CI fix:** `approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`
 **From:** [`tasks.md`](../tasks.md) T-107
 **Branch:** `task/T-107-prettier-writer-guard`
 **PR:** #134, opened draft at expand time, built from the branch above. It **stays
