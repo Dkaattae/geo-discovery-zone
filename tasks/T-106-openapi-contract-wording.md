@@ -1,7 +1,7 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-106-openapi-contract-wording.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — the user, 2026-11-12, given in the orchestrator's session`
@@ -18,6 +18,7 @@
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned tester subagent; see Verdict, "Independence") |
 | ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned ci-fix subagent, pass 1; see CI fix plan) |
 | ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, a second freshly spawned ci-fix subagent, pass 2; see CI fix) |
+| tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, a second freshly spawned tester subagent, round 2 re-verification; see Verdict, "Round 2") |
 
 > **Full brief, not light.** T-106 is `S`, but its criteria run past four (three
 > files, four lines, plus the boundaries), so the light path does not apply
@@ -208,6 +209,68 @@ make -C backend check
 ```
 
 ## Verdict
+
+### Round 2 (after the ci-fix): `pass`
+
+**TL;DR: `pass`. All 8 criteria are met on `d0afc9e`.** The ci-fix diff is exactly CI fix plan
+rows 1-6. Question-bank (2741/0) and backend (1221 passed) are green locally. All six CI jobs on
+#133 are green at `d0afc9e`. Next: `reviewer`. Item for the reviewer: the CI fix approval was
+relayed, and two digests differ from the trial values (see "Pre-existing tests changed").
+
+**Independence.** This run is orchestrated (`runs/T-106-openapi-contract-wording.md` exists).
+`$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdbpiNRtapJtyKBeQB`, the same id every role
+recorded, so the session check proves nothing. My independence rests only on being a freshly
+spawned subagent with its own context. I saw only the committed brief and diffs, not the
+reasoning of the worker, the round-1 tester or either ci-fix. That is weaker evidence than a
+separate session, because it depends on the orchestrator having spawned me correctly.
+
+| # | Verdict | Evidence (this session) |
+|---|---|---|
+| 1 | met | `openapi-contract-wording-verify.test.ts` criterion 1 describe, 5/5 green. Mutation M2 (adding "Both sides" to the row) turns exactly the "no 'Both sides'" test red |
+| 2 | met | criterion 2 describe, 4/4 green (column 21) |
+| 3 | met | criterion 3 test green. `grep -ic contract README.md` gives 0 |
+| 4 | met | criterion 4 describe, 4/4 green (column 17). Mutation M5 (E-14 → E-140) turns the E-14 test red. Other `contract` lines in PROGRESS.md are unchanged (diff below) |
+| 5 | met | criterion 5 describe, 4/4 green (column 18). Mutation M3 (putting back ", once built,") turns the criterion 5 test and the modified T-105 row-2 test red |
+| 6 | met | `git diff 5f6f811 HEAD -- README.md PROGRESS.md conventions.md` has 4 one-line hunks: README.md:32, README.md:215, PROGRESS.md:26 and conventions.md:10. Line counts at base and head: 236/236, 2042/2042, 133/133 |
+| 7 | met | the only worker commit is `406241f`. Its `git show --stat` lists `PROGRESS.md`, `README.md`, `conventions.md` and the brief. No other commit touches a non-test file other than the brief and run log. `git diff --quiet 5f6f811 -- openapi.yaml geoquizdataplan.md CLAUDE.md engineering-decisions.md .claude/` exits 0 |
+| 8 | met | the full suite is green (below). Every pre-existing test the branch changed maps to an approved CI fix plan row (below) |
+
+**Pre-existing tests changed** (`git diff 7135ac2 90c7c2a -- question-bank/`, compared with the plan)
+
+- **Row 1:** `conventions-openapi-row-verify.test.ts` › "every line other than the openapi.yaml and backend/ rows …". The new digest `f13eb52a…82e2b` is the one I computed myself over `conventions.md` at `5f6f811` and at HEAD. The added `T105_OPENAPI_ROW` equals line 16 at base, byte for byte. Mutation M4 (rewording that row) turns this test red. So T-105 criterion 1 is pinned no less tightly than before.
+- **Row 2:** same file › "the backend/ row serves /api/v1 …, without 'once built' (T-106)". It asserts one row, the phrase, and not `/once built/i`, as planned.
+- **Row 3:** `farm-animal-loose-ends-verify.test.ts` › criterion 21. Three paths are allowed, the count goes 281 → 280, and the SHA is re-pinned.
+- **Row 4:** `climate-cold-trade-accepted-verify.test.ts` › criterion 22 non-test pin. The same three paths are allowed, the count goes 284 → 283, and the SHA is re-pinned.
+- **Row 5:** same file › test-files pin. The count goes 129 → 130 and the SHA becomes `e232903b…`. **The trial value was `f9eae92d…`.**
+- **Row 6:** same file › `APPLIED_REQUEST_FILE_SHAS[farm…]` becomes `015526d2…`. **The trial value was `066f1da5…`.**
+- **Nothing else changed.** No other pre-existing test file changed on the branch.
+- **No hidden file changes behind the re-pins.** Criteria 6 and 7, checked by diff, show that no other non-test file moved.
+
+**Mutations** (all made in this session, all reverted, `git status` clean afterwards)
+
+- **M1, base docs restored:** 11 red. Every content assertion for criteria 1-5 failed, plus the modified T-105 row-2 test.
+- **M2, "Both sides" in the README row:** 1 red (criterion 1).
+- **M3, "once built" put back:** 2 red (criterion 5, T-105 row 2).
+- **M4, conventions `openapi.yaml` row reworded:** 2 red (T-105 criterion 1, modified T-105 row 1).
+- **M5, PROGRESS E-14 → E-140:** 1 red (criterion 4).
+
+**Suite on the final tree (`d0afc9e`, this session)**
+
+- **`make -C backend check`:** 1221 passed, 9 skipped.
+- **`question-bank`:** `bun test` 2741 pass, 0 fail, across 73 files. `typecheck`: `tsc --noEmit`, no errors. `lint`: 0 warnings, 0 errors. `format:check`: clean.
+- **`frontend`, locally: not fully runnable, for environmental reasons.**
+  - `bun install --frozen-lockfile` gets 403 from the proxy on the `internmap` tarball.
+  - `bun test`: 420 pass, 4 fail. All 4 are "Cannot find package 'react-simple-maps'".
+  - `typecheck`: 9 TS errors, in the same map files.
+  - `lint` and `format:check` pass.
+  - No frontend file changed on this branch.
+- **CI on #133 at `d0afc9e`:** all six jobs succeeded: frontend, question-bank, backend (lint, format, test), backend (postgres), integration (docker compose) and e2e (playwright). The `frontend` job is the frontend evidence.
+
+**For the reviewer**
+
+- **All six test rows went through a relayed approval:** "approve the T-106 CI fix plan", given in the orchestrator's session, not in mine. Rows 5 and 6 landed with digests that differ from the plan's trial values, which the plan said could happen. The values that landed are the observed ones; the green suite confirms them. The reviewer should confirm the approval covers them (D-18).
+
+### Round 1 (before the ci-fix): `fail`
 
 **TL;DR: `fail`, on criterion 8 only.** All four doc lines are right, and criteria 1-7 hold.
 Four pre-existing tests are red because of the task's own change: two T-105 pins on
