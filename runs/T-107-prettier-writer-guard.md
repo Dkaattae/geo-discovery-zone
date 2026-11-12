@@ -397,3 +397,28 @@ The tester's `Next step` was `ci-fix`, but this is T-107's second `fail` verdict
 ## G3 lifted by a person — in the orchestrator's session — 2026-11-12T19:55Z
 The user's words, verbatim: "give T-107 a third fix round"
 Header `Next step` set back from `human` to `ci-fix` (what the round-8 tester wrote). G3 for T-107 is extended by one `fail` round on this instruction; a further `fail` halts again. The ci-fix is spawned once the shared checkout is free (T-108's ci-fix is running in it). Its plan will need approval like any other.
+
+## Round 9 — ci-fix (round 2, pass 1, plan) — 2026-11-12T20:06Z
+`Next step` on entry: `ci-fix` → on exit: `human`
+
+**TL;DR: I've written and pushed CI fix plan 2 for T-107 and stopped. It has 5 rows that re-pin existing `question-bank` digests, and none of them is applied yet.** The header now reads `CI fix: requested`, `Status: ci fix requested`, `Next step: human`. The plan needs approval from a person, or the orchestrator's timeout stamp. After that, a fresh `ci-fix` runs pass 2.
+
+- **Push:** commit `241a598` ("T-107 ci-fix: plan") is on `origin/task/T-107-prettier-writer-guard`. The local and remote heads match.
+- **Reproduced first, on `384342d`:** `question-bank` `bun test` gave 2737 pass and 4 fail. The 4 failures are exactly the round-3 Test change request rows 1-4, and each `Received` matches the value the tester recorded. The two writer files plus `prettier-writer-guard.criteria.test.ts` give 61 pass, 0 fail.
+- **Root cause:** the guard itself is correct. The tester fixed the output parser in this task's own `frontend/src/prettier-writer-guard.criteria.test.ts`, and that is the only file changed since `11ece2c` apart from the brief and the run log. That one change under `frontend/` moves four whole-tree digest pins (P-17). Re-pinning two of those files then moves a fifth digest.
+- **The plan (every row is a `pre-existing test` modify, with no source change):**
+  1. `MAIN_FRONTEND_SHA` in `agriculture-true-wrong-answers-verify.test.ts` becomes `ab8f396e…`.
+  2. The `frontend` digest in `map-click-no-candidates-verify.test.ts` becomes `8fcdc634…`.
+  3. `MAIN_BOUNDARY_SHA` in `refresh-regenerate-reminder-verify.test.ts` becomes `8d01f832…`.
+  4. `MAIN_TESTS_SHA` in `climate-cold-trade-accepted-verify.test.ts` becomes `d397b7d6…`. The count stays 131.
+  5. In `APPLIED_REQUEST_FILE_SHAS`, only the agriculture entry (to `87a2820d…`) and the map-click entry (to `cc6f4ded…`) change. These values only hold with the exact comment text the plan specifies for rows 1 and 2.
+- **Trial:** I applied all 5 rows in a scratch worktree, since removed. `question-bank` gave 2741 pass, 0 fail, and its lint, typecheck and format:check were clean.
+- **No merge needed:** `origin/main` is still `8092372`, which the branch already contains.
+- **Independence:** this is an orchestrated run (`runs/T-107-prettier-writer-guard.md` exists). Every role has the same session id, so the id check proves nothing. My only independence is being a freshly spawned agent that did not write the code, plan 1 or the verdict. I recorded this in the brief and added my Sessions row.
+- **G3 still applies:** the user allowed one extra fail round ("give T-107 a third fix round"), so another `fail` from the next tester halts the task again.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md (the header, the Sessions row, `## CI fix plan` › "Plan 2", and `## CI fix` › "Round 2, pass 1").
+
+## Halted — CI fix requested (plan 2) — 2026-11-12T20:06Z
+Header: `Status: ci fix requested`, `Next step: human`, `CI fix: requested (round 2 …)`. Branch head at halt: `241a598` (the orchestrator's own log commit follows it and does not count as a person answering).
+The plan was not read by the orchestrator. A person may approve or refuse it in the orchestrator's session, on PR #134, or in the brief. If nobody answers by about 2026-11-12T21:07Z, the orchestrator stamps it (D-17) and spawns a fresh ci-fix.
