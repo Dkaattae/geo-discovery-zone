@@ -1,14 +1,14 @@
 # T-106 — `README.md` and `PROGRESS.md` still call `openapi.yaml` "the contract"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-106-openapi-contract-wording.md`.
-**Test changes:** `none`
+**Test changes:** `routed to ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-106
 **Branch:** `claude/youthful-galileo-hn6hh1`
 **PR:** #133, opened draft at expand time; stays draft until the reviewer approves it
-**Fault:**
+**Fault:** criteria 1-7 are met; criterion 8 is not, because 4 pre-existing tests are stale by the task's own change (2 T-105 conventions.md pins, 2 whole-tree pins) and were routed to the `ci-fix` for a plan (D-20).
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB |
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same value `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the expander: the orchestrator spawns roles as subagents under one remote session; see Notes) |
+| tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same shared id: orchestrated run, freshly spawned tester subagent; see Verdict, "Independence") |
 
 > **Full brief, not light.** T-106 is `S`, but its criteria run past four (three
 > files, four lines, plus the boundaries), so the light path does not apply
@@ -206,6 +207,83 @@ make -C backend check
 ```
 
 ## Verdict
+
+**TL;DR: `fail`, on criterion 8 only.** All four doc lines are right, and criteria 1-7 hold.
+Four pre-existing tests are red because of the task's own change: two T-105 pins on
+`conventions.md`, plus two whole-tree pins. They are routed to the `ci-fix` as Test
+change request rows 1-4 (D-20). No source or doc is wrong, and no test was edited.
+
+**Independence.** This run is orchestrated (`runs/T-106-openapi-contract-wording.md`
+exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdbpiNRtapJtyKBeQB`, the same
+id the expander and worker recorded, so the session check proves nothing here. My
+independence rests only on being a freshly spawned subagent with its own context. I
+did not see the worker's conversation or reasoning. That is weaker evidence than a
+separate session, because it depends on the orchestrator having spawned me correctly.
+
+**Tests added:** `question-bank/src/openapi-contract-wording-verify.test.ts`, 18 tests
+named `T-106 criterion N — …`. They read the three committed docs and use no spawn
+and no network.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | criterion 1 describe (5 tests): one Tech stack row starting `` | `openapi.yaml` | ``. It has no `contract` or `both sides` in any case, and it has `follows the backend` and `\bE-14\b` |
+| 2 | met | criterion 2 describe (4 tests): one `/^openapi\.yaml\s/` line in the README Layout block. It has no `contract`, it has the two phrases, and its description is at column 21, the same as every line of the block |
+| 3 | met | criterion 3: no line of `README.md` matches `/contract/i` |
+| 4 | met | criterion 4 describe (4 tests): one line in the PROGRESS.md Layout block, no `contract`, has the two phrases, column 17. Other `contract` mentions in PROGRESS.md are untouched (diff below) |
+| 5 | met | criterion 5 describe (4 tests): one `backend/ ` line, no `once built`, has `/api/v1` and `the frontend on the same origin`. Column 18, the same as every row of the block |
+| 6 | met | `git diff 5f6f811 -- README.md PROGRESS.md conventions.md` has exactly 4 hunks of 1 line each: README.md:32, README.md:215, PROGRESS.md:26 and conventions.md:10. Line counts at base and head: 236/236, 2042/2042, 133/133 |
+| 7 | met | the worker made one commit, `406241f`. Its `git show --stat` lists only `PROGRESS.md`, `README.md`, `conventions.md` and the brief. The other commits are the expander's (`eb19df9`, `9eac5da`: brief only) and the orchestrator's (`c5fc48f`, `25519fc`: brief and run log). `git diff --quiet 5f6f811 -- openapi.yaml geoquizdataplan.md CLAUDE.md engineering-decisions.md .claude/` exits 0 |
+| 8 | **not met** | the question-bank `bun test` has 4 red tests, all stale by design (rows 1-4 below). Everything else is green |
+
+**Mutation check of my tests.** I made two temporary mutations and reverted both
+(`git status` was clean apart from my test file afterwards):
+
+- **Base text restored.** `git checkout 5f6f811 -- README.md PROGRESS.md conventions.md` turned 10 of the 18 tests red. Those are every content assertion that base fails: `contract`, `Both sides`, the two phrases, E-14, `once built`. The 8 that stayed green check things base also satisfies, such as row counts and columns.
+- **Column shifted.** Moving each of the three changed lines one column left turned the three column tests red (criteria 2, 4 and 5).
+
+**Suite on the final tree (this session, with my test file):**
+
+- `make -C backend check`: **1221 passed, 9 skipped**, exit 0.
+- `question-bank`:
+  - `bun test` gives **2737 pass, 4 fail** out of 2741. The 4 fails are exactly rows 1-4.
+  - `typecheck`, `lint` and `format:check` all pass. My new file first failed `format:check`, which also turned the T-071 format-gate tests red. I fixed that by running prettier on my own file.
+- `frontend`, locally: **not fully runnable, because of the environment.**
+  - `bun install --frozen-lockfile` gets 403 from the proxy on some tarballs (internmap, commander, …), so `react-simple-maps` is missing.
+  - `bun test` gives 420 pass and 4 "fail". Those 4 are the unhandled "Cannot find package 'react-simple-maps'" errors in `UsMap.tsx` and the two t051 map tests.
+  - `typecheck` gives 9 TS errors, all in those same three files.
+  - `lint` and `format:check` pass.
+  - The README and PROGRESS scanners all pass, 229/229: `conventions-doc`, `readme-test-count`, `readme-suite-counts`, `stale-suite-counts*` and `readme-fences`.
+- **Frontend on CI.** The REST check-runs for `25519fc` (worker tree plus run log) show **`frontend (typecheck, lint, test)`: success**. The same holds for `backend (lint, format, test)`, `backend (postgres)`, `integration (docker compose)` and `e2e (playwright)`. Only `question-bank` failed there, which matches rows 1-4.
+
+**Stale tests (Test change request below).** I checked the worker's four candidates
+myself and confirmed each is red for the reason it gives. I found no others.
+
+- Rows 1-2 are T-105's pins. Criterion 5 changes the `backend/` line they pin.
+- Rows 3-4 are whole-tree pins.
+  - Root `README.md` is not in either allowed set, and the task changes it.
+  - This task's brief and run log are new tracked files. They are the loop's own records, the same as in T-104 and T-105.
+  - `PROGRESS.md` and `conventions.md` are already allowed in both pins.
+- No count floors are affected.
+
+**Reproduce:** `cd question-bank && bun test src/conventions-openapi-row-verify.test.ts src/farm-animal-loose-ends-verify.test.ts src/climate-cold-trade-accepted-verify.test.ts`
+shows the 4 red tests:
+
+- farm: expected 281, received 283.
+- climate: expected 284, received 286.
+- Each digest assertion follows its count.
+- The T-105 digest no longer matches, and the T-105 `once built` assertion fails.
+
+## Test change request
+
+Written by the orchestrated tester and routed to the `ci-fix` (D-20). Decision is
+blank on purpose. These rows are the `ci-fix`'s input, not an approval.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/conventions-openapi-row-verify.test.ts` › "T-105 criterion 2 — nothing else in conventions.md changes" › "every other line is byte-identical to base 0b78dec, in the same order" | `c90cba3`, T-105 tester. It pinned that T-105 changed only the `openapi.yaml` row of `conventions.md` | T-106 criterion 5 changes the `backend/` line (line 10), which this digest covers | modify | Name: "every line other than the openapi.yaml and backend/ rows is byte-identical to base, in the same order; the openapi.yaml row is T-105's wording". It asserts two things. (a) `sha256(JSON.stringify(lines))` over `split("\n")`, with the `/^openapi\.yaml\s/` line and the `backend/ ` line both removed, equals a digest recorded at `5f6f811`. The comment names that commit (E-30). (b) The `openapi.yaml` row equals, byte for byte, `openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)`, its text at `5f6f811`. That keeps T-105 criterion 1's wording pinned exactly (T-106 criterion 8) | |
+| 2 | same file › same describe › "the backend/ row keeps 'once built, the frontend on the same origin'" | `c90cba3`, T-105 tester. It pinned that T-105 left the `backend/` row alone | T-106 criterion 5 removes `once built` from that row | modify | Name: "the backend/ row serves /api/v1 and the frontend on the same origin, without 'once built' (T-106)". It asserts exactly one line starting `backend/ `. That line contains `serving /api/v1 and the frontend on the same origin` and does not match `/once built/i` | |
+| 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester. It pinned that no tracked non-test file outside T-096's allowed set changes or is added | T-106 changes root `README.md`, which main counted and which is not in `CRITERION_21_ALLOWED`. It also adds `tasks/T-106-openapi-contract-wording.md` and `runs/T-106-openapi-contract-wording.md` | modify | `"README.md"`, `"tasks/T-106-openapi-contract-wording.md"` and `"runs/T-106-openapi-contract-wording.md"` join `CRITERION_21_ALLOWED`, under a comment citing T-106 row 3. The count goes 281 → 280 (README.md leaves the counted set; the two new files were never in it). `MAIN_UNTOUCHABLE_SHA` is recomputed over the remaining set, with a `// Re-pinned by T-106 (Test change request row 3)` line. Nothing else is loosened | |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester. Same protection, for T-091's allowed set | Same as row 3: root `README.md` is not in `CRITERION_22_ALLOWED`, and the brief and run log are new | modify | The same three paths join `CRITERION_22_ALLOWED`, under a comment citing T-106 row 4. `MAIN_UNTOUCHABLE_COUNT` goes 284 → 283, and `MAIN_UNTOUCHABLE_SHA` is recomputed, with a `// Re-pinned by T-106 (Test change request row 4)` line. Nothing else is loosened | |
 
 ## Notes
 
