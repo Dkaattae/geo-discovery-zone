@@ -174,7 +174,9 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // counted, joins the allowed set with T-076's brief and run log (282 -> 281).
 // Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md, .claude/agents/ and .github/workflows/ci.yml (e2e browser install) changed (count unchanged).
 // Recomputed by T-076 (row 4) on merging main after D-20.
-const MAIN_UNTOUCHABLE_SHA = "746bb89c15bacd2418330ff68fd9b4863ae1e19ef51aa4948bd57b4f77c855fe";
+// Re-pinned by T-106 (CI fix plan row 3): README.md, which main counted, joins
+// the allowed set with T-106's brief and run log (281 -> 280).
+const MAIN_UNTOUCHABLE_SHA = "c274a19eb00773d8057d349e3117271ef72c2c54aa79415d543cfab999be3fbf";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -185,6 +187,11 @@ const MAIN_UNTOUCHABLE_SHA = "746bb89c15bacd2418330ff68fd9b4863ae1e19ef51aa4948b
  * records are new tracked files, and the brief changes at every commit.
  */
 const CRITERION_21_ALLOWED = new Set([
+  // T-106's file set, joined through T-106's CI fix plan row 3 (approved by the
+  // user, 2026-11-12, given in the orchestrator's session).
+  "README.md",
+  "tasks/T-106-openapi-contract-wording.md",
+  "runs/T-106-openapi-contract-wording.md",
   // T-076's file set, joined through T-076's Test change request row 4
   // (approved by Dkaattae, 2026-11-11, in the attended tester session that made the edit).
   "frontend/README.md",
@@ -634,7 +641,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(281); // T-076 row 4: was 282 (T-047 row 1: was 283 (D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297))))
+    expect(rest.length).toBe(280); // T-106 CI fix plan row 3: was 281 (T-076 row 4: was 282 (T-047 row 1: was 283 (D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297)))))
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });

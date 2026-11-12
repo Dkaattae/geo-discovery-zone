@@ -99,7 +99,9 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // counted, joins the allowed set with T-076's brief and run log.
 // Re-pinned by hand for D-20: process.md, process-decisions.md, tasks/TEMPLATE.md, .claude/agents/ and .github/workflows/ci.yml (e2e browser install) changed (count unchanged).
 // Recomputed by T-076 (row 5) on merging main after D-20.
-const MAIN_UNTOUCHABLE_SHA = "fbdf20110b88935e34a9aa600bc98af187c79685cf062e76352e87cab3a7a03a";
+// Re-pinned by T-106 (CI fix plan row 4): README.md, which main counted, joins
+// the allowed set with T-106's brief and run log.
+const MAIN_UNTOUCHABLE_SHA = "53524b09033aec046377bc5530f6cc5bd351eb5a262f2eda877d8cb54263aac0";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -109,7 +111,8 @@ const MAIN_UNTOUCHABLE_SHA = "fbdf20110b88935e34a9aa600bc98af187c79685cf062e7635
 // Re-pinned by hand for D-19: .claude/loop/'s three files were deleted (289 -> 286).
 // Re-pinned by T-047 (Test change request row 2): test-guidelines.md leaves the counted set (286 -> 285).
 // Re-pinned by T-076 (Test change request row 5): frontend/README.md leaves the counted set (285 -> 284).
-const MAIN_UNTOUCHABLE_COUNT = 284;
+// Re-pinned by T-106 (CI fix plan row 4): README.md leaves the counted set (284 -> 283).
+const MAIN_UNTOUCHABLE_COUNT = 283;
 /**
  * Criterion 22: pre-existing test files, less the ones named in the brief's Test change request.
  * Recomputed by T-087 row 12 with T087_TEST_FILES also excluded; equal to main's (0a98e11)
@@ -135,7 +138,9 @@ const MAIN_UNTOUCHABLE_COUNT = 284;
 // and hand-check-levels-verify.test.ts.
 // Re-pinned by T-076 (row 6): T-076's tester added
 // frontend/src/readme-fences.criteria.test.ts; recomputed on rebasing onto main after T-105.
-const MAIN_TESTS_SHA = "52d8814a2dee3a3528bfe2be04e841e881942f4d0ee2a446994e3a9f18345527";
+// Re-pinned by T-106 (CI fix plan row 5): T-106's tester added
+// openapi-contract-wording-verify.test.ts, and rows 1-2 changed conventions-openapi-row-verify.test.ts.
+const MAIN_TESTS_SHA = "e232903b8af97bfe5a8cd3c55baa8c867f79a480b29222febd648be4e00e54e3";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -156,7 +161,9 @@ const MAIN_TESTS_SHA = "52d8814a2dee3a3528bfe2be04e841e881942f4d0ee2a446994e3a9f
 // conventions-openapi-row-verify.test.ts (127 -> 128).
 // Re-pinned by T-076 (row 6): T-076's tester added
 // readme-fences.criteria.test.ts (128 -> 129, on rebasing onto main after T-105).
-const MAIN_TESTS_COUNT = 129;
+// Re-pinned by T-106 (CI fix plan row 5): T-106's tester added
+// openapi-contract-wording-verify.test.ts (129 -> 130).
+const MAIN_TESTS_COUNT = 130;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -208,8 +215,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-104 (row 5, for its row 4), then by T-104 (row 9, on merging main after T-103),
   // then by T-105 (row 5, for its row 2), then by hand for D-20 (its whole-tree digest moved)
   // then by T-076 (row 7, for its row 4, recomputed on merging main after D-20)
+  // then by T-106 (CI fix plan row 6, for its row 3)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "37f6d79d1866b2dd2ee23cb89538d73e39e5578c2f8186863df61601eb4958f7",
+    "015526d26fe90866c3788b04fd92ad981c7cd5fa51bdbe3083099fd7fb1d15a4",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -224,6 +232,11 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
  * heading, the loop's own record (same reading as T-096's tester).
  */
 const CRITERION_22_ALLOWED = new Set([
+  // T-106's file set, joined through T-106's CI fix plan row 4 (approved by the
+  // user, 2026-11-12, given in the orchestrator's session).
+  "README.md",
+  "tasks/T-106-openapi-contract-wording.md",
+  "runs/T-106-openapi-contract-wording.md",
   // T-076's file set, joined through T-076's Test change request row 5
   // (approved by Dkaattae, 2026-11-11, in the attended tester session that made the edit).
   "frontend/README.md",

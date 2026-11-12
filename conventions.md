@@ -7,7 +7,7 @@ the rules that always apply; this carries the rest.
 
 ```
 frontend/        React 19 + TanStack Start app (TypeScript, bun)
-backend/         FastAPI + SQLAlchemy + Alembic API (Python, uv), serving /api/v1 and, once built, the frontend on the same origin
+backend/         FastAPI + SQLAlchemy + Alembic API (Python, uv), serving /api/v1 and the frontend on the same origin
 question-bank/   Wikidata → entity JSON pipeline (TypeScript, bun)
 e2e/             Playwright end-to-end suite, run against a real docker compose stack (TypeScript, bun)
 fixtures/        data shared across languages and suites — see "Shared fixtures" below

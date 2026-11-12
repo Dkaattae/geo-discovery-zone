@@ -6,8 +6,11 @@
  * not hand `git` a revision, so base's `conventions.md` is held here as values
  * and a sha256 digest recorded at `0b78dec` when this file was written (E-30:
  * a pin names the commit it was recorded at). The digest covers every line of
- * the file except the `openapi.yaml` Layout row, as `JSON.stringify` of the
- * `split("\n")` array with that one element removed.
+ * the file except the `openapi.yaml` Layout row and the `backend/` Layout row,
+ * as `JSON.stringify` of the `split("\n")` array with those two elements
+ * removed. It was re-recorded at `5f6f811` by T-106 (CI fix plan row 1), whose
+ * criterion 5 rewrites the `backend/` row; the `openapi.yaml` row is pinned
+ * byte for byte to its T-105 wording instead.
  *
  * Criterion 3 is verified by `git diff --stat 0b78dec..HEAD` and per-commit
  * `git show --stat`, recorded in the brief's Verdict, not by a committed pin
@@ -29,7 +32,15 @@ const OPENAPI_ROW = /^openapi\.yaml\s/;
 /** Recorded at `0b78dec`. */
 const BASE_SPLIT_LENGTH = 134; // 133 lines plus the empty element after the final newline
 const BASE_ROW_INDEX = 15; // line 16, 1-based
-const BASE_OTHER_LINES_SHA = "61792261e1929326da0aef278105d41f5696be008ac7c152698688712d977f4b";
+/**
+ * Recorded at `5f6f811` (T-106 CI fix plan row 1): every line except the
+ * `openapi.yaml` and `backend/` rows. Replaces the `0b78dec` digest that also
+ * covered the `backend/` row.
+ */
+const BASE_OTHER_LINES_SHA = "f13eb52a2bc793a3118fba5c2d6e8d682fd48749ce6b1334ea3d5b1268c82e2b";
+/** The `openapi.yaml` row as T-105 left it, at `5f6f811`. */
+const T105_OPENAPI_ROW =
+  "openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)";
 
 const lines = (): string[] => readFileSync(join(REPO_ROOT, "conventions.md"), "utf8").split("\n");
 
@@ -81,15 +92,17 @@ describe("T-105 criterion 2 — nothing else in conventions.md changes", () => {
     expect(lines().findIndex((l) => OPENAPI_ROW.test(l))).toBe(BASE_ROW_INDEX);
   });
 
-  test("every other line is byte-identical to base 0b78dec, in the same order", () => {
-    const others = lines().filter((l) => !OPENAPI_ROW.test(l));
+  test("every line other than the openapi.yaml and backend/ rows is byte-identical to base, in the same order; the openapi.yaml row is T-105's wording", () => {
+    const others = lines().filter((l) => !OPENAPI_ROW.test(l) && !l.startsWith("backend/ "));
     expect(sha(JSON.stringify(others))).toBe(BASE_OTHER_LINES_SHA);
+    expect(openapiRows()[0]).toBe(T105_OPENAPI_ROW);
   });
 
-  test("the backend/ row keeps 'once built, the frontend on the same origin'", () => {
+  test("the backend/ row serves /api/v1 and the frontend on the same origin, without 'once built' (T-106)", () => {
     const backend = lines().filter((l) => l.startsWith("backend/ "));
     expect(backend).toHaveLength(1);
-    expect(backend[0]).toContain("once built, the frontend on the same origin");
+    expect(backend[0]).toContain("serving /api/v1 and the frontend on the same origin");
+    expect(backend[0]).not.toMatch(/once built/i);
   });
 
   test("the openapi.yaml description starts in column 18, like every other Layout row", () => {
