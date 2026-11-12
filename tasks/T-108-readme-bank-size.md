@@ -1,7 +1,7 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `blocked` (approved, escalated: CI fix applied on the orchestrator's timeout stamp)
+**Next step:** `human` (merge decision on PR #135; read the CI fix plan copied into the PR body)
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-108-readme-bank-size.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — orchestrator, 2026-11-12, auto-approved after a 63-minute timeout; no human answered. See runs/T-108-readme-bank-size.md`
@@ -19,6 +19,7 @@
 | ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 | ci-fix (pass 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 | tester (re-verify after ci-fix) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
+| reviewer | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 
 > **Full brief, not light.** T-108 is `S`, but its criteria run past four, so
 > the light path does not apply (`process.md`, "The light path, for S-sized
@@ -444,6 +445,47 @@ To approve by hand: fill in Decision, set the header's `CI fix:` to `approved �
 
 - **One frontend run gave 419 pass, 5 fail.** The fifth failure was an `expect(received).toBe(expected)` and did not come back in the three later runs. That run was alongside `make -C backend check`, so it looks like a timing flake. I did not chase it. The tester should look at the frontend CI job on this push.
 - **These pins will go red again for every task** (P-17). The plan's "Not doing" explains why I did not change that here.
+
+## Review
+
+**TL;DR: approved, and escalated.** The README edit is small, true and in scope, and every role stayed in its lane. **One escalation:** the four `ci-fix` test rows were approved by the orchestrator's one-hour timeout stamp, not by a person (D-17, D-18, D-20). The plan table is copied into the PR body for Dkaattae. Two non-blocking findings are queued as T-109 and T-110.
+
+**Independence:** orchestrated run, so my session id is every other role's too. I am a freshly spawned subagent, and I wrote none of this work.
+
+**PR contains every role's work.** Every role in the Sessions table has a commit on `task/T-108-readme-bank-size` (PR #135's head): expander `cc13a2b` and `57f7db9`, worker `8d1dc8f`, tester `3568b51`, `80acd1f` and `66b0237`, ci-fix `43698ef` and `0f1fa82`.
+
+**Lanes (D-7), checked per commit with `git show --name-only`:**
+
+- **Expander:** only this brief.
+- **Worker:** only `README.md` and this brief.
+- **Tester:** only its new `readme-bank-size-verify.test.ts` and this brief. No source.
+- **ci-fix apply (`0f1fa82`):** only the two pin files and this brief. The diff is exactly rows 1-4: two allowed-set additions, one count and digest re-pin, one request-file digest, plus comments. No other line moved.
+- **Orchestrator:** only the run log and this brief.
+
+**Quality:**
+
+- **The new paragraph is true.** I checked it against the code. `content.json` has 50 entities and 415 questions, and none of the questions has `shortExplanation` or `detailExplanation`. Every entity has a `funFact`. `build_reveal` shows the `funFact` on a right answer, and `"The answer is X."` on a wrong one.
+- **The citations follow `conventions.md:16`'s model**, and the Layout column is kept.
+- **The new test file is pure and fits the repo.** It reads one file and has no spawn and no network. Like T-106's, it pins README layout for good: criterion 7 forbids a new Tech stack paragraph. That is the P-17 cost the loop already tracks, so I did not queue it again.
+
+**Worker's flags, disposed of:**
+
+1. **"covering all 50 states": confirmed.** The US-states bank is 50 states by definition, so this figure does not drift the way the question count did.
+2. **"a wrong one names the right answer" will understate the reveal once explanations ship.** Deferred to **T-109**, which owns the README's explanation wording. No queued task writes explanations, so there was nothing to amend.
+
+**Non-blocking findings, queued (new entries, because no queued task touches these lines):**
+
+- **T-109:** `README.md:5` ("an explanation or a fun fact") and `:13` ("A miss earns the reason the right answer is right") promise an explanation on a miss, and none ships. Rewording the pitch is a product call for Dkaattae, so the task says that.
+- **T-110:** `question-bank/src/curated/us-states.ts:69` and `:80` still say "the 15 states shipping today". These are source comments, a two-line fix.
+
+**Escalation (section 3), which bullet:** "no CI fix was applied on the orchestrator's timeout stamp". The header's `CI fix:` line names `orchestrator`. Everything else in the envelope holds:
+
+- the tester passed;
+- CI was green on `66973e6`;
+- nothing changed outside the Constraints, apart from the approved pin rows and the sweep;
+- no new dependency;
+- no `openapi.yaml`, migration or plan change;
+- no text a child reads.
 
 ## Notes
 
