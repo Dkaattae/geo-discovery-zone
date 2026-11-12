@@ -129,6 +129,10 @@ function makeCopy(prettier: Prettier): Copy {
   return { root, frontend, sentinelLog, packageLog, bin };
 }
 
+/** The brief's Definitions: a write start has `--write` or `-w` among its arguments. */
+const isWriteStart = (args: string) =>
+  args.split(/\s+/).some((arg) => arg === "--write" || arg === "-w");
+
 const lines = (log: string) =>
   existsSync(log) ? readFileSync(log, "utf8").split("\n").filter(Boolean) : [];
 
@@ -171,6 +175,8 @@ const decode = (text: string) =>
 type Run = {
   results: Map<string, Outcome>;
   sentinelRuns: number;
+  /** The arguments of each sentinel start, one entry per start. */
+  sentinelStarts: string[];
   packageRuns: number;
   changedFiles: string[];
   newFiles: string[];
@@ -234,6 +240,7 @@ function runTests(copy: Copy, args: string[]): Run {
   return {
     results,
     sentinelRuns: lines(copy.sentinelLog).length,
+    sentinelStarts: lines(copy.sentinelLog).map((line) => line.replace(/^ran ?/, "")),
     packageRuns: lines(copy.packageLog).length,
     changedFiles: changed(before, after),
     newFiles: allFiles(copy.frontend).filter((file) => !filesBefore.has(file)),
@@ -259,9 +266,24 @@ describe("T-107 criteria 1-3: pinned prettier not installed, sentinel first on P
   const get = () => (run ??= runTests(makeCopy("missing"), TWO_FILES));
 
   test(
-    "criterion 1: running the two files executes the sentinel zero times",
+    "criterion 1: running only the eight writer tests executes the sentinel zero times",
     () => {
-      expect(get().sentinelRuns).toBe(0);
+      // Amended criterion 1: only the writer tests run here, so check starts from
+      // the read-only format:check tests (Out of scope) cannot be counted.
+      const run = runTests(makeCopy("missing"), [
+        ...TWO_FILES,
+        "--test-name-pattern",
+        WRITERS_ONLY,
+      ]);
+      const writers = writerResults(run);
+      expect(writers).toHaveLength(8);
+      // Only the writer tests ran: everything else in the two files was filtered out.
+      const writerNames = new Set(writers.map(([name]) => name));
+      const othersRan = [...run.results]
+        .filter(([name, o]) => !writerNames.has(name) && o.status !== "skip")
+        .map(([name]) => name);
+      expect(othersRan).toEqual([]);
+      expect(run.sentinelStarts).toEqual([]);
     },
     RUN_TIMEOUT,
   );
@@ -428,13 +450,15 @@ describe("T-107 criteria 7-10: the pinned prettier installed", () => {
 
 describe("T-107 criterion 11: the whole frontend suite, no node_modules, sentinel first on PATH", () => {
   test(
-    "no tracked file changes in the copy, and the sentinel runs zero times",
+    "no tracked file changes in the copy, and the sentinel is never started as a writer",
     () => {
       const run = runTests(makeCopy("missing"), []);
       // The run really happened: the writer tests were among the results.
       expect(writerResults(run)).toHaveLength(8);
-      const { sentinelRuns, changedFiles } = run;
-      expect({ sentinelRuns, changedFiles }).toEqual({ sentinelRuns: 0, changedFiles: [] });
+      // Amended criterion 11: check starts are allowed and not counted; write starts are.
+      const writeStarts = run.sentinelStarts.filter(isWriteStart);
+      const { changedFiles } = run;
+      expect({ writeStarts, changedFiles }).toEqual({ writeStarts: [], changedFiles: [] });
     },
     RUN_TIMEOUT,
   );

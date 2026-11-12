@@ -1,15 +1,15 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `awaiting approval`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
-**Test changes:** `pending — 8 rows written below, Decision blank, not yet routed: the brief is blocked first. Once the expander amends criteria 1 and 11, the next tester routes them to the ci-fix (D-20)`
+**Test changes:** `routed to ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-107
 **Branch:** `task/T-107-prettier-writer-guard`
 **PR:** #134, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** resolved by amendment (task-expander, 2026-11-12): criteria 1 and 11 now cover only the writer tests and `--write` starts, matching Out of scope. Original fault, tester: criteria 1 and 11 contradict the brief's Out of scope (the read-only `format:check` tests run the sentinel under a missing prettier, and the brief declines to guard them), so no fix can meet them as written. Criteria 3, 4 and 6 also fail today (the guard is not applied yet; it lives in two pre-existing tests, 8 Test change request rows written).
+**Fault:** tester, 2026-11-12: criteria 1, 3, 4, 6 and 11 fail on the branch head because the writer guard is not applied. It belongs in two pre-existing tests, and 7 more pre-existing whole-tree pins go red with it (9 Test change request rows in total). All 9 rows are routed to the `ci-fix` for a plan (D-20). With the proposed guard applied as a temporary trial, all 14 of this task's tests pass.
 
 **Sessions:**
 
@@ -19,6 +19,7 @@ draft** until the reviewer approves it.
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same id as the expander: this orchestrated run reports one remote session id for every subagent; the tester should not read a match with this row as proof it shares the worker's context) |
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated: same id as every subagent; independence rests on a freshly spawned context, not a separate session) |
 | task-expander (amendment) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; amended criteria 1 and 11 only) |
+| tester (round 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -302,7 +303,11 @@ Run in the web sandbox, where `frontend/node_modules` exists but is incomplete.
 
 ## Test change request
 
-Written by the tester, orchestrated run. **Decision is blank on every row: nobody has approved anything.** These rows are not routed yet because the verdict is `blocked` (criteria 1 and 11, see Verdict). After the expander amends the brief, the next tester re-checks these rows on the then-current branch and routes them to the `ci-fix` (D-20). **`origin/main` has moved to `8092372` (T-106 merged) and re-pinned several of the same constants (rows 3-8)**, so the branch must merge `origin/main` before any digest or count below is recomputed.
+Written by the tester (round 1), then re-checked by the round-2 tester against `origin/main` at `8092372`. That is T-106's merge, which re-pinned several of the same constants. **Decision is blank on every row: nobody has approved anything.** These rows are **routed to the `ci-fix` (D-20)**, which turns each one into a `pre-existing test` row of its CI fix plan.
+
+- **Merge `origin/main` first.** The branch has not merged it. Rows 3-9 must be recomputed on the merged tree, after rows 1-2 are applied.
+- **Re-check, round 2:** every test name in rows 1-8 is unchanged on `origin/main`. Rows 3-5 are byte-identical there. Rows 6-8 were re-pinned by T-106, so recompute from main's values. T-106's own files already sit in `CRITERION_21_ALLOWED` and `CRITERION_22_ALLOWED`.
+- **Row 9 is new.** Round 1 missed it. Applying rows 3, 4 and 7 changes three files that `climate-cold-trade` pins by digest.
 
 | # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
 |---|---|---|---|---|---|---|
@@ -314,55 +319,52 @@ Written by the tester, orchestrated run. **Decision is blank on every row: nobod
 | 6 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "pre-existing test files are main's, except ones in an approved Test change request" (`MAIN_TESTS_COUNT`, `MAIN_TESTS_SHA`) | `950f334`, T-091 tester: no pre-existing test file changes unseen | One test file added (count +1) and two test files modified (digest) by this task | modify | Same name and assertion; `MAIN_TESTS_COUNT` up by exactly 1 and `MAIN_TESTS_SHA` recomputed, comment citing T-107 | |
 | 7 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no stray non-test file | This task's brief and run log (`tasks/T-107-…`, `runs/T-107-…`) are tracked non-test files. Red on the branch head before any code change (worker's Handoff: 283 vs 281). T-106 re-pinned this test on main, so recheck after merging main | modify | Same name; count and `MAIN_UNTOUCHABLE_SHA` recomputed after merging main, or the two T-107 files joined to `CRITERION_21_ALLOWED` the way T-106 did. Comment citing T-107 | |
 | 8 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no stray non-test file | Same as row 7 (286 vs 284) | modify | Same as row 7, for `MAIN_UNTOUCHABLE_COUNT` / `MAIN_UNTOUCHABLE_SHA` / `CRITERION_22_ALLOWED` | |
+| 9 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" (`APPLIED_REQUEST_FILE_SHAS`) | `950f334`, T-091 tester: each file in its request changed only by its approved re-pin | Applying rows 3, 4 and 7 changes `agriculture-true-wrong-answers-verify.test.ts`, `map-click-no-candidates-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts`, all three in `TEST_CHANGE_REQUEST_FILES`. Not red yet: it goes red once those rows land. T-106 did the same re-pin as its CI fix plan row 6 | modify | Same name and assertion. Only those three entries of `APPLIED_REQUEST_FILE_SHAS` are recomputed on the final files, each with a "then by T-107 (row 9, for its row N)" comment. `MAIN_REQUEST_FILE_SHAS` is unchanged | |
 
 ## Verdict
 
-**TL;DR: `blocked`, back to the `task-expander`.** Criteria 1 and 11 cannot be met as written: they require the sentinel to run zero times across the whole of the two files (and the whole suite), but the read-only `format:check` tests also start it, 11 times, and Out of scope says this task does not guard them. Separately, criteria 3, 4 and 6 fail today because the guard has not been applied (it lives in two pre-existing tests; 8 Test change request rows written, Decision blank).
+**TL;DR: `fail`, next is the `ci-fix`.** Criteria 1, 3, 4, 6 and 11 fail on the branch head because the guard has not been applied. The fix lives in two pre-existing tests, so it goes to the `ci-fix` as Test change request rows 1-9, routed under D-20. With the worker's guard applied as a temporary trial (since reverted), all 14 of this task's tests pass, and each guard mutation turns the right ones red.
 
-- **Independence:** orchestrated run. My session id matches the worker's row, which under the orchestrator is not evidence of anything. My independence rests only on being a freshly spawned agent that did not see the work; that is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
-- **Needed from the expander:** decide criteria 1 and 11. Either (a) restrict them to the writer tests, as criterion 4 already is ("for any of the writer tests"), or to `--write` starts; or (b) bring the `format:check` tests into scope and drop that Out-of-scope bullet. Then the next tester updates `prettier-writer-guard.criteria.test.ts` (this task's own file) to the amended wording and routes rows 1-8 to the `ci-fix`.
+- **Independence:** this is an orchestrated run. My session id matches the worker's row, and under the orchestrator that proves nothing. My independence rests only on being a freshly spawned agent that did not see the work happen. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+- **The amendment is applied to this task's own test file.** Criterion 1 now runs only the eight writer tests, using `--test-name-pattern`. It asserts that every other test in the two files was filtered out and that the sentinel logged no start at all. Criterion 11 now counts only **write starts**: the sentinel's logged arguments include `--write` or `-w`, as in Definitions. Check starts are not counted.
+- **Needed from the `ci-fix`:** first merge `origin/main`. Then plan rows 1-9: rows 1-2 are the guard and rows 3-9 the whole-tree re-pins. Rows 1-2 **must be prettier-formatted**, or criterion 10 catches `bun run format` rewriting them. A fresh tester then re-verifies.
+- **Stale vs failing:** none of the reds below come from a pre-existing test that is wrong. The 7 reds in this task's file are the unfixed defect. The 6 question-bank reds are whole-tree pins (rows 3-8), and row 9 goes red once rows 3, 4 and 7 land.
 
-### The contradiction, observed
+### Criteria (branch head `e61a847` plus this commit's test changes)
 
-In a repo copy with no `node_modules` and a sentinel `prettier` first on `PATH`, with the worker's proposed guard **temporarily** applied to both files (reverted, see below), the sentinel log read `11 ran --check .` and nothing else. Those 11 are format-gate criteria 5 (1), 6 (7), 10 (2) and readme-fences criterion 7 (1), all named by Out of scope ("Under a global prettier they check with the wrong version, but they write nothing. Guarding them is a different question, which this task does not settle"). No change confined to the eight writer tests can make criterion 1 or 11 hold.
-
-### Criteria
-
-Tests are in `frontend/src/prettier-writer-guard.criteria.test.ts` (14 tests). Each scenario runs the real test files inside a temp copy of the repo's tracked files, with a sentinel first on `PATH`, statuses read from a JUnit report, file changes measured by hashing every tracked `frontend/` file before and after.
-
-| # | Verdict on the branch head | With the proposed guard (temporary trial) | Evidence |
+| # | Branch head | With the proposed guard (temporary trial) | Test / evidence |
 |---|---|---|---|
-| 1 | **blocked** (and red) | red: sentinel ran 11 times (all `--check`) | `criterion 1: running the two files executes the sentinel zero times`: today 26 runs |
-| 2 | met | met | `criterion 2: no tracked file under frontend/ changes` |
-| 3 | **fail** | met | today all 8 writer tests **pass** under the sentinel, expected **fail**; with guard, all 8 fail naming `3.9.6` and "node_modules/prettier is missing" |
-| 4 | **fail** | met | writer tests only (`--test-name-pattern`): today the fake 3.8.1 package ran 15 times, expected 0; with guard 0 and sentinel 0 |
-| 5 | met | met | `criterion 5` |
-| 6 | **fail** | met | today all 8 pass, expected fail; with guard all 8 fail naming `3.9.6` and `3.8.1` |
-| 7 | met | met | sentinel 0 with the pinned package copied in |
-| 8 | met | met | all 8 writer tests pass in the pinned copy; also 47/47 in the real tree |
-| 9 | met | met | two committed mutation tests in a copy: `format` script made a no-op (`true`) turns all 7 format-gate criterion 7 tests red; a README heading changed to `#   …` turns readme-fences criterion 8 red |
-| 10 | met | met only once the guard is prettier-formatted | an unformatted trial guard was rewritten by `bun run format` in the copy (`changedFiles` listed both files): the test catches it. Formatted, it passes |
-| 11 | **blocked** (and red) | red: same `--check` starts | today the whole suite in a no-`node_modules` copy ran the sentinel; no tracked file changed |
-| 12 | not met | n/a | see Suites. Frontend has 4 environment failures (`react-simple-maps` not installed, proxy 403); question-bank pins in rows 3-8. CI is the authority |
-| 13 | met for this task's test file | n/a | it only reads the real `node_modules/prettier` (as a copy source) and `package.json`; writes go under `os.tmpdir()`, removed in `afterAll`. Rows 1-2 change only test bodies |
-| 14 | met | n/a | `git diff --quiet origin/main HEAD -- frontend/package.json frontend/bun.lock frontend/.prettierrc frontend/.prettierignore .github/workflows/ci.yml question-bank/package.json question-bank/bun.lock`: identical. No dependency added |
-| 15 | met (nothing changed yet) | n/a | `git diff --quiet origin/main HEAD --` on the two files: identical. Recheck after rows 1-2 are applied |
-| 16 | met | n/a | no fetch or URL in the new file; every child `bun test` runs with all six proxy variables set to `http://127.0.0.1:1` |
+| 1 | **fail** | pass | `criterion 1: running only the eight writer tests executes the sentinel zero times`. Today the sentinel logs 7 × `--write .`, 7 × `--check .` and 1 × `--write .` |
+| 2 | pass | pass | `criteria 1-3 › criterion 2` |
+| 3 | **fail** | pass | today all 8 writer tests pass under the sentinel. With the guard all 8 fail, naming `3.9.6` and "node_modules/prettier is missing" |
+| 4 | **fail** | pass | writer tests only. Today the fake 3.8.1 package runs. With the guard, the sentinel and the package each run 0 times |
+| 5 | pass | pass | `criterion 5` |
+| 6 | **fail** | pass | with the guard, all 8 fail naming `3.9.6` and `3.8.1` |
+| 7 | pass | pass | sentinel runs 0 times with the pinned package copied in |
+| 8 | pass | pass | all 8 writer tests pass in the pinned copy |
+| 9 | pass | pass | two mutation tests, committed and green (round 1). Making `format` a no-op (`true`) turns all 7 format-gate criterion 7 tests red. Changing a README heading to `#   …` turns readme-fences criterion 8 red |
+| 10 | pass | pass, because the trial guard was prettier-formatted | `criterion 10`: no tracked change, no probe left behind |
+| 11 | **fail** | pass | whole suite, no `node_modules`. Today it records write starts. With the guard only `--check` starts remain, and no tracked file changes |
+| 12 | not met | n/a | see Suites. Question-bank pins are rows 3-8, and frontend has environmental failures. CI is the authority |
+| 13 | pass for this file | n/a | this file only reads the real `node_modules/prettier` (as a copy source) and `package.json`. All writes go under `os.tmpdir()` and are removed in `afterAll`. Rows 1-2 add only a read-only guard |
+| 14 | pass | n/a | `git diff --quiet origin/main HEAD --` on `frontend/package.json`, `frontend/bun.lock`, `frontend/.prettierrc`, `frontend/.prettierignore`, `.github/workflows/ci.yml`, `question-bank/package.json`, `question-bank/bun.lock`, `backend/pyproject.toml` and `backend/uv.lock`: identical. No dependency added |
+| 15 | pass (nothing changed yet) | n/a | `git diff --quiet origin/main HEAD --` on the two files: identical. The next tester rechecks after rows 1-2 |
+| 16 | pass | n/a | no `fetch` and no URL apart from the dead proxy `http://127.0.0.1:1`, which every child `bun test` runs under |
 
-### Mutations (all reverted; the two files are byte-identical to HEAD, `git status` clean apart from my commit)
+### Mutations (with the trial guard in place, all reverted; both files are byte-identical to HEAD)
 
-- **Trial guard applied to both files:** my tests went from 7 red to 3 red (1, 4-before-narrowing, 11), then to 2 red (1, 11) once criterion 4's test was narrowed to the writer tests, as its wording says.
-- **Guard's version check disabled** (`if (false && found !== pinned)`): criteria 4, 6 and 6 went red.
-- **Guard's missing-package check disabled:** criteria 1 and 3 (message test) went red.
-- **Criterion 9's two mutations** are committed tests and pass (each sees its writer test go red).
+- **Trial guard applied** (worker's code, prettier-formatted, first statement of the 8 writer tests): 14/14 pass.
+- **Missing-package check disabled** (`if (false && !existsSync(manifest))`): criterion 3's message test goes red. The guard still throws (ENOENT reading the manifest), so the writer is still refused and criterion 1 stays green, which is correct.
+- **Version check disabled** (`if (false && found !== pinned)`): criterion 4 and both criterion 6 tests go red.
+- **Guard call removed from the format-gate writer test only:** criteria 1 and 11 go red, which shows the write-start count is not vacuous.
+- **My own slip, caught:** my first trial put the guard call in the criterion 6 test (`non-zero exit, probe named`), not criterion 7. All of 1, 3, 4, 6 and 11 stayed red, as they should.
 
-### Suites (branch head plus my test file, web sandbox)
+### Suites (web sandbox, branch head plus this commit)
 
-- **frontend `bun test`:** 427 pass, 11 fail, 4 errors. 7 fails are mine (1, 3×2, 4, 6×2, 11: the unfixed defect and the blocked criteria). 4 fails and 4 errors are `Cannot find package 'react-simple-maps'`, environmental, pre-existing.
-- **frontend `lint`:** exit 0. **`format:check`:** clean. **`typecheck`:** 9 errors, all `react-simple-maps` / `us-atlas` (environmental, pre-existing); none in the new file.
-- **question-bank `bun test`:** 2717 pass, 6 fail, all whole-tree pins: rows 3-6 (red from my new test file) and rows 7-8 (red before this task's code, from the brief and run log).
+- **frontend `bun test`:** 427 pass, 11 fail, 4 errors. 7 of the fails are this task's file: criteria 1, 3×2, 4, 6×2 and 11, all the unfixed defect. The other 4 fails and 4 errors are `Cannot find package 'react-simple-maps'`. That is environmental and pre-existing: the proxy refuses the install.
+- **frontend `lint`:** exit 0. **`format:check`:** clean. **`typecheck`:** 9 errors, all `react-simple-maps` / `us-atlas` or their implicit-`any` fallout in `UsMap.tsx`. None are in this task's file.
+- **question-bank `bun test`:** 2717 pass, 6 fail. These are exactly rows 3, 4, 5, 6, 7 and 8.
 - **`make -C backend test`:** 1221 passed, 9 skipped.
-
 
 ## Notes
 
