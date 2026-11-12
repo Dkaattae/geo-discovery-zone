@@ -1,7 +1,7 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-108-readme-bank-size.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — orchestrator, 2026-11-12, auto-approved after a 63-minute timeout; no human answered. See runs/T-108-readme-bank-size.md`
@@ -18,6 +18,7 @@
 | tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 | ci-fix | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 | ci-fix (pass 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
+| tester (re-verify after ci-fix) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; freshly spawned subagent, shares the run's id) |
 
 > **Full brief, not light.** T-108 is `S`, but its criteria run past four, so
 > the light path does not apply (`process.md`, "The light path, for S-sized
@@ -280,6 +281,64 @@ is the usual whole-tree pin pattern from T-104 to T-106.
 `bun run test`, because `frontend` has no `test` script.
 
 ## Verdict
+
+### Re-verification after the CI fix (tester, round 2)
+
+**TL;DR: `pass`.** I re-checked all 14 criteria on `66973e6`. Every one is met, and every suite is green: CI is green on all six jobs at `66973e6`, and locally the backend and `question-bank` pass in full. The ci-fix diff matches its four approved rows exactly. **Those four test rows were approved by the orchestrator's timeout stamp, not by a person, so the reviewer must escalate them (D-18).** **Next: `reviewer`.**
+
+**Independence:** this is an orchestrated run (`runs/T-108-readme-bank-size.md` exists). My id, `cse_011oDiJdbpiNRtapJtyKBeQB`, is also listed against the worker, the earlier tester and both ci-fix passes, so the session-id check proves nothing. My independence rests only on being a freshly spawned subagent with its own context. I did not see any earlier role's session or reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+**No new tests.** The round-1 tester's `question-bank/src/readme-bank-size-verify.test.ts` (26 tests, unchanged since `3568b51`) already maps one test or more to each of criteria 1-10. I checked it below with new mutations, and checked criteria 1-10 again with my own throwaway scanner, which was not committed. The scanner flags `15 states` and `26 questions` in the base text, and on the final README its only hit before `state(s)` is `50`.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | Test `criterion 1` (2 tests). My scanner also finds no `15\s+states` and no `26\s+questions` |
+| 2 | met | Test `criterion 2`. My scanner finds no number before `question(s)` anywhere. "at 5, 10 and 20" is still there |
+| 3 | met | Test `criterion 3`. The only number before `state(s)` is `50`, in "covering all 50 states" |
+| 4 | met | Test `criterion 4`. The Tech stack section has no `explanation` and no `human-written` |
+| 5 | met | Test `criterion 5` |
+| 6 | met | Test `criterion 6`. The sentence is "Only a US-states bank ships today, covering all 50 states." |
+| 7 | met | Test `criterion 7`. One paragraph of two lines in the same place, with one blank line on each side |
+| 8 | met | Test `criterion 8`. Line 32 ends ``(`engineering-decisions.md` E-14) \|``, and has no `contract` |
+| 9 | met | Test `criterion 9`. Line 215's description starts at column 21 (checked with `cut -c21-`) |
+| 10 | met | Test `criterion 10`. `grep -i contract README.md` finds nothing |
+| 11 | met | `git diff 8092372 -- README.md` has two hunks. Line 32 becomes one line, lines 37-38 become the two new lines, and line 215 becomes one line. No other line moves |
+| 12 | met | `git show --name-only` per commit. Worker `8d1dc8f` touches only `README.md` and this brief. `git diff --stat 8092372 HEAD` over `openapi.yaml`, `engineering-decisions.md`, `geoquizdataplan.md`, `PROGRESS.md`, `conventions.md`, `CLAUDE.md`, `.claude/`, `backend/app/` and `question-bank/src/curated/` is empty |
+| 13 | met | The same empty diff over every `package.json`, `bun.lock`, `pyproject.toml` and `uv.lock` |
+| 14 | met | Suite below. The pre-existing tests changed on this branch are exactly CI fix plan rows 1-4 |
+
+**Pre-existing tests changed on this branch (all in `0f1fa82`, ci-fix), each matched to its row:**
+
+- **Row 1**, `farm-animal-loose-ends-verify.test.ts`: the two T-108 files join `CRITERION_21_ALLOWED`, and a comment is added. `toBe(280)` and `MAIN_UNTOUCHABLE_SHA` are unchanged.
+- **Row 2**, `climate-cold-trade-accepted-verify.test.ts`: the same two files join `CRITERION_22_ALLOWED`. Count 283 and the digest are unchanged.
+- **Row 3**, same file: `MAIN_TESTS_COUNT` goes 130 -> 131, and `MAIN_TESTS_SHA` -> `dceadbd5…`. The only added test file is the tester's `readme-bank-size-verify.test.ts`.
+- **Row 4**, same file: the farm file's `APPLIED_REQUEST_FILE_SHAS` entry -> `46475e2a…`. That equals `sha256sum` of the farm file as it is now.
+- **Approval line:** `CI fix: applied — approved — orchestrator, 2026-11-12, auto-approved after a 63-minute timeout; no human answered`. No person approved these rows.
+- **The pins still bite.** I appended a line to `geoquizdataplan.md`, a file outside both allowed sets. Both whole-tree pins went red (2 fail), and went green again once I reverted the edit.
+
+**Mutations to `README.md`.** Each was run against `readme-bank-size-verify.test.ts` and then restored from a saved copy. `git status` was clean afterwards.
+
+| Mutation | Went red |
+|---|---|
+| "all 50 states" -> "all 49 states" | criterion 3 |
+| add "and 415 questions" | criterion 2 |
+| add "with an explanation" to the paragraph | criterion 4 |
+| drop `engineering-decisions.md` from the Layout line | criterion 9 |
+| `E-14` -> `E-140` on the Tech stack row | criterion 8 (whole word) |
+| remove the blank line before `## Run it locally with Docker` | criterion 7 |
+| drop `Only` | criterion 6 |
+
+**Suite on `66973e6`, as run**
+
+- **`question-bank`:** `bun test` **2767 pass, 0 fail**. `typecheck`, `lint` and `format:check` pass.
+- **`make -C backend check`:** ruff passes, **1221 passed, 9 skipped**.
+- **`frontend`, locally:**
+  - `lint` and `format:check` pass.
+  - `bun test` gives **420 pass, 4 fail**, and `typecheck` fails. Every failure is `Cannot find module 'react-simple-maps'` / `us-atlas`.
+  - `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)` on d3 tarballs. This is the environment, not the code.
+- **CI on `66973e6`** (REST check-runs): **all green.** That covers frontend (typecheck, lint, test), question-bank, backend, backend (postgres), integration and e2e. CI on `0f1fa82` is also all green, including the blocked-run notice. So the frontend criterion is met on CI, where the packages install.
+
+### Round 1 (superseded by round 2 above)
 
 **TL;DR: `fail`, for stale pins only.** All 14 criteria are met. The README edit is correct, and my 26 new tests went red on the base README. The `question-bank` suite has 3 red pre-existing whole-tree pins. They are stale by the task's own new tracked files, not by wrong code, and are routed to the `ci-fix` as the Test change request below (D-20). **Next: `ci-fix`.**
 
