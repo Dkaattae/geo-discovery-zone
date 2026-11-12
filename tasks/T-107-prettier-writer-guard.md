@@ -1,15 +1,15 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `task-expander`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-107-prettier-writer-guard.md`.
-**Test changes:** `none`
+**Test changes:** `pending — 8 rows written below, Decision blank, not yet routed: the brief is blocked first. Once the expander amends criteria 1 and 11, the next tester routes them to the ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-107
 **Branch:** `task/T-107-prettier-writer-guard`
 **PR:** #134, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:**
+**Fault:** tester: criteria 1 and 11 contradict the brief's Out of scope (the read-only `format:check` tests run the sentinel under a missing prettier, and the brief declines to guard them), so no fix can meet them as written. Criteria 3, 4 and 6 also fail today (the guard is not applied yet; it lives in two pre-existing tests, 8 Test change request rows written).
 
 **Sessions:**
 
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB |
 | worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (same id as the expander: this orchestrated run reports one remote session id for every subagent; the tester should not read a match with this row as proof it shares the worker's context) |
+| tester | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated: same id as every subagent; independence rests on a freshly spawned context, not a separate session) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -279,7 +280,69 @@ Run in the web sandbox, where `frontend/node_modules` exists but is incomplete.
 - `cd frontend && bun test src/format-gate.criteria.test.ts src/readme-fences.criteria.test.ts`
 - Sentinel I used: `printf '#!/bin/sh\necho ran >> $DIR/log\nexit 0\n' > $DIR/prettier && chmod +x $DIR/prettier`, then `PATH=$DIR:$PATH`, with `$DIR` outside the repo.
 
+## Test change request
+
+Written by the tester, orchestrated run. **Decision is blank on every row: nobody has approved anything.** These rows are not routed yet because the verdict is `blocked` (criteria 1 and 11, see Verdict). After the expander amends the brief, the next tester re-checks these rows on the then-current branch and routes them to the `ci-fix` (D-20). **`origin/main` has moved to `8092372` (T-106 merged) and re-pinned several of the same constants (rows 3-8)**, so the branch must merge `origin/main` before any digest or count below is recomputed.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `frontend/src/format-gate.criteria.test.ts` › "T-075 tester, criterion 7 — the writer and the check cover the same files" › all seven "`${probe.path}`: after bun run format, bun run format:check exits 0" | T-075 tester, merged in `2bab8a5` (PR #74): the writer and the checker cover the same files | Criteria 1-6: the writer must be refused before it starts unless the pinned prettier is installed. Today it runs whatever `prettier` `bun run` finds | modify | Same seven names. First statement of each body is a guard that reads `devDependencies.prettier` from `frontend/package.json` and throws (a) if `node_modules/prettier/package.json` is missing, with a message naming the pinned version and the word "missing" after `node_modules/prettier`, (b) if its `version` differs, naming both versions, (c) if `node_modules/.bin/prettier` is missing (worker's extra check, optional). Rest of the body unchanged: `writeProbe`, `bun run format` exits 0, `bun run format:check` exits 0. The worker's Handoff has the exact code. **Must be prettier-formatted**, or `bun run format` in criterion 10's run rewrites it (observed, below) | |
+| 2 | `frontend/src/readme-fences.criteria.test.ts` › "T-076 criteria 7-8: prettier 3.9.6 leaves the fenced README alone" › "criterion 8: bun run format leaves frontend/README.md byte-identical" | `34b97f7`, T-076 tester: the writer leaves the fenced README byte-identical | Same as row 1. The version check is a separate test, so the writer still runs when it fails (Constraints call this the defect) | modify | Same name. The same guard as row 1 as the first statement, before `readFileSync(README)`. Rest unchanged. `existsSync` added to the import. "the installed prettier is 3.9.6" and `installedPrettierVersion()` left as they are | |
+| 3 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › "criterion 21: every tracked file under frontend/ is byte-identical to main's" (`MAIN_FRONTEND_SHA`) | `e9d666e`, T-088 tester: nothing under `frontend/` changes | This task adds `frontend/src/prettier-writer-guard.criteria.test.ts` and modifies the two files in rows 1-2 | modify | Same name and assertion; `MAIN_FRONTEND_SHA` recomputed on the final frontend tree, with a comment citing T-107 and this row | |
+| 4 | `question-bank/src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › "frontend (except []) is byte-identical to 5d72ca5" | `cf63f66`, T-092 tester: frontend unchanged | Same as row 3 | modify | Same name; the `frontend` row's digest recomputed, with a "Re-pinned by T-107 (row 4)" comment beside T-047's and T-076's | |
+| 5 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" (`MAIN_BOUNDARY_SHA`) | `bcb2a38`, T-039 tester (applied request): the three trees unchanged | Same as row 3 | modify | Same name and assertion; `MAIN_BOUNDARY_SHA` recomputed, comment citing T-107 | |
+| 6 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "pre-existing test files are main's, except ones in an approved Test change request" (`MAIN_TESTS_COUNT`, `MAIN_TESTS_SHA`) | `950f334`, T-091 tester: no pre-existing test file changes unseen | One test file added (count +1) and two test files modified (digest) by this task | modify | Same name and assertion; `MAIN_TESTS_COUNT` up by exactly 1 and `MAIN_TESTS_SHA` recomputed, comment citing T-107 | |
+| 7 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no stray non-test file | This task's brief and run log (`tasks/T-107-…`, `runs/T-107-…`) are tracked non-test files. Red on the branch head before any code change (worker's Handoff: 283 vs 281). T-106 re-pinned this test on main, so recheck after merging main | modify | Same name; count and `MAIN_UNTOUCHABLE_SHA` recomputed after merging main, or the two T-107 files joined to `CRITERION_21_ALLOWED` the way T-106 did. Comment citing T-107 | |
+| 8 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no stray non-test file | Same as row 7 (286 vs 284) | modify | Same as row 7, for `MAIN_UNTOUCHABLE_COUNT` / `MAIN_UNTOUCHABLE_SHA` / `CRITERION_22_ALLOWED` | |
+
 ## Verdict
+
+**TL;DR: `blocked`, back to the `task-expander`.** Criteria 1 and 11 cannot be met as written: they require the sentinel to run zero times across the whole of the two files (and the whole suite), but the read-only `format:check` tests also start it, 11 times, and Out of scope says this task does not guard them. Separately, criteria 3, 4 and 6 fail today because the guard has not been applied (it lives in two pre-existing tests; 8 Test change request rows written, Decision blank).
+
+- **Independence:** orchestrated run. My session id matches the worker's row, which under the orchestrator is not evidence of anything. My independence rests only on being a freshly spawned agent that did not see the work; that is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+- **Needed from the expander:** decide criteria 1 and 11. Either (a) restrict them to the writer tests, as criterion 4 already is ("for any of the writer tests"), or to `--write` starts; or (b) bring the `format:check` tests into scope and drop that Out-of-scope bullet. Then the next tester updates `prettier-writer-guard.criteria.test.ts` (this task's own file) to the amended wording and routes rows 1-8 to the `ci-fix`.
+
+### The contradiction, observed
+
+In a repo copy with no `node_modules` and a sentinel `prettier` first on `PATH`, with the worker's proposed guard **temporarily** applied to both files (reverted, see below), the sentinel log read `11 ran --check .` and nothing else. Those 11 are format-gate criteria 5 (1), 6 (7), 10 (2) and readme-fences criterion 7 (1), all named by Out of scope ("Under a global prettier they check with the wrong version, but they write nothing. Guarding them is a different question, which this task does not settle"). No change confined to the eight writer tests can make criterion 1 or 11 hold.
+
+### Criteria
+
+Tests are in `frontend/src/prettier-writer-guard.criteria.test.ts` (14 tests). Each scenario runs the real test files inside a temp copy of the repo's tracked files, with a sentinel first on `PATH`, statuses read from a JUnit report, file changes measured by hashing every tracked `frontend/` file before and after.
+
+| # | Verdict on the branch head | With the proposed guard (temporary trial) | Evidence |
+|---|---|---|---|
+| 1 | **blocked** (and red) | red: sentinel ran 11 times (all `--check`) | `criterion 1: running the two files executes the sentinel zero times`: today 26 runs |
+| 2 | met | met | `criterion 2: no tracked file under frontend/ changes` |
+| 3 | **fail** | met | today all 8 writer tests **pass** under the sentinel, expected **fail**; with guard, all 8 fail naming `3.9.6` and "node_modules/prettier is missing" |
+| 4 | **fail** | met | writer tests only (`--test-name-pattern`): today the fake 3.8.1 package ran 15 times, expected 0; with guard 0 and sentinel 0 |
+| 5 | met | met | `criterion 5` |
+| 6 | **fail** | met | today all 8 pass, expected fail; with guard all 8 fail naming `3.9.6` and `3.8.1` |
+| 7 | met | met | sentinel 0 with the pinned package copied in |
+| 8 | met | met | all 8 writer tests pass in the pinned copy; also 47/47 in the real tree |
+| 9 | met | met | two committed mutation tests in a copy: `format` script made a no-op (`true`) turns all 7 format-gate criterion 7 tests red; a README heading changed to `#   …` turns readme-fences criterion 8 red |
+| 10 | met | met only once the guard is prettier-formatted | an unformatted trial guard was rewritten by `bun run format` in the copy (`changedFiles` listed both files): the test catches it. Formatted, it passes |
+| 11 | **blocked** (and red) | red: same `--check` starts | today the whole suite in a no-`node_modules` copy ran the sentinel; no tracked file changed |
+| 12 | not met | n/a | see Suites. Frontend has 4 environment failures (`react-simple-maps` not installed, proxy 403); question-bank pins in rows 3-8. CI is the authority |
+| 13 | met for this task's test file | n/a | it only reads the real `node_modules/prettier` (as a copy source) and `package.json`; writes go under `os.tmpdir()`, removed in `afterAll`. Rows 1-2 change only test bodies |
+| 14 | met | n/a | `git diff --quiet origin/main HEAD -- frontend/package.json frontend/bun.lock frontend/.prettierrc frontend/.prettierignore .github/workflows/ci.yml question-bank/package.json question-bank/bun.lock`: identical. No dependency added |
+| 15 | met (nothing changed yet) | n/a | `git diff --quiet origin/main HEAD --` on the two files: identical. Recheck after rows 1-2 are applied |
+| 16 | met | n/a | no fetch or URL in the new file; every child `bun test` runs with all six proxy variables set to `http://127.0.0.1:1` |
+
+### Mutations (all reverted; the two files are byte-identical to HEAD, `git status` clean apart from my commit)
+
+- **Trial guard applied to both files:** my tests went from 7 red to 3 red (1, 4-before-narrowing, 11), then to 2 red (1, 11) once criterion 4's test was narrowed to the writer tests, as its wording says.
+- **Guard's version check disabled** (`if (false && found !== pinned)`): criteria 4, 6 and 6 went red.
+- **Guard's missing-package check disabled:** criteria 1 and 3 (message test) went red.
+- **Criterion 9's two mutations** are committed tests and pass (each sees its writer test go red).
+
+### Suites (branch head plus my test file, web sandbox)
+
+- **frontend `bun test`:** 427 pass, 11 fail, 4 errors. 7 fails are mine (1, 3×2, 4, 6×2, 11: the unfixed defect and the blocked criteria). 4 fails and 4 errors are `Cannot find package 'react-simple-maps'`, environmental, pre-existing.
+- **frontend `lint`:** exit 0. **`format:check`:** clean. **`typecheck`:** 9 errors, all `react-simple-maps` / `us-atlas` (environmental, pre-existing); none in the new file.
+- **question-bank `bun test`:** 2717 pass, 6 fail, all whole-tree pins: rows 3-6 (red from my new test file) and rows 7-8 (red before this task's code, from the brief and run log).
+- **`make -C backend test`:** 1221 passed, 9 skipped.
+
 
 ## Notes
 
