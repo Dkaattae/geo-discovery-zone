@@ -54,3 +54,36 @@ Run: orchestrated, task 2 of 3. In flight at start: T-106.
 
 ## Approval — orchestrator — 2026-11-12T16:10Z
 Stamped `Approved:` as an unattended run. The criteria were not read.
+
+## Round 2 — worker — 2026-11-12T16:23Z
+`Next step` on entry: `worker` → on exit: `tester`
+
+**I built nothing for T-107. The whole fix is in two tests that already exist on `main`, and the worker may not change those (D-14).** I wrote the Handoff, which lists both tests as stale with the exact guard I propose. The brief is now `awaiting verification`, Next step `tester`. Commit `a1d607e` is on `origin/task/T-107-prettier-writer-guard`; `git log origin/<branch> -1` shows it.
+
+**Next:** the tester routes the change to the two files through a Test change request or the `ci-fix` plan, then writes the tests for criteria 1–11.
+
+**Tests made stale**
+- **`frontend/src/format-gate.criteria.test.ts`**, "T-075 tester, criterion 7", all seven probe tests. Proposal: modify, by calling a new `requirePinnedPrettier()` as the first line of each, before `writeProbe`.
+- **`frontend/src/readme-fences.criteria.test.ts`**, "T-076 criteria 7-8", the "criterion 8: bun run format…" test. Proposal: modify, by calling the same guard first.
+- **What the guard checks:** it reads the pinned version from `package.json`. It throws if `node_modules/prettier` is missing, if its version differs from the pin, or if `node_modules/.bin/prettier` is missing. Each message names the pinned version and what it found. The full code is in the Handoff.
+
+**Checked:** with prettier 3.9.6 installed, `bun run` uses `node_modules/.bin` ahead of `PATH`. I put a sentinel `prettier` first on `PATH`, ran `bun run format:check`, and the sentinel never ran (criterion 7).
+
+**Judgment calls, all for the tester to confirm or overturn**
+- **Throw instead of `expect`:** a thrown error prints both versions in the failure output, which criteria 3 and 6 need.
+- **Extra `.bin` check:** without it, a package that is present but unlinked would fall back to the global prettier.
+- **Writer stays `bun run format`:** the script is what the tests check, so I did not call prettier's binary directly.
+- **Guard copied into both files:** a shared module is not in the brief's list of files to change.
+
+**Already red before any change** (named in the Handoff so nobody reads them as bugs)
+- **Frontend tests and typecheck:** 4 failures plus 4 errors in `bun test`, and typecheck exits 2. All come from `react-simple-maps` (and the `us-atlas` types) not being installed. `bun install --frozen-lockfile` failed with a proxy 403, so a full pass for criterion 12 has to come from CI or a sandbox that can reach the registry.
+- **`question-bank`:** 2 tracked-file count pins are off by +2, because the expander and orchestrator added the brief and the run log:
+  - `farm-animal-loose-ends-verify.test.ts`: expected 281, got 283.
+  - `climate-cold-trade-accepted-verify.test.ts`: expected 284, got 286.
+
+  These are P-17 Test change request rows for the tester.
+- **Everything else passed:** backend 1221 passed and 9 skipped, lint exit 0, format:check clean, and the working tree is clean.
+
+**Session id:** my Sessions row has the same id as the expander's (`cse_011oDiJdbpiNRtapJtyKBeQB`), because the run reports one id for every subagent. The row says so, so the tester does not take a match as proof it shares my context.
+
+File: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
