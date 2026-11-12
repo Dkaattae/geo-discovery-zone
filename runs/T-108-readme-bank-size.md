@@ -135,3 +135,45 @@ The plan was not read by the orchestrator. A person may approve or refuse it in 
 ## CI fix auto-approved — orchestrator — 2026-11-12T19:46Z
 Waited 63 minutes (halt 18:43Z → 19:46Z). Checked for a person's answer: none in the orchestrator's session; branch head unchanged at `c633c14` (the orchestrator's own log commit); PR #135 has no reviews and one comment, from `github-actions[bot]` (`blocked-run-notice.yml`); header still `CI fix: requested`.
 Stamped the three header lines per D-17. The plan was not read. Every row is approved as written; since the stamp, not a person, approved these test changes, the reviewer must escalate (D-18).
+
+## Round 5 — ci-fix (pass 2, apply) — 2026-11-12T19:58Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**TL;DR: I applied all four approved CI fix rows, and `question-bank` is now fully green (2767 pass, 0 fail).** The fix is pushed to `task/T-108-readme-bank-size` as `0f1fa82`, and the remote head matches. Status is `awaiting verification` and the next step is a **fresh `tester`**.
+
+**Approval used:** the orchestrator's timeout stamp in the header (`approved — orchestrator, 2026-11-12, auto-approved after a 63-minute timeout; no human answered`). It approves every row as written. No person approved these test rows, so the reviewer must escalate the PR (D-18).
+
+**Plan check:** since the plan commit `43698ef`, the branch moved only through orchestrator commits to the run log and the brief. Rows 1-2 add both files to the allowed sets, so every row applied as written. No row was refused.
+
+**Applied, file by file:**
+- **Row 1, `/home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts`:** added T-108's brief and run log to `CRITERION_21_ALLOWED`, plus a re-pin comment. The pinned count (280) and digest (`c274a19e…`) are unchanged and still pass.
+- **Row 2, `/home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts`:** added the same two files to `CRITERION_22_ALLOWED`. The pinned count (283) and digest (`53524b09…`) are unchanged.
+- **Row 3, same file:**
+  - `MAIN_TESTS_COUNT` goes from 130 to 131.
+  - `MAIN_TESTS_SHA` is now `dceadbd5fcba43e9ac32e29d58639ca29327420c489eca08cc07fab4092c8160`, the value the plan gave.
+- **Row 4, same file:** the farm file's entry in `APPLIED_REQUEST_FILE_SHAS` is now `46475e2a41b81ea13b58335fa65aab7cdd94d66f1ed07b176166207558ebc9ea`. That is the file's sha256 after row 1, and its comment chain was extended.
+
+**Suite results on the final tree:**
+
+| Check | Result |
+|---|---|
+| `question-bank` `bun test` | 2767 pass, 0 fail |
+| `question-bank` typecheck, lint, format:check | pass |
+| `make -C backend check` | 1221 passed, 9 skipped |
+| `frontend` lint, format:check | pass |
+| `frontend` `bun test` | 420 pass, 4 fail (3 of 4 runs) |
+| `frontend` typecheck | fails |
+
+- **Frontend failures are from this environment:** `react-simple-maps` and `us-atlas` are not installed, and the proxy blocks `bun install` with a 403. The worker and tester hit the same thing. No frontend file changed.
+- **One frontend run showed a fifth failure:** an `expect(received).toBe(expected)`. That run was alongside the backend check, and the failure did not recur in three more runs. It looks like a timing flake; I did not investigate it. The tester should check the frontend CI job on `0f1fa82`.
+
+**Independence:** this is an orchestrated run, so the session-id check proves nothing. My id `cse_011oDiJdbpiNRtapJtyKBeQB` is shared with every role on this task. My only independence is being a freshly spawned subagent. This is recorded in the brief.
+
+**Brief updates** (`/home/user/geo-discovery-zone/tasks/T-108-readme-bank-size.md`):
+- **Header:**
+  - `CI fix:` now reads `applied — approved — orchestrator, …`.
+  - `Test changes:` now reads `applied through CI fix plan (D-20)`.
+  - Status is `awaiting verification`, Next step is `tester`, and the Fault line is cleared.
+- **Sessions:** added a `ci-fix (pass 2)` row.
+- **CI fix plan:** each row's Decision is filled in as approved by the timeout stamp.
+- **New `## CI fix` section:** the handoff for the tester.
