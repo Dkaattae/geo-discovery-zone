@@ -75,3 +75,48 @@ TL;DR: I reworded the four lines in three files and changed nothing else. The co
 - **New wording:** modelled on T-105's `conventions.md:16` row. The reviewer can confirm or reword it, as long as criteria 1–4 still hold.
 
 No contradictions with the brief, no criteria problems, and no new dependencies.
+
+## Round 3 — tester — 2026-11-12T15:55Z
+`Next step` on entry: `tester` → on exit: `ci-fix` · G3 count: fail 1, blocked 0
+
+**T-106 tester verdict: `fail`, on criterion 8 only.** All four doc lines are correct, and criteria 1-7 hold. Four tests that existed before this task are red because of the task's own change. I wrote them up as Test change request rows 1-4 and routed them to the `ci-fix` (D-20). No source or doc is wrong, and I edited no existing test.
+
+**Next step: `ci-fix`**. Its plan needs approving: by a person, or by your one-hour stamp if nobody answers.
+
+Pushed to `claude/youthful-galileo-hn6hh1` as `7135ac2`. The local HEAD and the remote branch match.
+
+**Independence.** This run is orchestrated, so the session check proves nothing. `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdbpiNRtapJtyKBeQB`, the same id the expander and worker recorded. My independence rests only on being a freshly spawned subagent with its own context, which is weaker evidence than a separate session. The Verdict says so, and my Sessions row is added.
+
+**Criteria**
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1-5 | met | 18 new tests in `question-bank/src/openapi-contract-wording-verify.test.ts`, all green |
+| 6 | met | `git diff 5f6f811` shows exactly 4 one-line hunks (README.md:32 and :215, PROGRESS.md:26, conventions.md:10). Line counts are unchanged: 236, 2042, 133 |
+| 7 | met | The worker's only commit is `406241f`, touching the 3 docs and the brief. The protected files are byte-identical to base |
+| 8 | not met | question-bank `bun test`: 2737 pass, 4 fail. The 4 are exactly the stale tests below |
+
+**Do the new tests catch anything?** Yes:
+- Putting the base text back turned 10 of the 18 red.
+- Moving each changed line one column turned the 3 column tests red.
+- Both mutations were reverted.
+
+**The four stale tests (rows 1-4, Decision left blank)**
+1. **T-105 digest of `conventions.md`.** Modify: drop the `backend/` line from the digest too, re-record it at `5f6f811`, and add an exact-string check that the `openapi.yaml` row still has T-105's wording.
+2. **T-105 "backend/ row keeps 'once built…'".** Modify: assert the row says `serving /api/v1 and the frontend on the same origin` and does not contain `once built`.
+3. **`farm-animal-loose-ends-verify` criterion 21 (whole tree).** Modify: add root `README.md` and T-106's brief and run log to the allowed set. The count goes 281 → 280 and the digest is recomputed.
+4. **`climate-cold-trade-accepted-verify` criterion 22 (whole tree).** Same change. The count goes 284 → 283 and the digest is recomputed.
+
+**Rest of the suite**
+- **Backend:** `make -C backend check` gives 1221 passed, 9 skipped.
+- **question-bank:** typecheck, lint and format:check pass. My new file first failed format:check, which also turned the T-071 format-gate tests red; prettier on my own file fixed both.
+- **Frontend, locally: not fully run.** The proxy returns 403 on some package downloads, so `react-simple-maps` never installs. That leaves 4 test errors and 9 TS errors, all from the missing package. Lint and format pass, and the README/PROGRESS scanner tests pass 229/229.
+- **Frontend, on CI:** green at `25519fc`. Backend, postgres, integration and e2e passed there too; only question-bank failed, which matches rows 1-4.
+
+**Files**
+- /home/user/geo-discovery-zone/question-bank/src/openapi-contract-wording-verify.test.ts (new)
+- /home/user/geo-discovery-zone/tasks/T-106-openapi-contract-wording.md: header, Sessions, Verdict and Test change request
+  - Status: `fail`
+  - Next step: `ci-fix`
+  - Test changes: `routed to ci-fix (D-20)`
+  - Fault: filled in
