@@ -1,7 +1,7 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` (merge decision on PR #134; see `## Review`)
 **Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
 **Test changes:** `applied through CI fix plan (D-20)` (round 3's 5 rows through CI fix plan 2; round 1's 9 rows through CI fix plan 1)
 **CI fix:** `applied — approved — the user, 2026-11-12, given in the orchestrator's session` (round 2: plan 2, 5 rows, below). Round 1 was `applied — approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`
@@ -26,6 +26,7 @@ draft** until the reviewer approves it.
 | ci-fix (round 2, pass 1) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 1 — plan 2) |
 | ci-fix (round 2, pass 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 2 — apply plan 2) |
 | tester (round 4) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent) |
+| reviewer | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -579,6 +580,36 @@ The digests in rows 3-6 match the pass-1 trial values. The frontend tree is the 
 - **question-bank `bun test`:** 2737 pass, 4 fail: round-3 rows 1-4, red only because of my fix. On `11ece2c` it was 2741/2741. **`typecheck`:** exit 0. **`lint`:** clean. **`format:check`:** clean.
 - **`make -C backend test`:** 1221 passed, 9 skipped.
 - **CI on `11ece2c`:** frontend red (above). question-bank, backend ×2, e2e and integration green.
+
+## Review
+
+**TL;DR: approve, escalated. The guard is right, small and in the house style; every role stayed in its lane.** It is escalated because CI fix plan 1, which changed the two pre-existing writer tests and seven pins, was approved by the user *before the plan existed*, so nobody approved those rows after reading them. **Needed from Dkaattae:** read plan 1's rows (copied into the PR body) and merge if they hold.
+
+- **Every role's work is in the PR.** Each Sessions row has a commit on `task/T-107-prettier-writer-guard`. The merge of `origin/main` (`8dfec82`) is CI fix plan 1 row 0.
+- **Lanes, per commit:** the expander touched only this brief. The worker touched only this brief. The tester touched only `frontend/src/prettier-writer-guard.criteria.test.ts` (its own new file) and the brief. `52a6409` (ci-fix, plan 1) changed exactly the files of rows 1-9. `efaa8a0` (ci-fix, plan 2) changed exactly rows 1-5's four files. The orchestrator touched only the brief and the run log.
+- **Diff against the plans:** the two writer files gain `existsSync` in the import, `requirePinnedPrettier()`, and one call as the first statement of the 7 + 1 writer tests. Nothing else. The question-bank diff is exactly the re-pins and allowed-set joins the plans name, each with its comment.
+- **Constraints:** nothing outside them. No dependency, no `package.json`, lockfile, prettier config or CI change. No `openapi.yaml`, migration or `geoquizdataplan.md` change. No child-facing text.
+- **CI:** green in all six jobs on `238af21` (run 43306721526). The head commits since then change only the brief and run log.
+
+### Findings
+
+None blocks.
+
+1. **The frontend CI job roughly doubled, 82 s on `main` to 153 s.** `prettier-writer-guard.criteria.test.ts` makes eight copies of the 464 tracked files and, for criterion 11, runs the whole frontend suite inside the suite. That is what the criteria demand, and the tests are honest. **Not queued:** trimming it changes a test the task added, which moves the same whole-tree digests again (P-17). Revisit if the frontend job becomes the slow one.
+2. **`bun run format` by hand, without an install, still uses a global prettier** (Out of scope, second bullet). The tests can no longer do it, but a person or an agent following `conventions.md` line 60 in a fresh sandbox still can. **Queued as T-109** (new: nothing in the queue owns the scripts).
+
+### Worker's flags, disposed
+
+- **`throw` instead of `expect`: kept.** It fails the test before anything spawns, and the message survives every Bun reporter. Criteria 3 and 6 test it.
+- **The `.bin/prettier` check: kept.** Without it, a package with no `.bin` link passes the version check and `bun run` falls back to `PATH`. It costs nothing when the pin is installed.
+- **`bun run format` kept as the writer: agreed.** The script is the thing under test (criterion 9).
+- **The guard is duplicated in the two files: accepted, not queued.** It is 25 lines in two test files. A shared module would be a new file under `frontend/` and would move the P-17 digests a third time, for no behaviour change.
+
+### Escalation
+
+- **Why:** the envelope allows pre-existing tests changed with a person's approval. Plan 2 was approved by the user after it was pushed, and that holds. Plan 1 was approved "in advance of the plan's push", so it is a person's approval in name but, like an orchestrator stamp, nobody read the rows first (D-17, D-18). Both the ci-fix and the round-4 tester asked for the plan to go in front of a person. Plan 1 rows 1-2 are the substance of the task: they change two tests T-075 and T-076 wrote.
+- **What I checked:** every applied row matches its plan text, and no row weakens a pin. Rows 7-8 add this task's brief and run log to two allowed sets instead of re-pinning a count. That follows T-106's precedent, and the sweep deletes the brief anyway.
+- **What a person decides:** whether plan 1's rows, as applied, are acceptable. If they are, merge. There is no follow-up.
 
 ## Notes
 
