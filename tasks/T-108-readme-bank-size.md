@@ -1,7 +1,7 @@
 # T-108 — `README.md` still says "15 states, 26 questions", and cites E-14 by bare id
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-12, unattended run. See `runs/T-108-readme-bank-size.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; roles spawned as subagents share this id) |
+| worker | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated run; subagent, shares the run's id) |
 
 > **Full brief, not light.** T-108 is `S`, but its criteria run past four, so
 > the light path does not apply (`process.md`, "The light path, for S-sized
@@ -199,6 +200,94 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR:** Three edits to `README.md`, nothing else. The README bank and E-14 guards are green.
+Two whole-tree count pins in `question-bank` are red. They were already red at the branch head
+before I touched anything (the brief and run log are new files), and they are listed below.
+The `frontend` red is environmental: `react-simple-maps` is missing from `node_modules`, and
+the proxy refuses the tarball download with a 403. The tester should run `bun install` where
+the registry is reachable.
+
+**Changed, file by file**
+
+- **`README.md:32`**: the Tech stack row now ends ``(`engineering-decisions.md` E-14) |``. It
+  keeps `follows the backend` and has no `contract`.
+- **`README.md:37-38`**: the bank paragraph is replaced by these two lines, in the same place, with one blank line on each side:
+  `Only a US-states bank ships today, covering all 50 states. A right answer` /
+  `shows a human-reviewed fun fact; a wrong one names the right answer.`
+- **`README.md:215`**: the Layout line is now `openapi.yaml        describes the API; follows the backend (engineering-decisions.md E-14)`.
+  Its description still starts at column 21.
+- **This brief**: Sessions row, Status, Next step, Handoff, Notes.
+- **Nothing else.** No code, no tests, no dependency.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 5 | `15 states`, `26 questions` and `human-written` are gone. Line 37-38 was their only occurrence |
+| 2 | The new paragraph has no `question` word. I scanned every README sentence with a script: no number appears within the five words before `question(s)` |
+| 3 | The only number before `state(s)` anywhere in the README is `50` (line 37) |
+| 4 | The new paragraph has no `explanation` |
+| 6 | Line 37's first sentence has `US`, `states` and `Only` |
+| 7 | Lines 37-38: one paragraph of two lines, between "The backend serves the API" and `## Run it locally with Docker` |
+| 8 | Line 32 |
+| 9 | Line 215 |
+| 10 | No `contract` in the README, checked by grep |
+| 11 | Check with `git diff 8092372 -- README.md`. It shows three hunks: 32, 37-38 and 215 |
+| 12, 13 | The worker commit touches only `README.md` and this brief |
+| 14 | See "Suite run" below |
+
+**Deliberately not done**
+
+- **Lines 5 and 13 of the pitch, and the `us-states.ts` "15 states" comments**: out of scope per the brief.
+- **"Nothing yet" wording for misses**: the new line says only that a wrong answer names the right
+  answer, which is what `build_reveal` does when a question has no `shortExplanation`. It says
+  nothing about planned explanations, because that is the product call the brief puts out of scope.
+
+**Contradictions with the brief:** none found.
+
+**Suite run (final tree)**
+
+- `make -C backend check`: **1221 passed, 9 skipped**.
+- `question-bank`: `bun test` **2739 pass, 2 fail**. The two fails are listed under Tests made stale.
+  `typecheck`, `lint` and `format:check` pass.
+- `frontend`: `bun test` **420 pass, 4 fail**, and `bun run typecheck` fails. All of it comes from
+  `Cannot find package 'react-simple-maps'` / `us-atlas`, in `t026-setup.criteria`,
+  `t051-map-click`, `t051-tester.criteria` and `screens.criteria`. `bun install --frozen-lockfile`
+  failed with `ProxyConnectFailed (403)` on the d3 tarballs. This is an environment problem and has
+  nothing to do with the README. `lint` and `format:check` pass.
+- **README guards are green:** `conventions-doc`, `readme-test-count.criteria` and
+  `readme-suite-counts.criteria` (135 pass), and `openapi-contract-wording-verify`,
+  `purge-sample-data-verify` and `lint-gate` (57 pass).
+
+**Tests made stale**
+
+These were already red at `edbf4d2`, before the worker's change. I stashed my edit and reran to
+confirm: 280/282 and 283/285. The cause is the two new tracked files, this brief and
+`runs/T-108-readme-bank-size.md`. The `README.md` edit also changes a file these pins count. This
+is the usual whole-tree pin pattern from T-104 to T-106.
+
+- **`question-bank/src/farm-animal-loose-ends-verify.test.ts`**, test `T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added`.
+  It counts 282 against a pin of 280. Proposal: modify it the way T-104 to T-106 did. Allow
+  `tasks/T-108-readme-bank-size.md` and `runs/T-108-readme-bank-size.md`, and exempt `README.md`
+  from the byte-identical check, or re-pin it to the new tree. Owner: tester, via a Test change request.
+- **`question-bank/src/climate-cold-trade-accepted-verify.test.ts`**, test `T-091 criterion 22: the diff touches only the allowed files > every tracked non-test file outside the allowed list is 12d242e's, and none is added`.
+  It counts 285 against a pin of 283. Same proposal and same owner.
+
+**How to run:** `make -C backend check`. Then in both `frontend/` and `question-bank/`:
+`bun test`, `bun run typecheck`, `bun run lint`, `bun run format:check`. Use `bun test`, not
+`bun run test`, because `frontend` has no `test` script.
+
 ## Verdict
 
 ## Notes
+
+- **Wording choice:** "covering all 50 states" states the count as 50. Criterion 3 would also have
+  allowed stating no count. I included it because it is the fact that replaces the stale one. It
+  does not drift the way the question count does: the US-states bank is 50 by definition. Owner:
+  reviewer to confirm or overturn.
+- **"a wrong one names the right answer"** holds today because no served question carries
+  `shortExplanation`. If a later task adds explanations, this line goes stale in a harmless way:
+  it would understate what ships, not overclaim it. Owner: whichever future task adds
+  explanations. The reviewer may want that noted against it in `tasks.md`.
+- **The frontend `node_modules` is incomplete in this environment** and the proxy blocks
+  installing it. Owner: tester, to rerun the frontend jobs where `bun install` succeeds.
