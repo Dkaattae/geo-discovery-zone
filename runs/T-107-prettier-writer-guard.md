@@ -190,3 +190,53 @@ Brief: /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
 
 ## Approval (re-stamp after amendment) — orchestrator — 2026-11-12T17:09Z
 Stamped `Approved:` again as an unattended run. The amended criteria were not read.
+
+## Round 5 — tester — 2026-11-12T17:23Z
+`Next step` on entry: `tester` → on exit: `ci-fix` · G3 count: fail 1, blocked 1
+
+**Verdict: `fail`. Next step: `ci-fix`.** Criteria 1, 3, 4, 6 and 11 fail on the branch head because the writer guard has not been applied. The fix belongs in two pre-existing test files, so I routed it to the `ci-fix` as 9 Test change request rows (D-20), with Decision left blank on every row. When I applied the worker's proposed guard as a temporary trial, all 14 of this task's tests passed. The trial is reverted.
+
+Commit `ae78cf3` is pushed to `task/T-107-prettier-writer-guard`, and `origin` shows it. Working tree is clean.
+
+**Independence:** this is an orchestrated run, and my session id (`cse_011oDiJdbpiNRtapJtyKBeQB`) matches the worker's row, which proves nothing. My independence rests only on being a freshly spawned agent that did not see the work happen. That is weaker than a separate session.
+
+**What I changed**
+- **This task's test file** (`frontend/src/prettier-writer-guard.criteria.test.ts`), updated to the amended criteria:
+  - **Criterion 1:** runs only the eight writer tests (`--test-name-pattern`), checks that every other test was filtered out, and expects the sentinel to log no starts.
+  - **Criterion 11:** counts only write starts (logged arguments contain `--write` or `-w`, per Definitions). Check starts are ignored.
+- **Brief header:**
+  - Status: `fail`
+  - Next step: `ci-fix`
+  - Test changes: `routed to ci-fix (D-20)`
+  - A Fault line and my Sessions row.
+- **Test change request:**
+  - Rows 1-8 re-checked against `origin/main` at `8092372`: every test name is unchanged. T-106 re-pinned the constants behind rows 6-8, so they must be recomputed from main's values.
+  - **New row 9:** `climate-cold-trade-accepted-verify.test.ts` › "each test in the approved Test change request is 8108a42's…" (`APPLIED_REQUEST_FILE_SHAS`). It goes red once rows 3, 4 and 7 change the three files it pins by digest.
+- **Verdict:** written in the brief.
+
+**Criteria with the trial guard applied** (it was formatted with prettier 3.9.6)
+- **1, 3, 4, 6, 11:** fail on the head, pass with the guard.
+- **2, 5, 7, 8, 9, 10:** pass both ways.
+- **12:** not met. The 6 question-bank reds are exactly rows 3-8. The frontend failures come from the sandbox: `react-simple-maps` is not installed and the proxy blocks the install. CI is the authority here.
+- **13-16:** pass, checked by hand. For 14 and 15, `git diff --quiet origin/main HEAD` shows the files identical.
+
+**Mutations** (made with the trial guard in place, all reverted; both files match HEAD)
+- **Version check disabled:** criterion 4 and both criterion 6 tests go red.
+- **Missing-package check disabled:** criterion 3's message test goes red.
+- **Guard removed from the format-gate writer test only:** criteria 1 and 11 go red.
+
+**Suites in this sandbox**
+- **frontend `bun test`:** 427 pass, 11 fail, 4 errors. 7 of the fails are this task's file; the other 4 fails and the 4 errors are `react-simple-maps`.
+- **frontend lint and format:check:** clean.
+- **frontend typecheck:** 9 errors, all from `react-simple-maps` / `us-atlas`.
+- **question-bank:** 2717 pass, 6 fail.
+- **backend:** 1221 passed, 9 skipped.
+
+**For the `ci-fix`:**
+- Merge `origin/main` before anything else; the branch has not merged it yet.
+- Apply rows 1-2, the guard, as the first statement of each of the eight writer tests. Format them with prettier, or the criterion 10 test fails.
+- Then recompute rows 3-9 on the merged tree.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-107-prettier-writer-guard.md
+- /home/user/geo-discovery-zone/frontend/src/prettier-writer-guard.criteria.test.ts
