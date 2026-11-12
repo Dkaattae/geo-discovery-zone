@@ -143,7 +143,9 @@ const MAIN_UNTOUCHABLE_COUNT = 283;
 // Re-pinned by T-107 (CI fix plan row 6): T-107's tester added
 // prettier-writer-guard.criteria.test.ts, and rows 1-2 changed format-gate.criteria.test.ts
 // and readme-fences.criteria.test.ts.
-const MAIN_TESTS_SHA = "49b5117ae6f9605ce9fa1374f39654bc1c123506cdbf3cd9d681a342c4a66ea9";
+// Re-pinned again by T-107 (CI fix plan 2 row 4; round-3 Test change request row 4): T-107's
+// tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
+const MAIN_TESTS_SHA = "d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04bfe4544ac";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -202,8 +204,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-047 (row 4, for its row 5)
   // then by T-076 (row 7, for its row 1)
   // then by T-107 (CI fix plan row 9, for its row 3)
+  // then again by T-107 (CI fix plan 2 row 5, for its row 1)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "c3e78d969e09cb8f4c0e3fb222be5f2f183bbe88017a73ee75d96eaad50586e8",
+    "87a2820de3b0bcbb2109f4629b4a1c88c5406daad25f485f1c3e737228aaa748",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
@@ -211,8 +214,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-100 (row 7), then by T-047 (row 4, for its row 6)
   // then by T-076 (row 7, for its row 2)
   // then by T-107 (CI fix plan row 9, for its row 4)
+  // then again by T-107 (CI fix plan 2 row 5, for its row 2)
   "question-bank/src/map-click-no-candidates-verify.test.ts":
-    "ccd064526c6fa274b7a515945e9daf32d088e3c0b82252842447c2c0f738495c",
+    "cc6f4ded984fe6c65272c0023244f841915fce7cd2e4702aafd75cb0f44fbe9c",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-098 (row 5), then by T-093 (row 7),
   // then by T-097 (row 10), then by T-099 (row 10), then by T-100 (row 7),

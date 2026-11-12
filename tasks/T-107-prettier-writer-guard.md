@@ -1,15 +1,15 @@
 # T-107 — Two frontend tests run prettier's writer, which may resolve to an unpinned global prettier
 
-**Status:** `ci fix approved`
-**Next step:** `ci-fix`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-12 (re-stamped after the round-4 amendment), unattended run. See `runs/T-107-prettier-writer-guard.md`.
-**Test changes:** `routed to ci-fix (D-20)` (round 3: 5 rows, below; round 1's 9 rows were applied through CI fix plan 1)
-**CI fix:** `approved — the user, 2026-11-12, given in the orchestrator's session` (round 2: plan 2, 5 rows, below). Round 1 was `applied — approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`
+**Test changes:** `applied through CI fix plan (D-20)` (round 3's 5 rows through CI fix plan 2; round 1's 9 rows through CI fix plan 1)
+**CI fix:** `applied — approved — the user, 2026-11-12, given in the orchestrator's session` (round 2: plan 2, 5 rows, below). Round 1 was `applied — approved — the user, 2026-11-12, given in the orchestrator's session (in advance of the plan's push)`
 **From:** [`tasks.md`](../tasks.md) T-107
 **Branch:** `task/T-107-prettier-writer-guard`
 **PR:** #134, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
-**Fault:** tester round 3 `fail`: four whole-tree digest pins in `question-bank` are stale because the tester fixed the output parser in this task's own frontend test file. CI fix plan 2 (5 re-pin rows, all `pre-existing test`, no source) is waiting for approval.
+**Fault:** none
 
 **Sessions:**
 
@@ -24,6 +24,7 @@ draft** until the reviewer approves it.
 | ci-fix (pass 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 2 — apply) |
 | tester (round 3) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent) |
 | ci-fix (round 2, pass 1) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 1 — plan 2) |
+| ci-fix (round 2, pass 2) | 2026-11-12 | cse_011oDiJdbpiNRtapJtyKBeQB (orchestrated, fresh spawn; same id as every subagent, pass 2 — apply plan 2) |
 
 **Read this before approving.** The fix changes two test files that already
 exist on `main`, and only the tester may change those, through a Test change
@@ -341,7 +342,7 @@ Written by the tester (round 1), then re-checked by the round-2 tester against `
 
 ## CI fix plan
 
-### Plan 2 (round 2, after the round-3 tester's `fail`): 5 rows, Decision blank
+### Plan 2 (round 2, after the round-3 tester's `fail`): 5 rows, applied
 
 **TL;DR: 5 rows, all re-pins of pre-existing `question-bank` tests, no source change. Nothing applied yet.** They are the round-3 Test change request rows 1-5, unchanged. The guard itself is not touched. **Trialled together in a scratch worktree (since removed): question-bank 2741 pass / 0 fail, its lint, typecheck and format:check clean.**
 
@@ -355,11 +356,11 @@ Written by the tester (round 1), then re-checked by the round-2 tester against `
 
 | # | File (and function or test) | Kind | Change | Why — failing test, root cause, criterion | Decision |
 |---|---|---|---|---|---|
-| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25: what must not change" › "criterion 21: every tracked file under frontend/ is byte-identical to main's" (`MAIN_FRONTEND_SHA`) (request row 1) | pre-existing test (`e9d666e`, T-088 tester; protects "nothing under `frontend/` changes"; last re-pinned by T-107 CI fix plan 1 row 3) | **Modify.** Same name and assertion. `MAIN_FRONTEND_SHA` `6d99c370…` → `ab8f396ed9953910d849ba7526b09a08d66781bcb068d8da67160f0590152ebb`. Two comment lines above it: "Re-pinned again by T-107 (CI fix plan 2 row 1; round-3 Test change request row 1): T-107's / tester fixed the output parser in prettier-writer-guard.criteria.test.ts." | Red: expected `6d99c370…`, received `ab8f396e…`. **Cause:** the tester's parser fix changed one file of this task's under `frontend/`. Constraints: "Whole-tree pins expected to go red (P-17) … `MAIN_FRONTEND_SHA`"; criterion 12: "A whole-tree pin that went red is fixed only through an approved Test change request or CI fix plan row". It still pins the whole frontend tree by digest, as hard as before | |
-| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › "frontend (except []) is byte-identical to 5d72ca5" (request row 2) | pre-existing test (`cf63f66`, T-092 tester; protects "frontend unchanged"; last re-pinned by CI fix plan 1 row 4) | **Modify.** Same name. The `frontend` entry's digest `851e0853…` → `8fcdc6344243848a17a754bbb2e712ade1a72e48c8e20d2cf05a3b12f85e1030`, with the same two comment lines (row 2) above it, indented like T-076's | Red: expected `851e0853…`, received `8fcdc634…`. Same cause and criterion as row 1 | |
-| 3 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" (`MAIN_BOUNDARY_SHA`) (request row 3) | pre-existing test (`bcb2a38`, T-039 tester; protects the three trees unchanged; last re-pinned by CI fix plan 1 row 5) | **Modify.** Same name and assertion. `MAIN_BOUNDARY_SHA` `d374b841…` → `8d01f8325faab96480be4722ab74bbb34cfb5af8c549a308d544d2dd1a144ca6`, with the same two comment lines (row 3) | Red: expected `d374b841…`, received `8d01f832…`. Same cause and criterion as row 1 | |
-| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "pre-existing test files are main's, except ones in an approved Test change request" (`MAIN_TESTS_SHA`) (request row 4) | pre-existing test (`950f334`, T-091 tester; protects against unseen changes to pre-existing test files; last re-pinned by CI fix plan 1 row 6) | **Modify.** Same name and assertion. `MAIN_TESTS_SHA` `49b5117a…` → `d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04bfe4544ac`, with the same two comment lines (row 4). `MAIN_TESTS_COUNT` stays 131: no file is added | Red: expected `49b5117a…`, received `d397b7d6…`. Same cause and criterion as row 1. The changed test file is this task's own, in Constraints' "Files expected to change" | |
-| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" (`APPLIED_REQUEST_FILE_SHAS`) (request row 5) | pre-existing test (`950f334` / `bac230d`, T-091; protects that each request file changed only by its approved re-pin; last re-pinned by CI fix plan 1 row 9) | **Modify.** Same name and assertion. Only two entries change, after rows 1-2: agriculture `c3e78d96…` → `87a2820de3b0bcbb2109f4629b4a1c88c5406daad25f485f1c3e737228aaa748`, map-click `ccd06452…` → `cc6f4ded984fe6c65272c0023244f841915fce7cd2e4702aafd75cb0f44fbe9c`. Each gets one comment line under its "then by T-107 (CI fix plan row 9, …)" line: "then again by T-107 (CI fix plan 2 row 5, for its row 1)" / "(…, for its row 2)". `MAIN_REQUEST_FILE_SHAS` and the other entries are unchanged | Not red today. In the trial it went red after rows 1-4 with exactly these two entries (`Expected - 2 / Received + 2`) and closed when they were re-pinned. Same criterion as row 1 | |
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25: what must not change" › "criterion 21: every tracked file under frontend/ is byte-identical to main's" (`MAIN_FRONTEND_SHA`) (request row 1) | pre-existing test (`e9d666e`, T-088 tester; protects "nothing under `frontend/` changes"; last re-pinned by T-107 CI fix plan 1 row 3) | **Modify.** Same name and assertion. `MAIN_FRONTEND_SHA` `6d99c370…` → `ab8f396ed9953910d849ba7526b09a08d66781bcb068d8da67160f0590152ebb`. Two comment lines above it: "Re-pinned again by T-107 (CI fix plan 2 row 1; round-3 Test change request row 1): T-107's / tester fixed the output parser in prettier-writer-guard.criteria.test.ts." | Red: expected `6d99c370…`, received `ab8f396e…`. **Cause:** the tester's parser fix changed one file of this task's under `frontend/`. Constraints: "Whole-tree pins expected to go red (P-17) … `MAIN_FRONTEND_SHA`"; criterion 12: "A whole-tree pin that went red is fixed only through an approved Test change request or CI fix plan row". It still pins the whole frontend tree by digest, as hard as before || approved (whole plan, per the header's `CI fix:` line) |
+| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` › "T-092 criterion 16: no other surface changes" › "frontend (except []) is byte-identical to 5d72ca5" (request row 2) | pre-existing test (`cf63f66`, T-092 tester; protects "frontend unchanged"; last re-pinned by CI fix plan 1 row 4) | **Modify.** Same name. The `frontend` entry's digest `851e0853…` → `8fcdc6344243848a17a754bbb2e712ade1a72e48c8e20d2cf05a3b12f85e1030`, with the same two comment lines (row 2) above it, indented like T-076's | Red: expected `851e0853…`, received `8fcdc634…`. Same cause and criterion as row 1 || approved (whole plan, per the header's `CI fix:` line) |
+| 3 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` › "T-087 criterion 15: nothing under backend/, frontend/ or e2e/ changes" › "every tracked file under the three trees is as re-pinned by T-039, none added or removed" (`MAIN_BOUNDARY_SHA`) (request row 3) | pre-existing test (`bcb2a38`, T-039 tester; protects the three trees unchanged; last re-pinned by CI fix plan 1 row 5) | **Modify.** Same name and assertion. `MAIN_BOUNDARY_SHA` `d374b841…` → `8d01f8325faab96480be4722ab74bbb34cfb5af8c549a308d544d2dd1a144ca6`, with the same two comment lines (row 3) | Red: expected `d374b841…`, received `8d01f832…`. Same cause and criterion as row 1 || approved (whole plan, per the header's `CI fix:` line) |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "pre-existing test files are main's, except ones in an approved Test change request" (`MAIN_TESTS_SHA`) (request row 4) | pre-existing test (`950f334`, T-091 tester; protects against unseen changes to pre-existing test files; last re-pinned by CI fix plan 1 row 6) | **Modify.** Same name and assertion. `MAIN_TESTS_SHA` `49b5117a…` → `d397b7d66c1883d8052a39bc794a2ea547d77d0690bd30f51dd6d04bfe4544ac`, with the same two comment lines (row 4). `MAIN_TESTS_COUNT` stays 131: no file is added | Red: expected `49b5117a…`, received `d397b7d6…`. Same cause and criterion as row 1. The changed test file is this task's own, in Constraints' "Files expected to change" || approved (whole plan, per the header's `CI fix:` line) |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" (`APPLIED_REQUEST_FILE_SHAS`) (request row 5) | pre-existing test (`950f334` / `bac230d`, T-091; protects that each request file changed only by its approved re-pin; last re-pinned by CI fix plan 1 row 9) | **Modify.** Same name and assertion. Only two entries change, after rows 1-2: agriculture `c3e78d96…` → `87a2820de3b0bcbb2109f4629b4a1c88c5406daad25f485f1c3e737228aaa748`, map-click `ccd06452…` → `cc6f4ded984fe6c65272c0023244f841915fce7cd2e4702aafd75cb0f44fbe9c`. Each gets one comment line under its "then by T-107 (CI fix plan row 9, …)" line: "then again by T-107 (CI fix plan 2 row 5, for its row 1)" / "(…, for its row 2)". `MAIN_REQUEST_FILE_SHAS` and the other entries are unchanged | Not red today. In the trial it went red after rows 1-4 with exactly these two entries (`Expected - 2 / Received + 2`) and closed when they were re-pinned. Same criterion as row 1 || approved (whole plan, per the header's `CI fix:` line) |
 
 **Root cause:** the guard (plan 1 rows 1-2) is correct, and no source is at fault. CI on `11ece2c` went red because this task's own test's output parser lost the guard's message under Bun 1.3.11 in GitHub Actions mode. The round-3 tester fixed that in its own file, which it may do. That one changed file under `frontend/` moves four P-17 whole-tree digests, and applying rows 1-2 moves a fifth that digests those two files. This is the same mechanism as plan 1's rows 3-6 and 9, with new values.
 
@@ -410,6 +411,34 @@ To approve by hand: fill in each Decision, set the header's `CI fix:` to `approv
 To approve by hand: fill in Decision, set the header's `CI fix:` to `approved — <name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
 
 ## CI fix
+
+### Round 2, pass 2 (plan 2 applied)
+
+**TL;DR: all 5 approved rows of plan 2 applied, nothing else changed. question-bank is 2741 pass / 0 fail; frontend's only failures are the 4 environmental `react-simple-maps` ones.** No source and no frontend file touched. **Next: a fresh tester re-verifies.**
+
+- **Approval, as the header read:** `approved — the user, 2026-11-12, given in the orchestrator's session`. The run log quotes the user, after plan 2 was pushed (`241a598`): "approve the T-107 CI fix plan". A whole-plan approval from a person, given after the plan existed, so I copied it into each row's Decision, as round 1 did. Every row is a test change, so the reviewer still puts the plan in the PR body (D-18).
+- **Plan still held:** since `241a598` the branch moved only by the orchestrator's brief and run-log commits, and `origin/main` is still `8092372`. Every row applied cleanly as written.
+- **Independence:** orchestrated run (`runs/T-107-prettier-writer-guard.md` exists). My session id matches every other role's, so the id check proves nothing. My only independence is being a freshly spawned agent that did not write the code, the plan or the verdict.
+
+| Row | File | What landed |
+|---|---|---|
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` | `MAIN_FRONTEND_SHA` `6d99c370…` → `ab8f396e…52ebb`, two comment lines "Re-pinned again by T-107 (CI fix plan 2 row 1; round-3 Test change request row 1) …" |
+| 2 | `question-bank/src/map-click-no-candidates-verify.test.ts` | `frontend` digest `851e0853…` → `8fcdc634…1030`, same two lines (row 2), indented |
+| 3 | `question-bank/src/refresh-regenerate-reminder-verify.test.ts` | `MAIN_BOUNDARY_SHA` `d374b841…` → `8d01f832…4ca6`, same two lines (row 3) |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` | `MAIN_TESTS_SHA` `49b5117a…` → `d397b7d6…44ac`, same two lines (row 4). `MAIN_TESTS_COUNT` unchanged at 131 |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` | After rows 1-4, the test was red with exactly `Expected - 2 / Received + 2`, and the received values equalled the plan's. agriculture `c3e78d96…` → `87a2820d…a748`, map-click `ccd06452…` → `cc6f4ded…be9c`, each with a "then again by T-107 (CI fix plan 2 row 5, for its row N)" line. `MAIN_REQUEST_FILE_SHAS` and the other entries unchanged |
+
+**Refused:** none.
+
+**Suites, as run on the applied tree (web sandbox):**
+- **question-bank `bun test`:** 2741 pass, 0 fail. After rows 1-4 alone it was 2740 / 1, the 1 being row 5's test, as planned. **`typecheck`:** exit 0. **`lint`:** 0 warnings, 0 errors. **`format:check`:** clean.
+- **frontend `bun test`:** 434 pass, 4 fail, all `Cannot find package 'react-simple-maps'` (environmental, as in every round). One run made straight after the backend suite also had 2 `lint-gate.test.ts` tests time out at 5 s; the next whole-suite run had none, same as round 1 saw.
+- **frontend `typecheck`:** 9 errors, all the `react-simple-maps` / `us-atlas` ones (environmental). **`lint`:** exit 0. **`format:check`:** clean.
+- **`make -C backend test`:** 1221 passed, 9 skipped.
+- **Working tree after all runs:** only the four row files and this brief modified.
+
+**Noticed, not changed:**
+- **Criterion 12's whole-frontend green still has to come from CI**, since this sandbox cannot install `react-simple-maps`.
 
 ### Round 2, pass 1 (plan 2)
 

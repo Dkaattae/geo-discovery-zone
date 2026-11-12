@@ -95,7 +95,9 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // frontend/README.md, and its tester added frontend/src/readme-fences.criteria.test.ts.
 // Re-pinned by T-107 (CI fix plan row 5): T-107 guarded the prettier writer in
 // format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
-const MAIN_BOUNDARY_SHA = "d374b84161d960372f3c3400d5fa750b39622de5306434631e2faaa1b7973b88";
+// Re-pinned again by T-107 (CI fix plan 2 row 3; round-3 Test change request row 3): T-107's
+// tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
+const MAIN_BOUNDARY_SHA = "8d01f8325faab96480be4722ab74bbb34cfb5af8c549a308d544d2dd1a144ca6";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",

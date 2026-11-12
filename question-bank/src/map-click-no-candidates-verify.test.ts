@@ -744,7 +744,9 @@ describe("T-092 criterion 16: no other surface changes", () => {
     // frontend/README.md, and its tester added frontend/src/readme-fences.criteria.test.ts.
     // Re-pinned by T-107 (CI fix plan row 4): T-107 guarded the prettier writer in
     // format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
-    ["frontend", [], "851e085377b1ab46f6faa3d2ed32a67638a73698aa2cf59c46032cf5ae791b5a"],
+    // Re-pinned again by T-107 (CI fix plan 2 row 2; round-3 Test change request row 2): T-107's
+    // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
+    ["frontend", [], "8fcdc6344243848a17a754bbb2e712ade1a72e48c8e20d2cf05a3b12f85e1030"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);
