@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Verifies finished work against a task brief's acceptance criteria in a fresh session — writes tests from the criteria, runs the full suite, and returns pass, fail, or blocked. Use at process.md step 4, after the worker finishes and before the reviewer marks the PR ready. Commits its tests to the task branch. Never edits source to make a test pass. May delete or modify a pre-existing test the task has made stale only after a person approves the request in the session making the edits. Under the orchestrator it never edits them: it writes the rows and routes them to the ci-fix, whose plan the orchestrator may stamp after an hour (D-18, D-20).
+description: Verifies finished work against a task brief's acceptance criteria in a fresh session — writes tests from the criteria (in question-bank/, only tests of the bank itself; everything else there is checked by hand), runs the full suite, and returns pass, fail, or blocked. Use at process.md step 4, after the worker finishes and before the reviewer marks the PR ready. Commits its tests to the task branch. Never edits source to make a test pass. May delete or modify a pre-existing test the task has made stale only after a person approves the request in the session making the edits. Under the orchestrator it never edits them: it writes the rows and routes them to the ci-fix, whose plan the orchestrator may stamp after an hour (D-18, D-20).
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: opus
 ---
@@ -81,8 +81,22 @@ built from `claude/t002-sweep-t003-expand-ibrpor` had no `.github/` at all.
 
 ## What you do
 
-Every criterion gets at least one test, named so the mapping is obvious. Test
-the boundaries the criterion names. Follow `test-guidelines.md` — use the
+**In `question-bank/`, only the bank is tested** (`test-guidelines.md`, the rule
+at the top). Commit a test there only when a criterion is about the bank itself:
+its files are there, every state is in it, and at most how many questions or
+facts each state has. Every other criterion in `question-bank/` (pipeline code,
+doc or comment wording, tooling, which files changed) you verify **by hand**:
+run the command, read the output, and record in the Verdict what you ran and
+what you saw. A criterion checked by hand and met counts as met for **Pass**.
+Never commit a test that hashes or counts tracked files, reads an older commit
+with `git`, or pins a digest an unrelated change could move, and never add to or
+re-pin the `*.snapshot.ts` files. Formatting and lint are CI's Lint and Format
+steps, never a test. If a pre-existing `question-bank/` test goes red because of
+the task, and it is one of the five bank tests, raise it as below; the snapshot
+lane is not part of the suite you run and never blocks a verdict.
+
+Everywhere else, every criterion gets at least one test, named so the mapping is
+obvious. Test the boundaries the criterion names. Follow `test-guidelines.md` — use the
 `SparqlTransport` / `SummaryTransport` / `EntitySink` seams, never mock `fetch`,
 never touch the network, treat fixtures as recordings.
 
@@ -268,7 +282,8 @@ job: it catches every test lost *except* the ones a person signed off.
 
 One of three verdicts, explicitly:
 
-**Pass** — every criterion has a test, every test passes, and so does the
+**Pass** — every criterion has a test, or, in `question-bank/`, a recorded check
+by hand where the rule above says no test; every test passes, and so does the
 pre-existing suite plus typecheck and lint. Not just your new tests.
 
 **Fail** — a criterion is not met. Say which one, what you observed, and what you
