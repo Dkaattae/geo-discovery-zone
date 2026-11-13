@@ -434,3 +434,16 @@ Brief: /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md
 
 ## Ended — ready for merge, escalated
 PR #137 is ready; merging is Dkaattae's, after reading the round-1 CI fix plan in the PR body. Rounds: expander → worker → tester (fail) → ci-fix (plan; approved by Dkaattae in session before it was written) → ci-fix (apply) → tester (fail) → G3 halt → resumed by Dkaattae → ci-fix (plan; approved by Dkaattae) → ci-fix (apply) → tester (pass) → reviewer (escalated).
+
+## Rebased onto main after T-111 — 2026-11-13
+Dkaattae, in the orchestrator's session: "rebase 137", then "option 1, go ahead" (the orchestrator resolves the pin conflicts and recomputes them itself, with their approval in this session).
+
+- **Rebase:** 24 commits replayed onto `a5f2097` (PR #136 merged). Conflicts in `climate-cold-trade-accepted-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts` (both tasks' re-pins), then `PROGRESS.md` and `tasks.md` in the sweep. Resolved by keeping both tasks' comments, allowed-set entries, PROGRESS entries and sweep sentences; digest constants were then recomputed in one commit.
+- **Recomputed values** (observed from the suite, not computed on paper):
+  - `farm-animal-loose-ends-verify.test.ts` `MAIN_UNTOUCHABLE_SHA` → `e19be390…135b` (count 282 unchanged)
+  - `climate-cold-trade-accepted-verify.test.ts` `MAIN_SOURCE_TREES_SHA` → `27620eb6…c443`
+  - same file, `MAIN_UNTOUCHABLE_SHA` → `0536f7ed…161b` (count 285 unchanged)
+  - same file, `MAIN_TESTS_COUNT` 133 → 134 and `MAIN_TESTS_SHA` → `960fb119…a0af` (both testers' new files present)
+  - same file, `APPLIED_REQUEST_FILE_SHAS`: agriculture → `6521cc40…dd85`, farm → `6c51b36e…0eec2`
+- **No assertion loosened**, no source changed in the recompute commit.
+- **Results:** question-bank `bun test` 2914 pass / 0 fail; typecheck, lint, `format:check` clean. Backend 1221 passed, 9 skipped. Frontend lint and `format:check` clean (tests not run locally: `react-simple-maps` blocked by the proxy).

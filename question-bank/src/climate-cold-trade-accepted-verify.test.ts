@@ -71,7 +71,8 @@ const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d398
 // Re-pinned by T-100 (Test change request row 4): routers/content.py moved.
 // Re-pinned by T-111 (CI fix plan row 2): question-bank/src/curated/us-states.ts moved (comments only).
 // Re-pinned by T-109 (CI fix plan row 15): question-bank/src/prettier-pin-guard.ts added.
-const MAIN_SOURCE_TREES_SHA = "b6ca80cef709e083a78d3c5973ff082c74eec2ebf82c8287c4c6583df509fc93";
+// Recomputed on rebasing T-109 onto main after T-111 (both tasks' changes and loop records in the tree; Dkaattae, 2026-11-13, in the orchestrator's session).
+const MAIN_SOURCE_TREES_SHA = "27620eb6dca726968e651e8c45792d567d611bccc78ec4261192b6c6df7cc443";
 /**
  * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
  * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
@@ -109,7 +110,8 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // T-111's brief and run log join the allowed set (count unchanged, 283).
 // Re-pinned by T-109 (CI fix plan row 19): T-109's brief and run log join the allowed set;
 // frontend/package.json moved and the two prettier-pin-guard.ts files were added, all still counted.
-const MAIN_UNTOUCHABLE_SHA = "432c7685f085f6f5982b26e5b3620fc96848e0a5e702ff755b0bb4c25bffd05d";
+// Recomputed on rebasing T-109 onto main after T-111 (both tasks' changes and loop records in the tree; Dkaattae, 2026-11-13, in the orchestrator's session).
+const MAIN_UNTOUCHABLE_SHA = "0536f7ed4b6e266225406f1d0ce437573822950d68f1d390dd3c78083aad161b";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -162,7 +164,8 @@ const MAIN_UNTOUCHABLE_COUNT = 285;
 // format-script-guard.criteria.test.ts, and rows 3-4 changed conventions-openapi-row-verify.test.ts.
 // Re-pinned again by T-109 (CI fix plan 2 row 1; round-2 Test change request row 20): T-109's round-2 tester
 // made format-script-guard.criteria.test.ts run without frontend/node_modules.
-const MAIN_TESTS_SHA = "6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993";
+// Recomputed on rebasing T-109 onto main after T-111 (both tasks' changes and loop records in the tree; Dkaattae, 2026-11-13, in the orchestrator's session).
+const MAIN_TESTS_SHA = "960fb11931b4e118a6630c16fac008425c4b2cf8095cee939e53a1d0b0d3a0af";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -193,7 +196,8 @@ const MAIN_TESTS_SHA = "6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea35
 // us-states-region-comment-verify.test.ts (132 -> 133).
 // Re-pinned by T-109 (CI fix plan row 20): T-109's tester added
 // format-script-guard.criteria.test.ts (132 -> 133).
-const MAIN_TESTS_COUNT = 133;
+// Recomputed on rebasing T-109 onto main after T-111: both testers' files are present (133 -> 134).
+const MAIN_TESTS_COUNT = 134;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -230,8 +234,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then again by T-107 (CI fix plan 2 row 5, for its row 1)
   // then by T-111 (CI fix plan row 5, for its row 1)
   // then by T-109 (CI fix plan row 21, for its rows 1-2)
+  // recomputed on rebasing T-109 onto main after T-111
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "a515fa967cd14c885ff733ae449d35665288aad1cbaa30a76ab22bd9d5c27329",
+    "6521cc4091010638ab7acb93a11d7dda54811a23fde4c3162203221c9e48dd85",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
@@ -257,8 +262,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-108 (CI fix plan row 4, for its row 1), recomputed on rebasing onto main after T-107
   // then by T-111 (CI fix plan row 5, for its row 3)
   // then by T-109 (CI fix plan row 21, for its rows 13 and 18)
+  // recomputed on rebasing T-109 onto main after T-111
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "ca3c2afdc20eca8489435095efb564f8deb33bd0248b79236493a118621b8906",
+    "6c51b36e5adaaf06247840a0aa42c58b27480706ddf76e88727fc1f169e0eec2",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   // then by T-109 (CI fix plan row 21, for its row 14)

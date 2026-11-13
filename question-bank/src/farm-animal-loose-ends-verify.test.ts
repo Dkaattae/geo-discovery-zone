@@ -182,7 +182,8 @@ const MAIN_DEP_SHA = "9b11ae15a8413bed210768c4b21431d7f3b51bda1f478c9d4a29cc5a33
 // T-111's brief and run log join the allowed set (count unchanged, 280).
 // Re-pinned by T-109 (CI fix plan row 18): T-109's brief and run log join the allowed set;
 // frontend/package.json moved and the two prettier-pin-guard.ts files were added, all still counted (280 -> 282).
-const MAIN_UNTOUCHABLE_SHA = "c3039ef32c81b55f2c10f72476fbfa816a40ce064fd7d42ce84d0cfbda28c4e4";
+// Recomputed on rebasing T-109 onto main after T-111 (both tasks' changes and loop records in the tree; Dkaattae, 2026-11-13, in the orchestrator's session).
+const MAIN_UNTOUCHABLE_SHA = "e19be3907c7293f034686c832f1560cfd3b3c5052c5ad7a185f656d304e6135b";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
