@@ -1,7 +1,7 @@
 # T-113 — Deleted guards in docs — run log
 
 **Task:** T-113 · **Branch:** `claude/relaxed-allen-5ro49x` · **PR:** #142
-**Started:** 2026-11-13 · **Outcome:** in progress
+**Started:** 2026-11-13 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-13
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -203,3 +203,55 @@ No tests were added, changed or deleted, and none is stale.
 - **Tone check:** the brief's checklist asks a person to read the rewritten bullets before merge.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md (Status `pass`, Next step `reviewer`, Sessions row added).
+
+## Round 7 — reviewer — 2026-11-13
+`Next step` on entry: `reviewer` → on exit: `human` (merge; brief swept, last header at `ad1afa2`: `Status: approved`)
+
+**I approved T-113 with no escalation, swept it inside PR #142, and marked the PR ready for review. Nothing is left for the loop; Dkaattae only has to merge.** It is docs only: `tasks.md` §A and `PROGRESS.md` now name only guards that still run, and they say plainly which docs only review keeps true.
+
+**Push:** both commits are on `origin/claude/relaxed-allen-5ro49x`. I fetched and checked; the head is `255d2c8`.
+- `ad1afa2`: my `## Review` section in the brief. Status is `approved`, Next step is `human` (merge), and the reviewer row is in the Sessions table.
+- `255d2c8`: the sweep. It deletes the brief, so the review section survives in `ad1afa2` and in the PR body.
+
+**Checks before review**
+- **The PR was open and draft** when I started.
+- **Every role in the Sessions table has commits in the PR.**
+- **Every role stayed in its lane:**
+  - expander: only the brief
+  - worker: only `tasks.md`, `PROGRESS.md` and the brief
+  - tester: only the brief
+  - ci-fix (`d283def`): exactly its two approved rows
+- **The CI fix was approved by a person**, relayed by the orchestrator. The brief's `CI fix:` line never named `orchestrator`.
+
+**Why no escalation:**
+- The tester passed. GitHub CI is green on all six jobs at `5a2a750`, the last commit before the review that touched `tasks.md` or `PROGRESS.md`.
+- No dependency was added, no test was changed, and nothing touches `openapi.yaml`, a migration, the plan or text a child reads.
+- The only file outside the brief's Constraints is the orchestrator's `runs/` log.
+
+**One finding, not blocking**
+- `PROGRESS.md:66-69` says `openapi.yaml` is "kept in step by hand (E-14)". In fact `backend/tests/conftest.py::assert_matches` still checks response payloads against its schemas in CI, through `test_sessions_api.py`, `test_profiles_api.py` and others.
+- It understates a check rather than claiming one that isn't there, so criterion 17 still holds.
+- **Queued as new task T-114.** It also covers two stale facts the brief had ruled out of scope: "Five agents" (there are six) and `run-loop.sh` (removed by D-19).
+
+**Flags raised by the worker, tester and ci-fix, each settled in the brief and the PR body:**
+- Kept the region-vocabulary rewrite and the `E-12` → `E-32` fix.
+- Left the "No test fails on main in a full clone" heading as is.
+- Accepted the worker's wording about the test counts in `test-guidelines.md`. I did not queue removing those counts: Dkaattae wrote them in `987d2cd`, so that is his call, and the PR body says so.
+- The brief's checklist asks a person to read the rewritten bullets for tone. I noted that in the PR body for merge time; it is not an escalation.
+
+**Sweep, all in `255d2c8`:**
+- Deleted the brief and the T-113 entry in `tasks.md`.
+- §A's closing line now says T-114 is the open §A task.
+- Logged T-113 under Completed tasks in `PROGRESS.md`, including where it differed from the brief.
+- Added T-114.
+- Amended T-095: since `987d2cd` its question-bank pins run only in the monthly snapshot lane, so it needs a fresh survey before its question goes to a person.
+- Added a line to the sweep log in `tasks.md`.
+
+Files:
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md (deleted; the review is in `ad1afa2`)
+- https://github.com/Dkaattae/geo-discovery-zone/pull/142
+
+## Ended — 2026-11-13
+Task ended: reviewer approved and marked PR #142 ready, no escalation. Rounds: expander, worker, tester (fail 1), ci-fix (plan; approved by the person in session), ci-fix (apply), tester (pass), reviewer. Run limit (1 task) reached; run ends.
