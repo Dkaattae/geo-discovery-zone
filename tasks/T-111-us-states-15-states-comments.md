@@ -1,14 +1,14 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `blocked`
+**Next step:** `task-expander`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-111-us-states-15-states-comments.md`.
-**Test changes:** `none`
+**Test changes:** `pending — 5 rows written below, Decision blank, not yet routed: the brief is blocked first. Once the expander amends criterion 4, the next tester routes them to the ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-111
 **Branch:** `claude/amazing-franklin-j3x3l1`
 **PR:** #136, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it.
-**Fault:**
+**Fault:** criterion 4's allow-list omits the files the loop itself must change (`tasks.md`, `runs/T-111-…`, the sweep's edits) and is unclear about new tester test files, so it cannot be met as written; the expander owns it. Separately, 4 pre-existing whole-tree pins are stale by the task's own files (5 rows written, not yet routed).
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste |
 | worker | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste |
+| tester | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"): an `S`
 > task, comments only, one file, no text a child reads, nothing in
@@ -153,3 +154,81 @@ git diff --stat origin/main                           # criterion 4
 - **No new test** was written. Criteria 1–2 are grep-shaped, and the brief says not to add a committed pin (P-17).
 
 ## Verdict
+
+**TL;DR: `blocked`, back to the `task-expander`.** Criteria 1, 2 and 3 are met. Criterion 4 cannot be met as written: the loop must add `runs/T-111-…` and must edit `tasks.md`, and criterion 4's allow-list names neither. It also does not clearly cover a tester's new test file. Separately, 4 pre-existing whole-tree pins are red because of this task's own files (5 once fixed, see the rows). The rows are written below with Decision blank and are **not routed yet**, because the verdict is `blocked`.
+
+**Independence:** this is an orchestrated run (`runs/T-111-us-states-15-states-comments.md` exists), so the session-id check proves nothing. My id, `cse_011oDiJfSMW5AuCAW3Bk9Ste`, is already listed for the expander and the worker. My independence rests only on being a freshly spawned subagent with its own context. I did not see the worker's session or reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | **met** | `question-bank/src/us-states-region-comment-verify.test.ts`, describe "T-111 criterion 1", 3 tests, all green. Run against `main`'s file (`2634fc8`), all 3 go red. |
+| 2 | **met** | The same file, describe "T-111 criterion 2", 35 tests: `T-017`, `2026-09-18`, `E-9`, the word `15`, the 13 region values and the 15 state names, each in backticks, all within the region paragraph. All green. Tense is left to the reviewer: the two sentences are "then the 15 states served at the time) returned" and "The 15 states that bank served in 2026-09". |
+| 3 | **met** (checked at hand-off, not pinned) | `git diff -U0 2634fc8 -- question-bank/src/curated/us-states.ts`: every changed line is a ` * ` comment line. The `Bun.Transpiler` output (comments and whitespace stripped) is identical for the branch file and `main`'s. All 5 exports were imported from both and compared: `CURATED_US_STATES`, `HIGHEST_POINT_M_SOURCE`, `curatedByName` and `curatedByPostal` deep-equal (`util.isDeepStrictEqual`), and `entityIdFor` has the same source and the same outputs. `git diff --quiet 2634fc8 -- question-bank/data backend/app/data/content.json` exits 0. `bun run build -- --offline --out data/us-states` and `bun run questions` both exit 0 and leave `git status` clean. |
+| 4 | **blocked** | See below. |
+
+### Why criterion 4 is blocked
+
+`git diff --stat origin/main` (`origin/main` = `2634fc8`) on `df1e593`:
+
+```
+ question-bank/src/curated/us-states.ts      |  31 +++---
+ runs/T-111-us-states-15-states-comments.md  |  79 ++++++++++++++
+ tasks.md                                    |   2 +-
+ tasks/T-111-us-states-15-states-comments.md | 155 ++++++++++++++++++++++++++++
+```
+
+These are the reasons it is blocked rather than a fail:
+
+- **Unmeetable on any run.** Criterion 4 allows only `us-states.ts`, this brief, and test files. `tasks.md` is changed by the expander's own commit `428a89f`, as `process.md` step 2 requires. `runs/T-111-…` is added by the orchestrator's `7c9512e`, as `orchestrator.md` requires on every orchestrated run.
+- **The sweep makes it worse.** The reviewer's sweep will also touch `tasks.md` and `PROGRESS.md` and delete this brief (`process.md` §6). The worker did nothing wrong here.
+- **New tests are unclear.** The wording "test files changed only through an approved Test change request or CI fix plan row" does not say whether a tester's new criteria test file is allowed. This verdict adds one: `question-bank/src/us-states-region-comment-verify.test.ts`.
+- **I will not pick a reading myself.** Reading "this brief" as "the loop's records" is an interpretation, and the tester may not choose one.
+- **Suggested amendment (the expander's call):** allow `tasks.md`, `runs/T-111-us-states-15-states-comments.md`, the reviewer's sweep edits (`PROGRESS.md`, and deleting the brief), and new test files added by the tester or ci-fix.
+
+### Suite, as run on `df1e593` plus this verdict's test file
+
+- **question-bank:**
+  - `format:check`, `typecheck` and `lint` are clean.
+  - `bun test` gives **2801 pass, 4 fail**. The 4 reds are rows 1–4 below, all whole-tree or whole-file pins. No behaviour test is red.
+  - CI's `question-bank` job is red on `df1e593` for the same reason. The other five CI jobs are green.
+- **backend:** `uv run pytest -q` gives 1221 passed, 9 skipped.
+- **frontend: environmental failures only.**
+  - Locally, `bun install --frozen-lockfile` fails with `ProxyConnectFailed (403)` (d3-interpolate), so `typecheck` fails on missing `react-simple-maps`/`us-atlas`, and `bun test` gives 434 pass, 4 fail, all "Cannot find package 'react-simple-maps'".
+  - CI's `frontend (typecheck, lint, test)` job is **green** on `df1e593`.
+
+### Mutations of `us-states.ts` (all reverted, `cmp` against a backup confirmed)
+
+| # | Mutation | Result |
+|---|---|---|
+| M1 | Whole file replaced by `main`'s (`2634fc8`) | 3 criterion-1 tests red |
+| M2 | "then the 15 states served at the" → "the 15 states shipping today at the" | `shipping today` and `today` tests red |
+| M3 | "that bank served" → "Already Served" | `already served` test red (case-insensitive) |
+| M4 | "served in 2026-09" → "served today" | `today` test red |
+| M5 | `E-9` → `E9` | the `E-9` test red |
+| M6 | Both "15 states" → "states" | the `15`/`fifteen` test red |
+| M7 | Backticks removed from `Upper Midwest` in the list | **stayed green, correctly**: `` `Upper Midwest` `` also appears backticked later in the same paragraph, and the criterion asks only for presence |
+| M8 | Backticks removed from `New York` | the `New York` test red |
+| M9 | Backticks removed from `Southwest` (its only occurrence) | the `Southwest` test red |
+| M10 | Paragraph heading changed so the paragraph cannot be found | 34 of 38 red |
+
+### Pre-existing tests
+
+- **None deleted or modified.**
+- The 5 rows below are written with Decision blank. **They are not routed to the `ci-fix` yet** because the verdict is `blocked` (as T-107 did).
+- After the expander amends criterion 4, the next tester re-checks the rows on the then-current branch and routes them (D-20).
+- Rows 3–4 digests were computed by a scratch edit that added the two T-111 files to the allowed sets, reverted afterwards. Recompute them if `main` moves.
+
+## Test change request
+
+Written by the tester, orchestrated run. **Decision is blank on every row: nobody has approved anything.**
+
+- **Not routed yet.** The verdict is `blocked` on criterion 4, so these rows wait for the expander's amendment. The next tester re-checks them and routes them to the `ci-fix` (D-20).
+- **Recompute before applying.** If `origin/main` moves, merge it first and recompute every digest and count.
+
+| # | Test (file › describe › name) | Introduced (commit, task, what it protected) | Why stale or wrong | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › "T-088 criteria 20-25: what must not change" › "criterion 20: curated/us-states.ts is byte-identical to main's" | `e9d666e`, T-088 tester: `us-states.ts` must not move during T-088 | Criteria 1–2 require a comment edit to `us-states.ts`, so the whole-file sha256 moves: it is now `98afb4d5…`, against the pinned `e61e8e50…` | modify | The same name and assertion. `MAIN_FILE_SHA["question-bank/src/curated/us-states.ts"]` is re-pinned to `98afb4d56d4eb55b07fc2dfeb933bd0d8d3addd43d79288f48cdefeb53cd97fd`, with a comment citing T-111 and its plan row (a comment-only edit, criterion 3) | |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 20: no non-test source file moves" › "every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | `950f334`, T-091 tester: no non-test source file moves | Same edit: `us-states.ts` is under `question-bank/src/`. The digest is now `05dc94e8…`, against `6b45b3a1…` | modify | The same name and assertion. `MAIN_SOURCE_TREES_SHA` is re-pinned to `05dc94e8e6c01091a7c4f76476f55b5485e7c5ef6854a0f36d86712b582ee8c3`, with a "Re-pinned by T-111 … us-states.ts comment moved" line | |
+| 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › "T-096 criteria 17-21: the bank and the boundaries" › "criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | `47581ea`, T-096 tester: no stray non-test file changed or added | T-111 adds its brief and run log (count 282 vs 280), and its `us-states.ts` edit changes a counted file | modify | The same name and assertions. Add `tasks/T-111-us-states-15-states-comments.md` and `runs/T-111-us-states-15-states-comments.md` to `CRITERION_21_ALLOWED`, with a comment citing the row. `toBe(280)` is **unchanged**. `MAIN_UNTOUCHABLE_SHA` is re-pinned to `689e2d1289e22524b7c701457af9b4e4b22185df32fda9b159229a959fee1dcb` (observed with the two files allowed), with a "Re-pinned by T-111 … us-states.ts moved; brief and run log join the allowed set (count unchanged, 280)" line | |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "every tracked non-test file outside the allowed list is 12d242e's, and none is added" | `950f334`, T-091 tester: no stray non-test file changed or added | The same two files (285 vs 283) and the same `us-states.ts` edit | modify | The same name and assertions. Add the two T-111 files to `CRITERION_22_ALLOWED`, with a comment. `MAIN_UNTOUCHABLE_COUNT` is **unchanged at 283**. `MAIN_UNTOUCHABLE_SHA` is re-pinned to `d030f3e5fb7cf461a886d00942673314ec895c58ef083e3925f6255b4310675f`, with a re-pin comment line | |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22: the diff touches only the allowed files" › "each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | `bac230d`, T-091 tester: the request files carry exactly their approved re-pins | **Green today.** It goes red as a consequence of rows 1 and 3, because it pins the whole-file sha256 of `agriculture-true-wrong-answers-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts` in `APPLIED_REQUEST_FILE_SHAS` (observed red in the scratch run) | modify | The same name and assertions. Those two entries of `APPLIED_REQUEST_FILE_SHAS` are re-pinned to the files' sha256 after rows 1 and 3 are applied, with a "then by T-111 (row N, for its rows 1 and 3)" comment. All other entries stay unchanged | |
