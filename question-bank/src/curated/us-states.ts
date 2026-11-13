@@ -66,27 +66,28 @@
  *
  * **`region` vocabulary (T-017, 2026-09-18).** This field used to carry an
  * eight-value set of its own, out of step with the thirteen values the served
- * bank (`backend/app/data/content.json`, the 15 states shipping today) already
- * returns from `region` filters. **Decided 2026-09-18 (product call, asked of
- * the human per `process.md`'s expander gate): the app adopts the served
- * bank's vocabulary**, not the pipeline's. Every row below now carries one of
- * exactly these 13 values, and no other string is valid here:
+ * bank (`backend/app/data/content.json`, then the 15 states served at the
+ * time) returned from `region` filters. **Decided 2026-09-18 (product call,
+ * asked of the human per `process.md`'s expander gate): the app adopts the
+ * served bank's vocabulary**, not the pipeline's. Every row below now
+ * carries one of exactly these 13 values, and no other string is valid here:
  *
  *   `Great Basin`, `Great Lakes`, `Great Plains`, `Mountain West`,
  *   `New England`, `Northeast`, `Pacific`, `Pacific Northwest`,
  *   `Pacific West`, `South Central`, `Southeast`, `Southwest`,
  *   `Upper Midwest`.
  *
- * The 15 states already served (`Colorado`, `Florida`, `Texas`, `Alaska`,
- * `Hawaii`, `Maine`, `Michigan`, `Louisiana`, `California`, `New York`,
- * `Arizona`, `Kansas`, `Washington`, `Minnesota`, `Nevada`) carry the exact
- * value `content.json` already ships for them — this table was brought to
- * match that file, not the other way around (T-017 leaves `content.json`
- * itself untouched). The remaining 35 states are a human's judgment call
- * against ordinary US regional usage (adapted from the Census Bureau's
- * divisions, not copied from them line for line — e.g. Census's "West North
- * Central" is split here between `Great Plains` and `Upper Midwest`, and New
- * England is split out from the rest of the Northeast). See
+ * The 15 states that bank served in 2026-09 (`Colorado`, `Florida`, `Texas`,
+ * `Alaska`, `Hawaii`, `Maine`, `Michigan`, `Louisiana`, `California`,
+ * `New York`, `Arizona`, `Kansas`, `Washington`, `Minnesota`, `Nevada`) carry
+ * the exact value `content.json` shipped for them then — this table was
+ * brought to match that file, not the other way around (T-017 leaves
+ * `content.json` itself untouched). The remaining 35 states are a human's
+ * judgment call against ordinary US regional usage (adapted from the Census
+ * Bureau's divisions, not copied from them line for line — e.g. Census's
+ * "West North Central" is split here between `Great Plains` and
+ * `Upper Midwest`, and New England is split out from the rest of the
+ * Northeast). See
  * `engineering-decisions.md` E-9 and the brief's Review checklist for which
  * calls were closer than others.
  */
