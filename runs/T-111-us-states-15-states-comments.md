@@ -43,3 +43,37 @@ Files:
 - PR: https://github.com/Dkaattae/geo-discovery-zone/pull/136
 
 Orchestrator: stamped `Approved:` (unattended run).
+
+## Round 2 — worker — 2026-11-13 15:12Z
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR:** The T-111 worker step is done and pushed: commit `4cd2093` is on `origin/claude/amazing-franklin-j3x3l1` (I checked with `git log origin/... -1`). Both comment phrases are now past tense and T-017's decision is still recorded. The brief now reads Status `awaiting verification`, Next step `tester`. The question-bank suite has 4 failing tests, all whole-tree checksum or file-count checks, all listed in the Handoff. Two were already failing before my edit.
+
+**What changed**
+- **`/home/user/geo-discovery-zone/question-bank/src/curated/us-states.ts`**: only the region doc comment (lines 67–93).
+  - Line 69 now says "then the 15 states served at the time) returned".
+  - Line 80 now says "The 15 states that bank served in 2026-09 … shipped for them then".
+  - The rest of the paragraph is re-wrapped to 80 columns, wording unchanged.
+- **`/home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md`**: header updated, worker Sessions row added, Handoff written.
+
+**Criteria**
+| # | Result | Evidence |
+|---|---|---|
+| 1 | met | Neither phrase appears anywhere in the file, and "today" no longer appears in the region paragraph. |
+| 2 | met | A script check found T-017, 2026-09-18, E-9, 15, all 13 region values and all 15 state names in backticks inside the paragraph. |
+| 3 | met | With comments and whitespace stripped, the file is identical to `2634fc8`. The offline build and `bun run questions` leave `git status` clean. |
+| 4 | contradiction | The branch diff also touches `tasks.md` and `runs/T-111-…md`, from the expander and orchestrator commits. |
+
+**Criterion 4, for the tester to judge:** read literally, it fails on those two files, which the process itself added. If the tester holds it strictly, it goes back to the `task-expander`, which should allow those two paths in future light briefs.
+
+**Test results**
+- **question-bank:** format, typecheck and lint are clean. `bun test` gives 2763 pass, 4 fail.
+  - `agriculture-true-wrong-answers-verify.test.ts`, "criterion 20: curated/us-states.ts is byte-identical to main's": checksum of this file, made stale by my edit.
+  - `climate-cold-trade-accepted-verify.test.ts`, "T-091 criterion 20 … is 12d242e's": checksum of the source tree, made stale by my edit.
+  - `farm-animal-loose-ends-verify.test.ts`, "T-096 … criterion 21": file count 280 → 282. Already failing before my edit, because of the brief and run log files.
+  - `climate-cold-trade-accepted-verify.test.ts`, "T-091 criterion 22": file count 283 → 285. Already failing for the same reason.
+  - The Handoff gives the replacement value for each one.
+- **backend:** `uv run pytest -q` gives 1221 passed, 9 skipped.
+- **frontend: not verified.** `bun install` hit a proxy 403 on `d3-zoom`, so `react-simple-maps` is missing. Typecheck fails and 4 tests fail, all on that missing package. Nothing under `frontend/` was touched. The tester should rerun it with working package downloads, or rely on CI.
+
+**One thing for the tester:** `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the same id (`cse_011oDiJfSMW5AuCAW3Bk9Ste`) for the expander and the worker. The tester will need some other way to show its session is fresh.
