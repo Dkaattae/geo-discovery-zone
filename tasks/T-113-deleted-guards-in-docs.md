@@ -1,14 +1,14 @@
 # T-113 — `tasks.md` §A and `PROGRESS.md` name guards that were deleted
 
-**Status:** `fail`
-**Next step:** `ci-fix`
+**Status:** `ci fix requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-113-deleted-guards-in-docs.md`.
 **Test changes:** `none`
-**CI fix:** `none`
+**CI fix:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-113
 **Branch:** `claude/relaxed-allen-5ro49x`
 **PR:** #142, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
-**Fault:** tester: criterion 14 (and 17) not met — the new "The one CI test that still reads `conventions.md`" sentence (`tasks.md:169`, `PROGRESS.md:247`) is false: `question-bank/src/committed-bank.test.ts` also reads `conventions.md` in CI.
+**Fault:** the worker's "the one CI test that still reads `conventions.md`" sentence (`tasks.md`, `PROGRESS.md`) is false because `question-bank/src/committed-bank.test.ts` also reads it in CI; a two-row doc-only CI fix plan is waiting for approval.
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | worker | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | tester | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see Verdict) |
+| ci-fix | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see CI fix plan) |
 
 ## Goal
 
@@ -334,6 +335,27 @@ The tester checks each item by hand and records the result in its Verdict:
 - `backend`: `make check` gives 809 passed, 9 skipped.
 - `frontend`: lint and `format:check` are clean. **Typecheck and `bun test` are red here for environmental reasons:** `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)` on tarballs, so `react-simple-maps` and `us-atlas` are missing (TS2307), and the 4 files that import them fail to load. **GitHub CI on `a9e98bc` is all green**, including `frontend (typecheck, lint, test)` (`gh api …/commits/a9e98bc/check-runs`). The diff touches no code.
 - No red test is stale. No pre-existing test was deleted or modified. I committed no tests: the deliverable is documentation, and every criterion is checked by hand.
+
+## CI fix plan
+
+| # | File (and function or test) | Kind | Change | Why — failing test or CI line, root cause, criterion quoted for a test row | Decision |
+|---|---|---|---|---|---|
+| 1 | `tasks.md`, the paragraph under the §A table (lines 169–171) | source (the doc deliverable; no test) | Replace the sentence "The one CI test that still reads `conventions.md` checks a single line, the Layout's `archive/` row (`backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`)." with: "Two narrow CI checks still read `conventions.md`, and neither covers it as a whole: `backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive` checks the Layout's `archive/` row, and `question-bank/src/committed-bank.test.ts` checks that it says the bank is committed under `data/us-states` and does not say the bank is kept out of git." Nothing else in the paragraph changes; the bold sentence stays word for word | Tester Verdict, criterion 14 (and 17) not met. Criterion 14: "It may mention the narrow single-line check `…test_c28_…`. It must not describe that check as covering `conventions.md` as a whole", read with the checklist's "the review-alone sentence exists and is accurate". Root cause below | |
+| 2 | `PROGRESS.md`, `## Done` › Repo and process, the "kept true by review, not by a test" bullet (lines 247–249) | source (the doc deliverable; no test) | Replace "The one CI test that still reads `conventions.md` checks a single line, the Layout's `archive/` row (`backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`)." with the same replacement sentence as row 1, rewrapped to the bullet's indentation. Nothing else in the bullet changes | Same failure, second location. Same criterion 14 / 17 | |
+
+**Root cause:** the brief's own Context line says `test_c28_…` "is the one remaining CI test that reads `conventions.md`", and the worker copied that survey fact into both docs without checking it. It is wrong: `question-bank/src/committed-bank.test.ts`, one of the five question-bank files CI runs (`ci.yml:154`, `bun test`), reads `conventions.md` in `describe("T-010 criteria 11–16 …")` › "criterion 11 — no shipped file still asserts the bank is not stored in git" (line 241) and "criterion 15 — README and conventions say a fresh clone already has the bank" (lines 271–272). Reproduced: `grep -n conventions.md question-bank/src/committed-bank.test.ts` gives 241, 271, 272, and `bun test src/committed-bank.test.ts -t 'criterion 1[15]'` runs both, 2 pass. I grepped every tracked CI test file (`*.test.ts(x)`, `backend/tests/test_*.py`) for `conventions.md`, `README.md` and `test-guidelines.md`: the only real reads are these two plus `test_c28`; the other hits (`ci-action-pinning`, `screens.criteria`, `level.criteria`, `level.test`, `fun-facts`) are comments. So the replacement sentence names every CI reader of the three docs, and the bold criterion-14 sentence ("No CI test checks … against the repo's layout, commands, CI jobs or test counts") stays true with the two narrow checks spelled out next to it. The criterion itself is sound; only the survey fact was wrong, so this is a fix, not a `blocked`.
+
+**Not doing:**
+
+- **Dropping the sentence instead of correcting it.** Criterion 14 allows naming `test_c28`, and the reader is better served by knowing exactly which narrow checks exist than by silence.
+- **Rewording the bold "No CI test checks …" sentence.** It is criterion 14's required statement, and with the narrow checks named beside it, it is accurate. Qualifying it further risks drifting from the criterion's wording.
+- **Editing the brief's Context line** ("`test_c28_…` is the one remaining CI test …"). It is the expander's survey, not a deliverable; noted here so the reviewer can see it was wrong.
+- **The tester's criterion-12 advisory** (`conftest.py::assert_matches` still checks response shapes against `openapi.yaml` in CI, so "kept in step by hand" may want qualifying). The tester scored 12 as met; changing it is outside a fix for the fail. Left for the reviewer.
+- **Any test change.** No test is red; the deliverable is documentation, checked by hand.
+
+**Independence:** orchestrated run (`runs/T-113-deleted-guards-in-docs.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJd2dgRHzBRDwBhvmNz`, the same id as every role on this task, so the session check cannot pass or fail. My independence is only that of a freshly spawned agent with its own context that did not write or verify the change.
+
+To approve by hand: fill in Decision, set the header's `CI fix:` to `approved — <name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
 
 ## Notes
 
