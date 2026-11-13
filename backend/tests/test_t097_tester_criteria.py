@@ -13,6 +13,9 @@ against a fixed commit goes red on `main` once a later task touches those
 paths (E-11, E-12). Criterion 18 holds because every test here uses only the
 in-process `client` and `db_session` fixtures; the suite was also run with the
 proxy variables pointing at `http://127.0.0.1:1`, as CI does.
+
+Criterion 14 checked `openapi.yaml`'s text and was deleted when CI stopped
+checking the backend against it (`engineering-decisions.md` E-14).
 """
 
 from __future__ import annotations
@@ -21,11 +24,10 @@ from typing import Any
 
 import httpx
 import pytest
-import yaml
 from sqlalchemy.orm import Session
 
 from app.orm import ContentMeta
-from tests.conftest import SPEC_PATH, assert_problem
+from tests.conftest import assert_problem
 
 BUNDLE = "/bundles/us"
 KEYED = {"includeAnswerKey": "true"}
@@ -233,28 +235,6 @@ async def test_c13_an_unknown_bundle_is_still_a_404(
 ) -> None:
     response = await client.get("/bundles/zz", params=params)
     assert_problem(response, 404)
-
-
-# -- 14 -----------------------------------------------------------------------
-
-
-def _get_bundle_description() -> str:
-    spec = yaml.safe_load(SPEC_PATH.read_text())
-    operation = spec["paths"]["/bundles/{bundleId}"]["get"]
-    assert operation["operationId"] == "getBundle"
-    return " ".join(operation["description"].split())
-
-
-def test_c14_the_contract_says_the_etag_differs_between_variants() -> None:
-    description = _get_bundle_description()
-    assert "includeAnswerKey" in description
-    assert "ETag" in description
-    assert "differs between" in description
-
-
-def test_c14_the_contract_says_one_variants_tag_does_not_revalidate_the_other() -> None:
-    description = _get_bundle_description()
-    assert "does not revalidate" in description
 
 
 # -- 15 -----------------------------------------------------------------------

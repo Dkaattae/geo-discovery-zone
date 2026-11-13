@@ -711,6 +711,13 @@ backend because the backend's contract check (`backend/tests/conftest.py`,
 otherwise, which makes it a file to update, not a promise to defend.
 `CLAUDE.md`'s opening paragraph says the same.
 
+**Amended 2026-11-13 (PR #143), by Dkaattae: "yes remove the openapi check".**
+The contract check named in the paragraph above is gone: `assert_matches` and
+its `spec` fixture were deleted from `backend/tests/conftest.py`, with every
+call to them and the tests that only read `openapi.yaml`'s text. No test reads
+`openapi.yaml` now. It is still kept in step with the backend, by hand, in the
+same change that moves what the backend serves; nothing goes red if it is not.
+
 **Revisit when** a consumer outside this repo depends on `openapi.yaml`, for
 example a second client or a published API. At that point the contract has a
 reader the backend cannot see, and it would need to constrain the backend
