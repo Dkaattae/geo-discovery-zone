@@ -1,7 +1,7 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH` — run log
 
 **Task:** T-109 · **Branch:** `task/T-109-format-script-guard` · **PR:** #137
-**Started:** 2026-11-13 · **Outcome:** halted — needs human
+**Started:** 2026-11-13 · **Outcome:** in progress
 
 Task 2 of an orchestrated run of 2, started by Dkaattae ("start the next two tasks as an orchestrator").
 
@@ -292,3 +292,6 @@ Files:
 This is T-109's second `fail` verdict (round 3 and round 6). `orchestrator.md` G3 halts a task after two `fail` verdicts, so the orchestrator did not spawn the `ci-fix` the header names. The header is left as the tester wrote it (`Status: fail`, `Next step: ci-fix`); a person decides whether the loop continues.
 
 What a human has to decide: whether to let T-109 take another `ci-fix` round (header's `Next step: ci-fix`, request row 20 in the brief), or to handle it another way. Branch head at halt: `85698c3`.
+
+## Resumed by a person — 2026-11-13
+Dkaattae, in the orchestrator's session: "run the T-109 ci-fix". The G3 halt is lifted for one more `ci-fix` round at their direction; the header is unchanged (`Next step: ci-fix`).
