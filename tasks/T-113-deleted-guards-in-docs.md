@@ -1,7 +1,7 @@
 # T-113 — `tasks.md` §A and `PROGRESS.md` name guards that were deleted
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge; Dkaattae)
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-113-deleted-guards-in-docs.md`.
 **Test changes:** `none`
 **CI fix:** `applied — approved — session user (repo owner), 2026-11-13, given in the orchestrator's session`
@@ -20,6 +20,7 @@
 | ci-fix | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see CI fix plan) |
 | ci-fix (pass 2) | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see CI fix) |
 | tester (round 2) | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see Verdict) |
+| reviewer | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see Review) |
 
 ## Goal
 
@@ -433,6 +434,57 @@ To approve by hand: fill in Decision, set the header's `CI fix:` to `approved �
 
 - The brief's Context line still says `test_c28_…` "is the one remaining CI test that reads `conventions.md`". It is the expander's survey, not a deliverable; left for the reviewer.
 - The tester's criterion-12 advisory (`backend/tests/conftest.py::assert_matches` still checks response shapes against `openapi.yaml` in CI) stands for the reviewer.
+
+## Review
+
+**Approved, inside the envelope: PR #142 marked ready, no escalation.** The diff does what the goal asks, in small edits that keep each row and bullet. Every role stayed in its lane. One non-blocking inaccuracy goes to a new task (T-114). Swept in this branch. **Next: Dkaattae merges.**
+
+**Every role's work is in the PR.** Each Sessions row has a commit on `claude/relaxed-allen-5ro49x`: expander `8cbaae9`/`e713fbd`, worker `a443e7c`, tester `728796e`/`fe2c04d`, ci-fix `346235e`/`d283def`. The orchestrator's are `runs/` and the header stamps.
+
+**Lanes**
+
+- **Expander** (`8cbaae9`, `e713fbd`): only the brief.
+- **Worker** (`a443e7c`): only `tasks.md`, `PROGRESS.md` and the brief (criterion 16).
+- **Tester** (`728796e`, `fe2c04d`): only the brief.
+- **ci-fix** (`d283def`): changes exactly rows 1 and 2, the "one CI test" sentence in `tasks.md` and `PROGRESS.md`, word for word as planned. It also writes its section of the brief. The approval came from a person ("approve T113 fix plan", relayed in `45a3fd8`), not the timeout stamp. `git log -p` shows `CI fix:` never named `orchestrator`.
+- **Orchestrator:** `runs/T-113-deleted-guards-in-docs.md` and the header stamps.
+
+**Findings**
+
+1. **Non-blocking: `PROGRESS.md:66-69` says `openapi.yaml` "is kept in step by hand (E-14)".** CI still checks response payloads against `openapi.yaml`'s component schemas through `backend/tests/conftest.py::assert_matches`: every required property is present and nothing undeclared is sent. `test_sessions_api.py`, `test_profiles_api.py` and others call it. So the sentence understates a guard that still exists. It overclaims none, so criterion 17 holds. **Disposition:** new task T-114. It shares one file with two other stale `## Done` facts the brief's Out of scope pointed at. T-112 owns `backend/README.md`, a different file, so amending it would have widened it for no gain.
+
+**The flags the worker, tester and ci-fix raised, each settled**
+
+| Flag | Decision |
+|---|---|
+| Region-vocabulary Known-gaps bullet rewritten beyond the enumerated criteria | **Keep.** It named a deleted guard, which is exactly the goal. The tester confirmed the two `test_region_vocabulary.py` tests it now credits |
+| `E-12` → `E-32` | **Keep.** Out of scope allowed it, and it is correct |
+| "No test fails on `main` in a full clone any more" heading left as is | **Leave.** It is a claim about expired baselines, not a guard. The bullet beneath now says plainly that no CI suite guards it |
+| `test-guidelines.md` states counts again, against criterion 4's "may still say no counts" | **Accept the worker's wording.** The row now records the fact instead of a false claim. Whether `test-guidelines.md` should drop the counts is not queued: Dkaattae wrote them in `987d2cd`, so it is his call. Noted in the PR body |
+| "Five agents" and `run-loop.sh` (Out of scope) | **Queued as T-114**, with finding 1 |
+| The brief's Context line wrongly calling `test_c28` the only CI reader | **Moot.** The sweep deletes the brief. Recorded in the `PROGRESS.md` Completed entry under "where it differed" |
+| Tester's criterion-12 advisory (`assert_matches`) | **Finding 1 → T-114** |
+| "A person reads the rewritten bullets for tone" (checklist) | **Left for Dkaattae at merge.** Noted in the PR body. It does not need an escalation: nothing here is child-facing |
+
+**Envelope:** every item holds.
+
+- The tester passed.
+- CI is green on `5a2a750`. The commits after it touch only `runs/` and the brief.
+- The only files changed are the Constraints' files and the orchestrator's `runs/` log, plus the sweep.
+- No dependency was added. Nothing touches `openapi.yaml`, a migration or `geoquizdataplan.md`, and no child-facing text changed.
+- No test was touched. The CI fix was approved by a person.
+- No product decision was settled. The diff is small and held no surprise.
+
+**Sweep (applied in this branch, next commit)**
+
+- **Deleted:** this brief and T-113's `tasks.md` entry.
+- **Updated §A's closing line:** "T-114 is the one open §A task".
+- **`PROGRESS.md`:** T-113 logged under Completed tasks.
+- **T-114:** new.
+- **T-095:** amended. `987d2cd` moved its question-bank pins to the monthly snapshot lane, so a refresh PR's CI no longer runs them, and it needs a re-survey before Q goes to a person.
+- **Sweep log:** a line appended to `tasks.md`.
+
+**Independence.** This is an orchestrated run, and every spawned role carries the same session id. I am a freshly spawned agent: I did not write, test or fix any of this.
 
 ## Notes
 
