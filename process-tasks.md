@@ -747,3 +747,8 @@ session, so it cost no review round. It still cost a second approval round.
 **Done when:** a task's worker and tester cannot report the existing suite green
 while another CI job is red on the same tree; or a D-n entry records why
 the reviewer's CI check is the accepted backstop.
+
+### P-19 — `CLAUDE.md` still says the backend is "not built yet" in `api/` · S · todo
+**Depends on:** —
+**New 2026-11-13, from T-046's review (PR #141).** E-31 decided the service directory is `backend/` and `api/` is not a directory name. Two lines of `CLAUDE.md` still say otherwise (on `main` at `b10fa64`): line 4, `` `api/` FastAPI + Postgres (uv, not built yet) ``, and line 58, `` `uv add` / `uv run` in `api/` ``. `CLAUDE.md` is loop-gated (G1), so no `T` task can fix them. Both are wrong twice over: the directory is `backend/`, and the API is built.
+**Done when:** `CLAUDE.md` says `backend/` in both places and no longer says the backend is not built; `PROGRESS.md`'s Layout note about it is dropped.
