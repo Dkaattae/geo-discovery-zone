@@ -1,7 +1,7 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today" — run log
 
 **Task:** T-111 · **Branch:** `claude/amazing-franklin-j3x3l1` · **PR:** #136
-**Started:** 2026-11-13 · **Outcome:** in progress
+**Started:** 2026-11-13 · **Outcome:** ready for merge
 
 Orchestrated run of 2 tasks, started by Dkaattae ("start the next two tasks as an orchestrator").
 
@@ -273,3 +273,40 @@ I reverted all three, confirmed with `cmp` and a clean `git status`.
 I changed no source and no pre-existing tests. My commit touches only the brief: Status, Next step, a new Sessions row, and the Verdict.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
+
+## Round 9 — reviewer — 2026-11-13 16:33Z
+`Next step` on entry: `reviewer` → on exit: `human` (Status `approved`; brief deleted by the sweep in `257b081`; PR #136 marked ready)
+
+**I approved T-111 and it is not escalated. PR #136 is now marked ready for review and is waiting for Dkaattae to merge it.** The sweep is done and pushed. I did not merge.
+
+- **Branch:** `claude/amazing-franklin-j3x3l1`, head `257b081`. `origin` matches it, so the push landed.
+- **Commits:**
+  - `c626f58`: `## Review` section added to the brief, Status set to `approved`, Next step set to `human`, reviewer row added to Sessions.
+  - `257b081`: the sweep. The brief is deleted, T-111's entry is gone from `tasks.md` and a line is added to its sweep note, and `PROGRESS.md` has a T-111 entry under "Earlier tasks, on-process". Nothing else in the queue moved.
+- **Brief status:** the brief no longer exists, because the sweep deleted it. Its last state in `c626f58` was Status `approved`, Next step `human` (merge PR #136, routine). The review findings now live in the PR body.
+
+**Checks:**
+- **Every role's work is in the PR.** Each Sessions row has a commit on the branch.
+- **Each role stayed in its lane:**
+  - The expander touched only `tasks/` and `tasks.md`.
+  - The worker changed only comment lines in `us-states.ts`, plus the brief.
+  - The tester added one new test file and changed no source.
+  - ci-fix `7684638` changed only what approved CI fix plan rows 1–6 named.
+- **Inside the envelope:**
+  - Tester verdict was pass.
+  - No file outside criterion 4, no new dependency, and nothing in `openapi.yaml`, migrations or the plan.
+  - No text a child reads, and no product decision.
+  - Pre-existing tests changed only through plan rows a person approved (Dkaattae, logged in `runs/`). The `CI fix:` header never carried an orchestrator stamp.
+- **Suites, run by me:** `question-bank` gave 2805 pass, 0 fail, both before and after the sweep, and `format:check` is clean. Backend gave 1221 passed, 9 skipped. CI on `ed8ea7c` and `7684638` was all green. CI on the new head was still running when I finished.
+
+**Flags I resolved:**
+- **Row 5's farm digest:** ci-fix applied `377286f4…`, not the approved `95d04a10…`. I accepted it, because the approved plan explicitly allowed a recompute and the new value is the file's real sha256.
+- **Tense of the reworded comments:** they read as past tense, so criterion 2 is met.
+- **`backend/tests/test_region_vocabulary.py:10` docstring:** left alone, with no task. It is out of scope.
+- **Short re-wrap line "Northeast). See" in `us-states.ts`:** cosmetic, with no task.
+- **The recurring stale-pin re-pins (P-17):** already tracked in `process-tasks.md`.
+
+Files: /home/user/geo-discovery-zone/tasks.md, /home/user/geo-discovery-zone/PROGRESS.md, /home/user/geo-discovery-zone/question-bank/src/curated/us-states.ts
+
+## Ended — ready for merge
+PR #136 is ready; merging is Dkaattae's. Rounds: expander → worker → tester (blocked) → expander → tester (fail) → ci-fix (plan; approved by Dkaattae in session) → ci-fix (apply) → tester (pass) → reviewer.
