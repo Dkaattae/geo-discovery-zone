@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-109
 **Branch:** `task/T-109-format-script-guard`
-**PR:** opened draft at expand time (number recorded below once known)
+**PR:** #137, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves
 **Fault:**
 
 **Sessions:**
