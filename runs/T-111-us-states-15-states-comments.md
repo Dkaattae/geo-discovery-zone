@@ -5,7 +5,7 @@
 
 Orchestrated run of 2 tasks, started by Dkaattae ("start the next two tasks as an orchestrator").
 
-## Round 1 — task-expander — 2026-11-13 15:00Z
+## Round 1 — task-expander — 2026-11-13 14:58Z
 `Next step` on entry: `(no brief)` → on exit: `worker`
 
 I expanded T-111 into a light brief and opened draft PR #136 on `claude/amazing-franklin-j3x3l1`. The push landed: `origin/claude/amazing-franklin-j3x3l1` is at `486ee0a`.
@@ -44,7 +44,7 @@ Files:
 
 Orchestrator: stamped `Approved:` (unattended run).
 
-## Round 2 — worker — 2026-11-13 15:12Z
+## Round 2 — worker — 2026-11-13 15:08Z
 `Next step` on entry: `worker` → on exit: `tester`
 
 **TL;DR:** The T-111 worker step is done and pushed: commit `4cd2093` is on `origin/claude/amazing-franklin-j3x3l1` (I checked with `git log origin/... -1`). Both comment phrases are now past tense and T-017's decision is still recorded. The brief now reads Status `awaiting verification`, Next step `tester`. The question-bank suite has 4 failing tests, all whole-tree checksum or file-count checks, all listed in the Handoff. Two were already failing before my edit.
@@ -78,7 +78,7 @@ Orchestrator: stamped `Approved:` (unattended run).
 
 **One thing for the tester:** `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the same id (`cse_011oDiJfSMW5AuCAW3Bk9Ste`) for the expander and the worker. The tester will need some other way to show its session is fresh.
 
-## Round 3 — tester — 2026-11-13 15:25Z
+## Round 3 — tester — 2026-11-13 15:15Z
 `Next step` on entry: `tester` → on exit: `task-expander` (Status `blocked`; G3 count: 0 fail, 1 blocked)
 
 **T-111 tester verdict: `blocked`, next step `task-expander`.** Criteria 1, 2 and 3 are met. Criterion 4 cannot be met as written, so I am returning it rather than choosing a reading myself. Commit `988c08e` is pushed to `claude/amazing-franklin-j3x3l1`, and the remote head matches.
@@ -110,7 +110,7 @@ Orchestrator: stamped `Approved:` (unattended run).
 - `/home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md` has the Verdict, the Test change request, Status `blocked`, Next step `task-expander`, a Fault line and my Sessions row.
 - `/home/user/geo-discovery-zone/question-bank/src/us-states-region-comment-verify.test.ts` is the new test file, 38 tests.
 
-## Round 4 — task-expander — 2026-11-13 15:30Z
+## Round 4 — task-expander — 2026-11-13 15:17Z
 `Next step` on entry: `task-expander` → on exit: `tester`
 
 **TL;DR:** I amended criterion 4 of T-111 so it can be met. Criteria 1 to 3 are unchanged. The brief is back at `Status: awaiting approval`, `Next step: tester`, with `Approved: pending` and the 5 Test change request rows untouched. It needs re-approval (the orchestrator's re-stamp), then a fresh `tester`. Commit `80abbee` is pushed to `claude/amazing-franklin-j3x3l1`, and the remote head matches local.
@@ -147,7 +147,7 @@ Orchestrator: stamped `Approved:` (unattended run).
 
 Orchestrator: re-stamped `Approved:` (unattended run).
 
-## Round 5 — tester — 2026-11-13 15:40Z
+## Round 5 — tester — 2026-11-13 15:23Z
 `Next step` on entry: `tester` → on exit: `ci-fix` (Status `fail`; G3 count: 1 fail, 1 blocked)
 
 **T-111, tester round 2: `fail`. Every acceptance criterion is met; the fail is only for stale test pins, and the next step is the `ci-fix`.** All four criteria hold on `ff58bb2`, including criterion 4 as amended. The question-bank suite has 5 red tests. Every one is a whole-tree or whole-file pin that this task's own files made stale; no behaviour test is red. Six change rows are in the brief, routed to the `ci-fix` (D-20) with Decision blank. Pushed `6ed5ff5` to `claude/amazing-franklin-j3x3l1`, and the remote matches.
@@ -178,3 +178,33 @@ Orchestrator: re-stamped `Approved:` (unattended run).
 Files:
 - /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
 - /home/user/geo-discovery-zone/question-bank/src/us-states-region-comment-verify.test.ts
+
+## Round 6 — ci-fix (pass 1) — 2026-11-13 15:28Z
+`Next step` on entry: `ci-fix` → on exit: `human` (Status `ci fix requested`, CI fix `requested`)
+
+**TL;DR:** Pass 1 of T-111's CI fix is done. The plan is written and pushed as `218304a` on `claude/amazing-franklin-j3x3l1` (the push landed: `origin` points at the same commit). No code is wrong: all 6 rows re-pin pre-existing tests that T-111's own files made stale. Nothing is applied yet. The brief now says `Status: ci fix requested`, `Next step: human`, `CI fix: requested`. This run is orchestrated, so I stopped after the push to wait for approval: a person's, or your one-hour timeout stamp.
+
+**Reproduced:** on `21da551`, `cd question-bank && bun test` gave 2800 pass, 5 fail. Those are the same 5 pins listed in the tester's Verdict.
+
+**The plan** is in `## CI fix plan` in the brief, as 6 `pre-existing test` rows. They map one-to-one onto Test change request rows 1 to 6 (D-20).
+- **Row 1:** re-pins `us-states.ts` in `MAIN_FILE_SHA` (`agriculture-true-wrong-answers-verify.test.ts`).
+- **Row 2:** re-pins `MAIN_SOURCE_TREES_SHA` (`climate-cold-trade-accepted-verify.test.ts`).
+- **Rows 3 and 4:** add T-111's brief and run log to the allowed sets in `farm-animal-loose-ends-verify.test.ts` and `climate-cold-trade-accepted-verify.test.ts`, and re-pin `MAIN_UNTOUCHABLE_SHA` in each. The counts stay at 280 and 283.
+- **Row 5:** re-pins the two `APPLIED_REQUEST_FILE_SHAS` entries for the files rows 1 and 3 edit. It must be applied after rows 1 and 3.
+- **Row 6:** sets `MAIN_TESTS_COUNT` from 132 to 133 and re-pins `MAIN_TESTS_SHA`, because the T-111 tester added a new test file.
+
+**Every value was observed in a trial, not worked out on paper.** I applied all 6 rows in a throwaway worktree, then removed it.
+- **Results:** question-bank gave **2805 pass, 0 fail**, with format, lint and typecheck clean. The backend gave 1221 passed, 9 skipped.
+- **Digests:** the tester's values for rows 1 to 4 and 6 matched exactly. Row 5's digests are new; they depend on the exact comment text in rows 1 and 3, which the plan gives word for word.
+- **Base:** `origin/main` is still `2634fc8`. If it moves before pass 2, the digests must be recomputed and the plan goes back through pass 1.
+
+**Independence:** this is an orchestrated run, and my session id is the same one shared by every role. My only independence is being a freshly spawned subagent; I did not see the worker's or the testers' sessions.
+
+**Next:** approval of the plan, then a fresh `ci-fix` for pass 2. Every row is a pre-existing test change, so if it is approved by the timeout stamp the reviewer must escalate it (D-18).
+
+File: /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
+
+## Halted — CI fix requested — 2026-11-13 15:28Z
+Branch head at halt: `218304a`. Asked Dkaattae in the orchestrator's session to approve or refuse the CI fix plan. If nobody answers by about 16:28Z, the orchestrator stamps it (D-17) and spawns a fresh `ci-fix`. Moving on to task 2 meanwhile.
+
+(Round headers 1–5 corrected to the commit times; they were first written with estimated times.)
