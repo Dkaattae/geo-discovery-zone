@@ -59,3 +59,41 @@ Task 2 of an orchestrated run of 2, started by Dkaattae ("start the next two tas
 **Not touched:** `tasks.md` and `PROGRESS.md`. `tasks/` was empty at start, so there was nothing to sweep.
 
 Orchestrator: stamped `Approved:` (unattended run).
+
+## Round 2 — worker — 2026-11-13 15:42Z
+`Next step` on entry: `worker` → on exit: `tester`
+
+**T-109 is built and pushed.** In both packages, `format` and `format:check` now refuse to run unless the pinned prettier is installed. Commit `0e04cf7` is on `origin/task/T-109-format-script-guard`, confirmed with `git log origin/task/T-109-format-script-guard -1`. The brief is set to Status `awaiting verification`, Next step `tester`.
+
+**Suite results:** 17 question-bank tests go red by design and are listed in the Handoff under Tests made stale. The other reds were already failing before this change or come from this sandbox.
+
+**How the guard works:**
+- Each script now runs a guard file first, joined with `&&`, then the unchanged prettier command: `bun run <guard> && prettier --write|--check <same globs>`.
+- The guard reads the pinned version from `devDependencies.prettier` in the package's `package.json` when it runs.
+- It exits 1 in each of the brief's three states: prettier missing, wrong version, or the `.bin/prettier` file missing.
+- The message always names the pinned version, names the version it found when that differs, and says to run `bun install`.
+
+**Files changed:**
+- `/home/user/geo-discovery-zone/question-bank/src/prettier-pin-guard.ts` (new)
+- `/home/user/geo-discovery-zone/frontend/scripts/prettier-pin-guard.ts` (new, identical apart from one comment line)
+- `/home/user/geo-discovery-zone/question-bank/package.json` and `/home/user/geo-discovery-zone/frontend/package.json`, `scripts` only
+- `/home/user/geo-discovery-zone/conventions.md`, Formatting paragraph only (3 added lines)
+- `/home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md`: Handoff, Notes, Sessions row, Status
+
+**Checked by hand in throwaway package copies:** all three states, plus a wrong version one patch below the pin, for both scripts in both packages. Every run exited 1, no stand-in prettier ran (whether first on `PATH` or in `.bin`), no file changed, and the output contained the version strings. I also confirmed the pinned version is read rather than hard-coded, in both directions (criterion 7). I did not commit a test of my own; criteria 1–7 and 15–16 are the tester's to pin.
+
+**Suite results in full:**
+- **Question-bank:** 2748 pass, 19 fail.
+  - 17 are the stale whole-tree and manifest pins, each listed in the Handoff with a proposed re-pin.
+  - The other 2 already failed before my change (T-096 criterion 21 and T-091 criterion 22; I checked with my change stashed).
+- **Frontend:** 434 pass, 4 fail, 4 errors, all `Cannot find package 'react-simple-maps'`. `bun install --frozen-lockfile` gets a 403 from the proxy, so that package can't be installed here.
+- **Typecheck:** green in question-bank. Frontend typecheck is red only on that same missing package.
+- **Lint and `format:check`:** green in both packages.
+
+**Decisions for the reviewer** (also in the Handoff):
+- **Two copies of the guard, not one shared file.** A file outside the packages would break in throwaway copies of a package and would sit outside lint and format coverage.
+- **The question-bank guard is under `src/`.** That gets it typechecked, linted and format-checked, at the cost of one extra red pin (T-091 criterion 20).
+- **The frontend guard is not typechecked.** `frontend/tsconfig.json` doesn't include `scripts/`, so it is only linted and format-checked.
+- **No `engineering-decisions.md` entry.**
+
+**Next:** the tester, in a fresh session. It will need to route the 17 stale pins through the Test change request / `ci-fix` route (D-14, D-20).
