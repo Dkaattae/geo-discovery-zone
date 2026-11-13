@@ -105,3 +105,35 @@ The brief's diff against `main` also lists `runs/T-113-deleted-guards-in-docs.md
 **Independence:** this is an orchestrated run, and my session id is the same one the expander and worker rows carry, so the id check proves nothing. My independence rests only on being a freshly spawned agent that never saw the work. I say so in the Verdict.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md — Status `fail`, Next step `ci-fix`, Fault line and my Sessions row added.
+
+## Round 4 — ci-fix (pass 1) — 2026-11-13
+`Next step` on entry: `ci-fix` → on exit: `human`
+
+**T-113 ci-fix, pass 1: the plan is written and pushed, and nothing is applied yet.** Two doc-only rows are waiting for approval. Status is `ci fix requested`, Next step is `human` and the header reads `CI fix: requested`. Commit `346235e` is on `claude/relaxed-allen-5ro49x`; local HEAD matches origin.
+
+**Root cause, reproduced:**
+- `tasks.md:169-171` and `PROGRESS.md:247-249` both say "The one CI test that still reads `conventions.md` …" and name `test_c28_…`. That is false.
+- `question-bank/src/committed-bank.test.ts` also reads `conventions.md`, at lines 241, 271 and 272, in the tests "criterion 11 …" and "criterion 15 …".
+- CI runs that file (`ci.yml:154`, `bun test`). I ran the two tests with `bun test src/committed-bank.test.ts -t 'criterion 1[15]'`: 2 pass.
+- The false sentence came from the brief's own Context line, which the worker copied without checking.
+- I grepped every tracked CI test file. Apart from these two tests and `test_c28`, nothing reads root `README.md`, `conventions.md` or `test-guidelines.md`; the other matches are comments.
+
+**Plan** (in `tasks/T-113-deleted-guards-in-docs.md`, `## CI fix plan`):
+1. **`tasks.md`, the paragraph under the §A table:** replace the "one CI test" sentence with one sentence saying two narrow CI checks still read `conventions.md`, neither covers it as a whole, and what each checks. `test_c28` checks the `archive/` row; `committed-bank.test.ts` checks that the doc says the bank is committed under `data/us-states` and does not say the bank is kept out of git. The bold criterion-14 sentence is not changed.
+2. **`PROGRESS.md`, `## Done` › Repo and process bullet:** the same replacement.
+
+**Not doing:**
+- Dropping the sentence instead of correcting it.
+- Rewording the bold criterion-14 sentence.
+- Editing the brief's Context line.
+- Acting on the tester's criterion-12 advisory (`assert_matches`); that is left for the reviewer.
+- Any test change. No test is red.
+
+**Independence:** this is an orchestrated run, and every role carries the same session id (`cse_011oDiJd2dgRHzBRDwBhvmNz`). My only independence is that I was freshly spawned with my own context. I added my `ci-fix` row to the Sessions table.
+
+**Next:** a person approves the rows, or the orchestrator stamps them after its timeout. Then a fresh `ci-fix` runs pass 2.
+
+## Halted — CI fix requested — 2026-11-13
+Halt time: 2026-11-13T21:46:48Z. Branch head at halt: `346235e`.
+Header: `CI fix: requested`, `Status: ci fix requested`, `Next step: human`. Plan not read by the orchestrator.
+Person asked in the orchestrator's session to approve or refuse. If nobody answers in about an hour, the orchestrator stamps it (D-17).
