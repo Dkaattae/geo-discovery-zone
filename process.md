@@ -314,7 +314,8 @@ tasks.md
    │
    ├─▶ 4. verify        FRESH SESSION, no working context:
    │                      writes tests from the acceptance criteria
-   │                      (question-bank/: bank tests only, the rest by hand)
+   │                      (question-bank/: bank tests only; frontend/: what the
+   │                       child sees and does; the rest by hand)
    │                      runs them
    │        │
    │        ├── fail (code wrong) ─────────▶ 4a
@@ -496,6 +497,10 @@ count tracked files, read an older commit, or assert on formatting, and the
 `*.snapshot.ts` lane, which runs monthly outside CI, is never added to, re-pinned
 or counted in a verdict.
 
+**In `frontend/`, tests cover only what the child sees and does.** A criterion
+about doc wording, tooling or the repo's shape is checked by hand, as in
+`question-bank/`, and `frontend/src/*.snapshot.ts` is the same monthly lane.
+
 **When the deliverable is itself tests** — T-001, for instance — writing more
 tests to check them is circular. Verify by coverage and then by **mutation**:
 break each behaviour on purpose, confirm the matching test goes red, and revert
@@ -507,7 +512,7 @@ Three outcomes:
 
 | Outcome | Meaning | Next |
 |---|---|---|
-| **Pass** | Every criterion has a test (in `question-bank/`, a recorded check by hand where no test is allowed) and every test passes, including the pre-existing suite | Step 5 |
+| **Pass** | Every criterion has a test (in `question-bank/` and `frontend/`, a recorded check by hand where no test is allowed) and every test passes, including the pre-existing suite | Step 5 |
 | **Fail** | A criterion is not met by the code | To **step 4a**, the `ci-fix`. The failing test stays |
 | **Blocked** | A criterion is ambiguous, untestable as written, or wrong | Back to **step 2**. Fix the brief, not the test |
 
