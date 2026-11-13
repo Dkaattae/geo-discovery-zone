@@ -143,7 +143,8 @@ const MAIN_DEP_FILES = [
 ];
 // re-pinned by T-087 row 6: questions script added (its criteria 1-2). Only
 // question-bank/package.json moved, to 8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3.
-const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7d0cabc";
+// re-pinned by T-109 (CI fix plan row 13): both package.json `scripts` changed, deps unchanged.
+const MAIN_DEP_SHA = "9b11ae15a8413bed210768c4b21431d7f3b51bda1f478c9d4a29cc5a3361eaba";
 /**
  * fileRowsSha over every tracked file at 85612ed that is neither a test file
  * nor in CRITERION_21_ALLOWED: 297 files. Re-pinned when `process-tasks.md`
@@ -179,7 +180,9 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-108 (CI fix plan row 1): T-108's brief and run log join the allowed set (count and digest unchanged, 280).
 // Re-pinned by T-111 (CI fix plan row 3): question-bank/src/curated/us-states.ts moved (comments only);
 // T-111's brief and run log join the allowed set (count unchanged, 280).
-const MAIN_UNTOUCHABLE_SHA = "689e2d1289e22524b7c701457af9b4e4b22185df32fda9b159229a959fee1dcb";
+// Re-pinned by T-109 (CI fix plan row 18): T-109's brief and run log join the allowed set;
+// frontend/package.json moved and the two prettier-pin-guard.ts files were added, all still counted (280 -> 282).
+const MAIN_UNTOUCHABLE_SHA = "c3039ef32c81b55f2c10f72476fbfa816a40ce064fd7d42ce84d0cfbda28c4e4";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -194,6 +197,10 @@ const CRITERION_21_ALLOWED = new Set([
   // Dkaattae, 2026-11-13, given in the orchestrator's session).
   "tasks/T-111-us-states-15-states-comments.md",
   "runs/T-111-us-states-15-states-comments.md",
+  // T-109's loop records, joined through T-109's CI fix plan row 18 (approved by
+  // Dkaattae, 2026-11-13, given in the orchestrator's session).
+  "tasks/T-109-format-script-guard.md",
+  "runs/T-109-format-script-guard.md",
   // T-107's loop files, joined through T-107's CI fix plan row 7 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "tasks/T-107-prettier-writer-guard.md",
@@ -656,7 +663,7 @@ describe("T-096 criteria 17-21: the bank and the boundaries", () => {
 
   test("criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added", () => {
     const rest = gitLsFiles().filter((f) => !CRITERION_21_ALLOWED.has(f) && !isTestFile(f));
-    expect(rest.length).toBe(280); // T-106 CI fix plan row 3: was 281 (T-076 row 4: was 282 (T-047 row 1: was 283 (D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297)))))
+    expect(rest.length).toBe(282); // T-109 CI fix plan row 18: was 280 (T-106 CI fix plan row 3: was 281 (T-076 row 4: was 282 (T-047 row 1: was 283 (D-19, by hand: .claude/loop/'s three files deleted, was 286. T-053 row 32: was 291 (T-045 row 9: was 292 (T-039 row 8: was 293; T-087 row 10a: was 297))))))
     expect(fileRowsSha(rest)).toBe(MAIN_UNTOUCHABLE_SHA);
   });
 });

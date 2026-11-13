@@ -730,8 +730,9 @@ describe("T-092 criterion 15: no new dependency, no manifest or lockfile change"
     expect(all.sort()).toEqual([...MANIFESTS].sort());
     // re-pinned by T-087 row 4: questions script added (its criteria 1-2). Only
     // question-bank/package.json moved, to 8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3.
+    // re-pinned by T-109 (CI fix plan row 6): both package.json `scripts` changed, deps unchanged.
     expect(sha(MANIFESTS.map((p) => `${p}\t${sha(readFileSync(join(REPO, p)))}\n`).join(""))).toBe(
-      "0ce355ae18e0091ec6745e44261b60ba0a136d63354e06b765fdb3fe32de5c99",
+      "2cb0b6eef792dba50d54c1a3cdc4ec348f872c67a684904eed171dcfc3e09935",
     );
   });
 });
@@ -746,7 +747,9 @@ describe("T-092 criterion 16: no other surface changes", () => {
     // format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
     // Re-pinned again by T-107 (CI fix plan 2 row 2; round-3 Test change request row 2): T-107's
     // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
-    ["frontend", [], "8fcdc6344243848a17a754bbb2e712ade1a72e48c8e20d2cf05a3b12f85e1030"],
+    // Re-pinned by T-109 (CI fix plan row 7): T-109 changed the frontend/package.json scripts and
+    // added frontend/scripts/prettier-pin-guard.ts.
+    ["frontend", [], "d937109641f1fc3e280718f712c17f8e49b3c50c874a177aacdfd2f8e23ed253"],
     ["backend/migrations", [], "de664c4e8f50a93fe186f4795efdf872fdd3eac9642c7f728975e48a80c132cd"],
   ] as const)("%s (except %p) is byte-identical to 5d72ca5", (path, except, digest) => {
     expect(treeDigest(REPO, path, [...except])).toBe(digest);

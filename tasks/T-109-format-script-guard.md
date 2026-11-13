@@ -1,14 +1,14 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `ci fix approved`
-**Next step:** `ci-fix`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
-**Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
+**Test changes:** `applied through CI fix plan (D-20)`
+**CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
 **From:** [`tasks.md`](../tasks.md) T-109
 **Branch:** `task/T-109-format-script-guard`
 **PR:** #137, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves
-**Fault:** no code is wrong; 20 pre-existing question-bank whole-tree/manifest/test-file pins are stale against this task's allowed changes (one more than the tester routed), and a 21-row CI fix plan re-pinning them is waiting for approval.
+**Fault:**
 
 **Sessions:**
 
@@ -18,6 +18,7 @@
 | worker | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; spawned as a subagent, so the env id is the run's, not unique to this role) |
 | tester | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (pass 1, plan) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
+| ci-fix (pass 2, apply) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 
 ## Goal
 
@@ -419,6 +420,42 @@ Rows 1-17 are stale by this change alone. Rows 18-19 were red at base and are ma
 - **Moving the question-bank guard to `question-bank/scripts/`** to avoid row 15. That is the worker's judgment call for the reviewer, not a fix.
 
 To approve by hand: fill in Decision, set the header's `CI fix:` to `approved — <name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
+
+## CI fix
+
+**TL;DR: all 21 plan rows are applied, test files only. question-bank is 2875 pass / 0 fail, and typecheck, lint and `format:check` are green.** No source, guard, script or `conventions.md` line was touched. Next, a fresh tester re-runs the criteria. The reviewer should note that the approval was given before the plan was written (see Approval).
+
+**Approval:** the header read `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session`. `runs/T-109-format-script-guard.md` quotes Dkaattae: *"approve the T-109 CI fix plan too"*. This was said while pass 1 was still running. The orchestrator says it told them the plan was not written yet and offered to halt so they could read it first, and no retraction came. No row's Decision cell is filled in, and I have not filled any in: nobody gave me a decision row by row. I took the header as approving **every row as written**, the same scope the timeout stamp has. T-107 and T-108 applied this form of header the same way.
+- **For the reviewer (D-18):** every row is a test row, and the person approved them without having seen them. That gives the same assurance as the orchestrator's stamp, so escalate the PR as for a stamped plan.
+
+**Pre-check:** `origin/main` is still `2634fc8`, the merge base, so no merge or full recompute was needed. I reproduced the plan's 20 reds at `3c306ae` before applying anything: question-bank was 2855 pass / 20 fail, the same 20 tests the plan names.
+
+**Rows applied** (all are `pre-existing test`, all modify, none refused; files are in `question-bank/src/`):
+
+| Row | File | Value written |
+|---|---|---|
+| 1, 2 | `agriculture-true-wrong-answers-verify.test.ts` | the plan's `MAIN_FRONTEND_SHA` and the two `package.json` digests |
+| 3, 4 | `conventions-openapi-row-verify.test.ts` | `BASE_SPLIT_LENGTH` 134 → 137, `BASE_OTHER_LINES_SHA` as planned |
+| 5 | `climate-far-phrases-verify.test.ts` | manifest digest as planned |
+| 6, 7 | `map-click-no-candidates-verify.test.ts` | manifest and frontend digests as planned |
+| 8, 9 | `hand-check-levels-verify.test.ts` | row 8: the two `package.json` digests. Row 9 **(recompute)**: `8f51a351…7116`, observed after row 17 |
+| 10, 11, 12 | `refresh-regenerate-reminder-verify.test.ts` | `MAIN_SCRIPTS` format/format:check set to the guarded scripts, plus the two digests as planned |
+| 13, 18 | `farm-animal-loose-ends-verify.test.ts` | `MAIN_DEP_SHA`; the T-109 brief and run log join `CRITERION_21_ALLOWED`; count 280 → 282; `MAIN_UNTOUCHABLE_SHA` as planned |
+| 14 | `familiarity-drawn-apart-verify.test.ts` | the two `package.json` digests |
+| 15, 16, 19, 20, 21 | `climate-cold-trade-accepted-verify.test.ts` | rows 15, 16 and 19 as planned (the brief and run log join `CRITERION_22_ALLOWED`, count 283 → 285). Row 20 **(recompute)**: count 132 → 133, `MAIN_TESTS_SHA` `369ef9f0…b888`. Row 21 **(recompute)**: agriculture `a515fa96…7329`, map-click `ca469fbe…d52d`, farm-animal `ca3c2afd…8906`, familiarity `cb70404e…5d13` |
+| 17 | `highest-point-in-state-verify.test.ts` | the two `package.json` digests |
+
+Each edit carries a `T-109 (CI fix plan row N)` comment. I applied them in the plan's order: rows 1-8 and 10-19, then 9, then 20, then 21. Every value the plan marked as standing reproduced exactly: every test that uses one went green with no change. The recompute values differ from the plan's trial values, as the plan said they would, because my comment bytes differ from its trial.
+
+**Results, as run at the applied head:**
+- **question-bank:** `bun test` gives **2875 pass / 0 fail**. `bun run typecheck`: 0 errors. `bun run lint`: 0 warnings, 0 errors. `bun run format:check`: guard passes, "All matched files use Prettier code style!".
+- **frontend:** `bun test` gives 434 pass / 4 fail / 4 errors, all from the missing `react-simple-maps` (proxy 403 on install). That matches the worker's and tester's counts. `bun run lint` and `bun run format:check` are green. `bun run typecheck` shows 9 errors, all from the missing `react-simple-maps` / `us-atlas` (including the `UsMap.tsx` implicit-`any` errors that follow from it). I touched no frontend file.
+
+**Independence:** this is an orchestrated run (`runs/T-109-format-script-guard.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfSMW5AuCAW3Bk9Ste`, the same id the expander, worker, tester and pass-1 ci-fix list, so the session-id check proves nothing. My only independence is that I am a freshly spawned subagent that saw none of their reasoning. I did not refuse on the id, and I do not claim the check passed.
+
+**Noticed, not changed:**
+- **Rows 18-19 counts:** the plan gave 285 and 287 as the red counts and 282 and 285 as the targets. The targets are what the tests now observe, so I wrote them as given.
+- **P-17 again:** this is the fourth task in a row to need second-order pins (rows 9, 20 and 21). That recurrence belongs to `process-tasks.md` P-17, not to this task.
 
 ## Notes
 

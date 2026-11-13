@@ -30,14 +30,15 @@ const sha = (s: string): string => createHash("sha256").update(s).digest("hex");
 const OPENAPI_ROW = /^openapi\.yaml\s/;
 
 /** Recorded at `0b78dec`. */
-const BASE_SPLIT_LENGTH = 134; // 133 lines plus the empty element after the final newline
+const BASE_SPLIT_LENGTH = 137; // 136 lines plus the empty element after the final newline (T-109 CI fix plan row 3: was 134, 133 lines)
 const BASE_ROW_INDEX = 15; // line 16, 1-based
 /**
  * Recorded at `5f6f811` (T-106 CI fix plan row 1): every line except the
  * `openapi.yaml` and `backend/` rows. Replaces the `0b78dec` digest that also
- * covered the `backend/` row.
+ * covered the `backend/` row. Re-recorded by T-109 (CI fix plan row 4) after its
+ * criterion 17 Formatting lines.
  */
-const BASE_OTHER_LINES_SHA = "f13eb52a2bc793a3118fba5c2d6e8d682fd48749ce6b1334ea3d5b1268c82e2b";
+const BASE_OTHER_LINES_SHA = "db686eed519d06cf99f4e06d49d654f4e5cc31d8588754118a9c4746c91e12f0";
 /** The `openapi.yaml` row as T-105 left it, at `5f6f811`. */
 const T105_OPENAPI_ROW =
   "openapi.yaml     describes the API; follows the backend, which is the source of truth (engineering-decisions.md E-14)";

@@ -810,12 +810,14 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
       "e2e/bun.lock": "518a40b596a5bc9c4bc1b10ea8dbfbf32342539c08622fde3cef22e546a7574d",
       "e2e/package.json": "2a77756f4acec47ffbf4488ffd00e62a56da3c39cb89466e4f7b3f7fb49a5921",
       "frontend/bun.lock": "5ec60daccc0422c6a67e520b46e372be8a16b04bf2a37b3170f087ef69afc733",
-      "frontend/package.json": "22870bb992a6e2db8770998ce5cb0b095ce785fcc16801f6bf9deb25e33e332f",
+      // re-pinned by T-109 row 8: format and format:check scripts guarded, deps unchanged.
+      "frontend/package.json": "65dc7bd49fc98164da55068e497cc505a609583634c4b849cc0597fcd2147f57",
       "question-bank/bun.lock": "6bb53377c455e7936275e795c81aa62b41fcb239017b4dd9a744dfd38bda34d1",
       // re-pinned by T-064 row 31: build:sample removed (its criterion 2)
       // re-pinned by T-087 row 5: questions script added (its criteria 1-2)
+      // re-pinned by T-109 row 8: format and format:check scripts guarded, deps unchanged.
       "question-bank/package.json":
-        "8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3",
+        "1ba5a65010a0d2e9e9b2063d6c984a35a5c4e86360fe4242a0a7467f0587d35e",
     };
     const now = Object.fromEntries(
       Object.keys(AT_AA88101).map((p) => [
@@ -923,6 +925,7 @@ describe("T-025 criteria 14-17: no data, dependency or E-n moved; old tests unmo
     // Re-pinned by T-085a's approved Test change request rows 1, 15 and 29 (this is row 30).
     // Re-pinned by T-087's approved rows 1-13 (this is row 14).
     // Re-pinned by T-105's approved Test change request row 1 (this is row 6).
-    expect(digest).toBe("4defd29f7bf195fd490be2499ce76aabcd44a8fcc61609c8afa75e17afde9024");
+    // Re-pinned by T-109 (CI fix plan row 9, for its row 17).
+    expect(digest).toBe("8f51a35139cef063f6a7253ee4d23b321da3e36f0578126e36e678941a967116");
   });
 });
