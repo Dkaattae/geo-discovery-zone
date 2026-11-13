@@ -1,7 +1,7 @@
 # T-113 — `tasks.md` §A and `PROGRESS.md` name guards that were deleted
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-113-deleted-guards-in-docs.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
+| worker | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 
 ## Goal
 
@@ -231,6 +232,67 @@ The tester checks each item by hand and records the result in its Verdict:
 
 ## Handoff
 
+**TL;DR: docs only. `tasks.md` Region A and `PROGRESS.md` Region P now name only test files that exist, and say that review alone keeps the root `README.md`, `conventions.md` and `test-guidelines.md` true.** The token scan finds zero missing files. Both bun suites, typecheck, lint, format and the backend suite pass. The 4 frontend reds are not from this change: the frontend packages could not be installed (proxy 403). The tester should verify by hand per the checklist.
+
+**Files changed**
+
+- `tasks.md`: the intro paragraph, three §A table rows and the paragraph under the table.
+- `PROGRESS.md`: `## Done` (Backend, Frontend, Question bank, Repo and process) and `## Known gaps` (region vocabulary, Verification and process). No line between `## Completed tasks` and `## Known gaps in what is done` changed. `git diff origin/main -- PROGRESS.md` hunks start at lines 63, 117, 133, 202, 230, 241, 2023 and 2035.
+- This brief.
+
+**Where each criterion lives now**
+
+| # | Where | What it says now |
+|---|---|---|
+| 1 | both regions | Tokens that resolve: `answer-position-spread.test.ts`, `committed-bank.test.ts`, `data-us-states.test.ts`, `fun-facts.test.ts`, `question-file.test.ts`, `frontend/src/ci-action-pinning.test.ts`, `frontend/src/git-baseline-guard.criteria.snapshot.ts`, `backend/tests/snapshot_git_revision_guard.py`, `backend/tests/test_region_vocabulary.py`, `backend/tests/test_t040_tester_criteria.py` |
+| 2 | `tasks.md` paragraph under the §A table; `PROGRESS.md` Known gaps git-guard bullet | Each snapshot file is called "monthly snapshot lane, not CI" or "run only monthly, outside CI", in the sentence or sub-bullet that names it |
+| 3 | §A `conventions.md` row | "Since `8cf40b6` no test checks it … review keeps it true" |
+| 4 | §A "Test counts in docs" row | Counts were taken out of the docs. No test checks this since `8cf40b6`, and `test-guidelines.md` again states `question-bank/`'s file counts |
+| 5 | §A `README.md` row | No test checks its job list, commands or test counts since `8cf40b6` |
+| 6 | paragraph under the §A table | No CI unit suite refuses a fixed `git` revision any more. Names only the two snapshot files |
+| 7 | `tasks.md` intro paragraph | The `region-vocabulary.test.ts` clause is gone. "Do not reintroduce a ceiling" stays. `E-12` corrected to `E-32` (optional per Out of scope) |
+| 8 | `PROGRESS.md` Verification and process, first bullet | The docs "were fixed, but no CI test holds them since `8cf40b6` and `d594b38`: review alone keeps them from drifting" |
+| 9 | same section, git-guard bullet | The question-bank guard is gone ("`987d2cd` deleted question-bank's git guard"). "hold the line" is replaced by "No CI suite guards this any more" |
+| 10 | Repo and process, two bullets | Rewritten to "kept true by review, not by a test" and "were cleared of suite sizes … no test fails if a count comes back" |
+| 11 | Question bank: lines 136–137, the offline-rebuild bullet, "Tests cover the built bank" | `dependency-set` is replaced by "no test pins". The `spawn-guard`/"asserted" clauses are replaced by "no test checks". "all six suites" becomes `committed-bank.test.ts`. The per-field files are replaced by the five CI files |
+| 12 | Backend bullet | `d594b38` deleted the tests that walked `openapi.yaml`, which is now kept in step by hand (E-14) |
+| 13 | Frontend Formatting bullet | The T-107 clause is gone. The T-109 clause stays: both `package.json` `format`/`format:check` scripts run `prettier-pin-guard.ts` first |
+| 14 | `tasks.md` paragraph under the §A table (bold sentence), and `PROGRESS.md` Repo and process | States that no CI test checks the three docs and that review keeps them true. Names `test_c28_…` as checking "a single line, the Layout's `archive/` row" |
+| 15–16 | `git diff origin/main --stat` | `PROGRESS.md`, `tasks.md` and this brief only |
+| 17 | every new claim | Every test my new prose names exists. "No test …" claims are negatives backed by the three commits |
+| 18 | kept | Dead-proxy rows, Formatting row (CI runs `format:check`), `ci-action-pinning`, the level-labels table and the "tracked-file reading route" sentence are untouched |
+
+**Beyond the enumerated criteria (goal-driven, small)**
+
+- **Region vocabulary bullet in Known gaps** (`PROGRESS.md` ~2025): it said the closed set was "enforced by a closed-set test over the curated table, the built bank and `content.json`". That test (`region-vocabulary.test.ts`) was deleted in `987d2cd`. It now credits `backend/tests/test_region_vocabulary.py` with `content.json` and the served API (its tests `test_no_region_in_content_json_is_outside_the_thirteen` and `test_no_region_the_api_serves_is_outside_the_thirteen`), and says the curated/built-bank check was deleted. Reviewer to confirm, or revert if it is read as outside the goal.
+
+**Deliberately not done**
+
+- `## Completed tasks` history: untouched (criterion 15).
+- "Five agents", `run-loop.sh` and other non-guard staleness: out of scope. Not queued by me. Reviewer to decide whether to queue them.
+- "No test fails on `main` in a full clone any more" (Known gaps git bullet heading): left as it is. It is a fact about the expired baselines, not a guard. I did not run the snapshot lane to re-prove it. Tester or reviewer to decide whether it should become "No CI test …".
+
+**Contradicts the brief**
+
+- Criterion 4 says the row "may still say the docs state no counts". That is no longer true of `test-guidelines.md`: lines 29–30 now say "the five `*.test.ts` files" and "The 13 older `*.snapshot.ts` files" (added by `987d2cd`). So the row and the `PROGRESS.md` bullet say the counts were taken out and that `test-guidelines.md` states them again. This satisfies criterion 4 and avoids a false claim under 17. Reviewer to confirm. Whether `test-guidelines.md` should drop those counts is Dkaattae's call: he wrote them, and that doc is out of scope here.
+
+**How to run what I touched**
+
+- Token scan (criterion 1). Build Region A without the T-113 entry and Region P without Completed tasks, then grep `[A-Za-z0-9_./*-]*(\.test\.tsx?|\.snapshot\.ts|test_[a-z0-9_]+\.py|snapshot_[a-z0-9_]+\.py)` and check each hit against `git ls-files`.
+- Suites, as I ran them on this branch:
+  - `make -C backend check`: 809 passed, 9 skipped.
+  - `make -C backend test`: 809 passed, 9 skipped.
+  - `cd question-bank && bun run typecheck && bun run lint && bun run format:check && bun test`: 229 pass, 0 fail.
+  - `cd frontend && bun run lint && bun run format:check`: clean.
+  - `cd frontend && bun run typecheck` / `bun test`: **red, environmental**. `bun install --frozen-lockfile` fails with `ProxyConnectFailed (403)` on `europe-west1-npm.pkg.dev` tarballs (policy denial, not retried). So `react-simple-maps` and `us-atlas` are missing, and 4 files fail to load: `screens.criteria.test.tsx`, `t026-setup.criteria.test.tsx`, `t051-map-click.test.tsx`, `t051-tester.criteria.test.tsx`. This change touches no code, so these cannot come from it. The tester should rerun them where the registry is reachable.
+
+**Tests made stale:** none.
+
 ## Verdict
 
 ## Notes
+
+- **Surprise: `test-guidelines.md` states counts again.** The brief's survey assumed the "no counts" fact still held (see Handoff, Contradicts the brief).
+- **Decision: never name a deleted test file, even as "deleted".** Criterion 1 counts every token in the regions, so a deleted guard is described by its commit SHA and its job, not its filename.
+- **Decision: `E-12` → `E-32`.** It was cheap and the sentence was being rewritten anyway (allowed by Out of scope). The highest entry is `E-31`.
+- **Observation: `committed-bank.test.ts` is the only CI file that imports `offline-rebuild.ts`.** The other four importers are snapshot files. `data-us-states.test.ts` checks the rebuild in-process, without the harness.

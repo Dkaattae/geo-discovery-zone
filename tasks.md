@@ -18,12 +18,9 @@ prunes stops being read.
 `process-decisions.md`, `CLAUDE.md`, `.claude/` or the workflows are `P-n`
 tickets in [`process-tasks.md`](process-tasks.md), done by hand and never
 expanded into a brief. The orchestrator's G1 refuses to run them. A `T` task may still
-add to `engineering-decisions.md` when its criteria say so — and since T-057
-(PR #53) that is actually possible: the assertions in
-`question-bank/src/region-vocabulary.test.ts` that pinned `E-9` as the highest
-entry for ever are generalised to uniqueness and ascending order. T-072 (PR #55)
-filed `E-11` through the loop and no suite went red, so that is now demonstrated
-rather than expected; `E-12` is next. Do not reintroduce a ceiling.
+add to `engineering-decisions.md` when its criteria say so. That has been
+possible since T-057 (PR #53), and T-072 (PR #55) filed `E-11` through the loop
+with no suite going red; `E-32` is next. Do not reintroduce a ceiling.
 
 **Status**: `todo` · `doing` · `done` · `dropped` (with a reason)
 
@@ -160,15 +157,23 @@ place, so nobody rebuilds it:
 | **No network in tests** | enforced, not assumed: the four unit test steps run with all six proxy spellings pointed at `http://127.0.0.1:1` and a 15-minute timeout (T-005, PR #26). `integration` and `e2e` are deliberately unguarded |
 | **Databases** | SQLite and Postgres, same migrations, same suite |
 | **Docker** | one image serves the app and the API; compose adds Postgres |
-| **`conventions.md`** | current as of T-007 (PR #33) — layout, commands, database, CI and Docker — and held there by `frontend/src/conventions-doc.test.ts`, which checks it against `backend/Makefile`, the three `package.json` files and `ci.yml` |
-| **Test counts in docs** | none stated in `README.md`, `test-guidelines.md`, `backend/README.md`, `backend/integration/README.md`, `e2e/README.md`, `PROGRESS.md`'s status, Known-gaps and Next sections, or this table, and a test fails if one comes back (T-062, PR #50; T-065, PR #57; T-074, PR #58). Name a command or a directory instead |
-| **`README.md`** | its Checks and CI claims are under the same test since T-058 (PR #35): the job list it names equals `ci.yml`'s, every command it gives is a real `make` target or `bun` script, and — since T-062 (PR #50) — no count of tests is stated **anywhere in the file**, digits or spelled out |
+| **`conventions.md`** | brought up to date by T-007 (PR #33) — layout, commands, database, CI and Docker. Since `8cf40b6` no test checks it against `backend/Makefile`, the three `package.json` files or `ci.yml`; review keeps it true |
+| **Test counts in docs** | taken out of `README.md`, `test-guidelines.md`, `backend/README.md`, `backend/integration/README.md`, `e2e/README.md`, `PROGRESS.md`'s status, Known-gaps and Next sections, and this table (T-062, PR #50; T-065, PR #57; T-074, PR #58). Since `8cf40b6` no test checks this, and `test-guidelines.md` again states how many test and snapshot files `question-bank/` has. Name a command or a directory instead |
+| **`README.md`** | its Checks and CI claims were made true by T-058 (PR #35), and T-062 (PR #50) took every count of tests out of it. Since `8cf40b6` no test checks its job list, its commands or its test counts; review keeps them true |
 | **Formatting** | prettier pinned to one exact version in both `frontend/` and `question-bank/`, and CI runs `format:check` in both (T-071, E-16; T-075, E-17) |
 
-T-075 (PR #66) closed the last gap in that table. Since T-098 (PR #118), all
-three unit suites refuse a test that hands `git` a fixed revision
-(`backend/tests/test_git_revision_guard.py` joins the frontend and question-bank
-guards). T-113 is the one open §A task, and it is a doc fix.
+T-075 (PR #66) closed the last gap in that table. **No CI test checks the root
+`README.md`, `conventions.md` or `test-guidelines.md` against the repo's layout,
+commands, CI jobs or test counts.** `8cf40b6`, `d594b38` and `987d2cd` cut each
+package's CI suite down to bank, child-facing and API-behaviour tests, so those
+docs are kept true by review alone. The one CI test that still reads
+`conventions.md` checks a single line, the Layout's `archive/` row
+(`backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`).
+No unit suite in CI refuses a test that hands `git` a fixed revision any more:
+the frontend and backend guards run only monthly, outside CI, in the snapshot
+lane (`frontend/src/git-baseline-guard.criteria.snapshot.ts`,
+`backend/tests/snapshot_git_revision_guard.py`), and `987d2cd` deleted
+question-bank's. T-113 is the one open §A task, and it is a doc fix.
 
 ### T-113 — §A's table and `PROGRESS.md` name guards that were deleted · S · todo
 **Depends on:** —
