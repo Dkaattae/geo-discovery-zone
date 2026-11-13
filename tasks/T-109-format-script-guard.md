@@ -1,7 +1,7 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`
@@ -21,6 +21,7 @@
 | tester (round 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (round 2, pass 1, plan) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (round 2, pass 2, apply) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
+| tester (round 3) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 
 ## Goal
 
@@ -300,6 +301,41 @@ All are in `question-bank/src/`. All are whole-tree or manifest pins (P-17). The
 **Suite results at the worker's head:** question-bank 2748 pass / 19 fail. That is the 17 stale pins plus the 2 base reds, all listed above. Frontend 434 pass / 4 fail / 4 errors, all `react-simple-maps` (environment). Lint and format:check are green in both packages, and typecheck is green in question-bank. Frontend typecheck is red only on `react-simple-maps` / `us-atlas`.
 
 ## Verdict
+
+### Round 3 (after the round-2 ci-fix), at `055f67f`
+
+**TL;DR: `pass`. All 18 criteria are met, and the one approved round-2 row is applied exactly as planned.** CI run 43472133840 on head `055f67f` is green in every job. That includes the question-bank **Test** step, which was red in rounds 1 and 2. The next step is the `reviewer`. Plan row 1 was approved by a person (it was not timeout-stamped), but it is still a pre-existing test row, which the reviewer should see.
+
+**Independence:** this is an orchestrated run (`runs/T-109-format-script-guard.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfSMW5AuCAW3Bk9Ste`, the id every role in this run lists, so the id check proves nothing. My only independence is that I am a freshly spawned subagent that saw none of the other roles' reasoning. That rests on the orchestrator spawning me correctly. I did not refuse on the id, and I do not claim the check passed.
+
+**What changed since round 2's verdict:** `git diff 85698c3..055f67f` touches only the brief, the run log, and `climate-cold-trade-accepted-verify.test.ts`. The last of these is exactly CI fix plan 2 row 1: `MAIN_TESTS_SHA` `369ef9f0…b888` → `6b7d6146…4993`, plus its two comment lines. `MAIN_TESTS_COUNT` stays 133, and no assertion changed. The approval is the header `CI fix: applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`, which the run log quotes as *"approve the T-109 CI fix plan"*. I did not witness it.
+
+**Mutations re-run at this head** (each reverted with `git checkout --`; the tree is clean afterwards):
+
+| Mutation | Criteria file (109 tests) |
+|---|---|
+| frontend guard: version comparison dropped (`if (false)`) | 29 fail |
+| question-bank guard: `process.exit(1)` → `exit(0)` | 27 fail |
+
+The criteria test file is unchanged since round 2, so round 2's mutation table still applies to it.
+
+| # | Verdict | Evidence (round 3) |
+|---|---|---|
+| 1-7 | met | `format-script-guard.criteria.test.ts` 109 pass / 0 fail, and goes red under the mutations above |
+| 8 | met | criterion 8 tests pass. Real-tree `bun run format:check` is green in both packages. CI's Format step is `success` in both jobs on `055f67f` |
+| 9-12 | met | criteria tests pass. `prettier-gate.test.ts` is unmodified against `origin/main` and passes (it is part of the 2876) |
+| 13 | met (hand) | `git diff origin/main -- '*/bun.lock'` is empty. `jq -S '.dependencies,.devDependencies'` is identical to `origin/main` in both packages |
+| 14 | met (hand) | `git diff origin/main -- .github/workflows/ci.yml` is empty. Run 43472133840 (head `055f67f`): `question-bank` Format `success`, Test `success`; `frontend` Format `success`, Test `success`; all 6 jobs `success`. Run 43472062747 (head `c9aa735`) is also `success` |
+| 15 | met | criterion 15 tests pass. CI's question-bank job, which has no `frontend/node_modules`, ran the file green |
+| 16 | met | the `deadEnv` / criterion 16 test passes |
+| 17 | met (hand) | the `conventions.md` diff against `origin/main` is +4/−1, in the Formatting paragraph only. It says both scripts in both packages refuse unless the pinned prettier is installed, and names `bun install` as the remedy |
+| 18 | met (hand) | the changes to pre-existing tests are exactly the round-1 plan rows 1-21 (audited in round 2) plus round-2 plan row 1 (above). `frontend/src` and `prettier-gate.test.ts` are unmodified. No test was deleted |
+
+**Pre-existing tests changed, each with its plan row:** round 1 plan rows 1-21 (the table under round 2 below, and `## CI fix` round 1). Round 2 plan row 1 is `climate-cold-trade-accepted-verify.test.ts` `MAIN_TESTS_SHA` (request row 20).
+
+**Suites, as run at `055f67f`:**
+- **question-bank:** `bun test` gives **2876 pass / 0 fail** (75 files). Typecheck is clean, lint reports 0 warnings and 0 errors, and `format:check` is green (the guard ran first).
+- **frontend (sandbox):** 434 pass / 4 fail / 4 errors, all from `Cannot find package 'react-simple-maps'` (proxy 403 on install). That is the same count as every earlier role. I did not see the ci-fix's one-off 431/7. Lint and `format:check` are green. Typecheck has 9 errors, and every one is `react-simple-maps` / `us-atlas` / `UsMap`. **CI's frontend job (typecheck, lint, test) is `success` on `055f67f`.**
 
 ### Round 2 (after the ci-fix), at `d02f63c`
 
