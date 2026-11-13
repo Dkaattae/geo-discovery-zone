@@ -1,7 +1,7 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH` — run log
 
 **Task:** T-109 · **Branch:** `task/T-109-format-script-guard` · **PR:** #137
-**Started:** 2026-11-13 · **Outcome:** in progress
+**Started:** 2026-11-13 · **Outcome:** ready for merge (escalated)
 
 Task 2 of an orchestrated run of 2, started by Dkaattae ("start the next two tasks as an orchestrator").
 
@@ -394,3 +394,43 @@ Files:
 **For the reviewer:** pre-existing tests were changed by round 1's plan (rows 1-21) and round 2's plan (row 1), and the Verdict names both. Round 2's plan was approved by a person after it was written. Round 1's was approved before it was written, and the brief's CI fix section flags that it should be escalated like a timeout-stamped plan.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md
+
+## Round 10 — reviewer — 2026-11-13 17:40Z
+`Next step` on entry: `reviewer` → on exit: `human` (approved, escalated; brief deleted by the sweep in `7ebbcec`; PR #137 marked ready)
+
+**I approved T-109 (PR #137) and escalated it. The PR is now marked ready for review, swept, and pushed. Dkaattae has to read the round-1 CI fix plan in the PR body before merging.** That plan was 21 changes to tests that already existed, all re-pins of whole-tree or manifest digests (P-17). Dkaattae approved it before it had been written, which gives the same assurance as the orchestrator's timeout stamp (D-18). Everything else is inside the envelope. I did not merge.
+
+**State:**
+- **PR #137:** open, ready for review (no longer draft), not merged. Head is `7ebbceca3472aee86cc1421ab5e9d9b19582710f` on `task/T-109-format-script-guard`, and `origin` matches it.
+- **Brief header (`a1a7e06`, the last commit before the sweep deleted it):** `Status: blocked (approved, escalated: round-1 CI fix plan approved by a person before it was written)`, `Next step: human (merge decision on PR #137; read the round-1 CI fix plan copied into the PR body)`. `## Review` and the reviewer's Sessions row were added.
+- **Sweep (`7ebbcec`):** the brief is deleted, the T-109 entry is removed from `tasks.md` with a sweep note in the queue's header line, and `PROGRESS.md` has a new Completed entry. I also rewrote the stale `PROGRESS.md` line "`bun run format` by hand does not check yet (T-109)". Nothing else in the queue moved.
+- **PR body:** escalation note at the top, TL;DR, the acceptance criteria verbatim with what verified each, the round-1 plan (21 rows) and the round-2 plan (1 row), and my review decisions. I set the body and the ready flag through the REST API, because `gh pr` GraphQL returns 403 in this sandbox.
+
+**Review findings:**
+- **Every role's work is in the PR:** each Sessions row has a commit on the branch.
+- **Every role stayed in its lane** (D-7), checked commit by commit:
+  - expander: only the brief;
+  - worker: only the files in Constraints;
+  - tester: only its own criteria test file;
+  - `ci-fix` commits: only the files their plan rows name. I read the diffs: re-pins only, no assertion loosened.
+- **The code is small and fits the repo:** a 44-line guard per package, no new dependency, and `conventions.md` is accurate.
+- **The worker's flags, each decided:**
+  - two copies of the guard: kept;
+  - the question-bank guard under `src/`: kept;
+  - the frontend guard sits outside typecheck coverage: accepted and not queued, because its near-identical twin is typechecked;
+  - no `engineering-decisions.md` entry: confirmed.
+- **Not queued:** removing T-107's test-level guards, which are now redundant. They are harmless, and removing them would need another approved test change and more P-17 re-pins.
+- **For Dkaattae's attention, not an escalation on its own:** the orchestrator resumed past G3 at Dkaattae's direction (`1296e50`).
+
+**Checks after the sweep:**
+- **question-bank:** `bun test` 2876 pass / 0 fail, and `format:check` is green.
+- **frontend:** 434 pass / 4 fail / 4 errors, all `react-simple-maps`. That is the sandbox's proxy returning 403 on install, the same count every earlier role recorded.
+- **CI:** all 6 jobs were `success` on `055f67f` (run 43472133840). The run on the sweep head had not finished when I stopped.
+
+**Files:**
+- `/home/user/geo-discovery-zone/tasks.md`
+- `/home/user/geo-discovery-zone/PROGRESS.md`
+- `/home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md` (deleted in `7ebbcec`; the review is in `a1a7e06`)
+
+## Ended — ready for merge, escalated
+PR #137 is ready; merging is Dkaattae's, after reading the round-1 CI fix plan in the PR body. Rounds: expander → worker → tester (fail) → ci-fix (plan; approved by Dkaattae in session before it was written) → ci-fix (apply) → tester (fail) → G3 halt → resumed by Dkaattae → ci-fix (plan; approved by Dkaattae) → ci-fix (apply) → tester (pass) → reviewer (escalated).
