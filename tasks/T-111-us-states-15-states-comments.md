@@ -1,14 +1,14 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today"
 
-**Status:** `blocked`
-**Next step:** `task-expander`
-**Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-111-us-states-15-states-comments.md`.
-**Test changes:** `pending — 5 rows written below, Decision blank, not yet routed: the brief is blocked first. Once the expander amends criterion 4, the next tester routes them to the ci-fix (D-20)`
+**Status:** `awaiting approval`
+**Next step:** `tester`
+**Approved:** `pending`
+**Test changes:** `pending — 5 rows written below, Decision blank, not yet routed. Criterion 4 is now amended; the next tester re-checks the rows against the then-current branch and routes them to the ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-111
 **Branch:** `claude/amazing-franklin-j3x3l1`
 **PR:** #136, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it.
-**Fault:** criterion 4's allow-list omits the files the loop itself must change (`tasks.md`, `runs/T-111-…`, the sweep's edits) and is unclear about new tester test files, so it cannot be met as written; the expander owns it. Separately, 4 pre-existing whole-tree pins are stale by the task's own files (5 rows written, not yet routed).
+**Fault:** resolved by amendment (task-expander, 2026-11-13): criterion 4 now allows the loop's own records (`tasks.md`'s T-111 entry, `PROGRESS.md`, the run log, the brief and its deletion) and new test files, and says so by name. Criteria 1 to 3 are unchanged. Original fault, tester: criterion 4's allow-list omits the files the loop itself must change (`tasks.md`, `runs/T-111-…`, the sweep's edits) and is unclear about new tester test files, so it cannot be met as written; the expander owns it. Separately, 4 pre-existing whole-tree pins are stale by the task's own files (5 rows written, not yet routed).
 
 **Sessions:**
 
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste |
 | worker | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste |
 | tester | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
+| task-expander (amendment) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated, fresh spawn; amended criterion 4 only) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"): an `S`
 > task, comments only, one file, no text a child reads, nothing in
@@ -52,10 +53,28 @@ at `2634fc8`, lines 67–91).
    identical to `main`'s at `2634fc8` apart from whitespace. Every value the
    module exports deep-equals `main`'s, and `question-bank/data/` and
    `backend/app/data/content.json` are byte-identical to `main`'s.
-4. **Nothing else changes.** The PR's diff against `main` touches no file
-   other than `question-bank/src/curated/us-states.ts`, this brief, and test
-   files changed only through an approved Test change request or CI fix plan
-   row (D-14, D-18, D-20). No dependency, lockfile or `package.json` changes.
+4. **Nothing else changes.** *(Amended 2026-11-13, after the tester's
+   `blocked` verdict: the old list left out the files the loop itself must
+   change.)* `git diff --name-status origin/main...HEAD` lists no path other
+   than these:
+   - **The change:** `question-bank/src/curated/us-states.ts`.
+   - **The loop's records:** this brief (added, edited, or deleted by the
+     reviewer's sweep); `runs/T-111-us-states-15-states-comments.md`;
+     `tasks.md`; `PROGRESS.md`.
+   - **Test files:** a path ending in `.test.ts` or `.test.tsx`, or under
+     `backend/tests/`. A test file that **does not exist on `main`** may be
+     added. A test file that **exists on `main`** may change only through a row
+     of this brief's Test change request or CI fix plan whose approval is
+     recorded (D-14, D-18, D-20); one changed with no such row fails this
+     criterion.
+
+   Bounds on the records, before the reviewer's sweep: every line that
+   `git diff origin/main...HEAD -- tasks.md` adds or removes lies inside
+   T-111's own entry (its `###` heading and the lines under it, up to the next
+   `###`), and `PROGRESS.md` is not in the list. The sweep's later edits to
+   `tasks.md` and `PROGRESS.md`, and its deletion of this brief, are the
+   reviewer's to judge. No `package.json`, `bun.lock`, `uv.lock` or
+   `pyproject.toml` appears in the list at any point.
 
 Criteria 1 to 3 are checked against the task branch's tree. Criterion 4 is a
 no-change check on this PR. **Verify it at hand-off** (the diff command and its
