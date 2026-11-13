@@ -377,6 +377,15 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-111 — `us-states.ts`'s region paragraph stops saying the 15 states ship today**
+  (PR #136, 2026-11-13). The two comments now read "then the 15 states served at the time"
+  and "The 15 states that bank served in 2026-09", and the paragraph still records T-017's
+  decision, E-9, the 13 region values and the 15 state names. Comments only: the code,
+  exports and data are unchanged. A new test, `us-states-region-comment-verify.test.ts`,
+  guards the paragraph. *Where it differed from the brief:* criterion 4 as first written left
+  out the loop's own records, so the tester blocked it and the expander amended it. Six
+  stale pins (P-17) were re-pinned through a CI fix plan that Dkaattae approved. Row 5's
+  farm digest was recomputed under the plan's own allowance.
 - **T-108 — `README.md` states the bank's real size and names `engineering-decisions.md` with E-14**
   (PR #135, 2026-11-12). The Tech stack paragraph now reads "Only a US-states bank ships
   today, covering all 50 states. A right answer shows a human-reviewed fun fact; a wrong
