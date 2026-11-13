@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `tester`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-11-13, unattended run (re-stamped after criterion 4 amendment). See `runs/T-111-us-states-15-states-comments.md`.
 **Test changes:** `pending — 5 rows written below, Decision blank, not yet routed. Criterion 4 is now amended; the next tester re-checks the rows against the then-current branch and routes them to the ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-111

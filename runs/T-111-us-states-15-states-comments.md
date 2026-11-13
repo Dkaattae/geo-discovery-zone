@@ -109,3 +109,40 @@ Orchestrator: stamped `Approved:` (unattended run).
 **Files:**
 - `/home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md` has the Verdict, the Test change request, Status `blocked`, Next step `task-expander`, a Fault line and my Sessions row.
 - `/home/user/geo-discovery-zone/question-bank/src/us-states-region-comment-verify.test.ts` is the new test file, 38 tests.
+
+## Round 4 — task-expander — 2026-11-13 15:30Z
+`Next step` on entry: `task-expander` → on exit: `tester`
+
+**TL;DR:** I amended criterion 4 of T-111 so it can be met. Criteria 1 to 3 are unchanged. The brief is back at `Status: awaiting approval`, `Next step: tester`, with `Approved: pending` and the 5 Test change request rows untouched. It needs re-approval (the orchestrator's re-stamp), then a fresh `tester`. Commit `80abbee` is pushed to `claude/amazing-franklin-j3x3l1`, and the remote head matches local.
+
+**What the amended criterion 4 says**
+- **Allowed paths in `git diff --name-status origin/main...HEAD`:**
+  - `question-bank/src/curated/us-states.ts`
+  - the loop's records:
+    - the brief, including its deletion by the sweep
+    - `runs/T-111-us-states-15-states-comments.md`
+    - `tasks.md`
+    - `PROGRESS.md`
+  - new test files: `*.test.ts`, `*.test.tsx` or anything under `backend/tests/`, absent on `main`
+  - test files that already exist on `main`, but only if changed through a Test change request or CI fix plan row with recorded approval
+- **Limits before the reviewer's sweep:**
+  - `tasks.md` may change only inside T-111's own `###` entry.
+  - `PROGRESS.md` must not appear in the list.
+  - The sweep's own later edits are left to the reviewer to judge, because a sweep can add new queue entries.
+- **Never allowed:** `package.json`, `bun.lock`, `uv.lock`, `pyproject.toml`.
+- **Unchanged:** the check is still done at hand-off, with no committed sha pin (P-17).
+
+**Other edits to the brief**
+- **Header:**
+  - `Fault:` now says the fault is resolved by amendment and keeps the original text.
+  - `Test changes:` says the next tester re-checks the rows and routes them to the `ci-fix` (D-20).
+- **Sessions:** added a row for this amendment.
+- **Approval reset to `pending`:** I followed T-107's precedent (`29134ca`). The criteria were frozen under the earlier approval, so a changed criterion needs a fresh one.
+
+**Other actions**
+- **PR #136 body:** updated through the GitHub REST API (`gh api PATCH`). It now carries the amended criterion 4 and a new Next line. Its footer was also replaced with this session's attribution.
+- **My commit's scope:** it touches only `tasks/T-111-us-states-15-states-comments.md`. I ran no build or tests.
+
+**File:** /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
+
+Orchestrator: re-stamped `Approved:` (unattended run).
