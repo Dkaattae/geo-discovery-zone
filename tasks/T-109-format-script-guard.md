@@ -1,7 +1,7 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `blocked` (approved, escalated: round-1 CI fix plan approved by a person before it was written)
+**Next step:** `human` (merge decision on PR #137; read the round-1 CI fix plan copied into the PR body)
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`
@@ -22,6 +22,7 @@
 | ci-fix (round 2, pass 1, plan) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (round 2, pass 2, apply) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | tester (round 3) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
+| reviewer | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 
 ## Goal
 
@@ -583,6 +584,51 @@ Each edit carries a `T-109 (CI fix plan row N)` comment. I applied them in the p
 **Noticed, not changed:**
 - **Rows 18-19 counts:** the plan gave 285 and 287 as the red counts and 282 and 285 as the targets. The targets are what the tests now observe, so I wrote them as given.
 - **P-17 again:** this is the fourth task in a row to need second-order pins (rows 9, 20 and 21). That recurrence belongs to `process-tasks.md` P-17, not to this task.
+
+## Review
+
+**TL;DR: approved, and escalated.** The guard is small, clear, and does what the brief asks. The scripts, the `conventions.md` lines and the tester's criteria file all fit the repo, and every role stayed in its lane. **One escalation:** round 1's 21 `ci-fix` test rows were approved by Dkaattae *before the plan was written* ("approve the T-109 CI fix plan too", given while pass 1 was still running). The `ci-fix` asked for that to be escalated like a stamped plan (D-18), and I agree. The round-1 table is copied into the PR body. Nothing new is queued.
+
+**PR still open, draft:** PR #137 is open and unmerged. Its base `2634fc8` is still `origin/main`.
+
+**Independence:** this is an orchestrated run, so my session id is every other role's id as well. I am a freshly spawned subagent, and I wrote none of this work.
+
+**PR contains every role's work.** Every row in the Sessions table has a commit on `task/T-109-format-script-guard`:
+- **expander:** `64ee3d2`, `ff31a12`
+- **worker:** `0e04cf7`
+- **tester:** `6a62404`, `85698c3`, `c9cb39e`
+- **ci-fix:** `32bebbf`, `8146a3c`, `ec470a4`, `c9aa735`
+
+**Lanes (D-7), checked commit by commit with `git show --stat`:**
+- **Expander:** this brief only.
+- **Worker:** only the files in Constraints (both `package.json` `scripts`, the two guards, `conventions.md`) plus this brief. It changed no test.
+- **Tester:** only its own `format-script-guard.criteria.test.ts` and this brief. It changed no source.
+- **ci-fix, round 1 (`8146a3c`):** exactly the 10 files that plan rows 1-21 name. I read the diff of the three largest (`climate-cold-trade`, `farm-animal`, `refresh-regenerate`). Every change is a re-pinned digest or count, the two new `MAIN_SCRIPTS` values, or an allowed-set addition that names only T-109's own brief and run log. No assertion was dropped or loosened, and every digest still covers at least its old file set.
+- **ci-fix, round 2 (`c9aa735`):** one constant (`MAIN_TESTS_SHA`) and its comment, as in the plan.
+- **Orchestrator:** the run log and the brief header only.
+
+**Quality:**
+- **The guard fits the repo.** It is 44 lines with no dependency and reads only through `node:fs`. Its doc comment says why it exists, and it resolves paths from `import.meta.dir` rather than `cwd`. The scripts keep `prettier --check|--write <set>` as the last command of the `&&`, so extra args still reach prettier and both existing script-shape tests pass unmodified.
+- **The scope is right.** It adds no options, flags or shared helper. T-107's test-level guards are left alone, as Out of scope says.
+- **The docs are true.** `conventions.md` Formatting now describes the refusal and the remedy. The `PROGRESS.md` line "`bun run format` by hand does not check yet (T-109)" goes stale with this PR, and the sweep rewrites it.
+- **Nothing was dishonestly made to pass.** CI showed the round-2 tester's fix was a real defect: the criteria file crashed in CI's question-bank job, which has no `frontend/node_modules`. The fix makes an absent `node_modules` an explicit state and does not skip anything.
+
+**Worker's flags, disposed of:**
+1. **Two copies of the guard, not one shared file: confirmed.** Each package stays self-contained, and the throwaway copies in the criteria tests depend on that. The copies differ by one doc line. Drift would show up as a behavioural failure, because the criteria file runs the same 7 criteria against both. Not queued.
+2. **The question-bank guard is under `src/`: confirmed.** That way typecheck, oxlint and `format:check` cover it. The extra T-091 pin it costs is the P-17 cost, which P-17 already tracks.
+3. **The frontend guard under `scripts/` is not typechecked: accepted, not queued.** It is linted and format-checked. Its twin in `question-bank/src/`, identical apart from one comment line, is typechecked on every run. Widening `frontend/tsconfig.json` to cover a 44-line file would be a new P-17 surface, which costs more than it buys.
+4. **No `engineering-decisions.md` entry: confirmed.** The guard enforces E-16 and E-17 and decides nothing new.
+
+**Considered, not queued:** removing T-107's two test-level guards. With this change they are redundant, but they are harmless. They still fail a writer test with a named message before it spawns anything. Removing them is a pre-existing-test change that needs a person's approval and would set off another round of P-17 pins, which is more cost than they carry.
+
+**Escalation (section 3), which bullet:** "no test that existed before the task was … modified, unless a person approved it". A person did approve both plans. Round 2's single row was approved after it was written (17:13Z, after `ec470a4` at 16:59Z). Round 1's 21 rows were approved before the plan existed. The orchestrator offered to halt so the plan could be read first, and no retraction came. That gives the same assurance as the timeout stamp, so the PR is escalated. Everything else in the envelope holds:
+- **Tester:** pass (round 3).
+- **CI:** green in all 6 jobs on `055f67f` (run 43472133840). Every later commit touches only `runs/`, this brief and the sweep.
+- **Constraints:** nothing changed outside them, apart from the approved pin rows and the sweep.
+- **Dependencies, contract, schema:** no new dependency, and no change to `openapi.yaml`, a migration or `geoquizdataplan.md`.
+- **Children's text:** none touched.
+
+**Also worth Dkaattae's eye, not an escalation on its own:** the orchestrator resumed past G3 (two `fail` verdicts) at Dkaattae's direction (`1296e50`).
 
 ## Notes
 
