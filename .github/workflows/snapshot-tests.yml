@@ -1,11 +1,11 @@
 name: Snapshot tests
 
-# The snapshot lane: `question-bank/src/*.snapshot.ts` and
-# `frontend/src/*.snapshot.ts`. Each file
+# The snapshot lane: `question-bank/src/*.snapshot.ts`,
+# `frontend/src/*.snapshot.ts` and `backend/tests/snapshot_*.py`. Each file
 # pins hashes and counts of the repo as it stood on an old commit, so any later
 # change anywhere can turn them red. They are kept for reference and run here
 # once a month, never on pull requests or pushes, and never in CI's test step
-# (`bun test` only picks up `*.test.*`).
+# (`bun test` only picks up `*.test.*`, pytest only `test_*.py`).
 #
 # To change how often this runs, edit the cron line below. To run it now, use
 # "Run workflow" on the Actions tab.
@@ -79,3 +79,34 @@ jobs:
           export https_proxy=http://127.0.0.1:1
           export all_proxy=http://127.0.0.1:1
           bun run test:snapshots
+
+  backend-snapshots:
+    name: backend (snapshot lane)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.8.17"
+          python-version: "3.11"
+
+      - name: Install
+        run: uv sync --frozen
+
+      # No network in tests, the same dead-proxy guard as CI's Test steps.
+      - name: Snapshot tests
+        timeout-minutes: 15
+        run: |
+          export HTTP_PROXY=http://127.0.0.1:1
+          export HTTPS_PROXY=http://127.0.0.1:1
+          export ALL_PROXY=http://127.0.0.1:1
+          export http_proxy=http://127.0.0.1:1
+          export https_proxy=http://127.0.0.1:1
+          export all_proxy=http://127.0.0.1:1
+          uv run pytest -q tests/snapshot_*.py

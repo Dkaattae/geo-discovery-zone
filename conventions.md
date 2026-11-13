@@ -87,6 +87,7 @@ cd e2e && bun run test                      # brings the stack up, runs, tears i
 # backend help` lists them all with their descriptions
 make -C backend dev               # http://127.0.0.1:8000/api/v1/... — docs at /docs
 make -C backend test              # the suite on SQLite, the default
+make -C backend test-snapshots    # the snapshot lane (tests/snapshot_*.py): monthly, not in CI
 make -C backend check             # lint + format check + test — what CI runs
 make -C backend migrate           # alembic upgrade head
 make -C backend revision m="add streaks"   # a new migration from model changes

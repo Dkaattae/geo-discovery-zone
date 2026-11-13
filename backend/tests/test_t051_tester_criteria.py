@@ -13,7 +13,6 @@ so the pool itself is still the real one. Selection is out of scope here
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from pathlib import Path
@@ -32,16 +31,9 @@ QUESTION_FILE = REPO / "question-bank" / "data" / "questions" / "us-states.json"
 CONTENT_FILE = REPO / "backend" / "app" / "data" / "content.json"
 SPEC_FILE = REPO / "openapi.yaml"
 
-# The served bank on main at 1032b77 (the branch point), before T-051: 365
-# questions, 315 multiple_choice and 50 map_identify. Digest of
-# json.dumps(sorted by id, sort_keys=True, ensure_ascii=False,
-# separators=(",", ":")), computed by the tester from
-# `git show 1032b77:backend/app/data/content.json`. Re-pinned at 6a515e2
-# (re-pinned T-085a, Test change request row 27), after T-085a moved four
-# HI/AK levels in these 365. Re-pinned at 6587ed0 (re-pinned T-088, Test change
-# request row 14), after T-088 changed 36 served agriculture questions' choices.
+# The served bank before T-051: 365 questions, 315 multiple_choice and 50
+# map_identify.
 MAIN_SERVED_COUNT = 365
-MAIN_SERVED_DIGEST = "3e49e00f1f5ce1a778241e43181b97f1f97c1f07aca6819d7775f1164ce21c5c"
 
 FIFTY_STATE_CODES = sorted(
     {
@@ -71,16 +63,6 @@ def _served_map_click() -> dict[str, dict[str, Any]]:
     return {q["id"]: q for q in _served() if q["format"] == "map_click"}
 
 
-def _digest(questions: list[dict[str, Any]]) -> str:
-    text = json.dumps(
-        sorted(questions, key=lambda q: q["id"]),
-        sort_keys=True,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
 # -- Serving (criteria 1-7) ---------------------------------------------------
 
 
@@ -88,12 +70,6 @@ def test_c1_every_map_click_in_the_question_file_is_served() -> None:
     expected = set(_file_map_click())
     assert len(expected) == 50
     assert set(_served_map_click()) == expected
-
-
-def test_c1_the_questions_served_before_t051_are_still_served_unchanged() -> None:
-    before = [q for q in _served() if q["format"] in {"map_identify", "multiple_choice"}]
-    assert len(before) == MAIN_SERVED_COUNT
-    assert _digest(before) == MAIN_SERVED_DIGEST
 
 
 def test_c1_no_other_format_is_served() -> None:

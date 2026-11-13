@@ -100,6 +100,11 @@ a criterion about doc wording, tooling or which files changed is checked by hand
 and recorded in the Verdict, as in `question-bank/`, and the frontend
 `*.snapshot.ts` files are never added to or re-pinned.
 
+**In `backend/`, test only what the API does** (`test-guidelines.md`): a
+criterion about docstring or doc wording, `openapi.yaml`'s text, tooling or the
+repo's shape is checked by hand and recorded in the Verdict, and
+`backend/tests/snapshot_*.py` is never added to or re-pinned.
+
 Everywhere else, every criterion gets at least one test, named so the mapping is
 obvious. Test the boundaries the criterion names. Follow `test-guidelines.md` — use the
 `SparqlTransport` / `SummaryTransport` / `EntitySink` seams, never mock `fetch`,

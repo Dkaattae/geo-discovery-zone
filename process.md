@@ -315,7 +315,8 @@ tasks.md
    ├─▶ 4. verify        FRESH SESSION, no working context:
    │                      writes tests from the acceptance criteria
    │                      (question-bank/: bank tests only; frontend/: what the
-   │                       child sees and does; the rest by hand)
+   │                       child sees and does; backend/: what the API does;
+   │                       the rest by hand)
    │                      runs them
    │        │
    │        ├── fail (code wrong) ─────────▶ 4a
@@ -501,6 +502,10 @@ or counted in a verdict.
 about doc wording, tooling or the repo's shape is checked by hand, as in
 `question-bank/`, and `frontend/src/*.snapshot.ts` is the same monthly lane.
 
+**In `backend/`, tests cover only what the API does.** A criterion about
+docstring or doc wording, `openapi.yaml`'s text, tooling or the repo's shape is
+checked by hand, and `backend/tests/snapshot_*.py` is the same monthly lane.
+
 **When the deliverable is itself tests** — T-001, for instance — writing more
 tests to check them is circular. Verify by coverage and then by **mutation**:
 break each behaviour on purpose, confirm the matching test goes red, and revert
@@ -512,7 +517,7 @@ Three outcomes:
 
 | Outcome | Meaning | Next |
 |---|---|---|
-| **Pass** | Every criterion has a test (in `question-bank/` and `frontend/`, a recorded check by hand where no test is allowed) and every test passes, including the pre-existing suite | Step 5 |
+| **Pass** | Every criterion has a test (in `question-bank/`, `frontend/` and `backend/`, a recorded check by hand where no test is allowed) and every test passes, including the pre-existing suite | Step 5 |
 | **Fail** | A criterion is not met by the code | To **step 4a**, the `ci-fix`. The failing test stays |
 | **Blocked** | A criterion is ambiguous, untestable as written, or wrong | Back to **step 2**. Fix the brief, not the test |
 
