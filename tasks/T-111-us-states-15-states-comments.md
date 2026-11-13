@@ -1,7 +1,7 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-13, unattended run (re-stamped after criterion 4 amendment). See `runs/T-111-us-states-15-states-comments.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
@@ -20,6 +20,7 @@
 | tester (round 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
 | ci-fix | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent; pass 1, plan) |
 | ci-fix (pass 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent; applied the approved plan) |
+| tester (round 3) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"): an `S`
 > task, comments only, one file, no text a child reads, nothing in
@@ -176,76 +177,73 @@ git diff --stat origin/main                           # criterion 4
 
 ## Verdict
 
-**TL;DR: `fail`, to the `ci-fix`, for stale pins only.** All four criteria are met on `ff58bb2`. That includes criterion 4 as amended. The `question-bank` suite has **5 reds**, and every one is a whole-tree or whole-file pin made stale by this task's own files. No behaviour test is red. The 6 rows below go to the `ci-fix` for its plan (D-20). Row 6 is new this round.
+**TL;DR: `pass`, to the `reviewer`.** Round 3, on `ed8ea7c`, after the `ci-fix` applied the approved plan. All four criteria are met. `question-bank` is **2805 pass / 0 fail**, with `format:check`, `typecheck` and `lint` clean, and the backend is 1221 passed / 9 skipped. The three pre-existing test files changed only as CI fix plan rows 1 to 6 say. One thing for the reviewer: row 5's farm digest was recomputed (`377286f4…`), so it is not the `95d04a10…` written in the approved row.
 
-**Independence:** this is an orchestrated run (`runs/T-111-us-states-15-states-comments.md` exists), so the session-id check proves nothing. My id, `cse_011oDiJfSMW5AuCAW3Bk9Ste`, is already listed for every earlier role. My independence rests only on being a freshly spawned subagent with its own context. I did not see the worker's session, its reasoning, or the first tester's. That is weaker evidence than a separate session, because it depends on the orchestrator having spawned me correctly.
+**Independence:** this is an orchestrated run (`runs/T-111-us-states-15-states-comments.md` exists), so the session-id check proves nothing. My id, `cse_011oDiJfSMW5AuCAW3Bk9Ste`, is listed for every earlier role. My only independence is that I am a freshly spawned subagent with my own context. I did not see any earlier role's session or reasoning. That is weaker evidence than a separate session, because it depends on the orchestrator having spawned me correctly.
 
-**Round history:** round 1's tester returned `blocked` on criterion 4's wording. The expander amended criterion 4 (`80abbee`). This is round 2, and I re-verified every criterion from scratch.
+**Round history:**
+- **Round 1:** `blocked` on criterion 4's wording, which the expander then amended (`80abbee`).
+- **Round 2:** `fail` (`6ed5ff5`), for stale pins only. Its 6 rows were routed to the `ci-fix` (D-20).
+- **Round 3 (this one):** the `ci-fix` planned the rows (`218304a`), Dkaattae approved the plan, and the `ci-fix` applied it (`7684638`). I re-verified every criterion from scratch.
 
 | # | Verdict | Evidence |
 |---|---|---|
-| 1 | **met** | `question-bank/src/us-states-region-comment-verify.test.ts` › "T-111 criterion 1": 3 tests, green. |
-| 2 | **met** | The same file › "T-111 criterion 2": 35 tests, green. They cover `T-017`, `2026-09-18`, `E-9`, `15`/`fifteen`, and the 13 region values and 15 state names, each in backticks, all inside the region paragraph. **Tense is the reviewer's call.** The sentences are "then the 15 states served at the time) returned" and "The 15 states that bank served in 2026-09". |
-| 3 | **met** (checked at hand-off, not pinned, per the brief) | **Comments only:** `Bun.Transpiler` (`minifyWhitespace`) output is identical for the branch file and `git show 2634fc8:…`. Every `+`/`-` line of `git diff -U0 2634fc8 -- question-bank/src/curated/us-states.ts` starts with ` *`. **Exports:** I imported all 5 from both versions. `CURATED_US_STATES`, `HIGHEST_POINT_M_SOURCE`, `curatedByName` and `curatedByPostal` are deep-equal (`util.isDeepStrictEqual`), and `entityIdFor` has identical source. **Data:** `git diff --quiet 2634fc8 -- question-bank/data backend/app/data/content.json` exits 0. `bun run build -- --offline --out data/us-states` and `bun run questions` exit 0 and leave `git status` clean. |
+| 1 | **met** | `grep -niE "shipping today\|already served"` on `us-states.ts` finds nothing. The region paragraph (from `` **`region` vocabulary `` to its `*/`) contains `today` 0 times. `us-states-region-comment-verify.test.ts` › "T-111 criterion 1" is green. |
+| 2 | **met** | **Strings:** `T-017`, `2026-09-18` and `E-9` are all present in the paragraph. **The 13 region values and 15 state names:** each is in backticks, checked with line breaks joined. **`15`:** it appears on paragraph lines 3 and 14, "then the 15 states served at the time" and "The 15 states that bank served in 2026-09". **Tense is the reviewer's call.** The criterion 2 tests are green. |
+| 3 | **met** (checked at hand-off, not pinned) | **Comments only:** `Bun.Transpiler` (`minifyWhitespace`) gives the same output for the branch file and `git show 2634fc8:…`. Every changed line in `git diff -U0 2634fc8` is a ` *` comment line. **Exports:** all 5 deep-equal `main`'s. `CURATED_US_STATES`, `HIGHEST_POINT_M_SOURCE`, `curatedByName` and `curatedByPostal` were compared with `isDeepStrictEqual`, and `entityIdFor` has identical source. **Data:** `git diff --quiet 2634fc8 -- question-bank/data backend/app/data/content.json` exits 0. `bun run build -- --offline --out data/us-states` and `bun run questions` both exit 0 and leave `git status` clean. |
 | 4 | **met** | See the diff below. |
 
-### Criterion 4: `git diff --name-status origin/main...HEAD` (`origin/main` = `2634fc8`, HEAD = `ff58bb2`)
+### Criterion 4: `git diff --name-status origin/main...HEAD` (`origin/main` = `2634fc8`, an ancestor of HEAD = `ed8ea7c`)
 
 ```
+M	question-bank/src/agriculture-true-wrong-answers-verify.test.ts
+M	question-bank/src/climate-cold-trade-accepted-verify.test.ts
 M	question-bank/src/curated/us-states.ts
+M	question-bank/src/farm-animal-loose-ends-verify.test.ts
 A	question-bank/src/us-states-region-comment-verify.test.ts
 A	runs/T-111-us-states-15-states-comments.md
 M	tasks.md
 A	tasks/T-111-us-states-15-states-comments.md
 ```
 
-- **The change, records and run log:** `us-states.ts`, the brief and the run log are each named in the allow-list.
-- **The new test file:** `us-states-region-comment-verify.test.ts` is a `.test.ts` that does not exist on `main`, so it is allowed.
-- **No pre-existing test file has changed yet.** Rows 1 to 6 below, once approved and applied, are the only route for that.
-- **`tasks.md`:** its only hunk is T-111's own `###` heading (`todo` → `doing`).
+- **The change and the records:** `us-states.ts`, this brief, the run log and `tasks.md` are all on the allow-list. `tasks.md`'s only hunk is T-111's own `###` heading (`todo` → `doing`).
+- **The new test file:** `us-states-region-comment-verify.test.ts` does not exist on `main`, so it is allowed.
+- **Pre-existing test files:** three changed, each only through an approved CI fix plan row (header: `CI fix: applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`). I read `git diff origin/main...HEAD` for each one:
+  - `agriculture-true-wrong-answers-verify.test.ts` changed by **row 1** only. `MAIN_FILE_SHA[us-states.ts]` is now `98afb4d5…`, which equals the file's actual sha256, and the comment matches the row verbatim.
+  - `farm-animal-loose-ends-verify.test.ts` changed by **row 3** only. The two T-111 files joined `CRITERION_21_ALLOWED`, and `MAIN_UNTOUCHABLE_SHA` is now `689e2d12…`. `toBe(280)` is unchanged.
+  - `climate-cold-trade-accepted-verify.test.ts` changed by these rows:
+    - **Row 2:** `MAIN_SOURCE_TREES_SHA` is now `05dc94e8…`.
+    - **Row 4:** the two T-111 files joined `CRITERION_22_ALLOWED`, and `MAIN_UNTOUCHABLE_SHA` is now `d030f3e5…`. `MAIN_UNTOUCHABLE_COUNT` stays 283.
+    - **Row 5:** only the agriculture entry (`0206241e…`) and the farm entry (`377286f4…`) changed. Both equal the files' actual sha256.
+    - **Row 6:** `MAIN_TESTS_COUNT` went 132 → 133, and `MAIN_TESTS_SHA` is now `26653484…`.
+  - **Nothing else changed** in any of the three files. No assertion was weakened, and no count was lowered.
+- **Row 5's farm digest differs from the approved row's value** (`95d04a10…` was approved, `377286f4…` was applied). The `ci-fix` says why: row 3's comment had to name the header's approval, which did not exist at pass 1. The plan allowed this ("Pass 2 must use that text verbatim, or recompute row 5 and say so"). The new value is the file's real digest after rows 1 and 3, so the pin is as strong as before. **The reviewer may want a person to confirm they accept this.**
 - **Not in the list:** `PROGRESS.md`, and every `package.json`, `bun.lock`, `uv.lock` and `pyproject.toml`.
 
-### Suite, as run on `ff58bb2`
+### Suite, as run on `ed8ea7c`
 
-- **question-bank:**
-  - `format:check`, `typecheck` and `lint` are clean.
-  - `bun test` gives **2800 pass, 5 fail**. The 5 reds are the stale pins in rows 1 to 4 and 6.
-  - CI's `question-bank` job is red on `ff58bb2` for the same reason. The other CI jobs are green: frontend, both backend jobs, integration, e2e, and the blocked-run notice.
+- **question-bank:** `format:check`, `typecheck` and `lint` are clean. `bun test` gives **2805 pass, 0 fail** (75 files).
 - **backend:** `uv run pytest -q` gives 1221 passed, 9 skipped.
-- **frontend: environmental failures only.**
-  - Locally, `bun install --frozen-lockfile` fails with `ProxyConnectFailed (403)` (d3-array). As a result, `typecheck` fails on the missing `react-simple-maps`/`us-atlas`, and `bun test` gives 434 pass, 4 fail.
+- **frontend:**
   - `lint` is clean.
-  - CI's `frontend (typecheck, lint, test)` job is **green** on `ff58bb2`.
+  - I did not re-run `typecheck` or `bun test` locally. Earlier roles found that `bun install` fails here with a proxy 403, and no frontend file is touched.
+- **CI on `ed8ea7c`:**
+  - **Green:** `question-bank`, `backend (lint, format, test)`, `backend (postgres)` and `integration`.
+  - **Still running when I checked:** `frontend` and `e2e`. They were green on `ff58bb2`, and no frontend file has changed since.
 
-**The 5 red tests**, each mapped to its row:
-1. `agriculture-true-wrong-answers-verify.test.ts` › "criterion 20: curated/us-states.ts is byte-identical to main's" (row 1)
-2. `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 20 … is 12d242e's" (row 2)
-3. `farm-animal-loose-ends-verify.test.ts` › "criterion 21: … none is added" (row 3)
-4. `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22 … every tracked non-test file … none is added" (row 4)
-5. `climate-cold-trade-accepted-verify.test.ts` › "T-091 criterion 22 … pre-existing test files are main's, except ones in an approved Test change request" (**row 6, new**)
+### Mutations of `us-states.ts` (this round; each reverted, `cmp` against a backup confirmed, `git status` clean)
 
-Row 5's test is green today. It goes red once rows 1 and 3 are applied.
-
-**Why row 6 is new:** the round-1 tester counted 4 reds, because its test file was not yet tracked when it ran. Now that `us-states-region-comment-verify.test.ts` is committed, `MAIN_TESTS_COUNT` sees 133 test files against 132. This is the same shape as T-108's CI fix plan row 3.
-
-### Mutations of `us-states.ts` (re-run this round; all reverted, `cmp` against a backup confirmed)
-
-| # | Mutation | Result |
+| # | Mutation | Result on `us-states-region-comment-verify.test.ts` |
 |---|---|---|
-| M1 | Whole file replaced by `main`'s (`2634fc8`) | 3 criterion-1 tests red |
-| M2 | "served in 2026-09" → "served Today" | `today` test red |
-| M3 | `` `engineering-decisions.md` E-9 `` → `E9` | `E-9` test red |
-| M4 | Backticks removed from `Kansas` | `Kansas` test red |
-| M5 | Both "15 states" → "states" | `15`/`fifteen` test red |
-| M6 | Backticks removed from `Great Basin` | `Great Basin` test red |
+| M1 | "served at the" → "shipping today at the" | 2 red (`shipping today`, `today`) |
+| M2 | Backticks removed from `Nevada` | 1 red (`Nevada`) |
+| M3 | `(T-017, 2026-09-18)` → `(T-01, 2026-09-18)` | 34 red |
 
-Round 1 recorded a fuller mutation table (M1 to M10), with the same outcomes for the overlapping cases.
+Rounds 1 and 2 recorded fuller mutation tables (M1 to M10, and M1 to M6), with consistent results.
 
 ### Pre-existing tests
 
-- **None deleted or modified.** The rows below have Decision blank, and are **routed to the `ci-fix`** (D-20).
-- **I re-checked rows 1 to 4 on `ff58bb2`.** I applied them scratch to the working tree and read off the observed digests, then reverted with `git checkout`. Rows 1 to 4 reproduce the round-1 digests exactly. Row 6's digest was observed the same way.
-- **Row 5's digests cannot be precomputed.** They are the whole-file sha256 of two test files after the `ci-fix` writes its own comment lines into them, so the `ci-fix` computes them after applying rows 1 and 3.
+- **I deleted and modified none myself.** The changes above are the `ci-fix`'s, made through approved plan rows 1 to 6.
 
 ## CI fix plan
 
