@@ -260,7 +260,6 @@ as pure functions, so they can be tested without a request:
 - CI only runs the SQLite path. The suite passes against a real Postgres 16
   locally (`make test-postgres`), but nothing runs it automatically, so a
   Postgres-only regression would not fail a pull request.
-- The directory is `backend/`, where `conventions.md` §Layout says `api/`.
 - Question selection loads its topic's pool and picks in Python. Past a few
   thousand questions per topic the difficulty window should move into SQL —
   `store.candidate_questions` says where.

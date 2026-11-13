@@ -1,7 +1,7 @@
 # T-046 — Decide: `backend/` or `api/` — keep `backend/`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-046-backend-directory-name.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
+| worker | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 
 > **The decision in this brief was made by the expander, and is the thing to
 > approve.** The queue entry says "Either is fine, and deciding is not
@@ -173,6 +174,49 @@ directory exists. No P ticket in `process-tasks.md` mentions `api/`.
 
 ## Handoff
 
+**TL;DR:** E-31 appended to `engineering-decisions.md` (keep `backend/`), and the one stale Known-gaps line removed from `backend/README.md`. Two files, no code, no tests. Backend and question-bank suites green; frontend has 4 pre-existing reds from packages this sandbox could not download (same on `b10fa64` without this change).
+
+**Files changed**
+
+- `engineering-decisions.md` — appended `---` then `## E-31 — The service directory is \`backend/\`; \`api/\` is not a directory name` at end of file. E-31 was free (E-30 is still the last on `b10fa64`).
+- `backend/README.md` — deleted line 263, `- The directory is \`backend/\`, where \`conventions.md\` §Layout says \`api/\`.` Nothing else touched.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1 | `engineering-decisions.md`, last `## E-` heading, `## E-31 — The service directory is \`backend/\`…` |
+| 2 | E-31 first paragraph: `**Decided: 2026-11-13 (T-046).**` and "`api/` is not used as a directory name anywhere in the repo" |
+| 3 | E-31 **Why** and **Option not taken**: `Dockerfile`, `.github/workflows/ci.yml`, `backend/Makefile` |
+| 4 | E-31 **What is left, and who owns it**: quotes `CLAUDE.md` line 4 and line 58, says loop-gated (G1), needs a hand-written `P` ticket, not a `T` task |
+| 5 | E-31 last paragraph, `**Revisit when** a second service is added beside \`backend/\` … or the repo is restructured into a \`services/\` or \`apps/\` layout` |
+| 6 | E-31 **Option not taken**: "*Rename \`backend/\` to \`api/\`* …" |
+| 7, 8 | `backend/README.md` — `git diff b10fa64 -- backend/README.md` is the single `-` line |
+| 9 | Both `git grep` commands from the criterion print nothing (exit 1) on this branch, run by the worker |
+| 10–12 | `git diff --stat b10fa64` shows only `engineering-decisions.md`, `backend/README.md` and this brief (plus the orchestrator's `runs/` log from before the worker) |
+
+**Deliberately not done**
+
+- `CLAUDE.md`, `process-tasks.md`, `PROGRESS.md`, `tasks.md` — out of scope; the P ticket and the sweep are the reviewer's.
+- The two other stale Known-gaps bullets (SQLite-only CI, pin grading) — left byte-identical per criterion 8.
+- No test committed (brief: all criteria are by-hand).
+
+**Contradictions with the brief:** none found. One wording note: E-31 says `/api/v1` is a route prefix and unaffected — `backend/Makefile` line 11 has `/api/v1`, which criterion 9's regex correctly does not match (preceded by `/`).
+
+**How to run**
+
+- Criterion 9: the two `git grep` commands verbatim from the criterion.
+- Suites: `make -C backend check` (809 passed, 9 skipped); `cd question-bank && bun test` (229 pass) plus typecheck, lint, format:check all clean; `cd frontend && bun test`, `bun run typecheck`, `bun run lint`, `bun run format:check`.
+
+**Frontend reds — environmental, not stale tests, not from this change.** `bun install --frozen-lockfile` failed with `ProxyConnectFailed (403)` downloading `react-simple-maps@3.0.0`, `d3-geo@2.0.2`, `@types/geojson`. So `bun test` shows 4 fail / 4 errors (`UsMap.tsx`, `t051-map-click.test.tsx`, `t051-tester.criteria.test.tsx` cannot find `react-simple-maps`) and `tsc` reports the matching TS2307s. I stashed my change and reran on the base: identical 4 fail. Lint and format:check pass. Tester: rerun in an environment that can install the lockfile, or confirm the same reds on `b10fa64`.
+
+**Tests made stale:** none.
+
 ## Verdict
 
 ## Notes
+
+- **Session id is shared with the expander.** `$CLAUDE_CODE_REMOTE_SESSION_ID` returned `cse_011oDiJd2dgRHzBRDwBhvmNz` for this worker, the same id the expander recorded — the orchestrator ran both roles as subagents of one remote session. The tester's isolation check reads this table; the orchestrator (owner) should confirm the tester runs as a separate subagent, and a human decides whether subagent isolation under one remote session id is acceptable (`process-decisions.md`, not this task).
+- **Frontend could not install** in this sandbox (proxy 403 on npm tarballs). Owner: tester to rerun the frontend suite where install works; not a code issue.
+- **No `---` above E-30** in the current file, though the brief asked for one above E-31. Added it as the brief says; the file's separators are inconsistent anyway. Reviewer to confirm or drop.
+- Survey matched the brief exactly: one `api/` hit outside exclusions, at `backend/README.md:263`.

@@ -2021,3 +2021,41 @@ now lives in git and in the earlier entries, not in the guards.
 **Revisit when** the monthly refresh routine is switched on and its PRs must
 open green: either that PR re-pins the bank (this entry's rule), or the bank
 pins stop covering fields a refresh may move.
+
+---
+
+## E-31 — The service directory is `backend/`; `api/` is not a directory name
+
+**Decided: 2026-11-13 (T-046).** The FastAPI + Postgres service lives in
+`backend/` and keeps that name. `api/` is not used as a directory name anywhere
+in the repo; where an older doc says `api/`, it means `backend/`. The URL
+prefix `/api/v1` is a route, not a directory, and is unaffected.
+
+**Why.** The directory has been `backend/` since the service was built, and
+everything that runs it already says so: the `backend` stage of the
+`Dockerfile` (`COPY backend/ ./`, `WORKDIR /app/backend`),
+`.github/workflows/ci.yml` (11 mentions), and `backend/Makefile`
+(`make -C backend <target>`). `conventions.md` §Layout has said `backend/`
+since T-007 and `test-guidelines.md` since T-047. Keeping the name changes two
+lines of prose; nothing that builds, tests or ships moves.
+
+**Option not taken.** *Rename `backend/` to `api/`*, so the directory matches
+the name `CLAUDE.md` used before the service existed. A rename would have had to
+change the `Dockerfile`, `.github/workflows/ci.yml`, `backend/Makefile`, every
+doc and test path that says `backend/` (roughly a hundred tracked files), and
+the habits of everyone who types `cd backend`, for no change in behaviour.
+
+**What is left, and who owns it.** `CLAUDE.md` still says `api/` in two places,
+on `main` at `b10fa64`:
+
+- line 4: `` `api/` FastAPI + Postgres (uv, not built yet) ``
+- line 58: `` `uv add` / `uv run` in `api/` ``
+
+`CLAUDE.md` is loop-gated (the orchestrator's G1), so no `T` task may edit it.
+Fixing those two lines needs a hand-written `P` ticket in `process-tasks.md`,
+done by hand outside the loop, not a `T` task.
+
+**Revisit when** a second service is added beside `backend/` (a worker, a
+second API), so that `backend/` no longer names exactly one thing, or the repo
+is restructured into a `services/` or `apps/` layout in which every service
+directory is renamed at once.
