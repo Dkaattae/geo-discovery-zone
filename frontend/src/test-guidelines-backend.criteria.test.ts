@@ -112,8 +112,10 @@ function unchangedRemainder(text: string): string {
  * scratch copy of this function. Embedded, because CI checks out shallow and no
  * test may resolve a git revision.
  */
+// Re-pinned 2026-11-13 when test-guidelines.md gained the question-bank rule
+// (only the bank is tested; snapshot lane) at Dkaattae's request.
 const REMAINDER_SHA256_AT_A7945CF =
-  "d028b32dc2b5d0906e41cf25ff85e2421aa68793a55928526cd2d8e61632fbfd";
+  "eae6620d480921d6ee3204ea82f497e8344cfba6c36f7d2971235b3ffe12074e";
 
 const section = backendSection(doc);
 

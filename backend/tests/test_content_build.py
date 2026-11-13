@@ -501,7 +501,7 @@ def test_no_shipped_source_reads_the_archive() -> None:
         for path in root.rglob("*")
         if path.is_file()
         and path.suffix in {".py", ".ts", ".tsx", ".js", ".json"}
-        and not re.search(r"(\.test\.|_test\.|test_)", path.name)
+        and not re.search(r"(\.test\.|\.snapshot\.|_test\.|test_)", path.name)
         and pattern.search(path.read_text(encoding="utf-8", errors="ignore"))
     ]
     assert offenders == []

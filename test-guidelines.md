@@ -8,6 +8,29 @@ are written from a task's **acceptance criteria**, by someone who has not seen t
 implementation — a separate session, checked against the brief's Sessions table. A test is the executable form of "we agreed this is what
 done means" — not a description of what the code happens to do.
 
+## `question-bank/`: the bank is the only thing tested
+
+**This rule outranks everything below for `question-bank/`.** Its tests check one
+thing: that the question bank is there.
+
+- **Allowed:** the bank's files exist and load, every state is in it, and, at
+  most, how many questions or facts each state has.
+- **Not allowed:** tests of the pipeline's code, of doc or comment wording, of
+  tooling (lint, prettier, scripts, dependencies), or of the repo's shape: no
+  hash or count of tracked files, no `git show` of an older commit, no pinned
+  digest that a later, unrelated change can turn red.
+- **Formatting and linting are not tests.** CI's Lint (`oxlint`) and Format
+  (`prettier --check`) steps cover them. Never assert on formatting in a test.
+- **A task's acceptance criteria do not change this.** When a criterion is about
+  something other than the bank, the tester checks it by hand and says so in the
+  Verdict, without committing a test for it.
+
+The suite that runs in CI is the five `*.test.ts` files in `question-bank/src/`.
+The 13 older `*.snapshot.ts` files are a separate lane: they pin the repo as it
+stood on old commits, `bun test` does not pick them up, and they run only once a
+month (`.github/workflows/snapshot-tests.yml`, or `bun run test:snapshots` by
+hand). Do not add to them, and do not re-pin them to make a pull request pass.
+
 ## What to test
 
 **Test the behaviour you would be upset to get silently wrong.** In a quiz for
@@ -94,7 +117,8 @@ The suite should not notice.
 
 ## Three patterns worth copying
 
-All three come from `question-bank/src/normalize.test.ts`.
+All three came from `question-bank/src/normalize.test.ts`, since removed with the
+rest of the pipeline tests. They still apply to `frontend/` and `backend/`.
 
 **Re-read the fixture per call.** Returning a fresh parse means no test can
 mutate another's data, and there is no shared setup to reason about.
@@ -211,13 +235,15 @@ testing tool. Report which mutations were made and what each one did.
 
 ### `question-bank/` and `frontend/` — `bun test`
 
+For `question-bank/`, read the rule at the top first: only the bank is tested.
+
 ```bash
 cd question-bank && bun test
 cd frontend      && bun test
 ```
 
-Tests live next to what they test: `src/normalize.test.ts` beside
-`src/normalize.ts`. Pure functions are the highest value per line of test and
+Tests live next to what they test, such as `src/lib/level.test.ts` beside
+`src/lib/level.ts` in `frontend/`. Pure functions are the highest value per line of test and
 need no setup at all.
 
 Test files are **typechecked**, not excluded — `@types/bun` is a devDependency

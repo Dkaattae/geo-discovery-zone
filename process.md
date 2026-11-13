@@ -314,6 +314,7 @@ tasks.md
    │
    ├─▶ 4. verify        FRESH SESSION, no working context:
    │                      writes tests from the acceptance criteria
+   │                      (question-bank/: bank tests only, the rest by hand)
    │                      runs them
    │        │
    │        ├── fail (code wrong) ─────────▶ 4a
@@ -486,6 +487,15 @@ It reads the implementation only to find entry points and signatures — never t
 decide what the expected values are. Expected values come from the criteria. Test
 naming should make the mapping obvious, one criterion at a time.
 
+**In `question-bank/`, only the bank is tested** (`test-guidelines.md`, the rule
+at the top). The tester commits a test there only for a criterion about the bank
+itself: its files are there, every state is in it, and at most how many questions
+or facts each state has. Every other `question-bank/` criterion is checked by hand
+and recorded in the Verdict: what was run and what was seen. No test may hash or
+count tracked files, read an older commit, or assert on formatting, and the
+`*.snapshot.ts` lane, which runs monthly outside CI, is never added to, re-pinned
+or counted in a verdict.
+
 **When the deliverable is itself tests** — T-001, for instance — writing more
 tests to check them is circular. Verify by coverage and then by **mutation**:
 break each behaviour on purpose, confirm the matching test goes red, and revert
@@ -497,7 +507,7 @@ Three outcomes:
 
 | Outcome | Meaning | Next |
 |---|---|---|
-| **Pass** | Every criterion has a test and every test passes, including the pre-existing suite | Step 5 |
+| **Pass** | Every criterion has a test (in `question-bank/`, a recorded check by hand where no test is allowed) and every test passes, including the pre-existing suite | Step 5 |
 | **Fail** | A criterion is not met by the code | To **step 4a**, the `ci-fix`. The failing test stays |
 | **Blocked** | A criterion is ambiguous, untestable as written, or wrong | Back to **step 2**. Fix the brief, not the test |
 
