@@ -140,3 +140,33 @@ Person asked in the orchestrator's session to approve or refuse. If nobody answe
 
 ## CI fix approved by a person — 2026-11-13
 The person in the orchestrator's session answered before the hour was up, in their words: "approve T113 fix plan". Header set to `CI fix: approved — session user (repo owner), 2026-11-13, given in the orchestrator's session`, `Status: ci fix approved`, `Next step: ci-fix`. The scheduled one-hour check-in was deleted; no auto-approval stamp was written.
+
+## Round 5 — ci-fix (pass 2) — 2026-11-13
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**T-113 ci-fix, pass 2: I applied both approved rows. They are doc-only and none was refused.** The brief now reads Status `awaiting verification` and Next step `tester`. Commit `d283def` is on `claude/relaxed-allen-5ro49x`, and local HEAD matches origin. **Next: spawn a fresh `tester`.**
+
+**Approval used**
+- **Header on entry:** `CI fix: approved — session user (repo owner), 2026-11-13, given in the orchestrator's session`.
+- **The person's words:** "approve T113 fix plan", as recorded in `runs/T-113-deleted-guards-in-docs.md` (commit `45a3fd8`). That covers the whole plan, so I wrote it into both rows' Decision cells.
+- **Not a timeout stamp:** this approval came from a person, and the plan has no test rows.
+
+**What changed**
+- **`/home/user/geo-discovery-zone/tasks.md`** (the paragraph under the §A table): the false sentence "The one CI test that still reads `conventions.md`…" is replaced. The new sentence says two narrow CI checks still read `conventions.md` and neither covers it as a whole. `test_c28_conventions_layout_names_the_archive` checks the Layout's `archive/` row. `question-bank/src/committed-bank.test.ts` checks that it says the bank is committed under `data/us-states` and does not say the bank is kept out of git. The bold criterion-14 sentence is unchanged.
+- **`/home/user/geo-discovery-zone/PROGRESS.md`** (`## Done` › Repo and process bullet): the same replacement. It is outside the `## Completed tasks` span, so criterion 15 still holds.
+- **`/home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md`:**
+  - Decision cells filled in.
+  - New `## CI fix` section.
+  - Sessions row `ci-fix (pass 2)` added.
+  - Header: `CI fix: applied — <approval as it read>`, Fault set to `none`. `Test changes` stays `none`.
+
+**Suite, run after the edits**
+- **question-bank:** typecheck, lint, format:check and tests all pass (229 pass, 0 fail).
+- **backend:** `make check` gives 809 passed, 9 skipped.
+- **frontend:** lint and format:check are clean. Typecheck and `bun test` fail here (111 pass, 4 fail, 4 errors). The cause is the same one the worker and tester recorded: `react-simple-maps` and `us-atlas` could not be installed (proxy 403), so the `t051-*` and screens files fail to load. The diff touches no code.
+
+**Independence:** this is an orchestrated run, and every role has the same session id, `cse_011oDiJd2dgRHzBRDwBhvmNz`. So the session check can neither pass nor fail. My only independence is that I was freshly spawned with my own context.
+
+**Noticed and left alone, for the reviewer**
+- The brief's Context line still says `test_c28_…` is the only CI test that reads `conventions.md`, which is wrong.
+- The tester's advisory on criterion 12 (`conftest.py::assert_matches`) is still open.
