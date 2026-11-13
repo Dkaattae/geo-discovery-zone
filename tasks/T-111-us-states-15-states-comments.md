@@ -1,10 +1,10 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today"
 
-**Status:** `ci fix requested`
-**Next step:** `human`
+**Status:** `ci fix approved`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-13, unattended run (re-stamped after criterion 4 amendment). See `runs/T-111-us-states-15-states-comments.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `requested`
+**CI fix:** `approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
 **From:** [`tasks.md`](../tasks.md) T-111
 **Branch:** `claude/amazing-franklin-j3x3l1`
 **PR:** #136, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it.
