@@ -570,7 +570,7 @@ def test_c27_no_shipped_source_reads_archive() -> None:
         for path in (REPO / top).rglob("*"):
             if not path.is_file() or path.suffix not in {".py", ".ts", ".tsx", ".js", ".json"}:
                 continue
-            if ".test." in path.name or path.name.startswith("test_"):
+            if ".test." in path.name or ".snapshot." in path.name or path.name.startswith("test_"):
                 continue
             if "archive" in path.read_text(encoding="utf-8", errors="ignore"):
                 readers.append(str(path.relative_to(REPO)))

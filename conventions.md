@@ -74,7 +74,8 @@ bun run questions          # data/us-states/ → data/questions/us-states.json, 
 bun run typecheck
 bun run lint               # oxlint, not eslint (E-15); fails on any warning
 bun run format:check       # pinned prettier over src/**/*.ts (E-16); `bun run format` rewrites
-bun test
+bun test                   # the five bank tests (src/*.test.ts), as CI runs them
+bun run test:snapshots     # the snapshot lane (src/*.snapshot.ts): monthly, not in CI
 
 # e2e — full user journeys against a real docker compose stack
 cd e2e && bun install && bun run install-browser   # once, fetches Chromium

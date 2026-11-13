@@ -228,7 +228,7 @@ describe("T-073 criterion 4 — no test in frontend/src can pass because git fai
 describe("T-073 criterion 5 — nothing in the repo compares engineering-decisions.md against a git revision", () => {
   test("the repo-wide scan reaches every package's tests", () => {
     expect(REPO_TEST_FILES.length).toBeGreaterThan(20);
-    expect(REPO_TEST_FILES).toContain("question-bank/src/region-vocabulary.test.ts");
+    expect(REPO_TEST_FILES).toContain("question-bank/src/committed-bank.test.ts");
     expect(REPO_TEST_FILES).toContain("frontend/src/level-window-claim.criteria.test.ts");
   });
 
