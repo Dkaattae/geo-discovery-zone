@@ -66,3 +66,42 @@ Brief: /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md
 - **Rule I followed:** a deleted test is described by its commit (`8cf40b6`, `d594b38`, `987d2cd`), never by its file name. Criterion 1 counts every file name in the two sections, including ones described as deleted.
 
 The brief's diff against `main` also lists `runs/T-113-deleted-guards-in-docs.md`. That file came from the orchestrator's commit, not mine.
+
+## Round 3 — tester — 2026-11-13
+`Next step` on entry: `tester` → on exit: `ci-fix` (fail #1)
+
+**T-113 tester: FAIL. Next step: `ci-fix`.** A new sentence the worker added makes a false claim about which CI tests read `conventions.md`. The fix is a small doc rewording. I checked all the other criteria by hand and they hold. The verdict is pushed to `claude/relaxed-allen-5ro49x` as `728796e`, and the remote now matches.
+
+**What is wrong (criterion 14, and 17 for the same sentence)**
+- **Where:** `tasks.md` lines 169–171 and `PROGRESS.md` lines 247–249. Both say "The one CI test that still reads `conventions.md` checks a single line, the Layout's `archive/` row (`backend/tests/test_t040_tester_criteria.py::test_c28_…`)".
+- **Why it is false:** `question-bank/src/committed-bank.test.ts` is one of the five question-bank files CI runs, and it also reads `conventions.md`:
+  - `criterion 11 — no shipped file still asserts the bank is not stored in git` checks that a phrase is absent from it.
+  - `criterion 15 — README and conventions say a fresh clone already has the bank` asserts it matches `/committed/` and `/data\/us-states/`.
+- **Reproduce:** `grep -n 'conventions.md' question-bank/src/committed-bank.test.ts` finds lines 241, 271 and 272.
+- **Where the wrong fact came from:** the brief's own Context says the same thing, and the worker repeated it. The criteria themselves are sound, so this is `fail`, not `blocked`.
+- **What the fix needs:** name both narrow checks, or drop "the one". Also, committed-bank's criterion 15 does pin one fact in `conventions.md` (the bank is committed under `data/us-states`). So "no CI test checks it as a whole" is accurate, but a flat "no CI test checks it against the layout" should be qualified.
+
+**Criteria**
+
+| Criteria | Verdict | Evidence |
+|---|---|---|
+| 1 | met | Scanned both regions for test-file names: 13 hits (3 in `tasks.md`, 10 in `PROGRESS.md`), every one tracked. Zero missing. |
+| 2 | met | Both snapshot-lane files are described as monthly / outside CI where they are named. The snapshot workflow's cron runs monthly. |
+| 3–11, 13 | met | Each stale phrase is gone and I checked the new text against the code. |
+| 12 | met, with a note for the reviewer | The rewrite says `openapi.yaml` is "kept in step by hand". That matches E-14 and `test-guidelines.md`, but CI still checks response shapes against its schemas through `backend/tests/conftest.py::assert_matches`. |
+| 14 | **not met** | The false "one CI test" sentence above. |
+| 15 | met | The `PROGRESS.md` span between `## Completed tasks` and `## Known gaps in what is done` is identical on `origin/main` and `HEAD` (1643 lines). |
+| 16 | met | The worker's commit `a443e7c` touches only `PROGRESS.md`, `tasks.md` and the brief. |
+| 17 | not met | Same sentence as 14. Every other new claim checks out. |
+| 18 | met | The facts that were still true are unchanged. |
+
+**Suite (I committed no tests: the change is docs only, so every criterion was checked by hand)**
+- **question-bank:** typecheck, lint, format and tests all pass (229 pass, 0 fail).
+- **backend:** `make check` gives 809 passed, 9 skipped.
+- **frontend here:** lint and format are clean, but typecheck and tests are red because the packages could not be installed (proxy 403). Four test files fail to load on missing modules.
+- **frontend in CI:** GitHub CI on the branch head `a9e98bc` is all green, including the frontend job.
+- **Stale tests:** none, and no pre-existing test was changed.
+
+**Independence:** this is an orchestrated run, and my session id is the same one the expander and worker rows carry, so the id check proves nothing. My independence rests only on being a freshly spawned agent that never saw the work. I say so in the Verdict.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md — Status `fail`, Next step `ci-fix`, Fault line and my Sessions row added.
