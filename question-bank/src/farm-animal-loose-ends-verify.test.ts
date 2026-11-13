@@ -177,7 +177,9 @@ const MAIN_DEP_SHA = "9e3ffca97584b1c9e13e06c2b9fd986ee39dbd91b48454762e67515ab7
 // Re-pinned by T-106 (CI fix plan row 3): README.md, which main counted, joins
 // the allowed set with T-106's brief and run log (281 -> 280).
 // Re-pinned by T-108 (CI fix plan row 1): T-108's brief and run log join the allowed set (count and digest unchanged, 280).
-const MAIN_UNTOUCHABLE_SHA = "c274a19eb00773d8057d349e3117271ef72c2c54aa79415d543cfab999be3fbf";
+// Re-pinned by T-111 (CI fix plan row 3): question-bank/src/curated/us-states.ts moved (comments only);
+// T-111's brief and run log join the allowed set (count unchanged, 280).
+const MAIN_UNTOUCHABLE_SHA = "689e2d1289e22524b7c701457af9b4e4b22185df32fda9b159229a959fee1dcb";
 /**
  * Criterion 21's list, plus the orchestrator's run log and the `tasks.md`
  * status flip, which are the loop's own records of this task rather than its
@@ -188,6 +190,10 @@ const MAIN_UNTOUCHABLE_SHA = "c274a19eb00773d8057d349e3117271ef72c2c54aa79415d54
  * records are new tracked files, and the brief changes at every commit.
  */
 const CRITERION_21_ALLOWED = new Set([
+  // T-111's loop records, joined through T-111's CI fix plan row 3 (approved by
+  // Dkaattae, 2026-11-13, given in the orchestrator's session).
+  "tasks/T-111-us-states-15-states-comments.md",
+  "runs/T-111-us-states-15-states-comments.md",
   // T-107's loop files, joined through T-107's CI fix plan row 7 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "tasks/T-107-prettier-writer-guard.md",

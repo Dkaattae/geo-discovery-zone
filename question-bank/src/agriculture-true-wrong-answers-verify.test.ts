@@ -208,8 +208,10 @@ const MAIN_LEVEL_SEED_WEIGHTS_SHA =
 const MAIN_ED_OUTSIDE_E25_SHA = "ee4ead2780b3eb34b59f6f378b798447a06f69310555a766631141c3c71ba9bd";
 /** sha256 of each file whole, at a42b71b. */
 const MAIN_FILE_SHA: Record<string, string> = {
+  // re-pinned by T-111 (CI fix plan row 1): T-111 past-tensed two comments in the
+  // region paragraph (comments only, its criterion 3).
   "question-bank/src/curated/us-states.ts":
-    "e61e8e50bd0fa6f1c958698009e23c3e92b83ba1e2af71426c6ae7afb95b4cbc",
+    "98afb4d56d4eb55b07fc2dfeb933bd0d8d3addd43d79288f48cdefeb53cd97fd",
   // re-pinned at `ed00235` (T-039, Test change request row 1): T-039 marks four
   // operations "Not implemented in v1". Re-pinned at T-045 (Test change request
   // row 1): T-045 marks four formats and two pin strategies "Not implemented in v1".
