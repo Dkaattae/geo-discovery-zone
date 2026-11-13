@@ -25,8 +25,8 @@ thing: that the question bank is there.
   something other than the bank, the tester checks it by hand and says so in the
   Verdict, without committing a test for it.
 
-The suite that runs in CI is the five `*.test.ts` files in `question-bank/src/`.
-The 13 older `*.snapshot.ts` files are a separate lane: they pin the repo as it
+The suite that runs in CI is the `*.test.ts` files in `question-bank/src/`.
+The older `*.snapshot.ts` files there are a separate lane: they pin the repo as it
 stood on old commits, `bun test` does not pick them up, and they run only once a
 month (`.github/workflows/snapshot-tests.yml`, or `bun run test:snapshots` by
 hand). Do not add to them, and do not re-pin them to make a pull request pass.
@@ -316,16 +316,12 @@ new test asks for.
   rows.
 - **`openapi.yaml` follows the backend** (`engineering-decisions.md` E-14): the
   backend is the source of truth, and when the two differ the fix is to update
-  `openapi.yaml`. The checks that keep them in step still fail a test, so a
-  difference cannot go unnoticed:
-  - `backend/tests/test_contract.py` compares the app's own `app.openapi()`
-    operations with `openapi.yaml`'s, in both directions — a route with no
-    operation in the file, and an operation with no route.
-  - `assert_matches(spec, "SchemaName", payload)` checks a response body against
-    the named schema: every required key present, no undeclared key. The `spec`
-    fixture is `openapi.yaml`, parsed once per run.
-
-  When one fails, decide which side moved. If the backend now serves what it
+  `openapi.yaml`. No test compares the app's routes with `openapi.yaml`'s
+  operations, in both directions, any more: `d594b38` deleted
+  `test_contract.py`. `assert_matches(spec, "SchemaName", payload)` in
+  `conftest.py` still checks a response body against the named schema — every
+  required key present, no undeclared key — and the endpoint tests still call
+  it. When it fails, decide which side moved. If the backend now serves what it
   should, update `openapi.yaml` in the same change.
 - **Errors are problem documents.** `assert_problem(response, status)` checks the
   status code, the `application/problem+json` content type and the body's

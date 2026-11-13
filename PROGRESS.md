@@ -3,12 +3,12 @@
 Where the project stands against [`geoquizdataplan.md`](geoquizdataplan.md).
 Section numbers below refer to that plan.
 
-_Last updated: 2026-10-27_
+_Last updated: 2026-11-13_
 
 ## In one paragraph
 
 The **whole stack is built and runs**: a React app, a FastAPI backend serving all
-29 operations in `openapi.yaml`, a database that survives restarts (SQLite or
+every operation in `openapi.yaml`, a database that survives restarts (SQLite or
 Postgres), accounts with hashed passwords, and one Docker image that serves both
 halves on one origin. Since T-040 (PR #88) and T-026 (PR #91) the app serves
 the pipeline's **50 states** and, since T-051 (PR #96), **415 generated
@@ -258,38 +258,30 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   count comes back, in digits or words (T-065, T-074). It also scans this file's
   Known-gaps and Next sections, below the history. Per-task figures in the history
   below are left alone on purpose: they record what a PR did, which does not rot.
-- Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
-  each prevented from grading its own work, plus `orchestrator`, which relays one
-  task between the other four and reads none of their work.
+- Six agents in `.claude/agents/` — task-expander, worker, tester, ci-fix,
+  reviewer, each prevented from grading its own work, plus `orchestrator`, which
+  relays tasks between the other five, one at a time and several per run (3
+  unless told otherwise, D-19), and reads none of their work.
 - **A blocked run now announces itself.** `.github/workflows/blocked-run-notice.yml`
   reads a pushed brief's header and labels the PR `waiting on a human` with one
   comment when a task stops for a decision. Nothing is left running when a run
   halts, so the push is what raises the notice.
-- Two unattended drivers for the same loop, enforcing the same six gates:
-  `.claude/loop/run-loop.sh` locally (no model in it, a spend cap the CLI
-  enforces, a fresh session id per step) and the `orchestrator` agent where no
-  shell can run. **The `orchestrator` has now driven four tasks end to end** —
-  T-006 (PR #29), T-007 (PR #33), T-008 (PR #34) and T-058 (PR #35), logged in
-  `runs/`. What that
-  costs is the same every time and is written into each brief rather than
-  disguised: nobody approves the criteria (`Approved: orchestrator`), and every
-  spawned role shares one session id, so the Sessions-table independence check
-  does not run — only the fresh context window is real. `run-loop.sh` has still
-  never driven a task.
+- **One driver for the loop: the `orchestrator` agent.** The shell driver,
+  `.claude/loop/run-loop.sh`, was removed (D-19) without ever having driven a
+  task. Each orchestrated run is logged in `runs/`. What it costs is the same
+  every time and is written into each brief rather than disguised: nobody
+  approves the criteria (`Approved: orchestrator`), and every spawned role
+  shares one session id, so the Sessions-table independence check does not
+  run — only the fresh context window is real.
 - **`.claude/settings.json` now exists (P-2).** Its `permissions.allow` names the
   exact git verbs a role's ending calls for (`add`, `commit`, `push`, `checkout`,
   `fetch`, `status`, `log`, `diff`, `branch`, `rev-parse`) and the CLAUDE.md
   "Tests" checks (`bun install`, `bun run lint|typecheck|format`, `bun test`,
   `make -C backend check|test|migrate`) — verbs, never a `git:*`/`bun:*`
   wildcard. `process-decisions.md` **D-13** has the reasoning, plus a caveat
-  found while wiring it up and not written down before: the allowlist only
-  takes effect in a directory Claude Code has already marked trusted, which is
-  per-machine state outside the repo. That was already true everywhere
-  `run-loop.sh` has actually run; it just was not stated. **Still open:**
-  `run-loop.sh` has not yet completed an end-to-end role run under the new
-  allowlist — the sandboxed session that wired it up cannot itself accept a
-  trust prompt, so the first real proof is still the first live run on a
-  trusted machine.
+  found while wiring it up: the allowlist only takes effect in a directory
+  Claude Code has already marked trusted, which is per-machine state outside
+  the repo.
 - **`/next-task` starts an orchestrated run** (`.claude/skills/next-task/`,
   by hand, 2026-10-15). It checks there is room for a new task — no live brief
   in `tasks/`, a session branch with nothing unmerged on it — then hands over to
