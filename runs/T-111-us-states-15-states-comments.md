@@ -146,3 +146,35 @@ Orchestrator: stamped `Approved:` (unattended run).
 **File:** /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
 
 Orchestrator: re-stamped `Approved:` (unattended run).
+
+## Round 5 — tester — 2026-11-13 15:40Z
+`Next step` on entry: `tester` → on exit: `ci-fix` (Status `fail`; G3 count: 1 fail, 1 blocked)
+
+**T-111, tester round 2: `fail`. Every acceptance criterion is met; the fail is only for stale test pins, and the next step is the `ci-fix`.** All four criteria hold on `ff58bb2`, including criterion 4 as amended. The question-bank suite has 5 red tests. Every one is a whole-tree or whole-file pin that this task's own files made stale; no behaviour test is red. Six change rows are in the brief, routed to the `ci-fix` (D-20) with Decision blank. Pushed `6ed5ff5` to `claude/amazing-franklin-j3x3l1`, and the remote matches.
+
+**Independence:** this is an orchestrated run, so the session-id check proves nothing. My id is already listed for every earlier role. Independence rests only on my being a freshly spawned subagent that did not see the worker's or the round-1 tester's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `question-bank/src/us-states-region-comment-verify.test.ts`, 3 tests, all pass |
+| 2 | met | Same file, 35 tests, all pass. The reviewer judges whether the "15 states" sentences read as past tense. |
+| 3 | met (checked by hand, not committed as a test, as the brief asks) | The file with comments and whitespace stripped is identical to `main`'s. All 5 exports match `main`'s. The data files are byte-identical, and the offline build and `bun run questions` leave `git status` clean. |
+| 4 | met | The diff names only `us-states.ts`, the new test file, the run log, `tasks.md` (T-111's own heading line only) and the brief. No dependency files. |
+
+**Suites:**
+- **question-bank:** format, typecheck and lint are clean; `bun test` gives 2800 pass, 5 fail (the stale pins). CI's `question-bank` job is red for the same reason; every other CI job is green.
+- **backend:** 1221 passed, 9 skipped.
+- **frontend:** fails locally only because the proxy blocks package downloads (403). CI's frontend job is green.
+
+**Mutations:** I re-ran six deliberate breakages of `us-states.ts`. Each turned the matching test red, and all were reverted (`cmp` confirmed).
+
+**Test change rows:**
+- **Rows 1–4 re-checked.** Applied temporarily on `ff58bb2`, they reproduce the round-1 digests exactly; I then reverted them.
+- **Row 6 is new.** The round-1 tester's test file is now committed, so the T-091 criterion 22 test "pre-existing test files are main's…" counts 133 test files against 132. Proposed: `MAIN_TESTS_COUNT` 132 → 133 and `MAIN_TESTS_SHA` → `2665348439773d3c1fb27a430c6877acc94971e66d20a325952e37633f16380d`, the same shape as T-108's.
+- **Row 5's digests can't be computed in advance.** The `ci-fix` has to compute them after applying rows 1 and 3, because they depend on the comment lines it writes.
+
+**Brief header:** Status `fail`, Next step `ci-fix`, Test changes `routed to ci-fix (D-20)`. I added a Fault line, a "tester (round 2)" Sessions row, and a rewritten Verdict, and appended row 6 to the Test change request. No source or pre-existing test was changed.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
+- /home/user/geo-discovery-zone/question-bank/src/us-states-region-comment-verify.test.ts
