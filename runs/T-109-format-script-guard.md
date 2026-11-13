@@ -1,7 +1,7 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH` — run log
 
 **Task:** T-109 · **Branch:** `task/T-109-format-script-guard` · **PR:** #137
-**Started:** 2026-11-13 · **Outcome:** in progress
+**Started:** 2026-11-13 · **Outcome:** halted — needs human
 
 Task 2 of an orchestrated run of 2, started by Dkaattae ("start the next two tasks as an orchestrator").
 
@@ -238,3 +238,57 @@ Files:
 - /home/user/geo-discovery-zone/question-bank/src/ — 10 changed test files: agriculture-true-wrong-answers-verify, climate-cold-trade-accepted-verify, climate-far-phrases-verify, conventions-openapi-row-verify, familiarity-drawn-apart-verify, farm-animal-loose-ends-verify, hand-check-levels-verify, highest-point-in-state-verify, map-click-no-candidates-verify, refresh-regenerate-reminder-verify (all `.test.ts`)
 
 Paused here (Next step `tester`) while T-111's approved ci-fix runs, at Dkaattae's request ("start the T-111 ci-fix now too").
+
+## Round 6 — tester — 2026-11-13 16:45Z
+`Next step` on entry: `tester` → on exit: `ci-fix` (Status `fail`; G3 count: 2 fail, 0 blocked)
+
+**T-109 tester, round 2: `fail`. All 18 criteria are met, but CI was red on the PR head because of the round-1 tester's own test file.** I fixed that test file. The fix turns one pre-existing pin red, and I routed it to the `ci-fix` as request row 20. Next step: `ci-fix`.
+
+Pushed to `task/T-109-format-script-guard` at `85698c3`, and `origin` matches it. Brief header now reads Status `fail`, Next step `ci-fix`, Test changes `routed to ci-fix (D-20)`, with a Fault line. I added my Sessions row.
+
+**Independence:** this is an orchestrated run. My session id `cse_011oDiJfSMW5AuCAW3Bk9Ste` is the one every role lists, so the id check proves nothing. My only independence is being a freshly spawned subagent, and that rests on the orchestrator spawning me correctly.
+
+**What was wrong**
+- **CI run 43461510008 on head `d02f63c`:** every job is green except question-bank **Test**, at 2767 pass / 1 fail / 1 error. The run on `8146a3c` failed the same way.
+- **The error:** `format-script-guard.criteria.test.ts:277` threw `ENOENT … frontend/node_modules` at load time. CI's question-bank job never installs `frontend/`.
+- **Why nobody caught it:** round 1 cited CI on `5b7c055`, which ran before the test file was committed. The ci-fix reported only local results, and the sandbox has both packages installed, so it was green locally.
+- **Reproduced:** in a scratch worktree with only `question-bank/node_modules`, the same shape as the CI job, I got the same ENOENT.
+
+**The fix (test file only; no source touched, no expected value changed)**
+- **Missing `node_modules` (criterion 15):** an absent `node_modules` is now recorded as "absent" instead of throwing, so a test that creates one still goes red.
+- **Where "installed" copies get prettier:** from whichever package has the pinned version (E-17: both packages pin the same one). If neither has it, the test throws, so it fails rather than skipping.
+- **Criterion 8:** now runs in a clean copy of each package, plus the real `question-bank/` tree. For the real `frontend/` tree, the evidence is CI's frontend Format step, which is `success` on `d02f63c`.
+- **Result:** 109/109 pass both in the full sandbox and in the CI-shaped worktree.
+- **Mutations still bite, re-run in the CI-shaped worktree and all reverted:**
+
+| Mutation | Tests failed (of 109) |
+|---|---|
+| frontend guard exits 0 instead of 1 | 27 |
+| frontend guard drops the version check | 29 |
+| frontend scripts back to `main`'s | 43 |
+| frontend check set `.` changed to `src` | 2 |
+| question-bank guard reads the wrong `package.json` | 28 |
+
+**The new red, routed to the `ci-fix` (request row 20)**
+- **Test:** `question-bank/src/climate-cold-trade-accepted-verify.test.ts:714`, "T-091 criterion 22 › pre-existing test files are main's, except ones in an approved Test change request".
+- **Why it is red:** its `MAIN_TESTS_SHA` digests the criteria file I just fixed. Expected `369ef9f0…b888`, received `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993`.
+- **Proposed action:** re-pin the digest. The count stays 133.
+
+**Other checks**
+- **Criteria 13, 14, 17 (by hand):** both `bun.lock` files and `ci.yml` are unchanged from `main`, and the dependencies are the same. Both CI Format steps are `success`. The `conventions.md` change is only in the Formatting paragraph.
+- **Criterion 18:** the ci-fix diff changes exactly the 10 test files in the plan. Apart from comments, it changes only digests, counts, the two T-109 loop-record allow entries and the `MAIN_SCRIPTS` values. No assertion was loosened.
+
+**Suites**
+- **question-bank:** 2875 pass / 1 fail (row 20). Typecheck, lint and `format:check` are green.
+- **frontend:** 434 pass / 4 fail / 4 errors, plus 9 typecheck errors. All of these are the missing `react-simple-maps` package: the sandbox's proxy blocks the install. CI's frontend job is green. Lint and `format:check` are green.
+
+**Loop count:** this is the end of the first full fail → ci-fix → verify round. One more ci-fix and verify is allowed before the loop must escalate to a human. The next tester has to confirm that CI's question-bank Test step is green on the new head, not only that the local suite passes.
+
+Files:
+- /home/user/geo-discovery-zone/question-bank/src/format-script-guard.criteria.test.ts
+- /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md
+
+## Halted — G3 round bound — 2026-11-13 16:46Z
+This is T-109's second `fail` verdict (round 3 and round 6). `orchestrator.md` G3 halts a task after two `fail` verdicts, so the orchestrator did not spawn the `ci-fix` the header names. The header is left as the tester wrote it (`Status: fail`, `Next step: ci-fix`); a person decides whether the loop continues.
+
+What a human has to decide: whether to let T-109 take another `ci-fix` round (header's `Next step: ci-fix`, request row 20 in the brief), or to handle it another way. Branch head at halt: `85698c3`.
