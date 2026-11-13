@@ -144,3 +144,49 @@ I reverted every one, and the tree was clean afterwards.
 - The Test change request has 19 rows, every one a modify (re-pin, or an exemption for this brief's allowed files). Decision is left blank on each.
 
 **For the `ci-fix`:** turn rows 1–19 into `pre-existing test` rows of its plan. Every re-pin must still cover everything it covered before.
+
+## Round 4 — ci-fix (pass 1) — 2026-11-13 16:07Z
+`Next step` on entry: `ci-fix` → on exit: `human` (Status `ci fix requested`, CI fix `requested`)
+
+**T-109 ci-fix, pass 1: the plan is pushed and nothing is applied. It is waiting for approval.** No source is wrong, and all 18 criteria are met. The CI fix plan has 21 rows, all `pre-existing test` re-pins of whole-tree, manifest and test-file pins. When I applied them in a throwaway worktree, the question-bank suite went to 0 fail.
+
+**Next:** a person approves the plan, or after about an hour the orchestrator stamps it (D-17). Then a fresh `ci-fix` runs pass 2. Every row changes a test, so if the stamp is what approves it, the reviewer has to escalate (D-18).
+
+**Pushed**
+- **Commit:** `32bebbf T-109 ci-fix: plan` on `task/T-109-format-script-guard`. After a fetch, `origin` shows the same SHA, and the working tree is clean.
+- **Header:**
+  - `Status: ci fix requested`, `Next step: human`, `CI fix: requested`.
+  - `Fault` is rewritten for the plan. `Test changes` stays `routed to ci-fix (D-20)`.
+  - Sessions row added: `ci-fix (pass 1, plan)`.
+- **Changed:** only the brief, which now has a `## CI fix plan` section. No source or test file was touched.
+
+**What I found**
+- **Reproduced at `6c7b8ff`:** `bun test` in `question-bank/` gave 2855 pass and **20** fail, not the tester's 19.
+  - The extra red is T-091 criterion 22, "pre-existing test files are main's…". It expects 132 test files and finds 133.
+  - The cause is the tester's own new test file, committed in `6a62404`. The tester likely ran before committing it.
+- **Two more rows are knock-ons.** They are green now but go red once other rows land:
+  - row 9: T-025 criterion 17 digests `highest-point-in-state-verify.test.ts`, which row 17 edits.
+  - row 21: T-091's `APPLIED_REQUEST_FILE_SHAS` pins four files that other rows edit.
+- **Why request rows 18-19 were already red at base:** this task's brief is a new tracked file.
+
+**Plan design choices** (alternatives are under "Not doing" in the plan)
+- **Rows 18-19:** only the T-109 brief and run log join the allowed sets. `frontend/package.json` and the two guard files stay counted and digested, so those pins now cover more files, not fewer. The counts go 280→282 and 283→285.
+- **Row 15:** I re-pinned the digest rather than exempting the new guard file, matching the earlier re-pins of that constant.
+- **Pass 2 order:**
+  - rows 1-8 and 10-19 in any order, then 9, then 20, then 21.
+  - The values marked "(recompute)" in rows 9, 20 and 21 depend on the bytes of edited test files, so pass 2 recomputes them after it writes the comments.
+  - If `origin/main` moves first (T-111, PR #136, is open), merge it and recompute every value.
+
+**Trial run**
+- **Where:** a scratch worktree at `6c7b8ff`, now removed.
+- **Result:** with all 21 rows applied, question-bank gave 2875 pass / 0 fail, and `format:check` was green.
+- **One environment issue:** the first full run hit an unhandled error in `format-script-guard.criteria.test.ts`, because the worktree had no `frontend/node_modules`. I symlinked it, re-ran that file, and got 108 pass. That combined 2875 total is what I quote above.
+
+**Independence:** this is an orchestrated run (`runs/T-109-format-script-guard.md` exists). My session id `cse_011oDiJfSMW5AuCAW3Bk9Ste` matches the expander's, the worker's and the tester's, so the id check proves nothing. I am only a freshly spawned subagent that saw none of their sessions. I did not refuse on the id.
+
+**Not touched:** the frontend `react-simple-maps` test failures and frontend typecheck are environmental (the proxy returns 403 on install). CI's frontend Test and Typecheck steps pass, per the Verdict.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md
+
+## CI fix approved by a person — 2026-11-13 16:08Z
+Dkaattae, in the orchestrator's session, while pass 1 was still running: "approve the T-109 CI fix plan too". The orchestrator told them the plan was not yet written and offered to halt instead if they wanted to read it first; no retraction came. Applied once the header read `CI fix: requested`: `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session`, `Status: ci fix approved`, `Next step: ci-fix`. No timeout stamp was used.
