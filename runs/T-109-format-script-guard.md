@@ -330,3 +330,34 @@ Branch head at halt: `ec470a4`. Asked Dkaattae in the orchestrator's session to 
 
 ## CI fix approved by a person — 2026-11-13 17:13Z
 Dkaattae, in the orchestrator's session: "approve the T-109 CI fix plan". Header set to `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`, `Status: ci fix approved`, `Next step: ci-fix`. No timeout stamp was used; the scheduled one-hour check is cancelled.
+
+## Round 8 — ci-fix (round 2, pass 2) — 2026-11-13 17:21Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**T-109 ci-fix, round 2, pass 2: I applied the one approved row and question-bank is now fully green (2876 pass / 0 fail).** The commit is `c9aa735` on `task/T-109-format-script-guard`, and `origin` matches it. Next step is a fresh `tester`.
+
+**Header now reads:**
+- **Status:** `awaiting verification`
+- **Next step:** `tester`
+- **CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`
+- **Test changes:** `applied through CI fix plan (D-20)`
+- **Fault:** line removed. I also added my Sessions row as `ci-fix (round 2, pass 2, apply)`.
+
+**Approval check:** the runs log shows Dkaattae said "approve the T-109 CI fix plan" at 17:13Z. That came after the one-row plan was pushed at `ec470a4` (16:59Z), so it covers row 1 as written. I put their words in row 1's Decision cell. No timeout stamp was involved. The plan still applied cleanly: the only commits since `ec470a4` touch `runs/` and the brief header, and `origin/main` is still `2634fc8`.
+
+**What I changed:**
+- **Row 1:** in `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, `MAIN_TESTS_SHA` changed from `369ef9f0…b888` to `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993`.
+- I added the plan's two comment lines above it. `MAIN_TESTS_COUNT` stays at 133.
+- I changed nothing else: no source, guard, script, criteria test or `conventions.md` line.
+
+**Results:**
+- **question-bank:** `bun test` gives 2876 pass / 0 fail. Typecheck, lint and `format:check` are all clean, and the T-109 guard ran first and let `format:check` through.
+- **frontend:** 434 pass / 4 fail / 4 errors, all from `react-simple-maps` failing to install here (proxy 403), the same as earlier rounds. Lint and `format:check` are green. Typecheck shows 9 errors, also all from `react-simple-maps` / `us-atlas`.
+
+**Flag for the tester:** one earlier frontend run gave 431 pass / 7 fail. I kept only the tail of that run, so I can't name the three extra fails. I touched no frontend file, and the rerun straight after it gave the usual 434 / 4. I've noted this in `## CI fix` as possible flakiness. The tester should also confirm that CI's question-bank **Test** step is green on `c9aa735`.
+
+**Independence:** this is an orchestrated run, and every role shares the session id `cse_011oDiJfSMW5AuCAW3Bk9Ste`, so the id check proves nothing. My only independence is being a freshly spawned subagent. I did not refuse on the id, and I do not claim the check passed.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md (header, Sessions, row 1 Decision, new `## CI fix` round-2 section)
+- /home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts
