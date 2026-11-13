@@ -137,3 +137,6 @@ Brief: /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md — S
 Halt time: 2026-11-13T21:46:48Z. Branch head at halt: `346235e`.
 Header: `CI fix: requested`, `Status: ci fix requested`, `Next step: human`. Plan not read by the orchestrator.
 Person asked in the orchestrator's session to approve or refuse. If nobody answers in about an hour, the orchestrator stamps it (D-17).
+
+## CI fix approved by a person — 2026-11-13
+The person in the orchestrator's session answered before the hour was up, in their words: "approve T113 fix plan". Header set to `CI fix: approved — session user (repo owner), 2026-11-13, given in the orchestrator's session`, `Status: ci fix approved`, `Next step: ci-fix`. The scheduled one-hour check-in was deleted; no auto-approval stamp was written.

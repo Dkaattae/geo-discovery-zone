@@ -1,10 +1,10 @@
 # T-113 — `tasks.md` §A and `PROGRESS.md` name guards that were deleted
 
-**Status:** `ci fix requested`
-**Next step:** `human`
+**Status:** `ci fix approved`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-113-deleted-guards-in-docs.md`.
 **Test changes:** `none`
-**CI fix:** `requested`
+**CI fix:** `approved — session user (repo owner), 2026-11-13, given in the orchestrator's session`
 **From:** [`tasks.md`](../tasks.md) T-113
 **Branch:** `claude/relaxed-allen-5ro49x`
 **PR:** #142, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
