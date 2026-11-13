@@ -377,6 +377,19 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-113 — `tasks.md` §A and `PROGRESS.md` name only guards that still run** (PR #142,
+  2026-11-13). §A's table rows for `conventions.md`, test counts and `README.md`, the paragraph
+  under it, the intro's `region-vocabulary` clause, and `PROGRESS.md`'s `## Done` and Known-gaps
+  bullets no longer credit tests that `987d2cd`, `8cf40b6` and `d594b38` deleted or moved to the
+  monthly snapshot lane. Both files now say no CI test checks the root `README.md`,
+  `conventions.md` or `test-guidelines.md`, and name the two narrow CI checks that still read
+  `conventions.md`. *Where it differed from the brief:* the brief's survey called
+  `test_c28_conventions_layout_names_the_archive` the only CI reader of `conventions.md`; the
+  tester found `committed-bank.test.ts` also reads it, and a person-approved CI fix corrected
+  both sentences. `test-guidelines.md` states file counts again (since `987d2cd`), so the
+  "no counts" row says so instead of claiming none. The worker also corrected the
+  region-vocabulary Known-gaps bullet and `E-12` → `E-32`. The Backend sentence saying
+  `openapi.yaml` is kept in step "by hand" overlooks `conftest.py::assert_matches`; that is T-114.
 - **T-046 — The service directory stays `backend/`; `api/` is not a directory name**
   (PR #141, 2026-11-13). `engineering-decisions.md` E-31 records the call, what a rename to
   `api/` would have cost (`Dockerfile`, `ci.yml`, `backend/Makefile`, ~100 files), and a revisit
