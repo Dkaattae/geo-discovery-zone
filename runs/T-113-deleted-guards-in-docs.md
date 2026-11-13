@@ -170,3 +170,36 @@ The person in the orchestrator's session answered before the hour was up, in the
 **Noticed and left alone, for the reviewer**
 - The brief's Context line still says `test_c28_…` is the only CI test that reads `conventions.md`, which is wrong.
 - The tester's advisory on criterion 12 (`conftest.py::assert_matches`) is still open.
+
+## Round 6 — tester (re-verify) — 2026-11-13
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-113 passes on re-verification.** I checked all 18 criteria by hand after the ci-fix at `d283def`, and the round-1 failure on criterion 14 is fixed. The verdict is pushed as `fe2c04d` to `claude/relaxed-allen-5ro49x`, and local HEAD matches the remote. **Next: `reviewer`.**
+
+**Independence:** this is an orchestrated run. My session id `cse_011oDiJd2dgRHzBRDwBhvmNz` is the same id every role on this task carries, so the session check neither passes nor fails. My independence rests only on being a freshly spawned agent with its own context, which is weaker evidence than a separate session. The Verdict says so.
+
+**Criterion 14 fix:**
+- **What changed:** `tasks.md` and `PROGRESS.md` now name two narrow CI readers of `conventions.md`: `test_c28_…`, which checks one line (the `archive/` row), and `committed-bank.test.ts` criteria 11 and 15.
+- **Both descriptions are accurate.** I read both tests.
+- **Nothing else reads these docs in CI.** I searched every tracked CI test file. None reads the root `README.md` or `test-guidelines.md`, so the bold "No CI test checks …" sentence holds.
+
+**Other criteria:**
+- **Criterion 1:** the token scan finds 4 test-file names in `tasks.md`'s region and 11 in `PROGRESS.md`'s, and none is missing.
+- **Criterion 15:** the `## Completed tasks` span of `PROGRESS.md` is identical to `origin/main` (1643 lines).
+- **Criterion 16:** the worker's and ci-fix's commits touch only `PROGRESS.md`, `tasks.md` and the brief.
+- **Criteria 2–13, 17 and 18:** read hunk by hunk against the files and commits each one names (`987d2cd`, `d594b38`, `ci.yml`, both `package.json` files, `engineering-decisions.md`'s E-31). All met.
+
+**Suite at `5a2a750`:**
+- **question-bank:** typecheck, lint and format check are clean; 229 tests pass, 0 fail.
+- **backend:** `make check` gives 809 passed, 9 skipped.
+- **frontend:** lint and format check are clean. Typecheck and `bun test` fail here only because `react-simple-maps` and `us-atlas` could not be installed (registry proxy returned 403).
+- **GitHub CI on `5a2a750`:** every job that had finished is green, including frontend. The e2e job was still running when I checked.
+
+No tests were added, changed or deleted, and none is stale.
+
+**Left for the reviewer:**
+- **Wrong survey line in the brief:** the Context section still says `test_c28` is "the one remaining CI test that reads `conventions.md`". It is the expander's notes, not part of what ships.
+- **Criterion 12 wording:** the round-1 note stands. CI still checks response shapes against `openapi.yaml` through `conftest.py::assert_matches`, so "kept in step by hand" may want qualifying.
+- **Tone check:** the brief's checklist asks a person to read the rewritten bullets before merge.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-113-deleted-guards-in-docs.md (Status `pass`, Next step `reviewer`, Sessions row added).
