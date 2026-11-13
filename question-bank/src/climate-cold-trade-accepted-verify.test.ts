@@ -69,7 +69,8 @@ const MAIN_CONTENT_JSON_SHA = "103e22e5a51b0e98145b423ca0cda5c1967b1d52a8b86d398
 // Re-pinned by T-097 (Test change request row 3): backend/app/store.py and routers/content.py moved.
 // Re-pinned by T-099 (Test change request row 3): backend/app/store.py and routers/content.py moved.
 // Re-pinned by T-100 (Test change request row 4): routers/content.py moved.
-const MAIN_SOURCE_TREES_SHA = "6b45b3a10ad5e736e6d324626d258179233f75dcb334c2d4056034edc2592f21";
+// Re-pinned by T-111 (CI fix plan row 2): question-bank/src/curated/us-states.ts moved (comments only).
+const MAIN_SOURCE_TREES_SHA = "05dc94e8e6c01091a7c4f76476f55b5485e7c5ef6854a0f36d86712b582ee8c3";
 /**
  * Criterion 21: every package.json, bun.lock, pyproject.toml and uv.lock.
  * Re-pinned by T-087 row 8: only question-bank/package.json moved (questions script).
@@ -102,7 +103,9 @@ const MAIN_DEPENDENCY_FILES_SHA =
 // Re-pinned by T-106 (CI fix plan row 4): README.md, which main counted, joins
 // the allowed set with T-106's brief and run log.
 // Re-pinned by T-108 (CI fix plan row 2): T-108's brief and run log join the allowed set (count and digest unchanged, 283).
-const MAIN_UNTOUCHABLE_SHA = "53524b09033aec046377bc5530f6cc5bd351eb5a262f2eda877d8cb54263aac0";
+// Re-pinned by T-111 (CI fix plan row 4): question-bank/src/curated/us-states.ts moved (comments only);
+// T-111's brief and run log join the allowed set (count unchanged, 283).
+const MAIN_UNTOUCHABLE_SHA = "d030f3e5fb7cf461a886d00942673314ec895c58ef083e3925f6255b4310675f";
 // Re-pinned by T-045 row 7: grading.py, which main counted, joins the allowed set
 // with T-045's brief and run log (296 -> 295).
 // Re-pinned by T-053 row 30: models.py, content.py, sessions.py, e2e/tests/app.ts
@@ -148,7 +151,9 @@ const MAIN_UNTOUCHABLE_COUNT = 283;
 // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
 // Re-pinned by T-108 (CI fix plan row 3): T-108's tester added
 // readme-bank-size-verify.test.ts; recomputed on rebasing onto main after T-107.
-const MAIN_TESTS_SHA = "c39ee7996b83201809b7e31cf6ba88d025ea339a82e0d27a4074ab41719881d7";
+// Re-pinned by T-111 (CI fix plan row 6): T-111's tester added
+// us-states-region-comment-verify.test.ts.
+const MAIN_TESTS_SHA = "2665348439773d3c1fb27a430c6877acc94971e66d20a325952e37633f16380d";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
@@ -175,7 +180,9 @@ const MAIN_TESTS_SHA = "c39ee7996b83201809b7e31cf6ba88d025ea339a82e0d27a4074ab41
 // prettier-writer-guard.criteria.test.ts (130 -> 131).
 // Re-pinned by T-108 (CI fix plan row 3): T-108's tester added
 // readme-bank-size-verify.test.ts (131 -> 132, on rebasing onto main after T-107).
-const MAIN_TESTS_COUNT = 132;
+// Re-pinned by T-111 (CI fix plan row 6): T-111's tester added
+// us-states-region-comment-verify.test.ts (132 -> 133).
+const MAIN_TESTS_COUNT = 133;
 /** Criterion 22: each file in TEST_CHANGE_REQUEST_FILES, as it was at 12d242e. */
 const MAIN_REQUEST_FILE_SHAS: Record<string, string> = {
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
@@ -210,8 +217,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-076 (row 7, for its row 1)
   // then by T-107 (CI fix plan row 9, for its row 3)
   // then again by T-107 (CI fix plan 2 row 5, for its row 1)
+  // then by T-111 (CI fix plan row 5, for its row 1)
   "question-bank/src/agriculture-true-wrong-answers-verify.test.ts":
-    "87a2820de3b0bcbb2109f4629b4a1c88c5406daad25f485f1c3e737228aaa748",
+    "0206241ec21ba762a3352e44e49cd941e06239582c51303ded70ed825a9b9061",
   "question-bank/src/seed-level-loose-ends-verify.test.ts":
     "c00b7b6db64b7743a2c7000dea67dab0f39ea8255f1d104a8de98d67a89d2464",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
@@ -234,8 +242,9 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
   // then by T-106 (CI fix plan row 6, for its row 3)
   // then by T-107 (CI fix plan row 9, for its row 7)
   // then by T-108 (CI fix plan row 4, for its row 1), recomputed on rebasing onto main after T-107
+  // then by T-111 (CI fix plan row 5, for its row 3)
   "question-bank/src/farm-animal-loose-ends-verify.test.ts":
-    "a1316c61db87a9d98614b17f4c64c39fb0a33472969d585c041ac505b37d287d",
+    "377286f43af06196b3ed8a73d4755c80f9807998aa1177cd94470b94bb450eb9",
   // re-pinned by T-039 (Test change request row 6), then by T-045 (row 10),
   // then by T-053 (row 33), then by T-097 (row 10), then by T-099 (row 10)
   "question-bank/src/familiarity-drawn-apart-verify.test.ts":
@@ -250,6 +259,10 @@ const APPLIED_REQUEST_FILE_SHAS: Record<string, string> = {
  * heading, the loop's own record (same reading as T-096's tester).
  */
 const CRITERION_22_ALLOWED = new Set([
+  // T-111's loop records, joined through T-111's CI fix plan row 4 (approved by
+  // Dkaattae, 2026-11-13, given in the orchestrator's session).
+  "tasks/T-111-us-states-15-states-comments.md",
+  "runs/T-111-us-states-15-states-comments.md",
   // T-107's loop files, joined through T-107's CI fix plan row 8 (approved by the
   // user, 2026-11-12, given in the orchestrator's session).
   "tasks/T-107-prettier-writer-guard.md",
