@@ -29,9 +29,9 @@ docker-compose.yml  the same image plus a Postgres
 ```
 
 The service is in `backend/`, and `conventions.md` has said so since T-007.
-`CLAUDE.md` (lines 4 and 51) still says `api/`; it is loop-gated and needs a
-hand-written `P` ticket. `test-guidelines.md` says `backend/` since T-047.
-Which name wins is still T-046.
+`CLAUDE.md` (lines 4 and 58) still says `api/`; it is loop-gated and is
+P-19. `test-guidelines.md` says `backend/` since T-047. T-046 (PR #141)
+settled the name: `backend/` stays, and `api/` is not a directory name (E-31).
 
 Docs: [`geoquizdataplan.md`](geoquizdataplan.md) is the plan (§5 is the tech
 stack), [`tasks.md`](tasks.md) is the work queue, [`process.md`](process.md) is
@@ -378,6 +378,14 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-046 — The service directory stays `backend/`; `api/` is not a directory name**
+  (PR #141, 2026-11-13). `engineering-decisions.md` E-31 records the call, what a rename to
+  `api/` would have cost (`Dockerfile`, `ci.yml`, `backend/Makefile`, ~100 files), and a revisit
+  trigger (a second service, or a `services/`/`apps/` layout). `backend/README.md` drops its
+  Known-gaps line saying the name was open. *Where it differed from the brief:* nothing in the
+  work. The decision was the expander's, approved only by the orchestrator's stamp, so the PR is
+  escalated for Dkaattae to confirm it. `CLAUDE.md`'s two `api/` lines are P-19; two more stale
+  Known-gaps bullets are T-112.
 - **T-109 — `bun run format` and `format:check` refuse to run without the pinned prettier**
   (PR #137, 2026-11-13). In `frontend/` and `question-bank/`, both scripts now run a small
   `prettier-pin-guard.ts` first (`frontend/scripts/`, `question-bank/src/`). It exits 1, naming the
@@ -2025,8 +2033,8 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 **Verification and process.**
 
 - `CLAUDE.md` still calls the backend "not built yet" in `api/` (lines 4 and
-  51). It is loop-gated, so correcting it is a hand-written `P` ticket, not a `T`
-  task. `conventions.md` (T-007, PR #33), `README.md` (T-058, PR #35) and
+  58). It is loop-gated, so correcting it is P-19, a hand-written `P` ticket,
+  not a `T` task. `conventions.md` (T-007, PR #33), `README.md` (T-058, PR #35) and
   `test-guidelines.md` (T-047, PR #127) are fixed and now fail a test rather
   than drift.
 - **No test fails on `main` in a full clone any more, and none passes because
