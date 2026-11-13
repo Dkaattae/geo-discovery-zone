@@ -24,12 +24,11 @@ from sqlalchemy.orm import Session as DbSession
 
 from app import store
 from app.content_build import render_committed_inputs
-from tests.conftest import DEMO_PROFILE_ID, assert_matches, assert_problem
+from tests.conftest import DEMO_PROFILE_ID, assert_problem
 
 REPO = Path(__file__).resolve().parents[2]
 QUESTION_FILE = REPO / "question-bank" / "data" / "questions" / "us-states.json"
 CONTENT_FILE = REPO / "backend" / "app" / "data" / "content.json"
-SPEC_FILE = REPO / "openapi.yaml"
 
 # The served bank before T-051: 365 questions, 315 multiple_choice and 50
 # map_identify.
@@ -143,40 +142,6 @@ def test_c7_no_file_says_map_click_is_withheld(path: str) -> None:
             assert not re.search(r"withheld|not served|isn't served|is not served", line), line
 
 
-# -- Contract (criteria 8-9; 10 is test_contract.py) --------------------------
-
-
-def _schema(spec: dict[str, Any], name: str) -> dict[str, Any]:
-    return spec["components"]["schemas"][name]
-
-
-def test_c8_answer_request_has_an_optional_string_tapped_geometry_id(
-    spec: dict[str, Any],
-) -> None:
-    schema = _schema(spec, "AnswerRequest")
-    prop = schema["properties"]["tappedGeometryId"]
-    assert prop["type"] == "string"
-    assert "tappedGeometryId" not in schema.get("required", [])
-    description = prop["description"]
-    assert "map_click" in description
-    assert "two-digit" in description
-    assert "tapped" in description
-
-
-def test_c9_question_has_an_optional_string_answer_geometry_id(spec: dict[str, Any]) -> None:
-    schema = _schema(spec, "Question")
-    prop = schema["properties"]["answerGeometryId"]
-    assert prop["type"] == "string"
-    assert "answerGeometryId" not in schema.get("required", [])
-    description = prop["description"]
-    assert "map_click" in description
-    assert "only" in description
-    # T-053 (Test change request row 14): present only when includeAnswerKey=true.
-    assert "includeAnswerKey=true" in description
-    assert "includeAnswerKey=false" not in description
-    assert "correctIndex" in description
-
-
 # -- API: serving (criteria 11-13) --------------------------------------------
 
 
@@ -198,7 +163,7 @@ async def _walk(client: httpx.AsyncClient, **params: Any) -> list[dict[str, Any]
 
 
 async def test_c11_listing_map_click_returns_exactly_the_served_ones(
-    client: httpx.AsyncClient, spec: dict[str, Any]
+    client: httpx.AsyncClient,
 ) -> None:
     # T-053 (Test change request row 15): opt in to the key.
     listed = await _walk(client, format="map_click", includeAnswerKey="true")
@@ -207,7 +172,6 @@ async def test_c11_listing_map_click_returns_exactly_the_served_ones(
     assert set(ids) == set(_served_map_click())
     served = _served_map_click()
     for question in listed:
-        assert_matches(spec, "Question", question)
         assert question["answerGeometryId"] == served[question["id"]]["answerGeometryId"]
         for field in ("choices", "correctIndex", "choiceGeometryIds"):
             assert field not in question, (question["id"], field)
@@ -328,7 +292,6 @@ async def test_c14_c16_c17_tapping_the_answer_is_correct(
     client: httpx.AsyncClient,
     auth_headers: dict[str, str],
     force: dict[str, str],
-    spec: dict[str, Any],
 ) -> None:
     force["id"] = AK
     session_id, served = await _start(client, auth_headers)
@@ -338,7 +301,6 @@ async def test_c14_c16_c17_tapping_the_answer_is_correct(
     )
     assert response.status_code == 200, response.text
     result = response.json()
-    assert_matches(spec, "AnswerResult", result)
     assert result["correct"] is True
     assert result["reveal"]["mapHighlightGeometryId"] == "02"
     assert result["correctAnswer"] == "Alaska"

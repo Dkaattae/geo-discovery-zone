@@ -316,13 +316,12 @@ new test asks for.
   rows.
 - **`openapi.yaml` follows the backend** (`engineering-decisions.md` E-14): the
   backend is the source of truth, and when the two differ the fix is to update
-  `openapi.yaml`. No test compares the app's routes with `openapi.yaml`'s
-  operations, in both directions, any more: `d594b38` deleted
-  `test_contract.py`. `assert_matches(spec, "SchemaName", payload)` in
-  `conftest.py` still checks a response body against the named schema — every
-  required key present, no undeclared key — and the endpoint tests still call
-  it. When it fails, decide which side moved. If the backend now serves what it
-  should, update `openapi.yaml` in the same change.
+  `openapi.yaml`. No test reads `openapi.yaml`: `d594b38` deleted
+  `test_contract.py` (routes against operations), and PR #143 deleted
+  `assert_matches` (response bodies against schemas) and the tests of the
+  file's text. Keeping it in step is by hand: a change to what the backend
+  serves updates `openapi.yaml` in the same change, and nothing goes red if it
+  does not.
 - **Errors are problem documents.** `assert_problem(response, status)` checks the
   status code, the `application/problem+json` content type and the body's
   `status` and `title`, and returns the body for anything more specific.
