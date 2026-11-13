@@ -1,7 +1,7 @@
 # T-046 — Decide: `backend/` or `api/` — run log
 
 **Task:** T-046 · **Branch:** `claude/relaxed-allen-5ro49x` · **PR:** #141
-**Started:** 2026-11-13 · **Outcome:** in progress
+**Started:** 2026-11-13 · **Outcome:** ready for merge — escalated, needs Dkaattae to confirm "keep `backend/`"
 
 ## Round 1 — task-expander — 2026-11-13
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -109,3 +109,47 @@ Files:
 **Stale tests:** none.
 
 Brief: /home/user/geo-discovery-zone/tasks/T-046-backend-directory-name.md
+
+## Round 4 — reviewer — 2026-11-13
+`Next step` on entry: `reviewer` → on exit: `human` (brief swept; last header at `a40a87f`: `Status: approved — escalated`)
+
+**I approved T-046 and escalated it.** PR #141 is now ready for review but must not be merged until Dkaattae confirms "keep `backend/`". The task-expander made that call, and the only approval on the brief is the orchestrator's stamp. The work itself is good and nothing blocks it. The sweep is in the PR, and the branch is pushed and confirmed.
+
+**Next step: human.** Dkaattae either confirms keeping `backend/` and merges, or closes the PR and has T-046 re-expanded as a rename to `api/`. None of the current criteria would survive a rename.
+
+**State**
+- **Branch:** `origin/claude/relaxed-allen-5ro49x` is at `0ac41e9`. On top of `ff0b854` are my two commits:
+  - `a40a87f` sets the brief to `Status: approved — escalated` and `Next step: human`, adds a reviewer row to Sessions, and adds the `## Review` section.
+  - `0ac41e9` is the sweep.
+- **PR #141:** `draft: false`, open, not merged. The body starts with the escalation notice, then lists the 12 acceptance criteria word for word, what verified each one, the review, and the sweep.
+
+**Review**
+- **Every role's work is in the PR.** The expander, worker and tester rows each have a commit on this branch. Each commit stayed in its role's files: the expander and tester touched only the brief, the orchestrator only `runs/` and the `Approved:` line, and the worker only `engineering-decisions.md`, `backend/README.md` and the brief.
+- **The work holds up.** E-31 follows the shape of the other entries, and I checked its facts against the repo: the Dockerfile lines, the 11 mentions in `ci.yml`, and that `/api/v1` is a route rather than a directory. The `backend/README.md` change is exactly the one line the brief asked for.
+- **The decision is the only thing outside the merge envelope.** The tester passed and CI was green on `3affe1b`. CI on the new head was still running when I finished. The PR adds no dependency, doesn't touch `openapi.yaml` or migrations, contains no text a child will read, and leaves pre-existing tests alone.
+
+**Findings — none blocking; each became a new entry because nothing already in the queue covered it**
+- **P-19 (new, `process-tasks.md`):** `CLAUDE.md` lines 4 and 58 still say `api/` and that the backend is "not built yet". That file is loop-gated, so it needs a hand-written P ticket.
+- **T-112 (new, `tasks.md` §E):** the Known gaps section of `backend/README.md` still says CI never runs Postgres. That has been false since the `backend-postgres` job was added. The pin-grading bullet there also needs re-reading against T-045.
+- **T-113 (new, `tasks.md` §A):** the §A table and one `PROGRESS.md` bullet name guards that commits `8cf40b6` and `d594b38` deleted or moved out of CI. That includes `conventions-doc.test.ts` and `test_git_revision_guard.py`.
+
+**Flags the worker and tester raised, and what I decided**
+- **The `---` separator above E-31:** kept.
+- **The `runs/` log showing up under criterion 12:** accepted. It is the orchestrator's required run log.
+- **All roles sharing one session id:** deferred to P-14, which already covers it.
+- **Frontend tests failing locally because of the proxy 403:** accepted, since CI was green and the diff touches no `frontend/` file.
+
+**Sweep**
+- **Brief:** deleted. Its `## Review` survives in commit `a40a87f`.
+- **`tasks.md`:** the T-046 entry is removed and a line added to the sweep note.
+- **`PROGRESS.md`:** a T-046 completed-task entry is added. The Layout note now records the decision, and the `CLAUDE.md` line number is corrected from 51 to 58 in two places.
+
+**Files**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/process-tasks.md
+- /home/user/geo-discovery-zone/tasks/T-046-backend-directory-name.md (deleted)
+
+## Ended — 2026-11-13
+Task ended: reviewer marked PR #141 ready, escalated. Run limit (1 task) reached; run ends.
+What a human has to decide, quoted: "Dkaattae either confirms keeping `backend/` and merges, or closes the PR and has T-046 re-expanded as a rename to `api/`."
