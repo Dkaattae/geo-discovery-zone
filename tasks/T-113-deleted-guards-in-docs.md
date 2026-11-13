@@ -1,14 +1,14 @@
 # T-113 — `tasks.md` §A and `PROGRESS.md` name guards that were deleted
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-113-deleted-guards-in-docs.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-113
 **Branch:** `claude/relaxed-allen-5ro49x`
 **PR:** #142, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
-**Fault:**
+**Fault:** tester: criterion 14 (and 17) not met — the new "The one CI test that still reads `conventions.md`" sentence (`tasks.md:169`, `PROGRESS.md:247`) is false: `question-bank/src/committed-bank.test.ts` also reads `conventions.md` in CI.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | worker | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
+| tester | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated: same id as every spawned role; see Verdict) |
 
 ## Goal
 
@@ -289,6 +290,50 @@ The tester checks each item by hand and records the result in its Verdict:
 **Tests made stale:** none.
 
 ## Verdict
+
+**Fail: one false guard claim, in two places.** Criteria 1–13 and 15–18 hold, checked by hand. Criterion 14 does not. The new sentence "The one CI test that still reads `conventions.md` checks a single line" is false, because `question-bank/src/committed-bank.test.ts` reads `conventions.md` in CI too. **Next: `ci-fix`**, a doc-only rewording of `tasks.md:169-171` and `PROGRESS.md:247-249`.
+
+**Independence.** This is an orchestrated run (`runs/T-113-deleted-guards-in-docs.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJd2dgRHzBRDwBhvmNz`, the same id the expander and worker rows carry. That says nothing either way. My independence rests only on being a freshly spawned agent with its own context, which did not see the work or the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+**The failure (criterion 14, read with 17 and the checklist's "exists and is accurate")**
+
+- **Where:** `tasks.md` lines 169–171 and `PROGRESS.md` lines 247–249. Both say: "The one CI test that still reads `conventions.md` checks a single line, the Layout's `archive/` row (`backend/tests/test_t040_tester_criteria.py::test_c28_…`)".
+- **Observed:** `question-bank/src/committed-bank.test.ts` is one of the five CI files. Its `describe("T-010 criteria 11–16 — the rules and the docs say the same thing")` reads `conventions.md` in two tests:
+  - `criterion 11 — no shipped file still asserts the bank is not stored in git` (line ~236) checks that a phrase is absent from it.
+  - `criterion 15 — README and conventions say a fresh clone already has the bank` (line ~268) asserts that `conventions.md` matches `/committed/` and `/data\/us-states/`.
+- **How to reproduce:** `grep -n 'conventions.md' question-bank/src/committed-bank.test.ts` gives lines 241, 271 and 272. The tests are green (`cd question-bank && bun test`).
+- **Expected:** the review-alone statement is accurate. It may name `test_c28_…` as a narrow check (criterion 14), but it must not call it the only CI test that reads `conventions.md`. A fix that keeps the statement true names both narrow checks, or drops the "the one" claim. The fix must also keep criterion 14's main sentence true: committed-bank's criterion 15 pins one fact in `conventions.md`, that the bank is committed under `data/us-states`. Saying "no CI test checks it as a whole" stays true. A flat "no CI test checks it against the repo's layout" should be qualified by that one fact.
+- **Origin:** the brief's own Context says `test_c28_…` "is the one remaining CI test that reads `conventions.md`". The worker repeated a wrong survey fact. The criteria themselves are fine, so this is a `fail` (fixable in prose), not `blocked`.
+
+**Criteria, checked by hand (no test committed: doc-only deliverable, `test-guidelines.md`)**
+
+| # | Verdict | What I ran / saw |
+|---|---|---|
+| 1 | met | Built Region A (`tasks.md` 1–177, before the T-113 entry) and Region P (`PROGRESS.md` minus lines 331–1973) and grepped for test-file tokens. Hits: 3 in A, 10 in P. All resolve: `git ls-files --error-unmatch` for each path, and a basename match in `question-bank/src/` for the five bare names. Zero missing |
+| 2 | met | `git-baseline-guard.criteria.snapshot.ts` and `snapshot_git_revision_guard.py` are each called "monthly … outside CI" / "monthly snapshot lane, not CI" in their naming sentence or sub-bullet. `snapshot-tests.yml` cron is `17 6 1 * *` (monthly) |
+| 3 | met | The `conventions.md` row credits no test: "Since `8cf40b6` no test checks it … review keeps it true" |
+| 4 | met | "a test fails if one comes back" is gone. The "test-guidelines.md again states counts" claim is true (`test-guidelines.md:29-30`: "the five `*.test.ts` files", "The 13 older `*.snapshot.ts` files") |
+| 5 | met | The `README.md` row no longer claims a test. No CI test file references the root `README.md` (grep over tracked `*.test.ts(x)` / `test_*.py`) |
+| 6 | met | The paragraph says no CI unit suite refuses a fixed revision, and does not name `test_git_revision_guard.py` |
+| 7 | met | The `region-vocabulary.test.ts` clause is gone. "Do not reintroduce a ceiling" stays. `E-32` is next, which is correct (the highest is `## E-31`) |
+| 8 | met | "were fixed, but no CI test holds them … review alone keeps them from drifting" |
+| 9 | met | The question-bank guard is described as deleted, without its filename. "hold the line" is gone. The two remaining guards follow criterion 2 |
+| 10 | met | Neither deleted frontend test is named. "now fails a test" is gone |
+| 11 | met | `dependency-set`, `spawn-guard`, "asserted" `127.0.0.1:1` and "all six suites" are gone. `committed-bank.test.ts` is the only CI importer of `offline-rebuild.ts` (grep: the other importers are all `*.snapshot.ts`). The per-field list is replaced by the five CI files. `987d2cd`'s `--stat` confirms each deletion |
+| 12 | met (advisory) | "contract tests … both directions" is gone, and `d594b38` did delete `test_contract.py`. **Advisory:** "kept in step by hand" matches E-14 and `test-guidelines.md`, but CI still checks response shapes against `openapi.yaml`'s schemas through `backend/tests/conftest.py::assert_matches` (used e.g. by `test_content_api.py`). The reviewer may want "by hand" qualified. I did not count this as a failure because the sentence restates the repo's stated policy |
+| 13 | met | The T-107 clause is gone. T-109 is true: both `package.json` `format`/`format:check` scripts run `prettier-pin-guard.ts` first |
+| 14 | **not met** | The statement exists in both regions and does not call `test_c28` whole-file coverage, but its "the one CI test that still reads `conventions.md`" is false (above) |
+| 15 | met | I extracted the `## Completed tasks` → `## Known gaps in what is done` span from `origin/main` and from `HEAD` and ran `diff`: identical (1643 lines) |
+| 16 | met | `git show --name-only a443e7c` (the worker's commit) lists `PROGRESS.md`, `tasks.md` and the brief only. The branch diff also has `runs/T-113-…`, which is the orchestrator's |
+| 17 | not met, for the same sentence | The other new claims check out: region-vocabulary (`test_no_region_in_content_json_is_outside_the_thirteen` and `test_no_region_the_api_serves_is_outside_the_thirteen` exist, and `region-vocabulary.test.ts` was deleted in `987d2cd`), the format scripts, the offline-rebuild importer and the git-guard deletions |
+| 18 | met | The dead-proxy row, the Formatting row (CI `format:check` in both packages), `ci-action-pinning`, the level-labels table and "tracked-file reading route" are unchanged |
+
+**Suite, as run on this branch at `a9e98bc`**
+
+- `question-bank`: `bun run typecheck && bun run lint && bun run format:check && bun test` gives 229 pass, 0 fail.
+- `backend`: `make check` gives 809 passed, 9 skipped.
+- `frontend`: lint and `format:check` are clean. **Typecheck and `bun test` are red here for environmental reasons:** `bun install --frozen-lockfile` gets `ProxyConnectFailed (403)` on tarballs, so `react-simple-maps` and `us-atlas` are missing (TS2307), and the 4 files that import them fail to load. **GitHub CI on `a9e98bc` is all green**, including `frontend (typecheck, lint, test)` (`gh api …/commits/a9e98bc/check-runs`). The diff touches no code.
+- No red test is stale. No pre-existing test was deleted or modified. I committed no tests: the deliverable is documentation, and every criterion is checked by hand.
 
 ## Notes
 
