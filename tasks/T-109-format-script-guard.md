@@ -1,14 +1,14 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
-**Test changes:** `none`
+**Test changes:** `routed to ci-fix (D-20)`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-109
 **Branch:** `task/T-109-format-script-guard`
 **PR:** #137, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves
-**Fault:**
+**Fault:** every criterion is met, but 19 pre-existing question-bank whole-tree/manifest pins are red (17 by this task's own change, 2 also red at base `514cdc0`), routed to the `ci-fix` for a plan (D-20); CI's question-bank Test step is red on them.
 
 **Sessions:**
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste |
 | worker | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; spawned as a subagent, so the env id is the run's, not unique to this role) |
+| tester | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 
 ## Goal
 
@@ -295,6 +296,80 @@ All are in `question-bank/src/`. All are whole-tree or manifest pins (P-17). The
 **Suite results at the worker's head:** question-bank 2748 pass / 19 fail. That is the 17 stale pins plus the 2 base reds, all listed above. Frontend 434 pass / 4 fail / 4 errors, all `react-simple-maps` (environment). Lint and format:check are green in both packages, and typecheck is green in question-bank. Frontend typecheck is red only on `react-simple-maps` / `us-atlas`.
 
 ## Verdict
+
+**TL;DR: `fail`, for stale pins only. All 18 criteria are met.** The 108 new criteria tests pass, and all 7 mutations of the guard and scripts turned them red. 19 pre-existing question-bank pins are red: 17 are made stale by this task's own files and 2 were already red at base. They are routed to the `ci-fix` as the rows in `## Test change request` (D-20). No source was edited.
+
+**Independence:** this is an orchestrated run (`runs/T-109-format-script-guard.md` exists). My session id `cse_011oDiJfSMW5AuCAW3Bk9Ste` is the same one listed for the worker, so the session-id check proves nothing here. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator spawning me correctly.
+
+**New test file:** `question-bank/src/format-script-guard.criteria.test.ts` (108 tests, about 24 s). It covers both packages: each scenario runs in a throwaway copy of that package's tracked files under the OS temp dir. The sentinel logs outside the copy and also appends to an unformatted tracked file inside it. It sits in `question-bank/` so the CI question-bank job runs it for both packages. It uses `offline-rebuild.ts`'s `DEAD_PROXY`, not its own literal, so T-014 criterion 16 stays green.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `… criteria 1-6 … > state <s>, bun run format > criterion 1: exits non-zero`, for 5 states (a, b at pin−1/pin+1/3.8.1, c) × 2 packages |
+| 2 | met | same, `bun run format:check > criterion 2` |
+| 3 | met | `criterion 3: no sentinel runs…`: the `PATH` log and the `.bin` log are both empty, all 20 runs |
+| 4 | met | `criterion 4`: the probe `src/t109-probe.ts` (unformatted) is byte-equal, and so is every non-`node_modules` file's sha256 before/after |
+| 5 | met | `criterion 5`: the output contains the pin read from the copy's `package.json` |
+| 6 | met | `criterion 6`: the output also contains the found version (3.9.5, 3.9.7, 3.8.1) |
+| 7 | met | `criterion 7 …`: pin changed to `3.7.4` with 3.9.6 installed refuses and names both. With `3.7.4` installed plus `.bin`, it exits 0 and the `.bin` logger ran once. Both scripts, both packages |
+| 8 | met | `criterion 8`: the real tree's `format:check` exits 0, both packages |
+| 9 | met | `criterion 9`: a copy with the real pinned prettier byte-copied in: non-zero, and the output names `src/t109-probe.ts` |
+| 10 | met | `criterion 10`: `format` rewrites the probe, then `format:check` exits 0 |
+| 11 | met | the real question-bank run of `format:check --use-tabs --no-semi` names every `.ts` under `src/`. In the logger copy, prettier receives exactly `--check <set> --use-tabs --no-semi`. `prettier-gate.test.ts` "the check's own file arguments…" passes and is unmodified |
+| 12 | met | `criterion 12`: the `.bin` logger receives exactly `--write .` / `--check .` (frontend) and `--write src/**/*.ts` / `--check src/**/*.ts` (question-bank) |
+| 13 | met (hand) | `git diff origin/main -- '*/bun.lock'` is empty. `jq -S .dependencies/.devDependencies` is identical to `origin/main` in both packages |
+| 14 | met (hand) | `git diff origin/main -- .github/workflows/ci.yml` is empty. CI run 43455384015 on head `5b7c055`: the Format step is `success` in both the `frontend` and `question-bank` jobs. That run's question-bank **Test** step is red, on the stale pins below |
+| 15 | met | `criterion 15`: a digest of the real `node_modules/prettier`, `.bin/prettier` and the top-level entries is unchanged after the file runs, and every copy is outside the package |
+| 16 | met | every child gets `env = { PATH, HOME, ...DEAD_PROXY, NO_COLOR }` (no `process.env` inherited). The `criterion 16` test checks all six variables |
+| 17 | met (hand) | the `conventions.md` diff against `origin/main` is +3/−1 lines, in the Formatting paragraph only. It says both scripts in both packages refuse unless the pinned prettier is installed, and names `bun install` |
+| 18 | met (hand) | `git diff origin/main --stat -- '*.test.ts' '*.test.tsx'` is empty apart from my new file. No existing test was edited or deleted |
+
+**Mutations** (each reverted with `git checkout --`; the tree is clean afterwards):
+
+| Mutation | Result |
+|---|---|
+| M1 drop the version comparison (qb / frontend guard) | 29 fail / 29 fail |
+| M2 drop the `.bin/prettier` check | 7 / 7 |
+| M3 hard-code the pin to `"3.9.6"` | 4 / 4 (criterion 7) |
+| M5 remove the found version from the (b) message | 8 / 8 (criterion 6) |
+| M4 guard exits 0 instead of 1 | 27 / 27 |
+| M6 question-bank `package.json` scripts back to `main`'s | 43 fail |
+| M7 question-bank `format` glob `src/**/*.ts` → `src/*.ts` | criterion 12 red |
+
+**Suites at head `5b7c055` plus my test file:**
+- **question-bank:** 2856 pass / 19 fail. Typecheck, lint and `format:check` are all green. The 19 fails are exactly rows 1-19 below.
+- **frontend:** 434 pass / 4 fail / 4 errors, all `Cannot find package 'react-simple-maps'`. That package is missing from this sandbox's `node_modules`. CI's frontend Test step is `success` on `5b7c055`, so this is the environment, not the change. Lint and `format:check` are green. Typecheck is red only on `react-simple-maps` / `us-atlas`, and CI's frontend Typecheck is `success`.
+- **Base reds:** rows 18 and 19 were also red at `514cdc0`, which I checked in a scratch worktree. Base had 2765 pass / 2 fail. They are in the rows because this change adds more files for them to flag.
+
+**Hand-off to the `ci-fix`:** turn rows 1-19 into `pre-existing test` rows of a CI fix plan. Each is a re-pin or an exemption for this brief's allowed files. None is a deletion. Each modified pin must still pin every file it pinned before.
+
+## Test change request
+
+Under the orchestrator: Decision left blank, routed to the `ci-fix` (D-20). All files are in `question-bank/src/`. "Introduced" is the earliest commit containing the test name (`git log -S`). Every row is a whole-tree or manifest pin (P-17), and this task's allowed files (`frontend/package.json` and `question-bank/package.json` scripts, the two `prettier-pin-guard.ts`, `conventions.md`, the brief and run log, test files) now differ from its baseline.
+
+| # | Test (file › describe › name) | Introduced | Why stale | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 1 | `agriculture-true-wrong-answers-verify.test.ts:645` › T-088 criteria 20-25: what must not change › criterion 21: every tracked file under frontend/ is byte-identical to main's | `e9d666e`, T-088 tester: frontend untouched by T-088 | `frontend/package.json` scripts and the new `frontend/scripts/prettier-pin-guard.ts` (T-109 constraints) | modify | same name, with the frontend digest re-pinned to this branch's head after the ci-fix, so it still covers every tracked frontend file | |
+| 2 | same file:657 › … › criterion 23: every package.json, bun.lock, pyproject.toml and uv.lock is main's | `e9d666e`, T-088: no dependency change | both `package.json` `scripts` changed (deps unchanged) | modify | re-pin the two `package.json` digests. Every lockfile digest unchanged | |
+| 3 | `conventions-openapi-row-verify.test.ts:87` › T-105 criterion 2 — nothing else in conventions.md changes › the file has the same number of lines as at base 0b78dec | `c90cba3`, T-105 tester | criterion 17 adds 3 lines to the Formatting paragraph | modify | the line count re-pinned to the new count | |
+| 4 | same file:95 › … › every line other than the openapi.yaml and backend/ rows is byte-identical to base … | `c90cba3`/`90c7c2a`, T-105/T-106 | same | modify | the base text re-pinned to include T-109's Formatting lines, still comparing every line | |
+| 5 | `climate-far-phrases-verify.test.ts:759` › T-090 criterion 17 › every package.json, pyproject.toml and lockfile is byte-identical to 3279555, none added | `57a7fdc` (earliest -S), T-090: no new dependency | `package.json` scripts | modify | re-pin both `package.json` digests. Lockfiles unchanged, still "none added" | |
+| 6 | `map-click-no-candidates-verify.test.ts:714` › T-092 criterion 15 › every package.json, pyproject.toml and lockfile is byte-identical to 5d72ca5's, none added | `cf63f66`, T-092 tester | same | modify | as row 5 | |
+| 7 | same file › T-092 criterion 16: no other surface changes › frontend (except []) is byte-identical to 5d72ca5 | `cf63f66`, T-092 tester | frontend `package.json` and the new guard | modify | the frontend digest re-pinned to head | |
+| 8 | `hand-check-levels-verify.test.ts:806` › T-025 criteria 14-17 › criterion 15: every package.json and lockfile is byte-identical to aa88101, and none was added | `57a7fdc` (earliest -S), T-025 | `package.json` scripts | modify | as row 5 | |
+| 9 | `refresh-regenerate-reminder-verify.test.ts:293` › T-087 criterion 2 › scripts minus `questions` equals main's scripts exactly | `40f6c54`, T-087 tester | the question-bank `format`/`format:check` values changed (`MAIN_SCRIPTS`) | modify | `MAIN_SCRIPTS`' two values set to the new strings. Still an exact equality over every script | |
+| 10 | same file:531 › T-087 criterion 15 › every tracked file under the three trees is as re-pinned by T-039, none added or removed | `40f6c54` | frontend changes (`MAIN_BOUNDARY_SHA`) | modify | re-pin `MAIN_BOUNDARY_SHA` | |
+| 11 | same file:546 › T-087 criterion 16 › every manifest but question-bank/package.json is byte-identical to 0a98e11 | `40f6c54` | `frontend/package.json` (`MAIN_MANIFESTS_EXCEPT_QB_PKG_SHA`) | modify | re-pin that digest | |
+| 12 | `farm-animal-loose-ends-verify.test.ts:639` › T-096 criteria 17-21 › criterion 20: every package.json, bun.lock, pyproject.toml and uv.lock is main's | `47581ea`, T-096 tester | `package.json` scripts | modify | as row 2 | |
+| 13 | `familiarity-drawn-apart-verify.test.ts:667` › T-085a criteria 23-25 › criterion 23: no package.json, bun.lock, pyproject.toml or uv.lock changed since 5ae564a | `b061fd8`, T-085a tester | `package.json` scripts | modify | as row 2 | |
+| 14 | `climate-cold-trade-accepted-verify.test.ts:654` › T-091 criterion 20 › every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's | `950f334`, T-091 tester | new non-test `question-bank/src/prettier-pin-guard.ts` | modify | re-pin, or exempt exactly that one file. Every other file still pinned | |
+| 15 | same file:668 › T-091 criterion 21 › every package.json, bun.lock, backend/pyproject.toml and backend/uv.lock is 12d242e's | `950f334` | `package.json` scripts | modify | as row 2 | |
+| 16 | `highest-point-in-state-verify.test.ts:410` › T-079 tester, criterion 20 — every package.json and bun.lock is byte-identical to 323254c › question-bank/package.json | `d16f329` (earliest -S), T-079 | scripts | modify | re-pin the question-bank `package.json` digest | |
+| 17 | same › … › frontend/package.json | `d16f329` | scripts | modify | re-pin the frontend `package.json` digest | |
+| 18 | `farm-animal-loose-ends-verify.test.ts:651` › T-096 criteria 17-21 › criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added | `47581ea`, T-096 tester | **red at base `514cdc0` already** (likely the brief and run log), and it now also flags the two guards, `conventions.md` and both `package.json` | modify | re-pin, or exempt T-109's allowed files plus `tasks/`/`runs/`. All other files still pinned | |
+| 19 | `climate-cold-trade-accepted-verify.test.ts:683` › T-091 criterion 22 › every tracked non-test file outside the allowed list is 12d242e's, and none is added | `950f334` | **red at base `514cdc0` already**, and it now also flags this change's files | modify | as row 18 | |
+
+Rows 1-17 are stale by this change alone. Rows 18-19 were red at base and are made redder by it.
 
 ## Notes
 
