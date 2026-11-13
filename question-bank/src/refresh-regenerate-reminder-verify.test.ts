@@ -97,7 +97,9 @@ const MAIN_BANK_SHA = "08b0d412d56003214f21359cce858b9211c549e4bd4d3a663da4564fd
 // format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
 // Re-pinned again by T-107 (CI fix plan 2 row 3; round-3 Test change request row 3): T-107's
 // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
-const MAIN_BOUNDARY_SHA = "8d01f8325faab96480be4722ab74bbb34cfb5af8c549a308d544d2dd1a144ca6";
+// Re-pinned by T-109 (CI fix plan row 11): T-109 changed the frontend/package.json scripts and
+// added frontend/scripts/prettier-pin-guard.ts.
+const MAIN_BOUNDARY_SHA = "8f22f1550570a47c755496b118aa5e94d35721ac91e9c80799d99d7a2f3915e2";
 /** Criterion 16: every tracked manifest and lockfile at main. */
 const MAIN_MANIFESTS = [
   "backend/pyproject.toml",
@@ -110,8 +112,10 @@ const MAIN_MANIFESTS = [
   "question-bank/package.json",
 ];
 /** Criterion 16: those files except `question-bank/package.json` (criterion 2 covers it). */
+// Re-pinned by T-109 (CI fix plan row 12): frontend/package.json format and format:check scripts
+// guarded, deps unchanged.
 const MAIN_MANIFESTS_EXCEPT_QB_PKG_SHA =
-  "6d6c9f94db62f456cadd9605873117a540e46a8f79e50adeb9bfe7a0105ec005";
+  "274a2b741063b6b20dcd913f861df85bed89dcbb657f1421c242d35c8409b90f";
 /** Criterion 2: `question-bank/bun.lock`. */
 const MAIN_BUN_LOCK_SHA = "6bb53377c455e7936275e795c81aa62b41fcb239017b4dd9a744dfd38bda34d1";
 /** Criterion 2: `question-bank/package.json` `scripts` at main. */
@@ -120,8 +124,9 @@ const MAIN_SCRIPTS: Record<string, string> = {
   refresh: "bun run src/refresh.ts",
   typecheck: "tsc --noEmit",
   lint: "oxlint --deny-warnings --report-unused-disable-directives --format default src",
-  format: 'prettier --write "src/**/*.ts"',
-  "format:check": 'prettier --check "src/**/*.ts"',
+  // T-109 (CI fix plan row 10): format and format:check run the prettier pin guard first.
+  format: 'bun run src/prettier-pin-guard.ts && prettier --write "src/**/*.ts"',
+  "format:check": 'bun run src/prettier-pin-guard.ts && prettier --check "src/**/*.ts"',
 };
 /** Criterion 2: sha256 of `JSON.stringify` of `dependencies` / `devDependencies` at main. */
 const MAIN_DEPS_SHA = "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b";

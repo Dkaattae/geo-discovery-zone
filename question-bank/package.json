@@ -9,8 +9,8 @@
     "questions": "bun run src/write-questions.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives --format default src",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\""
+    "format": "bun run src/prettier-pin-guard.ts && prettier --write \"src/**/*.ts\"",
+    "format:check": "bun run src/prettier-pin-guard.ts && prettier --check \"src/**/*.ts\""
   },
   "devDependencies": {
     "@types/bun": "^1.3.14",

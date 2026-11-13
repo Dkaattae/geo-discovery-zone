@@ -411,10 +411,12 @@ describe("T-079 tester, criterion 20 — every package.json and bun.lock is byte
   const manifests: Record<string, string> = {
     // re-pinned by T-064 row 32: build:sample removed (its criterion 2)
     // re-pinned by T-087 row 1: questions script added (its criteria 1-2)
+    // re-pinned by T-109 row 17: format and format:check scripts guarded, deps unchanged.
     "question-bank/package.json":
-      "8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3",
+      "1ba5a65010a0d2e9e9b2063d6c984a35a5c4e86360fe4242a0a7467f0587d35e",
     "question-bank/bun.lock": "6bb53377c455e7936275e795c81aa62b41fcb239017b4dd9a744dfd38bda34d1",
-    "frontend/package.json": "22870bb992a6e2db8770998ce5cb0b095ce785fcc16801f6bf9deb25e33e332f",
+    // re-pinned by T-109 row 17: format and format:check scripts guarded, deps unchanged.
+    "frontend/package.json": "65dc7bd49fc98164da55068e497cc505a609583634c4b849cc0597fcd2147f57",
     "frontend/bun.lock": "5ec60daccc0422c6a67e520b46e372be8a16b04bf2a37b3170f087ef69afc733",
     "e2e/package.json": "2a77756f4acec47ffbf4488ffd00e62a56da3c39cb89466e4f7b3f7fb49a5921",
     "e2e/bun.lock": "518a40b596a5bc9c4bc1b10ea8dbfbf32342539c08622fde3cef22e546a7574d",

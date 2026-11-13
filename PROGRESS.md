@@ -118,7 +118,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   over the whole package, locally and as CI's Format step, at the same version
   as `question-bank/`. `.ts`/`.tsx` were already held by `eslint-plugin-prettier`.
   The tests that run the writer refuse to start it unless the pinned prettier is
-  installed (T-107); `bun run format` by hand does not check yet (T-109).
+  installed (T-107), and since T-109 the `format` and `format:check` scripts themselves
+  refuse to run without it, in both packages.
 
 ### Question bank — the pipeline
 
@@ -377,6 +378,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-109 — `bun run format` and `format:check` refuse to run without the pinned prettier**
+  (PR #137, 2026-11-13). In `frontend/` and `question-bank/`, both scripts now run a small
+  `prettier-pin-guard.ts` first (`frontend/scripts/`, `question-bank/src/`). It exits 1, naming the
+  pinned version and any version it found, when `node_modules/prettier` is missing, is at another
+  version, or lacks its `.bin` link, so `bun run` can no longer fall back to a prettier on `PATH`.
+  `conventions.md` Formatting says so. *Where it differed from the brief:* the tester's
+  criteria file crashed in CI's question-bank job, which has no `frontend/node_modules`. A
+  second round fixed that, and the fix re-pinned T-091's test digest once more. That made two
+  CI fix plans (22 rows, all P-17 re-pins). Round 1's 21 rows were approved by Dkaattae before
+  the plan was written, so the PR is escalated with that plan in its body. The frontend guard is
+  linted and format-checked but not typechecked (`scripts/` is outside `tsconfig.json`), which
+  the reviewer accepted.
 - **T-111 — `us-states.ts`'s region paragraph stops saying the 15 states ship today**
   (PR #136, 2026-11-13). The two comments now read "then the 15 states served at the time"
   and "The 15 states that bank served in 2026-09", and the paragraph still records T-017's

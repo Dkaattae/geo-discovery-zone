@@ -196,7 +196,9 @@ const MAIN_ENTITY_DIR_SHA = "2eb39d22d0f7b8074671ac63d0c54b44b546534f4de266437fb
 // format-gate and readme-fences, and its tester added prettier-writer-guard.criteria.test.ts.
 // Re-pinned again by T-107 (CI fix plan 2 row 1; round-3 Test change request row 1): T-107's
 // tester fixed the output parser in prettier-writer-guard.criteria.test.ts.
-const MAIN_FRONTEND_SHA = "ab8f396ed9953910d849ba7526b09a08d66781bcb068d8da67160f0590152ebb";
+// Re-pinned by T-109 (CI fix plan row 1): T-109 changed the frontend/package.json scripts and
+// added frontend/scripts/prettier-pin-guard.ts.
+const MAIN_FRONTEND_SHA = "1d7567d69e4d513ead3a019a1be8c0672ba95eda2c4ac7d4e4c9800316b4fdca";
 /** sha256 of canon(LEVEL_SEED_WEIGHTS), at a42b71b. */
 const MAIN_LEVEL_SEED_WEIGHTS_SHA =
   "ba1a081d54a8a09ef2c6a802e3e7870e7f6d33ea93545bad80121356610e60b8";
@@ -229,10 +231,12 @@ const MAIN_DEP_SHA: Record<string, string> = {
   "e2e/bun.lock": "518a40b596a5bc9c4bc1b10ea8dbfbf32342539c08622fde3cef22e546a7574d",
   "e2e/package.json": "2a77756f4acec47ffbf4488ffd00e62a56da3c39cb89466e4f7b3f7fb49a5921",
   "frontend/bun.lock": "5ec60daccc0422c6a67e520b46e372be8a16b04bf2a37b3170f087ef69afc733",
-  "frontend/package.json": "22870bb992a6e2db8770998ce5cb0b095ce785fcc16801f6bf9deb25e33e332f",
+  // Re-pinned by T-109 (CI fix plan row 2): format and format:check scripts guarded, deps unchanged.
+  "frontend/package.json": "65dc7bd49fc98164da55068e497cc505a609583634c4b849cc0597fcd2147f57",
   "question-bank/bun.lock": "6bb53377c455e7936275e795c81aa62b41fcb239017b4dd9a744dfd38bda34d1",
   // re-pinned by T-087 row 2: questions script added (its criteria 1-2)
-  "question-bank/package.json": "8e27687560ccc8a0a08751dee8d7c7b578a81e575bbea02e8f09d9a5fafdd3a3",
+  // Re-pinned by T-109 (CI fix plan row 2): format and format:check scripts guarded, deps unchanged.
+  "question-bank/package.json": "1ba5a65010a0d2e9e9b2063d6c984a35a5c4e86360fe4242a0a7467f0587d35e",
 };
 
 // ---- Helpers ----------------------------------------------------------------
