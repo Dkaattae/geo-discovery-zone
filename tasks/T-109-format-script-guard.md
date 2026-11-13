@@ -1,7 +1,7 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -15,6 +15,7 @@
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste |
+| worker | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; spawned as a subagent, so the env id is the run's, not unique to this role) |
 
 ## Goal
 
@@ -206,6 +207,93 @@ Required reading for the worker and the tester.
 
 ## Handoff
 
+**TL;DR: both packages' `format` and `format:check` now run a guard script first and reach prettier only if the pinned prettier is installed.** Hand-checked in throwaway copies for states (a), (b) and (c) in both packages: every run exits 1, no sentinel runs, nothing is rewritten. 17 question-bank whole-tree pins went red by design (listed below). The frontend suite's 4 reds are from this sandbox, not this change.
+
+### What changed
+
+- **`question-bank/src/prettier-pin-guard.ts`** (new): reads `devDependencies.prettier` from `../package.json` (relative to the script, not `cwd`), then exits 1 with a `refusing to run prettier: …` line on stderr if `node_modules/prettier/package.json` is missing (a), its `version` is not string-equal to the pin (b), or `node_modules/.bin/prettier` is missing (c). Every message names the pinned version; (b) also names the found one; all end `Run \`bun install\` in this package first.` Writes nothing.
+- **`frontend/scripts/prettier-pin-guard.ts`** (new): the same file, apart from the one doc line that names the other copy. It sits next to `build-static.mjs`.
+- **`question-bank/package.json`** (`scripts` only): `format` / `format:check` are now `bun run src/prettier-pin-guard.ts && prettier --write|--check "src/**/*.ts"`.
+- **`frontend/package.json`** (`scripts` only): `format` / `format:check` are now `bun run scripts/prettier-pin-guard.ts && prettier --write|--check .`.
+- **`conventions.md`**: the Formatting paragraph gains three lines saying that both scripts refuse in both packages unless the pinned prettier is installed, with `bun install` there as the remedy. The two Commands-block comments are unchanged.
+
+### Where each criterion lives
+
+| # | Where | Worker's own check (scratch, not committed) |
+|---|---|---|
+| 1-3 | the guard runs first; `&&` means prettier (neither `.bin` nor `PATH`) is never spawned when it exits 1 | (a), (b) at 3.8.1 and at 3.9.5, and (c), × both scripts × both packages: all rc=1, and a `PATH` sentinel (plus a `.bin` one in (b)) never ran |
+| 4 | same; the guard only reads | the copy's file digest was the same before and after `format`, with an unformatted `src/zz-unformatted.ts` present |
+| 5, 6 | the guard's `refuse()` messages | output seen: `pinned prettier 3.9.6 is required, found 3.8.1 in node_modules/prettier` |
+| 7 | the pin is read from `package.json` at run time | a copy pinned to `3.8.1` with 3.8.1 installed and a `.bin` present passed the guard (the `.bin` sentinel then ran); a copy pinned to `3.9.9` with 3.9.6 installed refused, naming 3.9.9 and 3.9.6 |
+| 8 | unchanged prettier invocation | `bun run format:check` exits 0 in both packages on this tree |
+| 9, 10 | unchanged prettier invocation | not hand-run; covered by the existing T-071 and T-075 gate tests, which pass |
+| 11 | `bun run <script> args…` appends the args after the `prettier --check …` half of the `&&` | `prettier-gate.test.ts` line 245 passes unmodified |
+| 12 | globs untouched (`.` and `"src/**/*.ts"`) | — |
+| 13 | no dependency added; `bun.lock` files untouched | `git diff main -- '*/bun.lock'` is empty; `dependencies`/`devDependencies` unchanged |
+| 14 | `ci.yml` untouched. The guard needs only `bun`, which CI has | CI result on the PR head: for the tester/reviewer to confirm |
+| 15, 16 | the tester's tests | — |
+| 17 | `conventions.md` Formatting paragraph | — |
+| 18 | no existing test edited | — |
+
+### Deliberately not done
+
+- **No committed worker test.** The behaviour is small and I hand-checked every state above. Criteria 1-7 and 15-16 are the tester's to pin.
+- **T-107's two test-level guards are left in place** (out of scope).
+- **No `engineering-decisions.md` entry.** E-16 and E-17 already record the pin, and the guard enforces it rather than deciding anything new. Reviewer to confirm.
+
+### Judgment calls (each needs an owner)
+
+- **Two copies of the guard, not one shared file.** A shared file at the repo root would need a `../` path that breaks in the tester's throwaway package copies, and it would sit outside both packages' format, lint and typecheck coverage. Reviewer to confirm or overturn.
+- **The question-bank guard is under `src/`**, so `typecheck`, `oxlint` and `format:check` cover it. The cost is one extra red pin (T-091 criterion 20, "every non-test file under question-bank/src/ is 12d242e's"). Putting it in `question-bank/scripts/` would avoid that red but lose the coverage. Reviewer to decide.
+- **The frontend guard is under `scripts/`, which `frontend/tsconfig.json` does not include.** So it is linted (eslint `**/*.ts`) and format-checked, but not typechecked. I did not move it into `src/`, which is app code, and I did not widen `tsconfig.json`, which the brief does not list. Reviewer to decide, or this goes to a follow-up in `tasks.md`.
+
+### How to run
+
+```bash
+cd question-bank && bun run format:check && bun test
+cd frontend && bun run format:check && bun test
+# to see a refusal: in a copy without node_modules, or with a fake node_modules/prettier/package.json
+```
+
+### Contradictions with the brief
+
+- **None found.** The brief's expected-red list is right about `refresh-regenerate-reminder-verify.test.ts` and `conventions-openapi-row-verify.test.ts`. The frontend `prettier-writer-guard` and `readme-fences` tests did **not** go red.
+
+### Environment, not this change
+
+- **The frontend has 4 failures and 4 errors** (`t026-setup.criteria`, `t051-map-click`, `t051-tester.criteria`, `screens.criteria`): `Cannot find package 'react-simple-maps'`. Also **`bun run typecheck` in `frontend/`** fails on the same missing package (`UsMap.tsx`, the t051 tests). `bun install --frozen-lockfile` gets 403 from the proxy downloading tarballs, so this sandbox's `frontend/node_modules` is incomplete. No error comes from this change.
+- **Already red at base `514cdc0`** (checked with my change stashed): `farm-animal-loose-ends-verify.test.ts` "T-096 criteria 17-21 > criterion 21…" and `climate-cold-trade-accepted-verify.test.ts` "T-091 criterion 22…". This change adds to what they flag but did not cause them.
+
+### Tests made stale
+
+All are in `question-bank/src/`. All are whole-tree or manifest pins (P-17). The fix proposed for each is a **re-pin to this branch's head**, or an exemption for the files this brief allows. None should be deleted.
+
+| File | Test | Made stale by | Proposal |
+|---|---|---|---|
+| `agriculture-true-wrong-answers-verify.test.ts` | T-088 criteria 20-25 > criterion 21: every tracked file under frontend/ is byte-identical to main's | `frontend/package.json` scripts and the new `frontend/scripts/prettier-pin-guard.ts` | re-pin |
+| same | T-088 criteria 20-25 > criterion 23: every package.json, bun.lock, pyproject.toml and uv.lock is main's | both package.json `scripts` | re-pin the two package.json digests |
+| `conventions-openapi-row-verify.test.ts` | T-105 criterion 2 — nothing else in conventions.md changes > the file has the same number of lines as at base 0b78dec | conventions.md +3 lines (criterion 17) | re-pin to the new line count |
+| same | … > every line other than the openapi.yaml and backend/ rows is byte-identical to base, in the same order; … | same | re-pin, or exempt the Formatting paragraph |
+| `climate-far-phrases-verify.test.ts` | T-090 criterion 17: no new dependency, no lockfile change > every package.json, pyproject.toml and lockfile is byte-identical to 3279555, none added | package.json scripts | re-pin the package.json digests |
+| `map-click-no-candidates-verify.test.ts` | T-092 criterion 15: … > every package.json, pyproject.toml and lockfile is byte-identical to 5d72ca5's, none added | same | re-pin |
+| same | T-092 criterion 16: no other surface changes > frontend (except []) is byte-identical to 5d72ca5 | frontend package.json and the new guard | re-pin |
+| `hand-check-levels-verify.test.ts` | T-025 criteria 14-17: … > criterion 15: every package.json and lockfile is byte-identical to aa88101, and none was added | package.json scripts | re-pin |
+| `refresh-regenerate-reminder-verify.test.ts` | T-087 criterion 2: … > scripts minus `questions` equals main's scripts exactly | question-bank `format`/`format:check` values (`MAIN_SCRIPTS`) | update `MAIN_SCRIPTS` to the new two values |
+| same | T-087 criterion 15: … > every tracked file under the three trees is as re-pinned by T-039, none added or removed | frontend changes (`MAIN_BOUNDARY_SHA`) | re-pin |
+| same | T-087 criterion 16: … > every manifest but question-bank/package.json is byte-identical to 0a98e11 | `frontend/package.json` (`MAIN_MANIFESTS_EXCEPT_QB_PKG_SHA`) | re-pin |
+| `farm-animal-loose-ends-verify.test.ts` | T-096 criteria 17-21 > criterion 20: every package.json, bun.lock, pyproject.toml and uv.lock is main's | package.json scripts | re-pin |
+| same | T-096 criteria 17-21 > criterion 21: … none is added | **already red at base**; now also flags the two guards, conventions.md and both package.json | re-pin, or exempt this brief's allowed files |
+| `familiarity-drawn-apart-verify.test.ts` | T-085a criteria 23-25 > criterion 23: no package.json, bun.lock, pyproject.toml or uv.lock changed since 5ae564a | package.json scripts | re-pin |
+| `climate-cold-trade-accepted-verify.test.ts` | T-091 criterion 20 > every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's | new `question-bank/src/prettier-pin-guard.ts` | re-pin, or exempt it |
+| same | T-091 criterion 21 > every package.json, bun.lock, backend/pyproject.toml and backend/uv.lock is 12d242e's | package.json scripts | re-pin |
+| same | T-091 criterion 22 > … none is added | **already red at base**; now also flags this change's files | re-pin |
+| `highest-point-in-state-verify.test.ts` | T-079 tester, criterion 20 … > question-bank/package.json | scripts | re-pin |
+| same | T-079 tester, criterion 20 … > frontend/package.json | scripts | re-pin |
+
+**Count floors:** none touched. No test was removed or edited.
+
+**Suite results at the worker's head:** question-bank 2748 pass / 19 fail. That is the 17 stale pins plus the 2 base reds, all listed above. Frontend 434 pass / 4 fail / 4 errors, all `react-simple-maps` (environment). Lint and format:check are green in both packages, and typecheck is green in question-bank. Frontend typecheck is red only on `react-simple-maps` / `us-atlas`.
+
 ## Verdict
 
 ## Notes
@@ -221,3 +309,10 @@ Required reading for the worker and the tester.
 - **A choice the approver can reverse:** state (c) (version matches, `.bin`
   missing) counts as not installed, mirroring T-107's guard, because `bun run`
   then falls back to `PATH` exactly as in state (a).
+- **Worker:** the frontend and question-bank `bun run` both ran `bun` and the
+  `&&` chain fine under the sandbox's `/bin/sh`. Bun appends extra args to the
+  end of the script string, so `--use-tabs` reaches prettier, not the guard.
+  That is why criterion 11 holds without any argument plumbing.
+- **Worker:** the sandbox cannot finish `bun install` in `frontend/` (proxy 403
+  on tarballs), so `react-simple-maps` is missing. The tester will see the same
+  four frontend reds unless its environment differs.

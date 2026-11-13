@@ -37,7 +37,10 @@ to typecheck when assigned a possibly-undefined value.
 commas everywhere. `bun run format` in `frontend/` and in `question-bank/`,
 each with its own `.prettierrc` holding those four settings. Both `frontend/`
 and `question-bank/` pin prettier to the same exact version, and CI runs
-`bun run format:check` in both (E-16, E-17).
+`bun run format:check` in both (E-16, E-17). In both packages, `format` and
+`format:check` refuse to run unless the pinned prettier is installed in that
+package's `node_modules`; the remedy is `bun install` there, never a prettier
+from `PATH` (T-109).
 Python is `ruff format`.
 
 **Alembic owns the database schema.** The pipeline emits JSON and a Python
