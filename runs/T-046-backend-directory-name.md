@@ -79,3 +79,33 @@ Files:
 - /home/user/geo-discovery-zone/engineering-decisions.md
 - /home/user/geo-discovery-zone/backend/README.md
 - /home/user/geo-discovery-zone/tasks/T-046-backend-directory-name.md
+
+## Round 3 — tester — 2026-11-13
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-046: pass.** I checked all 12 criteria by hand, as the brief requires, and all are met. I committed no tests. The verdict is pushed to `claude/relaxed-allen-5ro49x` at `91cba5c`, and the remote branch shows that commit. Status is now `pass` and Next step is `reviewer`.
+
+**Independence:** this is the weaker kind. My session id `cse_011oDiJd2dgRHzBRDwBhvmNz` is the same one the expander and worker recorded, so the id check proves nothing. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. The Verdict says this, and my Sessions row is marked "orchestrated subagent".
+
+**Criteria:**
+- **1–6 (the E-31 entry):** E-31 is the last and only `## E-31` heading. It contains:
+  - a bold `**Decided: 2026-11-13 (T-046).**` line;
+  - a sentence saying `api/` is not used as a directory name;
+  - the three files a rename would touch: `Dockerfile`, `.github/workflows/ci.yml` and `backend/Makefile`;
+  - `CLAUDE.md` lines 4 and 58, quoted exactly as they read at `b10fa64`, with the G1 gate and the need for a P ticket;
+  - a concrete `**Revisit when**` line;
+  - the rename option, recorded as not taken.
+- **7–8 (`backend/README.md`):** the README diff is exactly one deleted line. No `` `api/` `` remains, and the rest of Known gaps is unchanged.
+- **9:** both `git grep` commands print nothing (exit 1).
+- **10–11:** no file moved or was added or deleted. Dockerfile, CI, Makefile, the package files and the lockfiles are unchanged, and no `api` directory exists. No gated file was touched.
+- **12, met with a note:** the diff also adds `runs/T-046-backend-directory-name.md`. That is the orchestrator's run log, which `process.md:75` requires, not a worker change. The reviewer should confirm it accepts this under the criterion.
+
+**Suites:**
+- **Backend:** 809 passed, 9 skipped.
+- **question-bank:** 229 passed; typecheck, lint and format are clean.
+- **Frontend, locally:** install failed with a proxy 403 on npm tarballs, leaving 4 test failures, 4 errors and missing-module typecheck errors. This diff touches no frontend file.
+- **Frontend in CI, on HEAD `3affe1b`:** the frontend, backend, backend-postgres, question-bank and integration jobs all passed. e2e (playwright) was still running when I checked.
+
+**Stale tests:** none.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-046-backend-directory-name.md
