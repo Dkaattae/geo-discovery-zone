@@ -295,3 +295,35 @@ What a human has to decide: whether to let T-109 take another `ci-fix` round (he
 
 ## Resumed by a person — 2026-11-13
 Dkaattae, in the orchestrator's session: "run the T-109 ci-fix". The G3 halt is lifted for one more `ci-fix` round at their direction; the header is unchanged (`Next step: ci-fix`).
+
+## Round 7 — ci-fix (round 2, pass 1) — 2026-11-13 16:59Z
+`Next step` on entry: `ci-fix` → on exit: `human` (Status `ci fix requested`, CI fix `requested`)
+
+**T-109 ci-fix, round 2, pass 1: I wrote a one-row plan, changed nothing, and it now needs approval.** No source is wrong. The only red is T-091's `MAIN_TESTS_SHA` pin. It went red because the round-2 tester fixed this task's own criteria test so it runs in CI, and that pin digests the file. The commit is pushed to `task/T-109-format-script-guard` at `ec470a4`, and `origin` matches it.
+
+**Header now reads:** Status `ci fix requested`, Next step `human`, CI fix `requested`, and Fault rewritten in one sentence. Test changes is left as `routed to ci-fix (D-20)`; pass 2 sets it to `applied through CI fix plan (D-20)`. I added my Sessions row as `ci-fix (round 2, pass 1, plan)`.
+
+**Reproduced the failure in two places:**
+- **Locally at `1296e50`:** question-bank `bun test` gives 2875 pass / 1 fail, "T-091 criterion 22 › pre-existing test files are main's, except ones in an approved Test change request".
+- **In CI, run 43465996210 (head `85698c3`):** the question-bank Test step shows the same 2875 / 1. Expected `369ef9f0…b888`, received `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993`. Every other job and step is green, and the earlier `ENOENT frontend/node_modules` crash is gone.
+- **`origin/main`** is still `2634fc8`, the merge base, so nothing needed recomputing.
+
+**The plan (one row, kind `pre-existing test`, from request row 20):**
+- **File:** `question-bank/src/climate-cold-trade-accepted-verify.test.ts`, constant `MAIN_TESTS_SHA`.
+- **Change:** re-pin it from `369ef9f0…b888` to `6b7d6146…4993` and add a two-line comment saying why. `MAIN_TESTS_COUNT` stays 133.
+- **Digest:** the file leaves itself out of the set it digests, so the new comment does not change the value.
+- **Criterion 18** is quoted in the row. The pin was introduced in `950f334` (T-091 tester).
+- **Missed stale tests:** none. The full suite has exactly this one red.
+
+**Trial run:** I applied the row in a scratch worktree with only `question-bank/node_modules` installed, the same setup as CI's question-bank job. Result: 2876 pass / 0 fail, and `format:check` green. The worktree is removed.
+
+**Not doing:** taking the criteria test out of T-091's set, because that would leave it unpinned. Also no change to the criteria test, the guards, the scripts or `conventions.md`.
+
+**What happens next:** a person approves the plan (or the orchestrator's timeout stamp does). Then a fresh `ci-fix` runs pass 2 and applies the row. After that, a fresh tester must confirm CI's question-bank Test step is green on the new head.
+
+**Round count:** Dkaattae lifted the G3 halt for this one extra ci-fix round only. A further fail should go back to a person.
+
+File: /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md (header, Sessions, `## CI fix plan` replaced with round 2)
+
+## Halted — CI fix requested — 2026-11-13 16:59Z
+Branch head at halt: `ec470a4`. Asked Dkaattae in the orchestrator's session to approve or refuse the round-2 CI fix plan. If nobody answers by about 18:00Z, the orchestrator stamps it (D-17) and spawns a fresh `ci-fix`.
