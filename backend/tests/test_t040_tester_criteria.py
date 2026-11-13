@@ -13,7 +13,6 @@ served question. No network: committed files and the in-process app only.
 from __future__ import annotations
 
 import copy
-import hashlib
 import json
 import re
 from pathlib import Path
@@ -33,7 +32,6 @@ REPO = Path(__file__).resolve().parents[2]
 ENTITY_DIR = REPO / "question-bank" / "data" / "us-states"
 QUESTION_FILE = REPO / "question-bank" / "data" / "questions" / "us-states.json"
 CONTENT = REPO / "backend" / "app" / "data" / "content.json"
-ARCHIVE = REPO / "archive" / "hand-written-bank" / "content.json"
 SPEC = yaml.safe_load((REPO / "openapi.yaml").read_text(encoding="utf-8"))
 
 #: Criterion 8's pairs: served camelCase key -> pipeline key.
@@ -116,15 +114,6 @@ async def all_rows(client: httpx.AsyncClient, path: str, **extra: Any) -> list[d
 
 
 # -- criteria 4, 5: the served bank is generated, and drift is caught -----------
-
-
-def test_c4_the_command_is_documented_in_backend_readme_and_conventions() -> None:
-    for doc in ("backend/README.md", "conventions.md"):
-        text = (REPO / doc).read_text(encoding="utf-8")
-        assert "make -C backend content" in text, doc
-    makefile = (REPO / "backend" / "Makefile").read_text(encoding="utf-8")
-    assert re.search(r"^content:.*\n\t\$\(UV\) run python -m app\.content_build$", makefile, re.M)
-    assert re.search(r"^UV\s*:=\s*uv$", makefile, re.M)
 
 
 def _without_extracted_at(text: str) -> dict[str, Any]:
@@ -556,14 +545,6 @@ def test_c24_a_changed_file_is_served_and_leaves_no_stale_rows(
 # -- criteria 26-34: archive, docs, contract, limits -----------------------------
 
 
-#: sha256 of `git show aa88101:backend/app/data/content.json`, as T-025 pinned it.
-AA88101_CONTENT_SHA = "81edf041acb6eb71135e09799a7f092fb00f8573ae52f894aa976d25650264fa"
-
-
-def test_c26_the_archive_is_aa88101s_content_json_byte_for_byte() -> None:
-    assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == AA88101_CONTENT_SHA
-
-
 def test_c27_no_shipped_source_reads_archive() -> None:
     readers = []
     for top in ("backend/app", "frontend/src", "question-bank/src"):
@@ -582,13 +563,6 @@ def test_c28_conventions_layout_names_the_archive() -> None:
     line = next(line for line in text.splitlines() if "archive/" in line)
     assert "hand-written" in line.lower()
     assert "purge" in line.lower()
-
-
-def test_c29_backend_readme_no_longer_calls_the_seed_a_frontend_remap() -> None:
-    text = (REPO / "backend" / "README.md").read_text(encoding="utf-8")
-    assert "frontend/src/data/" not in text
-    assert "make -C backend content" in text
-    assert "content.json" in text
 
 
 def test_c30_source_names_its_inputs_and_claims_no_human_prose() -> None:

@@ -66,6 +66,11 @@ test-integration: install ## Run the integration suite against docker compose
 test-integration-against: install ## Same suite, against a stack you are already running: make test-integration-against URL=http://localhost:8000
 	GEO_E2E_BASE_URL="$(URL)" $(UV) run pytest integration -v
 
+# The snapshot lane: tests/snapshot_*.py pin the repo at old commits. Not run
+# by `test` or CI; monthly via .github/workflows/snapshot-tests.yml.
+test-snapshots: install ## Run the monthly snapshot lane (tests/snapshot_*.py)
+	$(UV) run pytest -q tests/snapshot_*.py
+
 test-watch: install ## Re-run the tests that failed last, first
 	$(UV) run pytest -q --last-failed --last-failed-no-failures all
 

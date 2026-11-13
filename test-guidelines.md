@@ -44,6 +44,18 @@ because it guards against a movable GitHub Action tag.
 `question-bank/`'s: `bun test` skips it, `bun run test:snapshots` runs it, and
 nobody adds to or re-pins it.
 
+## `backend/`: test what the API does
+
+Backend tests check what the API does: its responses, grading, mastery and
+levels, question selection, and how children's data is stored and protected.
+They never test docstring or doc wording, `openapi.yaml`'s text, tooling, or the
+repo's shape: no hash of another file, no `git` read of an older commit.
+`openapi.yaml` follows the backend (`engineering-decisions.md` E-14); keeping it
+in step is a by-hand job, not a test.
+
+`backend/tests/snapshot_*.py` is the same monthly snapshot lane: pytest skips it,
+`make -C backend test-snapshots` runs it, and nobody adds to or re-pins it.
+
 ## What to test
 
 **Test the behaviour you would be upset to get silently wrong.** In a quiz for

@@ -7,7 +7,6 @@ drives the app through the test client. No network, nothing mocked.
 
 from __future__ import annotations
 
-import hashlib
 import json
 from typing import Any
 
@@ -53,22 +52,6 @@ def test_c37_superlative_reveals_the_map_other_new_templates_reveal_none() -> No
             assert q["reveal"] == "map_highlight", q["id"]
         elif q["templateId"] in NEW:
             assert q["reveal"] == "none", q["id"]
-
-
-def test_c37_old_served_questions_are_byte_for_byte_main_s() -> None:
-    # T-051 (Test change request row 22): tpl-click-the-map is served now, so the
-    # 100 pre-T-026 served questions are the other two templates.
-    old = [
-        q
-        for q in _content()["questions"]
-        if q["templateId"] in ("tpl-identify-on-map", "tpl-capital-of")
-    ]
-    assert len(old) == 100
-    # sha256 of json.dumps(main's served questions, sort_keys=True), recorded at 45b00d7.
-    # Re-pinned at 6a515e2 (re-pinned T-085a, Test change request row 26), after
-    # T-085a moved the HI/AK identify-on-map levels.
-    digest = hashlib.sha256(json.dumps(old, sort_keys=True).encode()).hexdigest()
-    assert digest == "a5ab2c2915ca3ff03e0d8be02f371f1dccf9e7b2d798e359e2df98a0ddda0266"
 
 
 def test_c37_no_served_question_gains_a_prose_field() -> None:
