@@ -77,3 +77,35 @@ Orchestrator: stamped `Approved:` (unattended run).
 - **frontend: not verified.** `bun install` hit a proxy 403 on `d3-zoom`, so `react-simple-maps` is missing. Typecheck fails and 4 tests fail, all on that missing package. Nothing under `frontend/` was touched. The tester should rerun it with working package downloads, or rely on CI.
 
 **One thing for the tester:** `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the same id (`cse_011oDiJfSMW5AuCAW3Bk9Ste`) for the expander and the worker. The tester will need some other way to show its session is fresh.
+
+## Round 3 — tester — 2026-11-13 15:25Z
+`Next step` on entry: `tester` → on exit: `task-expander` (Status `blocked`; G3 count: 0 fail, 1 blocked)
+
+**T-111 tester verdict: `blocked`, next step `task-expander`.** Criteria 1, 2 and 3 are met. Criterion 4 cannot be met as written, so I am returning it rather than choosing a reading myself. Commit `988c08e` is pushed to `claude/amazing-franklin-j3x3l1`, and the remote head matches.
+
+**Independence:** this is an orchestrated run, so the session-id check proves nothing. My id, `cse_011oDiJfSMW5AuCAW3Bk9Ste`, is already listed for the expander and the worker. My only independence is being a freshly spawned subagent that did not see the worker's session. That is weaker than a separate session, and the Verdict says so.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | 3 tests in the new test file, all green. All 3 go red against `main`'s file. |
+| 2 | met | 35 tests: `T-017`, `2026-09-18`, `E-9`, `15`, 13 regions and 15 states, each in backticks. All green. The reviewer judges the tense. |
+| 3 | met, checked at hand-off and not pinned | Every changed line is a comment line. With comments and whitespace stripped, the file compiles to the same code as `2634fc8`. All 5 exports deep-equal `main`'s. Data and `content.json` are unchanged, and the offline build and `bun run questions` leave the tree clean. |
+| 4 | blocked | The diff against `origin/main` also touches `tasks.md` (from expander commit `428a89f`) and `runs/T-111-…` (from orchestrator commit `7c9512e`). The loop requires both files, and criterion 4's allow-list names neither. Its wording also does not clearly allow a tester's new test file. Suggested amendment: allow `tasks.md`, the run log, the sweep's edits and new tester or ci-fix test files. |
+
+**Suite** (on `df1e593` plus my test file):
+- **question-bank:** format, typecheck and lint are clean. `bun test` gives 2801 pass, 4 fail; all 4 are stale whole-tree or whole-file pins, and no behaviour test is red. CI's question-bank job is red for the same reason.
+- **backend:** 1221 passed, 9 skipped.
+- **frontend:** locally it fails only because `react-simple-maps` cannot be installed (proxy 403). CI's frontend job is green on `df1e593`.
+
+**Mutations:** I made 10 mutations to `us-states.ts`, all reverted and confirmed with `cmp`. Nine turned the matching test red. M7 stayed green, which is correct: `Upper Midwest` appears backticked twice in the paragraph, and the criterion only asks that it be present.
+
+**Test change request:** 5 rows, Decision blank, **not routed** while the task is blocked (as T-107 did). The header reads `Test changes: pending …`. No pre-existing test was edited.
+1. `agriculture-true-wrong-answers-verify.test.ts`: re-pin the whole-file hash of `us-states.ts` to `98afb4d5…`.
+2. `climate-cold-trade-accepted-verify.test.ts`: re-pin `MAIN_SOURCE_TREES_SHA` to `05dc94e8…`.
+3. `farm-animal-loose-ends-verify.test.ts`: add the T-111 brief and run log to `CRITERION_21_ALLOWED`, keep the count at 280, re-pin `MAIN_UNTOUCHABLE_SHA` to `689e2d12…`.
+4. `climate-cold-trade-accepted-verify.test.ts`: add the same two files to `CRITERION_22_ALLOWED`, keep `MAIN_UNTOUCHABLE_COUNT` at 283, re-pin `MAIN_UNTOUCHABLE_SHA` to `d030f3e5…`.
+5. `climate-cold-trade-accepted-verify.test.ts`, "each test in the approved Test change request is 8108a42's…": it is green now, but goes red once rows 1 and 3 change those two files. Re-pin their entries in `APPLIED_REQUEST_FILE_SHAS`. I saw this red in a scratch run, then reverted the edit.
+
+**Files:**
+- `/home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md` has the Verdict, the Test change request, Status `blocked`, Next step `task-expander`, a Fault line and my Sessions row.
+- `/home/user/geo-discovery-zone/question-bank/src/us-states-region-comment-verify.test.ts` is the new test file, 38 tests.
