@@ -1,7 +1,7 @@
 # T-046 — Decide: `backend/` or `api/` — keep `backend/`
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated` (swept in the same PR; this brief is deleted by the sweep)
+**Next step:** `human` — Dkaattae confirms keep `backend/`, then merges PR #141
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-046-backend-directory-name.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | worker | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | tester | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated subagent; see Verdict) |
+| reviewer | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated subagent) |
 
 > **The decision in this brief was made by the expander, and is the thing to
 > approve.** The queue entry says "Either is fine, and deciding is not
@@ -255,3 +256,29 @@ directory exists. No P ticket in `process-tasks.md` mentions `api/`.
 - **Frontend could not install** in this sandbox (proxy 403 on npm tarballs). Owner: tester to rerun the frontend suite where install works; not a code issue.
 - **No `---` above E-30** in the current file, though the brief asked for one above E-31. Added it as the brief says; the file's separators are inconsistent anyway. Reviewer to confirm or drop.
 - Survey matched the brief exactly: one `api/` hit outside exclusions, at `backend/README.md:263`.
+
+## Review
+
+**TL;DR: approved, escalated.** The work is good: E-31 is a clear, complete decision record and the README edit is the one line asked for. **Do not merge without Dkaattae confirming "keep `backend/`"** — the expander made that call and only the orchestrator's blind stamp approved the brief. Swept in this PR; PR #141 marked ready.
+
+**Lanes (commits on the PR):** expander `2f48349`, `3ef0090` touch only this brief; orchestrator `9e0a59d`, `3affe1b`, `ff0b854` touch only `runs/` and the `Approved:` line; worker `c1638a1` touches `engineering-decisions.md`, `backend/README.md`, this brief; tester `91cba5c` touches only this brief. Every Sessions row has a commit on this branch.
+
+**Findings — none block.**
+
+1. **Escalation: the decision has no person's approval yet.** `Approved: orchestrator`, and the Review checklist's first box ("Dkaattae agrees with keep `backend/`") cannot be ticked by an agent. If Dkaattae wants `api/` instead, close or send the brief back to the `task-expander`; nothing here survives a rename.
+2. **`backend/README.md` Known gaps, line 260–262: "CI only runs the SQLite path … nothing runs it automatically" is false** — `ci.yml` has `backend-postgres` (line 215). The pin-grading bullet above it should be re-read against T-045's 422 paths. Not this task (criterion 8). → **new T-112** in `tasks.md` §E.
+3. **`CLAUDE.md` lines 4 and 58 still say `api/`.** Loop-gated. No `P` ticket existed. → **new P-19** in `process-tasks.md`.
+4. **`tasks.md` §A table names `frontend/src/conventions-doc.test.ts` and doc-count guards** that `8cf40b6`/`d594b38` deleted. Not this task. → **new T-113** in `tasks.md` §A.
+5. **`PROGRESS.md` Layout said "lines 4 and 51" and "Which name wins is still T-046".** Fixed in the sweep (it is the sweep's file).
+
+**E-31 quality.** Fits the file's shape (heading, `**Decided:**`, Why, Option not taken, `**Revisit when**`). Claims checked: `Dockerfile` lines 47, 52, 55; `ci.yml` has 11 `backend` mentions; `/api/v1` correctly called a route. Not more than asked.
+
+**Worker's and tester's flags, disposed of:**
+
+- **`---` above E-31** — kept. The file separates its header and entries with `---`; inconsistency elsewhere is not worth a task.
+- **`runs/T-046-…md` in the diff (criterion 12)** — accepted. It is the orchestrator's required run log (process.md:75), written only by `T-046 orchestrator:` commits.
+- **Shared session id across roles** — deferred to **P-14** (an orchestrated run cannot show its tester was independent), which already owns it.
+- **Frontend suite red locally (proxy 403)** — accepted on CI evidence: `3affe1b` was green on all frontend/backend/question-bank/integration jobs, and the diff touches no `frontend/` file.
+
+**Envelope:** tester pass; CI green on `3affe1b`; nothing outside Constraints beyond the orchestrator's run log and this sweep; no dependency; no `openapi.yaml`, migration or plan change; no child-facing text; no pre-existing test touched; no CI fix. **Outside it on one count:** a naming decision settled by an agent, which the brief itself reserves for Dkaattae.
+
