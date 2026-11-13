@@ -1,14 +1,13 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `ci fix approved`
-**Next step:** `ci-fix`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
-**Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`
+**Test changes:** `applied through CI fix plan (D-20)`
+**CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`
 **From:** [`tasks.md`](../tasks.md) T-109
 **Branch:** `task/T-109-format-script-guard`
 **PR:** #137, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves
-**Fault:** tester round 2: no source is wrong, but one pre-existing pin (T-091 `MAIN_TESTS_SHA`) went red when the tester fixed this task's own criteria test for CI, and a one-row CI fix plan (round 2) to re-pin it is waiting for approval.
 
 **Sessions:**
 
@@ -21,6 +20,7 @@
 | ci-fix (pass 2, apply) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | tester (round 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (round 2, pass 1, plan) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
+| ci-fix (round 2, pass 2, apply) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 
 ## Goal
 
@@ -473,7 +473,7 @@ Rows 1-17 are stale by this change alone. Rows 18-19 were red at base and are ma
 
 | # | File (and function or test) | Kind | Change | Why — failing test or CI line, root cause, criterion quoted for a test row | Decision |
 |---|---|---|---|---|---|
-| 1 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `MAIN_TESTS_SHA`, used by "T-091 criterion 22: the diff touches only the allowed files › pre-existing test files are main's, except ones in an approved Test change request" | pre-existing test (request row 20) | **Modify (re-pin).** `MAIN_TESTS_SHA` `369ef9f067dbb5605317bef32136d3e53d81f95698f82a710aa007869bceb888` → `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993`. Add two comment lines above it: "Re-pinned again by T-109 (CI fix plan 2 row 1; round-2 Test change request row 20): T-109's round-2 tester made format-script-guard.criteria.test.ts run without frontend/node_modules." `MAIN_TESTS_COUNT` stays `133`. The filter and every other line stay as they are | **Red now**, locally and in CI run 43465996210. **Cause:** the round-2 tester changed this task's own criteria test so that it loads without `frontend/node_modules`. That fixed the CI-only `ENOENT` crash. The criteria test is in the set this pin digests. Introduced `950f334` (T-091 tester), protecting test files against changes outside an approved request. **Criterion 18:** "Any existing test this change makes stale goes through … the `ci-fix` plan under the orchestrator". The new digest admits exactly the round-2 edit to this task's own test file, and every other test file is still pinned byte for byte. The value does not depend on this row's own comment lines, because the file excludes itself from the set. It was observed in the trial worktree after the edit |
+| 1 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `MAIN_TESTS_SHA`, used by "T-091 criterion 22: the diff touches only the allowed files › pre-existing test files are main's, except ones in an approved Test change request" | pre-existing test (request row 20) | **Modify (re-pin).** `MAIN_TESTS_SHA` `369ef9f067dbb5605317bef32136d3e53d81f95698f82a710aa007869bceb888` → `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993`. Add two comment lines above it: "Re-pinned again by T-109 (CI fix plan 2 row 1; round-2 Test change request row 20): T-109's round-2 tester made format-script-guard.criteria.test.ts run without frontend/node_modules." `MAIN_TESTS_COUNT` stays `133`. The filter and every other line stay as they are | **Red now**, locally and in CI run 43465996210. **Cause:** the round-2 tester changed this task's own criteria test so that it loads without `frontend/node_modules`. That fixed the CI-only `ENOENT` crash. The criteria test is in the set this pin digests. Introduced `950f334` (T-091 tester), protecting test files against changes outside an approved request. **Criterion 18:** "Any existing test this change makes stale goes through … the `ci-fix` plan under the orchestrator". The new digest admits exactly the round-2 edit to this task's own test file, and every other test file is still pinned byte for byte. The value does not depend on this row's own comment lines, because the file excludes itself from the set. It was observed in the trial worktree after the edit | approved (Dkaattae, 2026-11-13, whole round-2 plan: "approve the T-109 CI fix plan") |
 
 **Order for pass 2:** apply the one row, then run the whole question-bank suite. Expected: 0 fail. Trial: 2876 pass / 0 fail, with `format:check` green. The next tester must also confirm that CI's question-bank **Test** step is green on the new head.
 
@@ -487,6 +487,32 @@ Rows 1-17 are stale by this change alone. Rows 18-19 were red at base and are ma
 To approve by hand: fill in Decision, set the header's `CI fix:` to `approved — <name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
 
 ## CI fix
+
+### Round 2 (pass 2), applied on top of `4483435`
+
+**TL;DR: the one approved row is applied — T-091's `MAIN_TESTS_SHA` re-pinned. question-bank is 2876 pass / 0 fail, and typecheck, lint and `format:check` are green.** No source, guard, script, criteria test or `conventions.md` line was touched. Next, a fresh tester re-runs the criteria and confirms CI's question-bank **Test** step is green on the new head.
+
+**Approval:** the header read `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`. `runs/T-109-format-script-guard.md` (17:13Z) quotes Dkaattae: *"approve the T-109 CI fix plan"*. That came after the round-2 plan was pushed at `ec470a4` (16:59Z), and the plan has exactly one row, so it covers row 1 as written. I recorded that in row 1's Decision cell, quoting the words. No timeout stamp was involved. Unlike round 1, a person approved this plan after it was written.
+
+**Plan still held:** the only commits since `ec470a4` touch `runs/` and the brief header. `origin/main` is still `2634fc8`. The old digest `369ef9f0…b888` was in the file exactly once.
+
+**Rows applied:**
+
+| Row | File | Change | Decision |
+|---|---|---|---|
+| 1 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `MAIN_TESTS_SHA` | `369ef9f067dbb5605317bef32136d3e53d81f95698f82a710aa007869bceb888` → `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993`. Added the plan's two comment lines above it. `MAIN_TESTS_COUNT` is unchanged at `133` | approved, applied |
+
+None refused. `Test changes:` set to `applied through CI fix plan (D-20)` (request row 20).
+
+**Results, as run:**
+- **question-bank:** `bun test` gives **2876 pass / 0 fail** (75 files). `bun run typecheck` is clean, `bun run lint` reports 0 warnings and 0 errors, and `bun run format:check` passes (the T-109 guard ran first and let it through).
+- **frontend:** `bun test` gave **434 pass / 4 fail / 4 errors** on the run I kept in full. All of them come from the missing `react-simple-maps` (proxy 403 on install), the same count every earlier role recorded. **One earlier run gave 431 pass / 7 fail / 4 errors.** I kept only that run's tail, so I cannot name the three extra fails. I touched no frontend file, and the immediate rerun matched the known count. The tester should watch for a flaky or timing-sensitive frontend test. `bun run lint` and `bun run format:check` are green. `bun run typecheck` shows 9 errors, all from `react-simple-maps` / `us-atlas`, as before.
+
+**Independence:** this is an orchestrated run (`runs/T-109-format-script-guard.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfSMW5AuCAW3Bk9Ste`, the id every role in this run lists, so the session-id check proves nothing. My only independence is that I am a freshly spawned subagent that saw none of the other roles' reasoning. I did not refuse on the id, and I do not claim the check passed.
+
+**Noticed, not changed:** nothing new. The plan's "Not doing" still stands. This includes the option of excluding the criteria test from T-091's set, which would stop the re-pin churn but leave the file unpinned.
+
+### Round 1 (pass 2)
 
 **TL;DR: all 21 plan rows are applied, test files only. question-bank is 2875 pass / 0 fail, and typecheck, lint and `format:check` are green.** No source, guard, script or `conventions.md` line was touched. Next, a fresh tester re-runs the criteria. The reviewer should note that the approval was given before the plan was written (see Approval).
 

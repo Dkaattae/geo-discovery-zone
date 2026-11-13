@@ -160,7 +160,9 @@ const MAIN_UNTOUCHABLE_COUNT = 285;
 // us-states-region-comment-verify.test.ts.
 // Re-pinned by T-109 (CI fix plan row 20): T-109's tester added
 // format-script-guard.criteria.test.ts, and rows 3-4 changed conventions-openapi-row-verify.test.ts.
-const MAIN_TESTS_SHA = "369ef9f067dbb5605317bef32136d3e53d81f95698f82a710aa007869bceb888";
+// Re-pinned again by T-109 (CI fix plan 2 row 1; round-2 Test change request row 20): T-109's round-2 tester
+// made format-script-guard.criteria.test.ts run without frontend/node_modules.
+const MAIN_TESTS_SHA = "6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993";
 // Re-pinned by T-045 (Test change request row 8): T-045 added two backend test
 // files, test_t045_ungradable.py and test_t045_tester_criteria.py (109 -> 111).
 // Re-pinned by T-053 (Test change request row 31): T-053 added two backend test
