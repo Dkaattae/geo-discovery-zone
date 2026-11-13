@@ -63,6 +63,7 @@ cd frontend && bun install && bun run dev
 cd frontend && bun run typecheck && bun run lint && bun run format
 cd frontend && bun run format:check   # pinned prettier over . (E-17); `bun run format` rewrites
 cd frontend && bun test                     # the frontend suite
+cd frontend && bun run test:snapshots       # the snapshot lane (src/*.snapshot.ts): monthly, not in CI
 
 # question bank — data/us-states/ (the 50-state bank) is committed (E-6);
 # a fresh clone already has it, these commands only refresh it

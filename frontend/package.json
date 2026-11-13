@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "bun run scripts/prettier-pin-guard.ts && prettier --write .",
-    "format:check": "bun run scripts/prettier-pin-guard.ts && prettier --check ."
+    "format:check": "bun run scripts/prettier-pin-guard.ts && prettier --check .",
+    "test:snapshots": "bun test ./src/*.snapshot.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

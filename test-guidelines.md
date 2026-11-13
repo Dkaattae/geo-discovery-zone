@@ -31,6 +31,19 @@ stood on old commits, `bun test` does not pick them up, and they run only once a
 month (`.github/workflows/snapshot-tests.yml`, or `bun run test:snapshots` by
 hand). Do not add to them, and do not re-pin them to make a pull request pass.
 
+## `frontend/`: test what the child sees and does
+
+Frontend tests check the app as a child uses it: what a screen shows, what a tap
+or click does, and the pure logic behind them (levels, topics, the API client).
+They never test doc or comment wording, tooling (lint, prettier, scripts) or the
+repo's shape: no hash or count of tracked files, no `git` read of an older
+commit. The one exception is `src/ci-action-pinning.test.ts`, which stays in CI
+because it guards against a movable GitHub Action tag.
+
+`frontend/src/*.snapshot.ts` is the same monthly snapshot lane as
+`question-bank/`'s: `bun test` skips it, `bun run test:snapshots` runs it, and
+nobody adds to or re-pins it.
+
 ## What to test
 
 **Test the behaviour you would be upset to get silently wrong.** In a quiz for

@@ -95,6 +95,11 @@ steps, never a test. If a pre-existing `question-bank/` test goes red because of
 the task, and it is one of the five bank tests, raise it as below; the snapshot
 lane is not part of the suite you run and never blocks a verdict.
 
+**In `frontend/`, test only what the child sees and does** (`test-guidelines.md`):
+a criterion about doc wording, tooling or which files changed is checked by hand
+and recorded in the Verdict, as in `question-bank/`, and the frontend
+`*.snapshot.ts` files are never added to or re-pinned.
+
 Everywhere else, every criterion gets at least one test, named so the mapping is
 obvious. Test the boundaries the criterion names. Follow `test-guidelines.md` — use the
 `SparqlTransport` / `SummaryTransport` / `EntitySink` seams, never mock `fetch`,
