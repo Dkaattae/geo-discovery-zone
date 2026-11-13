@@ -190,3 +190,51 @@ Brief: /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md
 
 ## CI fix approved by a person — 2026-11-13 16:08Z
 Dkaattae, in the orchestrator's session, while pass 1 was still running: "approve the T-109 CI fix plan too". The orchestrator told them the plan was not yet written and offered to halt instead if they wanted to read it first; no retraction came. Applied once the header read `CI fix: requested`: `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session`, `Status: ci fix approved`, `Next step: ci-fix`. No timeout stamp was used.
+
+## Round 5 — ci-fix (pass 2) — 2026-11-13 16:18Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**I applied all 21 approved CI fix plan rows, and question-bank is now 2875 pass / 0 fail. Next is a fresh tester.** Every row changes a test file. No source file, guard, script or `conventions.md` line changed. Commit `8146a3c` (`T-109 ci-fix: apply approved fix`) is pushed to `task/T-109-format-script-guard`, and after a fetch `origin` shows the same SHA. The working tree is clean.
+
+**Header now reads:**
+- `Status: awaiting verification`
+- `Next step: tester`
+- `CI fix: applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
+- `Test changes: applied through CI fix plan (D-20)`
+- `Fault:` cleared
+
+I also added a Sessions row for `ci-fix (pass 2, apply)`.
+
+**The approval, which the reviewer should know about:**
+- **What the brief shows:** the header carried Dkaattae's approval. The run log quotes it as "approve the T-109 CI fix plan too", and it was given while pass 1 was still writing the plan. According to the log, they were offered the chance to read the plan first and did not retract.
+- **No per-row decisions:** every row's Decision cell was blank. I did not fill any in.
+- **How I read it:** as approval of every row as written, the same scope as the orchestrator's timeout stamp. T-107 and T-108 applied this header form the same way.
+- **What it means for review:** every row is a test change, and the person approved them before the plan existed. My `## CI fix` section asks the reviewer to escalate as for a stamped plan (D-18).
+
+**What I did:**
+- **Before applying:** `origin/main` is still `2634fc8`, so no merge or full recompute was needed. I reproduced the plan's 20 reds first (2855 pass / 20 fail).
+- **Order:** rows 1-8 and 10-19, then 9, then 20, then 21, as the plan set out.
+- **Fixed values:** every value the plan gave as fixed was correct as written. The tests that use them went green with no change.
+- **Recomputed values:** rows 9, 20 and 21 were recomputed after the other rows landed, as the plan instructed.
+  - Row 9: `8f51a351…7116`
+  - Row 20: `MAIN_TESTS_SHA` `369ef9f0…b888`, count 132 → 133
+  - Row 21: four new `APPLIED_REQUEST_FILE_SHAS` entries
+
+**Results, as run:**
+
+| Package | Tests | Typecheck | Lint | `format:check` |
+|---|---|---|---|---|
+| question-bank | 2875 pass / 0 fail | 0 errors | clean | green |
+| frontend | 434 pass / 4 fail / 4 errors | 9 errors | green | green |
+
+- **Frontend reds are environmental:** the 4 fails, 4 errors and 9 typecheck errors all come from `react-simple-maps` / `us-atlas` not installing, because the proxy returns 403. That is the same set the worker and tester reported, and I touched no frontend file.
+
+**Independence:** this is an orchestrated run, and the session id `cse_011oDiJfSMW5AuCAW3Bk9Ste` is the same one every earlier role lists. The id check therefore proves nothing. My only independence is being a freshly spawned subagent, and I did not claim the check passed.
+
+**Noticed, not changed:** this is the fourth task in a row to need second-order pins (rows 9, 20 and 21). That recurrence belongs to P-17 in `process-tasks.md`, not to this task.
+
+Files:
+- /home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md (has the `## CI fix` section)
+- /home/user/geo-discovery-zone/question-bank/src/ — 10 changed test files: agriculture-true-wrong-answers-verify, climate-cold-trade-accepted-verify, climate-far-phrases-verify, conventions-openapi-row-verify, familiarity-drawn-apart-verify, farm-animal-loose-ends-verify, hand-check-levels-verify, highest-point-in-state-verify, map-click-no-candidates-verify, refresh-regenerate-reminder-verify (all `.test.ts`)
+
+Paused here (Next step `tester`) while T-111's approved ci-fix runs, at Dkaattae's request ("start the T-111 ci-fix now too").
