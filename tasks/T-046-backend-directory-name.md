@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-046
 **Branch:** `claude/relaxed-allen-5ro49x`
-**PR:** opened draft at expand time (number recorded in a follow-up commit)
+**PR:** #141, opened draft at expand time, built from the branch above
 **Fault:**
 
 **Sessions:**
