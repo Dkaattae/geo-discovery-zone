@@ -97,3 +97,50 @@ Orchestrator: stamped `Approved:` (unattended run).
 - **No `engineering-decisions.md` entry.**
 
 **Next:** the tester, in a fresh session. It will need to route the 17 stale pins through the Test change request / `ci-fix` route (D-14, D-20).
+
+## Round 3 — tester — 2026-11-13 15:57Z
+`Next step` on entry: `tester` → on exit: `ci-fix` (Status `fail`; G3 count: 1 fail, 0 blocked)
+
+**The verdict on T-109 is `fail`, but only because of stale pins. All 18 acceptance criteria are met.** 19 question-bank tests that existed before this task are red: 17 go red because of this task's own change, and the other 2 were already red at base `514cdc0`. I have routed them to the `ci-fix` (D-20). Next step: `ci-fix`.
+
+Commit `6a62404` is pushed to `task/T-109-format-script-guard`, and `origin/task/T-109-format-script-guard` now points at it.
+
+**How independent this check is:** this is an orchestrated run, so `runs/T-109-format-script-guard.md` exists. My session id is `cse_011oDiJfSMW5AuCAW3Bk9Ste`, which is the same id listed for the worker. The session-id check therefore proves nothing here. My independence rests only on being a freshly spawned subagent that never saw the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+**New test file:** `/home/user/geo-discovery-zone/question-bank/src/format-script-guard.criteria.test.ts`
+- It has 108 tests and they all pass. It covers both packages, and each scenario runs in a throwaway copy of the package under the OS temp directory.
+- It uses `DEAD_PROXY` imported from `offline-rebuild.ts`. My first version wrote its own `127.0.0.1:1` literal, which turned T-014 criterion 16 red; the shared import fixed that.
+
+**How the criteria were checked:**
+
+| Criteria | How |
+|---|---|
+| 1–12, 15, 16 | Pinned by the new tests |
+| 13 | By hand: `bun.lock` and dependencies are identical to `origin/main` |
+| 14 | By hand: `ci.yml` is identical to `origin/main`. In CI run 43455384015 on `5b7c055`, the Format step passed in both the frontend and question-bank jobs |
+| 17 | By hand: read the `conventions.md` diff |
+| 18 | By hand: no existing test was edited or deleted |
+
+**Mutations:** I made seven, and each turned the new tests red.
+- In both guards:
+  - dropping the version check
+  - dropping the `.bin` check
+  - hard-coding the pin
+  - removing the found version from the message
+  - making the guard exit 0
+- In `question-bank/package.json`:
+  - restoring `main`'s scripts
+  - changing the glob
+
+I reverted every one, and the tree was clean afterwards.
+
+**Suites:**
+- **question-bank:** 2856 pass, 19 fail. The 19 failures are exactly rows 1–19 of the brief's `## Test change request`. Typecheck, lint and `format:check` are green.
+- **frontend:** 434 pass, 4 fail, 4 errors, all `react-simple-maps` missing from this sandbox. CI's frontend Test and Typecheck steps pass on `5b7c055`, so this is the sandbox, not the change. Lint and `format:check` are green.
+
+**Brief updated** (`/home/user/geo-discovery-zone/tasks/T-109-format-script-guard.md`):
+- The header now reads Status `fail`, Next step `ci-fix`, Test changes `routed to ci-fix (D-20)`, and has a Fault line.
+- I added my row to Sessions and wrote the Verdict.
+- The Test change request has 19 rows, every one a modify (re-pin, or an exemption for this brief's allowed files). Decision is left blank on each.
+
+**For the `ci-fix`:** turn rows 1–19 into `pre-existing test` rows of its plan. Every re-pin must still cover everything it covered before.
