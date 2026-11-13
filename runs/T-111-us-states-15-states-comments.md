@@ -211,3 +211,32 @@ Branch head at halt: `218304a`. Asked Dkaattae in the orchestrator's session to 
 
 ## CI fix approved by a person — 2026-11-13 15:45Z
 Dkaattae, in the orchestrator's session: "approve the T-111 CI fix plan". Header set to `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session`, `Status: ci fix approved`, `Next step: ci-fix`. No timeout stamp was used.
+
+## Round 7 — ci-fix (pass 2) — 2026-11-13 16:24Z
+`Next step` on entry: `ci-fix` → on exit: `tester`
+
+**T-111 ci-fix (pass 2): I applied all 6 approved rows. The `question-bank` suite is now 2805 pass, 0 fail.** The brief is now Status `awaiting verification`, Next step `tester`. I pushed `7684638` to `claude/amazing-franklin-j3x3l1`, and the remote head matches.
+
+**One value differs from the plan:** in row 5, the `farm-animal-loose-ends-verify.test.ts` entry is `377286f4…`, not the `95d04a10…` the plan wrote. The plan allowed this ("Pass 2 must use that text verbatim, or recompute row 5 and say so"). Row 3's comment had to name the approval as it reads in the header, and that approval did not exist when pass 1 tried the rows out. So the file's bytes, and therefore its digest, changed. I flagged it for the reviewer in `## CI fix`.
+
+**Approval.** The header read `CI fix: approved — Dkaattae, 2026-11-13, given in the orchestrator's session`. The words the orchestrator logged in `runs/` were "approve the T-111 CI fix plan". That covers the whole plan, but every row's Decision cell was empty, so I filled each one with that approval. I did not hear it myself.
+
+**What changed.** No source file changed. Only the three test files the plan names:
+- `/home/user/geo-discovery-zone/question-bank/src/agriculture-true-wrong-answers-verify.test.ts` (row 1)
+- `/home/user/geo-discovery-zone/question-bank/src/farm-animal-loose-ends-verify.test.ts` (row 3)
+- `/home/user/geo-discovery-zone/question-bank/src/climate-cold-trade-accepted-verify.test.ts` (rows 2, 4, 5 and 6)
+
+`origin/main` is still `2634fc8`, so rows 1–4, 6 and row 5's agriculture entry were applied at the plan's values. Only the farm entry was recomputed.
+
+**Suite, as run:**
+- **question-bank:** test, format check, typecheck and lint all pass.
+- **backend:** 1221 passed, 9 skipped.
+- **frontend:** lint passes. Typecheck and test fail locally (434 pass, 4 fail) because `react-simple-maps` and `us-atlas` can't be installed here: the proxy returns 403. The tester saw the same thing. CI's frontend job was green on `ff58bb2`, and no frontend file was touched.
+
+**Brief.** In `/home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md`:
+- **Sections and rows:** I added the `## CI fix` section and a `ci-fix (pass 2)` row to the Sessions table.
+- **Header:** `CI fix:` now reads `applied — approved — Dkaattae, …` and `Test changes:` reads `applied through CI fix plan (D-20)`. The `Fault:` line is cleared.
+
+**Independence:** this is an orchestrated run, and every role shares the session id `cse_011oDiJfSMW5AuCAW3Bk9Ste`. My only independence is that I am a freshly spawned subagent.
+
+**Next:** a fresh `tester`.
