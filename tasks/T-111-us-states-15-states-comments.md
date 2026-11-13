@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-111
 **Branch:** `claude/amazing-franklin-j3x3l1`
-**PR:** opened draft at expand time (number recorded in the Sessions row below)
+**PR:** #136, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it.
 **Fault:**
 
 **Sessions:**
