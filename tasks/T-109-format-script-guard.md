@@ -1,10 +1,10 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `ci fix requested`
-**Next step:** `human`
+**Status:** `ci fix approved`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `requested`
+**CI fix:** `approved — Dkaattae, 2026-11-13, given in the orchestrator's session (round 2 plan)`
 **From:** [`tasks.md`](../tasks.md) T-109
 **Branch:** `task/T-109-format-script-guard`
 **PR:** #137, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves
