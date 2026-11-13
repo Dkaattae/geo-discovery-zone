@@ -1,7 +1,7 @@
 # T-046 — Decide: `backend/` or `api/` — keep `backend/`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-046-backend-directory-name.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | worker | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz |
+| tester | 2026-11-13 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated subagent; see Verdict) |
 
 > **The decision in this brief was made by the expander, and is the thing to
 > approve.** The queue entry says "Either is fine, and deciding is not
@@ -213,6 +214,40 @@ directory exists. No P ticket in `process-tasks.md` mentions `api/`.
 **Tests made stale:** none.
 
 ## Verdict
+
+**TL;DR: pass.** All 12 criteria met. Each was checked by hand, as the brief requires, and no test was committed. The backend and question-bank suites are green locally. The frontend suite is green in CI on HEAD `3affe1b`; locally it could not install (proxy 403), and this diff touches no frontend file. Next: reviewer.
+
+**Independence.** This run is orchestrated (`runs/T-046-backend-directory-name.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJd2dgRHzBRDwBhvmNz`, the same id the expander and worker recorded, so the session-id check proves nothing here. I am a freshly spawned subagent with my own context: I did not watch the work and cannot see the worker's reasoning. That is weaker evidence than a separate session, because it rests on the orchestrator having spawned me correctly, not on anything I can verify.
+
+| # | Verdict | Evidence (run on `claude/relaxed-allen-5ro49x` at `3affe1b`) |
+|---|---|---|
+| 1 | met | `grep -n '^## E-' engineering-decisions.md \| tail`: the last heading is line 2027, `## E-31 — The service directory is \`backend/\`; \`api/\` is not a directory name`. `grep -c '^## E-31'` gives `1`. |
+| 2 | met | `**Decided: 2026-11-13 (T-046).**`, then "`api/` is not used as a directory name anywhere in the repo". Both `` `backend/` `` and `` `api/` `` are present. |
+| 3 | met | **Option not taken** names "the `Dockerfile`, `.github/workflows/ci.yml`, `backend/Makefile`". |
+| 4 | met | The entry quotes line 4 `` `api/` FastAPI + Postgres (uv, not built yet) `` and line 58 `` `uv add` / `uv run` in `api/` ``. Both match `git show b10fa64:CLAUDE.md \| sed -n '4p;58p'`. It says the file is loop-gated (G1) and needs "a hand-written `P` ticket … not a `T` task". |
+| 5 | met | `**Revisit when** a second service is added beside \`backend/\` (a worker, a second API) … or the repo is restructured into a \`services/\` or \`apps/\` layout`. Concrete. |
+| 6 | met | "*Rename `backend/` to `api/`* …" followed by "A rename would have had to change …", under **Option not taken**. |
+| 7 | met | `git diff b10fa64 -- backend/README.md` shows exactly one `-` line, `- The directory is \`backend/\`, where \`conventions.md\` §Layout says \`api/\`.` `grep -c '\`api/\`' backend/README.md` gives `0`. |
+| 8 | met | I diffed the `## Known gaps` section of `b10fa64` against HEAD. The only difference is `10d9 < - The directory is …`. The README diff has a single hunk with no other change. |
+| 9 | met | Both `git grep` commands, run verbatim from the criterion, printed nothing and exited `1`. |
+| 10 | met | `git diff --name-status b10fa64 -- backend/ Dockerfile docker-compose.yml .github/ <every package.json, pyproject.toml, lockfile>` shows only `M backend/README.md`, which criterion 7 requires. Nothing was added, deleted or renamed. `ls -d api` gives "No such file or directory". |
+| 11 | met | `git diff --name-only b10fa64 -- CLAUDE.md process.md process-decisions.md .claude/` is empty. |
+| 12 | met, with a note | `git diff --name-status b10fa64` shows `M backend/README.md`, `M engineering-decisions.md`, `A tasks/T-046-…md`, and `A runs/T-046-backend-directory-name.md`. The `runs/` file is the orchestrator's run log, which process.md:75 requires (commits `9e0a59d` and `3affe1b`, both `T-046 orchestrator:`), not a worker change. No test file was touched. Reviewer: confirm you accept the run log under this criterion. |
+
+**Suites**
+
+- **Backend:** `make -C backend check` gave 809 passed, 9 skipped.
+- **question-bank:** `bun test` gave 229 pass, 0 fail. `typecheck`, `lint` and `format:check` are all clean.
+- **Frontend, local:** `bun install --frozen-lockfile` failed with `ProxyConnectFailed (403)` on `d3-geo@2.0.2` and `d3-drag@2.0.0`.
+  - `bun test` gave 111 pass, 4 fail, 4 errors. `tsc` gave TS2307 errors for `react-simple-maps` and `us-atlas`.
+  - `lint` and `format:check` are clean.
+  - The cause is the environment, not this task: `git diff --name-only b10fa64 -- frontend/` is empty.
+- **Frontend, CI on HEAD `3affe1b`** (`gh api …/commits/<sha>/check-runs`):
+  - Passed: `frontend (typecheck, lint, test)`, `backend (lint, format, test)`, `backend (postgres)`, `question-bank (typecheck, lint, test)` and `integration (docker compose)`.
+  - Still running when I checked: `e2e (playwright)`.
+
+**Tests committed:** none. The brief marks every criterion by-hand (P-17).
+**Stale tests:** none. No pre-existing test changed or went red because of this task.
 
 ## Notes
 
