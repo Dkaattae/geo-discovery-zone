@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-113
 **Branch:** `claude/relaxed-allen-5ro49x`
-**PR:** opened draft at expand time — see the Sessions row and the PR list for this branch
+**PR:** #142, opened draft at expand time, built from the branch above. It **stays draft** until the reviewer approves it
 **Fault:**
 
 **Sessions:**
