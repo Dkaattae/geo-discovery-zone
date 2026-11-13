@@ -244,9 +244,12 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (`README.md`) and T-047 (`test-guidelines.md`) made them describe the repo.
   Since `8cf40b6` and `d594b38` no CI test checks any of the three against the
   repo's layout, commands, CI jobs, lockfile-drift claims, test counts or
-  links. The one CI test that still reads `conventions.md` checks a single
-  line, the Layout's `archive/` row
-  (`backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`).
+  links. Two narrow CI checks still read `conventions.md`, and neither covers
+  it as a whole:
+  `backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`
+  checks the Layout's `archive/` row, and `question-bank/src/committed-bank.test.ts`
+  checks that it says the bank is committed under `data/us-states` and does not
+  say the bank is kept out of git.
 - **The top-level docs were cleared of suite sizes** (T-065, T-074).
   `test-guidelines.md`, this file's status sections and `tasks.md`'s §A table
   named a command or a directory instead, as did `backend/README.md`,

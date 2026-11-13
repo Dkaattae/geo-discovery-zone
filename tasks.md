@@ -166,9 +166,12 @@ T-075 (PR #66) closed the last gap in that table. **No CI test checks the root
 `README.md`, `conventions.md` or `test-guidelines.md` against the repo's layout,
 commands, CI jobs or test counts.** `8cf40b6`, `d594b38` and `987d2cd` cut each
 package's CI suite down to bank, child-facing and API-behaviour tests, so those
-docs are kept true by review alone. The one CI test that still reads
-`conventions.md` checks a single line, the Layout's `archive/` row
-(`backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`).
+docs are kept true by review alone. Two narrow CI checks still read
+`conventions.md`, and neither covers it as a whole:
+`backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`
+checks the Layout's `archive/` row, and `question-bank/src/committed-bank.test.ts`
+checks that it says the bank is committed under `data/us-states` and does not say
+the bank is kept out of git.
 No unit suite in CI refuses a test that hands `git` a fixed revision any more:
 the frontend and backend guards run only monthly, outside CI, in the snapshot
 lane (`frontend/src/git-baseline-guard.criteria.snapshot.ts`,
