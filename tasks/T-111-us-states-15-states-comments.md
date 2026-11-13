@@ -1,14 +1,14 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today"
 
-**Status:** `fail`
-**Next step:** `ci-fix`
+**Status:** `ci fix requested`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-13, unattended run (re-stamped after criterion 4 amendment). See `runs/T-111-us-states-15-states-comments.md`.
 **Test changes:** `routed to ci-fix (D-20)`
-**CI fix:** `none`
+**CI fix:** `requested`
 **From:** [`tasks.md`](../tasks.md) T-111
 **Branch:** `claude/amazing-franklin-j3x3l1`
 **PR:** #136, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves it.
-**Fault:** tester round 2: criteria 1 to 4 are all met (criterion 4 as amended). 6 pre-existing pins are stale by the task's own change: 5 are red now, and row 5 goes red once rows 1 and 3 are applied. They are routed to the `ci-fix` for a plan (D-20). No criterion failed.
+**Fault:** six pre-existing whole-tree/whole-file pins are stale by T-111's own comment edit, new brief, run log and new test file (no code is wrong, criteria 1 to 4 are met); a CI fix plan re-pinning them is waiting for approval.
 
 **Sessions:**
 
@@ -19,6 +19,7 @@
 | tester | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
 | task-expander (amendment) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated, fresh spawn; amended criterion 4 only) |
 | tester (round 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
+| ci-fix | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent; pass 1, plan) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"): an `S`
 > task, comments only, one file, no text a child reads, nothing in
@@ -245,6 +246,45 @@ Round 1 recorded a fuller mutation table (M1 to M10), with the same outcomes for
 - **None deleted or modified.** The rows below have Decision blank, and are **routed to the `ci-fix`** (D-20).
 - **I re-checked rows 1 to 4 on `ff58bb2`.** I applied them scratch to the working tree and read off the observed digests, then reverted with `git checkout`. Rows 1 to 4 reproduce the round-1 digests exactly. Row 6's digest was observed the same way.
 - **Row 5's digests cannot be precomputed.** They are the whole-file sha256 of two test files after the `ci-fix` writes its own comment lines into them, so the `ci-fix` computes them after applying rows 1 and 3.
+
+## CI fix plan
+
+**TL;DR:** no code is wrong. All 5 reds are pins that T-111's own files made stale, and 1 more pin goes red once those are fixed. The plan has 6 `pre-existing test` rows, one per Test change request row, each re-checked. I tried them all together in a throwaway worktree, and the suite went fully green. **Nothing here is applied yet.**
+
+Pass 1, written by the `ci-fix`. This run is orchestrated, so there was nobody to ask in-session.
+
+**Independence:** this is an orchestrated run (`runs/T-111-us-states-15-states-comments.md` exists), so the session-id check proves nothing. My id, `cse_011oDiJfSMW5AuCAW3Bk9Ste`, is also listed for the expander, the worker and both testers. My only independence is that I am a freshly spawned subagent and saw none of their sessions.
+
+**Reproduced red** on `21da551`: `cd question-bank && bun test` gave 2800 pass, 5 fail. The 5 are exactly the tests in the Verdict.
+
+**Trial:** I applied rows 1 to 6 in a throwaway worktree of `21da551`, with the exact comment text below, then removed it. The working tree is unchanged.
+- **question-bank:** `bun test` gave **2805 pass, 0 fail**. `format:check`, `lint` and `typecheck` were clean.
+- **backend:** `uv run pytest -q` gave 1221 passed, 9 skipped.
+- **Row-5 timing:** with rows 1 to 4 and 6 applied, row 5's test was the only red, as the tester predicted.
+
+**Base:** `origin/main` is still `2634fc8`, an ancestor of HEAD, so no recompute is needed. If `main` moves before pass 2, every digest below must be recomputed. Under "Check the plan still holds", that sends the plan back round pass 1.
+
+**Every digest below was observed, not derived.** Rows 1, 2, 3, 4 and 6 match the tester's values exactly. The tester could not precompute row 5; its values are the digests of the two files after rows 1 and 3 are applied with the comment text written in those rows. Pass 2 must use that text verbatim, or recompute row 5 and say so.
+
+| # | File (and function or test) | Kind | Change | Why — failing test or CI line, root cause, criterion quoted for a test row | Decision |
+|---|---|---|---|---|---|
+| 1 | `question-bank/src/agriculture-true-wrong-answers-verify.test.ts` › `MAIN_FILE_SHA["question-bank/src/curated/us-states.ts"]`, used by "T-088 criteria 20-25: what must not change > criterion 20: curated/us-states.ts is byte-identical to main's" | pre-existing test (request row 1) | **Modify (re-pin).** `e61e8e50bd0fa6f1c958698009e23c3e92b83ba1e2af71426c6ae7afb95b4cbc` → `98afb4d56d4eb55b07fc2dfeb933bd0d8d3addd43d79288f48cdefeb53cd97fd`. Add two comment lines directly above the key: `// re-pinned by T-111 (CI fix plan row 1): T-111 past-tensed two comments in the` / `// region paragraph (comments only, its criterion 3).` The test name and assertion do not change | **Fails:** the digest is `98afb4d5…`, against `e61e8e50…`. **Cause:** criteria 1 and 2 require editing this file's comment ("no line contains the phrase `shipping today`"), so its whole-file digest must move. **Introduced:** `e9d666e` (T-088 tester), protecting `us-states.ts` from moving during T-088. **Strength:** it still pins the file byte-for-byte, now to the content criteria 1 to 3 require. Criterion 3 (comments only) was checked by the tester at hand-off |
+| 2 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `MAIN_SOURCE_TREES_SHA`, used by "T-091 criterion 20: no non-test source file moves > every non-test file under question-bank/src/, backend/app/, frontend/src/ is 12d242e's" | pre-existing test (request row 2) | **Modify (re-pin).** `6b45b3a1…f21` → `05dc94e8e6c01091a7c4f76476f55b5485e7c5ef6854a0f36d86712b582ee8c3`. Add `// Re-pinned by T-111 (CI fix plan row 2): question-bank/src/curated/us-states.ts moved (comments only).` above the const | **Fails:** the digest is `05dc94e8…`, against `6b45b3a1…`. **Cause:** the same edit, and `us-states.ts` is under `question-bank/src/`. **Introduced:** `950f334` (T-091 tester), protecting against any non-test source file moving. **Strength:** every file in the three trees is still pinned. `us-states.ts` is the only one that moved |
+| 3 | `question-bank/src/farm-animal-loose-ends-verify.test.ts` › `CRITERION_21_ALLOWED` and `MAIN_UNTOUCHABLE_SHA`, used by "T-096 criteria 17-21: the bank and the boundaries > criterion 21: outside the allowed files and test files, every tracked file is main's, and none is added" | pre-existing test (request row 3) | **Modify.** Add `"tasks/T-111-us-states-15-states-comments.md"` and `"runs/T-111-us-states-15-states-comments.md"` at the top of `CRITERION_21_ALLOWED`, under a comment saying they joined through T-111's CI fix plan row 3 and naming the approval as it reads in the header. Re-pin `MAIN_UNTOUCHABLE_SHA` from `c274a19e…` to `689e2d1289e22524b7c701457af9b4e4b22185df32fda9b159229a959fee1dcb`, with the line `// Re-pinned by T-111 (CI fix plan row 3): question-bank/src/curated/us-states.ts moved (comments only);` / `// T-111's brief and run log join the allowed set (count unchanged, 280).`. **`toBe(280)` is unchanged** | **Fails:** 282, against 280. **Cause:** T-111 adds two new tracked non-test files (its brief and its run log), and `us-states.ts`, a counted file, moved. **Introduced:** `47581ea` (T-096 tester), protecting against any stray non-test file being changed or added. **Criterion 4** lists "this brief" and "`runs/T-111-us-states-15-states-comments.md`" as the loop's records, and "`question-bank/src/curated/us-states.ts`" as the change. **Strength:** the count stays at 280. `us-states.ts` stays counted and is pinned by digest, which is stronger than putting it in the allowed set. This follows T-108 rows 1 and 2 |
+| 4 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `CRITERION_22_ALLOWED` and `MAIN_UNTOUCHABLE_SHA`, used by "T-091 criterion 22: the diff touches only the allowed files > every tracked non-test file outside the allowed list is 12d242e's, and none is added" | pre-existing test (request row 4) | **Modify.** Add the same two T-111 files at the top of `CRITERION_22_ALLOWED`, under a comment naming T-111's CI fix plan row 4 and its approval. Re-pin `MAIN_UNTOUCHABLE_SHA` from `53524b09…` to `d030f3e5fb7cf461a886d00942673314ec895c58ef083e3925f6255b4310675f`, with the line `// Re-pinned by T-111 (CI fix plan row 4): question-bank/src/curated/us-states.ts moved (comments only);` / `// T-111's brief and run log join the allowed set (count unchanged, 283).`. **`MAIN_UNTOUCHABLE_COUNT` stays at 283** | **Fails:** 285, against 283. **Cause:** the same as row 3. **Introduced:** `950f334` (T-091 tester), protecting the same thing against T-091's base. **Criterion 4**, as in row 3. **Strength:** as in row 3 |
+| 5 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `APPLIED_REQUEST_FILE_SHAS`, its `agriculture-true-wrong-answers-verify.test.ts` and `farm-animal-loose-ends-verify.test.ts` entries, used by "T-091 criterion 22 … > each test in the approved Test change request is 8108a42's: changed from main by its row's re-pin only" | pre-existing test (request row 5) | **Modify (re-pin). Apply after rows 1 and 3.** Change agriculture `87a2820d…` → `0206241ec21ba762a3352e44e49cd941e06239582c51303ded70ed825a9b9061` and farm `a1316c61…` → `95d04a10a1b5d4572baa1defae3ed29ed1fc699ca5ac16895f37757a1ee7e143`. These are the observed sha256 of each file after rows 1 and 3, with exactly the comment text those rows give. Append `// then by T-111 (CI fix plan row 5, for its row 1)` and `// then by T-111 (CI fix plan row 5, for its row 3)` to the two entries' comment chains. No other entry changes | **Green now; red once rows 1 and 3 land** (seen in the trial: "Expected - 2 / Received + 2"). **Cause:** rows 1 and 3 edit two files that this map pins whole. **Introduced:** `bac230d` (T-091 tester, review finding 1), protecting against a request file changing beyond its approved re-pins. **Criterion 4:** "A test file that exists on `main` may change only through a row of this brief's … CI fix plan whose approval is recorded". The new digests admit exactly rows 1 and 3 and nothing more |
+| 6 | `question-bank/src/climate-cold-trade-accepted-verify.test.ts` › `MAIN_TESTS_COUNT`, `MAIN_TESTS_SHA`, used by "T-091 criterion 22 … > pre-existing test files are main's, except ones in an approved Test change request" | pre-existing test (request row 6) | **Modify (re-pin).** `MAIN_TESTS_COUNT` 132 → 133, with `// Re-pinned by T-111 (CI fix plan row 6): T-111's tester added` / `// us-states-region-comment-verify.test.ts (132 -> 133).`. `MAIN_TESTS_SHA` `c39ee799…` → `2665348439773d3c1fb27a430c6877acc94971e66d20a325952e37633f16380d`, with `// Re-pinned by T-111 (CI fix plan row 6): T-111's tester added` / `// us-states-region-comment-verify.test.ts.`. The digest does not depend on rows 1 to 5, because the files they edit are excluded from this set | **Fails:** 133, against 132. **Cause:** T-111's tester added `question-bank/src/us-states-region-comment-verify.test.ts` (criteria 1 and 2), the only tracked test file that differs. **Introduced:** `950f334` (T-091 tester), protecting against test files being added or changed outside an approved row. **Criterion 4:** "A test file that does not exist on `main` may be added." **Strength:** the other 132 stay pinned as hard as before. This follows T-108 row 3 |
+
+**Root cause:** No code is wrong, and criteria 1 to 4 are met (Verdict). Four "nothing else moved" pins, from T-088, T-091 and T-096, hash `us-states.ts`, the source trees, or every tracked file outside a hand-kept allowed set. T-111's comment edit to `us-states.ts`, its new brief and run log, and its tester's new test file move them by design, as the brief's Notes predicted ("Expect whole-file pins to go red"). Re-pinning two of those files then moves the T-091 map that pins request files whole (row 5). This is the recurring P-17 pattern seen in T-104 to T-108.
+
+**Not doing:**
+- **Adding `us-states.ts` to the allowed sets** (as T-106 did for `README.md`) to keep `MAIN_UNTOUCHABLE_SHA` at its old value. Rejected: it would take the file out of the count and digest. Re-pinning keeps it pinned to its new bytes.
+- **Rewriting the pins to read `tasks/` and `runs/` by glob.** That would stop this recurring, but it changes what the pins protect. It is a loop change (P-17, `process-tasks.md`), not this task's.
+- **`backend/tests/test_region_vocabulary.py` line 10's docstring.** The brief's Notes leave it alone. It is not red.
+- **`backend/tests/test_t088_tester_criteria.py`** names `agriculture-true-wrong-answers-verify.test.ts` only in its docstring. It hashes nothing there and is green in the trial.
+- **Frontend reds seen locally** (`react-simple-maps` missing). They come from a proxy 403 on install, and CI's frontend job is green on `ff58bb2`. Nothing in this plan touches them.
+
+To approve by hand: fill in Decision, set the header's `CI fix:` to `approved — <name>, <date>` and `Next step` to `ci-fix`, commit, and start a run.
 
 ## Test change request
 
