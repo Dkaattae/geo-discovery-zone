@@ -1,14 +1,14 @@
 # T-109 — `bun run format` without an install still runs whatever prettier is on `PATH`
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `fail`
+**Next step:** `ci-fix`
 **Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-109-format-script-guard.md`.
-**Test changes:** `applied through CI fix plan (D-20)`
+**Test changes:** `routed to ci-fix (D-20)`
 **CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
 **From:** [`tasks.md`](../tasks.md) T-109
 **Branch:** `task/T-109-format-script-guard`
 **PR:** #137, opened draft at expand time, built from the branch above. Stays draft until the reviewer approves
-**Fault:**
+**Fault:** tester round 2: all 18 criteria met, but CI's question-bank Test step was red at `d02f63c`. The cause was the tester's own new test file, which needed `frontend/node_modules` and CI's question-bank job never installs it. The tester fixed that test file. The fix turns 1 pre-existing pin red (T-091 `MAIN_TESTS_SHA`, which digests that file), and that pin is routed to the `ci-fix` for a plan (request row 20).
 
 **Sessions:**
 
@@ -19,6 +19,7 @@
 | tester | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (pass 1, plan) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 | ci-fix (pass 2, apply) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
+| tester (round 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated run; fresh subagent, same env id as every role in the run) |
 
 ## Goal
 
@@ -299,6 +300,81 @@ All are in `question-bank/src/`. All are whole-tree or manifest pins (P-17). The
 
 ## Verdict
 
+### Round 2 (after the ci-fix), at `d02f63c`
+
+**TL;DR: `fail`. All 18 criteria are still met, but CI was red on the PR head, and the cause was the round-1 tester's own test file.** `question-bank/src/format-script-guard.criteria.test.ts` crashed at load in CI's question-bank job (`ENOENT … frontend/node_modules`). That job installs only `question-bank/`. I fixed the test file (my role's own file, not a pre-existing test). The fix turns **one pre-existing pin red**: T-091 `MAIN_TESTS_SHA`, which digests that file. It is routed to the `ci-fix` as request row 20. No source was edited.
+
+**Independence:** orchestrated run (`runs/T-109-format-script-guard.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJfSMW5AuCAW3Bk9Ste`, the id every role in this run lists, so the id check proves nothing. My only independence is being a freshly spawned subagent that saw none of the other roles' reasoning. That rests on the orchestrator spawning me correctly. I did not refuse on the id, and I do not claim the check passed.
+
+**What CI showed.** Run 43461510008 (`pull_request`, head `d02f63c`): every job is green except `question-bank (typecheck, lint, test)`. Its **Test** step failed with 2767 pass / 1 fail / 1 error:
+
+```
+# Unhandled error between tests   (src/format-script-guard.criteria.test.ts)
+277 |   h.update(readdirSync(real).sort().join(","));
+ENOENT: no such file or directory, scandir '…/frontend/node_modules'
+  at realModulesDigest (format-script-guard.criteria.test.ts:277:12)
+```
+
+Run 43461420183 on `8146a3c` failed the same way. Round 1 cited CI on `5b7c055`, which ran before the test file was committed, so this was never seen on CI. The ci-fix's report gives only local results. Locally the sandbox has both packages installed, so the suite was green there.
+
+**Reproduced** in a scratch worktree at `d02f63c` that has only `question-bank/node_modules`, the same shape as the CI job: 0 pass / 1 fail / 1 error, same ENOENT.
+
+**The fix** (test file only; no expected value changed):
+- **`realModulesDigest`** (criterion 15) now records an absent `node_modules` as `node_modules:absent` instead of throwing. It still goes red if any test creates or changes one.
+- **"Installed" copies** (criteria 8-10) take their byte copy of prettier from whichever package has the pinned version installed (`pinnedPrettierSource`). Both packages pin the same version (E-17). If neither has it, the function throws, so these tests fail rather than skip.
+- **Criterion 8** now runs in a clean copy (`probe: false`) of each package, and also in the real `question-bank/` tree. The real `frontend/` tree's `format:check` is CI's frontend Format step, which is `success` on `d02f63c` (criterion 14).
+- With the fix: **109 pass / 0 fail** in the full sandbox, and also in the CI-shaped worktree. In that worktree, `frontend/node_modules` is still absent afterwards.
+
+**Mutations, re-run in the CI-shaped worktree** (the frontend scenarios now take their prettier from question-bank). Each was reverted with `git checkout --`:
+
+| Mutation | Result (of 109) |
+|---|---|
+| frontend guard exits 0 instead of 1 | 27 fail |
+| frontend guard: drop the version comparison | 29 fail |
+| `frontend/package.json` back to `main`'s (no guard) | 43 fail |
+| frontend `format:check` set `.` → `src` | 2 fail (criterion 12) |
+| question-bank guard reads the wrong `package.json` (`../..`) | 28 fail |
+
+In the real tree, before the fix, I also re-ran three mutations on the guards: frontend version comparison dropped (29 fail of 108), frontend `.bin` check dropped (7 fail), and question-bank guard exits 0 (27 fail). All were reverted.
+
+| # | Verdict | Evidence (round 2) |
+|---|---|---|
+| 1-7 | met | the criteria file passes 109/109, and the mutations above turn it red |
+| 8 | met | criterion 8 passes in a clean copy for both packages and on the real `question-bank/` tree. CI's frontend Format step is `success` on `d02f63c` |
+| 9-12 | met | criteria tests pass. `prettier-gate.test.ts` "the check's own file arguments…" passes and is unmodified (`git diff origin/main` touches no line of it) |
+| 13 | met (hand) | `git diff origin/main -- '*/bun.lock'` is empty. `jq -S '.dependencies,.devDependencies'` is identical to `origin/main` in both packages |
+| 14 | met (hand) | `git diff origin/main -- .github/workflows/ci.yml` is empty. On run 43461510008 (head `d02f63c`), both jobs' **Format** steps are `success`. Only the question-bank **Test** step is red, as above |
+| 15 | met | the criterion 15 tests pass. The real `node_modules` digests are unchanged, and `frontend/node_modules` stays absent in the CI-shaped worktree |
+| 16 | met | the `deadEnv` test passes, and every child gets only `PATH`, `HOME`, `DEAD_PROXY` and `NO_COLOR` |
+| 17 | met (hand) | the `conventions.md` diff against `origin/main` is +4/−1, in the Formatting paragraph only. It names both scripts in both packages, the refusal, and `bun install` as the remedy |
+| 18 | met (hand) | see the ci-fix audit below |
+
+**Ci-fix audit (criterion 18).** The diff `6c7b8ff..d02f63c` under `question-bank/src/` touches exactly the 10 files the CI fix plan names. Apart from comments, every changed line is one of: a digest constant, a count, two `CRITERION_2x_ALLOWED` entries (`tasks/` and `runs/` T-109 only), or the two `MAIN_SCRIPTS` values (row 10). No assertion was removed or loosened. Every digest still covers the same file set or a larger one. Row by row:
+
+| Row | Change |
+|---|---|
+| 1, 2 | `agriculture-true-wrong-answers-verify.test.ts`: digests |
+| 3, 4 | `conventions-openapi-row-verify.test.ts`: 134 → 137 and a digest |
+| 5 | `climate-far-phrases-verify.test.ts`: digest |
+| 6, 7 | `map-click-no-candidates-verify.test.ts`: digests |
+| 8, 9 | `hand-check-levels-verify.test.ts`: digests |
+| 10, 11, 12 | `refresh-regenerate-reminder-verify.test.ts`: values and digests |
+| 13, 18 | `farm-animal-loose-ends-verify.test.ts`: digests, 280 → 282, 2 allowed entries |
+| 14 | `familiarity-drawn-apart-verify.test.ts`: digests |
+| 15, 16, 19, 20, 21 | `climate-cold-trade-accepted-verify.test.ts`: digests, 283 → 285, 132 → 133, 2 allowed entries |
+| 17 | `highest-point-in-state-verify.test.ts`: digests |
+
+The approval for those rows is the header line `CI fix: applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`. I did not witness it.
+
+**Suites, as run:**
+- **question-bank at `d02f63c`, unchanged:** 2875 pass / 0 fail locally. Typecheck, lint and `format:check` are green. CI was red as above.
+- **question-bank with my test fix:** 2875 pass / **1 fail**: "T-091 criterion 22: the diff touches only the allowed files › pre-existing test files are main's, except ones in an approved Test change request" (`climate-cold-trade-accepted-verify.test.ts:714`). Expected `369ef9f0…b888`, received `6b7d6146…4993`. That is request row 20. Typecheck, lint and `format:check` are green.
+- **frontend:** 434 pass / 4 fail / 4 errors, all `Cannot find package 'react-simple-maps'` (the sandbox's proxy 403 on install). Lint and `format:check` are green. Typecheck has 9 errors, every one of them `react-simple-maps` / `us-atlas` / `UsMap`. CI's frontend job is `success` on `d02f63c`.
+
+**Hand-off to the `ci-fix`:** one `pre-existing test` row, request row 20 below. Re-pin T-091's `MAIN_TESTS_SHA` to the digest observed at this commit (count stays 133), with a comment naming this round. Then a fresh tester checks that CI's question-bank Test step is green on the new head. This is fail round 2 of the loop's two.
+
+### Round 1, at `5b7c055` plus the tester's file (superseded by round 2)
+
 **TL;DR: `fail`, for stale pins only. All 18 criteria are met.** The 108 new criteria tests pass, and all 7 mutations of the guard and scripts turned them red. 19 pre-existing question-bank pins are red: 17 are made stale by this task's own files and 2 were already red at base. They are routed to the `ci-fix` as the rows in `## Test change request` (D-20). No source was edited.
 
 **Independence:** this is an orchestrated run (`runs/T-109-format-script-guard.md` exists). My session id `cse_011oDiJfSMW5AuCAW3Bk9Ste` is the same one listed for the worker, so the session-id check proves nothing here. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator spawning me correctly.
@@ -372,6 +448,12 @@ Under the orchestrator: Decision left blank, routed to the `ci-fix` (D-20). All 
 | 19 | `climate-cold-trade-accepted-verify.test.ts:683` › T-091 criterion 22 › every tracked non-test file outside the allowed list is 12d242e's, and none is added | `950f334` | **red at base `514cdc0` already**, and it now also flags this change's files | modify | as row 18 | |
 
 Rows 1-17 are stale by this change alone. Rows 18-19 were red at base and are made redder by it.
+
+**Round 2** (tester, after the ci-fix). Routed to the `ci-fix` (D-20), Decision blank:
+
+| # | Test (file › describe › name) | Introduced | Why stale | Action | Becomes (modify only) | Decision |
+|---|---|---|---|---|---|---|
+| 20 | `climate-cold-trade-accepted-verify.test.ts:714` › T-091 criterion 22: the diff touches only the allowed files › pre-existing test files are main's, except ones in an approved Test change request (`MAIN_TESTS_SHA`) | `950f334`, T-091 tester: guards test files against changes outside an approved request | It digests this task's own `format-script-guard.criteria.test.ts`, which CI fix plan row 20 pinned. The round-2 tester changed that file so it runs in CI's question-bank job, which has no `frontend/node_modules`. The file is this task's tester file, not a pre-existing test. Observed: expected `369ef9f067dbb5605317bef32136d3e53d81f95698f82a710aa007869bceb888`, received `6b7d6146f0f3739fecebd803bc4b4b54fc048837435b4387ad4dea3565a64993` | modify | same name. `MAIN_TESTS_SHA` re-pinned to the digest at the round-2 tester's commit (recompute after writing the comment). `MAIN_TESTS_COUNT` stays 133. Every test file is still pinned by digest | |
 
 ## CI fix plan
 

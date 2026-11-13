@@ -27,13 +27,19 @@ import { DEAD_PROXY } from "./offline-rebuild";
  * Every scenario that needs a particular `node_modules` state runs in a
  * throwaway copy of the package's tracked files under the OS temp directory.
  * The real `<package>/node_modules` is only ever read (criterion 15): the
- * "installed" copies get a byte copy of the real `node_modules/prettier`.
+ * "installed" copies get a byte copy of a real `node_modules/prettier` at the
+ * pinned version, taken from whichever package has it installed: CI's
+ * question-bank job installs only `question-bank/`, so `frontend/node_modules`
+ * may not exist there, and both packages pin the same version (E-17).
  * A "sentinel" `prettier` (the brief's Definitions) appends a line to a log
  * outside the copy, and also appends to an unformatted tracked file inside the
  * copy, so that if it ran it would both be seen and change a tracked file.
  *
- * Criteria 8 and 11 also run in the real package tree, which `format:check`
- * only reads.
+ * Criterion 8 runs in a clean copy (no probe file) of each package, and also
+ * in the real `question-bank/` tree, the package whose CI job runs this file.
+ * Criterion 11 also runs in the real `question-bank/` tree. `format:check`
+ * only reads. The real `frontend/` tree's `format:check` is CI's frontend
+ * Format step (criterion 14).
  *
  * Not asserted here, verified by hand in the brief's Verdict: 13 and 14
  * (diffs against `main` and CI results, P-17), 17 (the conventions.md text)
@@ -147,7 +153,7 @@ function wrongVersion(state: State, pinned: string): string {
 function makeCopy(
   pkg: Pkg,
   state: State,
-  opts: { pin?: string; installedVersion?: string } = {},
+  opts: { pin?: string; installedVersion?: string; probe?: boolean } = {},
 ): Copy {
   const base = mkdtempSync(join(tmpdir(), "t109-"));
   copies.push(base);
@@ -168,7 +174,7 @@ function makeCopy(
   // An unformatted file the writer would reformat (criterion 4), and that the
   // sentinel appends to if it ever runs.
   const touched = join(root, pkg.probe);
-  writeFileSync(touched, UNFORMATTED);
+  if (opts.probe !== false) writeFileSync(touched, UNFORMATTED);
 
   const pathLog = join(base, "path-sentinel.log");
   const binLog = join(base, "bin-sentinel.log");
@@ -179,7 +185,6 @@ function makeCopy(
 
   const pinned = pinnedOf(root);
   const modules = join(root, "node_modules");
-  const realPrettier = join(realRoot, "node_modules/prettier");
   if (state === "a-missing") {
     // no node_modules/prettier at all
   } else if (state.startsWith("b-")) {
@@ -200,7 +205,7 @@ function makeCopy(
     );
   } else if (state === "installed-real") {
     mkdirSync(join(modules, ".bin"), { recursive: true });
-    cpSync(realPrettier, join(modules, "prettier"), { recursive: true });
+    cpSync(pinnedPrettierSource(pinned), join(modules, "prettier"), { recursive: true });
     symlinkSync("../prettier/bin/prettier.cjs", join(modules, ".bin/prettier"));
   } else if (state === "installed-logger") {
     // Installed by the Definitions (version equal to the pin, .bin present),
@@ -267,10 +272,28 @@ function bunRun(cwd: string, script: string, extra: string[], firstOnPath?: stri
 
 const SCRIPTS = ["format", "format:check"] as const;
 
+/**
+ * A real installed `node_modules/prettier` whose version is `pinned`, from
+ * either package. Throws, so the "installed" tests fail rather than skip, when
+ * neither package has it installed.
+ */
+function pinnedPrettierSource(pinned: string): string {
+  for (const pkg of PACKAGES) {
+    const dir = join(REPO_ROOT, pkg.name, "node_modules/prettier");
+    const manifest = join(dir, "package.json");
+    if (!existsSync(manifest)) continue;
+    const { version } = JSON.parse(readFileSync(manifest, "utf8")) as { version?: string };
+    if (version === pinned) return dir;
+  }
+  throw new Error(`no package has prettier ${pinned} installed; run bun install in one`);
+}
+
 /** Snapshot of the real node_modules/prettier and .bin/prettier, for criterion 15. */
 function realModulesDigest(pkg: Pkg): string {
   const real = join(REPO_ROOT, pkg.name, "node_modules");
   const h = createHash("sha256");
+  // CI's question-bank job never installs frontend/: absent must stay absent.
+  if (!existsSync(real)) return h.update("node_modules:absent").digest("hex");
   for (const [path, sha] of [...snapshotAll(join(real, "prettier"))].sort()) h.update(path + sha);
   const bin = join(real, ".bin/prettier");
   h.update(existsSync(bin) ? "bin:present" : "bin:absent");
@@ -388,14 +411,29 @@ for (const pkg of PACKAGES) {
 
   describe(`T-109 ${pkg.name}: criteria 8-12 — the pinned prettier is installed`, () => {
     test(
-      "criterion 8: bun run format:check exits 0 on the clean tree",
+      "criterion 8: bun run format:check exits 0 on a clean copy of the tree",
       () => {
-        const run = bunRun(realRoot, "format:check", []);
+        const copy = makeCopy(pkg, "installed-real", { probe: false });
+        expect(existsSync(copy.touched)).toBe(false);
+        const run = bunRun(copy.root, "format:check", [], copy.bin);
         expect(run.output).not.toContain("refusing");
         expect(run.exitCode).toBe(0);
+        expect(lines(copy.pathLog)).toEqual([]);
       },
       RUN_TIMEOUT,
     );
+
+    if (pkg.name === "question-bank") {
+      test(
+        "criterion 8: bun run format:check exits 0 on the real tree",
+        () => {
+          const run = bunRun(realRoot, "format:check", []);
+          expect(run.output).not.toContain("refusing");
+          expect(run.exitCode).toBe(0);
+        },
+        RUN_TIMEOUT,
+      );
+    }
 
     test(
       "criterion 9: one unformatted file in the checked set makes format:check exit non-zero, naming it",
