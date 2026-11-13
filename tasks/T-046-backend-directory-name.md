@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending`
+**Approved:** orchestrator — 2026-11-13, unattended run. See `runs/T-046-backend-directory-name.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-046
