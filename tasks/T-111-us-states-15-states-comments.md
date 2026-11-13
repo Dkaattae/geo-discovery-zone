@@ -1,7 +1,7 @@
 # T-111 — Two `us-states.ts` comments still say "the 15 states shipping today"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #136; routine, not escalated)
 **Approved:** orchestrator — 2026-11-13, unattended run (re-stamped after criterion 4 amendment). See `runs/T-111-us-states-15-states-comments.md`.
 **Test changes:** `applied through CI fix plan (D-20)`
 **CI fix:** `applied — approved — Dkaattae, 2026-11-13, given in the orchestrator's session`
@@ -21,6 +21,7 @@
 | ci-fix | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent; pass 1, plan) |
 | ci-fix (pass 2) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent; applied the approved plan) |
 | tester (round 3) | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
+| reviewer | 2026-11-13 | cse_011oDiJfSMW5AuCAW3Bk9Ste (orchestrated: shared id, fresh subagent) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"): an `S`
 > task, comments only, one file, no text a child reads, nothing in
@@ -244,6 +245,36 @@ Rounds 1 and 2 recorded fuller mutation tables (M1 to M10, and M1 to M6), with c
 ### Pre-existing tests
 
 - **I deleted and modified none myself.** The changes above are the `ci-fix`'s, made through approved plan rows 1 to 6.
+
+## Review
+
+**TL;DR: approved, inside the envelope, not escalated.** The comment edit is exactly what T-111 asked for, the six pin changes are exactly the approved CI fix plan rows, and every role stayed in its lane. Next: Dkaattae merges PR #136 when convenient.
+
+**Every role's work is in the PR.** Each Sessions row has a commit on `claude/amazing-franklin-j3x3l1`: expander `428a89f`/`486ee0a`/`80abbee`, worker `4cd2093`, tester `988c08e`/`6ed5ff5`/`fbdab9f`, ci-fix `218304a`/`7684638`.
+
+**Lanes (D-7):**
+- **Expander** commits touch only `tasks/` and `tasks.md` (T-111's heading, `todo` → `doing`).
+- **Worker** touched `us-states.ts` (comment lines only) and the brief.
+- **Tester** added one new test file and edited the brief; no source, no pre-existing test.
+- **ci-fix** `7684638` changed only the three files named by plan rows 1–6, and within them only the named constants, allowed-set entries and comments.
+
+**Findings:**
+
+| # | Finding | Blocks? | Disposition |
+|---|---|---|---|
+| 1 | **Tense reads right.** "then the 15 states served at the time) returned" and "The 15 states that bank served in 2026-09 … carry the exact value `content.json` shipped for them then". "carry" is present tense about this table's rows, which is still true. Criterion 2's tense call: met. | no | — |
+| 2 | **Re-wrap left one short line**, `us-states.ts` " * Northeast). See" before " * `engineering-decisions.md` E-9 …". Cosmetic only. | no | Not queued: a one-word re-wrap is not worth a task or another round of whole-file pins. |
+| 3 | **CI fix plan row 5's farm digest was recomputed** (`377286f4…` applied, `95d04a10…` written). | no | **Decided here: accepted.** The approved plan itself says "Pass 2 must use that text verbatim, or recompute row 5 and say so", the ci-fix said so, and `377286f4…` is the file's real sha256 after rows 1 and 3 (suite green). The approval covers the recompute; no separate human confirmation needed. |
+| 4 | **Worker's criterion-4 contradiction** (loop records not on the allow-list). | no | Already settled: the expander amended criterion 4 (`80abbee`), re-stamped. |
+| 5 | **`backend/tests/test_region_vocabulary.py:10` docstring** still says "the 15 states already served". | no | **Decided here: leave it.** It describes T-017's criterion 3 as written, inside a test that still checks those 15 states' regions; the brief's Notes put it out of scope. No task. |
+| 6 | **The tree pins went red again by design** (P-17). | no | Already owned by `process-tasks.md` P-17; nothing new to add. |
+| 7 | **The new test pins comment text permanently.** A later edit to this paragraph must keep T-017, E-9, the 13 regions and the 15 names. That is the point (the decision record), and it is not a hash pin. | no | Accepted. |
+
+**Envelope (process.md step 6 / reviewer §3):**
+- Tester **pass**; I re-ran `question-bank` `bun test`: **2805 pass, 0 fail**. CI on `ed8ea7c` and `7684638`: all jobs **success**.
+- No file outside criterion 4's list; no dependency; nothing in `openapi.yaml`, a migration or `geoquizdataplan.md`; no child-facing text (comment only).
+- Pre-existing tests changed only via CI fix plan rows approved by a **person** (Dkaattae, logged verbatim in `runs/`, line 213); `git log -p` shows `CI fix:` never carried an orchestrator stamp.
+- No product decision settled; the diff is small and nothing surprised me.
 
 ## CI fix plan
 
