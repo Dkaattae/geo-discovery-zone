@@ -240,3 +240,36 @@ Dkaattae, in the orchestrator's session: "approve the T-111 CI fix plan". Header
 **Independence:** this is an orchestrated run, and every role shares the session id `cse_011oDiJfSMW5AuCAW3Bk9Ste`. My only independence is that I am a freshly spawned subagent.
 
 **Next:** a fresh `tester`.
+
+## Round 8 — tester — 2026-11-13 16:28Z
+`Next step` on entry: `tester` → on exit: `reviewer` (Status `pass`)
+
+**T-111 tester (round 3) verdict: pass. Next step: reviewer.** All 4 criteria hold on `ed8ea7c`, the commit after the ci-fix applied the approved plan. The question-bank suite now passes, 2805 tests with 0 failures. One thing for the reviewer: plan row 5 pinned the farm test file to a different hash than the approved row wrote. The plan allowed that recompute, but a person may want to confirm it. I pushed the verdict as `fbdab9f` to `claude/amazing-franklin-j3x3l1`, and the remote now points at that commit.
+
+**Independence:** this is an orchestrated run, so the session-id check proves nothing. My id, `cse_011oDiJfSMW5AuCAW3Bk9Ste`, is already listed for every earlier role. My only independence is being a freshly spawned subagent that saw none of their sessions. That is weaker evidence than a separate session, and the Verdict says so.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `grep -niE "shipping today\|already served"` finds nothing in `us-states.ts`, and the word `today` appears 0 times in the region paragraph. |
+| 2 | met | `T-017`, `2026-09-18` and `E-9` are present, and so are all 13 region values and all 15 state names, each in backticks. `15` appears twice, in past-tense sentences. Whether the tense reads right is the reviewer's call. |
+| 3 | met | With comments and whitespace removed, the file is identical to `2634fc8`'s, and all 5 exports deep-equal `main`'s. `question-bank/data/` and `content.json` are unchanged. The offline `build` and `questions` runs left the tree clean. |
+| 4 | met | `git diff --name-status origin/main...HEAD` lists only allowed paths: the change, the brief, the run log, `tasks.md` (only T-111's heading changed) and one new test file. Three pre-existing test files also changed, each only through approved CI fix plan rows 1–6. I checked that line by line. No pin was weakened and no count was lowered. |
+
+**Suite on `ed8ea7c`:**
+- **question-bank:** 2805 pass, 0 fail. `format:check`, `typecheck` and `lint` are clean.
+- **backend:** 1221 passed, 9 skipped.
+- **frontend:** `lint` is clean. I did not run `typecheck` or the tests locally, because installing packages fails here on a proxy 403. No frontend file changed.
+- **CI on `ed8ea7c`:** `question-bank`, both backend jobs and `integration` are green. `frontend` and `e2e` were still running when I checked; both were green on `ff58bb2`, an earlier commit with the same frontend files.
+
+**Mutations:** I broke `us-states.ts` three ways, and each turned the `us-states-region-comment-verify.test.ts` tests red:
+- Putting back "shipping today": 2 failed.
+- Removing the backticks from `Nevada`: 1 failed.
+- Corrupting `T-017`: 34 failed.
+
+I reverted all three, confirmed with `cmp` and a clean `git status`.
+
+**For the reviewer:** the approved row 5 gave `95d04a10…` for the farm test file, and the ci-fix applied `377286f4…`. The new value is the file's real sha256 after rows 1 and 3. It changed because row 3's comment had to quote the approval, which did not exist yet when the plan was written. The plan says "recompute row 5 and say so", so this is allowed.
+
+I changed no source and no pre-existing tests. My commit touches only the brief: Status, Next step, a new Sessions row, and the Verdict.
+
+Brief: /home/user/geo-discovery-zone/tasks/T-111-us-states-15-states-comments.md
