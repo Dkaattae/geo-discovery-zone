@@ -97,7 +97,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   tapped geometry id (E-29), and a wrong tap is drawn with a dashed outline
   beside the answer.
 - US map on `us-atlas` + `react-simple-maps`, joined on FIPS, `geoAlbersUsa`
-  (§2.2, §2.3). **The map fills in as states are mastered** (§3.6) — from the
+  (§2.2, §2.3). **Over a shaded relief** (T-043, §2.6 A): a committed
+  Natural Earth PNG under the states, which multiply onto it (E-32). **The map fills in as states are mastered** (§3.6) — from the
   server's join keys, not the client's opinion.
 - Difficulty as one scalar (§1.4): `level` 0–18, grade and band derived for
   display. Level drift ±0.5 applied silently (§1.5).
@@ -369,6 +370,17 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-043 — Shaded-relief basemap under the US map** (PR #147, 2026-11-16). `UsMap` draws
+  `frontend/src/assets/us-shaded-relief.png` (1200×750 grayscale+alpha, 235 KB, Natural Earth
+  `SR_50M` 2.0.0 warped once outside the repo through the map's own `geoAlbersUsa`, insets
+  included, transparent outside the states) under the state paths, and every state is drawn with
+  `mix-blend-mode: multiply`, so fills stay opaque and terrain darkens them. Provenance is E-32; no
+  repo command regenerates the image. *Where it differed from the brief:* the three parts were
+  warped and composited in one inverse-mapping pass using albersUsa's own region test, not as three
+  separate warps; the source was tone-stretched `[40, 215]`→`[0, 255]` and cut to 32 grey levels to
+  keep flat ground near white and fit 300 KB. Two rounds blocked on a person: Q1–Q3 (how to
+  register the raster), then the egress proxy refusing Natural Earth. No screenshot or browser
+  render was seen by any agent; registration and look were left to the merge reviewer's checklist.
 - **T-115 — `backend/README.md` and the `tasks.md` status table stop calling `openapi.yaml` "the contract"** (PR #145, 2026-11-16).
   All seven README lines now say `openapi.yaml` or "the spec" (the latter where the filename is
   already linked or named nearby); the table header reads "`openapi.yaml` / plan describes" and the
