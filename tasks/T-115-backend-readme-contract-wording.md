@@ -1,7 +1,7 @@
 # T-115 — `backend/README.md` still calls `openapi.yaml` "the contract"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #145)
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-115-backend-readme-contract-wording.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (as echoed by `$CLAUDE_CODE_REMOTE_SESSION_ID`; same value as the expander's row — the orchestrated run shares one remote session id, the worker ran as a separate subagent) |
 | tester | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (same shared id; orchestrated run — `runs/T-115-…` exists; freshly spawned subagent, see Verdict) |
+| reviewer | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (same shared id; freshly spawned subagent) |
 
 > **Light brief for an `S` task** (`process.md`, "The light path", D-6). Four
 > criteria. It touches no `openapi.yaml`, no migration, no plan text and no text a
@@ -150,3 +151,45 @@ evidence than a separate session.
 
 **Tests added:** none. Every criterion is doc wording or repo shape (`test-guidelines.md`: backend never tests doc wording or repo shape; the `tasks.md` table is the same kind).
 **Pre-existing tests changed:** none. **Test change request:** none.
+
+## Review
+
+**TL;DR: approve, inside the envelope — PR #145 marked ready with no escalation.**
+Nine wording edits in two docs, each one the minimal swap of "the contract" for
+`openapi.yaml` or "the spec". Nothing else moved. Swept in this branch.
+
+- **Every role's work is in the PR.** Sessions rows: expander, worker, tester. Commits:
+  `8183549`/`8e82341` expander, `a3103e9` worker, `7936084` tester, plus the
+  orchestrator's run-log and stamp commits. Nothing stranded.
+- **Lanes held (D-7).** Expander touched only the brief. Tester touched only the
+  brief. Worker touched `backend/README.md`, `tasks.md` (L117, L124 only) and the
+  brief. Orchestrator touched only `runs/` and the brief's `Approved:` line.
+- **Fit and scope.** No rewording beyond the word, no re-wrap. `serializers.py  record → openapi.yaml payload`
+  sits inside a fenced layout block, so the missing backticks are correct there.
+- **Docs true.** Every rewritten sentence still says what it said. L165 stays history.
+- **Honesty.** No test added, changed or skipped; frontend local failures are the
+  known proxy 403 and the PR's CI ran the frontend job green on `a3103e9`.
+- **Worker's flag — decided: accepted.** Using "the spec" where `openapi.yaml` is
+  already linked or named in the same sentence or the one before (L4, L81, L166,
+  L244) reads better than repeating the filename, and "the spec" is the phrase
+  criterion 2 itself offers.
+
+**Envelope (process.md step 6):** tester pass; backend/question-bank green locally,
+CI green on the worker's commit; nothing outside Constraints (`runs/` is the
+orchestrator's); no dependency; no `openapi.yaml`, migration or plan change; no
+child-facing text; no pre-existing test touched (`Test changes: none`); no CI fix
+(`CI fix: none`); no product decision. Brief approval was the orchestrator's stamp,
+which the envelope does not make an escalation trigger for a docs-only `S` task.
+
+**Non-blocking finding → new task T-116.** About twenty source comments and
+docstrings still call `openapi.yaml` "the contract" — `backend/app/` (auth, content_build,
+frontend, grading, levels, main, orm, problems, routers, serializers, store),
+`frontend/src/lib/api/client.ts:188`, `question-bank/src/seed-level.ts:87` — plus one
+served string, `backend/app/main.py:116` "The request did not match the contract."
+(the 422 problem `detail`/title; no test pins it). Nothing in the queue owns these, so
+one new `S` entry covers them all at once rather than another file-at-a-time chain
+(T-104 → T-105 → T-106 → T-115). Left out of it on purpose: `geoquizdataplan.md:648`
+(plan text; changes only if its reasoning is wrong), `.claude/agents/*` (loop files;
+`process-tasks.md` territory, and there "the contract" reads as "the spec the task
+touches"), and snapshot-lane tests whose strings are pins.
+
