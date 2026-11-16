@@ -1,7 +1,7 @@
 # T-112 — `backend/README.md`'s Known gaps still say CI never runs Postgres
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-112-backend-readme-known-gaps.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | worker | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated run; separate subagent from the expander) |
+| tester | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated run; freshly spawned subagent, not the worker) |
 
 ## Goal
 
@@ -187,6 +188,43 @@ skipped). `cd question-bank && bun test`: 229 pass, 0 fail. Frontend not run: it
 `test` script under `bun run test`, and a README-only change cannot affect it.
 
 **Tests made stale:** none.
+
+## Verdict
+
+**TL;DR: pass.** All 10 criteria met, every one checked by hand (doc-only task in
+`backend/`, so no test is added, per the brief and `test-guidelines.md`). Backend
+`make -C backend check` green: ruff, format-check, 785 passed / 9 skipped. Next: reviewer.
+
+**Independence:** orchestrated run (`runs/T-112-backend-readme-known-gaps.md` exists),
+so the session id is shared with expander and worker and the id check proves nothing.
+My independence rests only on being a freshly spawned subagent with its own context: I
+did not see the work done or the worker's reasoning. That is weaker than a separate
+session, because it depends on the orchestrator having spawned me correctly.
+
+**Handoff confirmed on branch:** commit `5e9d75b` touches `backend/README.md` and this
+brief, as the Handoff says. All diffs below are against `origin/main` = `29b3e95`
+(local `main` is stale, as the worker reported).
+
+| # | Verdict | What I ran / saw |
+|---|---|---|
+| 1 | met | `grep -n -i -E 'postgres\|sqlite path\|automatically' backend/README.md`: hits at 4, 10-11, 96-136, 221 only, all about local SQLite/Postgres use; none says CI skips Postgres. Both quoted phrases are gone (diff shows the bullet removed). |
+| 2 | met | No Postgres statement remains in `## Known gaps` (bullet removed). |
+| 3 | met | Bullet 1: "The served bank (`app/data/content.json`) holds no `drag_order`, `pin_pick`, `pin_drop` or `click_profile` question". Checked: `content.json` formats are `multiple_choice` 315, `map_identify` 50, `map_click` 50. |
+| 4 | met | No "no answer key" wording. 422 is attributed only to `drag_order`/`click_profile`, to non-centroid pin strategies, and (implicitly) a pin with no centroid; nearest-centroid pins are stated as graded. |
+| 5 | met | "The `polygon_then_centroid` and `distance_to_line` strategies are refused with 422 rather than graded, because the geometry layers they need are not loaded." Matches `grading.py:44-46,118-124`; 422 from `routers/sessions.py` `except UngradableAnswer`. |
+| 6 | met | "graded only when ... nearest-centroid and it stores a centroid: correct within `maxDistanceKm`, or 300 km when that is unset". Matches `GRADED_PIN_STRATEGIES = {"nearest_centroid"}`, `DEFAULT_PIN_RADIUS_KM = 300.0`, `grading.py:126-139` (`distance <= radius`). |
+| 7 | met | Extracted the selection bullet from `git show 29b3e95:backend/README.md` and from the branch; `cmp` reports identical. |
+| 8 | met | `git diff origin/main -- backend/README.md`: one hunk, `@@ -253,13 +253,15 @@`, starting at the blank line and `## Known gaps` heading context; all changed lines are below the heading. |
+| 9 | met (see note) | `git diff origin/main --stat -- backend/app backend/tests backend/integration .github openapi.yaml frontend question-bank '*.test.*'`: empty. Branch diff also shows `PROGRESS.md`, `tasks.md` (expander commit `9f4ac17`, T-114 drop) and `runs/T-112-...md` (orchestrator commits `d2ac752`, `5082046`). The task's own work commit `5e9d75b` touches only `backend/README.md` and this brief. I judged 9 on the task's change; the extra files are loop bookkeeping, not source, test, workflow or `openapi.yaml`. **Reviewer: confirm this reading and the T-114 drop.** |
+| 10 | met | Same empty stat over test paths; no `*.test.*`, `backend/tests/`, `backend/integration/` change. |
+
+**Suite as run**
+
+- `make -C backend check`: `ruff check` clean, `ruff format --check` "67 files already formatted", pytest **785 passed, 9 skipped** (Postgres-only tests skip without `GEO_TEST_DATABASE_URL`).
+- `cd question-bank && bun test`: **229 pass, 0 fail**.
+- Frontend not run: README-only change cannot reach it.
+
+**Tests added:** none (no criterion is testable as API behaviour). **Pre-existing tests changed:** none. **Tests made stale:** none found.
 
 ## Notes
 
