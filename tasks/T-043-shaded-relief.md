@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human` — Review checklist before merge
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-043-shaded-relief.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -19,6 +19,7 @@
 | worker | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker (round 2, after the network was opened) | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | tester | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: shared id, freshly spawned agent) |
+| reviewer | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: shared id, freshly spawned agent) |
 
 ## Decisions (answered — no longer blocking)
 
@@ -420,6 +421,68 @@ none" holds: `t051-map-click` and `t051-tester.criteria` pass unchanged.
 - **No screenshot, no browser render.** Nothing here shows how
   `mix-blend-mode` looks on the SVG paths, or how registration and tone look to
   the eye. Owner: **Dkaattae** at merge review. The PR has no screenshot.
+
+## Review
+
+**TL;DR: approve, escalated.** The code is small, idiomatic and inside the
+Constraints; every role stayed in its lane. Marked ready, but **not to be merged
+until a person has done the Review checklist**: no agent ever saw the map
+rendered, so registration, tone and how the fills read under `multiply` are
+unverified by anyone.
+
+**PR contains every role's work.** Sessions rows: expander ×2, worker ×2, tester.
+Commits on `task/T-043-shaded-relief`: expander `32c9a0e`, `0a67f54`, `0977f42`;
+worker `e5b3eba` (blocked), `da30583`; tester `def669e`. Nothing stranded.
+
+**Lanes (D-7).**
+- **Expander** commits touch only `tasks.md` and the brief.
+- **Worker** `da30583`: `UsMap.tsx`, `map-click.ts`, new `relief.ts`, the PNG,
+  `engineering-decisions.md` (E-32), two new test files, the brief. All named in
+  the Constraints (`relief.ts` is a new helper beside them, the kind the
+  "new tests" line implies; not drift).
+- **Tester** `def669e`: one new test file and the brief. No source.
+- **Orchestrator** commits touch only `runs/` and the brief's header lines.
+- **No `ci-fix`**, no pre-existing test deleted or modified.
+- I merged `origin/main` (T-115, PR #145) into the branch before sweeping, so the
+  sweep's `tasks.md`/`PROGRESS.md` edits do not conflict with it. Clean merge.
+
+**Quality.**
+- **Fits the codebase.** `reliefImageProps` follows `stateProps`' pattern: a pure
+  props function testable without a DOM. Comments cite the task and E-32 the way
+  E-29 is cited. `STATE_BLEND` is one constant in all six style objects.
+- **Not more than needed.** No options, no flags, no dark-mode work, no colour
+  re-tuning. `MAP_WIDTH`/`MAP_HEIGHT` exist so the image and the map share one
+  frame, which is the point of criterion 2.
+- **Docs true.** E-32 matches the committed PNG (sha256 checked by the tester);
+  `UsMap.tsx`'s header comment ("no network") still holds.
+- **Honesty.** No fixture edits, no downgraded warnings. The tester mutated the PNG
+  and the props 18 ways and every mutation went red where it should.
+
+**Findings (none block).**
+1. **The visual result is unseen.** No screenshot, no browser render. Not a defect
+   in the work — no agent here could run a browser — but it is why this is
+   escalated. Owner: **Dkaattae**, the Review checklist.
+2. **Worker and tester tests overlap.** `t043-relief.test.ts` and
+   `t043-usmap-relief.test.tsx` cover much of what `t043-tester.criteria.test.tsx`
+   covers. Cheap, local, no network; not worth a task.
+
+**Worker's flags, disposed.**
+- **One-pass composite vs "separate warps".** Decided: satisfies criterion 8.
+  The criterion asks how the parts were composited, and E-32 says exactly how;
+  the pass uses albersUsa's own region test, which is the stronger guarantee of
+  registration. Agree with the tester.
+- **Tone stretch `[40, 215]` and 32 grey levels.** Deferred to **Dkaattae** at
+  merge, via the checklist item "relief is a texture, not noise". A different
+  stretch is a re-run of E-32's commands.
+- **Fill colours under multiply.** Deferred to **Dkaattae** at merge (checklist
+  item 3). If a fill reads badly, that is a new `tasks.md` entry (the brief's Out
+  of scope); I have not queued one speculatively.
+
+**Envelope.** Tester pass; suite, typecheck, lint, format green (tester, local
+and CI on `77225f6`); no dependency; no `openapi.yaml`, migration or plan change;
+no child-facing text; no pre-existing test touched; no CI fix. **Outside it:**
+the brief's own Review checklist reserves registration and look for the person
+approving the merge, and nobody has looked. Escalated on that.
 
 ## Notes
 
