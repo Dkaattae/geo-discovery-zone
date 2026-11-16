@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-043-shaded-relief.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@
 | task-expander (round 2, after Q1–Q3) | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker (round 2, after the network was opened) | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| tester | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: shared id, freshly spawned agent) |
 
 ## Decisions (answered — no longer blocking)
 
@@ -326,6 +327,99 @@ criterion 8.
 **Tests made stale:** none. The existing tests compare state styles to each other
 (E-29 sameness), not to literal objects. The blend is the same on every state, so
 they should still hold. CI will confirm, since they can't load here.
+
+## Verdict
+
+**TL;DR: pass.** All 22 criteria are met. 17 are covered by
+`frontend/src/components/t043-tester.criteria.test.tsx` (59 tests). The other 5
+are about docs, tooling or the repo's shape and were checked by hand below. The
+whole frontend suite, typecheck, lint and format are green. Both builds emit the
+PNG at a same-origin `/assets/` path. Next: **reviewer**, and a person still
+owes the Review checklist (no screenshot exists yet).
+
+**How independent this is.** This run is orchestrated
+(`runs/T-043-shaded-relief.md`), so `$CLAUDE_CODE_REMOTE_SESSION_ID`
+(`cse_011oDiJdNiAkMCtdKuibGJLt`) matches the worker's row, and the
+Sessions-table check proves nothing. My independence rests only on being a
+freshly spawned agent with its own context. I did not see the worker's
+conversation or reasoning. That is weaker evidence than a separate session,
+because it depends on the orchestrator having spawned me correctly.
+
+**Environment.** The sandbox's pinned registry refuses tarballs. The 18 missing
+lockfile packages (react-simple-maps 3.0.0, its d3-zoom/selection/… chain and
+their `@types`) were fetched from `registry.npmjs.org` at the exact lockfile
+versions. Each one's sha512 was checked against `frontend/bun.lock` before
+unpacking into `frontend/node_modules`, which is untracked. No lockfile or
+`package.json` changed. The UsMap-importing tests therefore ran **locally**, and
+not only in CI.
+
+**Suite as run** (`frontend/`, HEAD `77225f6` plus my test file):
+
+- `bun test`, with every `HTTP(S)_PROXY`/`ALL_PROXY` set to `http://127.0.0.1:1`:
+  **248 pass, 0 fail**, 13 files. That includes the worker's two t043 files and
+  the pre-existing `t051-map-click`, `t051-tester.criteria`,
+  `t026-setup.criteria` and `screens.criteria`.
+- `bun run typecheck`: clean. `bun run lint`: clean. `bun run format:check`: clean.
+- **CI on `77225f6`:** all six jobs succeeded (frontend, question-bank, backend,
+  backend-postgres, integration, e2e).
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | test `criterion 1 …` (4 modes): exactly one `<image>`, inside `<svg>`, before `<g class="rsm-geographies">` (the group `Geographies` draws every path into), no `<path>` before it. Paths only appear after mount, so the group stands in for them |
+| 2 | met | `criterion 2 …`: x 0, y 0, width 800, height 500 in all modes; svg `viewBox="0 0 800 500"`; PNG 1200×750 has the box's 8:5 ratio |
+| 3 | met | `criterion 3 …`: map_click, highlight, reveal and progress maps each have one image with the same href |
+| 4 | met | `criterion 4 …`: href is not `scheme://`, `//` or `data:`; the import resolves to the committed PNG. **By hand:** `bun run build` emits `.output/public/assets/us-shaded-relief-BElgeWcr.png`, and `bun run build:static` emits `dist/client/assets/us-shaded-relief-BElgeWcr.png`, byte-identical to the source. Both bundles reference it as `` `/assets/us-shaded-relief-BElgeWcr.png` `` |
+| 5 | met | `criterion 5 …`: 235 197 bytes |
+| 6 | met | `criterion 6 …`: 1200×750 from IHDR |
+| 7 | met | `criterion 7 …`: colour type 4 (the R=G=B branch covers types 2/6) |
+| 8 | met, by hand | `engineering-decisions.md` E-32 (E-32 was free; E-31 was the last). It names `SR_50M.zip` with `SR_50M.VERSION.txt` 2.0.0 and the naciscdn URL plus sha256, verbatim commands and both throwaway scripts, rotate/center/parallels/scale/translate/clipExtent for the lower 48, Alaska and Hawaii, the compositing (one inverse-mapping pass that picks the part with albersUsa's own region test), and "No command in the repo regenerates it". The sha256 E-32 records for the PNG matches the committed file (`e53bf19e…`). `UsMap.tsx`'s comment above `<image>` cites `engineering-decisions.md E-32`. **On the worker's question:** criterion 8 asks *how* the three were composited, not that they were separate `gdalwarp` runs, and E-32 says how. I read it as satisfied. Q1 (a)'s gloss "separate warps" is the expander's reading, not a criterion |
+| 9 | met, by hand | `git diff $(git merge-base origin/main HEAD) HEAD` touches no `package.json`, script or Makefile. `git grep -i relief` over `package.json`, Makefiles, `scripts/`, `*.sh` and `*.mjs` finds nothing. The scripts exist only as text inside E-32 |
+| 10 | met | `criterion 10 …`: projects us-atlas `states` through react-simple-maps' own `geoAlbersUsa`/scale 1000/800×500 context and rasterises the union at PNG resolution. Every pixel that shades (alpha > 0 and grey < 255) outside it is within 3 SVG units of an outline, counted to the pixel's far corner. Also, the four corners and both mid-edges show no shading |
+| 11 | met | `criterion 11 …`: inside the projected outlines of Colorado (08), Alaska (02) and Hawaii (15), pixels are visible and take more than one grey |
+| 12 | met | `criterion 12 …`: `mixBlendMode: "multiply"` in default, hover and pressed for every drawn state in 4 views. A rendered `<Geography>` carries `mix-blend-mode:multiply` in its style. **By hand:** `styles.css` has no `mix-blend-mode` or `isolation` rule that overrides it |
+| 13 | met | `criterion 13 …`: land, mastered, highlight and correct fills are their `--map-*` variables, and tapped is `--map-highlight`. No `opacity`/`fillOpacity` in props or styles, no `transparent` fill, no `opacity` in the rendered path. **By hand:** the `map-click.ts` diff only adds `mixBlendMode` |
+| 14 | met | `criterion 14 …` |
+| 15 | met | `criterion 15 …`: no tabindex ≥ 0, no role, `aria-hidden="true"` |
+| 16 | met | `criterion 16 …`: `pointer-events="none"` in all modes, and `onClick` reports each drawn state's own id |
+| 17 | met | `criterion 17 …`: with taps open, all drawn states' props minus id and handlers serialise identically, blend included |
+| 18 | met | `criterion 18 …`: tappable states have `TAPPABLE_STATE_LABEL` and tabIndex 0; the other 3 views have -1 and no label |
+| 19 | met | `criterion 19 …`: the image is empty and closed immediately, followed by the states' group as a sibling; `reliefImageProps` has no `on*` handler. **By hand:** `UsMap.tsx` has no state, effect or `onLoad` tied to the image, and `<Geographies>` is unconditional |
+| 20 | met, by hand | the diff from the merge-base touches no `package.json` or lockfile |
+| 21 | met, by hand | the whole suite passes with every proxy variable pointed at `127.0.0.1:1`. The tests read only the local PNG and the bundled atlas |
+| 22 | met, by hand | the diff from the merge-base touches nothing under `question-bank/`, `backend/` or `openapi.yaml` |
+
+**Mutations** (each one temporary and reverted; `git diff` was clean and the PNG
+`cmp`-identical afterwards):
+
+- **PNG: alpha set to 255 everywhere.** Criterion 10: both tests red.
+- **PNG: shifted 6 px (4 SVG units).** Criterion 10 bleed test red.
+- **PNG: shifted 3 px (2 units).** Stays green, as it should within the 3-unit
+  allowance.
+- **PNG: every grey set to 200.** Criterion 11: all 3 red.
+- **PNG: the Alaska inset region made transparent.** Criterion 11: Alaska red.
+- **No-tap `hover` without the blend.** Criterion 12: 3 red.
+- **Tap `lit` without the blend.** Criterion 12 (taps open) red.
+- **Tap default blend `normal` for 08 only.** Criteria 12 and 17 red.
+- **`<image>` moved after `<Geographies>`.** Criteria 1 and 19 red.
+- **Image only when `onTap` is set.** Criteria 1, 2, 3, 4, 15, 16 and 19 red on
+  the no-tap modes.
+- **width 799.** Criterion 2 red.
+- **`aria-hidden` removed.** Criterion 15 red.
+- **`tabIndex={0} role="img"` added.** Criterion 15 red.
+- **`pointerEvents` removed.** Criterion 16 red.
+- **Remote href.** Criteria 3 and 4 red.
+- **Tapped stroke 1.2.** Criterion 14 red.
+- **Translucent land fill.** Criterion 13 red.
+- **Tappable tabIndex 1.** Criterion 18 red.
+
+**Existing tests deleted or modified:** none. The worker's "Tests made stale:
+none" holds: `t051-map-click` and `t051-tester.criteria` pass unchanged.
+
+**Not verified here, owed by a person (Review checklist):**
+
+- **No screenshot, no browser render.** Nothing here shows how
+  `mix-blend-mode` looks on the SVG paths, or how registration and tone look to
+  the eye. Owner: **Dkaattae** at merge review. The PR has no screenshot.
 
 ## Notes
 
