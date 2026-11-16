@@ -1,7 +1,7 @@
 # T-112 — `backend/README.md`'s Known gaps still say CI never runs Postgres
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #144)
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-112-backend-readme-known-gaps.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz |
 | worker | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated run; separate subagent from the expander) |
 | tester | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated run; freshly spawned subagent, not the worker) |
+| reviewer | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated run; freshly spawned subagent) |
 
 ## Goal
 
@@ -225,6 +226,38 @@ brief, as the Handoff says. All diffs below are against `origin/main` = `29b3e95
 - Frontend not run: README-only change cannot reach it.
 
 **Tests added:** none (no criterion is testable as API behaviour). **Pre-existing tests changed:** none. **Tests made stale:** none found.
+
+## Review
+
+**TL;DR: approve, inside the envelope.** The rewritten Known-gaps bullet is true of
+`main` line by line, nothing true was dropped, and every role stayed in its lane. One
+non-blocking finding is queued as T-115. Marked ready with no escalation note.
+
+**Every role's work is in the PR.** Sessions rows: expander, worker, tester. Commits:
+`9f4ac17`, `c89bc91` (expander), `5e9d75b` (worker), `b08a533` (tester), plus
+orchestrator run-log commits `d2ac752`, `5082046`, `79f9982`.
+
+**Lanes (D-7)**
+- **Expander** (`9f4ac17`, `c89bc91`): only `tasks/`, `tasks.md`, `PROGRESS.md`. No source.
+- **Worker** (`5e9d75b`): only `backend/README.md` (one hunk under `## Known gaps`) and the brief.
+- **Tester** (`b08a533`): only the brief. No source, no test.
+- **Orchestrator**: only `runs/` and the brief's `Approved:` line.
+
+**Checked against `main` myself**
+- **Bank formats:** `content.json` is 315 `multiple_choice`, 50 `map_identify`, 50 `map_click`. Bullet's "holds no ..." is true.
+- **Grading:** `grading.py` refuses a pin with no strategy, a non-`nearest_centroid` strategy, or no centroid; grades `distance <= maxDistanceKm or 300.0`. The bullet's "graded only when ... nearest-centroid and it stores a centroid" is exact, and the worker's added centroid clause is right: without it the bullet would overstate.
+- **Postgres:** bullet deleted; `ci.yml` `backend-postgres` exists. No other README line claims CI skips Postgres.
+
+**Flags raised, disposed of**
+- **Criterion 9 reading (worker, tester):** decided. 9 is judged on the task's own change. `tasks.md`/`PROGRESS.md` are the expander's lane and become sweep files anyway; `runs/` is the orchestrator's log. None is source, test, workflow or `openapi.yaml`.
+- **Criterion 8 and stale local `main` (worker):** decided. `origin/main` is the right base; checked against it.
+- **T-114 drop (expander):** confirmed. `PROGRESS.md` `## Done` names six agents including `ci-fix` and says `run-loop.sh` was removed (D-19); `git grep assert_matches backend` is empty, so "kept in step by hand (E-14)" is true.
+
+**Findings**
+- **Non-blocking, queued as new T-115:** `backend/README.md` still calls `openapi.yaml` "the contract" at lines 4, 50, 81, 165, 214, 226 and 244, against E-14 and `CLAUDE.md`. The brief put it out of scope, and no queued task owned it, so it gets its own small entry. It is not folded into T-110 (a product wording call on the root README) because it needs no decision.
+- **Style:** the new bullet is one long bullet carrying three facts. It reads correctly and matches the section's prose style. No action.
+
+**Envelope:** tester pass; backend suite green locally (785 passed / 9 skipped), question-bank 229 pass; CI on the head commit was still running at review time. Nothing outside Constraints except expander and orchestrator bookkeeping and this sweep. No dependency, no `openapi.yaml`, migration or plan change, no child-facing text, no test touched (`Test changes: none`, `CI fix: none`), no product decision. Brief approved on the orchestrator's stamp; for a README-only change that touches nothing the envelope reserves, that is not an escalation trigger.
 
 ## Notes
 
