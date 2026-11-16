@@ -63,3 +63,25 @@ T-115 is done and pushed. No "contract" is left in `backend/README.md`, the `tas
 **Decision for the reviewer:** where `openapi.yaml` is already named nearby (lines 4, 81, 166, 244) I wrote "the spec" instead of repeating the filename. The criteria allow either; the reviewer can confirm or overturn that.
 
 **Session id:** `$CLAUDE_CODE_REMOTE_SESSION_ID` gave the same value as the expander's row (`cse_011oDiJdNiAkMCtdKuibGJLt`). The run shares one remote session id; I noted that in my Sessions row so the tester can see it.
+
+## Round 3 — tester — 2026-11-16
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-115 passes.** All four criteria are met. I checked each one by hand and added no tests, because they are about doc wording and repo shape, which `test-guidelines.md` says are never tested. The verdict is pushed to `claude/epic-shannon-s86cuf` as commit `7936084`, and the remote branch matches it. Status is `pass` and Next step is `reviewer`.
+
+- **How independent this check is:** this is an orchestrated run (`runs/T-115-…` exists), so every role has the same session id, `cse_011oDiJdNiAkMCtdKuibGJLt`, and the Sessions-table check shows nothing. My independence comes only from being a newly spawned subagent that never saw the work done. That depends on the orchestrator having spawned me correctly, so it is weaker than running in a separate session. The Verdict says so.
+
+| # | Verdict | What I checked |
+|---|---|---|
+| 1 | met | `grep -ci contract backend/README.md` returns 0. At baseline `45e8124` it matched the seven lines the brief names: 4, 50, 81, 165, 214, 226, 244. |
+| 2 | met | The diff only changes those seven lines plus line 166, which is in the same paragraph as 165. Lines 4 and 165 keep their meaning, line 214 is still one line, and its code block is 23 lines both before and after. The `test_c7` test passes. |
+| 3 | met | In `tasks.md`, only lines 117 and 124 changed, and neither contains "contract" now. The header still names both `openapi.yaml` and the plan. The Backend row still says 29 operations and "SQLite or Postgres". |
+| 4 | met | The PR changes only `backend/README.md`, `tasks.md`, the brief and the run log. None of the forbidden paths is touched. |
+
+**Test results**
+- **Backend** (with the outbound proxy blocked, as in CI): 785 passed, 9 skipped. `ruff check` and `ruff format --check` are clean.
+- **question-bank:** 229 pass, 0 fail, and the typecheck is clean.
+- **frontend:** could not run here. `bun install` failed with proxy 403s, which leaves 4 test failures ("Cannot find package 'react-simple-maps'") and matching typecheck errors. The diff touches nothing in `frontend/`.
+- **PR #145 CI** on the worker's commit `a3103e9`: every job succeeded, including frontend. On the current head `c152957`, which only adds the run log, the jobs were green or still running when I checked.
+
+No existing tests were changed and there is no test change request.
