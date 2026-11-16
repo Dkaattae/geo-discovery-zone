@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap — run log
 
 **Task:** T-043 · **Branch:** `task/T-043-shaded-relief` · **PR:** #147
-**Started:** 2026-11-16 · **Outcome:** in progress
+**Started:** 2026-11-16 · **Outcome:** ready for merge — escalated (visual checklist owed by a person)
 
 ## Round 1 — task-expander — 2026-11-16
 `Next step` on entry: `(none — no brief)` → on exit: `human`
@@ -167,3 +167,36 @@ Header set to Next step `worker`; spawning a fresh worker.
 - **No pre-existing test changed or went stale.**
 
 **Still owed by a person (Dkaattae):** the brief's Review checklist. Nobody has taken a screenshot or seen the map in a browser, so the multiply blend, the registration and the tone have not been looked at.
+
+## Round 6 — reviewer — 2026-11-16
+`Next step` on entry: `reviewer` → on exit: `human` (approved — escalated; PR marked ready; brief swept)
+
+**Approved, but escalated.** PR #147 is marked ready, and its body opens by saying it must not be merged until a person has done the Review checklist. No agent ever saw the map rendered, so nobody has checked how the relief lines up with the states, its tone, or how the fills look under `multiply`. The code itself is approved and the sweep is done. **Next step: human (Dkaattae)** — run the app, tick the four checklist items, then merge.
+
+**Pushed to `task/T-043-shaded-relief`** (the remote head is now `a136879`, the PR's head sha):
+- `1206999` merges `origin/main` (T-115, PR #145) into the branch. It merged cleanly, and doing it first stops the sweep's edits to `tasks.md` and `PROGRESS.md` from conflicting with main.
+- `f186514` records the review: a `## Review` section in the brief, my Sessions row, and `Status: approved — escalated` / `Next step: human`.
+- `a136879` is the sweep:
+  - brief deleted;
+  - T-043 entry removed from `tasks.md`, and the "Where the app is today" Map row now includes the relief;
+  - queue sweep note appended;
+  - Completed-tasks entry and a Frontend bullet added to `PROGRESS.md`.
+
+**What the review found:**
+- **Every role's work is in the PR.** Each Sessions row has a matching commit, and each role only touched the files it is allowed to (D-7):
+  - expander: only `tasks.md` and the brief;
+  - worker: the files the Constraints name, plus a new pure helper `relief.ts`;
+  - tester: only its test file and the brief;
+  - orchestrator: only `runs/` and the brief's header lines.
+  - No `ci-fix` ran, and no existing test was deleted or changed.
+- **Quality is fine.** The code follows the codebase's existing patterns, does nothing beyond the brief, and E-32 matches the committed PNG.
+- **Nothing blocks.** One non-blocking finding: the worker's two test files overlap with the tester's. They are cheap and need no network, so I queued no task.
+- **The worker's flags are settled:**
+  - Doing the three warps in one pass instead of three separate ones satisfies criterion 8, because E-32 says exactly how the parts were combined.
+  - The tone stretch and how the fills read under `multiply` are left to Dkaattae through the checklist. I queued no colour task in advance; one only exists if the checklist finds a problem.
+- **Escalated because of the brief's own Review checklist.** It reserves the visual checks for the person merging, and nobody has done them. Otherwise the PR is within the limits for a routine merge: no dependency, no `openapi.yaml`, migration or plan change, no text a child reads.
+
+**Not verified:** CI passed on the worker's commit `77225f6`. It was still running on the tester's test-file commit and on my commits when I finished. The tester had run the whole suite, typecheck, lint and format locally, all green. The PR body says this too.
+
+## Task ended — 2026-11-16
+Ready, escalated. Dkaattae: run the app, do the four Review-checklist items on PR #147, then merge.
