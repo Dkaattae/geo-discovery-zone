@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `blocked`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-043-shaded-relief.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | task-expander (round 2, after Q1–Q3) | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| worker | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 
 ## Decisions (answered — no longer blocking)
 
@@ -217,6 +218,50 @@ a person checks:
       to tell apart from plain land with the relief under them.
 - [ ] The map still reads as a children's map — relief is a texture, not noise.
 
+## Handoff
+
+**TL;DR — blocked, nothing built.** The session's egress proxy refuses every
+Natural Earth host (403 policy denial on CONNECT), so the source raster cannot be
+fetched. The brief's feasibility warning says to stop rather than substitute a
+source; a person must supply the raster (or the finished PNG).
+
+- **Changed:** nothing but this brief (Status, Next step, Sessions row, this
+  Handoff, Notes). No code, no PNG, no `E-32`.
+- **Evidence:** from this session, 2026-11-16 ~22:37 UTC:
+  - `https://naciscdn.org/naturalearth/10m/raster/SR_HR.zip` → `CONNECT tunnel failed, response 403`
+  - `https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip` → same
+  - `https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/SR_HR.zip` → same
+  - Proxy status (`$HTTPS_PROXY/__agentproxy/status`) records each as
+    `connect_rejected` — "gateway answered 403 to CONNECT (policy denial)".
+    The proxy README says not to retry or route around policy denials.
+- **Not tried, deliberately:** GitHub or other third-party mirrors of the raster
+  (the brief forbids substituting another source), any hand-drawn image, any new
+  dependency.
+- **Reprojection tooling, for whoever unblocks:** no GDAL in this session
+  (`gdalwarp` absent), but Python 3 with numpy + Pillow is present outside the
+  repo, and d3-geo's `geoAlbersUsa` (with `.invert`) is in
+  `frontend/node_modules`. A throwaway scratchpad script could inverse-project
+  each 800×500 output pixel (×scale factor) through `geoAlbersUsa` and sample
+  the equirectangular source — that covers all three insets in one pass and
+  needs no repo dependency. So the only missing piece is the source file.
+
+**What a person must supply — either one:**
+
+1. **The source raster** placed somewhere this session can read (e.g. attached
+   to the PR, or committed to a scratch branch — not to this task's branch):
+   Natural Earth *Shaded Relief Basic*, `SR_50M.zip` (1:50m, ~10800×5400 is
+   ample for an ≤2400-px-wide output) or `SR_HR.zip` (1:10m), from
+   `https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/`.
+   Or allow `naciscdn.org` in the session's egress policy. Then re-run the worker.
+2. **The finished PNG**, meeting criteria 5, 6, 7, 10, 11, plus the exact
+   commands used (criterion 8 needs them verbatim). The worker then wires it in.
+
+- **Criteria status:** none implemented. No criterion looks wrong or
+  unobservable on reading; 10 (≤3 SVG units bleed) will be checkable from PNG
+  alpha against projected geometry with `node:zlib`, no image library.
+- **Tests made stale:** none.
+- **How to run:** nothing to run.
+
 ## Notes
 
 - Picked T-043 because every task above it is waiting on a person: T-085b (a
@@ -229,3 +274,7 @@ a person checks:
   (registration a person judges). Criterion 10 (no relief outside the US) is new:
   with insets moved by `geoAlbersUsa`, unclipped relief would put Mexican or
   Pacific terrain around the Alaska inset.
+- Worker (2026-11-16): blocked at the first step — the Natural Earth download.
+  The block is the session's egress policy, not the brief. Owner: **human
+  (Dkaattae)** to supply the raster or allow `naciscdn.org`, then restart the
+  worker on this branch.
