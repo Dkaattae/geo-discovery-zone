@@ -253,13 +253,15 @@ as pure functions, so they can be tested without a request:
 
 ## Known gaps
 
-- `drag_order`, `pin_*` and `click_profile` questions have no answer key in the
-  seeded bank; submitting one returns 422 rather than a guess. Pin grading is
-  implemented as nearest-centroid with a distance cap — the contract's
-  polygon-then-centroid strategy needs the geometry layers.
-- CI only runs the SQLite path. The suite passes against a real Postgres 16
-  locally (`make test-postgres`), but nothing runs it automatically, so a
-  Postgres-only regression would not fail a pull request.
+- The served bank (`app/data/content.json`) holds no `drag_order`, `pin_pick`,
+  `pin_drop` or `click_profile` question; every question in it is
+  `multiple_choice`, `map_identify` or `map_click`. If one is added, a
+  `drag_order` or `click_profile` answer is refused with 422 rather than
+  guessed. A pin answer is graded only when the question's strategy is
+  nearest-centroid and it stores a centroid: correct within `maxDistanceKm`,
+  or 300 km when that is unset. The `polygon_then_centroid` and
+  `distance_to_line` strategies are refused with 422 rather than graded,
+  because the geometry layers they need are not loaded.
 - Question selection loads its topic's pool and picks in Python. Past a few
   thousand questions per topic the difficulty window should move into SQL —
   `store.candidate_questions` says where.

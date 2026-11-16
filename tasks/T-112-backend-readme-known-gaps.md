@@ -1,7 +1,7 @@
 # T-112 — `backend/README.md`'s Known gaps still say CI never runs Postgres
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-112-backend-readme-known-gaps.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz |
+| worker | 2026-11-16 | cse_011oDiJd2dgRHzBRDwBhvmNz (orchestrated run; separate subagent from the expander) |
 
 ## Goal
 
@@ -133,6 +134,60 @@ Required reading for the worker and the tester.
 - [ ] Nothing true was dropped: the unserved formats and the refused pin strategies
       are still recorded as gaps.
 
+## Handoff
+
+**TL;DR:** `backend/README.md` `## Known gaps` rewritten: the false Postgres bullet is
+deleted, the pin bullet now says the bank holds none of the four formats and states
+exactly what is graded and what is refused. The survey was correct on every point. No
+code or test touched; backend suite 785 passed / 9 skipped.
+
+**What changed**
+
+- `backend/README.md` — `## Known gaps` only (one diff hunk). The first bullet is
+  rewritten. The "CI only runs the SQLite path" bullet is removed outright. The selection
+  bullet is untouched.
+- This brief: Status, Next step, Sessions row, Handoff, Notes.
+
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 2 | Postgres bullet deleted. `grep -n -i postgres backend/README.md` hits only lines 4, 10-11, 96-136, 221, all outside Known gaps and true (`make test-postgres`, `GEO_TEST_DATABASE_URL`) |
+| 3 | Bullet 1, sentence 1: "holds no `drag_order`, `pin_pick`, `pin_drop` or `click_profile` question" |
+| 4 | No "no answer key" wording. 422 is attributed to `drag_order`/`click_profile` and to the non-centroid pin strategies only |
+| 5 | Last sentence of bullet 1: `polygon_then_centroid` and `distance_to_line` refused with 422 because the geometry layers are not loaded |
+| 6 | "graded only when the question's strategy is nearest-centroid and it stores a centroid: correct within `maxDistanceKm`, or 300 km when that is unset". Matches `grading.py:108-139` |
+| 7 | Selection bullet unchanged (it sits outside the diff hunk) |
+| 8 | `git diff origin/main -- backend/README.md` has one hunk, starting at `@@ -253` (the line under `## Known gaps`) |
+| 9, 10 | This worker commit touches only `backend/README.md` and this brief. See the contradiction below |
+
+**Survey checked, all correct:** content.json has 315 `multiple_choice`, 50 `map_identify`
+and 50 `map_click` (415 in all). `ci.yml:215` has `backend-postgres` with `postgres:16-alpine`
+and `GEO_TEST_DATABASE_URL`. In `grading.py`, `GRADED_PIN_STRATEGIES = {"nearest_centroid"}`
+and `DEFAULT_PIN_RADIUS_KM = 300.0`.
+
+**Contradictions with the brief**
+
+- **Criterion 9 vs the branch.** `git diff origin/main --stat` on this branch also shows
+  `PROGRESS.md`, `tasks.md` and `runs/T-112-backend-readme-known-gaps.md`. The expander
+  committed those (T-114 drop, run log), not the worker. Read literally, 9 fails on the
+  branch diff. Judged on the task's own change (the worker commit), it passes. **Owner:
+  the tester decides which reading applies, and the reviewer confirms.**
+- **Criterion 8 says `git diff main`.** The local `main` ref in this checkout is stale
+  (`2634fc8`, PR #135), not `29b3e95`. Against it the diff falsely shows a third removed
+  bullet ("The directory is `backend/` …"), which was already gone on `origin/main`. **Use
+  `origin/main`.** Owner: tester.
+
+**Deliberately not done:** the "contract" wording elsewhere in the README, and README:13.
+Both are out of scope. I dropped "the contract's" from the bullet I rewrote, which the
+brief allows.
+
+**How to run:** `make -C backend check` (lint, format-check and tests: 785 passed, 9
+skipped). `cd question-bank && bun test`: 229 pass, 0 fail. Frontend not run: it has no
+`test` script under `bun run test`, and a README-only change cannot affect it.
+
+**Tests made stale:** none.
+
 ## Notes
 
 - **T-114 was dropped at this expansion, not expanded.** PR #143 (merged
@@ -143,3 +198,6 @@ Required reading for the worker and the tester.
   Recorded in `tasks.md` and `PROGRESS.md` in this commit. Reviewer: please confirm.
 - **Skipped as needing a person first:** T-085b (a Census source), T-056 (a
   design decision), T-095 (its Q), T-110 (a wording call).
+- **Worker:** the survey held on every point. I added "and it stores a centroid" to the
+  graded-pin sentence, because a nearest-centroid question without a centroid is also
+  refused (`grading.py:126-131`). Leaving it out would overstate what is graded.
