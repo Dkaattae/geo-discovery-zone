@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap
 
-**Status:** `blocked`
-**Next step:** `human`
+**Status:** `unblocked — Dkaattae, 2026-11-16, in the orchestrator's session: network opened (naciscdn.org, www.naturalearthdata.com), "lets try it again"`
+**Next step:** `worker`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-043-shaded-relief.md`.
 **Test changes:** `none`
 **CI fix:** `none`

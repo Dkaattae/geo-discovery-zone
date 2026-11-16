@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap — run log
 
 **Task:** T-043 · **Branch:** `task/T-043-shaded-relief` · **PR:** #147
-**Started:** 2026-11-16 · **Outcome:** halted — needs human
+**Started:** 2026-11-16 · **Outcome:** in progress
 
 ## Round 1 — task-expander — 2026-11-16
 `Next step` on entry: `(none — no brief)` → on exit: `human`
@@ -106,3 +106,7 @@ Orchestrator wrote the unattended `Approved:` stamp. No human saw the finished c
 
 ## Environment change — 2026-11-16
 Dkaattae approved a new personal environment `geo-discovery-zone` (Wikidata, Wikipedia, `naciscdn.org`, `www.naturalearthdata.com`) and this session moved onto it. Brief still reads `blocked` / `human`; the worker is not restarted until a person says so.
+
+## Person resumed — 2026-11-16
+Dkaattae, in the orchestrator's session, verbatim: "lets try it again, if not working, you can tell me how to download it, maybe write some scripts so that I can run it locally?"
+Header set to Next step `worker`; spawning a fresh worker.
