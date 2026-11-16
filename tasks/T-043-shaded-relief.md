@@ -18,6 +18,9 @@
 
 ## Blocked: decisions needed
 
+> **Answered by Dkaattae, 2026-11-16, in the orchestrator's session (verbatim):** "Q1 (a), Q2 yes, Q3 multiply blend"
+> Recorded by the orchestrator; not interpreted.
+
 **TL;DR:** the plan's "one image tag" (`geoquizdataplan.md` §2.6 A, §4) does not
 hold for this map. Natural Earth relief rasters are plate carrée (lon/lat grid);
 `UsMap.tsx` draws with `geoAlbersUsa`, a conic projection with Alaska and Hawaii

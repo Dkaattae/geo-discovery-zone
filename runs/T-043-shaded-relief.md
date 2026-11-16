@@ -41,3 +41,7 @@
 ## Halted — 2026-11-16
 `Status: blocked`, `Next step: human`. Approved left `pending`; no stamp written (G2 — nothing to build against yet).
 A person must answer Q1–Q3 in the brief / PR #147, then re-run the `task-expander`.
+
+## Person answered — 2026-11-16
+Dkaattae, in the orchestrator's session, verbatim: "Q1 (a), Q2 yes, Q3 multiply blend"
+Recorded under `## Blocked: decisions needed` in the brief. Resuming with a fresh `task-expander`, as the brief's Next step asked.
