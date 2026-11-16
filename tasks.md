@@ -372,7 +372,7 @@ is what it deliberately does not do.
 
 ## F. Frontend follow-ons
 
-### T-043 — Shaded-relief basemap · S · todo
+### T-043 — Shaded-relief basemap · S · doing (blocked on a person: see `tasks/T-043-shaded-relief.md`)
 **Depends on:** —
 One Natural Earth grayscale raster under the state paths. Cheapest visual win in
 the plan — every existing map question starts looking like an atlas (§2.6, §4),
