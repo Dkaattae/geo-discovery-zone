@@ -62,3 +62,26 @@
 **Status line:** the brief's Status read `awaiting approval` when I started, but it already had the `Approved: orchestrator … unattended run` line, so I went ahead.
 
 The brief's survey was correct on every point I checked. One addition of mine: I included "and it stores a centroid" in the graded-pin sentence, because `grading.py` refuses a nearest-centroid question that has no centroid.
+
+## Round 3 — tester — 2026-11-16
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-112 tester: pass.** I checked all 10 criteria by hand and they are all met. It is a doc-only change in `backend/`, so by the brief and `test-guidelines.md` there was nothing to add as a test. Next step is the reviewer. The verdict commit `b08a533` is pushed and `origin/claude/relaxed-allen-5ro49x` now points at it.
+
+- **How independent this check is:** this is an orchestrated run, so I share a session id with the expander and the worker, and comparing ids proves nothing. My independence rests only on being a freshly spawned subagent with my own context. That is weaker than a separate session, and the Verdict says so.
+- **The worker's change is on the branch:** commit `5e9d75b` touches only `backend/README.md` and the brief. I diffed against `origin/main` (`29b3e95`) because the local `main` is stale.
+- **What I checked:**
+  - **Postgres wording (criteria 1–2):** the false CI-skips-Postgres bullet is gone. The remaining Postgres lines in the README are about running the suite locally, which is true.
+  - **Facts in the pin bullet (criteria 3–6):** they match `content.json` (315 multiple_choice, 50 map_identify, 50 map_click, none of the four other formats). They also match `grading.py`: only `nearest_centroid` is graded, with a 300 km default radius, and the other strategies and a missing centroid are refused through `UngradableAnswer`, which `sessions.py` turns into a 422.
+  - **Selection bullet (criterion 7):** compared with `cmp` against `29b3e95`, it is byte-identical.
+  - **README diff (criterion 8):** one hunk, all of it below `## Known gaps`.
+- **Criterion 9 needs the reviewer's confirmation.** The branch diff also includes `PROGRESS.md` and `tasks.md` (the expander's T-114 drop) and the orchestrator's `runs/` log. I judged the criterion on the task's own change, `5e9d75b`, which has no source, test, workflow or `openapi.yaml` changes. The reviewer should confirm that reading and the T-114 drop.
+- **Suites:**
+  - `make -C backend check`: ruff clean, format clean, 785 passed and 9 skipped.
+  - `question-bank`'s `bun test`: 229 passed, 0 failed.
+  - Frontend: not run, because a README change cannot affect it.
+- **Tests:** none added, none changed, none made stale.
+
+In the brief I set Status to `pass` and Next step to `reviewer`, added the tester row to Sessions, and wrote `## Verdict` with a table of each criterion and its evidence.
+
+File: /home/user/geo-discovery-zone/tasks/T-112-backend-readme-known-gaps.md
