@@ -369,6 +369,14 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-112 — `backend/README.md`'s Known gaps are true of `main`** (PR #144, 2026-11-16). The
+  bullet saying CI only runs the SQLite path is gone (`ci.yml` has run `backend-postgres` for a
+  while). The pin bullet now says the served bank holds no `drag_order`, `pin_*` or
+  `click_profile` question, that a pin answer is graded only for `nearest_centroid` with a
+  centroid (within `maxDistanceKm`, default 300 km), and that the two geometry strategies are
+  refused with 422. *Where it differed from the brief:* nothing in the survey was wrong. The worker
+  added "and it stores a centroid", which the brief did not ask for, because a centroid-less pin is
+  also refused. T-115 queued for the README's remaining "contract" wording.
 - **T-114 — dropped, already done by PR #143** (2026-11-16, T-112's expander). PR #143
   (off-queue, merged 2026-11-16) rewrote `## Done`. It now names six agents including `ci-fix`,
   and says `run-loop.sh` was removed (D-19). The same PR deleted `conftest.py::assert_matches`
