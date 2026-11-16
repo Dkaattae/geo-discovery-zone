@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap — run log
 
 **Task:** T-043 · **Branch:** `task/T-043-shaded-relief` · **PR:** #147
-**Started:** 2026-11-16 · **Outcome:** in progress
+**Started:** 2026-11-16 · **Outcome:** halted — needs human
 
 ## Round 1 — task-expander — 2026-11-16
 `Next step` on entry: `(none — no brief)` → on exit: `human`
@@ -78,3 +78,28 @@ How well the relief lines up with the state outlines can't be tested without an 
 
 ## Approval — 2026-11-16
 Orchestrator wrote the unattended `Approved:` stamp. No human saw the finished criteria.
+
+## Round 3 — worker — 2026-11-16
+`Next step` on entry: `worker` → on exit: `human`
+
+**T-043 is blocked and I built nothing. A human needs to provide the Natural Earth shaded-relief raster, or allow `naciscdn.org` for this session.** The proxy refused every Natural Earth download address with a policy 403. The brief says to stop in that case and not use another source, so I stopped.
+
+- **What I tried:** three download addresses. Each failed with `CONNECT tunnel failed, response 403`, and the proxy's status page logged each as `connect_rejected` (a policy refusal):
+  - `naciscdn.org/naturalearth/10m/raster/SR_HR.zip`
+  - `naciscdn.org/naturalearth/50m/raster/SR_50M.zip`
+  - the `www.naturalearthdata.com` download link
+- **What I did not try:** other mirrors (the brief forbids substitutes), a hand-drawn image, or any new dependency.
+- **What I changed:** only the brief, `tasks/T-043-shaded-relief.md`:
+  - **Status** is now `blocked` and **Next step** is `human`.
+  - Added my worker row to the Sessions table.
+  - Wrote the `## Handoff`, with the evidence above and the two ways to unblock.
+  - Added a line to Notes naming Dkaattae as the owner of the fix.
+- **To unblock, a person does one of these, then restarts the worker on this branch:**
+  1. Provide `SR_50M.zip` or `SR_HR.zip` somewhere the session can read, or allow `naciscdn.org` in the egress policy.
+  2. Provide the finished PNG plus the exact commands used to make it. Criterion 8 needs those commands word for word.
+- **Making the PNG once the source arrives:** GDAL isn't installed here. A throwaway script outside the repo can do the reprojection instead, using Python with numpy and Pillow (both installed) or d3-geo's `geoAlbersUsa` from `frontend/node_modules`. Neither needs a new dependency.
+- **Push:** commit `e5b3eba` ("T-043 worker: blocked — Natural Earth hosts refused by egress proxy") is pushed to `task/T-043-shaded-relief`. `git log origin/task/T-043-shaded-relief -1` shows it.
+- **Tests made stale:** none. I didn't run the suite because no code changed.
+
+## Halted — 2026-11-16
+`Status: blocked`, `Next step: human`. Needs: the Natural Earth raster, or `naciscdn.org` allowed in the environment's network policy.
