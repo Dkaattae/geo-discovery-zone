@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-043
 **Branch:** `task/T-043-shaded-relief`
-**PR:** opened draft at expand time (see the PR on this branch)
+**PR:** #147, opened draft at expand time
 **Fault:** the queue entry assumes the relief raster drops straight under the state paths, but the map's projection (`geoAlbersUsa`) does not register with a Natural Earth raster, and every way of making it register needs a dependency or a committed generated binary — both a person's call.
 
 **Sessions:**
