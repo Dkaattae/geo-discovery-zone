@@ -369,6 +369,12 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-115 — `backend/README.md` and the `tasks.md` status table stop calling `openapi.yaml` "the contract"** (PR #145, 2026-11-16).
+  All seven README lines now say `openapi.yaml` or "the spec" (the latter where the filename is
+  already linked or named nearby); the table header reads "`openapi.yaml` / plan describes" and the
+  Backend row "all 29 `openapi.yaml` operations". *Where it differed from the brief:* nothing; the
+  worker's "the spec" choice was accepted at review. T-116 queued for the same wording in ~20 source
+  comments and one 422 `detail` string.
 - **T-112 — `backend/README.md`'s Known gaps are true of `main`** (PR #144, 2026-11-16). The
   bullet saying CI only runs the SQLite path is gone (`ci.yml` has run `backend-postgres` for a
   while). The pin bullet now says the served bank holds no `drag_order`, `pin_*` or
