@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-115
 **Branch:** `claude/epic-shannon-s86cuf`
-**PR:** opened draft at expand time — see the PR built from the branch above
+**PR:** #145, opened draft at expand time from the branch above
 **Fault:**
 
 **Sessions:**
