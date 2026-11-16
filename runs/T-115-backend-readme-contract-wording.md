@@ -1,7 +1,7 @@
 # T-115 — `backend/README.md` still calls `openapi.yaml` "the contract" — run log
 
 **Task:** T-115 · **Branch:** `claude/epic-shannon-s86cuf` · **PR:** #145
-**Started:** 2026-11-16 · **Outcome:** in progress
+**Started:** 2026-11-16 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-16
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -85,3 +85,38 @@ T-115 is done and pushed. No "contract" is left in `backend/README.md`, the `tas
 - **PR #145 CI** on the worker's commit `a3103e9`: every job succeeded, including frontend. On the current head `c152957`, which only adds the run log, the jobs were green or still running when I checked.
 
 No existing tests were changed and there is no test change request.
+
+## Round 4 — reviewer — 2026-11-16
+`Next step` on entry: `reviewer` → on exit: `human` (approved, PR marked ready; brief swept)
+
+**I approved T-115 and marked PR #145 ready for review. It is inside the envelope, so there is no escalation.** The sweep is pushed to the PR's branch. Dkaattae only needs to merge; I did not merge.
+
+CI on the new head (`5ff59e7`) had not finished when I stopped. "Green" below means CI on the worker's commit `a3103e9` plus my local runs.
+
+**What landed**
+- **`backend/README.md`:** the seven lines that said "the contract" now say `openapi.yaml` or "the spec".
+- **`tasks.md`:** the header and Backend row of the "Where the app is today" table do the same.
+- **Nothing else changed in either file.** It is docs only.
+
+**Review**
+- **Every role's work is in the PR:** the expander, worker and tester all have commits on `claude/epic-shannon-s86cuf`.
+- **Each role stayed in its lane:** expander and tester commits touch only the brief. The worker's commit touches the two docs and the brief. The orchestrator's commits touch only `runs/` and the brief's `Approved:` line.
+- **No scope creep:** I read every hunk, and each sentence still means what it did.
+- **The worker's flag is settled:** I accepted using "the spec" where `openapi.yaml` is already named nearby.
+- **Why no escalation:** the tester passed, the suites are green, nothing changed outside the Constraints, and nothing touched dependencies, `openapi.yaml`, migrations, the plan or text a child reads. `Test changes` and `CI fix` are both `none`, and no product decision was made along the way.
+
+**Non-blocking finding, queued as T-116 (S, §E of `tasks.md`)**
+- **About twenty code comments and docstrings still say "the contract":** in `backend/app/`, `frontend/src/lib/api/client.ts:188` and `question-bank/src/seed-level.ts:87`.
+- **One served string does too:** the validation 422's `detail` at `backend/app/main.py:116`, "The request did not match the contract." No test pins it.
+- **I made it one task** so this doesn't become another one-file-at-a-time chain like T-104 → T-105 → T-106 → T-115.
+
+**Commits pushed** (confirmed: local and origin both at `5ff59e7`)
+- **`415b509`:** adds the brief's `## Review` and my Sessions row, and sets Status to `approved` and Next step to `human`. Committing this before the sweep keeps the review in git history.
+- **`5ff59e7`:** the sweep. It deletes the brief, replaces T-115 with T-116 in `tasks.md`, adds a line to the sweep log, and adds the T-115 entry to `PROGRESS.md` under Completed tasks.
+
+**PR body:** rewritten with the four criteria verbatim, what verified each, the review, what I chose not to do, and the sweep.
+
+**Tests run after the sweep:** backend 785 passed, 9 skipped. `question-bank/src/committed-bank.test.ts` (the one non-snapshot test that reads `tasks.md` or `PROGRESS.md`): 134 passed.
+
+## Task ended — 2026-11-16
+Ready for merge. PR #145 is Dkaattae's to merge.
