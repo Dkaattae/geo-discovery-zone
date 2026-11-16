@@ -1,7 +1,7 @@
 # T-115 — `backend/README.md` still calls `openapi.yaml` "the contract"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-115-backend-readme-contract-wording.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@
 |---|---|---|
 | task-expander | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (as echoed by `$CLAUDE_CODE_REMOTE_SESSION_ID`; same value as the expander's row — the orchestrated run shares one remote session id, the worker ran as a separate subagent) |
+| tester | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt (same shared id; orchestrated run — `runs/T-115-…` exists; freshly spawned subagent, see Verdict) |
 
 > **Light brief for an `S` task** (`process.md`, "The light path", D-6). Four
 > criteria. It touches no `openapi.yaml`, no migration, no plan text and no text a
@@ -121,3 +122,31 @@ here because `bun install` hit proxy 403s — environmental, not caused by this 
 **Tests made stale:** none. `test_t051_tester_criteria.py::test_c7_no_file_says_map_click_is_withheld` passes (in the backend run above).
 
 ## Verdict
+
+**TL;DR: pass.** All four criteria met, each checked by hand (they are doc wording
+and repo shape, which `test-guidelines.md` says are never tested). No test added.
+Backend, question-bank and the PR's CI (frontend included) are green.
+
+**Independence.** Orchestrated run: every role shares session id
+`cse_011oDiJdNiAkMCtdKuibGJLt`, so the Sessions-table check cannot show anything.
+My independence rests only on being a freshly spawned subagent with its own context:
+I did not see the work done or the worker's reasoning. That rests on the
+orchestrator having spawned me correctly, not on anything I could check myself, so it is weaker
+evidence than a separate session.
+
+| # | Verdict | Evidence (by hand) |
+|---|---|---|
+| 1 | met | `grep -ci contract backend/README.md` → `0`. Baseline `git grep -n -i contract 45e8124 -- backend/README.md` → lines 4, 50, 81, 165, 214, 226, 244, as the criterion says. |
+| 2 | met | `git diff -U0 45e8124 HEAD -- backend/README.md`: hunks at 4, 50, 81, 165–166, 214, 226, 244 only. 166 is the same paragraph as 165. L4 still says "Every operation in the spec is served" (L3 links `openapi.yaml`). L165 is still history: "`openapi.yaml` as first written had no security scheme. This adds one". L214 is one line, and its fenced block is 23 lines at baseline and at HEAD (awk count). `pytest tests/test_t051_tester_criteria.py -k test_c7` → 3 passed. |
+| 3 | met | `git diff -U0 45e8124 HEAD -- tasks.md`: only L117 and L124 changed. The header now reads "`openapi.yaml` / plan describes", which names both. Backend row: "all 29 `openapi.yaml` operations, SQLite or Postgres". `grep -i contract` on lines 115–130 → none. Other rows byte-identical, since there are no other hunks. |
+| 4 | met | `git diff --name-only 45e8124 HEAD` → `backend/README.md`, `tasks.md`, this brief, `runs/T-115-…`. A grep for the forbidden paths (`backend/app`, `backend/migrations`, `frontend`, `question-bank`, `e2e`, `.github`, `openapi.yaml`, `engineering-decisions`, `process*`, `CLAUDE.md`, lockfiles, `pyproject`, `package.json`, `tests/`) matched nothing. |
+
+**Suite as run**
+
+- **Backend** under the dead-proxy guard: `uv run pytest` → 785 passed, 9 skipped. `ruff check` → all checks passed. `ruff format --check` → 67 files already formatted.
+- **question-bank**: `bun test` → 229 pass, 0 fail. `bun run typecheck` → clean.
+- **frontend**, local: not runnable. `bun install --frozen-lockfile` → `ProxyConnectFailed (403)` (`@types/d3-selection`, `d3-timer`), so `bun test` gives 4 fails, all "Cannot find package 'react-simple-maps'", and typecheck gives matching TS2307s. This is environmental: `git diff --quiet 45e8124 HEAD -- frontend` shows no change.
+- **PR #145 CI** on the worker's commit `a3103e9` (REST check-runs): frontend, backend lint/format/test, backend postgres, question-bank, integration and the halt check all `success`. On HEAD `c152957`, which adds only the run log, the same jobs were green or still in progress when I checked.
+
+**Tests added:** none. Every criterion is doc wording or repo shape (`test-guidelines.md`: backend never tests doc wording or repo shape; the `tasks.md` table is the same kind).
+**Pre-existing tests changed:** none. **Test change request:** none.
