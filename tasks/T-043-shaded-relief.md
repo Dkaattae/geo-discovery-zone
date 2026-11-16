@@ -1,7 +1,7 @@
 # T-043 — Shaded-relief basemap
 
-**Status:** `unblocked — Dkaattae, 2026-11-16, in the orchestrator's session: network opened (naciscdn.org, www.naturalearthdata.com), "lets try it again"`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-16, unattended run. See `runs/T-043-shaded-relief.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@
 | task-expander | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | task-expander (round 2, after Q1–Q3) | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| worker (round 2, after the network was opened) | 2026-11-16 | cse_011oDiJdNiAkMCtdKuibGJLt |
 
 ## Decisions (answered — no longer blocking)
 
@@ -220,47 +221,111 @@ a person checks:
 
 ## Handoff
 
-**TL;DR — blocked, nothing built.** The session's egress proxy refuses every
-Natural Earth host (403 policy denial on CONNECT), so the source raster cannot be
-fetched. The brief's feasibility warning says to stop rather than substitute a
-source; a person must supply the raster (or the finished PNG).
+**TL;DR — built.** The relief PNG is made (1200×750, grayscale+alpha, 235 197 bytes,
+from Natural Earth `SR_50M` 2.0.0, warped outside the repo through the exact
+`geoAlbersUsa` the map uses). `UsMap` draws it under the states, and every state
+multiplies onto it. Provenance is in `E-32`. Next: **tester**. Locally the
+UsMap-importing test files can't load because `react-simple-maps` is unreachable
+from the sandbox's pinned registry (same as `main`), so CI decides those.
 
-- **Changed:** nothing but this brief (Status, Next step, Sessions row, this
-  Handoff, Notes). No code, no PNG, no `E-32`.
-- **Evidence:** from this session, 2026-11-16 ~22:37 UTC:
-  - `https://naciscdn.org/naturalearth/10m/raster/SR_HR.zip` → `CONNECT tunnel failed, response 403`
-  - `https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip` → same
-  - `https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/SR_HR.zip` → same
-  - Proxy status (`$HTTPS_PROXY/__agentproxy/status`) records each as
-    `connect_rejected` — "gateway answered 403 to CONNECT (policy denial)".
-    The proxy README says not to retry or route around policy denials.
-- **Not tried, deliberately:** GitHub or other third-party mirrors of the raster
-  (the brief forbids substituting another source), any hand-drawn image, any new
-  dependency.
-- **Reprojection tooling, for whoever unblocks:** no GDAL in this session
-  (`gdalwarp` absent), but Python 3 with numpy + Pillow is present outside the
-  repo, and d3-geo's `geoAlbersUsa` (with `.invert`) is in
-  `frontend/node_modules`. A throwaway scratchpad script could inverse-project
-  each 800×500 output pixel (×scale factor) through `geoAlbersUsa` and sample
-  the equirectangular source — that covers all three insets in one pass and
-  needs no repo dependency. So the only missing piece is the source file.
+*(Round 1's handoff, "blocked, nothing built: Natural Earth refused by the proxy",
+is in git history at `3d60352`. Dkaattae opened the network and round 2 ran.)*
 
-**What a person must supply — either one:**
+**Changed, file by file**
 
-1. **The source raster** placed somewhere this session can read (e.g. attached
-   to the PR, or committed to a scratch branch — not to this task's branch):
-   Natural Earth *Shaded Relief Basic*, `SR_50M.zip` (1:50m, ~10800×5400 is
-   ample for an ≤2400-px-wide output) or `SR_HR.zip` (1:10m), from
-   `https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/`.
-   Or allow `naciscdn.org` in the session's egress policy. Then re-run the worker.
-2. **The finished PNG**, meeting criteria 5, 6, 7, 10, 11, plus the exact
-   commands used (criterion 8 needs them verbatim). The worker then wires it in.
+- **`frontend/src/assets/us-shaded-relief.png`** (new): the relief. Colour type 4,
+  8:5, alpha 0 outside the 51 drawn state outlines.
+- **`frontend/src/lib/relief.ts`** (new): `MAP_WIDTH`/`MAP_HEIGHT` (800/500) and
+  `reliefImageProps(href)`, which returns `x 0, y 0, width 800, height 500,
+  preserveAspectRatio "none", aria-hidden "true", pointerEvents "none"`. It is pure,
+  so it can be tested without a DOM.
+- **`frontend/src/components/UsMap.tsx`**: imports the PNG through Vite
+  (`@/assets/us-shaded-relief.png`) and renders `<image {...reliefImageProps(url)} />`
+  as the first child of `ComposableMap`, a sibling before `<Geographies>`. The
+  comment at that point links E-32. `width`/`height` now come from the constants.
+- **`frontend/src/lib/map-click.ts`**: `STATE_BLEND = "multiply"`, set as
+  `mixBlendMode` in all three style objects (`default`, `hover`, `pressed`) in
+  both branches (tap and no-tap). Fills, strokes, tab stops and labels are unchanged.
+- **`engineering-decisions.md`**: new **E-32**. It records the source file and version, download URL and
+  sha256, tool versions, the three parts' projection parameters, how they were
+  composited, the tone mapping, the mask, the verbatim commands, both throwaway
+  scripts, and the statement that no repo command regenerates the image.
+- **Tests (new, mine):** `frontend/src/lib/t043-relief.test.ts` (20 tests: PNG
+  bytes, IHDR, colour type, relief in CO/AK/HI, transparency at 6 outside points,
+  image props, blend in all styles, fills, tapped vs correct, labels/tab stops)
+  and `frontend/src/components/t043-usmap-relief.test.tsx` (static markup of
+  `UsMap` in both modes: one `<image>`, inside the svg, before the
+  `rsm-geographies` group, attributes, local href).
 
-- **Criteria status:** none implemented. No criterion looks wrong or
-  unobservable on reading; 10 (≤3 SVG units bleed) will be checkable from PNG
-  alpha against projected geometry with `node:zlib`, no image library.
-- **Tests made stale:** none.
-- **How to run:** nothing to run.
+**Where each criterion lives**
+
+| # | Where |
+|---|---|
+| 1, 3, 19 | `UsMap.tsx`: one `<image>` before `<Geographies>`, rendered regardless of `onTap`. It is not a parent of `Geographies`, and nothing waits on `load` |
+| 2 | `relief.ts` `reliefImageProps`, with PNG 1200×750 (exactly 8:5) |
+| 4 | Vite asset import, so the PNG is bundled and served from the app's own origin. Vite emits it as `/assets/us-shaded-relief-<hash>.png` (over the 4 KB inline limit) |
+| 5, 6, 7 | PNG: 235 197 bytes, 1200×750, colour type 4 |
+| 8 | `engineering-decisions.md` E-32, linked from the comment above `<image>` in `UsMap.tsx` |
+| 9 | No script or target added. The scripts live only as text inside E-32 |
+| 10 | Alpha mask baked into the PNG from the same projected outlines (`d3.geoPath`, same projection), 4× supersampled. Edge bleed is at most an antialiasing pixel (≈0.7 SVG units) |
+| 11 | PNG pixels vary inside Colorado (280.7, 238.4), Alaska (110.2, 420.1) and Hawaii (269.1, 467.4), all in SVG units |
+| 12, 13, 14, 17, 18 | `map-click.ts` `stateProps`: one constant blend in every style, the same for every state. No opacity or fill changes |
+| 15, 16 | `reliefImageProps`: `aria-hidden="true"`, `pointerEvents="none"`, no `tabIndex` or `role` |
+| 20, 21, 22 | No `package.json` or lockfile change. My tests read only the local PNG. Nothing under `question-bank/`, `backend/` or `openapi.yaml` changed |
+
+**How to run**
+
+- `cd frontend && bun test src/lib/t043-relief.test.ts`: **20 pass** here.
+- `bun test src/components/t043-usmap-relief.test.tsx`: **cannot load in this
+  sandbox** (`Cannot find package 'react-simple-maps'`). It needs CI or a full
+  `bun install`.
+- Whole suite here: 131 pass and 5 fail. All 5 are module-load errors for
+  `react-simple-maps`, in `t026-setup.criteria`, `t043-usmap-relief`, `t051-map-click`,
+  `t051-tester.criteria` and `screens.criteria`. `main` has the same error for the
+  four pre-existing files.
+- `bun run typecheck`: 9 errors, all `Cannot find module 'us-atlas/…'` or
+  `react-simple-maps`, plus the implicit-`any` errors they cause in `UsMap.tsx`.
+  None comes from this task: the PNG import is typed by `vite/client`.
+- `bun run lint`: clean. `bun run format:check`: clean.
+
+**Deliberately not done**
+
+- **No screenshot attached to the PR.** No browser runs here. The Review
+  checklist's screenshot is owed by **a human (Dkaattae)** at merge review, or by
+  the tester if its session can run the app. I checked registration myself by
+  overlaying the projected outlines on the PNG (scratch only, not committed). The
+  Front Range, Bighorns and Wind Rivers, Snake River Plain, Central Valley,
+  Sierra, Appalachians, Ozarks and Alaska Range all sit inside the right
+  outlines, and Hawaii's islands carry relief.
+- **No browser check of `mix-blend-mode` on SVG paths.** It is standard CSS on
+  SVG elements, but I have not looked at it rendered. Owner: tester (if it can
+  run a browser), otherwise the merge reviewer.
+- **Tried, refused, not routed around:** building a full `node_modules` from the
+  lockfile with the tarball URLs pointed at npmjs. The session's permission
+  classifier denied it, so the component tests are unverified locally.
+
+**Contradicts the brief:** nothing. One reading to confirm. Q1 (a)'s gloss says
+"separate warps composited into the inset positions". I did one inverse-mapping
+pass where each output pixel picks its part with `geoAlbersUsa`'s own region
+test, so the three warps and their composite happen in that single pass. E-32
+gives every part's parameters. Owner to confirm or overturn: **tester**, against
+criterion 8.
+
+**Judgment calls, with owners**
+
+- **Tone.** I stretched the source `[40, 215]` → `[0, 255]` so flat ground is
+  near white and multiply leaves fills almost untouched on the plains. Raw
+  `SR_50M` (median 204) would have darkened every state by about 20%. I quantised
+  to 32 grey levels to fit 300 KB at 1200 px. Owner: **merge reviewer**, via the
+  checklist item "relief is a texture, not noise". A darker or lighter
+  stretch is a re-run of E-32's commands.
+- **Colour reading under multiply:** not yet seen in a browser. If a fill reads
+  badly, that becomes a new `tasks.md` entry (out of scope here). Owner:
+  **merge reviewer**.
+
+**Tests made stale:** none. The existing tests compare state styles to each other
+(E-29 sameness), not to literal objects. The blend is the same on every state, so
+they should still hold. CI will confirm, since they can't load here.
 
 ## Notes
 
@@ -278,3 +343,16 @@ source; a person must supply the raster (or the finished PNG).
   The block is the session's egress policy, not the brief. Owner: **human
   (Dkaattae)** to supply the raster or allow `naciscdn.org`, then restart the
   worker on this branch.
+- Worker round 2 (2026-11-16): `naciscdn.org` now answers. `SR_50M.zip` came
+  down on the first try. The lockfile's private registry is still refused, so
+  `react-simple-maps`, `us-atlas` and `d3-geo` are not in `frontend/node_modules` here. For
+  the warp I installed the lockfile's exact versions of `d3-geo`,
+  `topojson-client` and `us-atlas` from npmjs into the scratchpad. Their integrity
+  hashes match `frontend/bun.lock`.
+- I checked react-simple-maps 3.0.0's `makeProjection` to get the exact
+  projection: `geoAlbersUsa().translate([400, 250]).scale(1000)`. Its `center`,
+  `rotate` and `parallels` hooks don't exist on albersUsa, so only scale applies.
+- Size budget: 1600 px wide was 673 KB at full grey and 388 KB at 32 levels. 1200 px
+  at 32 levels is 235 KB, and at that scale the 1:50m source already
+  oversamples.
+

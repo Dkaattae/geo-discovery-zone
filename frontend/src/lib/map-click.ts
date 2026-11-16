@@ -48,6 +48,14 @@ export interface StateProps {
 const TAP_HOVER_FILL = "color-mix(in oklab, var(--map-highlight) 45%, var(--map-land))";
 
 /**
+ * Every state is multiplied onto the shaded relief under it (T-043,
+ * engineering-decisions.md E-32), so terrain darkens the fill while the fill
+ * itself stays opaque. In every interaction style, and the same for every
+ * state, so it says nothing about which state is the answer (E-29).
+ */
+export const STATE_BLEND = "multiply" as const;
+
+/**
  * How one state is drawn and what it does. Pure, so every state can be checked
  * without a browser: the map renders its paths only after mount.
  *
@@ -82,9 +90,9 @@ export function stateProps(fips: string, view: MapView): StateProps {
       strokeDasharray,
       tabIndex: -1,
       style: {
-        default: { outline: "none", transition: "fill 320ms ease" },
-        hover: { outline: "none", fill },
-        pressed: { outline: "none", fill },
+        default: { outline: "none", transition: "fill 320ms ease", mixBlendMode: STATE_BLEND },
+        hover: { outline: "none", fill, mixBlendMode: STATE_BLEND },
+        pressed: { outline: "none", fill, mixBlendMode: STATE_BLEND },
       },
     };
   }
@@ -98,6 +106,7 @@ export function stateProps(fips: string, view: MapView): StateProps {
     fill: TAP_HOVER_FILL,
     stroke: "var(--foreground)",
     strokeWidth: 1.4,
+    mixBlendMode: STATE_BLEND,
   };
   return {
     fill,
@@ -116,7 +125,12 @@ export function stateProps(fips: string, view: MapView): StateProps {
       }
     },
     style: {
-      default: { outline: "none", cursor: "pointer", transition: "fill 320ms ease" },
+      default: {
+        outline: "none",
+        cursor: "pointer",
+        transition: "fill 320ms ease",
+        mixBlendMode: STATE_BLEND,
+      },
       hover: lit,
       pressed: lit,
     },
