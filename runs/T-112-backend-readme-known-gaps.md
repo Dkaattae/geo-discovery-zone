@@ -1,7 +1,7 @@
 # T-112 — backend README Known gaps — run log
 
 **Task:** T-112 · **Branch:** `claude/relaxed-allen-5ro49x` · **PR:** #144
-**Started:** 2026-11-16 · **Outcome:** in progress
+**Started:** 2026-11-16 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-16
 `Next step` on entry: `(no brief)` → on exit: `worker`
@@ -85,3 +85,59 @@ The brief's survey was correct on every point I checked. One addition of mine: I
 In the brief I set Status to `pass` and Next step to `reviewer`, added the tester row to Sessions, and wrote `## Verdict` with a table of each criterion and its evidence.
 
 File: /home/user/geo-discovery-zone/tasks/T-112-backend-readme-known-gaps.md
+
+## Round 4 — reviewer — 2026-11-16
+`Next step` on entry: `reviewer` → on exit: `human` (merge; brief swept, last header at `6454e81`: `Status: approved`)
+
+**TL;DR:** I approved T-112 and the change is inside the envelope, so there is no escalation. I swept it in the PR's own branch and marked PR #144 ready for review (it is no longer draft). Nothing is merged. Next: Dkaattae merges once CI on head `01803c6` is green. Those checks were still running when I marked the PR ready.
+
+**Push landed:** `origin/claude/relaxed-allen-5ro49x` and my local HEAD are both at `01803c61de14c679aed2da0c78976bbeead206f6`. GitHub reports PR #144 at `draft: false`, open, with that head.
+
+**Review**
+- **Every role's work is in the PR:**
+  - expander: `9f4ac17`, `c89bc91`
+  - worker: `5e9d75b`
+  - tester: `b08a533`
+  - orchestrator run log: `d2ac752`, `5082046`, `79f9982`
+- **Each role stayed in its lane:**
+  - The expander touched only `tasks/`, `tasks.md` and `PROGRESS.md`.
+  - The worker touched only one `backend/README.md` hunk under `## Known gaps`, plus the brief.
+  - The tester touched only the brief.
+- **The new Known-gaps bullet is true of `main`, checked myself:**
+  - `content.json` is 315 `multiple_choice`, 50 `map_identify` and 50 `map_click`.
+  - Pin grading in `grading.py` matches the bullet: only `nearest_centroid` with a centroid is graded, within `maxDistanceKm` or 300 km.
+  - The Postgres bullet is gone, and `ci.yml` does have a `backend-postgres` job.
+- **Open flags, each decided:**
+  - **Criterion 9:** judged on the task's own change. The other files in the diff are bookkeeping, not source, tests, workflows or `openapi.yaml`.
+  - **Local `main`:** it is stale here, so `origin/main` is the correct base.
+  - **T-114 drop:** confirmed. `PROGRESS.md` `## Done` now names six agents, and `assert_matches` no longer exists in `backend/`.
+  - **Worker's added "and it stores a centroid":** accepted. Without it the bullet would overstate what is graded.
+- **One non-blocking finding, queued as new T-115 (S):** `backend/README.md` still calls `openapi.yaml` "the contract" at 7 lines. `tasks.md`'s "Where the app is today" table has the same wording. No queued task owned this. I did not fold it into T-110, because T-110 waits on a product call and this needs none.
+- **Envelope:**
+  - Tester pass. Local suite green: 785 passed / 9 skipped, and question-bank 229 pass.
+  - No dependency, no `openapi.yaml`, migration or plan change, no child-facing text, no tests touched, no CI fix, no product decision.
+  - The brief was approved on the orchestrator's stamp. For a README-only change that is not an escalation trigger.
+
+**Commits**
+- `6454e81`: `## Review` added to the brief, `Status: approved`, `Next step: human` (merge), and my Sessions row.
+- `01803c6`: the sweep.
+  - Brief deleted.
+  - In `tasks.md`, the T-112 entry is deleted, T-115 is added and the sweep line is updated.
+  - `PROGRESS.md` has a T-112 entry under Completed tasks.
+
+**PR body rewritten:**
+- TL;DR, with no escalation and the CI caveat
+- every criterion verbatim, with its verdict and evidence
+- review notes
+- what I chose not to do
+- the sweep contents
+
+**Files**
+- /home/user/geo-discovery-zone/backend/README.md (reviewed, not changed by me)
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/tasks/T-112-backend-readme-known-gaps.md (deleted in the sweep; the review is in `6454e81`)
+- /home/user/geo-discovery-zone/runs/T-112-backend-readme-known-gaps.md (the orchestrator's log, left alone)
+
+## Ended — 2026-11-16
+Task ended: reviewer approved and marked PR #144 ready, no escalation. Rounds: expander, worker, tester (pass), reviewer. Run limit (1 task) reached; run ends.
