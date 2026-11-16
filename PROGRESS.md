@@ -369,6 +369,11 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-114 — dropped, already done by PR #143** (2026-11-16, T-112's expander). PR #143
+  (off-queue, merged 2026-11-16) rewrote `## Done`. It now names six agents including `ci-fix`,
+  and says `run-loop.sh` was removed (D-19). The same PR deleted `conftest.py::assert_matches`
+  and amended E-14, so the Backend bullet's "kept in step by hand" is accurate again. No cycle
+  was run.
 - **T-113 — `tasks.md` §A and `PROGRESS.md` name only guards that still run** (PR #142,
   2026-11-13). §A's table rows for `conventions.md`, test counts and `README.md`, the paragraph
   under it, the intro's `region-vocabulary` clause, and `PROGRESS.md`'s `## Done` and Known-gaps
