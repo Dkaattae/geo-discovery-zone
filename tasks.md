@@ -114,14 +114,14 @@ Read this before picking anything. It is the difference between what the app
 does and what `openapi.yaml` and the plan describe, and most of the queue below
 is that gap.
 
-| | Shipped | Contract / plan describes |
+| | Shipped | `openapi.yaml` / plan describes |
 |---|---|---|
 | **States** | **50**, from the pipeline bank (T-040) | 50 |
 | **Questions** | **415** served, generated: about eight per state (T-040, T-026, T-051) | generated from templates × entities (§1.2) |
 | **Question formats** | **3** — `map_identify`, `map_click`, `multiple_choice` | 9 — plus `image`, `ab_compare`, `pin_pick`, `pin_drop`, `drag_order`, `click_profile` |
 | **Topics** | **7** — location, capital, superlative, wildlife, landmark, climate, agriculture (T-026) | 10 — plus size, physical, elevation |
 | **Map** | US states, `us-atlas`, mastered states fill in | + shaded relief (§2.6), physical features (§2.4) |
-| **Backend** | all 29 contract operations, SQLite or Postgres | — |
+| **Backend** | all 29 `openapi.yaml` operations, SQLite or Postgres | — |
 
 So: a child sees a highlighted state and picks its name, or picks one of four
 answers about a named state (capital, state animal, landmark, climate, crop,
