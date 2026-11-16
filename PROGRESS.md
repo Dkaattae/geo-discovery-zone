@@ -63,9 +63,10 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   image serves those files next to the API — same origin, no CORS, hashed assets
   cached forever, SPA fallback that excludes `/api/v1` so a mistyped endpoint
   returns a problem document rather than an HTML page with a 200.
-- Unit and endpoint tests, including contract tests that walk `openapi.yaml`
-  in both directions, plus integration tests and browser tests against a real
-  stack (`backend/integration/`, `e2e/`).
+- Unit and endpoint tests, plus integration tests and browser tests against a
+  real stack (`backend/integration/`, `e2e/`). `d594b38` deleted the tests that
+  walked `openapi.yaml` against the app; it follows the backend and is kept in
+  step by hand (E-14).
 - **The answer key is withheld unless asked for** (T-053, PR #117): content
   endpoints and next-question omit `correctIndex` and `answerGeometryId` unless
   `includeAnswerKey=true`; `POST /sessions` and review rounds never send them.
@@ -117,9 +118,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
 - **Formatted by prettier pinned exact** (T-075, E-17): `bun run format:check`
   over the whole package, locally and as CI's Format step, at the same version
   as `question-bank/`. `.ts`/`.tsx` were already held by `eslint-plugin-prettier`.
-  The tests that run the writer refuse to start it unless the pinned prettier is
-  installed (T-107), and since T-109 the `format` and `format:check` scripts themselves
-  refuse to run without it, in both packages.
+  Since T-109 the `format` and `format:check` scripts refuse to run unless the
+  pinned prettier is installed, in both packages.
 
 ### Question bank — the pipeline
 
@@ -133,8 +133,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   package's `typescript@7`.
 - **Formatted by prettier pinned exact** (T-071, E-16): `bun run format:check`
   over `src/**/*.ts`, locally and as CI's Format step; JSON under `data/` and
-  `src/fixtures/` is outside the glob. The approved dependency
-  set is pinned in one file, `src/dependency-set.test.ts`, not nine.
+  `src/fixtures/` is outside the glob. Since `987d2cd` no test pins
+  the approved dependency set.
 - Curated override table for the things Wikidata is bad at: FIPS join keys,
   regions, animals, kid-facing climate phrasing (§1.7, §1.9). Wikidata's FIPS is
   cross-checked; mismatches warn rather than silently win.
@@ -202,15 +202,14 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   a curated value that overrides Wikidata and warns on every build.
 - **The offline-rebuild test harness lives in one place** (T-014, PR #44):
   `question-bank/src/offline-rebuild.ts` exports the dead-loopback proxy map and
-  `rebuildOffline()`, and all six suites that check a byte-identical offline
-  rebuild import it instead of pasting a fifth and sixth copy. Since T-080
+  `rebuildOffline()`, and `committed-bank.test.ts`, the CI suite that checks a
+  byte-identical offline rebuild, imports it instead of pasting its own copy. Since T-080
   (PR #73), `rebuildOfflineWithStdout()` also returns what the build printed, so
   `report()`'s warning lines can be asserted on, and since T-083 (PR #76)
   T-016's "the build prints that warning" is, on a derived fixture, in place of
   the old source grep. Since T-082 (PR #75) both
-  take `{ fixture }` and the report carries `listing`, and no test spawns
-  `build.ts` itself, through a constant either (`spawn-guard.test.ts`). There is exactly
-  one `127.0.0.1:1` under `question-bank/src/`, asserted. The tracked-file
+  take `{ fixture }` and the report carries `listing`. Since `987d2cd` no test
+  checks that nothing else spawns `build.ts` or holds its own dead-proxy map. The tracked-file
   *reading* route stays duplicated on purpose — `git ls-files` and `readdirSync`
   catch different failures.
 - **Templates and a generator** (T-020, T-021, T-026):
@@ -230,10 +229,9 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   (T-040, E-24).
 - Tests cover the built bank across `data-us-states.test.ts` and
   `committed-bank.test.ts` (T-010), `fun-facts.test.ts` (T-011),
-  `state-animals.test.ts` (T-012), `landmarks.test.ts` and
-  `landmarks-verify.test.ts` (T-013), and `climate-kid.test.ts` and
-  `climate-kid-verify.test.ts` (T-014) — run them all with
-  `cd question-bank && bun test`.
+  `question-file.test.ts` (T-040) and `answer-position-spread.test.ts` (T-094)
+  — run them all with `cd question-bank && bun test`. `987d2cd` deleted the
+  per-field tests for state animals, landmarks and climate phrases.
 
 ### Repo and process
 
@@ -241,22 +239,23 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   `test-guidelines.md`, `conventions.md`, `process-decisions.md`,
   `engineering-decisions.md`, `process-tasks.md`, and `tasks/` for the
   brief in flight.
-- **`conventions.md` and `README.md` are checked, not just written.**
-  `frontend/src/conventions-doc.test.ts` asserts both against the repo they
-  describe — every Layout path resolves, every `make` target and `bun run`
-  script they name is defined, their CI job lists equal `ci.yml`'s, the jobs
-  credited with a lockfile-drift guard are exactly the ones that run
-  `git diff --exit-code` against the lockfile they installed from, no count of
-  tests is stated anywhere in `README.md` in digits or words (T-062), and every
-  relative link points at a file that
-  exists (T-007 for `conventions.md`, T-058 for `README.md`). A doc that goes
-  stale now fails a test instead of misleading the next session.
-- **The top-level docs state no suite sizes.** `test-guidelines.md`, this
-  file's status sections and `tasks.md`'s §A table name a command or a directory
-  instead, as do `backend/README.md`, `backend/integration/README.md` and
-  `e2e/README.md`, and `frontend/src/stale-suite-counts.criteria.test.ts` fails if a
-  count comes back, in digits or words (T-065, T-074). It also scans this file's
-  Known-gaps and Next sections, below the history. Per-task figures in the history
+- **`conventions.md`, `README.md` and `test-guidelines.md` are kept true by
+  review, not by a test.** T-007 (`conventions.md`), T-058 and T-062
+  (`README.md`) and T-047 (`test-guidelines.md`) made them describe the repo.
+  Since `8cf40b6` and `d594b38` no CI test checks any of the three against the
+  repo's layout, commands, CI jobs, lockfile-drift claims, test counts or
+  links. Two narrow CI checks still read `conventions.md`, and neither covers
+  it as a whole:
+  `backend/tests/test_t040_tester_criteria.py::test_c28_conventions_layout_names_the_archive`
+  checks the Layout's `archive/` row, and `question-bank/src/committed-bank.test.ts`
+  checks that it says the bank is committed under `data/us-states` and does not
+  say the bank is kept out of git.
+- **The top-level docs were cleared of suite sizes** (T-065, T-074).
+  `test-guidelines.md`, this file's status sections and `tasks.md`'s §A table
+  named a command or a directory instead, as did `backend/README.md`,
+  `backend/integration/README.md` and `e2e/README.md`. Since `8cf40b6` no test
+  fails if a count comes back, and `test-guidelines.md` again states how many
+  test and snapshot files `question-bank/` has. Per-task figures in the history
   below are left alone on purpose: they record what a PR did, which does not rot.
 - Five agents in `.claude/agents/` — task-expander, worker, tester, reviewer,
   each prevented from grading its own work, plus `orchestrator`, which relays one
@@ -378,6 +377,19 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-113 — `tasks.md` §A and `PROGRESS.md` name only guards that still run** (PR #142,
+  2026-11-13). §A's table rows for `conventions.md`, test counts and `README.md`, the paragraph
+  under it, the intro's `region-vocabulary` clause, and `PROGRESS.md`'s `## Done` and Known-gaps
+  bullets no longer credit tests that `987d2cd`, `8cf40b6` and `d594b38` deleted or moved to the
+  monthly snapshot lane. Both files now say no CI test checks the root `README.md`,
+  `conventions.md` or `test-guidelines.md`, and name the two narrow CI checks that still read
+  `conventions.md`. *Where it differed from the brief:* the brief's survey called
+  `test_c28_conventions_layout_names_the_archive` the only CI reader of `conventions.md`; the
+  tester found `committed-bank.test.ts` also reads it, and a person-approved CI fix corrected
+  both sentences. `test-guidelines.md` states file counts again (since `987d2cd`), so the
+  "no counts" row says so instead of claiming none. The worker also corrected the
+  region-vocabulary Known-gaps bullet and `E-12` → `E-32`. The Backend sentence saying
+  `openapi.yaml` is kept in step "by hand" overlooks `conftest.py::assert_matches`; that is T-114.
 - **T-046 — The service directory stays `backend/`; `api/` is not a directory name**
   (PR #141, 2026-11-13). `engineering-decisions.md` E-31 records the call, what a rename to
   `api/` would have cost (`Dockerfile`, `ci.yml`, `backend/Makefile`, ~100 files), and a revisit
@@ -2023,8 +2035,9 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   topic fields now have data, and since T-026 (PR #91) each has a template
   and is served.
 - **One region vocabulary, settled** (T-017, PR #49): the served bank's thirteen
-  values, used by both halves and enforced by a closed-set test over the curated
-  table, the built bank and `content.json`. What is *not* settled is whether each
+  values, used by both halves. A closed-set test holds `content.json` and what
+  the API serves to them (`backend/tests/test_region_vocabulary.py`); the one
+  over the curated table and the built bank was deleted in `987d2cd`. What is *not* settled is whether each
   state's assignment is the right member of the thirteen — 35 rows are hand
   curation awaiting a human read on PR #49. Seven regions hold fewer than four
   states; T-022 (PR #82) tops their 11 states' distractors up nearest-first
@@ -2035,23 +2048,22 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 - `CLAUDE.md` still calls the backend "not built yet" in `api/` (lines 4 and
   58). It is loop-gated, so correcting it is P-19, a hand-written `P` ticket,
   not a `T` task. `conventions.md` (T-007, PR #33), `README.md` (T-058, PR #35) and
-  `test-guidelines.md` (T-047, PR #127) are fixed and now fail a test rather
-  than drift.
+  `test-guidelines.md` (T-047, PR #127) were fixed, but no CI test holds them
+  since `8cf40b6` and `d594b38`: review alone keeps them from drifting.
 - **No test fails on `main` in a full clone any more, and none passes because
   `git` failed.** All four known expired git baselines are gone: `question-bank`'s
   two with T-072 (PR #55, `E-11`) and `frontend`'s one with T-073 (PR #56,
-  `E-12`). T-081 (PR #74) closed the last fail-open `git` check. Three guards now
-  hold the line:
-  - `frontend/src/git-baseline-guard.criteria.test.ts` asserts repo-wide that no
+  `E-12`). T-081 (PR #74) closed the last fail-open `git` check. No CI suite
+  guards this any more: `987d2cd` deleted question-bank's git guard, and the
+  two that remain run only monthly, outside CI, in the snapshot lane:
+  - `frontend/src/git-baseline-guard.criteria.snapshot.ts` (monthly snapshot
+    lane, not CI) asserts repo-wide that no
     test hands `engineering-decisions.md` to `git`, and within `frontend/src/`
     that every `git` call reads only the working tree and throws on a non-zero
-    exit. It is a `frontend` test asserting repo-wide facts, so a violation added
-    in another package reddens `frontend`'s suite.
-  - `question-bank/src/git-exit-guard.criteria.test.ts` does the same for
-    `question-bank/src/`, and also reads calls made through a local `git(args)`
-    wrapper. Its exit check is an allowlist of fail-closed shapes. Its lexer is
-    heuristic, not a parser.
-  - `backend/tests/test_git_revision_guard.py` (T-098, PR #118) refuses any `git`
+    exit. A violation added in another package reddens the monthly frontend
+    snapshot run, not a pull request.
+  - `backend/tests/snapshot_git_revision_guard.py` (T-098, PR #118; monthly
+    snapshot lane, not CI) refuses any `git`
     call under `backend/tests/` or `backend/integration/` that is not a
     working-tree subcommand, read with Python's own parser. It does not check
     exit codes; the one backend `git` call already passes `check=True`.
