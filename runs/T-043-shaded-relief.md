@@ -110,3 +110,36 @@ Dkaattae approved a new personal environment `geo-discovery-zone` (Wikidata, Wik
 ## Person resumed — 2026-11-16
 Dkaattae, in the orchestrator's session, verbatim: "lets try it again, if not working, you can tell me how to download it, maybe write some scripts so that I can run it locally?"
 Header set to Next step `worker`; spawning a fresh worker.
+
+## Round 4 — worker — 2026-11-16
+`Next step` on entry: `worker` → on exit: `tester`
+
+**T-043 is built and handed to the tester.** The relief image is made and committed, the map draws it under the states, and every state is multiplied onto it. Pushed to `task/T-043-shaded-relief` as `da30583`; `git log origin/task/T-043-shaded-relief -1` shows that commit. Status is `awaiting verification`, Next step `tester`, and my Sessions row is added.
+
+**Verification is incomplete in this sandbox.** The lockfile's private registry is still refused (as on `main`), so `react-simple-maps` and `us-atlas` aren't installed here.
+- **Ran here:** my 20 PNG and pure-function tests pass; lint and format:check are clean.
+- **Can't run here:** the 4 existing test files that load `UsMap` plus my new component test fail to load ("Cannot find package 'react-simple-maps'"). Typecheck shows only errors from those missing packages. CI decides those.
+- **Refused:** I tried to build a full `node_modules` from the lockfile with the tarball URLs pointed at npmjs. The permission classifier denied it and I did not route around it.
+
+**The image**
+- **Source:** Natural Earth `SR_50M` 2.0.0, downloaded from naciscdn.org now that it is reachable.
+- **Warp:** done once in the scratchpad, through the exact projection the map uses: `geoAlbersUsa().translate([400,250]).scale(1000)`, Alaska and Hawaii insets included. Tools were Node with d3-geo 2.0.2, topojson-client 3.1.0 and us-atlas 3.0.1 (the lockfile's versions, matching integrity hashes) and Python with numpy and Pillow. No repo dependency was added.
+- **Result:** 1200×750 (exactly 8:5), grayscale+alpha, 235,197 bytes. Everything outside the 51 state outlines is transparent.
+- **Registration:** I checked it by overlaying the projected outlines on the PNG. Rockies, Sierra, Appalachians, Snake River Plain and Alaska Range sit inside the right states, and the Hawaiian islands carry relief.
+
+**Files**
+- `frontend/src/assets/us-shaded-relief.png` (new)
+- `frontend/src/lib/relief.ts` (new): `reliefImageProps` gives the image its 0,0,800,500 frame, `aria-hidden`, `pointerEvents="none"`, and no `tabIndex` or role.
+- `frontend/src/components/UsMap.tsx`: the `<image>` comes before `<Geographies>` as a sibling, with a comment linking E-32.
+- `frontend/src/lib/map-click.ts`: `STATE_BLEND = "multiply"` is set in `default`, `hover` and `pressed`, in both tap and no-tap modes. Fills, strokes, tab stops and labels are unchanged.
+- `engineering-decisions.md`: new E-32 with the source and its sha256, tool versions, every projection parameter, how the parts were composited, the tone mapping, the verbatim commands and both throwaway scripts, and a statement that no repo command regenerates the image.
+- `frontend/src/lib/t043-relief.test.ts` and `frontend/src/components/t043-usmap-relief.test.tsx` (new tests)
+- `tasks/T-043-shaded-relief.md`: Handoff with a criterion → location table, plus Notes.
+
+**Calls flagged in the Handoff, with owners**
+- **One pass, not three separate warps:** each output pixel picks Alaska, Hawaii or lower 48 using `geoAlbersUsa`'s own region test. The brief's gloss on Q1 says "separate warps composited". Tester to confirm against criterion 8.
+- **Tone:** I stretched the source values 40–215 to the full range and cut them to 32 grey levels so the file fits under 300 KB. Raw, it would have darkened every state by about 20%. Merge reviewer to judge.
+- **Screenshot not attached:** no browser runs here, so the Review checklist's screenshot is still owed by a human or a tester who can run the app.
+- **Multiply blend not seen rendered:** the same goes for how the multiply blend looks in a browser.
+
+**Tests made stale:** none. The existing map tests compare states to each other, and the blend is identical on every state.
