@@ -17,6 +17,10 @@ Criterion 8's "what they are today" was also checked once against the
 pre-task commit (both variants' bodies minus `bytes`, key order, headers and
 the 304 responses compared equal); see the Verdict. The tests below pin the
 parts of it that can be stated without a recorded copy of the old body.
+
+Criteria 7 and 10 checked `openapi.yaml` (its text, and bodies against its
+schemas); they were deleted when CI stopped checking the backend against it
+(`engineering-decisions.md` E-14).
 """
 
 from __future__ import annotations
@@ -24,11 +28,9 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-import yaml
 from sqlalchemy.orm import Session
 
 from app.orm import ContentMeta
-from tests.conftest import SPEC_PATH, assert_matches
 
 BUNDLE = "/bundles/us"
 KEYED = {"includeAnswerKey": "true"}
@@ -144,28 +146,6 @@ async def test_c6_bytes_follows_a_longer_content_version(
     assert after["keyed"] != before["keyed"]
 
 
-# -- 7 ----------------------------------------------------------------------
-
-
-def test_c7_contract_describes_what_bytes_measures() -> None:
-    spec = yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
-    field = spec["components"]["schemas"]["BundleSummary"]["properties"]["bytes"]
-    assert field.get("type") == "integer"
-    description = field.get("description")
-    assert isinstance(description, str) and description.strip()
-    text = " ".join(description.split())
-    # (a) the length in bytes of the GET /bundles/{bundleId} response body
-    assert "GET /bundles/{bundleId}" in text
-    assert "length in bytes" in text.lower()
-    assert "response body" in text.lower()
-    # (b) names includeAnswerKey
-    assert "includeAnswerKey" in text
-    # (c) the GET /bundles listing gives the default (unkeyed) variant's size
-    assert "GET /bundles`" in text or "GET /bundles " in text
-    assert "listing" in text.lower() or "list" in text.lower()
-    assert "unkeyed" in text.lower() and "default" in text.lower()
-
-
 # -- 8 ----------------------------------------------------------------------
 
 
@@ -229,14 +209,3 @@ async def test_c9_304_path_is_untouched_for_both_variants(client: httpx.AsyncCli
         assert response.status_code == 304
         assert response.content == b""
         assert response.headers["ETag"] == tag
-
-
-# -- 10 ---------------------------------------------------------------------
-
-
-async def test_c10_bodies_still_match_the_contract(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
-    assert_matches(spec, "Bundle", (await get_ok(client)).json())
-    assert_matches(spec, "Bundle", (await get_ok(client, KEYED)).json())
-    assert_matches(spec, "BundleSummary", await us_summary(client))

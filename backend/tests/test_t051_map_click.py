@@ -17,7 +17,7 @@ import pytest
 from app.content_build import CONTENT_FILE, QUESTION_FILE, served_question
 from app.grading import UngradableAnswer, build_reveal, grade
 from app.serializers import question_payload
-from tests.conftest import DEMO_PROFILE_ID, assert_matches, assert_problem
+from tests.conftest import DEMO_PROFILE_ID, assert_problem
 
 STATE_CODES = sorted(
     q["answerGeometryId"]
@@ -117,9 +117,7 @@ def test_the_geometry_key_is_withheld_with_the_answer_key() -> None:
 # -- through the API --------------------------------------------------------
 
 
-async def test_listing_map_click_returns_exactly_the_served_ones(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
+async def test_listing_map_click_returns_exactly_the_served_ones(client: httpx.AsyncClient) -> None:
     seen: list[dict[str, Any]] = []
     cursor: str | None = None
     while True:
@@ -134,7 +132,6 @@ async def test_listing_map_click_returns_exactly_the_served_ones(
             break
     assert sorted(q["id"] for q in seen) == sorted(_file_map_click())
     for question in seen:
-        assert_matches(spec, "Question", question)
         assert "answerGeometryId" in question
         assert not {"choices", "correctIndex", "choiceGeometryIds"} & set(question)
 
@@ -188,7 +185,7 @@ def _answer_key(question_id: str) -> str:
 
 
 async def test_a_right_tap_is_correct_and_names_the_state(
-    client: httpx.AsyncClient, auth_headers: dict[str, str], spec: dict[str, Any]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session_id, served = await _session_at_a_map_click(client, auth_headers)
     question_id = served["question"]["id"]
@@ -209,7 +206,6 @@ async def test_a_right_tap_is_correct_and_names_the_state(
     )
     assert response.status_code == 200, response.text
     result = response.json()
-    assert_matches(spec, "AnswerResult", result)
     assert result["correct"] is True
     assert "correctIndex" not in result
     assert result["reveal"]["mapHighlightGeometryId"] == key

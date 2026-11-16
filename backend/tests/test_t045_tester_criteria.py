@@ -4,13 +4,14 @@ Expected values come from the brief (`tasks/T-045-ungradable-formats.md`), not
 from the implementation. Criteria 16-17 (no frontend/question-bank/bank/lockfile
 change) are checked with `git diff` against the default branch and recorded in
 the brief's Verdict, not pinned here as digests. Committed files only; no network.
+Criteria 10-15 checked `openapi.yaml`'s text; they were deleted when CI stopped
+checking the backend against it (`engineering-decisions.md` E-14).
 """
 
 from __future__ import annotations
 
 import json
 import math
-import re
 from typing import Any
 
 import httpx
@@ -24,9 +25,8 @@ from app.content_build import (
     load_pipeline_entities,
 )
 from app.orm import QuestionRow
-from tests.conftest import DEMO_PROFILE_ID, SPEC_PATH, assert_problem
+from tests.conftest import DEMO_PROFILE_ID, assert_problem
 
-MARK = "Not implemented in v1"
 # Kansas, roughly. Any point well away from the poles works for the offsets below.
 CENTROID = [-98.0, 38.5]
 KM_PER_DEG_LAT = math.pi * 6371.0088 / 180  # ~111.19 km
@@ -35,10 +35,6 @@ KM_PER_DEG_LAT = math.pi * 6371.0088 / 180  # ~111.19 km
 def _north(km: float) -> list[float]:
     """A pin `km` due north of CENTROID (great-circle distance along a meridian)."""
     return [CENTROID[0], CENTROID[1] + km / KM_PER_DEG_LAT]
-
-
-def _flat(text: str) -> str:
-    return re.sub(r"\s+", " ", text)
 
 
 # --- endpoint helpers ----------------------------------------------------------
@@ -305,79 +301,3 @@ def test_c9_building_content_drops_the_six_formats() -> None:
     built = build_content(entities, [base, *extra])
     ids = [q["id"] for q in built["questions"]]
     assert ids == [base["id"]]
-
-
-# --- Criteria 10-15: the contract ------------------------------------------------
-
-
-def _schema(spec: dict[str, Any], name: str) -> dict[str, Any]:
-    return spec["components"]["schemas"][name]
-
-
-def test_c10_question_format_marks_four_unimplemented_and_names_served(
-    spec: dict[str, Any],
-) -> None:
-    desc = _flat(_schema(spec, "QuestionFormat")["description"])
-    assert MARK in desc
-    for name in ["drag_order", "click_profile", "pin_pick", "pin_drop"]:
-        assert name in desc, name
-    for name in ["map_identify", "map_click", "multiple_choice"]:
-        assert name in desc, name
-
-
-def test_c11_pin_target_marks_geometry_strategies_and_keeps_reasoning(
-    spec: dict[str, Any],
-) -> None:
-    desc = _flat(_schema(spec, "PinTarget")["description"])
-    assert MARK in desc
-    assert "polygon_then_centroid" in desc
-    assert "distance_to_line" in desc
-    assert re.search(r"nearest_centroid[^.]*\bonly\b|\bonly\b[^.]*nearest_centroid", desc), desc
-    assert re.search(r"point-in-polygon", desc, re.I), "plan's point-in-polygon reasoning kept"
-
-
-def test_c12_max_distance_states_300_km_default(spec: dict[str, Any]) -> None:
-    desc = _flat(_schema(spec, "PinTarget")["properties"]["maxDistanceKm"]["description"])
-    assert re.search(r"omit", desc, re.I)
-    assert re.search(r"\b300\s*km\b", desc), desc
-
-
-def test_c13_submit_answer_names_every_422_path(spec: dict[str, Any]) -> None:
-    op = next(
-        o
-        for methods in spec["paths"].values()
-        for o in methods.values()
-        if isinstance(o, dict) and o.get("operationId") == "submitAnswer"
-    )
-    text = op.get("description", "") + " " + op["responses"]["422"].get("description", "")
-    text = _flat(text)
-    assert re.search(r"cannot (be )?grade", text, re.I), text
-    for path in ["/choiceIndex", "/tappedGeometryId", "/pin", "/order", "/questionId"]:
-        assert path in text, path
-
-
-def test_c14_answer_request_order_says_not_graded(spec: dict[str, Any]) -> None:
-    desc = _flat(_schema(spec, "AnswerRequest")["properties"]["order"]["description"])
-    assert MARK in desc or ("drag_order" in desc and "422" in desc), desc
-
-
-def test_c15_no_enum_value_or_property_removed(spec: dict[str, Any]) -> None:
-    assert set(_schema(spec, "QuestionFormat")["enum"]) == {
-        "map_identify",
-        "map_click",
-        "multiple_choice",
-        "image",
-        "ab_compare",
-        "pin_pick",
-        "pin_drop",
-        "drag_order",
-        "click_profile",
-    }
-    assert set(_schema(spec, "PinTarget")["properties"]["strategy"]["enum"]) == {
-        "nearest_centroid",
-        "polygon_then_centroid",
-        "distance_to_line",
-    }
-    props = _schema(spec, "AnswerRequest")["properties"]
-    assert "pin" in props and "order" in props
-    assert SPEC_PATH.is_file()

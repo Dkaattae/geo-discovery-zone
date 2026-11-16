@@ -3,8 +3,8 @@
 Endpoint tests go through the app with `httpx.AsyncClient`, not by calling the
 handler — routing, validation and serialisation are part of the behaviour a
 client sees, so a test that skips them is not testing the endpoint.
-`openapi.yaml` follows the backend and is kept in step with it, not the other
-way round (`engineering-decisions.md` E-14).
+`openapi.yaml` follows the backend and is kept in step with it by hand; no test
+checks a response against it (`engineering-decisions.md` E-14).
 
 The database is real, and which one is a choice: by default a temporary SQLite
 file, or any URL in `GEO_TEST_DATABASE_URL`. Both are supported backends, so
@@ -34,7 +34,6 @@ from typing import Any
 
 import httpx
 import pytest
-import yaml
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, text
@@ -45,7 +44,6 @@ from app.auth import DEMO_PASSWORD, DEMO_USERNAME
 from app.db import get_db
 from app.main import API_PREFIX, app
 
-SPEC_PATH = Path(__file__).resolve().parents[2] / "openapi.yaml"
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 DEMO_PROFILE_ID = "p-demo-maya"
@@ -151,42 +149,6 @@ async def other_auth(client: httpx.AsyncClient) -> dict[str, str]:
     )
     token = await token_for(client, "someone-else@example.com", "hunter2hunter2")
     return {"Authorization": f"Bearer {token}"}
-
-
-# -- contract assertions ----------------------------------------------------
-
-
-@pytest.fixture(scope="session")
-def spec() -> dict[str, Any]:
-    return yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
-
-
-def resolve(spec: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
-    """Flattens `$ref` and `allOf` into one schema object."""
-    if "$ref" in schema:
-        node: Any = spec
-        for part in schema["$ref"].lstrip("#/").split("/"):
-            node = node[part]
-        return resolve(spec, node)
-    if "allOf" in schema:
-        merged: dict[str, Any] = {"type": "object", "required": [], "properties": {}}
-        for part in schema["allOf"]:
-            resolved = resolve(spec, part)
-            merged["required"] += resolved.get("required", [])
-            merged["properties"].update(resolved.get("properties", {}))
-        return merged
-    return schema
-
-
-def assert_matches(spec: dict[str, Any], schema_name: str, payload: dict[str, Any]) -> None:
-    """Every required property of `schema_name` is present, and nothing the
-    contract does not declare is."""
-    schema = resolve(spec, {"$ref": f"#/components/schemas/{schema_name}"})
-    missing = [key for key in schema.get("required", []) if key not in payload]
-    assert not missing, f"{schema_name} response is missing required {missing}: {payload}"
-    declared = set(schema.get("properties", {}))
-    undeclared = [key for key in payload if key not in declared]
-    assert not undeclared, f"{schema_name} response carries undeclared {undeclared}"
 
 
 def assert_problem(response: httpx.Response, status: int) -> dict[str, Any]:

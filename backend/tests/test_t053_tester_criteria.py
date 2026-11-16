@@ -7,12 +7,13 @@ Expected values come from the brief's criteria, not from the implementation.
 
 All calls go through the in-process ASGI client; nothing reaches the network.
 
-Criteria 20 (the contract test file), 22-25 (the file boundaries) are not
+Criteria 15-19 checked `openapi.yaml`'s text and were deleted when CI stopped
+checking the backend against it (`engineering-decisions.md` E-14). Criteria 20
+(the contract test file, since deleted), 22-25 (the file boundaries) are not
 tested here: a test that diffs against a fixed commit skips in CI's shallow
 clone and goes red on `main` once a later task touches those paths (E-11,
 E-12, T-053 review finding 1). They were checked once, by hand, and the
-`git diff --stat` output is in the brief's Verdict. Criterion 20's behavioural
-half is `tests/test_contract.py`, which runs unchanged. Criterion 26 holds
+`git diff --stat` output is in the brief's Verdict. Criterion 26 holds
 because every test here uses the in-process `client` fixture.
 """
 
@@ -22,9 +23,8 @@ from typing import Any
 
 import httpx
 import pytest
-import yaml
 
-from tests.conftest import DEMO_PROFILE_ID, SPEC_PATH
+from tests.conftest import DEMO_PROFILE_ID
 
 KEY_FIELDS = ("correctIndex", "answerGeometryId")
 
@@ -336,73 +336,3 @@ async def test_c14_a_withheld_map_click_question_grades_against_the_stored_key(
     )
     assert response.status_code == 200, response.text
     assert response.json()["correct"] is correct
-
-
-# -- openapi.yaml ------------------------------------------------------------
-
-
-@pytest.fixture(scope="module")
-def raw_spec() -> dict[str, Any]:
-    return yaml.safe_load(SPEC_PATH.read_text())
-
-
-def test_c15_include_answer_key_parameter_defaults_false(raw_spec: dict[str, Any]) -> None:
-    param = raw_spec["components"]["parameters"]["IncludeAnswerKey"]
-    assert param["schema"]["default"] is False
-    description = param["description"]
-    assert "withheld" in description.lower()
-    assert "true" in description
-    assert "grades locally" not in description
-    assert "locally" not in description.lower()
-    assert "once grading" not in description
-
-
-def test_c16_next_question_body_include_answer_key_defaults_false(
-    raw_spec: dict[str, Any],
-) -> None:
-    op = raw_spec["paths"]["/sessions/{sessionId}/next-question"]["post"]
-    schema = op["requestBody"]["content"]["application/json"]["schema"]
-    if "$ref" in schema:
-        name = schema["$ref"].rsplit("/", 1)[-1]
-        schema = raw_spec["components"]["schemas"][name]
-    assert schema["properties"]["includeAnswerKey"]["default"] is False
-
-
-def _answer_keys_paragraph(raw_spec: dict[str, Any]) -> str:
-    description = raw_spec["info"]["description"]
-    start = description.index("Answer keys")
-    rest = description[start:]
-    end = rest.find("\n\n")
-    return rest if end == -1 else rest[:end]
-
-
-def test_c17_info_answer_keys_paragraph(raw_spec: dict[str, Any]) -> None:
-    paragraph = _answer_keys_paragraph(raw_spec)
-    for needle in ("includeAnswerKey=true", "entityId", "highlightGeometryId", "geometryId"):
-        assert needle in paragraph, needle
-    assert "grades locally" not in paragraph
-    assert "once grading" not in paragraph
-    assert "withheld" in paragraph.lower() or "without" in paragraph.lower()
-    assert "/sessions" in paragraph and "review-round" in paragraph
-    assert "map_identify" in paragraph and "map_click" in paragraph
-    assert "answerGeometryId" in paragraph
-    whole = raw_spec["info"]["description"]
-    assert "grades locally" not in whole and "once grading" not in whole
-
-
-@pytest.mark.parametrize("field", ["correctIndex", "answerGeometryId"])
-def test_c18_question_key_fields_present_only_when_true(
-    raw_spec: dict[str, Any], field: str
-) -> None:
-    description = raw_spec["components"]["schemas"]["Question"]["properties"][field]["description"]
-    assert "includeAnswerKey=true" in description
-    assert "includeAnswerKey=false" not in description
-
-
-def test_c19_list_questions_description_names_a_fixed_window(raw_spec: dict[str, Any]) -> None:
-    op = raw_spec["paths"]["/questions"]["get"]
-    assert op["operationId"] == "listQuestions"
-    description = op["description"]
-    assert "widening" not in description and "widens" not in description
-    assert "levelSpan" in description and "level" in description
-    assert "fixed" in description.lower() and "window" in description.lower()

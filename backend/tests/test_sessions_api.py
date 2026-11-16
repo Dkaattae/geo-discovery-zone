@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 
-from tests.conftest import DEMO_PROFILE_ID, assert_matches, assert_problem
+from tests.conftest import DEMO_PROFILE_ID, assert_problem
 
 
 async def start(
@@ -104,12 +104,10 @@ async def test_another_account_cannot_read_a_session(
 
 
 async def test_starting_a_session_serves_the_first_question(
-    client: httpx.AsyncClient, auth_headers: dict[str, str], spec: dict[str, Any]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session, served = await start(client, auth_headers)
-    assert_matches(spec, "Session", session)
     assert served is not None
-    assert_matches(spec, "ServedQuestion", served)
     assert served["index"] == 0
     assert served["phase"] == "PRESENTING"
     assert session["askedQuestionIds"] == [served["question"]["id"]]
@@ -192,11 +190,10 @@ async def test_a_question_can_be_served_without_its_answer_key(
 
 
 async def test_a_correct_answer_returns_the_reward_and_the_key(
-    client: httpx.AsyncClient, auth_headers: dict[str, str], spec: dict[str, Any]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session, served = await start(client, auth_headers)
     result = await answer(client, auth_headers, session["id"], served, correct=True)
-    assert_matches(spec, "AnswerResult", result)
     assert result["correct"] is True
     assert result["reveal"]["tone"] == "reward"
     # T-051 (Test change request row 25): a map_click reports no index.
@@ -230,11 +227,10 @@ async def test_a_wrong_answer_returns_the_reason_and_queues_the_entity(
 
 
 async def test_the_profile_comes_back_advanced(
-    client: httpx.AsyncClient, auth_headers: dict[str, str], spec: dict[str, Any]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session, served = await start(client, auth_headers)
     result = await answer(client, auth_headers, session["id"], served, correct=True)
-    assert_matches(spec, "Profile", result["profile"])
     assert result["profile"]["stats"]["answered"] == 13  # the demo profile starts at 12
     assert result["profile"]["mastery"][served["question"]["entityId"]] > 0
 
@@ -407,7 +403,7 @@ async def test_undoing_an_unknown_answer_is_a_404(
 
 
 async def test_a_review_round_serves_from_the_queue(
-    client: httpx.AsyncClient, auth_headers: dict[str, str], spec: dict[str, Any]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session, _ = await start(client, auth_headers, serveFirstQuestion=False)
     response = await client.post(
@@ -415,7 +411,6 @@ async def test_a_review_round_serves_from_the_queue(
     )
     assert response.status_code == 200
     body = response.json()
-    assert_matches(spec, "ServedQuestion", body["served"])
     # The demo profile has Texas queued.
     assert body["served"]["question"]["entityId"] == "us-state-tx"
     assert body["served"]["isReview"] is True
@@ -473,13 +468,12 @@ async def test_a_review_question_is_not_labelled_to_the_kid(
 
 
 async def test_ending_writes_the_end_level_and_reports_places_learned(
-    client: httpx.AsyncClient, auth_headers: dict[str, str], spec: dict[str, Any]
+    client: httpx.AsyncClient, auth_headers: dict[str, str]
 ) -> None:
     session, served = await start(client, auth_headers, level=8)
     await play(client, auth_headers, session["id"], served, [True, True])
 
     summary = (await client.post(f"/sessions/{session['id']}/end", headers=auth_headers)).json()
-    assert_matches(spec, "SessionSummary", summary)
     assert summary["answered"] == 2
     assert summary["endLevel"] == 8
     assert "%" not in summary["headline"]

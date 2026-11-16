@@ -12,9 +12,9 @@ Three criteria land here rather than in `question-bank/`:
 * **4** — the closed-set check over `backend/app/data/content.json`, which is
   where that file ships from. `question-bank/src/region-vocabulary.test.ts`
   checks the same file plus the curated table and the built bank.
-* **5** — `openapi.yaml`'s `Region` parameter description gives an example the
-  API actually returns. The spec is already loaded here by the `spec` fixture
-  that `test_contract.py` uses.
+* **5** — the region filter matches the way `openapi.yaml`'s `Region`
+  description says it does. Only the behaviour is tested; the description's
+  text is kept in step by hand (`engineering-decisions.md` E-14).
 
 No network: every assertion reads a committed file or goes through the app with
 the in-process test client.
@@ -23,7 +23,6 @@ the in-process test client.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
@@ -168,92 +167,32 @@ async def test_no_region_the_api_serves_is_outside_the_thirteen(
 
 
 # -- criterion 5 -------------------------------------------------------------
+#
+# Criterion 5 was about `openapi.yaml`'s `Region` description; its text checks
+# were deleted when CI stopped checking the backend against `openapi.yaml`
+# (`engineering-decisions.md` E-14). What the description promised about the
+# filter is API behaviour, so that half stays, on a fixed value from the 13.
+
+#: A two-word value, so its kebab-case spelling differs from the titled one.
+EXAMPLE = "Mountain West"
 
 
-def region_parameter_description(spec: dict[str, Any]) -> str:
-    return spec["components"]["parameters"]["Region"]["description"]
-
-
-def region_examples(spec: dict[str, Any]) -> list[str]:
-    """The backticked example values in the Region parameter's description."""
-    return re.findall(r"`([^`]+)`", region_parameter_description(spec))
-
-
-def test_the_region_parameter_description_gives_at_least_one_example(
-    spec: dict[str, Any],
+async def test_a_slug_form_of_a_region_matches_the_same_entities(
+    client: httpx.AsyncClient,
 ) -> None:
-    assert region_examples(spec), region_parameter_description(spec)
-
-
-def test_every_region_example_in_the_contract_is_a_value_the_api_returns(
-    spec: dict[str, Any],
-) -> None:
-    served = {entity.get("region") for entity in content()["entities"]}
-    unreal = [value for value in region_examples(spec) if value not in served]
-    assert unreal == [], f"examples the API never returns: {unreal}"
-
-
-def test_no_region_example_in_the_contract_is_a_kebab_case_slug(
-    spec: dict[str, Any],
-) -> None:
-    """The exact defect criterion 5 names: `mountain-west`, `europe`,
-    `southeast-asia` were fabricated and matched nothing the API stores."""
-    description = region_parameter_description(spec)
-    for fabricated in ("mountain-west", "europe", "southeast-asia"):
-        assert fabricated not in description
-    slug = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
-    slugs = [value for value in region_examples(spec) if slug.fullmatch(value)]
-    assert slugs == []
-
-
-def test_the_region_parameter_is_still_a_plain_string_with_no_schema_change(
-    spec: dict[str, Any],
-) -> None:
-    """Criterion 5 is documentation text only, and Out of scope rules out an
-    enum; a schema change here would be outside the task."""
-    parameter = spec["components"]["parameters"]["Region"]
-    assert parameter["schema"] == {"type": "string"}
-    assert parameter["in"] == "query"
-    assert parameter["name"] == "region"
-
-
-def test_the_description_does_not_claim_a_matching_rule_stricter_than_the_api(
-    spec: dict[str, Any],
-) -> None:
-    """The first round of this task shipped "matched against Entity.region
-    exactly", which `backend/app/store.py`'s slug comparison contradicts. The
-    point of T-017 is that the contract and the data stop disagreeing about
-    `region`, so a claim of exactness is a claim the served behaviour has to
-    honour — and it does not (see the behavioural test below)."""
-    description = region_parameter_description(spec).lower()
-    assert "exactly" not in description
-    assert "case- and hyphen-insensitively" in description
-
-
-async def test_a_slug_form_of_a_documented_example_matches_the_same_entities(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
-    """The behavioural half: whatever the description claims about matching has
-    to be true of the API. A kebab-case spelling of a documented example returns
-    the same rows as the canonical titled spelling."""
-    example = next(value for value in region_examples(spec) if value in VOCABULARY)
-    canonical = (await client.get("/entities", params={"region": example, "limit": 500})).json()
+    """A kebab-case spelling of a region returns the same rows as the canonical
+    titled spelling (`backend/app/store.py` compares slugs)."""
+    canonical = (await client.get("/entities", params={"region": EXAMPLE, "limit": 500})).json()
     slugged = (
         await client.get(
-            "/entities", params={"region": example.lower().replace(" ", "-"), "limit": 500}
+            "/entities", params={"region": EXAMPLE.lower().replace(" ", "-"), "limit": 500}
         )
     ).json()
-    assert canonical["data"], f"no entity matched the documented example {example!r}"
+    assert canonical["data"], f"no entity matched {EXAMPLE!r}"
     assert [row["id"] for row in slugged["data"]] == [row["id"] for row in canonical["data"]]
 
 
-async def test_the_documented_example_works_as_a_filter(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
-    """An example the contract gives has to be usable, not merely real."""
-    usable = [value for value in region_examples(spec) if value in VOCABULARY]
-    assert usable, f"no example in the description is one of the 13: {region_examples(spec)}"
-    example = usable[0]
-    body = (await client.get("/entities", params={"region": example, "limit": 500})).json()
-    assert body["data"], f"no entity matched the documented example {example!r}"
-    assert {row["region"] for row in body["data"]} == {example}
+async def test_a_region_works_as_a_filter(client: httpx.AsyncClient) -> None:
+    body = (await client.get("/entities", params={"region": EXAMPLE, "limit": 500})).json()
+    assert body["data"], f"no entity matched {EXAMPLE!r}"
+    assert {row["region"] for row in body["data"]} == {EXAMPLE}

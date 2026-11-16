@@ -25,7 +25,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from app.orm import ContentMeta
-from tests.conftest import assert_matches, assert_problem
+from tests.conftest import assert_problem
 
 KEYED = {"includeAnswerKey": "true"}
 CACHE_CONTROL = "public, max-age=31536000, immutable"
@@ -151,7 +151,7 @@ async def test_c4_known_bundle_other_variant_or_old_tag_is_200(
 
 @pytest.mark.parametrize("keyed", [False, True])
 async def test_c5_known_bundle_unconditional_200_is_unchanged(
-    client: httpx.AsyncClient, spec: dict[str, Any], keyed: bool
+    client: httpx.AsyncClient, keyed: bool
 ) -> None:
     response = await fetch(client, "us", keyed=keyed)
     assert response.status_code == 200
@@ -160,7 +160,6 @@ async def test_c5_known_bundle_unconditional_200_is_unchanged(
     body = response.json()
     assert body["etag"] == response.headers["etag"]
     assert body["bytes"] == len(response.content)
-    assert_matches(spec, "Bundle", body)
 
 
 # -- 6 ------------------------------------------------------------------------

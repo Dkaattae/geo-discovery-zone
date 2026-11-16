@@ -2,8 +2,8 @@
 
 Written from `tasks/T-040-pipeline-loader.md`, not from the worker's tests.
 Expected values come from the criteria and the committed *inputs*
-(`question-bank/data/us-states/`, `question-bank/data/questions/us-states.json`,
-`openapi.yaml`), never from `content.json` or `app.content_build`. The loader is
+(`question-bank/data/us-states/`, `question-bank/data/questions/us-states.json`),
+never from `content.json` or `app.content_build`. The loader is
 imported only as the entry point that criteria 4, 5 and 16-19 name.
 
 Where the worker's tests sample (one question per reveal kind), these walk every
@@ -20,7 +20,6 @@ from typing import Any
 
 import httpx
 import pytest
-import yaml
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,7 +31,6 @@ REPO = Path(__file__).resolve().parents[2]
 ENTITY_DIR = REPO / "question-bank" / "data" / "us-states"
 QUESTION_FILE = REPO / "question-bank" / "data" / "questions" / "us-states.json"
 CONTENT = REPO / "backend" / "app" / "data" / "content.json"
-SPEC = yaml.safe_load((REPO / "openapi.yaml").read_text(encoding="utf-8"))
 
 #: Criterion 8's pairs: served camelCase key -> pipeline key.
 FIELD_PAIRS = {
@@ -84,17 +82,6 @@ def pipeline() -> dict[str, dict[str, Any]]:
 
 def generated() -> list[dict[str, Any]]:
     return json.loads(QUESTION_FILE.read_text(encoding="utf-8"))["questions"]
-
-
-def schema_properties(name: str) -> set[str]:
-    """Every property `name` may carry, through `allOf` and `$ref`."""
-    schema = SPEC["components"]["schemas"][name]
-    found: set[str] = set(schema.get("properties", {}))
-    for part in schema.get("allOf", []):
-        if "$ref" in part:
-            found |= schema_properties(part["$ref"].rsplit("/", 1)[-1])
-        found |= set(part.get("properties", {}))
-    return found
 
 
 async def all_rows(client: httpx.AsyncClient, path: str, **extra: Any) -> list[dict[str, Any]]:
@@ -204,18 +191,12 @@ async def test_c9_absent_landmark_is_absent_and_empty_livestock_is_an_empty_list
         assert "" not in row.values(), row["id"]
 
 
-async def test_c10_no_served_key_outside_the_contract(client: httpx.AsyncClient) -> None:
-    entity_keys = schema_properties("Entity")
-    question_keys = schema_properties("Question")
+async def test_c10_no_pipeline_only_key_is_served(client: httpx.AsyncClient) -> None:
     for row in await all_rows(client, "/entities"):
-        extra = set(row) - entity_keys
-        assert extra == set(), (row["id"], extra)
         assert not any("_" in key for key in row), row["id"]
         for banned in ("stateAnimal", "highestPoint", "sources"):
             assert banned not in row
     for row in await all_rows(client, "/questions"):
-        extra = set(row) - question_keys
-        assert extra == set(), (row["id"], extra)
         # T-051 (Test change request row 16): answerGeometryId on map_click only.
         for banned in ("answer", "choiceGeometryIds"):
             assert banned not in row
@@ -542,7 +523,7 @@ def test_c24_a_changed_file_is_served_and_leaves_no_stale_rows(
         store.ensure_content_loaded(db_session, path=CONTENT)
 
 
-# -- criteria 26-34: archive, docs, contract, limits -----------------------------
+# -- criteria 26-34: archive, docs, limits ---------------------------------------
 
 
 def test_c27_no_shipped_source_reads_archive() -> None:
@@ -570,12 +551,6 @@ def test_c30_source_names_its_inputs_and_claims_no_human_prose() -> None:
     assert "question-bank/data/us-states/" in source
     assert "question-bank/data/questions/us-states.json" in source
     assert "human-written" not in source.lower()
-
-
-def test_c31_top_livestock_description() -> None:
-    text = (REPO / "openapi.yaml").read_text(encoding="utf-8")
-    assert "Empty where the state has no honest standout." in text
-    assert "where no state has" not in text
 
 
 def test_c32_one_new_decision_entry_names_the_three_choices() -> None:

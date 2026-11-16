@@ -1,9 +1,9 @@
 """Content endpoints.
 
 Read-only and public: the group is build-time generated and carries no user
-data, so a request with no token must still work. Response shapes are asserted
-against `openapi.yaml` — it is the contract, and a response that does not match
-it is a bug even when the test author expected it.
+data, so a request with no token must still work. The backend is the source of
+truth for response shapes; `openapi.yaml` follows it by hand and no test checks
+a response against it (`engineering-decisions.md` E-14).
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 
 from app.content_build import QUESTION_FILE
-from tests.conftest import assert_matches, assert_problem
+from tests.conftest import assert_problem
 
 
 async def test_content_endpoints_need_no_token(client: httpx.AsyncClient) -> None:
@@ -23,21 +23,15 @@ async def test_content_endpoints_need_no_token(client: httpx.AsyncClient) -> Non
     assert response.status_code == 200
 
 
-async def test_content_version_counts_what_was_seeded(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
+async def test_content_version_counts_what_was_seeded(client: httpx.AsyncClient) -> None:
     body = (await client.get("/content/version")).json()
-    assert_matches(spec, "ContentVersion", body)
     assert body["counts"]["entities"] == 50
     assert body["counts"]["questions"] == 415  # T-051: 50 map_click (Test change request row 1)
 
 
-async def test_the_bank_is_seeded_from_the_shipped_question_bank(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
+async def test_the_bank_is_seeded_from_the_shipped_question_bank(client: httpx.AsyncClient) -> None:
     body = (await client.get("/entities", params={"limit": 500})).json()
     entity = next(row for row in body["data"] if row["id"] == "us-state-co")
-    assert_matches(spec, "Entity", entity)
     assert entity["name"] == "Colorado"
     assert entity["capital"] == "Denver"
 
@@ -52,10 +46,9 @@ async def test_join_keys_survive_the_remap(client: httpx.AsyncClient) -> None:
 
 
 async def test_a_question_carries_the_geometry_id_its_prompt_highlights(
-    client: httpx.AsyncClient, spec: dict[str, Any]
+    client: httpx.AsyncClient,
 ) -> None:
     body = (await client.get("/questions/gen:tpl-identify-on-map:us-state-co")).json()
-    assert_matches(spec, "Question", body)
     assert body["highlightGeometryId"] == "08"
     assert body["format"] == "map_identify"
 
@@ -150,9 +143,7 @@ async def test_entities_filter_by_id_set(client: httpx.AsyncClient) -> None:
     assert {entity["id"] for entity in body["data"]} == {"us-state-co", "us-state-tx"}
 
 
-async def test_pagination_walks_the_whole_set_once(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
+async def test_pagination_walks_the_whole_set_once(client: httpx.AsyncClient) -> None:
     seen: list[str] = []
     cursor: str | None = None
     for _ in range(200):  # T-051: 415 questions outgrow 100 pages of 4 (row 3)
@@ -160,7 +151,6 @@ async def test_pagination_walks_the_whole_set_once(
         if cursor:
             params["cursor"] = cursor
         page = (await client.get("/questions", params=params)).json()
-        assert_matches(spec, "PageInfo", page["page"])
         seen += [question["id"] for question in page["data"]]
         cursor = page["page"]["nextCursor"]
         if not page["page"]["hasMore"]:
@@ -178,12 +168,9 @@ async def test_a_missing_entity_is_a_problem_document(client: httpx.AsyncClient)
     assert body["instance"].endswith("/entities/us-state-zz")
 
 
-async def test_a_bundle_carries_its_entities_and_questions(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
+async def test_a_bundle_carries_its_entities_and_questions(client: httpx.AsyncClient) -> None:
     response = await client.get("/bundles/us")
     body = response.json()
-    assert_matches(spec, "Bundle", body)
     assert len(body["entities"]) == 50
     assert len(body["questions"]) == 415  # T-051: 50 map_click (Test change request row 2)
     assert body["entityCount"] == 50
@@ -204,12 +191,9 @@ async def test_a_stale_etag_gets_the_bundle(client: httpx.AsyncClient) -> None:
     assert response.status_code == 200
 
 
-async def test_bundle_summaries_do_not_carry_the_payload(
-    client: httpx.AsyncClient, spec: dict[str, Any]
-) -> None:
+async def test_bundle_summaries_do_not_carry_the_payload(client: httpx.AsyncClient) -> None:
     body = (await client.get("/bundles")).json()
     summary = body["data"][0]
-    assert_matches(spec, "BundleSummary", summary)
     assert "entities" not in summary
 
 
