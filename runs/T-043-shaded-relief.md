@@ -103,3 +103,6 @@ Orchestrator wrote the unattended `Approved:` stamp. No human saw the finished c
 
 ## Halted — 2026-11-16
 `Status: blocked`, `Next step: human`. Needs: the Natural Earth raster, or `naciscdn.org` allowed in the environment's network policy.
+
+## Environment change — 2026-11-16
+Dkaattae approved a new personal environment `geo-discovery-zone` (Wikidata, Wikipedia, `naciscdn.org`, `www.naturalearthdata.com`) and this session moved onto it. Brief still reads `blocked` / `human`; the worker is not restarted until a person says so.
