@@ -1,7 +1,7 @@
 # T-048 — React hydration warning on first load of the production build — run log
 
 **Task:** T-048 · **Branch:** `task/T-048-hydration-warning` · **PR:** #149
-**Started:** 2026-11-17 · **Outcome:** in progress
+**Started:** 2026-11-17 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-17
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -117,3 +117,31 @@ Orchestrator wrote the unattended `Approved:` stamp. No human saw the criteria.
 - **Not run locally:** the frontend, question-bank and backend unit suites. For those I relied on CI.
 
 No pre-existing test was changed. Test changes stay at `none`.
+
+## Round 4 — reviewer — 2026-11-17
+`Next step` on entry: `reviewer` → on exit: `human` (approved; PR marked ready; brief swept)
+
+**I approved T-048 and it is inside the envelope.** PR #149 (https://github.com/Dkaattae/geo-discovery-zone/pull/149) is now marked ready, with no escalation. It can merge cleanly. Next step: Dkaattae merges it; nothing else is owed. All six CI jobs are green on head `3824787`, and e2e ran 17 tests, all passing. That includes the tester's new title/description test, which had not run in CI before this.
+
+**Outcome:** the hydration error (React #418) no longer shows up on first load of the base bundle (`e6b8a0c`), so nothing in `frontend/src/` changed. What the task leaves behind is a guard test, `e2e/tests/first-load.spec.ts`, which listens on both `console` and `pageerror`, plus decision entry E-33 explaining all this. The tester's six planted mutations show the guard really catches a mismatch.
+
+**Review**
+- **Every role's work is in the PR.** The expander touched only the brief, the worker stayed inside the Constraints, and the tester changed no source. No `ci-fix` ran. No existing test was deleted or modified: `e2e/tests/app.ts` only had helpers appended.
+- **Finding 1 (doesn't block) became new task T-117.** The spec table in `e2e/README.md` lists only two of the five specs (`map-click` was already missing, and this task's two new ones are too). T-117 also asks for a line on the lesson that React 19 reports a recovered mismatch as a `pageerror`, not a `console.error`.
+- **Finding 2 (doesn't block, recorded only).** The guard's pattern `/Minified React error #\d+/` catches any minified React error, not just hydration ones. That is the brief's own definition and a stricter check, so it stays.
+- **Criterion 7's wording, decided.** The app opens on the Splash screen for every visitor, and Start leads to Home when signed in. The criterion calling Home the first screen is a misdescription, and since behaviour didn't change, the criterion holds. I opened no product task.
+- **Worker's other flags:** I accepted the "fresh page in the same context" approach. The local `quiz.spec.ts` timeouts got no task, because CI is green. The bisect was skipped by choice; E-33 says why.
+
+**What I did on the branch** (pushed to `task/T-048-hydration-warning`; local and remote both at `3824787`)
+- **Merged `origin/main` in** (T-116 / PR #148, merge commit `de65e50`), so the edits to `tasks.md` and `PROGRESS.md` wouldn't conflict. This was not one of my listed steps. The merge carries no T-048 content.
+- **`0888dfb`:** added the `## Review` section to the brief, set Status to `approved` and Next step to `human`, and added my Sessions row.
+- **`537f9a8` and `3824787` (the cleanup):**
+  - Deleted the brief.
+  - Removed T-048 from `tasks.md`, added T-117, and added a line to the sweep log.
+  - In `PROGRESS.md`, added a T-048 entry under Completed tasks, removed the hydration line from Known gaps, and added a sentence on the guard to the e2e line.
+- **PR body:** rewritten with the acceptance criteria verbatim and what verified each, the review, and what was deliberately not done.
+
+**Caveat:** the expander, worker, tester and I all ran under the same session ID (`cse_011oDiJdNiAkMCtdKuibGJLt`). Our independence rests only on each being a freshly spawned subagent.
+
+## Task ended — 2026-11-17
+Ready for merge. PR #149 is Dkaattae's to merge.
