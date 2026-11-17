@@ -1,7 +1,7 @@
 # T-048 — A React hydration warning on first load of the production build
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` — merge PR #149 (routine, inside the envelope)
 **Approved:** orchestrator — 2026-11-17, unattended run. See `runs/T-048-hydration-warning.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | tester | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: shared id, fresh subagent context) |
+| reviewer | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: shared id, fresh subagent context) |
 
 ## Goal
 
@@ -357,6 +358,54 @@ collected list, which fails whenever anything matches (M1–M4).
 
 None. No pre-existing test was modified or deleted. `e2e/tests/app.ts` gains one
 selector, `pageDescription`, appended at the end.
+
+## Review
+
+**TL;DR: approved, inside the envelope — PR #149 marked ready, no escalation.** The
+guard is small, in the suite's own idiom, and proven non-vacuous by six mutations. Two
+non-blocking findings: one became T-117, one is noted only. Swept in this branch.
+
+**Every role's work is in the PR.** expander `d8349d6`/`91a85d2`, worker `89cd5a5`,
+tester `ccc1a03`, orchestrator run-log commits. `origin/main` (T-116, PR #148) was
+merged into the branch (`de65e50`) so the sweep's `tasks.md`/`PROGRESS.md` edits do
+not conflict; that merge brings no T-048 content.
+
+**Lanes.** Expander touched only `tasks/`. Worker: `e2e/tests/`, `README.md`,
+`engineering-decisions.md`, brief, all inside Constraints. Tester: `e2e/tests/` and
+the brief, no source. No `ci-fix`. `frontend/src/`, `ci.yml`, `backend/`, lockfiles:
+no diff. `e2e/tests/app.ts` gained appended helpers only; no existing line changed.
+
+**Findings (none block):**
+
+1. **`e2e/README.md` spec table is incomplete** — it names `quiz.spec.ts` and
+   `progress.spec.ts` only; `map-click.spec.ts` was already missing, and this task's
+   two specs are too. Also worth a line there: React 19 reports a recovered mismatch
+   as `pageerror`, not `console.error`. **New task T-117** (nothing queued owns
+   `e2e/README.md`).
+2. **`collectHydrationErrors` catches any minified React error**, not only hydration
+   ones, because the brief's regex `/Minified React error #\d+/` is broad. That is the
+   criterion as written and a stricter guard for a first load, so it stays; the name
+   slightly undersells it. Noted only, no task.
+
+**Flags disposed:**
+
+- **Criterion 7's "signed-in first screen is Home"** (worker, tester): decided. The
+  app opens on Splash for everyone and Start leads to Home; this task changed no
+  screen flow, so the criterion holds as "unchanged". The criterion's wording is
+  wrong, not the app. No product task: nobody asked for Home-first.
+- **Fresh page in the same context, not `page.reload()`** (worker): accepted. M2
+  shows the signed-in test hears its own load only.
+- **Local `quiz.spec.ts` timeouts under parallel SQLite** (worker, tester): no task.
+  CI (Postgres, 2 workers) is green; nothing here touches app code.
+- **Expander survey said the frontend cannot build here; it could**: noted in
+  PROGRESS. No ticket — the environment varies by session.
+- **No bisect for the fix**: accepted, E-33 says why.
+
+**Envelope:** tester pass; CI green on the head; no file outside Constraints
+(excluding sweep and `runs/`); no dependency; no `openapi.yaml`/migration/plan
+change; no child-readable text (README Known-issues line is grown-up docs); no
+pre-existing test deleted or modified; `CI fix: none`; no product decision settled.
+Ready, no escalation note.
 
 ## Notes
 
