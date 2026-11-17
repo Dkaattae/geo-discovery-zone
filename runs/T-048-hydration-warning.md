@@ -78,3 +78,42 @@ Orchestrator wrote the unattended `Approved:` stamp. No human saw the criteria.
 - **The signed-in test opens a fresh page in the same context** rather than reloading. That way its listeners only hear the first load, not the sign-up before it. The tester can accept or overturn this.
 - **The tester needs a different session.** The expander and I both ran in `cse_011oDiJdNiAkMCtdKuibGJLt`.
 - **Tests made stale:** none.
+
+## Round 3 — tester — 2026-11-17
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-048 tester: pass. Next step is the reviewer.** I pushed `ccc1a03` to `task/T-048-hydration-warning`, and the remote head matches.
+
+- **#418 no longer happens on the unchanged frontend**, the worker's outcome (b). I rebuilt the static bundle locally, served it from the backend and ran the guard: both tests pass. There are no changes under `frontend/` compared with the base commit `e6b8a0c`.
+- **CI on `f5f9e1a` is green in all six jobs.** The e2e log shows "Running 16 tests… 16 passed": the 14 tests that were there before plus the 2 new guard tests.
+
+**Independence is weaker than a separate session.** This is an orchestrated run, and my session id (`cse_011oDiJdNiAkMCtdKuibGJLt`) is the same one the brief lists for the expander and the worker. That means the Sessions check proves nothing. My independence rests only on being a freshly spawned agent that did not watch the work. I said this in the Verdict.
+
+**Mutations.** I broke the code on purpose six times, rebuilt the bundle each time, and checked that the right test went red. Every change is reverted, the bundle is rebuilt clean, and there are no source changes left.
+
+| # | What I broke | Result |
+|---|---|---|
+| M1 | Text in `RootShell` that differs between the prerendered page and the browser | Both guard tests red, `pageerror` #418 |
+| M2 | A mismatch that only appears when `localStorage` is non-empty | Only the signed-in test red, so the two tests are not duplicates |
+| M3 | A planted `console.error` with the #418 text | Both red, so the console listener works |
+| M4 | A planted `console.error("Hydration failed…")` | Both red, so the `/hydrat/i` pattern works |
+| M5 | Changed the page title | My new title/description test red |
+| M6 | Changed the description | My new title/description test red |
+
+**What I added.** Criterion 9 (title and description unchanged) had no test, so I wrote one:
+- `e2e/tests/first-load-head.spec.ts`, with the expected values taken from the criterion itself.
+- `e2e/tests/app.ts` gains one selector, `pageDescription`, appended at the end.
+
+**Criteria checked by hand, all met:**
+- **5:** `engineering-decisions.md` has E-33 in the "no longer reproduces" form.
+- **6:** the README known-issues line is gone.
+- **8:** `nitro` is still off and SPA mode still on; the build writes `dist/client/index.html`; the integration job is green.
+- **10:** no `suppressHydrationWarning`, `onRecoverableError` or `onUncaughtError` anywhere.
+- **11:** no `package.json`, `pyproject.toml` or lockfile changed.
+
+**For the reviewer:**
+- **Criterion 7's wording is wrong about the app.** It says a signed-in visitor's first screen is Home. The app always opens on Splash, and Start then goes to Home. Nothing in the app changed, so I read the criterion as met, but the wording should be noted.
+- **Three older e2e tests timed out once locally.** On a full local run with 2 workers against SQLite, two in `progress.spec.ts` and one in `quiz.spec.ts` timed out. All 13 `progress` and `quiz` tests passed when re-run one at a time, and the same specs pass in CI. I read it as local contention, not this task.
+- **Not run locally:** the frontend, question-bank and backend unit suites. For those I relied on CI.
+
+No pre-existing test was changed. Test changes stay at `none`.
