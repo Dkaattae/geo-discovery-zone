@@ -8,7 +8,7 @@ calls a relative `/api/v1`.
 Mounted last, so every API route already matched. Two rules keep it honest:
 
 - **Nothing under the API prefix falls through to HTML.** A mistyped endpoint
-  gets the contract's problem document, not an index page with a 200 — that
+  gets `openapi.yaml`'s problem document, not an index page with a 200 — that
   particular failure is the reason "the API returned HTML" is a genre of bug.
 - **Hashed assets are immutable, the shell is not.** `index.html` names the
   current bundle, so caching it is how a browser gets stuck on an old build.

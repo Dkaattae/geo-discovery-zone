@@ -1,4 +1,4 @@
-"""Routers, one per tag in the contract."""
+"""Routers, one per tag in `openapi.yaml`."""
 
 from app.routers import auth, content, profiles, sessions
 

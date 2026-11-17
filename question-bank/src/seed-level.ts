@@ -84,7 +84,7 @@ export const LEVEL_SEED_WEIGHTS = {
 };
 
 /**
- * The clamp: openapi.yaml `Level`, 0–18. The contract's range, not a weight,
+ * The clamp: openapi.yaml `Level`, 0–18. The spec's range, not a weight,
  * so it is not in `LEVEL_SEED_WEIGHTS`.
  */
 export const LEVEL_MIN = 0;

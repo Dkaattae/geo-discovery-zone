@@ -1,6 +1,6 @@
 """Accounts, password hashing and bearer tokens.
 
-The contract's Profiles and Sessions groups hold children's data, so they sit
+`openapi.yaml`'s Profiles and Sessions groups hold children's data, so they sit
 behind an account belonging to a grown-up. Content stays public — it is
 build-time generated and carries no user data.
 

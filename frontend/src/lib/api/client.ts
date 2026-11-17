@@ -185,7 +185,7 @@ function queryString(query?: Record<string, string | number | boolean | undefine
 }
 
 /**
- * Every error the contract describes is `application/problem+json`. A body that
+ * Every error `openapi.yaml` describes is `application/problem+json`. A body that
  * is not one — a proxy's HTML 502, say — still has to become a Problem, or the
  * screens would need two error shapes.
  */

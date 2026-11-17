@@ -2,7 +2,7 @@
  * Wire types for `openapi.yaml`.
  *
  * Hand-written rather than generated so the client stays readable and the diff
- * reviewable; they cover the operations this app calls, not the whole contract.
+ * reviewable; they cover the operations this app calls, not the whole spec.
  * Optional fields are `?: T | undefined` because the server omits absent fields
  * rather than nulling them, and `exactOptionalPropertyTypes` is on.
  */

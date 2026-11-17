@@ -1,8 +1,8 @@
-"""Record → contract payload conversion.
+"""Record → `openapi.yaml` payload conversion.
 
 Kept out of the routers so the wire shape is defined in one place, and out of
 the store so the store stays about queries. Everything here returns plain dicts
-in the contract's camelCase and does no I/O: callers hand in what they have
+in `openapi.yaml`'s camelCase and does no I/O: callers hand in what they have
 already fetched.
 """
 

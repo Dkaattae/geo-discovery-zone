@@ -1,7 +1,7 @@
 """Grading, profile advancement and the reveal payload.
 
 Pure functions over records and plain dicts. The rules encoded here are the
-ones the contract spells out in prose, and they are the ones worth being upset
+ones `openapi.yaml` spells out in prose, and they are the ones worth being upset
 about getting silently wrong:
 
 - a wrong answer queues the *entity* for review, not the question;
