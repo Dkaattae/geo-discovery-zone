@@ -370,6 +370,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-116 — Source comments and the validation 422 stop calling `openapi.yaml` "the contract"** (PR #148, 2026-11-17).
+  All 21 hits in non-test source under `backend/app/`, `frontend/src/` and `question-bank/src/` now
+  say `openapi.yaml` (or "the spec" where the file is named in the same comment). The validation
+  422's `detail` is now "Some of the information sent was not valid.", and the rest of the response is
+  unchanged. *Where it differed from the brief:* nothing in scope; `main.py:11` also changed "has"
+  to "describes". The PR was escalated because the new `detail` can reach a child's screen. Still saying
+  contract: three test names (deliberately left) and the loop files (P-20).
 - **T-043 — Shaded-relief basemap under the US map** (PR #147, 2026-11-16). `UsMap` draws
   `frontend/src/assets/us-shaded-relief.png` (1200×750 grayscale+alpha, 235 KB, Natural Earth
   `SR_50M` 2.0.0 warped once outside the repo through the map's own `geoAlbersUsa`, insets
