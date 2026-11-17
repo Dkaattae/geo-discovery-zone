@@ -404,3 +404,41 @@ export async function backHome(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Back home" }).click();
   await expect(page.getByText(/places filled in/)).toBeVisible();
 }
+
+// -- first load -------------------------------------------------------------
+
+/**
+ * What counts as a hydration error (T-048): React's production build reports a
+ * mismatch between the prerendered shell and the first client render as
+ * "Minified React error #418" (or #419/#423/#425 for its relatives), and the
+ * development build says "hydrat…" in words. Either is a mismatch.
+ */
+const HYDRATION_ERROR = [/Minified React error #\d+/, /hydrat/i];
+
+/**
+ * Collects every hydration error the page reports, from both places React can
+ * report one: a `console.error` (a recoverable mismatch React logs and then
+ * re-renders around) and an uncaught `pageerror`. Listens to the real page —
+ * nothing is stubbed — and must be attached before `page.goto`.
+ */
+export function collectHydrationErrors(page: Page): string[] {
+  const seen: string[] = [];
+  const record = (source: string, text: string) => {
+    if (HYDRATION_ERROR.some((pattern) => pattern.test(text))) seen.push(`${source}: ${text}`);
+  };
+  page.on("console", (message) => {
+    if (message.type() === "error") record("console.error", message.text());
+  });
+  page.on("pageerror", (error) => record("pageerror", `${error.message}\n${error.stack ?? ""}`));
+  return seen;
+}
+
+/** The first screen a signed-out visitor sees, ready to tap. */
+export function splashStart(page: Page): Locator {
+  return page.getByRole("button", { name: "Start" });
+}
+
+/** The Home screen, recognisable by the map's progress line. */
+export function homeProgress(page: Page): Locator {
+  return page.getByText(/places filled in/);
+}

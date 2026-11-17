@@ -2238,3 +2238,44 @@ raster (≈ 3.7 km per pixel) already carries more detail than survives.
 **Revisit when** the map's projection, scale or 800 × 500 frame changes (the
 PNG no longer registers and must be redone by these steps), when a world or
 other-region map wants relief, or when registration is visibly off in review.
+
+---
+
+## E-33 — React error #418 on first load no longer reproduces; a Playwright guard now watches for it
+
+**Decided: 2026-11-17 (T-048).** The hydration warning `README.md` listed under
+"Known issues" — React error #418 on first load of the static bundle the
+container serves — **no longer reproduces** as of base commit `e6b8a0c`
+(`main`, the merge of PR #147). No file under `frontend/src/` changed in this
+task. `e2e/tests/first-load.spec.ts` is what now watches for it.
+
+**What was checked.** The bundle was built from `e6b8a0c`'s unmodified
+`frontend/` with `bun run build:static` (the Dockerfile's command, with
+`react`/`react-dom` 19.2.8, `@tanstack/react-router` 1.170.18,
+`@tanstack/react-start` 1.168.32 — the `bun.lock` versions), served by the
+backend from `frontend/dist/client`, and loaded in Chromium. Both first loads
+— a visitor with empty `localStorage`, and one whose storage holds a token and
+a last-picked profile — emitted no hydration error.
+
+**Why the guard is believed.** A mismatch was planted on purpose (a text node
+in `RootShell` that read `typeof window`), the bundle rebuilt, and both guard
+tests failed naming `Minified React error #418`; reverted, both passed. The
+planted error arrived as a Playwright **`pageerror`**, not a `console.error`:
+React 19 reports a recovered mismatch through `reportError`, so a guard
+listening only on the console would have passed with the bug present. The
+guard listens on both.
+
+**What changed the outcome is not known.** Nobody had checked since
+2026-08-24, and the shell and its libraries have moved since (TanStack Start,
+React 19.2, T-026/T-043/T-051). PR #19 had already ruled out the Google Fonts
+stylesheet and the shell's empty first paint. This entry does not claim a
+cause; it records that the symptom is gone and what now catches it.
+
+**Option not taken.** *Bisect the history for the commit that fixed it.* It
+would name a cause for a bug that no longer exists, at the price of rebuilding
+old bundles against old lockfiles; the guard is what protects the next change.
+
+**Revisit when** the guard goes red — then this becomes a real 4(a)-style
+entry naming the element that renders differently — or when the served bundle
+stops being a prerendered SPA shell (SPA mode off, nitro back, real SSR), which
+changes what "first load" hydrates.

@@ -1,7 +1,7 @@
 # T-048 — A React hydration warning on first load of the production build
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-17, unattended run. See `runs/T-048-hydration-warning.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| worker | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 
 ## Goal
 
@@ -169,6 +170,150 @@ ruled out under Notes, set `Status: blocked`, `Next step: human`, and stop.
 
 ## Handoff
 
+**TL;DR — outcome 4(b): #418 no longer reproduces.** The base-commit bundle
+(`e6b8a0c`, unmodified `frontend/`) loads clean signed out and signed in. I added
+a guard test, `e2e/tests/first-load.spec.ts`, and proved it catches a real #418
+by planting one. No file under `frontend/src/` changes. **Tester: run the e2e job
+or the local recipe below.** Also: criterion 7's "signed-in first screen is Home"
+does not match the app (see Contradictions).
+
+**Same session id as the expander.** The orchestrator ran the expander and me
+in the same remote session (`cse_011oDiJdNiAkMCtdKuibGJLt`). The tester's
+session must be a different one.
+
+### What changed, file by file
+
+- **`e2e/tests/first-load.spec.ts`** (new): two tests, signed-out and signed-in
+  first load. Each asserts the list of collected hydration errors is `[]`, and
+  the failure message names each offending message.
+- **`e2e/tests/app.ts`**: added a `// -- first load` section with
+  `collectHydrationErrors(page)` (listens on `console` type `error` **and**
+  `pageerror`, matching `/Minified React error #\d+/` or `/hydrat/i`, the brief's
+  definition), `splashStart(page)` and `homeProgress(page)`. Nothing existing
+  was edited.
+- **`engineering-decisions.md`**: `E-33`, the 4(b) form. It records that #418
+  no longer reproduces at `e6b8a0c`, how that was checked, the planted-mismatch
+  proof, and that the guard now watches for it.
+- **`README.md`**: removed the hydration-warning bullet from "Known issues".
+- **`frontend/src/`**: nothing (required by 4(b)).
+
+### Criteria
+
+| # | Where it lives / evidence |
+|---|---|
+| 1 | `first-load.spec.ts` "a signed-out first load emits no hydration error". It passes against the base bundle (local run below). |
+| 2 | Same file, "a signed-in first load emits no hydration error". It registers, creates a profile (which writes the token and last-profile id the app's own way), closes the page, then opens a **new page in the same context** (same `localStorage`, fresh document, fresh listeners), taps Start and waits for Home. It passes locally. |
+| 3 | The spec is in `e2e/tests/`, so the existing `e2e` job's `bun run test` picks it up. `ci.yml` is unchanged. On failure it prints `hydration errors on first load:` followed by each message (see the planted run below). |
+| 4 | **(b)**: passing output against the base bundle is below, from a local run. CI e2e on this branch is a second source. **Tester to confirm** the run on PR #149 (I did not wait for it; see "How to run"). |
+| 5 | `engineering-decisions.md` E-33, with base commit `e6b8a0c`. |
+| 6 | `README.md` "Known issues": the line is gone. `PROGRESS.md` is untouched (the reviewer's sweep). |
+| 7 | No frontend change. The full e2e suite ran locally (see below). |
+| 8 | `vite.static.config.ts`, `build-static.mjs` and `backend/` are untouched. `bun run build:static` still writes `dist/client/index.html`. |
+| 9 | Untouched. The built shell's `<title>` is `Wander the Atlas — Geography Quiz for Kids` and `meta[name=description]` is the K–8 sentence (checked in `dist/client/index.html`). No test asserts this. Tester may want to check it in a browser. |
+| 10 | Nothing was silenced. There is no fix at all, and no `suppressHydrationWarning`, `onRecoverableError` or console filter anywhere. |
+| 11 | No `package.json`, `pyproject.toml` or lockfile changed (`git diff --stat`). |
+| 12 | Local results: frontend typecheck, lint, `format:check` and `bun test` (248 pass). question-bank typecheck and test (229 pass). backend `pytest` on SQLite (785 passed, 9 skipped). e2e typecheck is clean, and the full e2e suite was run (see below). I did not run backend-postgres or integration locally: no Docker daemon or Postgres server here. Neither touches anything I changed. |
+
+### Evidence: all from a **local run**, not CI
+
+Setup: the frontend's `node_modules` already existed in this sandbox. Its
+`react`/`react-dom` 19.2.8, `@tanstack/react-router` 1.170.18,
+`@tanstack/react-start` 1.168.32, `@lovable.dev/vite-tanstack-config` 2.8.5 and
+`vite` 8.1.5 all match `bun.lock`. So the brief's "cannot build here" did not
+hold this time. `bun run build:static` succeeded. The backend was run with
+`uv run fastapi run app/main.py` (SQLite, `GEO_FRONTEND_DIR=frontend/dist/client`),
+not docker compose, because there is no Docker daemon here. Chromium was
+`/usr/bin/google-chrome` (Chrome for Testing 153) via `E2E_CHROMIUM`.
+
+**Base bundle (`frontend/` = `e6b8a0c`), guard passes: "#418 no longer reproduces".**
+
+```
+Running 2 tests using 2 workers
+  ✓  1 [chromium] › tests/first-load.spec.ts:19:1 › a signed-out first load emits no hydration error (1.7s)
+  ✓  2 [chromium] › tests/first-load.spec.ts:29:1 › a signed-in first load emits no hydration error (4.0s)
+  2 passed (4.9s)
+```
+
+**Planted mismatch, guard fails naming #418.** This proves the guard is not
+vacuous; it is not evidence for 4(a). I temporarily added
+`<span>{typeof window === "undefined" ? "shell" : "client"}</span>` to
+`RootShell`'s body, rebuilt and ran the guard, then reverted with
+`git checkout`, rebuilt and re-ran (passing again):
+
+```
+  ✘  1 [chromium] › tests/first-load.spec.ts:19:1 › a signed-out first load emits no hydration error (2.0s)
+  ✘  2 [chromium] › tests/first-load.spec.ts:29:1 › a signed-in first load emits no hydration error (3.8s)
+    Error: hydration errors on first load:
+    pageerror: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message ...
+```
+
+The error arrived as a **`pageerror`, not a `console.error`**. React 19 reports
+recovered mismatches via `reportError`. A console-only guard would have missed
+it, which is why criterion 3's "both" matters.
+
+**Full e2e suite on the reverted base bundle:** 15 passed, 1 failed. The failure
+was `quiz.spec.ts` "every quiz type can be played through": a timeout waiting
+for `+ New explorer` after registering. Re-run on its own, `quiz.spec.ts` passed
+8/8. I read it as local contention: default worker count against SQLite, where
+CI uses 2 workers and Postgres. It is not related to this change, which touches
+no app code. **Tester to confirm on CI's e2e job.** If it recurs there, it is
+a `tasks.md` entry for the reviewer, not this task.
+
+### Contradictions with the brief
+
+- **Criterion 7 and the goal say a signed-in visitor's first screen is Home. It
+  is not.** `App` always starts on `screen = "splash"` (`index.tsx`), and Start
+  goes to Home when a token and active profile are present. Criterion 2 is still
+  observable: the guard taps Start and waits for Home, with listeners attached
+  the whole time. I changed no screen flow, since that is out of scope and a
+  child-visible change. **Owner: reviewer to confirm the reading.** If Home
+  really should be first, that is a product call and a new `tasks.md` entry.
+- **"This sandbox cannot build the frontend"** was not true this session (see
+  Setup above). No owner needed; noted for the expander's survey habit.
+
+### Deliberately not done
+
+- No bisect for the commit that made #418 go away. E-33 says why: it would name
+  a cause for a bug that no longer exists.
+- No title/description assertion in the guard. Criterion 9 is about not
+  changing them, and nothing changed.
+- `PROGRESS.md` and `tasks.md` were not edited (reviewer's sweep).
+
+### How to run
+
+```bash
+cd frontend && bun run build:static
+cd ../backend && GEO_FRONTEND_DIR=$PWD/../frontend/dist/client uv run fastapi run app/main.py --port 8000 &
+cd ../e2e && bun install --frozen-lockfile
+E2E_BASE_URL=http://localhost:8000 E2E_CHROMIUM=/usr/bin/google-chrome bunx playwright test first-load
+# or, with Docker: cd e2e && bun run test   (brings compose up)
+```
+
+To see the guard catch a mismatch, plant the span above in `RootShell`, rebuild,
+re-run, and revert.
+
+### Tests made stale
+
+None.
+
 ## Verdict
 
 ## Notes
+
+- **Surprise: the bug is simply gone** at `e6b8a0c`. Nothing found says which
+  change removed it. E-33 says so plainly instead of guessing.
+- **Surprise: React 19's production build reports a recovered #418 as
+  `pageerror`**, not `console.error`. Worth knowing for any future console
+  guard.
+- **Surprise: the frontend built fine here.** `node_modules` was present and
+  matches `bun.lock`.
+- **Decision: the signed-in case uses a fresh page in the same context**, not
+  `page.reload()`. A reload on the same page would keep listeners from the
+  sign-up flow, and anything emitted then would be blamed on the first load.
+  Owner: tester to accept or overturn.
+- **Other console noise:** none was collected. The guard only records
+  hydration-matching messages, and I did not survey other console output.
+  Nothing to file.
+- **Local flake:** `quiz.spec.ts` "every quiz type can be played through" timed
+  out once under full parallelism against local SQLite, then passed alone (see
+  Handoff).

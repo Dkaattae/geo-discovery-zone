@@ -228,9 +228,6 @@ More detail, and the reasoning behind it:
 
 ## Known issues
 
-- **A React hydration warning on first load of the Docker build.** The app
-  recovers and every screen works, but the prerendered shell and the first
-  client render disagree about something. It does not happen in development.
 - Geometry, elevation profiles and superlative endpoints exist but serve no
   data: they need sampled or licensed sources this repo does not carry, and a
   guessed number in an app that teaches children is worse than none.
