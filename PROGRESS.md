@@ -321,7 +321,8 @@ file is the coarse-grained view; `tasks.md` is where the detail lives.
   durable by the time its response says so.
 - **End-to-end tests** in `e2e/` — Playwright tests driving Chromium against
   docker compose: sign in, make an explorer, play every quiz type the app
-  offers, and come back to find the progress still there.
+  offers, and come back to find the progress still there. A first-load guard
+  fails on any hydration error, signed out or in (T-048).
 - A root `README.md` covering what the app is, the stack, and how to run it.
 
 ## Completed tasks
@@ -370,6 +371,18 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
 
 ### Earlier tasks, on-process
 
+- **T-048 — React #418 on first load no longer reproduces; a Playwright guard watches for it** (PR #149, 2026-11-17).
+  The bundle built from base `e6b8a0c`'s unmodified `frontend/` loads with no hydration error,
+  signed out or signed in, so no file under `frontend/src/` changed. `e2e/tests/first-load.spec.ts`
+  now fails, naming the message, on any `console.error` or `pageerror` matching
+  `/Minified React error #\d+/` or `/hydrat/i` during either first load; `first-load-head.spec.ts`
+  pins the page title and description. E-33 records the outcome; `README.md` and Known gaps drop
+  the warning. *Where it differed from the brief:* the bug was simply gone and nothing says which
+  change removed it (no bisect, by choice). A planted mismatch arrived as a `pageerror`, not a
+  `console.error` — React 19 reports recovered mismatches via `reportError`. The frontend built in
+  the sandbox after all. Criterion 7 described a signed-in visitor's first screen as Home; the app
+  opens on Splash for everyone and Start goes to Home, which this task left unchanged.
+  `e2e/README.md`'s spec table is T-117.
 - **T-116 — Source comments and the validation 422 stop calling `openapi.yaml` "the contract"** (PR #148, 2026-11-17).
   All 21 hits in non-test source under `backend/app/`, `frontend/src/` and `question-bank/src/` now
   say `openapi.yaml` (or "the spec" where the file is named in the same comment). The validation
@@ -2105,8 +2118,6 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   can fill states in, but each topic has only one per state (T-056).
 - **A single-topic review turn re-asks the question missed.** Each topic has
   one question per state, and the review pool is topic-filtered (E-26, T-056).
-- A **React hydration warning** (#418) on first load of the production build. The
-  app recovers; the cause is unfound (T-048).
 - `/geometry`, `/elevation-profiles` and `/superlative-axes` answer requests and
   serve nothing, deliberately — the data is not in this repo. `openapi.yaml`
   marks each "Not implemented in v1" and says what serving it would take (T-039).

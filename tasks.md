@@ -367,6 +367,11 @@ is what it deliberately does not do.
 
 ## F. Frontend follow-ons
 
+### T-117 — `e2e/README.md`'s spec table lists two of five specs · S · todo
+**Depends on:** —
+**New 2026-11-17, from T-048's review (PR #149).** The "What it holds down" table in `e2e/README.md` names `quiz.spec.ts`, `progress.spec.ts` and `app.ts` only. `map-click.spec.ts` (pre-existing) and T-048's `first-load.spec.ts` and `first-load-head.spec.ts` are missing, so the README reads as a full list and is not one. Add a row for each. While there, add one line under "How they are written" on T-048's finding: React 19's production build reports a recovered hydration mismatch as a Playwright `pageerror` (via `reportError`), not a `console.error`, so any console guard must listen on both (E-33). Documentation only; no test changes.
+**Done when:** every file in `e2e/tests/` has a row in the table, and the `pageerror` note is in "How they are written".
+
 ### T-044 — Point Lovable at `frontend/` · S · todo
 **Depends on:** —
 Lovable builds from the repo root and the app moved. Its build and sync are
@@ -377,19 +382,6 @@ Since T-075 (PR #66), `frontend/AGENTS.md` is under CI's frontend Format step, s
 a reconnected Lovable that rewrites it unformatted turns CI red. Settle it here:
 reformat after each sync, or ignore the file with a line in E-17.
 **Done when:** a Lovable build succeeds, or the integration is deliberately retired.
-
-### T-048 — A React hydration warning on first load of the production build · M · todo
-**Depends on:** —
-**New 2026-08-24.** The static build logs React error #418 — the prerendered
-shell and the first client render disagree — on first load. The app recovers and
-every screen works, and it does not happen in `bun run dev`, only in the
-prerendered bundle the container serves. Investigated during PR #19 without a
-root cause: Google Fonts was ruled out (stubbing it reachable did not help), and
-matching the shell's empty first paint had no effect and was reverted. It is a
-warning, not a broken screen, which is why it is not blocking — but a hydration
-mismatch is the kind of thing that turns into a real bug later.
-**Done when:** the cause is found and fixed, or documented with why living with
-it is acceptable.
 
 ---
 
