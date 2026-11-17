@@ -1,7 +1,7 @@
 # T-116 — Source comments and one 422 `detail` stop calling `openapi.yaml` "the contract"
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved — escalated`
+**Next step:** `human`
 **Approved:** orchestrator — 2026-11-17, unattended run. See `runs/T-116-source-contract-wording.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | tester | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: fresh subagent, shared session id) |
+| reviewer | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: fresh subagent, shared session id) |
 
 > **Not the light path.** T-116 is sized S, but the 422 `detail` string reaches a
 > screen: `ApiError.displayMessage` (`frontend/src/lib/api/client.ts:63-66`)
@@ -248,6 +249,30 @@ None.
 **Tests made stale:** none found. No pre-existing test went red.
 
 **New file:** `backend/tests/test_t116_tester_criteria.py`.
+
+## Review
+
+**TL;DR: approved, escalated.** The diff is the 21 one-for-one comment swaps plus the one `detail` string, and nothing else. **Escalated on one envelope item: text a child may read.** The new 422 `detail`, "Some of the information sent was not valid.", reaches a screen through `ApiError.displayMessage` → `routes/index.tsx` `messageFor`. A person must accept that sentence before merging.
+
+- **PR state:** open, draft, not merged. Commits from every role in the Sessions table are on the branch: expander `405a3d4`/`eddb6a2`, worker `cd5302e`, tester `f9268b5`/`8cfea4b`, orchestrator run-log commits.
+- **Lanes:** the expander touched only the brief. The worker touched only `backend/app/`, `frontend/src/lib/`, `question-bank/src/`, the brief and one new test file. The tester touched only a new test file and the brief. There were no `ci-fix` commits. `runs/` is the orchestrator's.
+- **Envelope:** tester pass. Local backend suite 797 passed, 9 skipped, ruff clean, re-run by the reviewer. No dependency or lockfile change. No `openapi.yaml`, migration or plan change. No pre-existing test modified or deleted (`Test changes: none`, `CI fix: none`). **Outside the envelope: child-readable text (the 422 `detail`).**
+
+### Findings
+
+None block.
+
+1. **Fit:** each comment edit is a literal swap, with no reflow. `main.py:11` "has" → "describes" is the only extra word. It moves the sentence away from a conformance claim, which criterion 2 wanted.
+2. **Two overlapping test files.** `test_t116_validation_detail.py` (worker) is a strict subset of `test_t116_tester_criteria.py` (tester). The overlap is harmless and costs about one second. Not queued.
+3. **Leftover "contract" wording outside this task's scope.** Two places still have it:
+   - **Test names and docstrings** (`test_profiles_api.py:79`, `test_levels.py:102`, `client.test.ts:43`, plus history notes in `test_t053`/`test_t100`). Deliberately **not queued**. Renaming a pre-existing test costs a person's Test change request (D-14), and a test name that says "contract" misleads nobody about behaviour.
+   - **Loop files** still call `openapi.yaml` "the contract": `process.md:392,401,481-482`, `tasks/TEMPLATE.md:103`, `.claude/agents/task-expander.md:42,112`, `tester.md:20-21,309`, `worker.md:72`, `reviewer.md:187`. `reviewer.md:187` matters most, because it justifies escalating `openapi.yaml` changes as "load-bearing", which E-14 contradicts. These are loop-gated, so they are **queued as P-20** in `process-tasks.md`, not in `tasks.md`.
+
+### Flags disposed of
+
+- **Worker: the 422 wording.** Accepted from review: it is plain, a single sentence, and avoids "request". Only its substance for a child is left to the escalation, and that is the person's call by rule, not because the reviewer doubts it.
+- **Worker: `main.py:11` "has" → "describes".** Accepted. See finding 1.
+- **Worker and tester: one shared session id across roles.** This is structural for orchestrated runs and already recorded (`process-decisions.md` around line 184; `tester.md` §independence). No new ticket. The tester's red-on-`main` and mutation checks are the independence evidence that does exist.
 
 ## Notes
 
