@@ -1,7 +1,7 @@
 # T-048 — A React hydration warning on first load of the production build
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-17, unattended run. See `runs/T-048-hydration-warning.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| tester | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: shared id, fresh subagent context) |
 
 ## Goal
 
@@ -297,6 +298,65 @@ re-run, and revert.
 None.
 
 ## Verdict
+
+**TL;DR: pass.** #418 does not reproduce on the base bundle. The guard goes red for
+every planted mismatch I tried, through both `pageerror` and `console.error`, and the
+signed-in test catches a mismatch the signed-out one misses. CI on `f5f9e1a` is green
+in all six jobs, and e2e ran 16 tests. I added one e2e test, for criterion 9. Next: reviewer.
+
+**Independence: weaker than a separate session.** This run is orchestrated
+(`runs/T-048-hydration-warning.md` exists). My `$CLAUDE_CODE_REMOTE_SESSION_ID`
+(`cse_011oDiJdNiAkMCtdKuibGJLt`) is the same one listed for the expander and the
+worker, so the Sessions check proves nothing. My independence rests only on being a
+freshly spawned subagent: I did not watch the work and cannot see the worker's
+reasoning. That depends on the orchestrator having spawned me correctly, which I
+cannot check myself.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | `first-load.spec.ts` "a signed-out first load emits no hydration error". It passes locally on the base bundle and in CI e2e. |
+| 2 | met | Same file, "a signed-in first load…". It passes. Mutation M2 shows it is not a duplicate of test 1. |
+| 3 | met | The spec is under `e2e/tests/`, it listens on `console` (type error) and on `pageerror`, and the regexes are the brief's. `ci.yml` has no diff. The CI e2e job log for `f5f9e1a` says "Running 16 tests… 16 passed" (the base had 14). The failure message names each offending message (M1, M3, M4 output). |
+| 4 | met, (b) | The Handoff states "#418 no longer reproduces" and pastes local passing output. I reproduced it: `frontend/` has no diff against `e6b8a0c`, and the guard passes 2/2 locally. `git diff e6b8a0c HEAD -- frontend/` is empty. |
+| 5 | met (by hand) | `engineering-decisions.md` E-33 is in the 4(b) form. It names base `e6b8a0c` and says the guard now watches. |
+| 6 | met (by hand) | The README "Known issues" bullet is removed. `PROGRESS.md` is untouched. |
+| 7 | met | No frontend change. Signed-out Start is visible (test 1). Signed-in: Start then Home (test 2). `quiz`/`progress`/`map-click` specs have no diff and pass in CI. Locally, 3 of them timed out under 2 workers against SQLite. All 13 passed on a serial re-run (`--workers=1 progress quiz`), so I read that as local contention, not this task. On the worker's criterion-7 contradiction (the app always opens on Splash): I read 7 as "unchanged". The criterion's description of the signed-in first screen is off, but nothing changed, so it holds. The reviewer should still note the wording. |
+| 8 | met (by hand) | `bun run build:static` wrote `frontend/dist/client/index.html`. `vite.static.config.ts` has `nitro: false` and `spa.enabled: true`, with no diff. The backend served the shell at `/` locally. The integration job is green. |
+| 9 | met | **New test** `e2e/tests/first-load-head.spec.ts` "T-048 c9: the first load keeps the page title and description". The expected values are the criterion's own. Mutations M5 and M6 turn it red. |
+| 10 | met (by hand) | `grep -rn "suppressHydrationWarning\|onRecoverableError\|onUncaughtError" frontend/src e2e/tests` finds nothing, and there is no frontend diff. |
+| 11 | met (by hand) | `git diff --name-only e6b8a0c HEAD` lists no `package.json`, `pyproject.toml` or lockfile. |
+| 12 | met | CI check runs on `f5f9e1a`: backend, backend-postgres, frontend, question-bank, integration and e2e all `success`. Locally: e2e `tsc --noEmit` is clean. |
+
+### Mutations (the guard is itself the deliverable)
+
+Each one was applied to `frontend/src`, rebuilt with `bun run build:static`, and run
+against a local backend (`uv run fastapi run`, SQLite, `GEO_FRONTEND_DIR=frontend/dist/client`)
+with Chrome `/usr/bin/google-chrome`. Each was reverted with `git checkout`. After the
+last one I rebuilt clean, and `git status` shows no source change.
+
+- **M1**: added `<span>{typeof window === "undefined" ? "s" : "c"}</span>` in `RootShell`'s body. Both tests went red, with `pageerror: Minified React error #418 …`.
+- **M2**: added a span that renders `"in"` only when `localStorage.length > 0`. **The signed-out test stayed green and the signed-in test went red** (#418 via `pageerror`). So test 2 hears its own load, and the fresh page does not inherit noise from sign-up.
+- **M3**: added `console.error("Minified React error #418; planted by tester")` during client render. Both tests went red via `console.error:`, so the console path is live.
+- **M4**: added `console.error("Hydration failed because …")`. Both tests went red, so the `/hydrat/i` branch is live.
+- **M5**: shortened the `title` in `index.tsx`. The c9 test went red (Expected/Received title).
+- **M6**: dropped "in K–8" from the description. The c9 test went red (Expected/Received content).
+
+### Honesty
+
+The guard listens to the real page: there is no stub of the console, React or the
+network. The fixtures are not involved. The assertions are `toEqual([])` on the
+collected list, which fails whenever anything matches (M1–M4).
+
+### Which outputs came from where
+
+- **CI**: run 44162743612 on `f5f9e1a`, all six jobs green. The e2e log says "16 passed (2.8m)".
+- **Local**: the base-bundle guard runs, all mutations, the c9 test, and the full e2e run (13 passed and 3 timed out at 2 workers; the 13 re-ran serially and passed).
+- **Not run locally**: the frontend, question-bank and backend unit suites. I took those from CI.
+
+### Tests made stale
+
+None. No pre-existing test was modified or deleted. `e2e/tests/app.ts` gains one
+selector, `pageDescription`, appended at the end.
 
 ## Notes
 

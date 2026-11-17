@@ -442,3 +442,8 @@ export function splashStart(page: Page): Locator {
 export function homeProgress(page: Page): Locator {
   return page.getByText(/places filled in/);
 }
+
+/** The page's `meta[name=description]`, which search results and link previews show. */
+export function pageDescription(page: Page): Locator {
+  return page.locator('meta[name="description"]');
+}
