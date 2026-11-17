@@ -220,7 +220,7 @@ None.
 
 ## Verdict
 
-**TL;DR: pass.** All nine criteria are met. Ten new tester tests for criteria 3–4 pass; the full backend, frontend and question-bank suites, lint, format and typecheck are green. On PR head `25ac5b6`, CI's e2e was still **in progress** when this was written, and every other check was green. The reviewer confirms e2e on the final head.
+**TL;DR: pass.** All nine criteria are met. Ten new tester tests for criteria 3–4 pass; the full backend, frontend and question-bank suites, lint, format and typecheck are green. On PR head `25ac5b6`, all six CI checks are green, e2e included. The reviewer confirms CI on the final head.
 
 **Independence (read this before trusting the pass).** This is an orchestrated run (`runs/T-116-source-contract-wording.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdNiAkMCtdKuibGJLt`, the same id listed for expander and worker, so the session check **cannot** show separation here. It is neither passed nor failed. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's conversation or reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
 
@@ -234,7 +234,7 @@ None.
 | 6 | met (by hand) | `git diff --name-status origin/main...HEAD`: only `A` for test files (`test_t116_validation_detail.py`, worker; `test_t116_tester_criteria.py`, tester). No `M`/`D` on any pre-existing test or snapshot |
 | 7 | met (by hand) | Worker commit `cd5302e` touches only `backend/app/`, `frontend/src/lib/`, `question-bank/src/`, the brief and one new test. `runs/…` is the orchestrator's. `openapi.yaml`, `.claude/`, plan and decision files are untouched |
 | 8 | met (by hand) | No `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` in the diff |
-| 9 | met except e2e pending | PR #148 head `25ac5b6`: question-bank, frontend, backend, backend (postgres) and integration were all `success`. e2e (playwright) was `in_progress`. This tester commit triggers a fresh run. The reviewer checks it |
+| 9 | met | PR #148 head `25ac5b6`: question-bank, frontend, backend, backend (postgres), integration and e2e (playwright) were all `success`. The tester commit `f9268b5` adds only a test file and the brief, and it triggers a fresh run that the reviewer checks |
 
 **Suite as run locally (branch + tester test):**
 
