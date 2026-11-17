@@ -195,7 +195,7 @@ def list_entities(
     if ids is not None:
         statement = statement.where(EntityRow.id.in_(list(ids)))
     if query:
-        # Case-insensitive substring, the same match the contract describes.
+        # Case-insensitive substring, the same match `openapi.yaml` describes.
         statement = statement.where(func.lower(EntityRow.name).like(f"%{query.lower()}%"))
     rows, total = _page(db, statement, offset, limit)
     return [row.payload for row in rows], total

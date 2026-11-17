@@ -1,7 +1,7 @@
 """Account endpoints: register, exchange credentials for a bearer token, revoke it.
 
 These are additions to `openapi.yaml` (the `Auth` tag), not part of the
-original v1 contract — see the note in the README and the spec's
+original v1 spec — see the note in the README and the spec's
 `securitySchemes`.
 """
 

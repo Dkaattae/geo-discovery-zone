@@ -46,7 +46,7 @@ def level_display(level: float) -> str:
 
 
 def level_label(level: float) -> dict[str, object]:
-    """The display-only `LevelLabel` object from the contract."""
+    """The display-only `LevelLabel` object from `openapi.yaml`."""
     return {
         "level": level,
         "grade": min(8, max(0, grade_of(level))),

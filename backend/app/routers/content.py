@@ -1,10 +1,10 @@
 """Content endpoints — read-only, no user data, no authentication.
 
-This is the group the contract calls "worth implementing first": a static file
+This is the group `openapi.yaml` calls "worth implementing first": a static file
 host satisfies it, so nothing here touches profiles, sessions or tokens.
 
 Array query parameters are comma-separated (`style: form, explode: false` in
-the contract), so `?type=state,country` is one parameter, not two. Filtering
+`openapi.yaml`), so `?type=state,country` is one parameter, not two. Filtering
 runs as SQL; these handlers translate query strings into store calls.
 """
 

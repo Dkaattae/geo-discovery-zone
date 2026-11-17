@@ -332,7 +332,7 @@ class SessionRecord(Base):
 
 
 class EntityRow(Base):
-    """One place. `payload` is the contract's Entity; the columns beside it are
+    """One place. `payload` is `openapi.yaml`'s Entity; the columns beside it are
     the fields the list endpoint filters on."""
 
     __tablename__ = "entities"

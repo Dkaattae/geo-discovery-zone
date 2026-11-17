@@ -752,3 +752,8 @@ the reviewer's CI check is the accepted backstop.
 **Depends on:** —
 **New 2026-11-13, from T-046's review (PR #141).** E-31 decided the service directory is `backend/` and `api/` is not a directory name. Two lines of `CLAUDE.md` still say otherwise (on `main` at `b10fa64`): line 4, `` `api/` FastAPI + Postgres (uv, not built yet) ``, and line 58, `` `uv add` / `uv run` in `api/` ``. `CLAUDE.md` is loop-gated (G1), so no `T` task can fix them. Both are wrong twice over: the directory is `backend/`, and the API is built.
 **Done when:** `CLAUDE.md` says `backend/` in both places and no longer says the backend is not built; `PROGRESS.md`'s Layout note about it is dropped.
+
+### P-20 — Loop files still call `openapi.yaml` "the contract" · S · todo
+**Depends on:** —
+**New 2026-11-17, from T-116's review (PR #148).** E-14 and `CLAUDE.md` say `openapi.yaml` describes the backend and is not a contract to protect, and T-104–T-106, T-115 and T-116 made the docs and source say so. The loop files still say "the contract": `process.md:392,401,481-482`, `tasks/TEMPLATE.md:103`, `.claude/agents/task-expander.md:42,112`, `tester.md:20-21,309`, `worker.md:72`, `reviewer.md:187` (line numbers on PR #148's branch). `reviewer.md:187` is the one with teeth. It justifies escalating any `openapi.yaml` change because "the contract … is load-bearing for work that has not been written yet", which is E-14's opposite, so a person should decide whether the envelope keeps `openapi.yaml` on its list. `tasks/README.md:22` ("acceptance criteria the contract") is a different sense of the word and can stay.
+**Done when:** no loop file calls `openapi.yaml` "the contract", and whether `openapi.yaml` changes still escalate is written down in D-4 either way.
