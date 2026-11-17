@@ -47,3 +47,34 @@ I did not run any build, test or pipeline, as the expander role requires.
 
 ## Approval — 2026-11-17
 Orchestrator wrote the unattended `Approved:` stamp. No human saw the criteria.
+
+## Round 2 — worker — 2026-11-17
+`Next step` on entry: `worker` → on exit: `tester`
+
+**T-048 worker is done. The outcome is 4(b): React error #418 no longer reproduces.** I built the bundle from base commit `e6b8a0c` with `frontend/` unmodified, and it loads with no hydration error both signed out and signed in. I added a guard test and saw it catch a #418 I planted. No file under `frontend/src/` changed. The commit is `89cd5a5` on `task/T-048-hydration-warning`, and `git log origin/task/T-048-hydration-warning -1` shows it. Status is `awaiting verification`, Next step `tester`.
+
+**Changes:**
+- **`e2e/tests/first-load.spec.ts`** (new): two tests, one for a signed-out first load and one for a signed-in first load. Each fails with a message that names every hydration error it saw.
+- **`e2e/tests/app.ts`**: three helpers added, nothing existing edited.
+  - `collectHydrationErrors` listens on both `console` errors and `pageerror`, using the brief's regexes.
+  - `splashStart` and `homeProgress` are the two selectors the new spec needs.
+- **`engineering-decisions.md`**: E-33, in the 4(b) form, naming base commit `e6b8a0c`.
+- **`README.md`**: the hydration-warning line is removed from "Known issues".
+- **The brief**: Handoff (with a criterion table and pasted test output), Notes, Sessions row, Status and Next step.
+
+**Evidence (all from a local run, not CI):**
+- **Base bundle:** both guard tests pass.
+- **Planted mismatch:** I put a text node that reads `typeof window` into `RootShell`. Both guard tests then failed with "Minified React error #418". I reverted it, rebuilt, and both passed again.
+- **How React reports it:** the #418 arrived as a `pageerror`, not a `console.error`, so a guard watching only the console would have missed it.
+- **How it ran:** the frontend `node_modules` already existed here and match `bun.lock`, so `bun run build:static` worked, despite the brief saying this sandbox cannot build. The backend ran under `uv` with SQLite, and Chromium was `/usr/bin/google-chrome`. There is no Docker daemon, so docker compose was not used.
+
+**Suites run locally:**
+- **Passed:** frontend typecheck, lint, format:check and `bun test` (248 pass). question-bank typecheck and tests (229 pass). Backend pytest (785 passed, 9 skipped). e2e typecheck.
+- **Full e2e suite: 15 passed, 1 failed.** The failure was `quiz.spec.ts` "every quiz type can be played through", which timed out right after registering a new account. Run on its own, `quiz.spec.ts` passed 8/8. I put it down to local parallel runs against SQLite; the change touches no app code.
+- **Not run:** backend-postgres and integration (no Postgres or Docker here). I did not wait for CI on PR #149, so the tester should confirm the `e2e` job there.
+
+**Flags for later roles:**
+- **Criterion 7 does not match the app.** It, and the Goal, say a signed-in visitor's first screen is Home. In fact the app always opens on the Splash, and Start leads to Home. The guard taps Start and waits for Home, and I changed no screen flow. The reviewer should confirm this reading; if Home really should come first, that is a product call and a new `tasks.md` entry.
+- **The signed-in test opens a fresh page in the same context** rather than reloading. That way its listeners only hear the first load, not the sign-up before it. The tester can accept or overturn this.
+- **The tester needs a different session.** The expander and I both ran in `cse_011oDiJdNiAkMCtdKuibGJLt`.
+- **Tests made stale:** none.
