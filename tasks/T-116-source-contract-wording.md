@@ -1,7 +1,7 @@
 # T-116 — Source comments and one 422 `detail` stop calling `openapi.yaml` "the contract"
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-17, unattended run. See `runs/T-116-source-contract-wording.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 | worker | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| tester | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt (orchestrated: fresh subagent, shared session id) |
 
 > **Not the light path.** T-116 is sized S, but the 422 `detail` string reaches a
 > screen: `ApiError.displayMessage` (`frontend/src/lib/api/client.ts:63-66`)
@@ -218,6 +219,35 @@ Ran the four snapshot files that read `seed-level.ts` (`seed-level-loose-ends-ve
 None.
 
 ## Verdict
+
+**TL;DR: pass.** All nine criteria are met. Ten new tester tests for criteria 3–4 pass; the full backend, frontend and question-bank suites, lint, format and typecheck are green. On PR head `25ac5b6`, CI's e2e was still **in progress** when this was written, and every other check was green. The reviewer confirms e2e on the final head.
+
+**Independence (read this before trusting the pass).** This is an orchestrated run (`runs/T-116-source-contract-wording.md` exists). `$CLAUDE_CODE_REMOTE_SESSION_ID` is `cse_011oDiJdNiAkMCtdKuibGJLt`, the same id listed for expander and worker, so the session check **cannot** show separation here. It is neither passed nor failed. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's conversation or reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met (by hand) | `grep -rniI contract backend/app frontend/src question-bank/src --include='*.py' --include='*.ts' --include='*.tsx'`, excluding `.test.ts(x)` / `.snapshot.ts` / `node_modules` / `__pycache__`, returns **no hits** |
+| 2 | met (by hand) | Read every hunk of `git diff origin/main...HEAD -- backend/app frontend/src question-bank/src`: 20 comment/docstring lines, each a one-for-one swap of "the contract" for `openapi.yaml` / "the spec". No comment was deleted, and none newly claims conformance. One judgment call for the reviewer: `main.py:11` also changes "has" to "describes", which softens the line and adds no claim |
+| 3 | met (test) | `test_criterion_3_validation_detail_is_one_plain_sentence_saying_not_valid` × 5 cases. Detail is `"Some of the information sent was not valid."`. **Red against `origin/main`** (5 failed), green on branch |
+| 4 | met (test) | `test_criterion_4_rest_of_validation_422_is_unchanged` × 5 cases. Each checks the exact `content-type`, `status`, `title`, `type`, `instance`, the key set, and `errors` **equal to values recorded by running the same requests on `origin/main`**. The cases are missing field, non-JSON body, wrong types, empty body, and bad query param. A mutation of `title` → `"Validation failedX"` turned it red (reverted) |
+| 5 | met (by hand) | Full-response probe of the 5 cases, main vs branch: the only diff is `detail`. Python AST compare of every non-docstring constant in `backend/app/` (main vs branch) found the single change `main.py: 'The request did not match the contract.' -> 'Some of the information sent was not valid.'`. The TS diffs are comment-only |
+| 6 | met (by hand) | `git diff --name-status origin/main...HEAD`: only `A` for test files (`test_t116_validation_detail.py`, worker; `test_t116_tester_criteria.py`, tester). No `M`/`D` on any pre-existing test or snapshot |
+| 7 | met (by hand) | Worker commit `cd5302e` touches only `backend/app/`, `frontend/src/lib/`, `question-bank/src/`, the brief and one new test. `runs/…` is the orchestrator's. `openapi.yaml`, `.claude/`, plan and decision files are untouched |
+| 8 | met (by hand) | No `package.json`, `bun.lock`, `pyproject.toml` or `uv.lock` in the diff |
+| 9 | met except e2e pending | PR #148 head `25ac5b6`: question-bank, frontend, backend, backend (postgres) and integration were all `success`. e2e (playwright) was `in_progress`. This tester commit triggers a fresh run. The reviewer checks it |
+
+**Suite as run locally (branch + tester test):**
+
+- **backend:** `uv run ruff check .` clean, `uv run ruff format --check .` clean, `uv run pytest -q` → **797 passed, 9 skipped**
+- **frontend:** `bun run typecheck`, `lint`, `format:check` clean; `bun test` → **248 pass, 0 fail**
+- **question-bank:** `bun run typecheck`, `lint`, `format:check` clean; `bun test` → **229 pass, 0 fail**
+- **Not run locally:** integration and e2e (CI is the authority)
+
+**Mutations / falsifiability:** the criterion-3 tests were run against `origin/main` in a temporary worktree and went red, as they should. A `title` mutation on the branch turned the criterion-4 tests red. Both were reverted, and the worktree was removed.
+
+**Tests made stale:** none found. No pre-existing test went red.
+
+**New file:** `backend/tests/test_t116_tester_criteria.py`.
 
 ## Notes
 
