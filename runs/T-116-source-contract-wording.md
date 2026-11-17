@@ -1,7 +1,7 @@
 # T-116 — source comments and the 422 detail still say "contract" — run log
 
 **Task:** T-116 · **Branch:** `claude/epic-shannon-s86cuf` · **PR:** #148
-**Started:** 2026-11-17 · **Outcome:** in progress
+**Started:** 2026-11-17 · **Outcome:** ready for merge — escalated (422 wording needs a person)
 
 ## Round 1 — task-expander — 2026-11-17
 `Next step` on entry: `(none — no brief)` → on exit: `worker`
@@ -83,3 +83,49 @@ Orchestrator wrote the unattended `Approved:` stamp. No human saw the criteria.
 - **Not run locally:** integration and e2e.
 
 **No tests went stale.** I added only `backend/tests/test_t116_tester_criteria.py`.
+
+## Round 4 — reviewer — 2026-11-17
+`Next step` on entry: `reviewer` → on exit: `human` (approved — escalated; PR marked ready; brief swept)
+
+**I approved T-116 but escalated it, so it needs a person's decision before merging.** PR #148 is marked ready for review with a "do not merge" note at the top of the body. The swept bookkeeping rides inside the PR, and I did not merge.
+
+**What the person must decide:** whether a child should see the new validation 422 `detail`, "Some of the information sent was not valid." It can reach a screen through `ApiError.displayMessage`, which `frontend/src/routes/index.tsx` `messageFor` displays. Text a child will read is outside the envelope. Everything else in the PR is inside it.
+
+**Checks**
+- **PR state:** open and draft when I started, not merged. Every role in the Sessions table has commits on the branch:
+  - expander: `405a3d4`, `eddb6a2`
+  - worker: `cd5302e`
+  - tester: `f9268b5`, `8cfea4b`
+  - orchestrator: run-log commits
+- **Lanes:** each role stayed in its own.
+  - The expander touched only the brief.
+  - The worker touched only `backend/app/`, `frontend/src/lib/` and `question-bank/src/`, plus one new test and the brief.
+  - The tester touched only a new test and the brief.
+  - There were no `ci-fix` commits. `Test changes: none`, `CI fix: none`.
+- **The diff:** 21 one-for-one comment swaps plus the one `detail` string. Nothing was reflowed and nothing else changed.
+- **Suites:** all six CI jobs were green on `bbb9e8d`, the last head with code or test changes. I re-ran the backend locally: 797 passed, 9 skipped, ruff clean. CI on the new head `c372e60` was still queued when I finished; my two commits there change only markdown files.
+- **No** dependency, `openapi.yaml`, migration or plan change, and no pre-existing test was touched.
+
+**Findings (none block)**
+- **Overlapping tests:** the worker's and the tester's new test files overlap. This is harmless, so I did not queue it.
+- **Test names:** three still say "contract": `test_profiles_api.py:79`, `test_levels.py:102` and `client.test.ts:43`. I did not queue a task, because renaming each would need a person's Test change request (D-14) and changes no behaviour.
+- **Loop files:** `process.md`, `tasks/TEMPLATE.md` and `.claude/agents/{task-expander,tester,worker,reviewer}.md` still call `openapi.yaml` "the contract". `reviewer.md:187` uses that idea to justify escalating `openapi.yaml` changes, which contradicts E-14. I queued this as a new ticket, **P-20**, in `process-tasks.md`.
+- **Flags from earlier roles, all settled:**
+  - The 422 wording passes review; only whether it suits a child is left to the person.
+  - The worker's change of "has" to "describes" in `main.py:11` is accepted.
+  - The shared session id across orchestrated roles is already recorded in `process-decisions.md`, so it gets no new ticket.
+
+**Commits pushed to `claude/epic-shannon-s86cuf` (push confirmed: local and origin are both at `c372e60`)**
+- **`f70b748`:** adds `## Review` to the brief, sets `Status: approved — escalated` and `Next step: human`, and adds my Sessions row. This keeps the review in git history.
+- **`c372e60` (the sweep):**
+  - deletes the brief
+  - deletes the T-116 entry from `tasks.md` and adds a line to its sweep log
+  - logs T-116 under Completed tasks in `PROGRESS.md`
+  - adds P-20 to `process-tasks.md`
+
+Nothing else in the queue moved.
+
+**PR body:** rewritten with the escalation note at the top, then a TL;DR, the criteria verbatim with what verified each, the review, the sweep, and what was left out on purpose.
+
+## Task ended — 2026-11-17
+Ready, escalated. Dkaattae: decide whether the 422 detail "Some of the information sent was not valid." is fine for a child to read, then merge PR #148.
