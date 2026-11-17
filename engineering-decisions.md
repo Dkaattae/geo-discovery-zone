@@ -2066,3 +2066,175 @@ done by hand outside the loop, not a `T` task.
 second API), so that `backend/` no longer names exactly one thing, or the repo
 is restructured into a `services/` or `apps/` layout in which every service
 directory is renamed at once.
+
+## E-32 — The shaded relief under the US map is a committed PNG, warped once outside the repo from Natural Earth
+
+**Decided: 2026-11-16 (T-043).** `UsMap` draws
+`frontend/src/assets/us-shaded-relief.png` as an SVG `<image>` at `0,0,800,500`
+before the state paths, and every state path is composited onto it with
+`mix-blend-mode: multiply` (`STATE_BLEND` in `frontend/src/lib/map-click.ts`).
+The PNG was made once, by hand, outside the repo. **No command in the repo
+regenerates it** — no script, no `package.json` script, no Makefile target. If
+it has to change, someone repeats the steps below by hand and commits the new
+file, updating this entry.
+
+**Why.** Dkaattae's answers on the T-043 brief: Q1 (a) a one-off reprojection
+with a tool that is not a repo dependency, Q2 commit the derived PNG (≤ 300 KB),
+Q3 multiply blend, so fills stay opaque colours and terrain darkens them.
+
+**The file.**
+
+| | |
+|---|---|
+| Output | `frontend/src/assets/us-shaded-relief.png`, 1200 × 750 (8:5), PNG colour type 4 (8-bit grayscale + alpha), 235 197 bytes, sha256 `e53bf19edd2aa2ebac39c9f26c06f5b77dc7f5cdc1ec659a69fb809b90f69cda` |
+| Source | Natural Earth **Shaded Relief Basic**, 1:50m — `SR_50M.zip`, `SR_50M.VERSION.txt` = `2.0.0` (grayscale `SR_50M.tif`, 10800 × 5400, 1/30°, plate carrée, `SR_50M.tfw` upper-left pixel centre −179.98333, 89.98333). Not the cross-blended hypsometric variant. |
+| Downloaded from | `https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip` on 2026-11-16 (sha256 of the zip `ff810f5f2747463fd8ffa612b23e5f5e5d593a345218976872b6749610976ab7`); the page is `https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/` |
+| Licence | Public domain (`geoquizdataplan.md` §5); no attribution required |
+| Tools | Node 22.23.4 with `d3-geo@2.0.2`, `topojson-client@3.1.0`, `us-atlas@3.0.1` (the versions, and integrity hashes, in `frontend/bun.lock`), installed into a scratch directory, not the repo; Python 3.13.18 with numpy 2.5.3 and Pillow 12.3.0. No GDAL. |
+
+**Projection — the exact one `UsMap` draws with.** react-simple-maps 3.0.0
+builds `geoAlbersUsa().translate([width / 2, height / 2])` then `.scale(1000)`,
+so the composite is `d3.geoAlbersUsa().translate([400, 250]).scale(1000)`. At
+that scale and translate, d3-geo 2.0.2's `albersUsa.js` resolves to three conic
+equal-area projections:
+
+| Part | rotate | center | parallels | scale | translate | clipExtent (SVG units) |
+|---|---|---|---|---|---|---|
+| Lower 48 | `[96, 0]` | `[-0.6, 38.7]` | `[29.5, 45.5]` | 1000 | `[400, 250]` | `[[-55, 12], [855, 488]]` |
+| Alaska | `[154, 0]` | `[-2, 58.5]` | `[55, 65]` | 350 | `[93, 451]` | `[[-25, 370], [186, 484]]` |
+| Hawaii | `[157, 0]` | `[-3, 19.9]` | `[8, 18]` | 1000 | `[195, 462]` | `[[186, 416], [285, 484]]` |
+
+**How the three were warped and composited.** One inverse-mapping pass over the
+output grid, rather than three `gdalwarp` runs: for each output pixel `(i, j)`
+the SVG point `((i + 0.5) / 1.5, (j + 0.5) / 1.5)` went through
+`albersUsa.invert`, which picks the part by rectangle — Alaska if
+`370 ≤ y < 484` and `−25 ≤ x < 186`, else Hawaii if `416 ≤ y < 484` and
+`186 ≤ x < 285`, else the lower 48 — and inverts with that part's projection
+alone. That is the same region test `geoAlbersUsa` composites its own insets
+with, so each inset's relief lands where its outline is drawn. The source was
+sampled bilinearly at the resulting lon/lat. Then:
+
+- **Tone.** Linear stretch of source values `[40, 215]` to `[0, 255]` (clipped),
+  so flat ground is near white and multiply leaves fills almost untouched there;
+  then quantised to 32 grey levels to fit the 300 KB budget.
+- **Mask.** The union of the 51 drawn state outlines (us-atlas `states`, through
+  `d3.geoPath` with the same projection; the territories project to nothing and
+  are not drawn) was filled at 4× and box-downsampled for an antialiased alpha.
+  Alpha is 0 outside the states — ocean, Canada, Mexico, and the space around
+  the insets — and the grey there is 0. Pixels with no inverse (`null` from
+  `invert`) are also alpha 0.
+
+**Commands, verbatim** (`$S` a scratch directory outside the repo; the two
+scripts are reproduced below and live nowhere in the repo):
+
+```sh
+cd $S/ne && curl -sS -L -o SR_50M.zip https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip && unzip -o SR_50M.zip
+cd $S/tool && echo '{"name":"warp","private":true}' > package.json && bun add d3-geo@2.0.2 topojson-client@3.1.0 us-atlas@3.0.1
+cd $S/work && node $S/scripts/project.mjs $S/tool $S/work 1200
+python3 -I $S/scripts/warp.py $S/ne/SR_50M.tif $S/work 1200 us-shaded-relief.png 40 215 32
+cp us-shaded-relief.png <repo>/frontend/src/assets/us-shaded-relief.png
+```
+
+`project.mjs`:
+
+```js
+// Throwaway, outside the repo. Usage: node project.mjs <toolDir> <outDir> <W>
+// Writes lonlat.f64 (W*H*2, pixel centres inverse-projected through the exact
+// projection UsMap draws with) and rings.json (projected state outlines, SVG units).
+import { createRequire } from "node:module";
+import { writeFileSync, readFileSync } from "node:fs";
+const [toolDir, outDir, Wstr] = process.argv.slice(2);
+const require = createRequire(toolDir + "/package.json");
+const d3 = require("d3-geo");
+const topo = require("topojson-client");
+const atlas = JSON.parse(readFileSync(toolDir + "/node_modules/us-atlas/states-10m.json", "utf8"));
+// react-simple-maps 3.0.0 makeProjection: geoAlbersUsa().translate([w/2,h/2]) then .scale(1000)
+const proj = d3.geoAlbersUsa().translate([400, 250]).scale(1000);
+const W = Number(Wstr), H = (W * 5) / 8, k = W / 800;
+const buf = new Float64Array(W * H * 2);
+for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+  const p = proj.invert([(i + 0.5) / k, (j + 0.5) / k]);
+  const o = (j * W + i) * 2;
+  buf[o] = p ? p[0] : NaN; buf[o + 1] = p ? p[1] : NaN;
+}
+writeFileSync(outDir + "/lonlat.f64", Buffer.from(buf.buffer));
+const path = d3.geoPath(proj);
+const states = topo.feature(atlas, atlas.objects.states).features;
+const out = [];
+for (const f of states) {
+  const d = path(f);
+  if (!d) continue;
+  const rings = d.split("M").filter(Boolean).map((s) =>
+    s.replace(/Z/g, "").split("L").map((pt) => pt.split(",").map(Number)));
+  out.push({ id: String(f.id).padStart(2, "0"), name: f.properties.name, rings });
+}
+writeFileSync(outDir + "/rings.json", JSON.stringify(out));
+console.log("W", W, "H", H, "states", out.length);
+```
+
+`warp.py`:
+
+```python
+# Throwaway, outside the repo. Usage: python3 -I warp.py <SR_50M.tif> <workDir> <W> <out.png> [lo] [hi] [levels]
+# Samples Natural Earth SR_50M (equirectangular, 1/30 deg, origin -180,90) at
+# each output pixel's lon/lat (bilinear), masks to the union of projected state
+# outlines (4x supersampled), writes an 8-bit grayscale+alpha PNG.
+import sys, json
+import numpy as np
+from PIL import Image, ImageDraw
+Image.MAX_IMAGE_PIXELS = None
+tif, work, W, out = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
+lo = float(sys.argv[5]) if len(sys.argv) > 5 else 0.0
+hi = float(sys.argv[6]) if len(sys.argv) > 6 else 255.0
+levels = int(sys.argv[7]) if len(sys.argv) > 7 else 256
+H = W * 5 // 8; k = W / 800
+src = np.asarray(Image.open(tif), dtype=np.float64)  # 5400 x 10800
+ll = np.fromfile(work + "/lonlat.f64", dtype=np.float64).reshape(H, W, 2)
+lon, lat = ll[..., 0], ll[..., 1]
+valid = ~np.isnan(lon)
+# pixel-centre registration: tfw upper-left centre is (-179.98333, 89.98333), 1/30 deg
+x = (np.nan_to_num(lon) + 180.0) * 30.0 - 0.5
+y = (90.0 - np.nan_to_num(lat)) * 30.0 - 0.5
+x0 = np.floor(x).astype(int); y0 = np.floor(y).astype(int)
+fx = x - x0; fy = y - y0
+Hs, Ws = src.shape
+def at(yy, xx): return src[np.clip(yy, 0, Hs - 1), np.mod(xx, Ws)]
+v = (at(y0, x0) * (1 - fx) * (1 - fy) + at(y0, x0 + 1) * fx * (1 - fy)
+     + at(y0 + 1, x0) * (1 - fx) * fy + at(y0 + 1, x0 + 1) * fx * fy)
+# Tone: linear stretch [lo,hi] -> [0,255], then optional quantisation
+v = np.clip((v - lo) / (hi - lo) * 255.0, 0, 255)
+if levels < 256:
+    step = 255.0 / (levels - 1)
+    v = np.round(v / step) * step
+gray = np.round(v).astype(np.uint8)
+# Mask: union of state outlines, drawn at 4x then box-downsampled for antialiasing
+ss = 4
+m = Image.new("L", (W * ss, H * ss), 0)
+dr = ImageDraw.Draw(m)
+for st in json.load(open(work + "/rings.json")):
+    for ring in st["rings"]:
+        if len(ring) >= 3:
+            dr.polygon([(px * k * ss, py * k * ss) for px, py in ring], fill=255)
+mask = np.asarray(m.resize((W, H), Image.BOX), dtype=np.uint8)
+mask = np.where(valid, mask, 0).astype(np.uint8)
+gray = np.where(mask > 0, gray, 0).astype(np.uint8)  # transparent pixels carry 0 -> compress better
+img = Image.fromarray(np.dstack([gray, mask]), "LA")
+img.save(out, optimize=True)
+inside = mask == 255
+print("size", W, H, "inside px", int(inside.sum()), "gray inside: min", int(gray[inside].min()),
+      "p5", int(np.percentile(gray[inside], 5)), "median", int(np.median(gray[inside])),
+      "p95", int(np.percentile(gray[inside], 95)), "max", int(gray[inside].max()))
+```
+
+**Options not taken.** *An in-repo pipeline* (Q1 (b)) — reproducible, but a
+GDAL or image dependency to redraw one picture that changes only if the
+projection does. *Lower 48 only* (Q1 (c)) — Alaska and Hawaii would have been
+the only flat states. *Translucent fills over the relief* (Q3's other option) —
+the quiz colours would have shifted with the terrain under them. *1:10m
+`SR_HR`* — at this output size (≈ 4.3 km per pixel in the lower 48) the 1:50m
+raster (≈ 3.7 km per pixel) already carries more detail than survives.
+*1600 × 1000* — 388 KB at 32 grey levels, over budget.
+
+**Revisit when** the map's projection, scale or 800 × 500 frame changes (the
+PNG no longer registers and must be redone by these steps), when a world or
+other-region map wants relief, or when registration is visibly off in review.

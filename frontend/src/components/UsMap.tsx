@@ -2,7 +2,9 @@ import { memo, useMemo } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import statesTopo from "us-atlas/states-10m.json";
 
+import reliefUrl from "@/assets/us-shaded-relief.png";
 import { pad, stateProps, type MapView } from "@/lib/map-click";
+import { MAP_HEIGHT, MAP_WIDTH, reliefImageProps } from "@/lib/relief";
 
 export type MapMode = "quiz" | "progress";
 
@@ -49,10 +51,18 @@ function UsMapBase({
       <ComposableMap
         projection="geoAlbersUsa"
         projectionConfig={{ scale: 1000 }}
-        width={800}
-        height={500}
+        width={MAP_WIDTH}
+        height={MAP_HEIGHT}
         style={{ width: "100%", height: "auto" }}
       >
+        {/*
+          Shaded relief under the states, which multiply onto it (T-043). A
+          bundled PNG warped once outside the repo from Natural Earth; its
+          provenance, and why no repo command regenerates it, is
+          engineering-decisions.md E-32. A sibling before the states, not a
+          parent: the paths never wait on it.
+        */}
+        <image {...reliefImageProps(reliefUrl)} />
         <Geographies geography={geography}>
           {({ geographies }) =>
             // The territories in us-atlas fall outside geoAlbersUsa and project to
