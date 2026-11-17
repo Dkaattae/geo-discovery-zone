@@ -56,3 +56,30 @@ Orchestrator wrote the unattended `Approved:` stamp. No human saw the criteria.
   - At `main.py:11`, "has no other error shape" became "describes no other error shape". Keeping "has" would have read as if `openapi.yaml` sets the rules (criterion 2).
 - **Flag for tester:** the expander and the worker ran under the same remote session id (`cse_011oDiJdNiAkMCtdKuibGJLt`). The tester should decide whether that breaks its independence check, and escalate to a human if it does.
 - **Brief:** the Status header still said `awaiting approval` even though the orchestrator's Approved line was there. I took the brief as approved, as the worker rules allow, and noted this in the Handoff.
+
+## Round 3 — tester — 2026-11-17
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-116 tester verdict: pass.** All 9 criteria are met. The brief now reads **Status `pass`** and **Next step `reviewer`**, and my Sessions row is added. My commits are on `claude/epic-shannon-s86cuf` (head `8cfea4b`, matching the remote).
+
+**Independence:** this run is orchestrated (`runs/T-116-source-contract-wording.md` exists). My session id `cse_011oDiJdNiAkMCtdKuibGJLt` is the same one listed for the expander and the worker, so the session check cannot show they were separate. I am not claiming it passed. The only independence here is that I was spawned fresh with my own context and never saw the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+| # | Verdict | How it was checked |
+|---|---|---|
+| 1 | met, by hand | A case-insensitive search for `contract` across the in-scope `.py`/`.ts`/`.tsx` files finds nothing. |
+| 2 | met, by hand | I read every hunk. Each swaps "the contract" for `openapi.yaml` or "the spec", one for one. For the reviewer: `main.py:11` also changes "has" to "describes". |
+| 3 | met, test | `test_criterion_3_…`, 5 cases. They fail against `origin/main` and pass on the branch. |
+| 4 | met, test | `test_criterion_4_…`, 5 cases. Each checks the exact content type, status, title, type, instance, field set, and an `errors` list equal to what `origin/main` returned for the same requests. Changing `title` on purpose made them fail (change reverted). |
+| 5 | met, by hand | I compared the full responses from main and the branch, and every non-docstring string literal in the Python code. The only change is the 422 `detail`. The TypeScript changes are comments only. |
+| 6 | met, by hand | No test file that existed before this task was modified or deleted. |
+| 7 | met, by hand | The worker changed only the allowed folders, the brief and one new test file. |
+| 8 | met, by hand | No dependency or lockfile changes. |
+| 9 | met | On PR #148 head `25ac5b6`, all six CI checks passed, e2e included. My commits trigger a fresh run, which the reviewer should check. |
+
+**Suite run locally:**
+- **backend:** ruff check and format clean; pytest 797 passed, 9 skipped.
+- **frontend:** typecheck, lint and format:check clean; 248 tests pass.
+- **question-bank:** typecheck, lint and format:check clean; 229 tests pass.
+- **Not run locally:** integration and e2e.
+
+**No tests went stale.** I added only `backend/tests/test_t116_tester_criteria.py`.
