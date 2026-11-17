@@ -7,7 +7,7 @@
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-116
 **Branch:** `claude/epic-shannon-s86cuf`
-**PR:** #NN, opened draft at expand time, built from the branch above. It **stays
+**PR:** #148, opened draft at expand time, built from the branch above. It **stays
 draft** until the reviewer approves it.
 **Fault:**
 
