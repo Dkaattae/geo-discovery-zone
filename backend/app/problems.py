@@ -1,9 +1,9 @@
 """RFC 9457 problem details.
 
-Every error the contract describes is `application/problem+json` with at least
+Every error `openapi.yaml` describes is `application/problem+json` with at least
 `title` and `status`, so errors are raised through here rather than through a
 bare `HTTPException` — FastAPI's default `{"detail": ...}` body does not match
-the contract.
+`openapi.yaml`.
 """
 
 from __future__ import annotations

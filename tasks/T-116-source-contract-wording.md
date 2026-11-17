@@ -1,7 +1,7 @@
 # T-116 — Source comments and one 422 `detail` stop calling `openapi.yaml` "the contract"
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-17, unattended run. See `runs/T-116-source-contract-wording.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
+| worker | 2026-11-17 | cse_011oDiJdNiAkMCtdKuibGJLt |
 
 > **Not the light path.** T-116 is sized S, but the 422 `detail` string reaches a
 > screen: `ApiError.displayMessage` (`frontend/src/lib/api/client.ts:63-66`)
@@ -150,6 +151,72 @@ Definitions used below:
 
 ## Handoff
 
+**TL;DR:** all 21 "contract" hits in in-scope source are reworded to `openapi.yaml` / "the spec"; the validation 422's `detail` is now `"Some of the information sent was not valid."`. Backend, frontend and question-bank suites, lint, format and typecheck are green locally; integration and e2e were not run here. **Tests made stale: none.**
+
+**Same session id as the expander.** The orchestrator ran both roles under one remote session (`cse_011oDiJdNiAkMCtdKuibGJLt`), as separate subagents. The tester should judge whether that counts as "the same session" for its independence check (owner: tester, escalate to human if it does).
+
+### What changed, file by file
+
+Each edit swaps "the contract" for `openapi.yaml` (or "the spec" where `openapi.yaml` is named in the same comment). Nothing else in any line moved.
+
+- `backend/app/auth.py:3` — "The contract's Profiles…" → "`openapi.yaml`'s Profiles…"
+- `backend/app/content_build.py:13` — "the contract's names" → "`openapi.yaml`'s names"
+- `backend/app/frontend.py:11` — "the contract's problem document" → "`openapi.yaml`'s problem document"
+- `backend/app/grading.py:4` — "the contract spells out" → "`openapi.yaml` spells out"
+- `backend/app/levels.py:49` — "from the contract" → "from `openapi.yaml`"
+- `backend/app/main.py:3` — "the contract's local development server" → "`openapi.yaml`'s …"
+- `backend/app/main.py:11` — "the contract has no other error shape" → "`openapi.yaml` describes no other error shape" ("has" → "describes" so it reads as a description, not a rule — criterion 2's "no new conformance claim")
+- `backend/app/main.py:116` — **the 422 `detail`**: `"The request did not match the contract."` → `"Some of the information sent was not valid."`
+- `backend/app/orm.py:335` — "the contract's Entity" → "`openapi.yaml`'s Entity"
+- `backend/app/problems.py:3`, `:6` — "Every error the contract describes" / "does not match the contract" → `openapi.yaml`
+- `backend/app/routers/__init__.py:1` — "one per tag in the contract" → "in `openapi.yaml`"
+- `backend/app/routers/auth.py:4` — "original v1 contract" → "original v1 spec" (`openapi.yaml` is named on line 3)
+- `backend/app/routers/content.py:3`, `:7` — "the contract calls" / "in the contract" → `openapi.yaml`
+- `backend/app/serializers.py:1`, `:5` — "Record → contract payload" → "Record → `openapi.yaml` payload"; "the contract's camelCase" → "`openapi.yaml`'s camelCase"
+- `backend/app/store.py:198` — "the match the contract describes" → "`openapi.yaml` describes"
+- `frontend/src/lib/api/client.ts:188` — "Every error the contract describes" → "`openapi.yaml` describes"
+- `frontend/src/lib/api/types.ts:5` — "not the whole contract" → "not the whole spec" (`openapi.yaml` named on line 2)
+- `question-bank/src/seed-level.ts:87` — "The contract's range" → "The spec's range" (`openapi.yaml` named earlier in the line)
+- **New:** `backend/tests/test_t116_validation_detail.py` — two worker tests via the ASGI client (no network): the `detail` has no forbidden word, is one sentence, says "not valid"; and status, content type, `title`, `instance`, `errors[].path` are as before. The first one fails with `main.py` reverted (checked).
+
+### Where each criterion lives
+
+| # | Where |
+|---|---|
+| 1 | `grep -rniI contract backend/app frontend/src question-bank/src --include='*.py' --include='*.ts' --include='*.tsx'` minus `.test.ts(x)` / `.snapshot.ts` → no hits |
+| 2 | The diff: 20 comment/docstring lines, one-for-one |
+| 3 | `backend/app/main.py:116` |
+| 4 | `handle_validation_error` otherwise untouched; `_field_error` untouched |
+| 5 | Only string literal changed is `main.py:116`; everything else is comments/docstrings |
+| 6 | No pre-existing test file touched |
+| 7 | Only `backend/app/`, `frontend/src/lib/`, `question-bank/src/`, the brief, and one new test file |
+| 8 | No `package.json`, `bun.lock`, `pyproject.toml`, `uv.lock` change |
+| 9 | Local: see below. CI on PR #148 is the authority for integration and e2e |
+
+### Checks run
+
+- **backend:** `uv run ruff check .` clean, `uv run ruff format --check .` clean, `uv run pytest -q` → 787 passed, 9 skipped
+- **frontend:** `bun run typecheck`, `lint`, `format:check` clean; `bun test` → 248 pass, 0 fail
+- **question-bank:** `bun run typecheck`, `lint`, `format:check` clean; `bun test` → 229 pass, 0 fail
+- **Not run:** integration and e2e (need docker-compose / Chromium). Before editing, `grep -rn "did not match"` over `e2e/`, `backend/integration/`, `backend/tests/` found nothing, so neither pins the old `detail`.
+
+### Snapshot lane (`seed-level.ts:87` edit)
+
+Ran the four snapshot files that read `seed-level.ts` (`seed-level-loose-ends-verify`, `hand-check-levels-verify`, `farm-animal-loose-ends-verify`, `familiarity-drawn-apart-verify`) with and without the edit: the **same 12 tests fail either way** (stale historical pins against old SHAs and deleted files — e.g. T-025 c15/c17, T-085a c23/c24, T-096 c20/c21). None reads the comment at line 87; they read export signatures, the `concept_load` doc block, and the export list. The edit turns nothing red there.
+
+### Deliberately not done
+
+- No test names touched (`client.test.ts:43`, `test_levels.py:102`, `test_profiles_api.py:79`) — out of scope.
+- No reflowing or other rewording; no change to `displayMessage`.
+
+### Contradictions with the brief
+
+- None in the criteria. Minor: the brief's Status read `awaiting approval` while **Approved** carried the orchestrator line; treated as approved per the worker rules.
+
+### Tests made stale
+
+None.
+
 ## Verdict
 
 ## Notes
@@ -158,3 +225,5 @@ Definitions used below:
   `contract` across `backend/app/`, `frontend/src/` and `question-bank/src/`.
   Outside the in-scope files listed in criterion 1, the only hits are test and
   snapshot files, which stay as they are.
+- Worker: the 422 wording "Some of the information sent was not valid." was picked to avoid "request" (jargon to a child) while still saying the request was invalid (criterion 3). Owner to confirm or overturn: reviewer.
+- Worker: in `main.py:11` "has no other error shape" became "describes no other error shape" — "`openapi.yaml` has" read as if the file defined behaviour. Owner: reviewer, against criterion 2.

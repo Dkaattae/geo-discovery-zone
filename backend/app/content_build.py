@@ -10,7 +10,7 @@ from `backend/`). Reads two committed inputs and writes one committed output:
   reads at startup.
 
 The mapping is an allowlist in both directions. An entity keeps only the fields
-in `ENTITY_FIELDS`, renamed to the contract's names, and drops any that is
+in `ENTITY_FIELDS`, renamed to `openapi.yaml`'s names, and drops any that is
 absent or null; its `funFact` is the first fun fact marked `reviewed: true`, and
 no other prose is written. A question keeps only the fields its format allows:
 `QUESTION_FIELDS` for a choice format, `MAP_CLICK_FIELDS` for `map_click`. So the

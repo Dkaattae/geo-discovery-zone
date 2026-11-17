@@ -1,6 +1,6 @@
 """Application wiring.
 
-Routes mount under `/api/v1` to match the contract's local development server
+Routes mount under `/api/v1` to match `openapi.yaml`'s local development server
 (`http://localhost:3000/api/v1`); `GEO_API_PREFIX` overrides it.
 
 On startup the app brings the schema up to date and makes sure the content bank
@@ -8,7 +8,7 @@ and the demo account are present. All three steps are idempotent, so restarting
 a server with real data in it changes nothing.
 
 Every error leaves as `application/problem+json`, including FastAPI's own
-validation failures — the contract has no other error shape.
+validation failures — `openapi.yaml` describes no other error shape.
 """
 
 from __future__ import annotations
@@ -113,7 +113,7 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
     body = problem_body(
         422,
         "Validation failed",
-        "The request did not match the contract.",
+        "Some of the information sent was not valid.",
         instance=request.url.path,
         errors=[_field_error(error) for error in exc.errors()],
     )
