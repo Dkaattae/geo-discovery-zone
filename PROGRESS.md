@@ -382,7 +382,13 @@ and an animal, never a real name. Plan §5.2 and §5.4 are amended to match.
   `console.error` — React 19 reports recovered mismatches via `reportError`. The frontend built in
   the sandbox after all. Criterion 7 described a signed-in visitor's first screen as Home; the app
   opens on Splash for everyone and Start goes to Home, which this task left unchanged.
-  `e2e/README.md`'s spec table is T-117.
+  `e2e/README.md`'s spec table was T-117 (PR #150).
+- **T-117 — `e2e/README.md`'s spec table lists every file in `e2e/tests/`** (PR #150, 2026-11-18).
+  The "What it holds down" table gains rows for `map-click.spec.ts`, `first-load.spec.ts` and
+  `first-load-head.spec.ts`, and "How they are written" gains a paragraph on why the hydration guard
+  listens on `pageerror` as well as `console.error` (E-33). *Where it differed from the brief:* nothing
+  in the README; criterion 4's exclusion list missed the orchestrator's `runs/` log (already P-6).
+  The `app.ts` row and the first-day paragraph, both stale, were frozen by criterion 4 and are T-118.
 - **T-116 — Source comments and the validation 422 stop calling `openapi.yaml` "the contract"** (PR #148, 2026-11-17).
   All 21 hits in non-test source under `backend/app/`, `frontend/src/` and `question-bank/src/` now
   say `openapi.yaml` (or "the spec" where the file is named in the same comment). The validation
