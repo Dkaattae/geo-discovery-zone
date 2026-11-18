@@ -205,6 +205,12 @@ a person first picks one: allow `*.census.gov` for the session; supply the 17
 rows by hand from one named release; or accept Wikidata P1082 statements whose
 reference is a named Census release (a source change, which needs the
 expander and a fresh approval).
+**Route chosen 2026-11-18: fetch the release outside the web session.**
+`bun run census` in `question-bank/` (or the monthly
+`census-largest-city.yml` workflow, which opens a draft PR) writes
+`question-bank/data/census/largest-city.json`, one row per state from one named
+release. This task is pickable once that file is on `main`. Expect Hawaii to
+read `capital not in release`: Honolulu is a CDP, not an incorporated place.
 **Approved 2026-10-27 (Dkaattae), carried over from T-085:** −1 on
 `tpl-capital-of` for AZ Phoenix, AR Little Rock, CO Denver, GA Atlanta,
 HI Honolulu, ID Boise, IN Indianapolis, IA Des Moines, MA Boston, MS Jackson,
