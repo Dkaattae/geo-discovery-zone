@@ -70,3 +70,24 @@ Unattended-run stamp written into the brief's `Approved:` line.
   - **Process owner** to decide whether future light briefs should exclude `runs/` too.
 - **Shared session id**: the expander and I both ran in session `cse_011oDiJfZc4iaqo64UcGBTnV`. The tester's session must differ from it.
 - **Two stale passages left alone, as the brief says**: the `app.ts` row still says "Every selector in the suite", and the "map cannot fill in on a child's first day" paragraph is unchanged. **Reviewer** to decide whether either becomes a `tasks.md` entry.
+
+## Round 3 — tester — 2026-11-18
+`Next step` on entry: `tester` → on exit: `reviewer`
+
+**T-117 passed. I checked all four criteria by hand, as the brief directs for a docs-only change, and added no tests. Next step is the reviewer.**
+
+**Independence:** this run is orchestrated, so my session id (`cse_011oDiJfZc4iaqo64UcGBTnV`) is the same as the worker's and the expander's. That proves nothing either way. My independence rests only on being a freshly spawned subagent that did not see the worker's reasoning. That is weaker than a separate session, and the Verdict says so.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| 1 | met | The files in `e2e/tests/` and the table's first column are the same six names, with no duplicates (`diff` and `uniq -d` both printed nothing). |
+| 2 | met | Each of the three new rows matches its spec's `test(...)` names and assertions. The `map_click` row contains the literal string, and each of its clauses has an assertion behind it. No row claims anything the spec doesn't assert. |
+| 3 | met | The new paragraph sits between `## How they are written` and the next `##` heading. It contains `pageerror`, `console.error`, `reportError` and `E-33`. E-33 exists, and `app.ts:432` does listen on `pageerror`. |
+| 4 | met | In `e2e/README.md` the diff only adds lines, so the existing rows and other sections are unchanged. Nothing under `e2e/tests/`, no other doc and no lockfile changed. |
+
+- **`runs/` file in the diff:** `runs/T-117-e2e-readme-spec-table.md` also differs from main. The orchestrator wrote it, and `process.md` line 75 puts `runs/` in its write scope. I don't count it as a scope breach. The process owner may want light briefs to exclude `runs/` explicitly.
+- **Tests run:** `question-bank` `bun test` passed, 229 tests with 0 failures. I did not run frontend, e2e, typecheck or lint, because no code changed.
+
+The brief now has Status `pass`, Next step `reviewer`, my Sessions row and the Verdict. I pushed it as `e25287c` to `claude/keen-goodall-29lj4e`, and `origin/claude/keen-goodall-29lj4e` now points at that commit.
+
+File: /home/user/geo-discovery-zone/tasks/T-117-e2e-readme-spec-table.md
