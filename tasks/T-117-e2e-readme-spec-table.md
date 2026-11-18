@@ -1,7 +1,7 @@
 # T-117 — `e2e/README.md`'s spec table lists two of five specs
 
-**Status:** `awaiting verification`
-**Next step:** `tester`
+**Status:** `pass`
+**Next step:** `reviewer`
 **Approved:** orchestrator — 2026-11-18, unattended run. See `runs/T-117-e2e-readme-spec-table.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -17,6 +17,7 @@ draft** until the reviewer approves it.
 |---|---|---|
 | task-expander | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV |
 | worker | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV |
+| tester | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV (orchestrated; fresh subagent context) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). Size `S`,
 > one file, documentation only; it touches no `openapi.yaml`, migration,
@@ -158,3 +159,22 @@ reads it. Next is the tester, who checks criteria 1–4 by reading the file.**
 None.
 
 ## Verdict
+
+Tester, 2026-11-18.
+
+**TL;DR: pass. All four criteria hold, checked by hand (docs only; no test reads `e2e/README.md`, and none was added). Next is the reviewer.**
+
+**Independence.** This run is orchestrated (`runs/T-117-e2e-readme-spec-table.md` exists), so my session id matches the worker's and the expander's; that proves nothing either way. My independence rests only on being a freshly spawned subagent with its own context: I did not see the worker's reasoning. That is weaker than a separate session, because it depends on the orchestrator having spawned me correctly.
+
+| # | Verdict | What I ran and saw |
+|---|---|---|
+| 1 | met | The handoff's `diff <(ls e2e/tests/) <(awk … e2e/README.md \| sed … \| sort)` printed nothing (sets equal, six files). `uniq -d` on the table's first column printed nothing (no duplicates). Each first column is a bare backticked filename. |
+| 2 | met | Read each new row against the file's `test(...)` names and assertions. `first-load.spec.ts`: the row says "both signed out … and signed in", matching the two tests `a signed-out first load…` / `a signed-in first load…`. `first-load-head.spec.ts`: title and meta description, matching `toHaveTitle` and the `content` check. `map-click.spec.ts`: contains literal `map_click`; each clause (keyboard control via `tabindex="0"` + Enter, exactly one answer sent, banner "The answer is …" plus two one-of-a-kind drawings, Next `toBeDisabled` then `toBeEnabled`, undo makes every state tappable and alike) has an assertion in the single test. No new row claims anything that is not asserted. |
+| 3 | met | The new paragraph sits after `## How they are written` and before `## Two things the suite found`. It contains `pageerror`, `console.error`, `reportError` and `E-33`. E-33 exists (`engineering-decisions.md:2244`). The paragraph is accurate: `app.ts:432` registers `page.on("pageerror", …)`. |
+| 4 | met | `git diff --stat origin/main...HEAD` lists `e2e/README.md`, `tasks/T-117-…` and `runs/T-117-…`. The `e2e/README.md` diff has 0 removed lines, so the three existing rows and every other section are byte-for-byte unchanged. Nothing under `e2e/tests/`, no other doc, and no lockfile changed. |
+
+**On `runs/` in criterion 4.** The worker flagged that the criterion's exclusion list leaves out `runs/`. `runs/T-117-…` was added by the orchestrator (`d98f9e8`), and `process.md` line 75 places `runs/` in the orchestrator's write scope. It is the loop's own record, not task content, so I do not count it as a scope breach. Process owner may want light briefs to exclude `runs/` explicitly.
+
+**Suite.** `question-bank`: `bun test` gave 229 pass, 0 fail. I did not run frontend, e2e, typecheck or lint: no code changed. The worker reports a pre-existing frontend load failure in this sandbox (`react-simple-maps` missing after proxy 403s), which has nothing to do with this diff.
+
+**Tests added:** none, as the brief's Notes direct. **Mutations:** none; the deliverable is not tests. **Pre-existing tests changed:** none.
