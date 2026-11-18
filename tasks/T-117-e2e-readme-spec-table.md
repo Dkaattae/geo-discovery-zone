@@ -2,7 +2,7 @@
 
 **Status:** `awaiting approval`
 **Next step:** `worker`
-**Approved:** `pending` — replace with who approved and the date, e.g. `Kate, 2026-08-06`
+**Approved:** orchestrator — 2026-11-18, unattended run. See `runs/T-117-e2e-readme-spec-table.md`.
 **Test changes:** `none`
 **CI fix:** `none`
 **From:** [`tasks.md`](../tasks.md) T-117
