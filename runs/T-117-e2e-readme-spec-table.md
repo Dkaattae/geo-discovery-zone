@@ -42,3 +42,31 @@ I wrote the brief for T-117 and opened draft PR #150. It is waiting for a person
 
 ## Approval — orchestrator — 2026-11-18
 Unattended-run stamp written into the brief's `Approved:` line.
+
+## Round 2 — worker — 2026-11-18
+`Next step` on entry: `worker` → on exit: `tester`
+
+**TL;DR: T-117 is built. `e2e/README.md` now has one table row per file in `e2e/tests/`, and "How they are written" has a paragraph on the `pageerror` guard that links E-33. The commit `a145417` is on `origin/claude/keen-goodall-29lj4e`. The brief is now `awaiting verification`, and the tester is next.**
+
+**What changed**
+- **`/home/user/geo-discovery-zone/e2e/README.md`**:
+  - **Three new rows**: `map-click.spec.ts`, `first-load.spec.ts` and `first-load-head.spec.ts`. They go before the `app.ts` row, so the `quiz.spec.ts`, `progress.spec.ts` and `app.ts` rows are byte-identical.
+  - **One new paragraph** at the end of `## How they are written`. It contains `pageerror`, `console.error`, `reportError` and `E-33`.
+- **`/home/user/geo-discovery-zone/tasks/T-117-e2e-readme-spec-table.md`**: Status `awaiting verification`, Next step `tester`, my Sessions row, a full Handoff with a criterion table, and my Notes.
+
+**Checks**
+- **Criterion 1**: comparing `ls e2e/tests/` with the table's first column shows no difference.
+- **Criterion 2**: I matched each clause of the `map-click` row to an assertion in its single test. That mapping is in the Handoff.
+- **`question-bank` tests**: 229 pass, 0 fail.
+- **`frontend` tests**: 6 fail to load with `Cannot find package 'react-simple-maps'`.
+  - The sandbox proxy returns 403 on the d3 tarballs, so `bun install` cannot finish.
+  - My change is not the cause: the result is the same with my edit stashed.
+- **e2e, typecheck, lint**: not run. The e2e suite needs the docker stack, and no code changed.
+- **Tests made stale**: none.
+
+**Flags for later roles**
+- **Criterion 4 and the run log**: read literally, criterion 4 also catches `runs/T-117-e2e-readme-spec-table.md`. The orchestrator added that file in `d98f9e8`, and the exclusion list does not name `runs/`.
+  - **Tester** to confirm it is the expected orchestrator artifact, not a scope breach.
+  - **Process owner** to decide whether future light briefs should exclude `runs/` too.
+- **Shared session id**: the expander and I both ran in session `cse_011oDiJfZc4iaqo64UcGBTnV`. The tester's session must differ from it.
+- **Two stale passages left alone, as the brief says**: the `app.ts` row still says "Every selector in the suite", and the "map cannot fill in on a child's first day" paragraph is unchanged. **Reviewer** to decide whether either becomes a `tasks.md` entry.
