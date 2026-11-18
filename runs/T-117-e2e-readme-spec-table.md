@@ -1,7 +1,7 @@
 # T-117 — `e2e/README.md`'s spec table lists two of five specs — run log
 
 **Task:** T-117 · **Branch:** `claude/keen-goodall-29lj4e` · **PR:** #150
-**Started:** 2026-11-18 · **Outcome:** in progress
+**Started:** 2026-11-18 · **Outcome:** ready for merge
 
 ## Round 1 — task-expander — 2026-11-18
 `Next step` on entry: `none (no brief)` → on exit: `worker`
@@ -91,3 +91,47 @@ Unattended-run stamp written into the brief's `Approved:` line.
 The brief now has Status `pass`, Next step `reviewer`, my Sessions row and the Verdict. I pushed it as `e25287c` to `claude/keen-goodall-29lj4e`, and `origin/claude/keen-goodall-29lj4e` now points at that commit.
 
 File: /home/user/geo-discovery-zone/tasks/T-117-e2e-readme-spec-table.md
+
+## Round 4 — reviewer — 2026-11-18
+`Next step` on entry: `reviewer` → on exit: brief swept (deleted); PR #150 marked ready
+
+**TL;DR: I approved T-117. The sweep is pushed, and PR #150 is marked ready, with no escalation. It is routine: a person only needs to merge it. I did not merge.**
+
+- **PR:** https://github.com/Dkaattae/geo-discovery-zone/pull/150. It is open, not draft, `mergeable_state: clean`, and the head is `9b1b471`.
+- **Push:** it landed on `claude/keen-goodall-29lj4e`. The local HEAD and origin are both `9b1b4710b84708c4fa8b7c4018d5b7a46bcbb2c1`.
+- **CI on the head is all green:** backend, backend (postgres), frontend, question-bank, integration, e2e (playwright), and the waiting-on-human check.
+
+**Review**
+- **Every role has its commit in the PR**, and each touched only its own files:
+  - expander: `4b16b9a` and `feef08b`, `tasks/` only
+  - worker: `a145417`, `e2e/README.md` plus the brief
+  - tester: `e25287c`, the brief only
+  - orchestrator: `runs/` only
+- **The diff is 10 added lines in `e2e/README.md` and none removed.**
+  - I checked the three new rows myself against `e2e/tests/map-click.spec.ts:125-230` and `e2e/tests/first-load*.spec.ts`. Every claim has an assertion behind it.
+  - The new `pageerror` paragraph is accurate and points to E-33.
+- **Inside the envelope:**
+  - `Test changes: none` and `CI fix: none`.
+  - No dependency.
+  - No `openapi.yaml`, migration or plan change.
+  - No text a child reads.
+  - No product decision.
+- **The brief was approved by the orchestrator's unattended stamp**, so no person read the criteria before the work was built. The PR body says so; it is the D-3 trade, not a reason to escalate.
+
+**Where each flag went** (nothing blocks):
+- **New T-118** in `tasks.md` takes two stale things in `e2e/README.md` that criterion 4 froze:
+  - the `app.ts` row's "Every selector in the suite";
+  - the "map cannot fill in on a child's first day" paragraph, which still says "at most two questions per state" and points to T-050.
+- **T-056 amended** to re-check that paragraph when it lands.
+- **`runs/` missing from criterion 4's exclusion list:** already owned by P-6, so nothing new was queued.
+- **The tester's independence:** already owned by P-14.
+
+**Sweep, in commit `9b1b471`:**
+- `tasks/T-117-e2e-readme-spec-table.md` deleted. My `## Review` section is preserved in commit `0c9c848`, before the deletion.
+- `tasks.md`: T-117 removed, T-118 added, T-056 amended, and a line added to the sweep log.
+- `PROGRESS.md`: T-117 logged under Completed tasks, and T-048's entry now says "was T-117 (PR #150)".
+
+**Files:**
+- /home/user/geo-discovery-zone/tasks.md
+- /home/user/geo-discovery-zone/PROGRESS.md
+- /home/user/geo-discovery-zone/e2e/README.md
