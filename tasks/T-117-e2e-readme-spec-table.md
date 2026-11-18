@@ -1,7 +1,7 @@
 # T-117 — `e2e/README.md`'s spec table lists two of five specs
 
-**Status:** `pass`
-**Next step:** `reviewer`
+**Status:** `approved`
+**Next step:** `human` (merge PR #150)
 **Approved:** orchestrator — 2026-11-18, unattended run. See `runs/T-117-e2e-readme-spec-table.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -18,6 +18,7 @@ draft** until the reviewer approves it.
 | task-expander | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV |
 | worker | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV |
 | tester | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV (orchestrated; fresh subagent context) |
+| reviewer | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV (orchestrated; fresh subagent context) |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). Size `S`,
 > one file, documentation only; it touches no `openapi.yaml`, migration,
@@ -178,3 +179,25 @@ Tester, 2026-11-18.
 **Suite.** `question-bank`: `bun test` gave 229 pass, 0 fail. I did not run frontend, e2e, typecheck or lint: no code changed. The worker reports a pre-existing frontend load failure in this sandbox (`react-simple-maps` missing after proxy 403s), which has nothing to do with this diff.
 
 **Tests added:** none, as the brief's Notes direct. **Mutations:** none; the deliverable is not tests. **Pre-existing tests changed:** none.
+
+## Review
+
+Reviewer, 2026-11-18.
+
+**TL;DR: approved, inside the envelope. Ten added lines in `e2e/README.md`, nothing removed, every claim checked against the specs. Two stale bits next to the edit go to a new task, T-118; nothing blocks.**
+
+- **Every role's commit is in the PR.** Expander `4b16b9a`/`feef08b`, worker `a145417`, tester `e25287c`, orchestrator `d98f9e8`/`e33fbda`/`9b72fab`.
+- **Each role stayed in its lane.** The expander touched only `tasks/`. The tester touched only the brief. The worker touched `e2e/README.md` and the brief. The orchestrator touched `runs/` and the stamp line.
+- **It fits the file.** The new rows use the table's existing wording style. The new paragraph opens with a bold lead, as its three neighbours do.
+- **The rows are true.** I read them against `map-click.spec.ts:125-230` and `first-load*.spec.ts`. Every clause has an assertion behind it, and none is missing.
+- **The paragraph is true.** It matches the record in `PROGRESS.md` (T-048) and E-33. It links E-33 instead of restating it.
+- **Scope held.** The diff has 0 removed lines in `e2e/README.md`. No dependency, no spec, no child-facing text.
+
+**Flags, disposed of:**
+
+- **The `app.ts` row's "Every selector in the suite" is false** (`map-click.spec.ts:25` defines its own `TAPPABLE`). Not blocking. It goes to **new T-118**.
+- **"The map cannot fill in on a child's first day" (`e2e/README.md:72-79`) is stale.** It says "at most two questions per state" and points at T-050. T-026 made that false. Not blocking. It also goes to **T-118**: it is false today, whatever T-056 decides, so it should not wait for T-056. T-056 gets a one-line note to re-check the paragraph when it lands.
+- **Criterion 4 does not exclude `runs/`.** The orchestrator's run log is expected, not a scope breach. Already owned by **P-6** in `process-tasks.md` (its "`runs/` belongs in the excluding list" bullet), so nothing new is queued.
+- **Tester independence rests on the subagent spawn.** That is already **P-14**. Nothing new.
+
+**Envelope:** the tester passed. `Test changes: none` and `CI fix: none`. No file changed outside the Constraints (`runs/` is the orchestrator's). No dependency, no `openapi.yaml`, migration or plan change, and no child-facing text. No product decision. The diff is small. CI on the PR head has to be green before the PR is marked ready.
