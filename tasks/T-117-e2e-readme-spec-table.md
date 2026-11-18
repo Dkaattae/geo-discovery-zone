@@ -1,7 +1,7 @@
 # T-117 — `e2e/README.md`'s spec table lists two of five specs
 
-**Status:** `awaiting approval`
-**Next step:** `worker`
+**Status:** `awaiting verification`
+**Next step:** `tester`
 **Approved:** orchestrator — 2026-11-18, unattended run. See `runs/T-117-e2e-readme-spec-table.md`.
 **Test changes:** `none`
 **CI fix:** `none`
@@ -16,6 +16,7 @@ draft** until the reviewer approves it.
 | Role | Date | Session |
 |---|---|---|
 | task-expander | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV |
+| worker | 2026-11-18 | cse_011oDiJfZc4iaqo64UcGBTnV |
 
 > **Light brief** (`process.md`, "The light path, for S-sized tasks"). Size `S`,
 > one file, documentation only; it touches no `openapi.yaml`, migration,
@@ -84,7 +85,76 @@ Expander, 2026-11-18. In place of the dropped sections:
   test reads `e2e/README.md`). A shape check for criterion 1 may be done by hand;
   no new test file is expected, and none should be added to a CI suite.
 - **Dependencies:** none.
+- **Worker, 2026-11-18.**
+  - **Row order**: the new rows go before `app.ts`, which stays last. This keeps the
+    specs together, with the helper module at the end.
+  - **No surprises**: the brief matched the code. `collectHydrationErrors` already
+    listens on both `console` and `pageerror`.
 
 ## Handoff
+
+Worker, 2026-11-18.
+
+**TL;DR: `e2e/README.md` now has six table rows, one per file in `e2e/tests/`, and a
+`pageerror` paragraph under "How they are written". It is a docs-only change, so no test
+reads it. Next is the tester, who checks criteria 1–4 by reading the file.**
+
+**Same session id as the expander.** The orchestrator ran both roles in the session
+`cse_011oDiJfZc4iaqo64UcGBTnV`. The tester's session must differ from it.
+
+### What changed
+
+- **`e2e/README.md`**: the only file touched.
+  - It gains three table rows: `map-click.spec.ts`, `first-load.spec.ts` and
+    `first-load-head.spec.ts`. They sit between the `progress.spec.ts` row and the
+    `app.ts` row, so all three existing rows are byte-identical.
+  - It gains one paragraph at the end of `## How they are written`, just before
+    `## Two things the suite found`.
+- **This brief**: Status, Next step, Sessions row, Handoff, Notes.
+
+### Criteria
+
+| # | Where | Evidence |
+|---|---|---|
+| 1 | Table under "Why these and not more backend tests" | `diff <(ls e2e/tests/) <(awk '/^\| File \|/{f=1;next} f&&/^\|---/{next} f&&/^\|/{print} f&&!/^\|/{exit}' e2e/README.md \| sed -E 's/^\| `([^`]+)`.*/\1/' \| sort)` prints nothing. Six rows, no duplicates. |
+| 2 | The three new rows | **`first-load.spec.ts`**: "both signed out … and signed in". This matches its two `test(...)` names. **`first-load-head.spec.ts`**: title and meta description. This matches `toHaveTitle` and the description `content` check. **`map-click.spec.ts`**: contains `map_click`. Each clause matches an assertion in its single test (detail below). |
+| 3 | Final paragraph of `## How they are written` | It contains `pageerror`, `console.error`, `reportError` and `E-33`. It also names `collectHydrationErrors` in `app.ts`. |
+| 4 | `git diff main -- . ':!tasks' ':!tasks.md' ':!PROGRESS.md'` | `e2e/README.md` plus `runs/T-117-e2e-readme-spec-table.md` (see Contradictions). |
+
+**Each `map-click.spec.ts` clause, and the assertion behind it:**
+
+- **"every state is a keyboard control"**: `TAPPABLE` count equals the drawn count, and none has a `tabindex` other than 0 (comment "25").
+- **"one tap sends one answer"**: Enter sends exactly one `{questionId, tappedGeometryId}`. Clicks during the reveal send nothing. The tap on the answer sends exactly one (comments 25/26, 27, 26/28).
+- **"the reveal names and draws the answer apart from the tapped state"**: the banner reads "The answer is …". Exactly one `--map-correct` fill, and exactly two one-of-a-kind drawings (comments 29, 30).
+- **"Next waits"**: `toBeDisabled` and then `toBeEnabled` (comment 31).
+- **"undo reopens the map"**: after the undo click, every state is tappable and all states are drawn alike (comment 32).
+
+### Deliberately not done
+
+- **The `app.ts` row's "Every selector in the suite" is still wrong.** `map-click.spec.ts` has its own `TAPPABLE`. Criterion 4 keeps the row frozen, so I left it.
+- **The stale "map cannot fill in on a child's first day" paragraph is unchanged.** It is outside the table and outside "How they are written".
+- **Reviewer to decide** whether either stale item becomes a `tasks.md` entry, as the expander's Notes propose.
+
+### Contradictions with the brief
+
+- **Criterion 4, read literally, also catches `runs/T-117-e2e-readme-spec-table.md`.**
+  - The orchestrator added it in `d98f9e8` ("T-117 orchestrator: run log…").
+  - The criterion's exclusion list names `tasks/`, `tasks.md` and `PROGRESS.md`, but not `runs/`.
+  - The worker did not add the file. It is the run log that the loop writes for every orchestrated task.
+  - **Tester to confirm** this is the expected orchestrator artifact and not a scope breach. **Process owner** to decide whether future light briefs should exclude `runs/` too.
+
+### How to run
+
+- **No code changed.** The checks are the `diff` command above and reading the file.
+- **`question-bank`**: `bun test` gives 229 pass, 0 fail.
+- **`frontend`**: `bun test` gives 6 load errors (`Cannot find package 'react-simple-maps'`).
+  - Cause: `bun install` gets proxy 403s on d3 tarballs in this sandbox.
+  - My change did not cause them: the result is the same with my edit stashed.
+- **e2e**: not run. It needs the docker stack, and no spec changed.
+- **Typecheck and lint**: not run. No TypeScript or Python changed.
+
+### Tests made stale
+
+None.
 
 ## Verdict

@@ -26,6 +26,9 @@ child the wrong thing while the API was right all along.
 |---|---|
 | `quiz.spec.ts` | Sign-in (and a wrong password refused), sign-up, **every quiz type played through**, the asymmetric reveal, the summary that counts places rather than scoring, and no timers anywhere |
 | `progress.spec.ts` | Progress is logged and survives a full sign-out: level, map, and one profile's progress not leaking into a sibling's |
+| `map-click.spec.ts` | A `map_click` question played in a real browser: every state is a keyboard control, one tap sends one answer, the reveal names and draws the answer apart from the tapped state, Next waits, and undo reopens the map |
+| `first-load.spec.ts` | No hydration error on first load, both signed out (nothing stored) and signed in (a token and a last-picked profile stored) |
+| `first-load-head.spec.ts` | The page title and meta description on first load |
 | `app.ts` | Every selector in the suite, and the flows built from them |
 
 ## How they are written
@@ -47,6 +50,13 @@ so a selector that breaks usually means the screen got harder to use. The one
 exception is `data-variant` on `Button`, which says what a button *is* rather
 than what it looks like; picking the answers out by Tailwind classes would break
 on any restyle.
+
+**A hydration guard listens on `pageerror` as well as `console.error`.** React
+19's production build reports a recovered hydration mismatch through
+`reportError`, so Playwright sees it as a `pageerror`, not a `console.error`; a
+guard that listened only to the console would pass with the bug present.
+`collectHydrationErrors` in `app.ts` listens on both. Found by planting a
+mismatch on purpose (`engineering-decisions.md` E-33).
 
 ## Two things the suite found
 
