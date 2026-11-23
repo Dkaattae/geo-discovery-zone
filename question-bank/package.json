@@ -7,6 +7,7 @@
     "build": "bun run src/build.ts",
     "refresh": "bun run src/refresh.ts",
     "questions": "bun run src/write-questions.ts",
+    "census": "bun run src/census/fetch-largest-city.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives --format default src",
     "format": "bun run src/prettier-pin-guard.ts && prettier --write \"src/**/*.ts\"",
