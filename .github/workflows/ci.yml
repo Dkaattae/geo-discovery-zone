@@ -1,21 +1,105 @@
 name: CI
 
-# Every pull request targeting the default branch, and every push to it.
+# Kept inside GitHub's free tier of Actions minutes. Three lanes, one file (the
+# action-pinning test in frontend/src/ci-action-pinning.test.ts reads this file):
+#
+#   pull request -> the critical checks only: `frontend` and `backend` (SQLite),
+#                   each only when its own folder (or this file) changed, and
+#                   `question-bank` only when question-bank/ changed. Draft PRs
+#                   run nothing: the loop pushes many commits to a draft, and
+#                   CI runs once the PR is marked ready, and on every push after.
+#   daily        -> `backend-postgres`, `integration`, `e2e`, plus `frontend`
+#                   and `backend` -- but only if main got a commit in the last
+#                   day. A quiet day costs one tiny job.
+#   monthly      -> `question-bank`. The snapshot lane is monthly too, in
+#                   snapshot-tests.yml.
+#
+# Any lane can be run by hand: Actions tab -> CI -> "Run workflow" runs all
+# seven jobs. No `push: main` trigger: the PR already ran, and the daily run
+# covers main.
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Daily, 05:23 UTC.
+    - cron: "23 5 * * *"
+    # Monthly, 05:41 UTC on the 1st. Keep in step with the `monthly` check below.
+    - cron: "41 5 1 * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
+
+# A new push to a PR cancels the run still going on the old one.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}-${{ github.event.schedule || github.event_name }}
+  cancel-in-progress: true
 
 # One job per package. `question-bank` pins typescript@^7 and `frontend` pins
 # ^5.8, with different tsconfig.json files, so `tsc` is never run over both at
 # once. Separate jobs also mean a red package does not hide the other one.
 jobs:
+  # Decides which jobs this run needs. Uses the API, not a deep checkout, so it
+  # finishes in seconds.
+  plan:
+    name: plan (what to run)
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      frontend: ${{ steps.plan.outputs.frontend }}
+      backend: ${{ steps.plan.outputs.backend }}
+      question_bank: ${{ steps.plan.outputs.question_bank }}
+      daily: ${{ steps.plan.outputs.daily }}
+    steps:
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          frontend=false backend=false question_bank=false daily=false
+          case "$EVENT" in
+            workflow_dispatch)
+              frontend=true backend=true question_bank=true daily=true ;;
+            schedule)
+              if [[ $SCHEDULE == "41 5 1 * *" ]]; then
+                question_bank=true
+              else
+                since=$(date -u -d '25 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+                n=$(gh api "repos/$REPO/commits?sha=main&since=$since&per_page=1" --jq length)
+                if [[ $n -gt 0 ]]; then
+                  frontend=true backend=true daily=true
+                else
+                  echo "no commits on main since $since -- skipping the daily run"
+                fi
+              fi ;;
+            pull_request)
+              files=$(gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename')
+              echo "$files"
+              grep -qE '^\.github/workflows/ci\.yml$' <<<"$files" && frontend=true backend=true question_bank=true
+              grep -qE '^frontend/' <<<"$files" && frontend=true
+              grep -qE '^backend/' <<<"$files" && backend=true
+              grep -qE '^question-bank/' <<<"$files" && question_bank=true
+              true ;;
+          esac
+          {
+            echo "frontend=$frontend"
+            echo "backend=$backend"
+            echo "question_bank=$question_bank"
+            echo "daily=$daily"
+          } | tee -a "$GITHUB_OUTPUT"
+
   frontend:
     name: frontend (typecheck, lint, test)
+    needs: plan
+    if: needs.plan.outputs.frontend == 'true'
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -101,6 +185,9 @@ jobs:
 
   question-bank:
     name: question-bank (typecheck, lint, test)
+    needs: plan
+    if: needs.plan.outputs.question_bank == 'true'
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -158,6 +245,9 @@ jobs:
   # move, then run the checks independently so one red step does not hide another.
   backend:
     name: backend (lint, format, test)
+    needs: plan
+    if: needs.plan.outputs.backend == 'true'
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -210,10 +300,13 @@ jobs:
           uv run pytest
 
   # Postgres is a supported backend, so it is tested rather than assumed. Same
-  # suite, different URL — a dialect-specific regression fails a PR instead of a
-  # deployment.
+  # suite, different URL — runs daily, so a dialect-specific regression is
+  # caught within a day instead of at deployment.
   backend-postgres:
     name: backend (postgres)
+    needs: plan
+    if: needs.plan.outputs.daily == 'true'
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -265,11 +358,13 @@ jobs:
   # tests the code; this tests the Dockerfile, the compose file, the frontend
   # build and the container's Postgres — the parts a unit test cannot reach.
   #
-  # Slow by nature (a full frontend build plus an image build), so it runs last
-  # and on its own. If it is ever the reason PRs feel slow, move it to a
-  # schedule rather than deleting it: nothing else covers this ground.
+  # Slow by nature (a full frontend build plus an image build), so it runs on
+  # the daily schedule, not on pull requests. Nothing else covers this ground.
   integration:
     name: integration (docker compose)
+    needs: plan
+    if: needs.plan.outputs.daily == 'true'
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -294,9 +389,12 @@ jobs:
         run: docker compose -p atlas-integration -f docker-compose.yml logs --no-color --tail 200
 
   # The only job that opens a browser. Slow — a frontend build, an image build
-  # and thirteen full user journeys — so it runs on its own and last.
+  # and every user journey — so it runs on the daily schedule only.
   e2e:
     name: e2e (playwright)
+    needs: plan
+    if: needs.plan.outputs.daily == 'true'
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     defaults:
       run:
