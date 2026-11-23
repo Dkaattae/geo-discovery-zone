@@ -109,10 +109,21 @@ owns the schema.
 
 ## CI
 
-Every pull request against `main`, and every push to `main`, runs
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) as six independent
-jobs: `frontend`, `question-bank`, `backend`, `backend-postgres`,
-`integration`, `e2e`. Each installs from a frozen lockfile. `frontend`,
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) holds seven jobs:
+`plan`, `frontend`, `question-bank`, `backend`, `backend-postgres`,
+`integration`, `e2e`. To stay inside the free tier of Actions minutes they do
+not all run every time; `plan` decides which run:
+
+- **Pull request** (not while draft): `frontend` and `backend` (SQLite), each
+  only when its folder changed; `question-bank` only when `question-bank/`
+  changed. A change to `ci.yml` itself runs all three. Docs-only PRs run nothing.
+- **Daily** (if `main` got a commit in the last 25 hours): `frontend`,
+  `backend`, `backend-postgres`, `integration`, `e2e`.
+- **Monthly**: `question-bank`, plus the snapshot lane in
+  `.github/workflows/snapshot-tests.yml`.
+- **By hand**: "Run workflow" on the Actions tab runs every job.
+
+Each job installs from a frozen lockfile. `frontend`,
 `question-bank`, `backend` and `e2e` additionally check that the lockfile did
 not move before running their checks independently, so one red step never
 hides another; `backend-postgres` and `integration` install with `--frozen`

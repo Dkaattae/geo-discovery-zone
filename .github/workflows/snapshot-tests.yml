@@ -22,6 +22,7 @@ jobs:
   question-bank-snapshots:
     name: question-bank (snapshot lane)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: question-bank
@@ -53,6 +54,7 @@ jobs:
   frontend-snapshots:
     name: frontend (snapshot lane)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend
@@ -83,6 +85,7 @@ jobs:
   backend-snapshots:
     name: backend (snapshot lane)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
